@@ -55,7 +55,8 @@ interface AppStates {
 	uploads: any,
 	downloads: any,
 	uploadsCount: number,
-	downloadsCount: number
+	downloadsCount: number,
+	settings: any
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -90,7 +91,10 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			uploads: {},
 			downloads: {},
 			uploadsCount: 0,
-			downloadsCount: 0
+			downloadsCount: 0,
+			settings: {
+				onlyWifi: false
+			}
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)

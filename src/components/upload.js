@@ -1,6 +1,6 @@
-import { call } from "ionicons/icons"
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
+import { Capacitor, Plugins } from "@capacitor/core"
 
 const utils = require("../utils/utils")
 
@@ -109,6 +109,16 @@ export async function uploadChunk(uuid, queryParams, data, tries, maxTries, call
 }
 
 export async function queueFileUpload(file){
+	if(Capacitor.isNative){
+        if(this.state.settings.onlyWifi){
+            let networkStatus = await Plugins.Network.getStatus()
+
+            if(networkStatus.connectionType !== "wifi"){
+                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+            }
+        }
+    }
+
     if(file.size <= 0){
         return this.spawnToast(language.get(this.state.lang, "uploadInvalidFileSize", true, ["__NAME__"], [file.name]))
 	}

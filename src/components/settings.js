@@ -8,6 +8,8 @@ const utils = require("../utils/utils")
 export async function openSettingsModal(){
     let appLang = this.state.lang
     let appDarkMode = this.state.darkMode
+    let appSettings = this.state.settings
+    let appState = this.state
     let modalId = "settings-modal-" + utils.generateRandomClassName()
 
     customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -27,11 +29,63 @@ export async function openSettingsModal(){
                 </ion-header>
                 <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
                     <ion-list>
+                        <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsAccountHeader") + `
+                            </ion-label>
+                        </ion-item-divider>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + appState.userEmail + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.customFunctions.doLogout()">
+                                    ` + language.get(appLang, "logoutBtn") + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsAccountUsage") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="none">
+                                    ` + appState.userStorageUsageMenuText + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsAccountPro") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                ` + (appState.userMaxStorage >= 107374182400 ? `
+                                    <ion-button fill="none">
+                                        <ion-icon slot="icon-only" icon="` + Ionicons.checkbox + `"></ion-icon>
+                                    </ion-button>
+                                ` : `
+                                    <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.open("https://filen.io/pro", "_system"); return false;">
+                                        ` + language.get(appLang, "settingsAccountGoPro") + `
+                                    </ion-button>
+                                `) + `
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsGeneralHeader") + `
+                            </ion-label>
+                        </ion-item-divider>
                         <ion-item lines="none">
                             <ion-label>
                                 ` + language.get(appLang, "darkMode") + `
                             </ion-label>
                             <ion-toggle slot="end" id="settings-dark-mode-toggle" onClick="window.customFunctions.settingsToggleDarkMode()" ` + (appDarkMode && "checked") + `></ion-toggle>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "onlyUseWifiForDownloads") + `
+                            </ion-label>
+                            <ion-toggle slot="end" id="settings-only-wifi-toggle" onClick="window.customFunctions.toggleOnlyWifi()" ` + (appSettings.onlyWifi && "checked") + `></ion-toggle>
                         </ion-item>
                     </ion-list>
                 </ion-content>

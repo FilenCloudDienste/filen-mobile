@@ -88,6 +88,7 @@ export async function doSetup(){
     let getUserPrivateKey = await Plugins.Storage.get({ key: "userPrivateKey" })
     let getOfflineSavedFiles = await Plugins.Storage.get({ key: "offlineSavedFiles" })
     let getAPICache = await Plugins.Storage.get({ key: "apiCache" })
+    let getSettings = await Plugins.Storage.get({ key: "settings" })
 
     if(getLang.value){
         this.setState({
@@ -139,13 +140,22 @@ export async function doSetup(){
     }
     else{
         if(getIsLoggedIn.value == "true"){
+            let settings = {
+                onlyWifi: false
+            }
+
+            if(typeof getSettings.value == "string"){
+                settings = JSON.parse(getSettings.value)
+            }
+
             this.setState({
                 userAPIKey: getUserAPIKey.value,
                 userEmail: getUserEmail.value,
                 userMasterKeys: JSON.parse(getUserMasterKeys.value),
                 userPublicKey: getUserPublicKey.value,
                 userPrivateKey: getUserPrivateKey.value,
-                isLoggedIn: true
+                isLoggedIn: true,
+                settings: settings
             })
 
             if(getOfflineSavedFiles.value == null){

@@ -1,7 +1,6 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor, FilesystemDirectory, Plugins } from "@capacitor/core"
-import { call } from "ionicons/icons"
 
 const utils = require("../utils/utils")
 
@@ -185,7 +184,17 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
     })
 }
 
-export function queueFileDownload(file){
+export async function queueFileDownload(file){
+    if(Capacitor.isNative){
+        if(this.state.settings.onlyWifi){
+            let networkStatus = await Plugins.Network.getStatus()
+
+            if(networkStatus.connectionType !== "wifi"){
+                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+            }
+        }
+    }
+
     for(let prop in window.customVariables.downloads){
 		if(window.customVariables.downloads[prop].name == file.name){
 			return this.spawnToast(language.get(this.state.lang, "fileDownloadAlreadyDownloadingFile", true, ["__NAME__"], [file.name]))
@@ -444,6 +453,16 @@ export function queueFileDownload(file){
 }
 
 export async function downloadPreview(file, progressCallback, callback){
+    if(Capacitor.isNative){
+        if(this.state.settings.onlyWifi){
+            let networkStatus = await Plugins.Network.getStatus()
+
+            if(networkStatus.connectionType !== "wifi"){
+                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+            }
+        }
+    }
+
     let dataArray = []
 	let currentIndex = -1
 	let currentWriteIndex = 0

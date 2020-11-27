@@ -589,8 +589,6 @@ export async function selectItemsAction(event){
 			<ion-list>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(appLang, "selectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.unselectAllItems()">` + language.get(appLang, "unselectAll") + `</ion-item>
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.downloadSelectedItems()">` + language.get(appLang, "downloadItem") + `</ion-item>
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.shareSelectedItems()">` + language.get(appLang, "shareItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.moveSelectedItems()">` + language.get(appLang, "moveItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.trashSelectedItems()">` + language.get(appLang, "trashItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
@@ -642,7 +640,7 @@ export async function previewItem(item){
 			return this.spawnItemActionSheet(item)
 		}
 
-		if(item.size > ((1024 * 1024) * 128)){
+		if(item.size > ((1024 * 1024) * 32)){
 			return this.spawnItemActionSheet(item)
 		}
 

@@ -507,6 +507,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.openEncryptionModal = async () => {
         let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
         let modalId = "encryption-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -525,7 +526,24 @@ export function setupWindowFunctions(){
                         </ion-toolbar>
                     </ion-header>
                     <ion-content fullscreen>
-                        encryption
+                        <ion-list>
+                            <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                                <ion-label>
+                                    ` + language.get(appLang, "encryptionModalHeader") + `
+                                </ion-label>
+                            </ion-item-divider>
+                            <ion-item lines="none" style="padding-top: 10px;">
+                                ` + language.get(appLang, "encryptionModalFirstText") + `
+                            </ion-item>
+                            <ion-item-divider style="padding-top: 15px; --background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                                <ion-label>
+                                    ` + language.get(appLang, "encryptionModalHeaderHowItWorks") + `
+                                </ion-label>
+                            </ion-item-divider>
+                            <ion-item lines="none" style="padding-top: 10px;">
+                                ` + language.get(appLang, "encryptionModalHowItWorksText") + `
+                            </ion-item>
+                        </ion-list>
                     </ion-content>
                 `
             }
@@ -635,5 +653,112 @@ export function setupWindowFunctions(){
                 document.location.href = "index.html"
             })
         }
+    }
+
+    window.customFunctions.saveSettings = async (newSettings) => {
+        await Plugins.Storage.set({ key: "settings", value: JSON.stringify(newSettings) })
+
+        return this.setState({
+            settings: newSettings
+        })
+    }
+
+    window.customFunctions.toggleOnlyWifi = () => {
+        let newSettings = this.state.settings
+        let newVal = !newSettings.onlyWifi
+
+        newSettings.onlyWifi = newVal
+
+        document.getElementById("settings-only-wifi-toggle").checked = !newVal
+
+        return window.customFunctions.saveSettings(newSettings)
+    }
+
+    window.customFunctions.doLogout = async () => {
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "logoutAlertHeader"),
+            message: language.get(this.state.lang, "logoutConfirmation"),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "alertOkButton"),
+                    handler: async () => {
+                        await Plugins.Storage.remove({ key: "isLoggedIn" })
+                        await Plugins.Storage.remove({ key: "userAPIKey" })
+                        await Plugins.Storage.remove({ key: "userEmail" })
+                        await Plugins.Storage.remove({ key: "userMasterKeys" })
+                        await Plugins.Storage.remove({ key: "userPublicKey" })
+                        await Plugins.Storage.remove({ key: "userPrivateKey" })
+                        await Plugins.Storage.remove({ key: "offlineSavedFiles" })
+                        await Plugins.Storage.remove({ key: "apiCache" })
+
+                        return document.location.href = "index.html"
+                    }
+                }
+            ]
+        })
+
+        return alert.present()
+    }
+
+    window.customFunctions.emptyTrash = async () => {
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "emptyTrashHeader"),
+            message: language.get(this.state.lang, "emptyTrashWarning"),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "alertOkButton"),
+                    handler: async () => {
+                        let loading = await loadingController.create({
+                            message: ""
+                        })
+
+                        loading.present()
+
+                        try{
+                            var res = await utils.apiRequest("POST", "/v1/trash/empty", {
+                                apiKey: this.state.userAPIKey
+                            })
+                        }
+                        catch(e){
+                            console.log(e)
+
+                            loading.dismiss()
+
+                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                        }
+
+                        if(!res.status){
+                            console.log(res.message)
+
+                            loading.dismiss()
+
+                            return this.spawnToast(res.message)
+                        }
+
+                        loading.dismiss()
+
+                        this.updateItemList()
+
+                        return this.spawnToast(language.get(this.state.lang, "trashEmptied"))
+                    }
+                }
+            ]
+        })
+
+        return alert.present()
     }
 }

@@ -293,6 +293,12 @@ export function render(){
               </IonButtons>
             <IonTitle>{this.state.selectedItems} item{this.state.selectedItems == 1 ? "" : "s"}</IonTitle>
             <IonButtons slot="end">
+                <IonButton onClick={() => window.customFunctions.shareSelectedItems()}>
+                    <IonIcon slot="icon-only" icon={Ionicons.shareSocial} />
+                </IonButton>
+                <IonButton onClick={() => window.customFunctions.downloadSelectedItems()}>
+                    <IonIcon slot="icon-only" icon={Ionicons.cloudDownload} />
+                </IonButton>
                 <IonButton onClick={this.selectItemsAction}>
                     <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
                 </IonButton>
@@ -353,20 +359,29 @@ export function render(){
         )
     )
 
-    let bottomFab = this.state.currentHref.indexOf("base") !== -1 && (
-        <IonFab vertical="bottom" horizontal="end" slot="fixed" onClick={() => this.mainFabAction()}>
-            <IonFabButton>
-                <IonIcon icon={Ionicons.add} />
-            </IonFabButton>
-        </IonFab>
-    )
+    let bottomFab = undefined
+
+    if(window.location.href.indexOf("trash") !== -1){
+        bottomFab = <IonFab vertical="bottom" horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
+                        <IonFabButton color="danger">
+                            <IonIcon icon={Ionicons.trash} />
+                        </IonFabButton>
+                    </IonFab>
+    }
+    else{
+        bottomFab = <IonFab vertical="bottom" horizontal="end" slot="fixed" onClick={() => this.mainFabAction()}>
+                        <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
+                            <IonIcon icon={Ionicons.add} />
+                        </IonFabButton>
+                    </IonFab>
+    }
 
     let transfersUploads = Object.keys(this.state.uploads).map((key) => {
         return (
             <IonItem lines="none" key={key}>
                 <IonIcon slot="start" icon={Ionicons.arrowUp}></IonIcon>
                 <IonLabel>{this.state.uploads[key].name}</IonLabel>
-                <IonBadge slot="end">
+                <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
                     {
                         this.state.uploads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.uploads[key].progress + "%"
                     }
@@ -380,7 +395,7 @@ export function render(){
             <IonItem lines="none" key={key}>
                 <IonIcon slot="start" icon={Ionicons.arrowDown}></IonIcon>
                 <IonLabel>{this.state.downloads[key].name}</IonLabel>
-                <IonBadge slot="end">
+                <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
                     {
                         this.state.downloads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.downloads[key].progress + "%"
                     }
@@ -403,7 +418,7 @@ export function render(){
                             <IonAvatar style={{
                                 margin: "0px auto"
                             }}>
-                                <img src="https://gravatar.com/avatar/dba6bae8c566f9d4041fb9cd9ada7741?d=identicon&f=y" />
+                                <img src="assets/img/icon.png" />
                             </IonAvatar>
                             <br />
                             <IonText style={{
@@ -413,7 +428,7 @@ export function render(){
                             </IonText>
                             <br />
                             <br />
-                            <IonProgressBar value={this.state.userStorageUsagePercentage}></IonProgressBar>
+                            <IonProgressBar color="primary" value={this.state.userStorageUsagePercentage}></IonProgressBar>
                             <div style={{
                                 width: "100%",
                                 color: this.state.darkMode ? "white" : "black",
@@ -435,7 +450,7 @@ export function render(){
                                                     window.open("https://filen.io/pro", "_system")
                                                     
                                                     return false
-                                                }} color="primary" style={{
+                                                }} color={this.state.darkMode ? "dark" : "light"} style={{
                                                     fontSize: "7pt"
                                                 }}>
                                                     {language.get(this.state.lang, "goProBadge")}
