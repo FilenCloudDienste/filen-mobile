@@ -615,6 +615,16 @@ export async function previewItem(item){
 		return false
 	}
 
+	if(Capacitor.isNative){
+        if(this.state.settings.onlyWifi){
+            let networkStatus = await Plugins.Network.getStatus()
+
+            if(networkStatus.connectionType !== "wifi"){
+                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+            }
+        }
+    }
+
 	if(typeof window.customVariables.offlineSavedFiles[item.uuid] !== "undefined"){
 		this.getDownloadDir(true, item.uuid, (err, dirObj) => {
 			if(err){
@@ -1660,6 +1670,75 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 	}
 }
 
+export async function shareSelectedItems(){
+	let items = await this.getSelectedItems()
+
+	window.customFunctions.dismissPopover()
+	window.customFunctions.unselectAllItems()
+
+	let alert = await alertController.create({
+        header: language.get(this.state.lang, "shareItems"),
+        inputs: [
+            {
+                type: "text",
+                id: "share-items-email-input",
+				name: "share-items-email-input",
+				placeholder: language.get(this.state.lang, "receiverEmail")
+            }
+        ],
+        buttons: [
+            {
+                text: language.get(this.state.lang, "cancel"),
+                role: "cancel",
+                handler: () => {
+                    return false
+                }
+            },
+            {
+                text: language.get(this.state.lang, "alertOkButton"),
+                handler: async (inputs) => {
+					let email = inputs['share-items-email-input']
+
+					let itemsShared = 0
+
+					let loading = await loadingController.create({
+						message: ""
+					})
+
+					loading.present()
+
+					for(let i = 0; i < items.length; i++){
+						let item = items[i]
+
+						if(item.type == "folder" && item.uuid == "default"){
+							this.spawnToast(language.get(this.state.lang, "cannotShareDefaultFolder"))
+						}
+						else{
+							this.shareItemWithEmail(email, item.uuid, item.type, (err) => {
+								if(err){
+									console.log(err)
+	
+									this.spawnToast(err.toString())
+								}
+	
+								itemsShared += 1
+	
+								if(itemsShared >= items.length){
+									loading.dismiss()
+
+									return this.spawnToast(language.get(this.state.lang, "itemsShared", true, ["__COUNT__", "__EMAIL__"], [items.length, email]))
+								}
+							})
+						}
+					}
+                }
+            }
+        ]
+    })
+
+    return alert.present()
+}
+
 export async function shareItem(item){
 	if(item.type == "folder" && item.uuid == "default"){
 		return this.spawnToast(language.get(this.state.lang, "cannotShareDefaultFolder"))
@@ -1706,7 +1785,38 @@ export async function shareItem(item){
 }
 
 export async function openPublicLinkModal(item){
+	let loading = await loadingController.create({
+		message: ""
+	})
+
+	loading.present()
+
+	try{
+		var res = await utils.apiRequest("POST", "/v1/link/status", {
+			apiKey: this.state.userAPIKey,
+			fileUUID: item.uuid
+		})
+	}
+	catch(e){
+		console.log(e)
+
+		loading.dismiss()
+
+		return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+	}
+
+	if(!res.status){
+		console.log(res.message)
+
+		loading.dismiss()
+
+		return this.spawnToast(res.message)
+	}
+
+	loading.dismiss()
+
 	let appLang = this.state.lang
+	let appDarkMode = this.state.darkMode
 	let modalId = "public-link-modal-" + utils.generateRandomClassName()
 
 	customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -1724,8 +1834,33 @@ export async function openPublicLinkModal(item){
 						</ion-title>
 					</ion-toolbar>
 				</ion-header>
-				<ion-content fullscreen>
-					public link
+				<ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+					<div id="enable-public-link-content" ` + (res.data.enabled && `style="display: none;"`) + `>
+						<div style="position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%); width: 100%;"> 
+							<center>
+								<ion-icon icon="` + Ionicons.link + `" style="font-size: 65pt; color: ` + (appDarkMode ? "white" : "gray") + `;"></ion-icon>
+								<br>
+								<br>
+								<ion-button color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable')">` + language.get(appLang, "enablePublicLink") + `</ion-button>	
+							</center>
+						</div>
+					</div>
+					<div id="public-link-enabled-content" ` + (!res.data.enabled && `style="display: none;"`) + `>
+						<ion-item lines="none">
+							<ion-label>
+								` + language.get(appLang, "publicLinkEnabled") + `
+							</ion-label>
+							<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'disable')" checked></ion-toggle>
+						</ion-item>
+						<ion-item lines="none">
+							<ion-input type="text" id="public-link-input" onClick="window.customFunctions.copyPublicLinkToClipboard()" value="https://filen.io/d/` + res.data.uuid + `#!` + item.key + `" disabled></ion-input>
+                            <ion-buttons slot="end" onClick="window.customFunctions.copyPublicLinkToClipboard()">
+                                <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
+                                    ` + language.get(appLang, "copy") + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+					</div>
 				</ion-content>
 			`
 		}
@@ -1733,13 +1868,13 @@ export async function openPublicLinkModal(item){
 
 	let modal = await modalController.create({
 		component: modalId,
-		swipeToClose: true,
+		swipeToClose: false,
 		showBackdrop: false,
 		backdropDismiss: false,
 		cssClass: "modal-fullscreen"
 	})
 
-	modal.present()
+	return modal.present()
 }
 
 export function makeItemAvailableOffline(offline, item){

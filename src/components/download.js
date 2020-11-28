@@ -453,16 +453,6 @@ export async function queueFileDownload(file){
 }
 
 export async function downloadPreview(file, progressCallback, callback){
-    if(Capacitor.isNative){
-        if(this.state.settings.onlyWifi){
-            let networkStatus = await Plugins.Network.getStatus()
-
-            if(networkStatus.connectionType !== "wifi"){
-                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
-            }
-        }
-    }
-
     let dataArray = []
 	let currentIndex = -1
 	let currentWriteIndex = 0

@@ -1,4 +1,4 @@
-import { Plugins } from "@capacitor/core"
+import { Capacitor, Plugins } from "@capacitor/core"
 import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons';
@@ -525,7 +525,7 @@ export function setupWindowFunctions(){
                             </ion-title>
                         </ion-toolbar>
                     </ion-header>
-                    <ion-content fullscreen>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
                         <ion-list>
                             <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
                                 <ion-label>
@@ -628,6 +628,10 @@ export function setupWindowFunctions(){
 
     window.customFunctions.downloadSelectedItems = () => {
         return this.downloadSelectedItems()
+    }
+
+    window.customFunctions.shareSelectedItems = () => {
+        return this.shareSelectedItems()
     }
 
     window.customFunctions.settingsToggleDarkMode = async () => {
@@ -760,5 +764,81 @@ export function setupWindowFunctions(){
         })
 
         return alert.present()
+    }
+
+    window.customFunctions.editItemPublicLink = async (itemJSON, type) => {
+        let item = JSON.parse(window.atob(itemJSON))
+        let linkUUID = utils.uuidv4()
+
+        let loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+
+        try{
+            var res = await utils.apiRequest("POST", "/v1/link/edit", {
+                apiKey: this.state.userAPIKey,
+                uuid: linkUUID,
+                fileUUID: item.uuid,
+                expiration: "never",
+                password: "empty",
+                passwordHashed: utils.hashFn("empty"),
+                downloadBtn: "enable",
+                type: type
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            loading.dismiss()
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            console.log(res.message)
+    
+            loading.dismiss()
+    
+            return this.spawnToast(res.message)
+        }
+
+        loading.dismiss()
+
+        document.getElementById("public-link-enabled-toggle").checked = true
+        document.getElementById("public-link-input").value = "https://filen.io/d/" + linkUUID + "#!" + item.key
+
+        if(type == "enable"){
+            document.getElementById("enable-public-link-content").style.display = "none"
+            document.getElementById("public-link-enabled-content").style.display = "block"
+        }
+        else{
+            document.getElementById("enable-public-link-content").style.display = "block"
+            document.getElementById("public-link-enabled-content").style.display = "none"
+        }
+
+        return true
+    }
+
+    window.customFunctions.copyPublicLinkToClipboard = async () => {
+        if(!Capacitor.isNative){
+            return false
+        }
+
+        try{
+            let link = document.getElementById("public-link-input").value
+
+            await Plugins.Clipboard.write({
+                url: link
+            })
+        }
+        catch(e){
+            console.log(e)
+
+            return this.spawnToast(language.get(this.state.lang, "couldNotCopyToClipboard")) 
+        }
+
+        return this.spawnToast(language.get(this.state.lang, "copiedToClipboard")) 
     }
 }
