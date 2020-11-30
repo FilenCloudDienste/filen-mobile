@@ -39,8 +39,8 @@ export async function openSettingsModal(){
                                 ` + appState.userEmail + `
                             </ion-label>
                             <ion-buttons slot="end">
-                                <ion-button color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.customFunctions.doLogout()">
-                                    ` + language.get(appLang, "logoutBtn") + `
+                                <ion-button color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.open("https://filen.io/my-account/file-manager/settings", "_system"); return false;">
+                                    ` + language.get(appLang, "accountSettings") + `
                                 </ion-button>
                             </ion-buttons>
                         </ion-item>
@@ -92,6 +92,14 @@ export async function openSettingsModal(){
                             <ion-select id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert" ionChange="console.log('yes')">
                                 <ion-select-option value="en">English</ion-select-option>
                             </ion-select>
+                        </ion-item>
+                        <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsAppHeader") + `
+                            </ion-label>
+                        </ion-item-divider>
+                        <ion-item lines="none">
+                            <a onClick="window.customFunctions.doLogout()">` + language.get(appLang, "settingsLogoutBtn", true, ["__EMAIL__"], [appState.userEmail]) + `</a>
                         </ion-item>
                     </ion-list>
                 </ion-content>

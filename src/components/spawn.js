@@ -98,7 +98,15 @@ export async function spawnRenamePrompt(item, callback){
         ]
     })
 
-    return alert.present()
+    await alert.present()
+
+    setTimeout(() => {
+        try{
+            document.querySelector("ion-alert input").focus()
+        } catch(e){ }
+    }, 500)
+
+    return true
 }
 
 export async function mainFabAction(){
@@ -199,6 +207,14 @@ export async function mainFabAction(){
                                             return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
                                         }
 
+                                        if(!res.status){
+                                            console.log(res.message)
+
+                                            loading.dismiss()
+
+                                            return this.spawnToast(res.message)
+                                        }
+
                                         loading.dismiss()
 
                                         this.spawnToast(language.get(this.state.lang, "folderCreated", true, ["__NAME__"], [name]))
@@ -214,7 +230,15 @@ export async function mainFabAction(){
                         ]
                     })
                 
-                    return alert.present()
+                    await alert.present()
+
+                    setTimeout(() => {
+                        try{
+                            document.querySelector("ion-alert input").focus()
+                        } catch(e){ }
+                    }, 500)
+
+                    return true
                 }
             },
             {

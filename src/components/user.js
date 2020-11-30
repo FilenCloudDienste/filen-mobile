@@ -33,6 +33,10 @@ export async function updateUserKeys(){
 
             console.log(res.message)
 
+            if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+                return window.customFunctions.logoutUser()
+            }
+
             return false
         }
 
@@ -67,6 +71,10 @@ export async function updateUserKeys(){
             }
 
             console.log(res.message)
+
+            if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+                return window.customFunctions.logoutUser()
+            }
 
             return false
         }
@@ -182,6 +190,10 @@ export async function updateUserKeys(){
     }
 
     if(!res.status){
+        if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+            return window.customFunctions.logoutUser()
+        }
+
         return console.log(res.message)
     }
 
@@ -238,6 +250,10 @@ export async function updateUserUsage(){
 
     if(!res.status){
         console.log(res.message)
+
+        if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+            return window.customFunctions.logoutUser()
+        }
 
         return false
     }

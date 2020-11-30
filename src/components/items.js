@@ -797,9 +797,9 @@ export async function previewItem(item){
 
 			await modal.present()
 
-			this.setupStatusbar("image/video")
-
 			if(previewType == "image" || previewType == "video"){
+				this.setupStatusbar("image/video")
+
 				modal.onDidDismiss().then(() => {
 					this.setupStatusbar()
 				})
@@ -1748,7 +1748,15 @@ export async function shareSelectedItems(){
         ]
     })
 
-    return alert.present()
+    await alert.present()
+
+	setTimeout(() => {
+		try{
+			document.querySelector("ion-alert input").focus()
+		} catch(e){ }
+	}, 500)
+
+	return true
 }
 
 export async function shareItem(item){
@@ -1793,7 +1801,15 @@ export async function shareItem(item){
         ]
     })
 
-    return alert.present()
+    await alert.present()
+
+	setTimeout(() => {
+		try{
+			document.querySelector("ion-alert input").focus()
+		} catch(e){ }
+	}, 500)
+
+	return true
 }
 
 export async function openPublicLinkModal(item){

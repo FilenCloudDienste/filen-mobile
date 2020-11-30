@@ -355,6 +355,27 @@ export function setupWindowFunctions(){
 
             window.customFunctions.dismissLoader()
 
+            if(res.message == "Account not yet activated."){
+                let alert = await alertController.create({
+                    header: "",
+                    subHeader: "",
+                    message: language.get(this.state.lang, "loginAccountNotActivated"),
+                    buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                })
+    
+                return alert.present()
+            }
+            else if(res.message == "Account not found."){
+                let alert = await alertController.create({
+                    header: "",
+                    subHeader: "",
+                    message: language.get(this.state.lang, "loginAccountNotFound"),
+                    buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                })
+    
+                return alert.present()
+            }
+
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
@@ -372,7 +393,6 @@ export function setupWindowFunctions(){
 
         window.customFunctions.dismissLoader(true)
         window.customFunctions.dismissModal(true)
-
         window.customFunctions.dismissLoader()
 
         document.getElementById("login-email").value = ""
@@ -687,6 +707,19 @@ export function setupWindowFunctions(){
         return window.customFunctions.saveSettings(newSettings)
     }
 
+    window.customFunctions.logoutUser = async () => {
+        await Plugins.Storage.remove({ key: "isLoggedIn" })
+        await Plugins.Storage.remove({ key: "userAPIKey" })
+        await Plugins.Storage.remove({ key: "userEmail" })
+        await Plugins.Storage.remove({ key: "userMasterKeys" })
+        await Plugins.Storage.remove({ key: "userPublicKey" })
+        await Plugins.Storage.remove({ key: "userPrivateKey" })
+        await Plugins.Storage.remove({ key: "offlineSavedFiles" })
+        await Plugins.Storage.remove({ key: "apiCache" })
+
+        return document.location.href = "index.html"
+    }
+
     window.customFunctions.doLogout = async () => {
         let alert = await alertController.create({
             header: language.get(this.state.lang, "logoutAlertHeader"),
@@ -701,17 +734,8 @@ export function setupWindowFunctions(){
                 },
                 {
                     text: language.get(this.state.lang, "alertOkButton"),
-                    handler: async () => {
-                        await Plugins.Storage.remove({ key: "isLoggedIn" })
-                        await Plugins.Storage.remove({ key: "userAPIKey" })
-                        await Plugins.Storage.remove({ key: "userEmail" })
-                        await Plugins.Storage.remove({ key: "userMasterKeys" })
-                        await Plugins.Storage.remove({ key: "userPublicKey" })
-                        await Plugins.Storage.remove({ key: "userPrivateKey" })
-                        await Plugins.Storage.remove({ key: "offlineSavedFiles" })
-                        await Plugins.Storage.remove({ key: "apiCache" })
-
-                        return document.location.href = "index.html"
+                    handler: () => {
+                        return window.customFunctions.logoutUser()
                     }
                 }
             ]
