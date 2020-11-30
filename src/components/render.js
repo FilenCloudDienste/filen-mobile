@@ -293,9 +293,13 @@ export function render(){
               </IonButtons>
             <IonTitle>{this.state.selectedItems} item{this.state.selectedItems == 1 ? "" : "s"}</IonTitle>
             <IonButtons slot="end">
-                <IonButton onClick={() => window.customFunctions.shareSelectedItems()}>
-                    <IonIcon slot="icon-only" icon={Ionicons.shareSocial} />
-                </IonButton>
+                {
+                    window.location.href.indexOf("trash") == -1 && (
+                        <IonButton onClick={() => window.customFunctions.shareSelectedItems()}>
+                            <IonIcon slot="icon-only" icon={Ionicons.shareSocial} />
+                        </IonButton>
+                    )
+                }
                 <IonButton onClick={() => window.customFunctions.downloadSelectedItems()}>
                     <IonIcon slot="icon-only" icon={Ionicons.cloudDownload} />
                 </IonButton>
@@ -428,7 +432,7 @@ export function render(){
                             </IonText>
                             <br />
                             <br />
-                            <IonProgressBar color="primary" value={this.state.userStorageUsagePercentage}></IonProgressBar>
+                            <IonProgressBar color="primary" value={(this.state.userStorageUsagePercentage / 10)}></IonProgressBar>
                             <div style={{
                                 width: "100%",
                                 color: this.state.darkMode ? "white" : "black",
@@ -473,22 +477,28 @@ export function render(){
                                     <IonIcon slot="start" icon={Ionicons.cloud}></IonIcon>
                                     <IonLabel>{language.get(this.state.lang, "myCloud")}</IonLabel>
                                 </IonItem>
-                                <IonItem button lines="none" onClick={() => {
-                                    window.customFunctions.hideSidebarMenu()
-                                    
-                                    return this.routeTo("/shared-in")
-                                }}>
-                                    <IonIcon slot="start" icon={Ionicons.folderOpen}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "sharedWithMe")}</IonLabel>
-                                </IonItem>
-                                <IonItem button lines="none" onClick={() => {
-                                    window.customFunctions.hideSidebarMenu()
-                                    
-                                    return this.routeTo("/shared-out")
-                                }}>
-                                    <IonIcon slot="start" icon={Ionicons.folder}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "currentlySharing")}</IonLabel>
-                                </IonItem>
+                                {
+                                    (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0) && (
+                                        <div>
+                                            <IonItem button lines="none" onClick={() => {
+                                                window.customFunctions.hideSidebarMenu()
+                                                
+                                                return this.routeTo("/shared-in")
+                                            }}>
+                                                <IonIcon slot="start" icon={Ionicons.folderOpen}></IonIcon>
+                                                <IonLabel>{language.get(this.state.lang, "sharedWithMe")}</IonLabel>
+                                            </IonItem>
+                                            <IonItem button lines="none" onClick={() => {
+                                                window.customFunctions.hideSidebarMenu()
+                                                
+                                                return this.routeTo("/shared-out")
+                                            }}>
+                                                <IonIcon slot="start" icon={Ionicons.folder}></IonIcon>
+                                                <IonLabel>{language.get(this.state.lang, "currentlySharing")}</IonLabel>
+                                            </IonItem>
+                                        </div>
+                                    )
+                                }
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
@@ -556,7 +566,9 @@ export function render(){
                         <IonContent style={{
                             height: (this.state.windowHeight - 56) + "px",
                             width: this.state.windowWidth + "px",
-                            "--background": this.state.darkMode ? "#1E1E1E" : "white"
+                            "--background": this.state.darkMode ? "#1E1E1E" : "white",
+                            outline: "none",
+                            border: "none"
                         }}>
                             {
                                 this.state.itemList.length == 0 && this.state.mainSearchTerm.trim().length > 0 ? (
@@ -672,6 +684,10 @@ export function render(){
                                             rowHeight={72}
                                             overscanRowCount={3}
                                             rowRenderer={rowRenderer}
+                                            style={{
+                                                outline: "none",
+                                                border: "none"
+                                            }}
                                         ></List>
                                     )
                                 )

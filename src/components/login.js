@@ -1,20 +1,33 @@
 import * as language from "../utils/language"
 import { Plugins, Capacitor } from "@capacitor/core"
 import { modalController } from "@ionic/core"
+import * as Ionicons from 'ionicons/icons'
 
 const utils = require("../utils/utils")
 
 export async function showLogin(){
     let appLang = this.state.lang
+    let appDarkMode = this.state.darkMode
     let modalId = "login-modal-" + utils.generateRandomClassName()
 
     customElements.define(modalId, class ModalContent extends HTMLElement {
         connectedCallback(){
             this.innerHTML = `
+                <ion-header class="ion-header-no-shadow" style="--background: transparent;">
+                    <ion-toolbar style="--background: transparent;">
+                        <ion-buttons slot="end">
+                            <ion-button onClick="window.customFunctions.loginToggleDarkMode()">
+                                <ion-icon slot="icon-only" icon="` + (appDarkMode ? Ionicons.sunny : Ionicons.moon) + `"></ion-icon>
+                            </ion-button>
+                        </ion-buttons>
+                    </ion-toolbar>
+                </ion-header>
                 <ion-content fullscreen>
                     <div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
                         <center>
-                            <h1>Filen</h1>
+                            <ion-avatar>
+                                <img src="assets/img/icon.png">
+                            </ion-avatar>
                             <ion-item style="width: 90%; margin-top: 30px;">
                                 <ion-input type="text" id="login-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
                             </ion-item>
@@ -45,7 +58,13 @@ export async function showLogin(){
         cssClass: "modal-fullscreen"
     })
 
-    modal.present()
+    await modal.present()
+
+    this.setupStatusbar("login/register")
+
+	modal.onDidDismiss().then(() => {
+        this.setupStatusbar()
+    })
 
     if(Capacitor.isNative){
         Plugins.SplashScreen.hide()

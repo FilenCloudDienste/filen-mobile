@@ -87,6 +87,12 @@ export async function openSettingsModal(){
                             </ion-label>
                             <ion-toggle slot="end" id="settings-only-wifi-toggle" onClick="window.customFunctions.toggleOnlyWifi()" ` + (appSettings.onlyWifi && "checked") + `></ion-toggle>
                         </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>` + language.get(appLang, "settingsLanguage") + `</ion-label>
+                            <ion-select id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert" ionChange="console.log('yes')">
+                                <ion-select-option value="en">English</ion-select-option>
+                            </ion-select>
+                        </ion-item>
                     </ion-list>
                 </ion-content>
             `
@@ -101,5 +107,35 @@ export async function openSettingsModal(){
         cssClass: "modal-fullscreen"
     })
 
-    return modal.present()
+    await modal.present()
+
+    clearInterval(window.customVariables.selectLangInterval)
+
+    window.customVariables.selectLangInterval = setInterval(async () => {
+        if(typeof document.getElementById("settings-lang-select") == "undefined"){
+            return clearInterval(window.customVariables.selectLangInterval)
+        }
+
+        if(document.getElementById("settings-lang-select") == null){
+            return clearInterval(window.customVariables.selectLangInterval)
+        }
+
+        if(typeof document.getElementById("settings-lang-select").value == "undefined"){
+            return clearInterval(window.customVariables.selectLangInterval)
+        }
+
+        let selectedLang = document.getElementById("settings-lang-select").value
+
+        if(selectedLang !== appLang){
+            if(language.isAvailable(selectedLang)){
+                clearInterval(window.customVariables.selectLangInterval)
+
+                await Plugins.Storage.set({ key: "lang", value: selectedLang })
+
+                return document.location.href = "index.html"
+            }
+        }
+    }, 100)
+
+    return true
 }

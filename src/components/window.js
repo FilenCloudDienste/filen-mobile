@@ -92,25 +92,9 @@ export function setupWindowFunctions(){
     window.customVariables.urlCreator = window.URL || window.webkitURL
     window.customVariables.currentPreviewURL = undefined
     window.customVariables.reloadAfterActionTimeout = undefined
-    window.customVariables.previewHeaderHideTimeout = undefined
     window.customVariables.nextNativeToastAllowed = Math.floor((+new Date()) / 1000)
     window.customVariables.apiCache = {}
-
-    document.addEventListener("click", (e) => {
-        if(document.getElementsByClassName("preview-header-hidden").length > 0){
-            try{
-                document.getElementsByClassName("preview-header-hidden")[0].style.display = "block"
-            } catch(e){ }
-
-            clearTimeout(window.customVariables.previewHeaderHideTimeout)
-
-            window.customVariables.previewHeaderHideTimeout = setTimeout(() => {
-                try{
-                    document.getElementsByClassName("preview-header-hidden")[0].style.display = "none"
-                } catch(e){ }
-            }, 5000)
-        }
-    }, true)
+    window.customVariables.selectLangInterval = undefined
 
     window.onresize = () => {
         this.setState({
@@ -630,6 +614,10 @@ export function setupWindowFunctions(){
         return this.downloadSelectedItems()
     }
 
+    window.customFunctions.storeSelectedItemsOffline = () => {
+        return this.storeSelectedItemsOffline()
+    }
+
     window.customFunctions.shareSelectedItems = () => {
         return this.shareSelectedItems()
     }
@@ -650,6 +638,27 @@ export function setupWindowFunctions(){
             await Plugins.Storage.set({ key: "darkMode", value: "true" })
 
             document.getElementById("settings-dark-mode-toggle").checked = true
+
+            return this.setState({
+                darkMode: true
+            }, () => {
+                document.location.href = "index.html"
+            })
+        }
+    }
+
+    window.customFunctions.loginToggleDarkMode = async () => {
+        if(this.state.darkMode){
+            await Plugins.Storage.set({ key: "darkMode", value: "false" })
+
+            return this.setState({
+                darkMode: false
+            }, () => {
+                document.location.href = "index.html"
+            })
+        }
+        else{
+            await Plugins.Storage.set({ key: "darkMode", value: "true" })
 
             return this.setState({
                 darkMode: true

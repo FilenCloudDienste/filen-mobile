@@ -67,18 +67,36 @@ export function getAPIServer(){
     return servers[getRandomArbitrary(0, (servers.length - 1))]
 }
 
+export function fetchWithTimeout(ms, promise) {
+    return new Promise((resolve, reject) => {
+        let timer = setTimeout(() => {
+            return reject(new Error("Request timeout after " + ms + "ms"))
+        }, ms)
+
+        promise.then((value) => {
+            clearTimeout(timer)
+            
+            return resolve(value)
+        }).catch((err) => {
+            clearTimeout(timer)
+
+            return reject(err)
+        })
+    })
+}
+
 export function apiRequest(method, endpoint, data = {}){
     return new Promise((resolve, reject) => {
         let cacheKey = method + endpoint
 
-        fetch(getAPIServer() + endpoint, {
+        fetchWithTimeout(15000, fetch(getAPIServer() + endpoint, {
             method: method.toUpperCase(),
             cache: "no-cache",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(data)
-        }).then((response) => {
+        })).then((response) => {
             response.json().then((obj) => {
                 if(endpoint == "/v1/dir/content"
                 || endpoint == "/v1/user/baseFolders"

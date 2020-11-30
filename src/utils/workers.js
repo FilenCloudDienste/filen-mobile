@@ -6285,6 +6285,8 @@ decryptionWorker.forEach((worker) => {
 
 const createUtilWorker = () => {
 	let blob = new Blob([`
+		const window = self
+
 		function base64ArrayBuffer(arrayBuffer) {
 		  var base64    = ''
 		  var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -6338,7 +6340,7 @@ const createUtilWorker = () => {
 		}
 
 		function _base64ToArrayBuffer(base64) {
-			var binary_string = window.atob(base64);
+			var binary_string = self.atob(base64);
 			var len = binary_string.length;
 			var bytes = new Uint8Array(len);
 			for (var i = 0; i < len; i++) {

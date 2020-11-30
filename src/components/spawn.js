@@ -252,7 +252,7 @@ export async function mainFabAction(){
                         })
 
                         blob.lastModifiedDate = new Date()
-                        blob.name = "Photo_" + utils.unixTimestamp()
+                        blob.name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpeg"
 
                         return this.queueFileUpload(blob)
                     })

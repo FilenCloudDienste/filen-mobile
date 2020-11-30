@@ -154,6 +154,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	stopSharingSelectedItems = itemsComponents.stopSharingSelectedItems.bind(this)
 	downloadSelectedItems = itemsComponents.downloadSelectedItems.bind(this)
 	shareSelectedItems = itemsComponents.shareSelectedItems.bind(this)
+	storeSelectedItemsOffline = itemsComponents.storeSelectedItemsOffline.bind(this)
 
     spawnToast = spawnComponents.spawnToast.bind(this)
     spawnMoveToast = spawnComponents.spawnMoveToast.bind(this)

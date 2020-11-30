@@ -589,6 +589,7 @@ export async function selectItemsAction(event){
 			<ion-list>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(appLang, "selectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.unselectAllItems()">` + language.get(appLang, "unselectAll") + `</ion-item>
+				<ion-item lines="none" detail="false" button onClick="window.customFunctions.storeSelectedItemsOffline()">` + language.get(appLang, "storeSelectedItemsOffline") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.moveSelectedItems()">` + language.get(appLang, "moveItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.trashSelectedItems()">` + language.get(appLang, "trashItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
@@ -633,10 +634,11 @@ export async function previewItem(item){
 				return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
 			}
 
-			FileOpener.open(dirObj.uri + "/" + item.name, item.mime).then(() => {
-				console.log(dirObj.uri + "/" + item.name)
+			FileOpener.open(dirObj.uri.uri + "/" + item.name, item.mime).then(() => {
+				console.log(dirObj.uri.uri + "/" + item.name, item.mime)
 			}).catch((err) => {
 				console.log(err)
+				console.log(dirObj.uri.uri + "/" + item.name, item.mime)
 
 				return this.spawnToast(language.get(this.state.lang, "noAppFoundToOpenFile", true, ["__NAME__"], [item.name]))
 			})
@@ -667,7 +669,7 @@ export async function previewItem(item){
 
 			if(previewType == "image"){
 				previewModalContent = `
-					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute; display: none;">
+					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute;">
 						<ion-toolbar style="--background: transparent; color: white;">
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -695,7 +697,7 @@ export async function previewItem(item){
 			}
 			else if(previewType == "video"){
 				previewModalContent = `
-					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute; display: none;">
+					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute;">
 						<ion-toolbar style="--background: transparent; color: white;">
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -789,11 +791,21 @@ export async function previewItem(item){
 				swipeToClose: true,
 				showBackdrop: false,
 				backdropDismiss: false,
-				mode: (previewType == "image" || previewType == "video" ? "ios" : "md"),
+				mode: (previewType == "image" || previewType == "video" ? "md" : "md"),
 				cssClass: "modal-fullscreen"
 			})
 
-			return modal.present()
+			await modal.present()
+
+			this.setupStatusbar("image/video")
+
+			if(previewType == "image" || previewType == "video"){
+				modal.onDidDismiss().then(() => {
+					this.setupStatusbar()
+				})
+			}
+
+			return true
 		}
 
 		let loading = await loadingController.create({
@@ -2085,6 +2097,23 @@ export async function downloadSelectedItems(){
 	return true
 }
 
+export async function storeSelectedItemsOffline(){
+	let items = await this.getSelectedItems()
+
+	window.customFunctions.dismissPopover()
+	window.customFunctions.unselectAllItems()
+
+	for(let i = 0; i < items.length; i++){
+		let item = items[i]
+
+		item.makeOffline = true
+
+		this.queueFileDownload(item)
+	}
+
+	return true
+}
+
 export async function spawnItemActionSheet(item){
 	let buttons = undefined
 
@@ -2147,7 +2176,7 @@ export async function spawnItemActionSheet(item){
 			buttons = [
 				{
 					text: language.get(this.state.lang, "shareItem"),
-					icon: Ionicons.share,
+					icon: Ionicons.shareSocial,
 					handler: () => {
 						return this.shareItem(item)
 					}
@@ -2299,7 +2328,7 @@ export async function spawnItemActionSheet(item){
 			buttons = [
 				{
 					text: language.get(this.state.lang, "shareItem"),
-					icon: Ionicons.share,
+					icon: Ionicons.shareSocial,
 					handler: () => {
 						window.customFunctions.dismissModal()
 	

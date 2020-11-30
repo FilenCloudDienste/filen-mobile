@@ -50,27 +50,58 @@ export function setupListeners(){
     }
 }
 
-export async function setupStatusbar(){
+export async function setupStatusbar(type = "normal"){
     if(Capacitor.isNative){
-        if(this.state.darkMode){
+        if(type == "normal"){
+            if(this.state.darkMode){
+                Plugins.StatusBar.setBackgroundColor({
+                    color: "#1F1F1F"
+                })
+                
+                Plugins.StatusBar.setStyle({
+                    style: StatusBarStyle.Dark
+                })
+            }
+            else{
+                Plugins.StatusBar.setBackgroundColor({
+                    color: "#ffffff"
+                })
+                
+                Plugins.StatusBar.setStyle({
+                    style: StatusBarStyle.Light
+                })
+            }
+        }
+        else if(type == "image/video"){
             Plugins.StatusBar.setBackgroundColor({
-                color: "#1F1F1F"
+                color: "#000000"
             })
             
             Plugins.StatusBar.setStyle({
                 style: StatusBarStyle.Dark
             })
         }
-        else{
-            Plugins.StatusBar.setBackgroundColor({
-                color: "#ffffff"
-            })
-            
-            Plugins.StatusBar.setStyle({
-                style: StatusBarStyle.Light
-            })
+        else if(type == "login/register"){
+            if(this.state.darkMode){
+                Plugins.StatusBar.setBackgroundColor({
+                    color: "#121212"
+                })
+                
+                Plugins.StatusBar.setStyle({
+                    style: StatusBarStyle.Dark
+                })
+            }
+            else{
+                Plugins.StatusBar.setBackgroundColor({
+                    color: "#ffffff"
+                })
+                
+                Plugins.StatusBar.setStyle({
+                    style: StatusBarStyle.Light
+                })
+            }
         }
-        
+
         Plugins.StatusBar.setOverlaysWebView({
             overlay: false
         })
@@ -99,14 +130,19 @@ export async function doSetup(){
         window.customVariables.lang = getLang.value
     }
     else{
-        //window.Capacitor.Plugins.Device.getLanguageCode() instead of "en"
+        let deviceLang = await Plugins.Device.getLanguageCode()
+        let defaultLang = "en"
+
+        if(language.isAvailable(deviceLang.value)){
+            defaultLang = deviceLang.value
+        }
 
         this.setState({
-            lang: "en",
-            mainToolbarTitle: language.get("en", "myCloud")
+            lang: defaultLang,
+            mainToolbarTitle: language.get(defaultLang, "myCloud")
         })
 
-        window.customVariables.lang = "en"
+        window.customVariables.lang = defaultLang
     }
 
     if(getDarkMode.value == null){
@@ -180,7 +216,7 @@ export async function doSetup(){
     if(Capacitor.isNative){
         setTimeout(() => {
             Plugins.SplashScreen.hide()
-        }, 1000)
+        }, 500)
     }
 
     window.customVariables.apiKey = getUserAPIKey.value

@@ -7,13 +7,14 @@ const utils = require("../utils/utils")
 
 export async function showRegister(){
     let appLang = this.state.lang
+    let appDarkMode = this.state.darkMode
     let modalId = "register-modal-" + utils.generateRandomClassName()
 
     customElements.define(modalId, class ModalContent extends HTMLElement {
         connectedCallback(){
             this.innerHTML = `
-                <ion-header class="ion-header-no-shadow">
-                    <ion-toolbar>
+                <ion-header class="ion-header-no-shadow" style="--background: transparent;">
+                    <ion-toolbar style="--background: transparent;">
                         <ion-buttons>
                             <ion-button onClick="window.customFunctions.dismissModal()">
                                 <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -24,7 +25,9 @@ export async function showRegister(){
                 <ion-content fullscreen>
                     <div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
                         <center>
-                            <h1>Filen</h1>
+                            <ion-avatar>
+                                <img src="assets/img/icon.png">
+                            </ion-avatar>
                             <ion-item style="width: 90%; margin-top: 30px;">
                                 <ion-input type="text" id="register-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
                             </ion-item>
@@ -55,5 +58,5 @@ export async function showRegister(){
         cssClass: "modal-fullscreen"
     })
 
-    modal.present()
+    return modal.present()
 }

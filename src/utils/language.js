@@ -1,8 +1,8 @@
 let translations = {}
 
 translations['en'] = {}
-translations['nl'] = {}
 translations['de'] = {}
+translations['nl'] = {}
 translations['sv'] = {}
 
 translations['en']['close'] = "Close"
@@ -151,7 +151,7 @@ translations['en']['encryptionModalHeader'] = "The importance of privacy and fil
 translations['en']['encryptionModalFirstText'] = "We all have this information, these very private files that we don't want to share with anyone. Work-related or personal documents, pictures and videos - everything is important and we deserve digital privacy! That is why we have developed a function that enables this ultimate data protection."
 translations['en']['encryptionModalHeaderHowItWorks'] = "How Filen works"
 translations['en']['encryptionModalHowItWorksText'] = "As you may already know, Filen is the most secure way of storing files. But how does it work? Well, it's quite simple. When you upload a file to Filen's cloud storage, you actually don't upload a file, you upload chunks of encrypted text. Before you initiate an upload, your browser chunks your file into 1 MB pieces, encrypts them using AES encryption and then sends the encrypted string to our servers. That way the actual file never leaves your computer. Even file names and metadata are encrypted. When downloading a file your browser requests all chunks of the file from Filen's servers, decrypts them using the decryption key and then rebuilds the whole file again. This way you can be sure that your file is always secure and not readable by anyone unless they have the decryption key. Not even we know what you have uploaded."
-translations['en']['onlyWifiError'] = "Please enable Wi-Fi"
+translations['en']['onlyWifiError'] = "Please enable Wi-Fi or change your settings"
 translations['en']['shareItems'] = "Share items"
 translations['en']['itemsShared'] = "__COUNT__ items shared with __EMAIL__"
 translations['en']['enablePublicLink'] = "Enable public link"
@@ -160,10 +160,10 @@ translations['en']['link'] = "Link"
 translations['en']['copy'] = "Copy"
 translations['en']['couldNotCopyToClipboard'] = "Could not copy text to clipboard"
 translations['en']['copiedToClipboard'] = "Copied to clipboard"
-translations['en']['alertOkButton'] = "OK"
-translations['en']['alertOkButton'] = "OK"
-translations['en']['alertOkButton'] = "OK"
-translations['en']['alertOkButton'] = "OK"
+translations['en']['settingsLanguage'] = "Language"
+translations['en']['storeSelectedItemsOffline'] = "Make available offline"
+translations['en']['fileAlreadyStoredOffline'] = "__NAME__ is already stored offline"
+translations['en']['photo'] = "Photo"
 translations['en']['alertOkButton'] = "OK"
 translations['en']['alertOkButton'] = "OK"
 translations['en']['alertOkButton'] = "OK"
@@ -246,10 +246,11 @@ module.exports = {
 
         if(!gotText){
             if(translations['en'][text]){
-                return translations['en'][text]
+                gotText = translations['en'][text]
             }
-
-            return "NO_TRANSLATION_FOUND"
+            else{
+                return "NO_TRANSLATION_FOUND"
+            }
         }
 
         if(firstUpperCase){
@@ -265,7 +266,7 @@ module.exports = {
         return gotText
     },
     isAvailable: (lang) => {
-        if(typeof translations[lang] !== "undefined"){
+        if(lang == "en"){
             return true
         }
 

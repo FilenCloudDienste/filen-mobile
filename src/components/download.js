@@ -6,57 +6,136 @@ const utils = require("../utils/utils")
 
 export async function getDownloadDir(makeOffline, fileName, callback){
     if(Capacitor.platform == "android"){
-        let path = "Downloads"
-        let directory = FilesystemDirectory.External
-
         if(makeOffline){
-            path = "OfflineFiles/" + fileName
-        }
+            let path = "OfflineFiles/" + fileName
+            let directory = FilesystemDirectory.External
 
-        try{
-            await Plugins.Filesystem.mkdir({
-                path,
-                directory,
-                recursive: true 
-            })
+            try{
+                await Plugins.Filesystem.mkdir({
+                    path,
+                    directory,
+                    recursive: true 
+                })
 
-            await Plugins.Filesystem.mkdir({
-                path,
-                directory,
-                recursive: true
-            })
+                var uri = await Plugins.Filesystem.getUri({
+                    path,
+                    directory
+                })
 
-            var uri = await Plugins.Filesystem.getUri({
-                path,
-                directory
-            })
+                return callback(null, {
+                    path,
+                    directory,
+                    uri
+                })
+            }
+            catch(e){
+                if(e.message == "Directory exists"){
+                    try{
+                        var uri = await Plugins.Filesystem.getUri({
+                            path,
+                            directory
+                        })
 
-            return callback(null, {
-                path,
-                directory,
-                uri
-            })
-        }
-        catch(e){
-            if(e.message == "Directory exists"){
-                try{
-                    var uri = await Plugins.Filesystem.getUri({
-                        path,
-                        directory
-                    })
-
-                    return callback(null, {
-                        path,
-                        directory,
-                        uri
-                    })
+                        return callback(null, {
+                            path,
+                            directory,
+                            uri
+                        })
+                    }
+                    catch(e){
+                        return callback(e)
+                    }
                 }
-                catch(e){
+                else{
                     return callback(e)
                 }
             }
-            else{
-                return callback(e)
+        }
+        else{
+            let path = "Download"
+            let directory = FilesystemDirectory.ExternalStorage
+
+            try{
+                await Plugins.Filesystem.mkdir({
+                    path,
+                    directory,
+                    recursive: true 
+                })
+
+                var uri = await Plugins.Filesystem.getUri({
+                    path,
+                    directory
+                })
+
+                return callback(null, {
+                    path,
+                    directory,
+                    uri
+                })
+            }
+            catch(e){
+                if(e.message == "Directory exists"){
+                    try{
+                        var uri = await Plugins.Filesystem.getUri({
+                            path,
+                            directory
+                        })
+
+                        return callback(null, {
+                            path,
+                            directory,
+                            uri
+                        })
+                    }
+                    catch(e){
+                        return callback(e)
+                    }
+                }
+                else{
+                    path = "Downloads"
+                    directory = FilesystemDirectory.External
+                    
+                    try{
+                        await Plugins.Filesystem.mkdir({
+                            path,
+                            directory,
+                            recursive: true 
+                        })
+
+                        var uri = await Plugins.Filesystem.getUri({
+                            path,
+                            directory
+                        })
+
+                        return callback(null, {
+                            path,
+                            directory,
+                            uri
+                        })
+                    }
+                    catch(e){
+                        if(e.message == "Directory exists"){
+                            try{
+                                var uri = await Plugins.Filesystem.getUri({
+                                    path,
+                                    directory
+                                })
+
+                                return callback(null, {
+                                    path,
+                                    directory,
+                                    uri
+                                })
+                            }
+                            catch(e){
+                                return callback(e)
+                            }
+                        }
+                        else{
+                            return callback(e)
+                        }
+                    }
+                }
             }
         }
     }
@@ -213,6 +292,10 @@ export async function queueFileDownload(file){
     let fileName = file.name
 
 	if(typeof file.makeOffline !== "undefined"){
+        if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
+            return this.spawnToast(language.get(this.state.lang, "fileAlreadyStoredOffline", true, ["__NAME__"], [file.name]))
+        }
+
         makeOffline = true
         fileName = file.uuid
     }
