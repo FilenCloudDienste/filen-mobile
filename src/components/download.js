@@ -157,10 +157,10 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
     }
 
     await window.customVariables.downloadChunkSemaphore.acquire()
-    
-    fetch(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
+
+    utils.fetchWithTimeout(180000, fetch(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
         method: "GET"
-    }).then((response) => {
+    })).then((response) => {
         response.arrayBuffer().then((res) => {
             try{
                 if(res.byteLength){

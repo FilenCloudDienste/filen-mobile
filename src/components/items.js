@@ -1,7 +1,7 @@
 import * as language from "../utils/language"
 import { loadingController, modalController, popoverController, alertController, actionSheetController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons'
-import { Capacitor, Plugins } from "@capacitor/core"
+import { Capacitor, HapticsImpactStyle, Plugins } from "@capacitor/core"
 import { FileOpener } from "@ionic-native/file-opener"
 
 const utils = require("../utils/utils")
@@ -518,7 +518,11 @@ export function selectItem(type, index){
         if(!items[index].selected){
             items[index].selected = type
             selectedItems = selectedItems + 1
-        }
+		}
+		
+		if(selectedItems == 1){
+			Plugins.Haptics.impact(HapticsImpactStyle.Light)
+		}
     }
     else{
         if(items[index].selected){
@@ -551,6 +555,7 @@ export async function selectItemsAction(event){
 
 	let appLang = this.state.lang
 	let customElementId = utils.generateRandomClassName()
+	let selectedItemsDoesNotContainFolder = utils.selectedItemsDoesNotContainFolder(this.state.itemList)
 	
 	let inner = ""
 
@@ -589,7 +594,7 @@ export async function selectItemsAction(event){
 			<ion-list>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(appLang, "selectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.unselectAllItems()">` + language.get(appLang, "unselectAll") + `</ion-item>
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.storeSelectedItemsOffline()">` + language.get(appLang, "storeSelectedItemsOffline") + `</ion-item>
+				` + (selectedItemsDoesNotContainFolder ? `<ion-item lines="none" detail="false" button onClick="window.customFunctions.storeSelectedItemsOffline()">` + language.get(appLang, "storeSelectedItemsOffline") + `</ion-item>` : ``) + `
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.moveSelectedItems()">` + language.get(appLang, "moveItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.trashSelectedItems()">` + language.get(appLang, "trashItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
@@ -1049,6 +1054,14 @@ export async function renameItem(item){
 		loading.present()
 
 		if(item.type == "file"){
+			newName = utils.removeIllegalCharsFromString(newName)
+
+			if(utils.nameRegex(newName) || utils.checkIfNameIsBanned(newName) || utils.fileNameValidationRegex(newName)){
+				loading.dismiss()
+
+				return this.spawnToast(language.get(this.state.lang, "invalidFileName"))
+			}
+
 			let nameEx = item.name.split(".")
 			let fileExt = nameEx[nameEx.length - 1]
 			let renameWithDot = false
@@ -1154,6 +1167,14 @@ export async function renameItem(item){
 			})
 		}
 		else{
+			newName = utils.removeIllegalCharsFromString(newName)
+
+			if(utils.checkIfNameIsBanned(newName) || utils.folderNameRegex(newName) || utils.fileNameValidationRegex(newName)){
+				loading.dismiss()
+
+				return this.spawnToast(language.get(this.state.lang, "invalidFolderName"))
+			}
+
 			this.dirExists(newName, parent, async (err, exists, existsUUID) => {
 				if(err){
 					loading.dismiss()
@@ -2107,7 +2128,9 @@ export async function downloadSelectedItems(){
 	for(let i = 0; i < items.length; i++){
 		let item = items[i]
 
-		this.queueFileDownload(item)
+		if(item.type == "file"){
+			this.queueFileDownload(item)
+		}
 	}
 
 	return true
@@ -2122,9 +2145,11 @@ export async function storeSelectedItemsOffline(){
 	for(let i = 0; i < items.length; i++){
 		let item = items[i]
 
-		item.makeOffline = true
+		if(item.type == "file"){
+			item.makeOffline = true
 
-		this.queueFileDownload(item)
+			this.queueFileDownload(item)
+		}
 	}
 
 	return true

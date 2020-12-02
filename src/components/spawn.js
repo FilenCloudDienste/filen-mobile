@@ -139,6 +139,12 @@ export async function mainFabAction(){
                                 handler: async (inputs) => {
                                     let name = inputs['new-folder-name-input']
 
+                                    name = utils.removeIllegalCharsFromString(name)
+
+                                    if(utils.checkIfNameIsBanned(name) || utils.folderNameRegex(name) || utils.fileNameValidationRegex(name)){
+                                        return this.spawnToast(language.get(this.state.lang, "invalidFolderName"))
+                                    }
+
                                     if(!name || typeof name !== "string"){
                                         return false
                                     }

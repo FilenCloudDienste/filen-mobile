@@ -294,15 +294,19 @@ export function render(){
             <IonTitle>{this.state.selectedItems} item{this.state.selectedItems == 1 ? "" : "s"}</IonTitle>
             <IonButtons slot="end">
                 {
-                    window.location.href.indexOf("trash") == -1 && (
+                    window.location.href.indexOf("base") !== -1 && (
                         <IonButton onClick={() => window.customFunctions.shareSelectedItems()}>
                             <IonIcon slot="icon-only" icon={Ionicons.shareSocial} />
                         </IonButton>
                     )
                 }
-                <IonButton onClick={() => window.customFunctions.downloadSelectedItems()}>
-                    <IonIcon slot="icon-only" icon={Ionicons.cloudDownload} />
-                </IonButton>
+                {
+                    window.location.href.indexOf("base") !== -1 && utils.selectedItemsDoesNotContainFolder(this.state.itemList) && (
+                        <IonButton onClick={() => window.customFunctions.downloadSelectedItems()}>
+                            <IonIcon slot="icon-only" icon={Ionicons.cloudDownload} />
+                        </IonButton>
+                    )
+                }
                 <IonButton onClick={this.selectItemsAction}>
                     <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
                 </IonButton>
@@ -372,12 +376,15 @@ export function render(){
                         </IonFabButton>
                     </IonFab>
     }
-    else{
+    else if(window.location.href.indexOf("base") !== -1){
         bottomFab = <IonFab vertical="bottom" horizontal="end" slot="fixed" onClick={() => this.mainFabAction()}>
                         <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
                             <IonIcon icon={Ionicons.add} />
                         </IonFabButton>
                     </IonFab>
+    }
+    else{
+        bottomFab = <div></div>
     }
 
     let transfersUploads = Object.keys(this.state.uploads).map((key) => {

@@ -10,6 +10,7 @@ export async function openSettingsModal(){
     let appDarkMode = this.state.darkMode
     let appSettings = this.state.settings
     let appState = this.state
+    let deviceInfo = await Plugins.Device.getInfo()
     let modalId = "settings-modal-" + utils.generateRandomClassName()
 
     customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -39,7 +40,7 @@ export async function openSettingsModal(){
                                 ` + appState.userEmail + `
                             </ion-label>
                             <ion-buttons slot="end">
-                                <ion-button color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.open("https://filen.io/my-account/file-manager/settings", "_system"); return false;">
+                                <ion-button color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.open('https://filen.io/my-account/file-manager/settings', '_system'); return false;">
                                     ` + language.get(appLang, "accountSettings") + `
                                 </ion-button>
                             </ion-buttons>
@@ -64,7 +65,7 @@ export async function openSettingsModal(){
                                         <ion-icon slot="icon-only" icon="` + Ionicons.checkbox + `"></ion-icon>
                                     </ion-button>
                                 ` : `
-                                    <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.open("https://filen.io/pro", "_system"); return false;">
+                                    <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.open('https://filen.io/pro', '_system'); return false;">
                                         ` + language.get(appLang, "settingsAccountGoPro") + `
                                     </ion-button>
                                 `) + `
@@ -100,6 +101,16 @@ export async function openSettingsModal(){
                         </ion-item-divider>
                         <ion-item lines="none">
                             <a onClick="window.customFunctions.doLogout()">` + language.get(appLang, "settingsLogoutBtn", true, ["__EMAIL__"], [appState.userEmail]) + `</a>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsVersion") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="none">
+                                    ` + deviceInfo.appVersion + `
+                                </ion-button>
+                            </ion-buttons>
                         </ion-item>
                     </ion-list>
                 </ion-content>

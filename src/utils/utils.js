@@ -299,6 +299,26 @@ export function base64ArrayBuffer(arrayBuffer){
     return base64
 }
 
+export function selectedItemsDoesNotContainFolder(items){
+    for(let i = 0; i < items.length; i++){
+        if(items[i].type == "folder" && items[i].selected){
+            return false
+        }
+    }
+
+    return true
+}
+
+export function selectedItemsContainsFolder(items){
+    for(let i = 0; i < items.length; i++){
+        if(items[i].type == "folder" && items[i].selected){
+            return true
+        }
+    }
+
+    return false
+}
+
 export function _base64ToArrayBuffer(base64){
     var binary_string = window.atob(base64);
     var len = binary_string.length;
@@ -308,6 +328,54 @@ export function _base64ToArrayBuffer(base64){
     }
     return bytes.buffer;
 }
+
+export function fileNameValidationRegex(name){
+	if(/^(con|prn|aux|nul|com[0-9]|lpt[0-9])$|([<>:"\/\\|?*])|(\.|\s)$/ig.test(name)){
+		return true
+	}
+
+	return false
+}
+
+export function checkIfNameIsBanned(name){
+    let banned = [
+      "/",
+      "\\",
+      "?",
+      "@",
+      "$",
+      "%",
+      "[",
+      "]",
+      "{",
+      "}",
+      "&",
+      '"',
+      "'",
+      "`",
+      "*",
+      "=",
+      "´",
+      "<",
+      ">",
+      ":",
+      ";",
+      "|",
+      "§",
+      "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+      "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    ]
+  
+    let isBanned = false
+  
+    banned.forEach((ban) => {
+      if(name.indexOf(ban) !== -1){
+        isBanned = true
+      }
+    })
+  
+    return isBanned
+  }
 
 export function removeIllegalCharsFromString(str){
     str = str.split("'").join("")

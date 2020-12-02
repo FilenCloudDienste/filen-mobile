@@ -1,4 +1,4 @@
-import { Capacitor, Plugins } from "@capacitor/core"
+import { Capacitor, Plugins, ActionSheetOptionStyle } from "@capacitor/core"
 import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons';
@@ -565,40 +565,54 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openHelpModal = async () => {
-        let appLang = this.state.lang
-        let modalId = "help-modal-" + utils.generateRandomClassName()
+        let actionSheet = await actionSheetController.create({
+            header: language.get(this.state.lang, "help"),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "support"),
+                    icon: Ionicons.helpBuoyOutline,
+                    handler: () => {
+                        window.open("https://support.filen.io/", "_system")
 
-        customElements.define(modalId, class ModalContent extends HTMLElement {
-            connectedCallback(){
-                this.innerHTML = `
-                    <ion-header>
-                        <ion-toolbar>
-                            <ion-buttons slot="start">
-                                <ion-button onClick="window.customFunctions.dismissModal()">
-                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
-                                </ion-button>
-                            </ion-buttons>
-                            <ion-title>
-                                ` + language.get(appLang, "help") + `
-                            </ion-title>
-                        </ion-toolbar>
-                    </ion-header>
-                    <ion-content fullscreen>
-                        help
-                    </ion-content>
-                `
-            }
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "faq"),
+                    icon: Ionicons.informationCircle,
+                    handler: () => {
+                        window.open("https://filen.io/faq", "_system")
+
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "tos"),
+                    icon: Ionicons.informationCircleOutline,
+                    handler: () => {
+                        window.open("https://filen.io/terms", "_system")
+
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "faq"),
+                    icon: Ionicons.informationCircleOutline,
+                    handler: () => {
+                        window.open("https://filen.io/privacy", "_system")
+
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    icon: "close",
+                    role: "cancel"
+                }
+            ]
         })
 
-        let modal = await modalController.create({
-            component: modalId,
-            swipeToClose: true,
-            showBackdrop: false,
-            backdropDismiss: false,
-            cssClass: "modal-fullscreen"
-        })
-
-        return modal.present()
+        return actionSheet.present()
     }
 
     window.customFunctions.queueFileUpload = this.queueFileUpload
