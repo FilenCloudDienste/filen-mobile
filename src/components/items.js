@@ -520,7 +520,7 @@ export function selectItem(type, index){
             selectedItems = selectedItems + 1
 		}
 		
-		if(selectedItems == 1){
+		if(selectedItems == 1 && Capacitor.isNative){
 			Plugins.Haptics.impact(HapticsImpactStyle.Light)
 		}
     }
