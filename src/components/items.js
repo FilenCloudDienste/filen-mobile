@@ -71,7 +71,7 @@ export async function updateItemList(){
 			type: "folder",
 			uuid: "default",
 			name: "Default",
-			date: "Default folder",
+			date: language.get(this.state.lang, "defaultFolder"),
 			timestamp: ((+new Date()) / 1000),
 			parent: "base",
 			receiverId: 0,

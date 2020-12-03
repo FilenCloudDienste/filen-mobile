@@ -173,6 +173,7 @@ translations['en']['tos'] = "Terms of Service"
 translations['en']['privacyPolicy'] = "Privacy Policy"
 translations['en']['invalidFolderName'] = "Invalid folder name"
 translations['en']['invalidFileName'] = "Invalid file name"
+translations['en']['defaultFolder'] = "Default folder"
 
 module.exports = {
     translations

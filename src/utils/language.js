@@ -6,7 +6,6 @@ let translations = {}
 
 translations['en'] = en.translations['en']
 translations['nl'] = nl.translations['nl']
-translations['sv'] = sv.translations['sv']
 
 module.exports = {
     get: (lang = "en", text, firstUpperCase = true, replaceFrom = [], replaceTo = []) => {
@@ -34,7 +33,7 @@ module.exports = {
         return gotText
     },
     isAvailable: (lang) => {
-        if(lang == "en"){
+        if(typeof translations[lang] !== "undefined"){
             return true
         }
 

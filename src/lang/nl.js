@@ -173,6 +173,7 @@ translations['nl']['tos'] = "Servicevoorwaarden"
 translations['nl']['privacyPolicy'] = "Privacybeleid"
 translations['nl']['invalidFolderName'] = "Ongeldige mapnaam"
 translations['nl']['invalidFileName'] = "Ongeldige bestandsnaam"
+translations['nl']['defaultFolder'] = "Standaard map"
 
 module.exports = {
     translations
