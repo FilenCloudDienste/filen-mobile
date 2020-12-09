@@ -95,6 +95,10 @@ export function setupWindowFunctions(){
     window.customVariables.nextNativeToastAllowed = Math.floor((+new Date()) / 1000)
     window.customVariables.apiCache = {}
     window.customVariables.selectLangInterval = undefined
+    window.customVariables.stoppedUploads = {}
+    window.customVariables.stoppedDownloads = {}
+    window.customVariables.stoppedUploadsDone = {}
+    window.customVariables.stoppedDownloadsDone = {}
 
     window.onresize = () => {
         this.setState({
@@ -120,6 +124,23 @@ export function setupWindowFunctions(){
             await Plugins.Storage.set({
                 key: "apiCache",
                 value: JSON.stringify(window.customVariables.apiCache)
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+    }
+
+    window.customFunctions.saveCachedItems = async () => {
+        try{
+            await Plugins.Storage.set({
+                key: "cachedFiles",
+                value: JSON.stringify(window.customVariables.cachedFiles)
+            })
+
+            await Plugins.Storage.set({
+                key: "cachedFolders",
+                value: JSON.stringify(window.customVariables.cachedFolders)
             })
         }
         catch(e){
@@ -222,6 +243,32 @@ export function setupWindowFunctions(){
 
             if(typeof loader !== "undefined"){
                 return loader.dismiss()
+            }
+
+            return true
+        }
+        catch(e){
+            return console.log(e)
+        }
+    }
+
+    window.customFunctions.dismissAlert = async (all = false) => {
+        if(all){
+            try{
+                await alertController.dismiss()
+
+                return true
+            }
+            catch(e){
+                return console.log(e)
+            }
+        }
+
+        try{
+            let alert = await alertController.getTop()
+
+            if(typeof alert !== "undefined"){
+                return alert.dismiss()
             }
 
             return true
@@ -596,7 +643,7 @@ export function setupWindowFunctions(){
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "faq"),
+                    text: language.get(this.state.lang, "privacyPolicy"),
                     icon: Ionicons.informationCircleOutline,
                     handler: () => {
                         window.open("https://filen.io/privacy", "_system")

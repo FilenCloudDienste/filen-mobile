@@ -37,6 +37,9 @@ export async function showRegister(){
                             <ion-item style="width: 90%;">
                                 <ion-input type="password" id="register-password-repeat" placeholder="` + language.get(appLang, "passwordRepeatPlaceholder") + `"></ion-input>
                             </ion-item>
+                            <div style="width: 90%; margin-top: 25px;">
+                                <small>` + language.get(appLang, "registerTOSInfo") + `</small>
+                            </div>
                             <ion-button expand="block" style="width: 90%; margin-top: 50px;" onClick="window.customFunctions.doRegister()">` + language.get(appLang, "registerButton") + `</ion-button>
                             <br>
                             OR

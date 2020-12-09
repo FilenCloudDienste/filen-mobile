@@ -174,6 +174,10 @@ translations['en']['privacyPolicy'] = "Privacy Policy"
 translations['en']['invalidFolderName'] = "Invalid folder name"
 translations['en']['invalidFileName'] = "Invalid file name"
 translations['en']['defaultFolder'] = "Default folder"
+translations['en']['registerTOSInfo'] = "By creating an account you automatically accept our <a href='#' onClick='window.open(\"https://filen.io/support\", \"_system\"); return false;'>Terms of Service</a> and <a href='#' onClick='window.open(\"https://filen.io/privacy\", \"_system\"); return false;'>Privacy Policy</a>"
+translations['en']['transferStop'] = "Stop"
+translations['en']['downloadStopped'] = "__NAME__ download stopped"
+translations['en']['uploadStopped'] = "__NAME__ upload stopped"
 
 module.exports = {
     translations

@@ -55,8 +55,12 @@ export async function markUploadAsDone(uuid, uploadKey, tries, maxTries, callbac
 	return callback(null)
 }
 
-export async function uploadChunk(uuid, queryParams, data, tries, maxTries, callback){
+export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries, callback){
 	await window.customVariables.uploadChunkSemaphore.acquire()
+
+	if(typeof window.customVariables.stoppedUploads[uuid] !== "undefined"){
+        return callback("stopped")
+    }
 
 	fetch(utils.getUploadServer() + "/v1/upload?" + queryParams, {
 		method: "POST",
@@ -68,15 +72,19 @@ export async function uploadChunk(uuid, queryParams, data, tries, maxTries, call
 
 			window.customVariables.uploadChunkSemaphore.release()
 
+			if(typeof window.customVariables.stoppedUploads[uuid] !== "undefined"){
+				return callback("stopped")
+			}
+
 			if(!res){
 				return setTimeout(() => {
-					this.uploadChunk(uuid, queryParams, data, (tries + 1), maxTries, callback)
+					this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
 				}, 1000)
 			}
 			else{
 				if(typeof res !== "object"){
 					return setTimeout(() => {
-						this.uploadChunk(uuid, queryParams, data, (tries + 1), maxTries, callback)
+						this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
 					}, 1000)
 				}
 				else{
@@ -94,7 +102,7 @@ export async function uploadChunk(uuid, queryParams, data, tries, maxTries, call
 			window.customVariables.uploadChunkSemaphore.release()
 
 			return setTimeout(() => {
-				this.uploadChunk(uuid, queryParams, data, (tries + 1), maxTries, callback)
+				this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
 			}, 1000)
 		})
 	}).catch((err) => {
@@ -103,7 +111,7 @@ export async function uploadChunk(uuid, queryParams, data, tries, maxTries, call
 		window.customVariables.uploadChunkSemaphore.release()
 
 		return setTimeout(() => {
-			this.uploadChunk(uuid, queryParams, data, (tries + 1), maxTries, callback)
+			this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
 		}, 1000)
 	})
 }
@@ -184,6 +192,9 @@ export async function queueFileUpload(file){
 		let firstDone = false
 		let doFirst = true
 		let markedAsDone = false
+
+		window.customVariables.stoppedUploads[uuid] = undefined
+    	window.customVariables.stoppedUploadsDone[uuid] = undefined
 
 		const addToState = () => {
 			let currentUploads = this.state.uploads
@@ -307,7 +318,7 @@ export async function queueFileUpload(file){
 								parent: parent
 							}).toString()
 
-							this.uploadChunk(uuid, queryParams, blob, 0, 10, (err, res) => {
+							this.uploadChunk(uuid, file, queryParams, blob, 0, 10, (err, res) => {
 								if(err){
 									console.log(err)
 
@@ -315,7 +326,19 @@ export async function queueFileUpload(file){
 
 									removeFromState()
 
-									return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+									if(err == "stopped"){
+										if(typeof window.customVariables.stoppedUploadsDone[file.uuid] == "undefined"){
+											window.customVariables.stoppedUploadsDone[file.uuid] = true
+
+											return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [file.name]))
+										}
+										else{
+											return false
+										}
+									}
+									else{
+										return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+									}
 								}
 
 								if(typeof window.customVariables.uploads[uuid] !== "undefined"){

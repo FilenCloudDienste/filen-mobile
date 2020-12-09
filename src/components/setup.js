@@ -1,5 +1,5 @@
 import { Plugins, StatusBarStyle, Capacitor } from "@capacitor/core"
-import { modalController, popoverController, actionSheetController, loadingController } from "@ionic/core"
+import { modalController, popoverController, actionSheetController, loadingController, alertController } from "@ionic/core"
 import * as language from "../utils/language"
 
 export function setupListeners(){
@@ -40,6 +40,44 @@ export function setupListeners(){
             let isLoadingActive = await loadingController.getTop()
 
             if(isLoadingActive){
+                goBackHistory = false
+            }
+
+            if(this.state.selectedItems > 0 && this.state.isLoggedIn){
+                this.clearSelectedItems()
+
+                goBackHistory = false
+            }
+
+            let isAlertActive = await alertController.getTop()
+
+            if(isAlertActive && this.state.isLoggedIn){
+                window.customFunctions.dismissAlert()
+
+                goBackHistory = false
+            }
+
+            let origin = window.location.origin
+
+            if(window.location.href == origin 
+            || window.location.href == origin + "/" 
+            || window.location.href == origin + "/#" 
+            || window.location.href == origin + "/#!" 
+            || window.location.href == origin + "/#/"
+            || window.location.href == origin + "/index.html"
+            || window.location.href == origin + "/index.html#!/"
+            || window.location.href == origin + "/index.html#!"
+            || window.location.href == origin + "/index.html#"
+            || window.location.href == origin + "/#!/base" 
+            || window.location.href == origin + "/index.html#!/base"
+            || window.location.href == origin + "/#!/shared-in"
+            || window.location.href == origin + "/index.html#!/shared-in"
+            || window.location.href == origin + "/#!/shared-out"
+            || window.location.href == origin + "/index.html#!/shared-out"
+            || window.location.href == origin + "/#!/trash"
+            || window.location.href == origin + "/index.html#!/trash"
+            || window.location.href == origin + "/#!/links"
+            || window.location.href == origin + "/index.html#!/links"){
                 goBackHistory = false
             }
 
@@ -120,6 +158,8 @@ export async function doSetup(){
     let getOfflineSavedFiles = await Plugins.Storage.get({ key: "offlineSavedFiles" })
     let getAPICache = await Plugins.Storage.get({ key: "apiCache" })
     let getSettings = await Plugins.Storage.get({ key: "settings" })
+    let getCachedFiles = await Plugins.Storage.get({ key: "cachedFiles" })
+    let getCachedFolders = await Plugins.Storage.get({ key: "cachedFolders" })
 
     if(getLang.value){
         this.setState({
@@ -206,6 +246,20 @@ export async function doSetup(){
             }
             else{
                 window.customVariables.apiCache = JSON.parse(getAPICache.value)
+            }
+
+            if(getCachedFiles.value == null){
+                window.customVariables.cachedFiles = {}
+            }
+            else{
+                window.customVariables.cachedFiles = JSON.parse(getCachedFiles.value)
+            }
+
+            if(getCachedFolders.value == null){
+                window.customVariables.cachedFolders = {}
+            }
+            else{
+                window.customVariables.cachedFolders = JSON.parse(getCachedFolders.value)
             }
         }
         else{

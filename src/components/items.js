@@ -23,6 +23,12 @@ export async function updateItemList(){
 	let routeEx = window.location.hash.split("/")
 	let parent = routeEx[routeEx.length - 1]
 
+	if(Capacitor.isNative){
+		setTimeout(() => {
+			Capacitor.Plugins.Keyboard.hide()
+		}, 100)
+	}
+
     let loading = await loadingController.create({
         message: ""
     })
@@ -89,7 +95,7 @@ export async function updateItemList(){
 			let item = {
 				type: "folder",
 				uuid: folder.uuid,
-				name: folderName,
+				name: utils.sanitizeHTML(folderName),
 				date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
 				timestamp: folder.timestamp,
 				parent: "base",
@@ -182,11 +188,22 @@ export async function updateItemList(){
 				let folder = res.data.folders[i]
 
 				try{
-					let decrypted = await window.crypto.subtle.decrypt({
-						name: "RSA-OAEP"
-					}, usrPrivKey, utils._base64ToArrayBuffer(folder.metadata))
+					let folderName = undefined
 
-					let folderName = JSON.parse(new TextDecoder().decode(decrypted))
+					if(window.customVariables.cachedFolders[folder.uuid]){
+						folderName = window.customVariables.cachedFolders[folder.uuid]
+					}
+					else{
+						let decrypted = await window.crypto.subtle.decrypt({
+							name: "RSA-OAEP"
+						}, usrPrivKey, utils._base64ToArrayBuffer(folder.metadata))
+
+						decrypted = JSON.parse(new TextDecoder().decode(decrypted))
+
+						window.customVariables.cachedFolders[folder.uuid] = decrypted
+	
+						folderName = decrypted
+					}
 
 					folderName = folderName.name
 
@@ -195,7 +212,7 @@ export async function updateItemList(){
 					let item = {
 						type: "folder",
 						uuid: folder.uuid,
-						name: folderName,
+						name: utils.sanitizeHTML(folderName),
 						date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
 						timestamp: folder.timestamp,
 						parent: folder.parent,
@@ -218,11 +235,22 @@ export async function updateItemList(){
 				let file = res.data.uploads[i]
 
 				try{
-					let decrypted = await window.crypto.subtle.decrypt({
-						name: "RSA-OAEP"
-					}, usrPrivKey, utils._base64ToArrayBuffer(file.metadata))
+					let decryptedMetadata = undefined
 
-					let decryptedMetadata = JSON.parse(new TextDecoder().decode(decrypted))
+					if(window.customVariables.cachedFiles[file.uuid]){
+						decryptedMetadata = window.customVariables.cachedFiles[file.uuid]
+					}
+					else{
+						let decrypted = await window.crypto.subtle.decrypt({
+							name: "RSA-OAEP"
+						}, usrPrivKey, utils._base64ToArrayBuffer(file.metadata))
+
+						decrypted = JSON.parse(new TextDecoder().decode(decrypted))
+
+						window.customVariables.cachedFiles[file.uuid] = decrypted
+	
+						decryptedMetadata = decrypted
+					}
 
 					let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
@@ -235,10 +263,10 @@ export async function updateItemList(){
 					let item = {
 						type: "file",
 						uuid: file.uuid,
-						name: decryptedMetadata.name,
-						mime: decryptedMetadata.mime,
-						size: decryptedMetadata.size,
-						key: decryptedMetadata.key,
+						name: utils.sanitizeHTML(decryptedMetadata.name),
+						mime: utils.sanitizeHTML(decryptedMetadata.mime),
+						size: parseInt(decryptedMetadata.size),
+						key: utils.sanitizeHTML(decryptedMetadata.key),
 						bucket: file.bucket,
 						region: file.region,
 						parent: file.parent,
@@ -324,7 +352,7 @@ export async function updateItemList(){
 				let item = {
 					type: "folder",
 					uuid: folder.uuid,
-					name: folderName,
+					name: utils.sanitizeHTML(folderName),
 					date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
 					timestamp: folder.timestamp,
 					parent: folder.parent,
@@ -354,10 +382,10 @@ export async function updateItemList(){
 				let item = {
 					type: "file",
 					uuid: file.uuid,
-					name: metadata.name,
-					mime: metadata.mime,
-					size: metadata.size,
-					key: metadata.key,
+					name: utils.sanitizeHTML(metadata.name),
+					mime: utils.sanitizeHTML(metadata.mime),
+					size: parseInt(metadata.size),
+					key: utils.sanitizeHTML(metadata.key),
 					bucket: file.bucket,
 					region: file.region,
 					parent: file.parent,
@@ -438,7 +466,7 @@ export async function updateItemList(){
 				let item = {
 					type: "folder",
 					uuid: folder.uuid,
-					name: folderName,
+					name: utils.sanitizeHTML(folderName),
 					date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
 					timestamp: folder.timestamp,
 					parent: folder.parent,
@@ -468,10 +496,10 @@ export async function updateItemList(){
 				let item = {
 					type: "file",
 					uuid: file.uuid,
-					name: metadata.name,
-					mime: metadata.mime,
-					size: metadata.size,
-					key: metadata.key,
+					name: utils.sanitizeHTML(metadata.name),
+					mime: utils.sanitizeHTML(metadata.mime),
+					size: parseInt(metadata.size),
+					key: utils.sanitizeHTML(metadata.key),
 					bucket: file.bucket,
 					region: file.region,
 					parent: file.parent,
@@ -498,6 +526,8 @@ export async function updateItemList(){
 			})
 
 			loading.dismiss()
+
+			window.customFunctions.saveCachedItems()
 
 			return true
 		}
@@ -662,7 +692,12 @@ export async function previewItem(item){
 		}
 
 		const gotPreviewData = async (dataArray) => {
-			let blob = new Blob([dataArray])
+			let blob = new Blob([dataArray], {
+				type: item.mime,
+				name: item.name
+			})
+
+			console.log(item)
 
 			if(typeof window.customVariables.currentPreviewURL !== "undefined"){
 				window.customVariables.urlCreator.revokeObjectURL(window.customVariables.currentPreviewURL)
@@ -783,6 +818,16 @@ export async function previewItem(item){
 				`
 			}
 
+			if(previewModalContent.length <= 8){
+				return this.spawnItemActionSheet(item)
+			}
+
+			if(Capacitor.isNative){
+				setTimeout(() => {
+					Capacitor.Plugins.Keyboard.hide()
+				}, 100)
+			}
+
 			let modalId = "preview-modal-" + utils.generateRandomClassName()
 
 			customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -808,6 +853,9 @@ export async function previewItem(item){
 				modal.onDidDismiss().then(() => {
 					this.setupStatusbar()
 				})
+			}
+			else if(previewType == "pdf"){
+				document.getElementById("pdf-preview").src = window.customVariables.currentPreviewURL
 			}
 
 			return true
@@ -2457,5 +2505,11 @@ export async function spawnItemActionSheet(item){
         buttons
     })
 
-    return actionSheet.present()
+	await actionSheet.present()
+	
+	if(Capacitor.isNative){
+		Capacitor.Plugins.Keyboard.hide()
+	}
+
+	return true
 }

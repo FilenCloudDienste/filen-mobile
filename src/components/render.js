@@ -397,6 +397,11 @@ export function render(){
                         this.state.uploads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.uploads[key].progress + "%"
                     }
                 </IonBadge>
+                <IonBadge color="danger" slot="end" onClick={() => {
+                    return window.customVariables.stoppedUploads[this.state.uploads[key].uuid] = true
+                }}>
+                    {language.get(this.state.lang, "transferStop")}
+                </IonBadge>
             </IonItem>
         )
     })
@@ -410,6 +415,11 @@ export function render(){
                     {
                         this.state.downloads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.downloads[key].progress + "%"
                     }
+                </IonBadge>
+                <IonBadge color="danger" slot="end" onClick={() => {
+                    return window.customVariables.stoppedDownloads[this.state.downloads[key].uuid] = true
+                }}>
+                    {language.get(this.state.lang, "transferStop")}
                 </IonBadge>
             </IonItem>
         )

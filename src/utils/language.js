@@ -7,8 +7,6 @@ let translations = {}
 
 translations['en'] = en.translations['en']
 translations['nl'] = nl.translations['nl']
-translations['sv'] = sv.translations['sv']
-translations['hin'] = hin.translations['hin']
 
 module.exports = {
     get: (lang = "en", text, firstUpperCase = true, replaceFrom = [], replaceTo = []) => {

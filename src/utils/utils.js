@@ -1,4 +1,11 @@
+import { Capacitor, Plugins } from "@capacitor/core";
+
 const CryptoJS = require("crypto-js")
+const striptags = require("striptags")
+
+export function sanitizeHTML(html){
+    return striptags(html)
+}
 
 export function getRandomArbitrary(min, max){
     return Math.floor(Math.random() * (max - min) + min)
@@ -89,7 +96,15 @@ export function apiRequest(method, endpoint, data = {}){
     return new Promise((resolve, reject) => {
         let cacheKey = method + endpoint
 
-        fetchWithTimeout(15000, fetch(getAPIServer() + endpoint, {
+        if(Capacitor.isNative){
+            if(Plugins.Network.getStatus() == "none"){
+                if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
+                    return resolve(window.customVariables.apiCache[cacheKey])
+                }
+            }
+        }
+
+        fetchWithTimeout(30000, fetch(getAPIServer() + endpoint, {
             method: method.toUpperCase(),
             cache: "no-cache",
             headers: {
@@ -763,7 +778,7 @@ export function getFilePreviewType(ext){
         return "text"
       break
       case "pdf":
-        return "pdf"
+        return "none"
       break
       default:
         return "none"
