@@ -251,3 +251,13 @@ body {
 .ion-header-no-shadow::after {
   background-image: none;
   }
+
+.item-selected-dark-mode {
+  --background: #3F3F3F !important;
+  background-color: #3F3F3F !important;
+}
+
+.item-selected-light-mode {
+  --background: rgba(0, 0, 0, 0.08) !important;
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}

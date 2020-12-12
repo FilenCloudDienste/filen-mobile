@@ -90,7 +90,7 @@ export async function openSettingsModal(){
                         </ion-item>
                         <ion-item lines="none">
                             <ion-label>` + language.get(appLang, "settingsLanguage") + `</ion-label>
-                            <ion-select id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert" ionChange="console.log('yes')">
+                            <ion-select id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert">
                                 <ion-select-option value="en">English</ion-select-option>
                                 <ion-select-option value="nl">Nederlands</ion-select-option>
                             </ion-select>
@@ -110,6 +110,16 @@ export async function openSettingsModal(){
                             <ion-buttons slot="end">
                                 <ion-button fill="none">
                                     ` + deviceInfo.appVersion + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsClearThumbnailCache") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.customFunctions.clearThumbnailCache()">
+                                    ` + language.get(appLang, "settingsClearThumbnailCacheBtn") + `
                                 </ion-button>
                             </ion-buttons>
                         </ion-item>

@@ -24,7 +24,7 @@ const utils = require("../utils/utils")
 export function render(){
     let rowRenderer = ({ index, style }) => {
         let startContent = this.state.selectedItems > 0 ? (
-            <IonThumbnail slot="start" onClick={() => this.selectItem(true, index)}>
+            <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.selectItem(true, index)}>
                 {
                     this.state.itemList[index].type == "folder" ? (
                         <img src="assets/images/folder.svg" style={{
@@ -32,7 +32,7 @@ export function render(){
                             marginTop: "-2px"
                         }}></img>
                     ) : (
-                        <img src={utils.getFileIconFromName(this.state.itemList[index].name)} style={{
+                        <img src={typeof this.state.itemList[index].thumbnail !== "undefined" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
                             padding: "10px",
                             marginTop: "-1px"
                         }}></img>
@@ -40,7 +40,7 @@ export function render(){
                 }
             </IonThumbnail>
         ) : (
-            <IonThumbnail slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index])}>
+            <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index])}>
                 {
                     this.state.itemList[index].type == "folder" ? (
                         <img src="assets/images/folder.svg" style={{
@@ -48,7 +48,7 @@ export function render(){
                             marginTop: "-2px"
                         }}></img>
                     ) : (
-                        <img src={utils.getFileIconFromName(this.state.itemList[index].name)} style={{
+                        <img src={typeof this.state.itemList[index].thumbnail !== "undefined" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
                             padding: "10px",
                             marginTop: "-1px"
                         }}></img>
@@ -275,7 +275,7 @@ export function render(){
                     }
                 }
             }} style={style}>
-                <IonItem type="button" button lines="none">
+                <IonItem type="button" button lines="none" className={this.state.itemList[index].selected ? (this.state.darkMode ? "item-selected-dark-mode" : "item-selected-light-mode") : "not-activated"}>
                     {startContent}
                     {itemLabel}
                     {endContent}
@@ -369,7 +369,7 @@ export function render(){
 
     let bottomFab = undefined
 
-    if(window.location.href.indexOf("trash") !== -1){
+    if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
         bottomFab = <IonFab vertical="bottom" horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
                         <IonFabButton color="danger">
                             <IonIcon icon={Ionicons.trash} />
@@ -701,6 +701,7 @@ export function render(){
                                             rowHeight={72}
                                             overscanRowCount={3}
                                             rowRenderer={rowRenderer}
+                                            scrollToIndex={this.state.scrollToIndex}
                                             style={{
                                                 outline: "none",
                                                 border: "none"

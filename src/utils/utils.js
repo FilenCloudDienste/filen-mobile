@@ -702,8 +702,40 @@ export function currentParentFolder(){
     return ex[ex.length - 1]
 }
 
+export function canCompressThumbnail(ext){
+    switch(ext.toLowerCase()){
+        case "jpeg":
+        case "jpg":
+        case "png":
+        case "gif":
+            return true
+        break
+        default:
+            return false
+        break
+    }
+}
+
+export function canShowThumbnail(ext){
+    switch(ext.toLowerCase()){
+        case "jpeg":
+        case "jpg":
+        case "png":
+        case "gif":
+        case "svg":
+        case "mp4":
+        case "webm":
+        case "ogg":
+            return true
+        break
+        default:
+            return false
+        break
+    }
+}
+
 export function getFilePreviewType(ext){
-    switch(ext){
+    switch(ext.toLowerCase()){
       case "jpeg":
       case "jpg":
       case "png":
@@ -805,7 +837,7 @@ export function getFileIconFromName(name){
 }
 
 export function getFileIcon(ext){
-    switch(ext){
+    switch(ext.toLowerCase()){
       case "pdf":
         return `assets/img/types/pdf.svg`
       break
@@ -910,4 +942,183 @@ export function uInt8ArrayConcat(arrays){
     }
   
     return result;
+}
+
+export function orderItemsByType(items, type){
+    let files = []
+    let folders = []
+
+    for(let i = 0; i < items.length; i++){
+        if(items[i].type == "file"){
+            files.push(items[i])
+        }
+        else{
+            folders.push(items[i])
+        }
+    }
+
+    if(type == "nameAsc"){
+        let sortedFiles = files.sort((a, b) => {
+            return a.name.localeCompare(b.name)
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return a.name.localeCompare(b.name)
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+    else if(type == "sizeAsc"){
+        let sortedFiles = files.sort((a, b) => {
+            return a.size - b.size
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+    else if(type == "dateAsc"){
+        let sortedFiles = files.sort((a, b) => {
+            return a.timestamp - b.timestamp
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return a.timestamp - b.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+    else if(type == "typeAsc"){
+        let sortedFiles = files.sort((a, b) => {
+            if(typeof a.mime == "undefined"){
+                a.mime = "_"
+            }
+
+            if(typeof b.mime == "undefined"){
+                b.mime = "_"
+            }
+
+            if(a.mime.length <= 1){
+                a.mime = "_"
+            }
+
+            if(b.mime.length <= 1){
+                b.mime = "_"
+            }
+
+            return a.mime.localeCompare(b.mime)
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+    else if(type == "nameDesc"){
+        let sortedFiles = files.sort((a, b) => {
+            return b.name.localeCompare(a.name)
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.name.localeCompare(a.name)
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+    else if(type == "sizeDesc"){
+        let sortedFiles = files.sort((a, b) => {
+            return b.size - a.size
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+    else if(type == "typeDesc"){
+        let sortedFiles = files.sort((a, b) => {
+            if(typeof a.mime == "undefined"){
+                a.mime = "_"
+            }
+
+            if(typeof b.mime == "undefined"){
+                b.mime = "_"
+            }
+
+            if(a.mime.length <= 1){
+                a.mime = "_"
+            }
+
+            if(b.mime.length <= 1){
+                b.mime = "_"
+            }
+
+            return b.mime.localeCompare(a.mime)
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+    else{
+        //default, dateDesc
+
+        let sortedFiles = files.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+}
+
+export function getVideoCover(file, seekTo = 0.0) {
+    return new Promise((resolve, reject) => {
+        // load the file to a video player
+        const videoPlayer = document.createElement('video');
+        videoPlayer.setAttribute('src', URL.createObjectURL(file));
+        videoPlayer.load();
+        videoPlayer.addEventListener('error', (ex) => {
+            reject("error when loading video file", ex);
+        });
+        // load metadata of the video to get video duration and dimensions
+        videoPlayer.addEventListener('loadedmetadata', () => {
+            // seek to user defined timestamp (in seconds) if possible
+            if (videoPlayer.duration < seekTo) {
+                reject("video is too short.");
+                return;
+            }
+            // delay seeking or else 'seeked' event won't fire on Safari
+            setTimeout(() => {
+              videoPlayer.currentTime = seekTo;
+            }, 200);
+            // extract video thumbnail once seeking is complete
+            videoPlayer.addEventListener('seeked', () => {
+                // define a canvas to have the same dimension as the video
+                const canvas = document.createElement("canvas");
+                canvas.width = videoPlayer.videoWidth;
+                canvas.height = videoPlayer.videoHeight;
+                // draw the video frame to canvas
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+                // return the canvas image as a blob
+                ctx.canvas.toBlob(
+                    blob => {
+                        resolve(blob);
+                    },
+                    "image/jpeg",
+                    0.1 /* quality */
+                );
+            });
+        });
+    });
 }

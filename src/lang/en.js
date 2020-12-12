@@ -178,6 +178,20 @@ translations['en']['registerTOSInfo'] = "By creating an account you automaticall
 translations['en']['transferStop'] = "Stop"
 translations['en']['downloadStopped'] = "__NAME__ download stopped"
 translations['en']['uploadStopped'] = "__NAME__ upload stopped"
+translations['en']['settingsClearThumbnailCache'] = "Clear Thumbnail Cache"
+translations['en']['settingsClearThumbnailCacheInfo'] = "Clearing the Thumbnail Cache will free up storage on your device, but will slow down future thumbnail loading times. Are you sure?"
+translations['en']['settingsClearThumbnailCacheBtn'] = "Clear"
+translations['en']['settingsClearThumbnailCacheHeader'] = "Clear Thumbnail Cache"
+translations['en']['settingsClearThumbnailCacheDone'] = "Thumbnail Cache Cleared"
+translations['en']['orderBy'] = "Order by"
+translations['en']['orderByName'] = "Name"
+translations['en']['orderBySize'] = "Size"
+translations['en']['orderByDate'] = "Date"
+translations['en']['orderByType'] = "Type"
+translations['en']['orderByDirection'] = "Direction"
+translations['en']['orderByDirectionAsc'] = "Ascending"
+translations['en']['orderByDirectionDesc'] = "Descending"
+translations['en']['orderByReset'] = "Reset"
 
 module.exports = {
     translations

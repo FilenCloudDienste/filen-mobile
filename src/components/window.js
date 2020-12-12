@@ -1,4 +1,4 @@
-import { Capacitor, Plugins, ActionSheetOptionStyle } from "@capacitor/core"
+import { Capacitor, Plugins, FilesystemDirectory } from "@capacitor/core"
 import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons';
@@ -99,12 +99,59 @@ export function setupWindowFunctions(){
     window.customVariables.stoppedDownloads = {}
     window.customVariables.stoppedUploadsDone = {}
     window.customVariables.stoppedDownloadsDone = {}
+    window.customVariables.lastCachedItemsLength = undefined
+    window.customVariables.lastAPICacheLength = undefined
+    window.customVariables.thumbnailCache = {}
+    window.customVariables.thumbnailBlobCache = {}
+    window.customVariables.currentThumbnailURL = undefined
+    window.customVariables.lastThumbnailCacheLength = undefined
+    window.customVariables.thumbnailSemaphore = new utils.Semaphore(2)
+    window.customVariables.updateItemsSemaphore = new utils.Semaphore(1)
+    window.customVariables.getNetworkInfoInterval = undefined
+    window.customVariables.networkStatus = undefined
+    window.customVariables.orderBy = "nameAsc"
+    window.customVariables.getThumbnailErrors = {}
+    window.customVariables.lastGetThumbnailErrorsLength = undefined
 
     window.onresize = () => {
         this.setState({
             windowHeight: window.innerHeight,
             windowWidth: window.innerWidth
         })
+    }
+
+    document.onclick = (e) => {
+        return window.customFunctions.togglePreviewHeader(e)
+    }
+
+    window.customFunctions.togglePreviewHeader = (e) => {
+        if(typeof e.target == "undefined"){
+            return
+        }
+
+        if(e.target.innerHTML.indexOf("<ion-icon") !== -1){
+            return false
+        }
+
+        if(document.getElementsByClassName("preview-header-hidden").length > 0){
+            let header = document.getElementsByClassName("preview-header-hidden")[0]
+
+            if(header.style.display == "none"){
+                header.style.display = "block"
+            }
+            else{
+                header.style.display = "none"
+            }
+        }
+    }
+
+    window.customFunctions.getNetworkInfo = async () => {
+        try{
+            window.customVariables.networkStatus = await Plugins.Network.getStatus()
+        }
+        catch(e){
+            console.log(e)
+        }
     }
 
     window.customFunctions.saveOfflineSavedFiles = async () => {
@@ -119,7 +166,45 @@ export function setupWindowFunctions(){
         }
     }
 
+    window.customFunctions.saveGetThumbnailErrors = async () => {
+        if(typeof window.customVariables.lastGetThumbnailErrorsLength !== "undefined"){
+            let length = JSON.stringify(window.customVariables.getThumbnailErrors)
+
+            length = length.length
+
+            if(length == window.customVariables.lastGetThumbnailErrorsLength){
+                return false
+            }
+            else{
+                window.customVariables.lastGetThumbnailErrorsLength = length
+            }
+        }
+
+        try{
+            await Plugins.Storage.set({
+                key: "getThumbnailErrors",
+                value: JSON.stringify(window.customVariables.getThumbnailErrors)
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+    }
+
     window.customFunctions.saveAPICache = async () => {
+        if(typeof window.customVariables.lastAPICacheLength !== "undefined"){
+            let length = JSON.stringify(window.customVariables.apiCache)
+
+            length = length.length
+
+            if(length == window.customVariables.lastAPICacheLength){
+                return false
+            }
+            else{
+                window.customVariables.lastAPICacheLength = length
+            }
+        }
+
         try{
             await Plugins.Storage.set({
                 key: "apiCache",
@@ -131,7 +216,45 @@ export function setupWindowFunctions(){
         }
     }
 
+    window.customFunctions.saveThumbnailCache = async () => {
+        if(typeof window.customVariables.lastThumbnailCacheLength !== "undefined"){
+            let length = JSON.stringify(window.customVariables.thumbnailCache)
+
+            length = length.length
+
+            if(length == window.customVariables.lastThumbnailCacheLength){
+                return false
+            }
+            else{
+                window.customVariables.lastThumbnailCacheLength = length
+            }
+        }
+
+        try{
+            await Plugins.Storage.set({
+                key: "thumbnailCache",
+                value: JSON.stringify(window.customVariables.thumbnailCache)
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+    }
+
     window.customFunctions.saveCachedItems = async () => {
+        if(typeof window.customVariables.lastCachedItemsLength !== "undefined"){
+            let length = JSON.stringify(window.customVariables.cachedFiles) + JSON.stringify(window.customVariables.cachedFolders)
+
+            length = length.length
+
+            if(length == window.customVariables.lastCachedItemsLength){
+                return false
+            }
+            else{
+                window.customVariables.lastCachedItemsLength = length
+            }
+        }
+
         try{
             await Plugins.Storage.set({
                 key: "cachedFiles",
@@ -934,5 +1057,169 @@ export function setupWindowFunctions(){
         }
 
         return this.spawnToast(language.get(this.state.lang, "copiedToClipboard")) 
+    }
+
+    window.customFunctions.clearThumbnailCache = async () => {
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "settingsClearThumbnailCacheHeader"),
+            message: language.get(this.state.lang, "settingsClearThumbnailCacheInfo"),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "alertOkButton"),
+                    handler: async () => {
+                        if(!Capacitor.isNative){
+                            return alert.dismiss()
+                        }
+
+                        let dirObj = {
+                            path: "ThumbnailCache/",
+                            directory: FilesystemDirectory.External
+                        }
+
+                        alert.dismiss()
+
+                        try{
+                            await Plugins.Filesystem.rmdir({
+                                path: dirObj.path,
+                                directory: dirObj.directory,
+                                recursive: true
+                            })
+
+                            window.customVariables.thumbnailCache = {}
+                            window.customVariables.thumbnailBlobCache = {}
+                            window.customVariables.lastThumbnailCacheLength = undefined
+
+                            window.customFunctions.saveThumbnailCache()
+                        }
+                        catch(e){
+                            console.log(e)
+                        }
+
+                        return this.spawnToast(language.get(this.state.lang, "settingsClearThumbnailCacheDone"))
+                    }
+                }
+            ]
+        })
+
+        return alert.present()
+    }
+
+    window.customFunctions.openOrderBy = async () => {
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "orderBy"),
+            inputs: [
+                {
+                    type: "radio",
+                    label: language.get(this.state.lang, "orderByName"),
+                    value: "name",
+                    checked: (window.customVariables.orderBy.indexOf("name") !== -1 ? true : false)
+                },
+                {
+                    type: "radio",
+                    label: language.get(this.state.lang, "orderBySize"),
+                    value: "size",
+                    checked: (window.customVariables.orderBy.indexOf("size") !== -1 ? true : false)
+                },
+                {
+                    type: "radio",
+                    label: language.get(this.state.lang, "orderByDate"),
+                    value: "date",
+                    checked: (window.customVariables.orderBy.indexOf("date") !== -1 ? true : false)
+                },
+                {
+                    type: "radio",
+                    label: language.get(this.state.lang, "orderByType"),
+                    value: "type",
+                    checked: (window.customVariables.orderBy.indexOf("type") !== -1 ? true : false)
+                }
+            ],
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "orderByReset"),
+                    handler: () => {
+                        let sortedItems = utils.orderItemsByType(this.state.itemList, "dateDesc")
+
+                        window.customVariables.orderBy = "nameAsc"
+                        window.customVariables.itemList = sortedItems
+
+                        return this.setState({
+                            itemList: sortedItems
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "alertOkButton"),
+                    handler: async (type) => {
+                        let alert = await alertController.create({
+                            header: language.get(this.state.lang, "orderByDirection"),
+                            inputs: [
+                                {
+                                    type: "radio",
+                                    label: language.get(this.state.lang, "orderByDirectionAsc"),
+                                    value: "Asc",
+                                    checked: (window.customVariables.orderBy.indexOf("Asc") !== -1 ? true : false)
+                                },
+                                {
+                                    type: "radio",
+                                    label: language.get(this.state.lang, "orderByDirectionDesc"),
+                                    value: "Desc",
+                                    checked: (window.customVariables.orderBy.indexOf("Desc") !== -1 ? true : false)
+                                }
+                            ],
+                            buttons: [
+                                {
+                                    text: language.get(this.state.lang, "cancel"),
+                                    role: "cancel",
+                                    handler: () => {
+                                        return false
+                                    }
+                                },
+                                {
+                                    text: language.get(this.state.lang, "alertOkButton"),
+                                    handler: (direction) => {
+                                        let typeAndDirection = type + direction
+
+                                        console.log(typeAndDirection)
+
+                                        let sortedItems = utils.orderItemsByType(this.state.itemList, typeAndDirection)
+                
+                                        window.customVariables.orderBy = typeAndDirection
+                                        window.customVariables.itemList = sortedItems
+                
+                                        return this.setState({
+                                            itemList: sortedItems
+                                        }, () => {
+                                            this.forceUpdate()
+                                        })
+                                    }
+                                }
+                            ]
+                        })
+
+                        return alert.present()
+                    }
+                }
+            ]
+        })
+
+        window.customFunctions.dismissPopover()
+
+        return alert.present()
     }
 }

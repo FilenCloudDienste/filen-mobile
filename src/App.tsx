@@ -56,7 +56,8 @@ interface AppStates {
 	downloads: any,
 	uploadsCount: number,
 	downloadsCount: number,
-	settings: any
+	settings: any,
+	scrollToIndex: number
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -94,7 +95,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			downloadsCount: 0,
 			settings: {
 				onlyWifi: false
-			}
+			},
+			scrollToIndex: 0
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)
@@ -155,6 +157,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	downloadSelectedItems = itemsComponents.downloadSelectedItems.bind(this)
 	shareSelectedItems = itemsComponents.shareSelectedItems.bind(this)
 	storeSelectedItemsOffline = itemsComponents.storeSelectedItemsOffline.bind(this)
+	getFileThumbnail = itemsComponents.getFileThumbnail.bind(this)
 
     spawnToast = spawnComponents.spawnToast.bind(this)
     spawnMoveToast = spawnComponents.spawnMoveToast.bind(this)
@@ -175,6 +178,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	downloadFileChunk = downloadComponents.downloadFileChunk.bind(this)
 	writeChunkToFile = downloadComponents.writeChunkToFile.bind(this)
 	downloadPreview = downloadComponents.downloadPreview.bind(this)
+	getThumbnail = downloadComponents.getThumbnail.bind(this)
+	getThumbnailDir = downloadComponents.getThumbnailDir.bind(this)
 
 	openSettingsModal = settingsComponents.openSettingsModal.bind(this)
 

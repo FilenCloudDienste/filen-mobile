@@ -15,6 +15,11 @@ export async function updateItemList(){
 		return this.showLogin()
 	}
 
+	if(Capacitor.isNative){
+		Capacitor.Plugins.Keyboard.hide()
+		Plugins.SplashScreen.hide()
+	}
+
 	this.setState({
         searchbarOpen: false,
         mainSearchTerm: ""
@@ -23,17 +28,15 @@ export async function updateItemList(){
 	let routeEx = window.location.hash.split("/")
 	let parent = routeEx[routeEx.length - 1]
 
-	if(Capacitor.isNative){
-		setTimeout(() => {
-			Capacitor.Plugins.Keyboard.hide()
-		}, 100)
-	}
-
     let loading = await loadingController.create({
         message: ""
     })
 
 	loading.present()
+
+	window.customVariables.currentThumbnailURL = window.location.href
+
+	let items = []
 	
 	if(parent == "base"){
 		try{
@@ -71,14 +74,12 @@ export async function updateItemList(){
 			return alert.present()
 		}
 
-		let items = []
-
 		items.push({
 			type: "folder",
 			uuid: "default",
 			name: "Default",
 			date: language.get(this.state.lang, "defaultFolder"),
-			timestamp: ((+new Date()) / 1000),
+			timestamp: (((+new Date()) / 1000) - (86400 * 3650)),
 			parent: "base",
 			receiverId: 0,
 			receiverEmail: "",
@@ -110,15 +111,23 @@ export async function updateItemList(){
 			window.customVariables.cachedFolders[folder.uuid] = item
 		}
 
-		window.customVariables.itemList = items
+		let iItems = []
 
-		this.setState({
-			itemList: items
-		})
+		iItems.push(items[0])
 
-		loading.dismiss()
+		for(let i = 0; i < items.length; i++){
+			if(items[i].name.toLowerCase() == "filen sync" && items[i].uuid !== "default"){
+				iItems.push(items[i])
+			}
+		}
 
-		return true
+		for(let i = 0; i < items.length; i++){
+			if(items[i].name.toLowerCase() !== "filen sync" && items[i].uuid !== "default"){
+				iItems.push(items[i])
+			}
+		}
+
+		items = iItems
 	}
 	else{
 		if(routeEx[1] == "shared-in"){
@@ -181,8 +190,6 @@ export async function updateItemList(){
 		
 				return alert.present()
 			}
-
-			let items = []
 
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
@@ -278,7 +285,8 @@ export async function updateItemList(){
 						receiverEmail: "",
 						sharerId: file.sharerId,
 						sharerEmail: file.sharerEmail,
-						offline: offline
+						offline: offline,
+						thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
 					}
 
 					items.push(item)
@@ -289,16 +297,6 @@ export async function updateItemList(){
 					console.log(e)
 				}
 			}
-
-			window.customVariables.itemList = items
-
-			this.setState({
-				itemList: items
-			})
-
-			loading.dismiss()
-
-			return true
 		}
 		else if(routeEx[1] == "shared-out"){
 			try{
@@ -340,8 +338,6 @@ export async function updateItemList(){
 		
 				return alert.present()
 			}
-
-			let items = []
 
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
@@ -397,23 +393,14 @@ export async function updateItemList(){
 					receiverEmail: file.receiverEmail,
 					sharerId: 0,
 					sharerEmail: "",
-					offline: offline
+					offline: offline,
+					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
 				}
 
 				items.push(item)
 
 				window.customVariables.cachedFiles[file.uuid] = item
 			}
-
-			window.customVariables.itemList = items
-
-			this.setState({
-				itemList: items
-			})
-
-			loading.dismiss()
-
-			return true
 		}
 		else{
 			try{
@@ -454,8 +441,6 @@ export async function updateItemList(){
 		
 				return alert.present()
 			}
-
-			let items = []
 
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
@@ -511,27 +496,133 @@ export async function updateItemList(){
 					receiverEmail: "",
 					sharerId: 0,
 					sharerEmail: "",
-					offline: offline
+					offline: offline,
+					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
 				}
 
 				items.push(item)
 
 				window.customVariables.cachedFiles[file.uuid] = item
 			}
-
-			window.customVariables.itemList = items
-
-			this.setState({
-				itemList: items
-			})
-
-			loading.dismiss()
-
-			window.customFunctions.saveCachedItems()
-
-			return true
 		}
 	}
+
+	items = utils.orderItemsByType(items, window.customVariables.orderBy)
+
+	window.customVariables.itemList = items
+
+	let scrollTo = 0
+
+	if(this.state.scrollToIndex == 0){
+		scrollTo = -1
+	}
+
+	return this.setState({
+		itemList: items,
+		scrollToIndex: scrollTo
+	}, () => {
+		loading.dismiss()
+
+		this.forceUpdate()
+
+		window.customVariables.currentThumbnailURL = window.location.href
+
+		for(let i = 0; i < items.length; i++){
+			this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
+		}
+
+		window.customFunctions.saveCachedItems()
+		window.customFunctions.saveThumbnailCache()
+	})
+}
+
+export function getFileThumbnail(file, thumbURL, index){
+	if(file.type !== "file" || file.name.indexOf(".") == -1 || typeof file.thumbnail !== "undefined"){
+		return false
+	}
+
+	if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
+		if(window.customVariables.getThumbnailErrors[file.uuid] >= 3){
+			return false
+		}
+	}
+
+	let intervalTimer = utils.getRandomArbitrary(10, 50)
+
+	if(document.getElementById("item-thumbnail-" + file.uuid) !== null){
+		intervalTimer = 1
+	}
+
+	let onScreenInterval = setInterval(async () => {
+		if(thumbURL !== window.location.href){
+			return clearInterval(onScreenInterval)
+		}
+		else{
+			if(document.getElementById("item-thumbnail-" + file.uuid) !== null){
+				clearInterval(onScreenInterval)
+
+				let ext = file.name.split(".")
+				ext = ext[ext.length - 1]
+
+				let thumbnail = undefined
+		
+				if(utils.canShowThumbnail(ext)){
+					try{
+						thumbnail = await this.getThumbnail(file, thumbURL, ext)
+					}
+					catch(e){
+						console.log(e)
+
+						if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
+							window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
+						}
+						else{
+							window.customVariables.getThumbnailErrors[file.uuid] = 1
+						}
+
+						window.customFunctions.saveGetThumbnailErrors()
+
+						return false
+					}
+				}
+				else{
+					return false
+				}
+
+				if(typeof thumbnail !== "undefined"){
+					await window.customVariables.updateItemsSemaphore.acquire()
+
+					let newItems = this.state.itemList
+
+					for(let i = 0; i < newItems.length; i++){
+						if(newItems[i].uuid == file.uuid){
+							newItems[i].thumbnail = thumbnail
+						}
+					}
+
+					window.customVariables.itemList = newItems
+
+					if(thumbURL == window.location.href){
+						return this.setState({
+							itemList: newItems
+						}, () => {
+							this.forceUpdate()
+
+							window.customVariables.updateItemsSemaphore.release()
+						})
+					}
+					else{
+						window.customVariables.updateItemsSemaphore.release()
+
+						return false
+					}
+				}
+				else{
+					return false
+				}
+			}
+		}
+	}, intervalTimer)
 }
 
 export async function refreshMainList(event){
@@ -646,12 +737,12 @@ export async function selectItemsAction(event){
     return popover.present()
 }
 
-export async function previewItem(item){
+export async function previewItem(item, lastModalPreviewType = undefined){
     if(item.type !== "file"){
 		return false
 	}
 
-	if(Capacitor.isNative){
+	if(Capacitor.isNative && typeof lastModalPreviewType == "undefined"){
         if(this.state.settings.onlyWifi){
             let networkStatus = await Plugins.Network.getStatus()
 
@@ -661,7 +752,7 @@ export async function previewItem(item){
         }
     }
 
-	if(typeof window.customVariables.offlineSavedFiles[item.uuid] !== "undefined"){
+	if(typeof window.customVariables.offlineSavedFiles[item.uuid] !== "undefined" && typeof lastModalPreviewType == "undefined"){
 		this.getDownloadDir(true, item.uuid, (err, dirObj) => {
 			if(err){
 				console.log(err)
@@ -684,10 +775,18 @@ export async function previewItem(item){
 		let previewType = utils.getFilePreviewType(nameEx[nameEx.length - 1])
 
 		if(previewType == "none"){
+			if(typeof lastModalPreviewType !== "undefined"){
+				window.customFunctions.dismissModal()
+			}
+
 			return this.spawnItemActionSheet(item)
 		}
 
-		if(item.size > ((1024 * 1024) * 32)){
+		if(item.size > ((1024 * 1024) * 64)){
+			if(typeof lastModalPreviewType !== "undefined"){
+				window.customFunctions.dismissModal()
+			}
+
 			return this.spawnItemActionSheet(item)
 		}
 
@@ -696,8 +795,6 @@ export async function previewItem(item){
 				type: item.mime,
 				name: item.name
 			})
-
-			console.log(item)
 
 			if(typeof window.customVariables.currentPreviewURL !== "undefined"){
 				window.customVariables.urlCreator.revokeObjectURL(window.customVariables.currentPreviewURL)
@@ -709,8 +806,8 @@ export async function previewItem(item){
 
 			if(previewType == "image"){
 				previewModalContent = `
-					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute;">
-						<ion-toolbar style="--background: transparent; color: white;">
+					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute; display: none;" onClick="window.customFunctions.togglePreviewHeader(true)">
+						<ion-toolbar style="--background: black; color: white;">
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
 									<ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `" style="color: white;"></ion-icon>
@@ -727,18 +824,20 @@ export async function previewItem(item){
 						</ion-toolbar>
 					</ion-header>
 					<ion-content style="--background: black;" fullscreen>
-						<div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
-							<center>
-								<img id="preview-img" src="` + window.customVariables.currentPreviewURL + `" style="width: auto; height: auto; max-width: 100vw; max-height: 100vh;">
-							<center>
-						</div>
+						<ion-slides pager="false" style="height: 100%; width: 100vw;" id="slider" scrollbar="false">
+							<ion-slide>
+								<center>
+									<img id="preview-img" src="` + window.customVariables.currentPreviewURL + `" style="width: auto; height: auto; max-width: 100vw; max-height: 100vh;">
+								<center>
+							</ion-slide>
+						</ion-slides>
 					</ion-content>
 				`
 			}
 			else if(previewType == "video"){
 				previewModalContent = `
-					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute;">
-						<ion-toolbar style="--background: transparent; color: white;">
+					<ion-header class="ion-header-no-shadow" style="position: absolute;">
+						<ion-toolbar style="--background: black; color: white;">
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
 									<ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `" style="color: white;"></ion-icon>
@@ -755,11 +854,13 @@ export async function previewItem(item){
 						</ion-toolbar>
 					</ion-header>
 					<ion-content style="--background: black;" fullscreen>
-						<div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
-							<center>
-								<video id="preview-video" style="width: auto; height: auto; max-width: 100vw; max-height: 100vh;" src="` + window.customVariables.currentPreviewURL + `" autoplay preload controls></video>
-							</center>
-						</div>
+						<ion-slides pager="false" style="height: 100%; width: 100vw;" id="slider" scrollbar="false">
+							<ion-slide>
+								<center>
+									<video id="preview-video" style="width: auto; height: auto; max-width: 100vw; max-height: 100vh; margin-top: 56px;" src="` + window.customVariables.currentPreviewURL + `" autoplay preload controls></video>
+								</center>
+							</ion-slide>
+						</ion-slides>
 					</ion-content>
 				`
 			}
@@ -783,11 +884,13 @@ export async function previewItem(item){
 						</ion-toolbar>
 					</ion-header>
 					<ion-content style="--background: black;" fullscreen>
-						<div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
-							<audio autoplay preload controls>
-								<source src="` + window.customVariables.currentPreviewURL + `" type="audio/mpeg">
-							</audio>
-						</div>
+						<ion-slides pager="false" style="height: 100%; width: 100vw;" id="slider" scrollbar="false">
+							<ion-slide>
+								<audio autoplay preload controls>
+									<source src="` + window.customVariables.currentPreviewURL + `" type="audio/mpeg">
+								</audio>
+							</ion-slide>
+						</ion-slides>
 					</ion-content>
 				`
 			}
@@ -812,63 +915,236 @@ export async function previewItem(item){
 							</ion-buttons>
 						</ion-toolbar>
 					</ion-header>
-					<ion-content fullscreen>
-						<pre style="width: 100vw; height: auto; margin-top: 0px; padding: 10px;">` + text + `</pre>
+					<ion-content fullscreen style="-webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;">
+						<pre style="width: 100vw; height: 100%; margin-top: 0px; padding: 10px; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;">` + text + `</pre>
 					</ion-content>
 				`
 			}
 
 			if(previewModalContent.length <= 8){
+				if(typeof lastModalPreviewType !== "undefined"){
+					window.customFunctions.dismissModal()
+				}
+
 				return this.spawnItemActionSheet(item)
 			}
 
-			if(Capacitor.isNative){
-				setTimeout(() => {
-					Capacitor.Plugins.Keyboard.hide()
-				}, 100)
-			}
+			const setupBars = async () => {
+				if(previewType == "image" || previewType == "video" || previewType == "audio"){
+					this.setupStatusbar("image/video")
 
-			let modalId = "preview-modal-" + utils.generateRandomClassName()
-
-			customElements.define(modalId, class ModalContent extends HTMLElement {
-				connectedCallback() {
-					this.innerHTML = previewModalContent
+					try{
+						let modal = await modalController.getTop()
+	
+						modal.onDidDismiss().then(() => {
+							this.setupStatusbar()
+						})
+					}
+					catch(e){
+						console.log(e)
+					}
 				}
-			})
+			}
 
-			let modal = await modalController.create({
-				component: modalId,
-				swipeToClose: true,
-				showBackdrop: false,
-				backdropDismiss: false,
-				mode: (previewType == "image" || previewType == "video" ? "md" : "md"),
-				cssClass: "modal-fullscreen"
-			})
+			const setupSlider = (lastPreviewType) => {
+				let slider = document.getElementById("slider")
 
-			await modal.present()
+				if(slider == null){
+					return false
+				}
 
-			if(previewType == "image" || previewType == "video"){
-				this.setupStatusbar("image/video")
+				let itemList = this.state.itemList
 
-				modal.onDidDismiss().then(() => {
-					this.setupStatusbar()
+				const getPrevOrNextItem = (type) => {
+					let step = 1
+					let max = 128
+					let tries = 0
+
+					const getItemRecursive = (type) => {
+						if(tries > max){
+							return undefined
+						}
+
+						tries += 1
+
+						for(let i = 0; i < itemList.length; i++){
+							if(itemList[i].uuid == item.uuid){
+								let item = undefined
+								let listIndex = undefined
+
+								if(type == "prev"){
+									listIndex = (i - step)
+
+									item = itemList[listIndex]
+								}
+								else{
+									listIndex = (i + step)
+
+									item = itemList[listIndex]
+								}
+
+								if(typeof item == "undefined"){
+									step += 1
+
+									return getItemRecursive(type)
+								}
+								else{
+									let thisNameEx = item.name.split(".")
+									let thisPreviewType = utils.getFilePreviewType(thisNameEx[thisNameEx.length - 1])
+
+									if(thisPreviewType == lastPreviewType){
+										return {
+											item,
+											listIndex
+										}
+									}
+									else{
+										step += 1
+
+										return getItemRecursive(type)
+									}
+								}
+							}
+						}
+					}
+
+					return getItemRecursive(type)
+				}
+        
+				slider.options = {
+					freeMode: false
+				}
+
+				let offset = 90
+				let xDown, yDown
+
+				slider.addEventListener("touchstart", (e) => {
+					let firstTouch = getTouch(e)
+
+					xDown = firstTouch.clientX
+					yDown = firstTouch.clientY
 				})
-			}
-			else if(previewType == "pdf"){
-				document.getElementById("pdf-preview").src = window.customVariables.currentPreviewURL
+
+				slider.addEventListener("touchend", (e) => {
+					if(!xDown || !yDown){
+						return false
+					}
+
+					let {
+						clientX: xUp,
+						clientY: yUp
+					} = getTouch(e)
+
+					let xDiff = xDown - xUp
+					let yDiff = yDown - yUp
+					let xDiffAbs = Math.abs(xDown - xUp)
+					let yDiffAbs = Math.abs(yDown - yUp)
+
+					if(Math.max(xDiffAbs, yDiffAbs) < offset){
+						return false
+					}
+
+					if(xDiffAbs > yDiffAbs){
+						if(xDiff > 0){
+							let nextItem = getPrevOrNextItem("next")
+
+							if(typeof nextItem == "undefined"){
+								return false
+							}
+
+							this.setState({
+								scrollToIndex: nextItem.listIndex
+							})
+
+							return this.previewItem(nextItem.item, lastPreviewType)
+						}
+						else{
+							let prevItem = getPrevOrNextItem("prev")
+
+							if(typeof prevItem == "undefined"){
+								return false
+							}
+
+							this.setState({
+								scrollToIndex: prevItem.listIndex
+							})
+
+							return this.previewItem(prevItem.item, lastPreviewType)
+						}
+					}
+
+					return false
+				})
+
+				const getTouch = (e) => {
+					return e.changedTouches[0]
+				}
 			}
 
-			return true
+			if(typeof lastModalPreviewType !== "undefined"){
+				try{
+					var currentModal = document.querySelectorAll(".preview-modal-fullscreen > .modal-wrapper")[0].childNodes[0]
+				}
+				catch(e){
+					window.customFunctions.dismissModal()
+
+					return this.spawnItemActionSheet(item)
+				}
+
+				currentModal.innerHTML = previewModalContent
+
+				setupBars()
+				setupSlider(previewType)
+
+				return true
+			}
+			else{
+				let modalId = "preview-modal-" + utils.generateRandomClassName()
+
+				customElements.define(modalId, class ModalContent extends HTMLElement {
+					connectedCallback() {
+						this.innerHTML = previewModalContent
+					}
+				})
+
+				var modal = await modalController.create({
+					component: modalId,
+					swipeToClose: true,
+					showBackdrop: false,
+					backdropDismiss: false,
+					cssClass: "modal-fullscreen, preview-modal-fullscreen"
+				})
+
+				await modal.present()
+
+				if(Capacitor.isNative){
+					Capacitor.Plugins.Keyboard.hide()
+				}
+
+				if(previewType == "image" || previewType == "video" || previewType == "audio"){
+					try{
+						document.querySelectorAll(".preview-modal-fullscreen > .modal-wrapper")[0].childNodes[0].style.backgroundColor = "black"
+					}
+					catch(e){
+						console.log(e)
+					}
+				}
+	
+				setupBars()
+				setupSlider(previewType)
+	
+				return true
+			}
 		}
 
 		let loading = await loadingController.create({
-			message: language.get(this.state.lang, "loadingPreview")
+			message: "" //language.get(this.state.lang, "loadingPreview")
 		})
 
 		loading.present()
 
 		this.downloadPreview(item, (chunksDone) => {
-			console.log(chunksDone)
+			//console.log(chunksDone)
 		}, (err, dataArray) => {
 			loading.dismiss()
 
@@ -2508,7 +2784,9 @@ export async function spawnItemActionSheet(item){
 	await actionSheet.present()
 	
 	if(Capacitor.isNative){
-		Capacitor.Plugins.Keyboard.hide()
+		setTimeout(() => {
+			Capacitor.Plugins.Keyboard.hide()
+		}, 500)
 	}
 
 	return true

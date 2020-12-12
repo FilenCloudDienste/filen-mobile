@@ -99,6 +99,10 @@ export async function setupStatusbar(type = "normal"){
                 Plugins.StatusBar.setStyle({
                     style: StatusBarStyle.Dark
                 })
+
+                if(Capacitor.platform == "android"){
+                    window.NavigationBar.backgroundColorByHexString("#1F1F1F", false)
+                }
             }
             else{
                 Plugins.StatusBar.setBackgroundColor({
@@ -108,6 +112,10 @@ export async function setupStatusbar(type = "normal"){
                 Plugins.StatusBar.setStyle({
                     style: StatusBarStyle.Light
                 })
+
+                if(Capacitor.platform == "android"){
+                    window.NavigationBar.backgroundColorByHexString("#ffffff", true)
+                }
             }
         }
         else if(type == "image/video"){
@@ -118,6 +126,10 @@ export async function setupStatusbar(type = "normal"){
             Plugins.StatusBar.setStyle({
                 style: StatusBarStyle.Dark
             })
+
+            if(Capacitor.platform == "android"){
+                window.NavigationBar.backgroundColorByHexString("#000000", false)
+            }
         }
         else if(type == "login/register"){
             if(this.state.darkMode){
@@ -128,6 +140,10 @@ export async function setupStatusbar(type = "normal"){
                 Plugins.StatusBar.setStyle({
                     style: StatusBarStyle.Dark
                 })
+
+                if(Capacitor.platform == "android"){
+                    window.NavigationBar.backgroundColorByHexString("#121212", false)
+                }
             }
             else{
                 Plugins.StatusBar.setBackgroundColor({
@@ -137,6 +153,10 @@ export async function setupStatusbar(type = "normal"){
                 Plugins.StatusBar.setStyle({
                     style: StatusBarStyle.Light
                 })
+
+                if(Capacitor.platform == "android"){
+                    window.NavigationBar.backgroundColorByHexString("#ffffff", true)
+                }
             }
         }
 
@@ -160,6 +180,8 @@ export async function doSetup(){
     let getSettings = await Plugins.Storage.get({ key: "settings" })
     let getCachedFiles = await Plugins.Storage.get({ key: "cachedFiles" })
     let getCachedFolders = await Plugins.Storage.get({ key: "cachedFolders" })
+    let getThumbnailCache = await Plugins.Storage.get({ key: "thumbnailCache" })
+    let getGetThumbnailErrors = await Plugins.Storage.get({ key: "getThumbnailErrors" })
 
     if(getLang.value){
         this.setState({
@@ -261,16 +283,24 @@ export async function doSetup(){
             else{
                 window.customVariables.cachedFolders = JSON.parse(getCachedFolders.value)
             }
+
+            if(getThumbnailCache.value == null){
+                window.customVariables.thumbnailCache = {}
+            }
+            else{
+                window.customVariables.thumbnailCache = JSON.parse(getThumbnailCache.value)
+            }
+
+            if(getGetThumbnailErrors.value == null){
+                window.customVariables.getThumbnailErrors = {}
+            }
+            else{
+                window.customVariables.getThumbnailErrors = JSON.parse(getGetThumbnailErrors.value)
+            }
         }
         else{
             return this.showLogin()
         }
-    }
-
-    if(Capacitor.isNative){
-        setTimeout(() => {
-            Plugins.SplashScreen.hide()
-        }, 500)
     }
 
     window.customVariables.apiKey = getUserAPIKey.value
@@ -288,6 +318,12 @@ export async function doSetup(){
 
     window.customVariables.usageUpdateInterval = setInterval(() => {
         this.updateUserUsage()
+    }, 60000)
+
+    clearInterval(window.customVariables.getNetworkInfoInterval)
+
+    window.customVariables.getNetworkInfoInterval = setInterval(() => {
+        window.customFunctions.getNetworkInfo()
     }, 60000)
 
     return this.routeTo("/base")

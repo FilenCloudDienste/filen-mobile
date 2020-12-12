@@ -1,8 +1,63 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor, FilesystemDirectory, Plugins } from "@capacitor/core"
+import imageCompression from 'browser-image-compression';
 
 const utils = require("../utils/utils")
+
+export async function getThumbnailDir(uuid, callback){
+    if(Capacitor.platform == "android"){
+        let path = "ThumbnailCache/" + uuid
+        let directory = FilesystemDirectory.External
+
+        try{
+            await Plugins.Filesystem.mkdir({
+                path,
+                directory,
+                recursive: true 
+            })
+
+            var uri = await Plugins.Filesystem.getUri({
+                path,
+                directory
+            })
+
+            return callback(null, {
+                path,
+                directory,
+                uri
+            })
+        }
+        catch(e){
+            if(e.message == "Directory exists"){
+                try{
+                    var uri = await Plugins.Filesystem.getUri({
+                        path,
+                        directory
+                    })
+
+                    return callback(null, {
+                        path,
+                        directory,
+                        uri
+                    })
+                }
+                catch(e){
+                    return callback(e)
+                }
+            }
+            else{
+                return callback(e)
+            }
+        }
+    }
+    else if(Capacitor.platform == "ios"){
+        return callback(new Error("ios not yet implemented"))
+    }
+    else{
+        return callback(new Error("Can only run getdir function on native ios or android device"))
+    }
+}
 
 export async function getDownloadDir(makeOffline, fileName, callback){
     if(Capacitor.platform == "android"){
@@ -573,50 +628,278 @@ export async function queueFileDownload(file){
     })
 }
 
-export async function downloadPreview(file, progressCallback, callback){
+export async function getThumbnail(file, thumbURL, ext){
+    return new Promise(async (resolve, reject) => {
+        if(Capacitor.isNative){
+            if(this.state.settings.onlyWifi){
+                let networkStatus = await Plugins.Network.getStatus()
+    
+                if(networkStatus.connectionType !== "wifi"){
+                    reject("only wifi")
+
+                    return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                }
+            }
+        }
+        else{
+            return reject("not native")
+        }
+
+        let dirObj = {
+            path: "ThumbnailCache/" + file.uuid,
+            directory: FilesystemDirectory.External
+        }
+
+        let videoExts = ["mp4", "webm", "ogg"]
+    
+        await window.customVariables.thumbnailSemaphore.acquire()
+
+        if(file.chunks > 16 && !videoExts.includes(ext)){
+            window.customVariables.thumbnailSemaphore.release()
+
+            return reject("too big")
+        }
+
+        let thumbnailFileName = file.name
+
+        if(videoExts.includes(ext)){
+            let nameEx = file.name.split(".")
+
+            nameEx[nameEx.length - 1] = "jpg"
+
+            thumbnailFileName = nameEx.join(".")
+        }
+
+        if(typeof window.customVariables.thumbnailCache[file.uuid] == "undefined"){
+            if(thumbURL !== window.location.href){
+                window.customVariables.thumbnailSemaphore.release()
+
+                return reject("url changed")
+            }
+
+            const writeThumbnail = async (arrayBuffer) => {
+                workers.convertArrayBufferToBase64(arrayBuffer, async (b64Data) => {
+                    try{
+                        await Plugins.Filesystem.writeFile({
+                            path: dirObj.path + "/" + thumbnailFileName,
+                            directory: dirObj.directory,
+                            data: b64Data,
+                            recursive: true
+                        })
+
+                        var uri = await Plugins.Filesystem.getUri({
+                            path: dirObj.path + "/" + thumbnailFileName,
+                            directory: dirObj.directory
+                        })
+                    }
+                    catch(e){
+                        window.customVariables.thumbnailSemaphore.release()
+
+                        return reject(e)
+                    }
+
+                    if(thumbURL !== window.location.href){
+                        window.customVariables.thumbnailSemaphore.release()
+        
+                        return reject("url changed")
+                    }
+
+                    let imageURL = window.Ionic.WebView.convertFileSrc(uri.uri)
+
+                    window.customVariables.thumbnailBlobCache[file.uuid] = imageURL
+                    window.customVariables.thumbnailCache[file.uuid] = true
+
+                    window.customVariables.thumbnailSemaphore.release()
+
+                    return resolve(imageURL)
+                })
+            }
+
+            if(videoExts.includes(ext)){
+                this.downloadPreview(file, undefined, async (err, downloadData) => {
+                    if(err){
+                        window.customVariables.thumbnailSemaphore.release()
+    
+                        return reject(err)
+                    }
+
+                    downloadData = new File([new Blob([downloadData], {
+                        type: file.mime
+                    })], file.name, {
+                        lastModified: new Date(),
+                        type: file.mime
+                    })
+    
+                    try{
+                        var thumbnailData = await utils.getVideoCover(downloadData)
+                    }
+                    catch(e){
+                        window.customVariables.thumbnailSemaphore.release()
+    
+                        return reject(e)
+                    }
+
+                    thumbnailData = new File([thumbnailData], thumbnailFileName, {
+                        lastModified: new Date(),
+                        type: "image/jpeg"
+                    })
+
+                    try{
+                        var compressedImage = await imageCompression(thumbnailData, {
+                            maxWidthOrHeight: 200,
+                            useWebWorker: true
+                        })
+                    }
+                    catch(e){
+                        window.customVariables.thumbnailSemaphore.release()
+    
+                        return reject(e)
+                    }
+    
+                    let fileReader = new FileReader()
+    
+                    fileReader.onload = (e) => {
+                        let arrayBuffer = e.target.result
+    
+                        return writeThumbnail(arrayBuffer)
+                    }
+    
+                    fileReader.onerror = (err) => {
+                        window.customVariables.thumbnailSemaphore.release()
+    
+                        return reject(err)
+                    }
+    
+                    fileReader.readAsArrayBuffer(compressedImage)
+                }, 3)
+            }
+            else{
+                this.downloadPreview(file, undefined, async (err, data) => {
+                    if(err){
+                        window.customVariables.thumbnailSemaphore.release()
+    
+                        return reject(err)
+                    }
+    
+                    if(utils.canCompressThumbnail(ext)){
+                        data = new File([new Blob([data], {
+                            type: file.mime
+                        })], thumbnailFileName, {
+                            lastModified: new Date(),
+                            type: file.mime
+                        })
+        
+                        try{
+                            var compressedImage = await imageCompression(data, {
+                                maxWidthOrHeight: 200,
+                                useWebWorker: true
+                            })
+                        }
+                        catch(e){
+                            window.customVariables.thumbnailSemaphore.release()
+        
+                            return reject(e)
+                        }
+        
+                        let fileReader = new FileReader()
+        
+                        fileReader.onload = (e) => {
+                            let arrayBuffer = e.target.result
+        
+                            return writeThumbnail(arrayBuffer)
+                        }
+        
+                        fileReader.onerror = (err) => {
+                            window.customVariables.thumbnailSemaphore.release()
+        
+                            return reject(err)
+                        }
+        
+                        fileReader.readAsArrayBuffer(compressedImage)
+                    }
+                    else{
+                        return writeThumbnail(data)
+                    }
+                })
+            }
+        }
+        else{
+            try{
+                var uri = await Plugins.Filesystem.getUri({
+                    path: dirObj.path + "/" + thumbnailFileName,
+                    directory: dirObj.directory
+                })
+            }
+            catch(e){
+                window.customVariables.thumbnailSemaphore.release()
+
+                delete window.customVariables.thumbnailCache[file.uuid]
+
+                return reject(e)
+            }
+
+            if(thumbURL !== window.location.href){
+                window.customVariables.thumbnailSemaphore.release()
+
+                return reject("url changed")
+            }
+
+            let imageURL = window.Ionic.WebView.convertFileSrc(uri.uri)
+
+            window.customVariables.thumbnailBlobCache[file.uuid] = imageURL
+            window.customVariables.thumbnailCache[file.uuid] = true
+
+            window.customVariables.thumbnailSemaphore.release()
+
+            return resolve(imageURL)
+        }
+    })
+}
+
+export async function downloadPreview(file, progressCallback, callback, maxChunks = Infinity){
     let dataArray = []
-	let currentIndex = -1
-	let currentWriteIndex = 0
+    let currentIndex = -1
+    let currentWriteIndex = 0
     let chunksDone = 0
     
     const write = (index, data, callback) => {
-		if(currentWriteIndex == index){
-			dataArray.push(data)
+        if(currentWriteIndex == index){
+            dataArray.push(data)
 
-			currentWriteIndex += 1
-			chunksDone += 1
+            currentWriteIndex += 1
+            chunksDone += 1
 
-			if(typeof progressCallback == "function"){
+            if(typeof progressCallback == "function"){
                 progressCallback(chunksDone)
             }
 
-			if(chunksDone == file.chunks){
-				return callback(null, utils.uInt8ArrayConcat(dataArray))
-			}
-		}
-		else{
-			return setTimeout(() => {
-				write(index, data, callback)
-			}, 50)
-		}
-	}
+            if(chunksDone == file.chunks || chunksDone == maxChunks){
+                return callback(null, utils.uInt8ArrayConcat(dataArray))
+            }
+        }
+        else{
+            return setTimeout(() => {
+                write(index, data, callback)
+            }, 50)
+        }
+    }
 
-	let downloadInterval = setInterval(() => {
-		currentIndex += 1
+    let downloadInterval = setInterval(() => {
+        currentIndex += 1
 
-		let thisIndex = currentIndex
+        let thisIndex = currentIndex
 
-		if(thisIndex < file.chunks){
-			this.downloadFileChunk(file, thisIndex, 0, 10, (err, downloadIndex, downloadData) => {
-				if(err){
-					return callback(err)
-				}
+        if(thisIndex < file.chunks && thisIndex < maxChunks){
+            this.downloadFileChunk(file, thisIndex, 0, 16, (err, downloadIndex, downloadData) => {
+                if(err){
+                    return callback(err)
+                }
 
-				write(downloadIndex, downloadData, callback)
-			})
-		}
-		else{
-			clearInterval(downloadInterval)
-		}
-	}, 100)
+                write(downloadIndex, downloadData, callback)
+            })
+        }
+        else{
+            clearInterval(downloadInterval)
+        }
+    }, 100)
 }
