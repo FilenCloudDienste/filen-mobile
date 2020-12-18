@@ -1,7 +1,7 @@
 const en = require("../lang/en")
 const nl = require("../lang/nl")
 const sv = require("../lang/sv")
-const hin = require("../lang/hin")
+const hi = require("../lang/hi")
 
 let translations = {}
 
