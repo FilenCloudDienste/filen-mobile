@@ -725,7 +725,6 @@ export function canShowThumbnail(ext){
         case "svg":
         case "mp4":
         case "webm":
-        case "ogg":
             return true
         break
         default:

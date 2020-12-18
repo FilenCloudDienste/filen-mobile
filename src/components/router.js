@@ -2,11 +2,18 @@ export function routeTo(route){
     return window.location.hash = "#!" + route
 }
 
-export function routeToFolder(folder){
+export function routeToFolder(folder, index = 0){
     this.setState({
         mainToolbarTitle: folder.name,
         currentReceiverId: folder.receiverId
     })
+
+    if(index !== 0){
+        window.customVariables.scrollToIndex[folder.uuid] = index
+    }
+    else{
+        window.customVariables.scrollToIndex[folder.uuid] = 0
+    }
 
     window.customVariables.cachedFolders[folder.uuid] = folder
 

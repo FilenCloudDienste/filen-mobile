@@ -112,6 +112,7 @@ export function setupWindowFunctions(){
     window.customVariables.orderBy = "nameAsc"
     window.customVariables.getThumbnailErrors = {}
     window.customVariables.lastGetThumbnailErrorsLength = undefined
+    window.customVariables.scrollToIndex = {}
 
     window.onresize = () => {
         this.setState({

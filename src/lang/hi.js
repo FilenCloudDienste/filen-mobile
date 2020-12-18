@@ -189,8 +189,8 @@ translations['hi']['orderBySize'] = "साइज"
 translations['hi']['orderByDate'] = "दिनांक"
 translations['hi']['orderByType'] = "इस प्रकार"
 translations['hi']['orderByDirection'] = "दिशा"
-translations['hi']['orderByDirectionAsc'] = "बढ़ते हुए क्रम में "
-translations['hi']['orderByDirectionDesc'] = "घटते  हुए क्रम में "
+translations['hi']['orderByDirectionAsc'] = "बढ़ते हुए क्रम में"
+translations['hi']['orderByDirectionDesc'] = "घटते  हुए क्रम में"
 translations['hi']['orderByReset'] = "रीसेट"
 
 module.exports = {

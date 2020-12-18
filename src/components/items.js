@@ -513,8 +513,8 @@ export async function updateItemList(){
 
 	let scrollTo = 0
 
-	if(this.state.scrollToIndex == 0){
-		scrollTo = -1
+	if(typeof window.customVariables.scrollToIndex[parent] !== "undefined"){
+		scrollTo = window.customVariables.scrollToIndex[parent]
 	}
 
 	return this.setState({
@@ -573,14 +573,16 @@ export function getFileThumbnail(file, thumbURL, index){
 					catch(e){
 						console.log(e)
 
-						if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
-							window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
+						if(e.indexOf("url changed") == -1){
+							if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
+								window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
+							}
+							else{
+								window.customVariables.getThumbnailErrors[file.uuid] = 1
+							}
+	
+							window.customFunctions.saveGetThumbnailErrors()
 						}
-						else{
-							window.customVariables.getThumbnailErrors[file.uuid] = 1
-						}
-
-						window.customFunctions.saveGetThumbnailErrors()
 
 						return false
 					}
@@ -1071,6 +1073,9 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 
 							return this.previewItem(prevItem.item, lastPreviewType)
 						}
+					}
+					else{
+						window.customFunctions.dismissModal()
 					}
 
 					return false

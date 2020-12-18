@@ -185,7 +185,7 @@ export function render(){
                     }
                 </IonLabel>
             ) : (
-                <IonLabel onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index])}>
+                <IonLabel onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index)}>
                     {
                         this.state.itemList[index].type == "folder" ? (
                             <div>

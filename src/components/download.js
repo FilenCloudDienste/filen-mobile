@@ -650,7 +650,7 @@ export async function getThumbnail(file, thumbURL, ext){
             directory: FilesystemDirectory.External
         }
 
-        let videoExts = ["mp4", "webm", "ogg"]
+        let videoExts = ["mp4", "webm"]
     
         await window.customVariables.thumbnailSemaphore.acquire()
 

@@ -92,7 +92,9 @@ export async function openSettingsModal(){
                             <ion-label>` + language.get(appLang, "settingsLanguage") + `</ion-label>
                             <ion-select id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert">
                                 <ion-select-option value="en">English</ion-select-option>
+                                <ion-select-option value="de">Deutsch</ion-select-option>
                                 <ion-select-option value="nl">Nederlands</ion-select-option>
+                                <ion-select-option value="hi">हिन्दी, हिंदी</ion-select-option>
                             </ion-select>
                         </ion-item>
                         <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">

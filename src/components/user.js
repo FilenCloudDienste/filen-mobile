@@ -210,6 +210,9 @@ export async function updateUserKeys(){
                     }
                 }
             }
+            else{
+                return
+            }
         }
         catch(e){
             console.log(e)
