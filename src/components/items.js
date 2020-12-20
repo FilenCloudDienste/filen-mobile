@@ -922,6 +922,30 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 					</ion-content>
 				`
 			}
+			else if(previewType == "pdf"){
+				previewModalContent = `
+					<ion-header>
+						<ion-toolbar>
+							<ion-buttons slot="start">
+								<ion-button onclick="window.customFunctions.dismissModal()">
+									<ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+								</ion-button>
+							</ion-buttons>
+							<ion-title>
+								` + item.name + `
+							</ion-title>
+							<ion-buttons slot="end">
+								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + window.btoa(JSON.stringify(item)) + `')">
+									<ion-icon slot="icon-only" icon="` + Ionicons.ellipsisVertical + `"></ion-icon>
+								</ion-button>
+							</ion-buttons>
+						</ion-toolbar>
+					</ion-header>
+					<ion-content fullscreen>
+						<div id="pdf-viewer" style="width: 100%; height: 100%; overflow: scroll;"></div>
+					</ion-content>
+				`
+			}
 
 			if(previewModalContent.length <= 8){
 				if(typeof lastModalPreviewType !== "undefined"){
@@ -1017,7 +1041,8 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 					freeMode: false
 				}
 
-				let offset = 90
+				let offset = 75
+				let offsetY = 150
 				let xDown, yDown
 
 				slider.addEventListener("touchstart", (e) => {
@@ -1075,7 +1100,9 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 						}
 					}
 					else{
-						window.customFunctions.dismissModal()
+						if(xDiffAbs < yDiffAbs && Math.max(xDiffAbs, yDiffAbs) > offsetY){
+							window.customFunctions.dismissModal()
+						}
 					}
 
 					return false
@@ -1086,9 +1113,66 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 				}
 			}
 
+			const loadPdf = async () => {
+				let canvasContainer = document.getElementById("pdf-viewer")
+
+				if(typeof window.pdfjsLib == "undefined"){
+					return window.customFunctions.dismissModal()
+				}
+
+				window.pdfjsLib.GlobalWorkerOptions.workerSrc = "assets/pdf/build/pdf.worker.js"
+
+				let loader = await loadingController.create({
+					message: ""
+				})
+
+				loader.present()
+        
+				function renderPage(page){
+					let viewport = page.getViewport({
+						scale: 2
+					})
+
+					let canvas = document.createElement('canvas')
+					let ctx = canvas.getContext('2d')
+
+					let renderContext = {
+						canvasContext: ctx,
+						viewport: viewport
+					}
+
+					canvas.height = viewport.height
+					canvas.width = viewport.width
+
+					canvasContainer.appendChild(canvas)
+					
+					page.render(renderContext)
+				}
+				
+				function renderPages(pdfDoc){
+					if(typeof loader !== "undefined"){
+						loader.dismiss()
+					}
+
+					for(let i = 1; i <= pdfDoc.numPages; i++){
+						pdfDoc.getPage(i).then(renderPage)
+					}
+				}
+
+				let loadingTask = window.pdfjsLib.getDocument({
+					data: dataArray
+				})
+
+				loadingTask.promise.then(renderPages).catch((err) => {
+					console.log(err)
+
+					return window.customFunctions.dismissModal()
+				})
+			}
+
 			if(typeof lastModalPreviewType !== "undefined"){
 				try{
-					var currentModal = document.querySelectorAll(".preview-modal-fullscreen > .modal-wrapper")[0].childNodes[0]
+					var currentModal = document.querySelectorAll(".modal-fullscreen > .modal-wrapper")[0].childNodes[0]
 				}
 				catch(e){
 					window.customFunctions.dismissModal()
@@ -1097,6 +1181,10 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 				}
 
 				currentModal.innerHTML = previewModalContent
+
+				if(previewType == "pdf"){
+					loadPdf()
+				}
 
 				setupBars()
 				setupSlider(previewType)
@@ -1117,7 +1205,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 					swipeToClose: true,
 					showBackdrop: false,
 					backdropDismiss: false,
-					cssClass: "modal-fullscreen, preview-modal-fullscreen"
+					cssClass: "modal-fullscreen"
 				})
 
 				await modal.present()
@@ -1128,11 +1216,15 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 
 				if(previewType == "image" || previewType == "video" || previewType == "audio"){
 					try{
-						document.querySelectorAll(".preview-modal-fullscreen > .modal-wrapper")[0].childNodes[0].style.backgroundColor = "black"
+						document.querySelectorAll(".modal-fullscreen > .modal-wrapper")[0].childNodes[0].style.backgroundColor = "black"
 					}
 					catch(e){
 						console.log(e)
 					}
+				}
+
+				if(previewType == "pdf"){
+					loadPdf()
 				}
 	
 				setupBars()
@@ -1849,26 +1941,40 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		return callback(language.get(this.state.lang, "cannotShareWithSelf"))
 	}
 
+	let loading = await loadingController.create({
+		message: ""
+	})
+
+	loading.present()
+
 	try{
 		var res = await utils.apiRequest("POST", "/v1/user/publicKey/get", {
 			email
 		})
 	}
 	catch(e){
+		loading.dismiss()
+
 		return callback(e)
 	}
 
 	if(!res.status){
+		loading.dismiss()
+
 		return callback(res.message)
 	}
 
 	let userPubKey = res.data.publicKey
 
 	if(userPubKey == null){
+		loading.dismiss()
+
 		return callback(language.get(this.state.lang, "shareItemUserNotFound", true, ["__EMAIL__"], [email]))
 	}
 
 	if(userPubKey.length <= 1){
+		loading.dismiss()
+
 		return callback(language.get(this.state.lang, "shareItemUserNotFound", true, ["__EMAIL__"], [email]))
 	}
 
@@ -1879,11 +1985,15 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 	  	}, true, ["encrypt"])
 	}
 	catch(e){
+		loading.dismiss()
+
 		return callback(e)
 	}
 
 	if(type == "file"){
 		if(typeof window.customVariables.cachedFiles[uuid] == "undefined"){
+			loading.dismiss()
+
 			return callback(language.get(this.state.lang, "shareItemFileNotFound", true, ["__NAME__"], [uuid]))
 		}
 
@@ -1903,6 +2013,8 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 			})))
 		}
 		catch(e){
+			loading.dismiss()
+
 			return console.log(e)
 		}
 
@@ -1917,12 +2029,18 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 			})
 		}
 		catch(e){
+			loading.dismiss()
+
 			return callback(e)
 		}
 
 		if(!res.status){
+			loading.dismiss()
+
 			return callback(res.message)
 		}
+
+		loading.dismiss()
 
 		return callback(null)
 	}
@@ -1934,10 +2052,14 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 			})
 		}
 		catch(e){
+			loading.dismiss()
+
 			return callback(e)
 		}
 
 		if(!res.status){
+			loading.dismiss()
+
 			return callback(res.message)
 		}
 
@@ -1946,7 +2068,9 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		let files = res.data.files
 		let folders = res.data.folders
 
-		if((files.length + folders.length) > 2500){
+		if((files.length + folders.length) > 1000){
+			loading.dismiss()
+
 			return callback(language.get(this.state.lang, "shareTooBigForApp"))
 		}
 
@@ -2002,6 +2126,8 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 				}, usrPubKey, new TextEncoder().encode(itemMetadata))
 			}
 			catch(e){
+				loading.dismiss()
+
 				return callback(e)
 			}
 
@@ -2026,6 +2152,8 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 			itemsShared += 1
 
 			if(itemsShared == shareItems.length){
+				loading.dismiss()
+
 				return callback(null)
 			}
 		}
@@ -2063,12 +2191,6 @@ export async function shareSelectedItems(){
 
 					let itemsShared = 0
 
-					let loading = await loadingController.create({
-						message: ""
-					})
-
-					loading.present()
-
 					for(let i = 0; i < items.length; i++){
 						let item = items[i]
 
@@ -2086,8 +2208,6 @@ export async function shareSelectedItems(){
 								itemsShared += 1
 	
 								if(itemsShared >= items.length){
-									loading.dismiss()
-
 									return this.spawnToast(language.get(this.state.lang, "itemsShared", true, ["__COUNT__", "__EMAIL__"], [items.length, email]))
 								}
 							})

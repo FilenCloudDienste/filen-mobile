@@ -809,7 +809,7 @@ export function getFilePreviewType(ext){
         return "text"
       break
       case "pdf":
-        return "none"
+        return "pdf"
       break
       default:
         return "none"
@@ -1120,4 +1120,13 @@ export function getVideoCover(file, seekTo = 0.0) {
             });
         });
     });
+}
+
+export function getLanguageSelection(){
+    return `
+        <ion-select-option value="en">English</ion-select-option>
+        <ion-select-option value="de">Deutsch</ion-select-option>
+        <ion-select-option value="nl">Nederlands</ion-select-option>
+        <ion-select-option value="hi">हिन्दी, हिंदी</ion-select-option>
+    `
 }

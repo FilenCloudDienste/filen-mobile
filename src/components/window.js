@@ -71,6 +71,14 @@ export function windowRouter(){
 }
 
 export function setupWindowFunctions(){
+    let script = document.createElement("script")
+
+    script.type = "text/javascript"
+    script.src = "assets/pdf/build/pdf.js"
+
+    document.getElementsByTagName("head")[0].appendChild(script)
+
+
     window.customFunctions = {}
     window.customVariables = {}
 

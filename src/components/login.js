@@ -15,6 +15,9 @@ export async function showLogin(){
             this.innerHTML = `
                 <ion-header class="ion-header-no-shadow" style="--background: transparent;">
                     <ion-toolbar style="--background: transparent;">
+                        <ion-select slot="start" id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert">
+                            ` + utils.getLanguageSelection() + `
+                        </ion-select>
                         <ion-buttons slot="end">
                             <ion-button onClick="window.customFunctions.loginToggleDarkMode()">
                                 <ion-icon slot="icon-only" icon="` + (appDarkMode ? Ionicons.sunny : Ionicons.moon) + `"></ion-icon>
@@ -69,4 +72,32 @@ export async function showLogin(){
     if(Capacitor.isNative){
         Plugins.SplashScreen.hide()
     }
+
+    clearInterval(window.customVariables.selectLangInterval)
+
+    window.customVariables.selectLangInterval = setInterval(async () => {
+        if(typeof document.getElementById("settings-lang-select") == "undefined"){
+            return clearInterval(window.customVariables.selectLangInterval)
+        }
+
+        if(document.getElementById("settings-lang-select") == null){
+            return clearInterval(window.customVariables.selectLangInterval)
+        }
+
+        if(typeof document.getElementById("settings-lang-select").value == "undefined"){
+            return clearInterval(window.customVariables.selectLangInterval)
+        }
+
+        let selectedLang = document.getElementById("settings-lang-select").value
+
+        if(selectedLang !== appLang){
+            if(language.isAvailable(selectedLang)){
+                clearInterval(window.customVariables.selectLangInterval)
+
+                await Plugins.Storage.set({ key: "lang", value: selectedLang })
+
+                return document.location.href = "index.html"
+            }
+        }
+    }, 100)
 }
