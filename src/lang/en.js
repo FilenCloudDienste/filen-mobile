@@ -192,6 +192,7 @@ translations['en']['orderByDirection'] = "Direction"
 translations['en']['orderByDirectionAsc'] = "Ascending"
 translations['en']['orderByDirectionDesc'] = "Descending"
 translations['en']['orderByReset'] = "Reset"
+translations['en']['loginWith2FACode'] = "Please enter your Two Factor Authentication code"
 
 module.exports = {
     translations

@@ -217,7 +217,7 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
 
     await window.customVariables.downloadChunkSemaphore.acquire()
 
-    utils.fetchWithTimeout(180000, fetch(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
+    utils.fetchWithTimeout(3600000, fetch(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
         method: "GET"
     })).then((response) => {
         response.arrayBuffer().then((res) => {
@@ -227,11 +227,20 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
 
             try{
                 if(res.byteLength){
-                    workers.decryptData(file.uuid, index, file.key, res, (decrypted) => {
+                    if(res.byteLength > 1){
+                        workers.decryptData(file.uuid, index, file.key, res, (decrypted) => {
+                            window.customVariables.downloadChunkSemaphore.release()
+    
+                            return callback(null, index, decrypted)
+                        })
+                    }
+                    else{
                         window.customVariables.downloadChunkSemaphore.release()
 
-                        return callback(null, index, decrypted)
-                    })
+                        return setTimeout(() => {
+                            this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
+                        }, 1000)
+                    }
                 }
                 else{
                     window.customVariables.downloadChunkSemaphore.release()
@@ -890,7 +899,7 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
         let thisIndex = currentIndex
 
         if(thisIndex < file.chunks && thisIndex < maxChunks){
-            this.downloadFileChunk(file, thisIndex, 0, 16, (err, downloadIndex, downloadData) => {
+            this.downloadFileChunk(file, thisIndex, 0, 32, (err, downloadIndex, downloadData) => {
                 if(err){
                     return callback(err)
                 }

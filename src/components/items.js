@@ -515,6 +515,8 @@ export async function updateItemList(){
 
 	if(typeof window.customVariables.scrollToIndex[parent] !== "undefined"){
 		scrollTo = window.customVariables.scrollToIndex[parent]
+
+		delete window.customVariables.scrollToIndex[parent]
 	}
 
 	return this.setState({
@@ -542,7 +544,7 @@ export function getFileThumbnail(file, thumbURL, index){
 	}
 
 	if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
-		if(window.customVariables.getThumbnailErrors[file.uuid] >= 3){
+		if(window.customVariables.getThumbnailErrors[file.uuid] >= 16){
 			return false
 		}
 	}

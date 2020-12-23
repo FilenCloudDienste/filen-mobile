@@ -192,6 +192,7 @@ translations['de']['orderByDirection'] = "Richtung"
 translations['de']['orderByDirectionAsc'] = "Aufsteigend"
 translations['de']['orderByDirectionDesc'] = "Absteigend"
 translations['de']['orderByReset'] = "Zurücksetzen"
+translations['de']['loginWith2FACode'] = "Bitte logge Dich mit Deinem Zwei Faktor Authentifizierung code ein"
 
 module.exports = {
     translations

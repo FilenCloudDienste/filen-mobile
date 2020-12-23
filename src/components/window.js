@@ -529,40 +529,56 @@ export function setupWindowFunctions(){
         }
 
         if(!res.status){
-            document.getElementById("login-password").value = ""
-            document.getElementById("login-2fa").value = ""
+            if(res.message == "Please enter your Two Factor Authentication code."){
+                window.customFunctions.dismissLoader()
 
-            window.customFunctions.dismissLoader()
+                document.getElementById("login-2fa-container").style.display = "block"
 
-            if(res.message == "Account not yet activated."){
                 let alert = await alertController.create({
                     header: "",
                     subHeader: "",
-                    message: language.get(this.state.lang, "loginAccountNotActivated"),
+                    message: language.get(this.state.lang, "loginWith2FACode"),
                     buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
                 })
-    
+
                 return alert.present()
             }
-            else if(res.message == "Account not found."){
+            else{
+                document.getElementById("login-password").value = ""
+                document.getElementById("login-2fa").value = ""
+
+                window.customFunctions.dismissLoader()
+
+                if(res.message == "Account not yet activated."){
+                    let alert = await alertController.create({
+                        header: "",
+                        subHeader: "",
+                        message: language.get(this.state.lang, "loginAccountNotActivated"),
+                        buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                    })
+        
+                    return alert.present()
+                }
+                else if(res.message == "Account not found."){
+                    let alert = await alertController.create({
+                        header: "",
+                        subHeader: "",
+                        message: language.get(this.state.lang, "loginAccountNotFound"),
+                        buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                    })
+        
+                    return alert.present()
+                }
+
                 let alert = await alertController.create({
                     header: "",
                     subHeader: "",
-                    message: language.get(this.state.lang, "loginAccountNotFound"),
+                    message: language.get(this.state.lang, "loginWrongCredentials"),
                     buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
                 })
-    
+
                 return alert.present()
             }
-
-            let alert = await alertController.create({
-                header: "",
-                subHeader: "",
-                message: language.get(this.state.lang, "loginWrongCredentials"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
-            })
-
-            return alert.present()
         }
 
         await Plugins.Storage.set({ key: "isLoggedIn", value: "true" })

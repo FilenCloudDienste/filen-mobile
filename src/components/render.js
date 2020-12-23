@@ -40,7 +40,7 @@ export function render(){
                 }
             </IonThumbnail>
         ) : (
-            <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index])}>
+            <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])}>
                 {
                     this.state.itemList[index].type == "folder" ? (
                         <img src="assets/images/folder.svg" style={{
@@ -185,7 +185,7 @@ export function render(){
                     }
                 </IonLabel>
             ) : (
-                <IonLabel onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index)}>
+                <IonLabel onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])}>
                     {
                         this.state.itemList[index].type == "folder" ? (
                             <div>
@@ -702,6 +702,7 @@ export function render(){
                                             overscanRowCount={3}
                                             rowRenderer={rowRenderer}
                                             scrollToIndex={this.state.scrollToIndex}
+                                            scrollToAlignment="center"
                                             style={{
                                                 outline: "none",
                                                 border: "none"
