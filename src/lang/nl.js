@@ -192,7 +192,7 @@ translations['nl']['orderByDirection'] = "Richting"
 translations['nl']['orderByDirectionAsc'] = "Oplopend"
 translations['nl']['orderByDirectionDesc'] = "Aflopend"
 translations['nl']['orderByReset'] = "Reset"
-translations['nl']['loginWith2FACode'] = "Voer uw Two Factor Authenticatie code in"
+translations['nl']['loginWith2FACode'] = "Voer uw tweestapsverificatie code in"
 
 module.exports = {
     translations
