@@ -3,6 +3,16 @@ export function routeTo(route){
 }
 
 export function routeToFolder(folder, index = 0, lastFolderUUID = undefined){
+    if(window.location.href.indexOf("links") !== -1){
+        this.openPublicLinkModal(folder)
+        
+        return false
+    }
+
+    if(window.location.href.indexOf("trash") !== -1){
+        return false
+    }
+
     this.setState({
         mainToolbarTitle: folder.name,
         currentReceiverId: folder.receiverId

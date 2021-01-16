@@ -1,9 +1,12 @@
 import { Capacitor, Plugins, FilesystemDirectory } from "@capacitor/core"
 import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
-import * as Ionicons from 'ionicons/icons';
+import * as Ionicons from 'ionicons/icons'
+import { isPlatform } from '@ionic/react'
+import { kMaxLength } from "buffer"
 
 const utils = require("../utils/utils")
+const safeAreaInsets = require('safe-area-insets')
 
 export function windowRouter(){
     window.onhashchange = async () => {
@@ -17,7 +20,7 @@ export function windowRouter(){
             let routeEx = window.location.hash.split("/")
 
             if(this.state.isLoggedIn){
-                if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash"){
+                if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash" || routeEx[1] == "links"){
                     await this.updateItemList()
     
                     let foldersInRoute = routeEx.slice(2)
@@ -57,6 +60,12 @@ export function windowRouter(){
                                 showMainToolbarBackButton: false
                             })
                         }
+                        else if(routeEx[1] == "links"){
+                            this.setState({
+                                mainToolbarTitle: language.get(this.state.lang, "linksTitle"),
+                                showMainToolbarBackButton: false
+                            })
+                        }
                         else{
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "myCloud"),
@@ -71,13 +80,21 @@ export function windowRouter(){
 }
 
 export function setupWindowFunctions(){
-    let script = document.createElement("script")
+    window.$ = undefined
 
-    script.type = "text/javascript"
-    script.src = "assets/pdf/build/pdf.js"
+    let jQueryScript = document.createElement("script")
 
-    document.getElementsByTagName("head")[0].appendChild(script)
+    jQueryScript.type = "text/javascript"
+    jQueryScript.src = "assets/jquery.js"
 
+    document.getElementsByTagName("head")[0].appendChild(jQueryScript)
+
+    let pdfJsScript = document.createElement("script")
+
+    pdfJsScript.type = "text/javascript"
+    pdfJsScript.src = "assets/pdf/build/pdf.js"
+
+    document.getElementsByTagName("head")[0].appendChild(pdfJsScript)
 
     window.customFunctions = {}
     window.customVariables = {}
@@ -86,6 +103,7 @@ export function setupWindowFunctions(){
     window.customVariables.lang = this.state.lang
     window.customVariables.cachedFolders = {}
     window.customVariables.cachedFiles = {}
+    window.customVariables.cachedMetadata = {}
     window.customVariables.keyUpdateInterval = undefined
     window.customVariables.usageUpdateInterval = undefined
     window.customVariables.apiKey = ""
@@ -93,6 +111,8 @@ export function setupWindowFunctions(){
     window.customVariables.uploadChunkSemaphore = new utils.Semaphore(5)
     window.customVariables.downloadSemaphore = new utils.Semaphore(5)
     window.customVariables.downloadChunkSemaphore = new utils.Semaphore(30)
+    window.customVariables.shareItemSemaphore = new utils.Semaphore(4)
+    window.customVariables.decryptShareItemSemaphore = new utils.Semaphore(128)
     window.customVariables.uploads = {}
     window.customVariables.downloads = {}
     window.customVariables.reloadContentAfterUploadTimeout = undefined
@@ -121,6 +141,48 @@ export function setupWindowFunctions(){
     window.customVariables.getThumbnailErrors = {}
     window.customVariables.lastGetThumbnailErrorsLength = undefined
     window.customVariables.scrollToIndex = {}
+    window.customVariables.mainSearchbarTimeout = undefined
+    window.customVariables.mainSearchbarInterval = undefined
+    window.customVariables.lastMainSearchbarTerm = ""
+    window.customVariables.userMasterKeys = []
+    window.customVariables.isGettingPreviewData = false
+    window.customVariables.stopGettingPreviewData = false
+    window.customVariables.cachedAPIItemListRequests = {}
+
+    clearInterval(window.customVariables.mainSearchbarInterval)
+
+    window.customVariables.mainSearchbarInterval = setInterval(() => {
+        if(document.getElementById("main-searchbar") !== null){
+            let term = document.getElementById("main-searchbar").value.trim()
+
+            if(typeof term == "string"){
+                if(term.length > 0){
+                    if(term !== window.customVariables.lastMainSearchbarTerm){
+                        window.customVariables.lastMainSearchbarTerm = term
+
+                        clearTimeout(window.customVariables.mainSearchbarTimeout)
+    
+                        window.customVariables.mainSearchbarTimeout = setTimeout(() => {
+                            this.setMainSearchTerm(term)
+                        }, 250)
+                    }
+                }
+                else{
+                    clearTimeout(window.customVariables.mainSearchbarTimeout)
+
+                    this.setMainSearchTerm("")
+                }
+            }
+            else{
+                clearTimeout(window.customVariables.mainSearchbarTimeout)
+
+                this.setMainSearchTerm("")
+            }
+        }
+        else{
+            clearTimeout(window.customVariables.mainSearchbarTimeout)
+        }
+    }, 100)
 
     window.onresize = () => {
         this.setState({
@@ -132,6 +194,9 @@ export function setupWindowFunctions(){
     document.onclick = (e) => {
         return window.customFunctions.togglePreviewHeader(e)
     }
+
+    window.customFunctions.isPlatform = isPlatform
+    window.customFunctions.safeAreaInsets = safeAreaInsets
 
     window.customFunctions.togglePreviewHeader = (e) => {
         if(typeof e.target == "undefined"){
@@ -586,15 +651,15 @@ export function setupWindowFunctions(){
         await Plugins.Storage.set({ key: "userEmail", value: email })
         await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify([utils.hashFn(password)]) })
 
-        window.customFunctions.dismissLoader(true)
+        /*window.customFunctions.dismissLoader(true)
         window.customFunctions.dismissModal(true)
         window.customFunctions.dismissLoader()
 
         document.getElementById("login-email").value = ""
         document.getElementById("login-password").value = ""
-        document.getElementById("login-2fa").value = ""
+        document.getElementById("login-2fa").value = ""*/
 
-        return this.doSetup()
+        return document.location.href = "index.html"
     }
 
     window.customFunctions.doRegister = async () => {
@@ -757,6 +822,39 @@ export function setupWindowFunctions(){
         })
 
         return modal.present()
+    }
+
+    window.customFunctions.openWebsiteModal = async () => {
+        let actionSheet = await actionSheetController.create({
+            header: language.get(this.state.lang, "website"),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "website"),
+                    icon: Ionicons.globe,
+                    handler: () => {
+                        window.open("https://filen.io/", "_system")
+
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "onlineFM"),
+                    icon: Ionicons.grid,
+                    handler: () => {
+                        window.open("https://filen.io/my-account/file-manager/default", "_system")
+
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    icon: "close",
+                    role: "cancel"
+                }
+            ]
+        })
+
+        return actionSheet.present()
     }
 
     window.customFunctions.openHelpModal = async () => {
@@ -1008,9 +1106,8 @@ export function setupWindowFunctions(){
         return alert.present()
     }
 
-    window.customFunctions.editItemPublicLink = async (itemJSON, type) => {
+    window.customFunctions.changeItemColor = async (itemJSON, color) => {
         let item = JSON.parse(window.atob(itemJSON))
-        let linkUUID = utils.uuidv4()
 
         let loading = await loadingController.create({
             message: ""
@@ -1019,15 +1116,10 @@ export function setupWindowFunctions(){
         loading.present()
 
         try{
-            var res = await utils.apiRequest("POST", "/v1/link/edit", {
+            var res = await utils.apiRequest("POST", "/v1/dir/color/change", {
                 apiKey: this.state.userAPIKey,
-                uuid: linkUUID,
-                fileUUID: item.uuid,
-                expiration: "never",
-                password: "empty",
-                passwordHashed: utils.hashFn("empty"),
-                downloadBtn: "enable",
-                type: type
+                uuid: item.uuid,
+                color: color
             })
         }
         catch(e){
@@ -1048,24 +1140,387 @@ export function setupWindowFunctions(){
 
         loading.dismiss()
 
-        document.getElementById("public-link-enabled-toggle").checked = true
-        document.getElementById("public-link-input").value = "https://filen.io/d/" + linkUUID + "#!" + item.key
+        try{
+            await this.updateItemList()
+        }
+        catch(e){
+            console.log(e)
+        }
 
-        if(type == "enable"){
-            document.getElementById("enable-public-link-content").style.display = "none"
-            document.getElementById("public-link-enabled-content").style.display = "block"
+        return window.customFunctions.dismissModal()
+    }
+
+    window.customFunctions.editItemPublicLink = async (itemJSON, type, isEdit = false, currentLinkUUID = "") => {
+        let item = JSON.parse(window.atob(itemJSON))
+        let linkUUID = utils.uuidv4()
+
+        if(isEdit && typeof currentLinkUUID == "string"){
+            if(currentLinkUUID.length > 1){
+                linkUUID = currentLinkUUID
+            }
+        }
+
+        let loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+
+        let expires = "never"
+
+        if(typeof document.getElementById("public-link-expires-select").value == "string"){
+            expires = document.getElementById("public-link-expires-select").value
+        }
+
+        let password = "empty"
+
+        if(typeof document.getElementById("public-link-password-input").value == "string"){
+            if(document.getElementById("public-link-password-input").value){
+                password = document.getElementById("public-link-password-input").value
+            }
+        }
+
+        let downloadBtn = "enable"
+
+        if(document.getElementById("public-link-enable-download-btn-toggle") !== null){
+            if(!document.getElementById("public-link-enable-download-btn-toggle").checked){
+                downloadBtn = "disable"
+            }
+        }
+        
+        if(item.type == "file"){
+            try{
+                var res = await utils.apiRequest("POST", "/v1/link/edit", {
+                    apiKey: this.state.userAPIKey,
+                    uuid: linkUUID,
+                    fileUUID: item.uuid,
+                    expiration: expires,
+                    password: password,
+                    passwordHashed: utils.hashFn(password),
+                    downloadBtn: downloadBtn,
+                    type: type
+                })
+            }
+            catch(e){
+                console.log(e)
+        
+                loading.dismiss()
+        
+                return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            }
+        
+            if(!res.status){
+                console.log(res.message)
+        
+                loading.dismiss()
+        
+                return this.spawnToast(res.message)
+            }
+
+            loading.dismiss()
+
+            document.getElementById("public-link-enabled-toggle").checked = true
+            document.getElementById("public-link-input").value = "https://filen.io/d/" + linkUUID + "#!" + item.key
+
+            if(type == "enable"){
+                document.getElementById("enable-public-link-content").style.display = "none"
+                document.getElementById("public-link-enabled-content").style.display = "block"
+            }
+            else{
+                document.getElementById("enable-public-link-content").style.display = "block"
+                document.getElementById("public-link-enabled-content").style.display = "none"
+
+                try{
+                    await this.updateItemList()
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+
+            return true
         }
         else{
-            document.getElementById("enable-public-link-content").style.display = "block"
-            document.getElementById("public-link-enabled-content").style.display = "none"
-        }
+            const removeFolderLink = async (callback) => {
+                let removeLoading = await loadingController.create({
+                    message: ""
+                })
 
-        return true
+                removeLoading.present()
+
+                try{
+                    var res = await utils.apiRequest("POST", "/v1/dir/link/remove", {
+                        apiKey: this.state.userAPIKey,
+                        uuid: item.uuid
+                    })
+                }
+                catch(e){
+                    console.log(e)
+            
+                    removeLoading.dismiss()
+            
+                    return callback(language.get(this.state.lang, "apiRequestError"))
+                }
+            
+                if(!res.status){
+                    console.log(res.message)
+            
+                    removeLoading.dismiss()
+            
+                    return callback(res.message)
+                }
+
+                removeLoading.dismiss()
+                
+                return callback(null)
+            }
+
+            const editFolderLink = async (callback) => {
+                let editLoading = await loadingController.create({
+                    message: ""
+                })
+
+                editLoading.present()
+
+                try{
+                    var res = await utils.apiRequest("POST", "/v1/dir/link/edit", {
+                        apiKey: this.state.userAPIKey,
+                        uuid: item.uuid,
+                        expiration: expires,
+                        password: password,
+                        passwordHashed: utils.hashFn(password),
+                        downloadBtn: downloadBtn
+                    })
+                }
+                catch(e){
+                    console.log(e)
+            
+                    editLoading.dismiss()
+            
+                    return callback(language.get(this.state.lang, "apiRequestError"))
+                }
+            
+                if(!res.status){
+                    console.log(res.message)
+            
+                    editLoading.dismiss()
+            
+                    return callback(res.message)
+                }
+
+                editLoading.dismiss()
+                
+                return callback(null)
+            }
+
+            const createFolderLink = async (callback) => {
+                let createLoading = await loadingController.create({
+                    message: "",
+                    backdropDismiss: false
+                })
+
+                createLoading.present()
+
+                try{
+                    var res = await utils.apiRequest("POST", "/v1/download/dir", {
+                        apiKey: this.state.userAPIKey,
+                        uuid: item.uuid
+                    })
+                }
+                catch(e){
+                    console.log(e)
+            
+                    createLoading.dismiss()
+            
+                    return callback(language.get(this.state.lang, "apiRequestError"))
+                }
+            
+                if(!res.status){
+                    console.log(res.message)
+            
+                    createLoading.dismiss()
+            
+                    return callback(res.message)
+                }
+
+                let key = utils.generateRandomString(32)
+                let keyEnc = utils.cryptoJSEncrypt(key, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+                let newLinkUUID = utils.uuidv4()
+                let totalItems = (res.data.folders.length + res.data.files.length)
+                let doneItems = 0
+                let erroredItems = 0
+
+                const itemAdded = () => {
+                    doneItems += 1
+
+                    createLoading.message = language.get(this.state.lang, "folderLinkAddedItemsCount", true, ["__ADDED__", "__TOTAL__"], [doneItems, totalItems])
+
+                    if(doneItems >= totalItems){
+                        createLoading.dismiss()
+
+                        if(erroredItems > 0){
+                            console.log("Errored items: " + erroredItems)
+                        }
+
+                        linkUUID = newLinkUUID
+            
+                        return callback(null , {
+                            linkUUID: linkUUID,
+                            linkKey: key
+                        })
+                    }
+                }
+
+                const addItemRequest = async (data, tries, maxTries, cb) => {
+                    if(tries >= maxTries){
+						return cb(language.get(this.state.lang, "apiRequestError"))
+                    }
+                    
+                    try{
+                        var res = await utils.apiRequest("POST", "/v1/dir/link/add", data)
+                    }
+                    catch(e){
+                        console.log(e)
+                
+                        return setTimeout(() => {
+                            addItemRequest(data, (tries + 1), maxTries, cb)
+                        }, 1000)
+                    }
+                
+                    return cb(null)
+                }
+
+                const addItem = async (itemType, itemToAdd) => {
+                    await window.customVariables.shareItemSemaphore.acquire()
+
+                    let itemMetadata = ""
+
+					if(itemType == "file"){
+						itemMetadata = utils.cryptoJSEncrypt(JSON.stringify({
+							name: itemToAdd.name,
+							mime: itemToAdd.mime,
+							key: itemToAdd.key,
+							size: parseInt(itemToAdd.size)
+						}), key)
+					}
+					else{
+						itemMetadata = utils.cryptoJSEncrypt(JSON.stringify({
+							name: itemToAdd.name
+						}), key)
+					}
+
+					addItemRequest({
+						apiKey: window.customVariables.apiKey,
+						uuid: itemToAdd.uuid,
+						parent: itemToAdd.parent,
+						linkUUID: newLinkUUID,
+						type: itemType,
+						metadata: itemMetadata,
+						key: keyEnc,
+						expiration: "never",
+						password: "empty",
+						passwordHashed: utils.hashFn("empty"),
+						downloadBtn: "enable"
+					}, 0, 32, (err) => {
+						window.customVariables.shareItemSemaphore.release()
+
+						if(err){
+							console.log(err)
+
+							erroredItems += 1
+						}
+
+						itemAdded()
+					}) 
+                }
+
+                for(let i = 0; i < res.data.folders.length; i++){
+					let folder = res.data.folders[i]
+
+                    await window.customVariables.decryptShareItemSemaphore.acquire()
+
+					addItem("folder", {
+						uuid: folder.uuid,
+						parent: folder.parent,
+						name: utils.decryptCryptoJSFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+					})
+
+					window.customVariables.decryptShareItemSemaphore.release()
+				}
+
+				for(let i = 0; i < res.data.files.length; i++){
+					let file = res.data.files[i]
+
+					await window.customVariables.decryptShareItemSemaphore.acquire()
+
+					let fileMetadata = utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+
+					addItem("file", {
+						uuid: file.uuid,
+						parent: file.parent,
+						name: fileMetadata.name,
+						mime: fileMetadata.mime,
+						key: fileMetadata.key,
+						size: fileMetadata.size
+					})
+
+					window.customVariables.decryptShareItemSemaphore.release()
+				}
+            }
+
+            loading.dismiss()
+
+            if(type == "enable"){
+                if(isEdit){
+                    editFolderLink((err) => {
+                        if(err){
+                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                        }
+                    })
+                }
+                else{
+                    createFolderLink((err, linkData) => {
+                        if(err){
+                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                        }
+    
+                        document.getElementById("public-link-enabled-toggle").checked = true
+                        document.getElementById("public-link-input").value = "https://filen.io/f/" + linkData.linkUUID + "#!" + linkData.linkKey
+
+                        document.getElementById("enable-public-link-content").style.display = "none"
+                        document.getElementById("public-link-enabled-content").style.display = "block"
+                    })
+                }
+            }
+            else{
+                removeFolderLink((err) => {
+                    if(err){
+                        return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                    }
+
+                    document.getElementById("enable-public-link-content").style.display = "block"
+                    document.getElementById("public-link-enabled-content").style.display = "none"
+
+                    this.updateItemList()
+                })
+            }
+
+            return true
+        }
     }
 
     window.customFunctions.copyPublicLinkToClipboard = async () => {
         if(!Capacitor.isNative){
-            return false
+            try{
+                utils.copyTextToClipboardWeb(document.getElementById("public-link-input").value)
+            }
+            catch(e){
+                console.log(e)
+    
+                return this.spawnToast(language.get(this.state.lang, "couldNotCopyToClipboard")) 
+            }
+    
+            return this.spawnToast(language.get(this.state.lang, "copiedToClipboard"))
         }
 
         try{

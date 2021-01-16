@@ -215,7 +215,7 @@ export async function updateUserKeys(){
             }
         }
         catch(e){
-            console.log(e)
+            //console.log(e)
 
             return
         }
@@ -227,6 +227,8 @@ export async function updateUserKeys(){
         this.setState({
             userMasterKeys: newKeys.split("|")
         })
+
+        window.customVariables.userMasterKeys = newKeys.split("|")
 
         console.log("Master keys updated.")
     }

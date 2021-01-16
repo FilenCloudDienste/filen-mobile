@@ -1,6 +1,7 @@
 import React from 'react';
 import { IonToast, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText } from '@ionic/react'
 import { List } from 'react-virtualized';
+import { Plugins, StatusBarStyle, Capacitor } from "@capacitor/core"
 
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
@@ -20,6 +21,7 @@ import * as language from "../utils/language"
 import Hammer from "rc-hammerjs"
 
 const utils = require("../utils/utils")
+const safeAreaInsets = require('safe-area-insets')
 
 export function render(){
     let rowRenderer = ({ index, style }) => {
@@ -27,10 +29,18 @@ export function render(){
             <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.selectItem(true, index)}>
                 {
                     this.state.itemList[index].type == "folder" ? (
-                        <img src="assets/images/folder.svg" style={{
-                            padding: "10px",
-                            marginTop: "-2px"
-                        }}></img>
+                        <div>
+                            <img src="assets/images/folder.svg" style={{
+                                display: "none"
+                            }}></img>
+                            <IonIcon icon={Ionicons.folderSharp} style={{
+                                fontSize: "30pt",
+                                color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                position: "absolute",
+                                marginTop: "6px",
+                                marginLeft: "9px"
+                            }}></IonIcon>
+                        </div>
                     ) : (
                         <img src={typeof this.state.itemList[index].thumbnail !== "undefined" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
                             padding: "10px",
@@ -43,10 +53,18 @@ export function render(){
             <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])}>
                 {
                     this.state.itemList[index].type == "folder" ? (
-                        <img src="assets/images/folder.svg" style={{
-                            padding: "10px",
-                            marginTop: "-2px"
-                        }}></img>
+                        <div>
+                            <img src="assets/images/folder.svg" style={{
+                                display: "none"
+                            }}></img>
+                            <IonIcon icon={Ionicons.folderSharp} style={{
+                                fontSize: "30pt",
+                                color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                position: "absolute",
+                                marginTop: "6px",
+                                marginLeft: "9px"
+                            }}></IonIcon>
+                        </div>
                     ) : (
                         <img src={typeof this.state.itemList[index].thumbnail !== "undefined" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
                             padding: "10px",
@@ -320,7 +338,7 @@ export function render(){
                         <IonIcon slot="icon-only" icon={Ionicons.arrowBack} />
                     </IonButton>
                 </IonButtons>
-                <IonSearchbar ref={(el) => el !== null && setTimeout(() => el.setFocus(), 100)} debounce={250} type="search" inputmode="search" enterkeyhint="go" value={this.state.mainSearchTerm} onIonChange={(e) => this.setMainSearchTerm(e.detail.value)}></IonSearchbar>
+                <IonSearchbar id="main-searchbar" ref={(el) => el !== null && setTimeout(() => el.setFocus(), 100)} type="search" inputmode="search" value={this.state.mainSearchTerm}></IonSearchbar>
             </IonToolbar>
         ) : (
             <IonToolbar>
@@ -368,16 +386,19 @@ export function render(){
     )
 
     let bottomFab = undefined
+    let bottomFabStyle = {
+        marginBottom: safeAreaInsets.bottom + "px"
+    }
 
     if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
-        bottomFab = <IonFab vertical="bottom" horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
+        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
                         <IonFabButton color="danger">
                             <IonIcon icon={Ionicons.trash} />
                         </IonFabButton>
                     </IonFab>
     }
     else if(window.location.href.indexOf("base") !== -1){
-        bottomFab = <IonFab vertical="bottom" horizontal="end" slot="fixed" onClick={() => this.mainFabAction()}>
+        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => this.mainFabAction()}>
                         <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
                             <IonIcon icon={Ionicons.add} />
                         </IonFabButton>
@@ -437,7 +458,12 @@ export function render(){
                             background: this.state.darkMode ? "#1E1E1E" : "white"
                         }}>
                             <IonAvatar style={{
-                                margin: "0px auto"
+                                margin: "0px auto",
+                                marginTop: safeAreaInsets.top + "px"
+                            }} onClick={() => {
+                                window.customFunctions.hideSidebarMenu()
+                                
+                                return window.customFunctions.openSettingsModal()
                             }}>
                                 <img src="assets/img/icon.png" />
                             </IonAvatar>
@@ -449,7 +475,7 @@ export function render(){
                             </IonText>
                             <br />
                             <br />
-                            <IonProgressBar color="primary" value={(this.state.userStorageUsagePercentage / 10)}></IonProgressBar>
+                            <IonProgressBar color="primary" value={(this.state.userStorageUsagePercentage / 100)}></IonProgressBar>
                             <div style={{
                                 width: "100%",
                                 color: this.state.darkMode ? "white" : "black",
@@ -484,7 +510,7 @@ export function render(){
                         </IonHeader>
                         <IonContent style={{
                             "--background": this.state.darkMode ? "#1E1E1E" : "white"
-                        }}>
+                        }} fullscreen={true}>
                             <IonList>
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
@@ -519,6 +545,14 @@ export function render(){
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
+                                    return this.routeTo("/links")
+                                }}>
+                                    <IonIcon slot="start" icon={Ionicons.link}></IonIcon>
+                                    <IonLabel>{language.get(this.state.lang, "links")}</IonLabel>
+                                </IonItem>
+                                <IonItem button lines="none" onClick={() => {
+                                    window.customFunctions.hideSidebarMenu()
+                                    
                                     return this.routeTo("/trash")
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.trash}></IonIcon>
@@ -543,6 +577,14 @@ export function render(){
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
+                                    return window.customFunctions.openWebsiteModal()
+                                }}>
+                                    <IonIcon slot="start" icon={Ionicons.globe}></IonIcon>
+                                    <IonLabel>{language.get(this.state.lang, "website")}</IonLabel>
+                                </IonItem>
+                                <IonItem button lines="none" onClick={() => {
+                                    window.customFunctions.hideSidebarMenu()
+                                    
                                     return window.customFunctions.openHelpModal()
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.help}></IonIcon>
@@ -561,7 +603,7 @@ export function render(){
                         </IonHeader>
                         <IonContent style={{
                             "--background": this.state.darkMode ? "#1E1E1E" : "white"
-                        }}>
+                        }} fullscreen={true}>
                             {
                                 (this.state.uploadsCount + this.state.downloadsCount) > 0 ? (
                                     <IonList>
@@ -581,12 +623,13 @@ export function render(){
                             {mainToolbar}
                         </IonHeader>
                         <IonContent style={{
-                            height: (this.state.windowHeight - 56) + "px",
                             width: this.state.windowWidth + "px",
+                            height: this.state.windowHeight - 56 + "px",
                             "--background": this.state.darkMode ? "#1E1E1E" : "white",
                             outline: "none",
                             border: "none"
-                        }}>
+                        }} fullscreen={true}>
+                            {bottomFab}
                             {
                                 this.state.itemList.length == 0 && this.state.mainSearchTerm.trim().length > 0 ? (
                                     <IonList>
@@ -669,27 +712,51 @@ export function render(){
                                                         </center>
                                                     </div>
                                                 ) : (
-                                                    <div style={{
-                                                        position: "absolute",
-                                                        left: "50%",
-                                                        top: "32%",
-                                                        transform: "translate(-50%, -50%)",
-                                                        width: "100%"
-                                                    }}> 
-                                                        <center>
-                                                            <IonIcon icon={Ionicons.folderOpen} style={{
-                                                                fontSize: "65pt",
-                                                                color: this.state.darkMode ? "white" : "gray"
-                                                            }}></IonIcon>
-                                                            <br />
-                                                            <br />
-                                                            <div style={{
-                                                                width: "75%"
-                                                            }}>
-                                                                {language.get(this.state.lang, "nothingInThisFolderYetPlaceholder")}
-                                                            </div>
-                                                        </center>
-                                                    </div>
+                                                    this.state.currentHref.indexOf("links") !== -1 ? (
+                                                        <div style={{
+                                                            position: "absolute",
+                                                            left: "50%",
+                                                            top: "32%",
+                                                            transform: "translate(-50%, -50%)",
+                                                            width: "100%"
+                                                        }}> 
+                                                            <center>
+                                                                <IonIcon icon={Ionicons.link} style={{
+                                                                    fontSize: "65pt",
+                                                                    color: this.state.darkMode ? "white" : "gray"
+                                                                }}></IonIcon>
+                                                                <br />
+                                                                <br />
+                                                                <div style={{
+                                                                    width: "75%"
+                                                                }}>
+                                                                    {language.get(this.state.lang, "linksEmptyPlaceholder")}
+                                                                </div>
+                                                            </center>
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{
+                                                            position: "absolute",
+                                                            left: "50%",
+                                                            top: "32%",
+                                                            transform: "translate(-50%, -50%)",
+                                                            width: "100%"
+                                                        }}> 
+                                                            <center>
+                                                                <IonIcon icon={Ionicons.folderOpen} style={{
+                                                                    fontSize: "65pt",
+                                                                    color: this.state.darkMode ? "white" : "gray"
+                                                                }}></IonIcon>
+                                                                <br />
+                                                                <br />
+                                                                <div style={{
+                                                                    width: "75%"
+                                                                }}>
+                                                                    {language.get(this.state.lang, "nothingInThisFolderYetPlaceholder")}
+                                                                </div>
+                                                            </center>
+                                                        </div>
+                                                    )
                                                 )
                                             }
                                         </div>
@@ -711,7 +778,6 @@ export function render(){
                                     )
                                 )
                             }
-                            {bottomFab}
                             <input type="file" id="file-input-dummy" style={{
                                 display: "none"
                             }} onChange={(e) => {

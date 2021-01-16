@@ -2,6 +2,7 @@ import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor, FilesystemDirectory, Plugins } from "@capacitor/core"
 import imageCompression from 'browser-image-compression';
+import { call } from "ionicons/icons";
 
 const utils = require("../utils/utils")
 
@@ -52,7 +53,49 @@ export async function getThumbnailDir(uuid, callback){
         }
     }
     else if(Capacitor.platform == "ios"){
-        return callback(new Error("ios not yet implemented"))
+        let path = "FilenThumbnailCache/" + uuid
+        let directory = FilesystemDirectory.Documents
+
+        try{
+            await Plugins.Filesystem.mkdir({
+                path,
+                directory,
+                recursive: true 
+            })
+
+            var uri = await Plugins.Filesystem.getUri({
+                path,
+                directory
+            })
+
+            return callback(null, {
+                path,
+                directory,
+                uri
+            })
+        }
+        catch(e){
+            if(e.message == "Directory exists"){
+                try{
+                    var uri = await Plugins.Filesystem.getUri({
+                        path,
+                        directory
+                    })
+
+                    return callback(null, {
+                        path,
+                        directory,
+                        uri
+                    })
+                }
+                catch(e){
+                    return callback(e)
+                }
+            }
+            else{
+                return callback(e)
+            }
+        }
     }
     else{
         return callback(new Error("Can only run getdir function on native ios or android device"))
@@ -195,7 +238,96 @@ export async function getDownloadDir(makeOffline, fileName, callback){
         }
     }
     else if(Capacitor.platform == "ios"){
-        return callback(new Error("ios not yet implemented"))
+        if(makeOffline){
+            let path = "FilenOfflineFiles/" + fileName
+            let directory = FilesystemDirectory.Documents
+
+            try{
+                await Plugins.Filesystem.mkdir({
+                    path,
+                    directory,
+                    recursive: true 
+                })
+
+                var uri = await Plugins.Filesystem.getUri({
+                    path,
+                    directory
+                })
+
+                return callback(null, {
+                    path,
+                    directory,
+                    uri
+                })
+            }
+            catch(e){
+                if(e.message == "Directory exists"){
+                    try{
+                        var uri = await Plugins.Filesystem.getUri({
+                            path,
+                            directory
+                        })
+
+                        return callback(null, {
+                            path,
+                            directory,
+                            uri
+                        })
+                    }
+                    catch(e){
+                        return callback(e)
+                    }
+                }
+                else{
+                    return callback(e)
+                }
+            }
+        }
+        else{
+            let path = "Filen Downloads"
+            let directory = FilesystemDirectory.ExternalStorage
+
+            try{
+                await Plugins.Filesystem.mkdir({
+                    path,
+                    directory,
+                    recursive: true 
+                })
+
+                var uri = await Plugins.Filesystem.getUri({
+                    path,
+                    directory
+                })
+
+                return callback(null, {
+                    path,
+                    directory,
+                    uri
+                })
+            }
+            catch(e){
+                if(e.message == "Directory exists"){
+                    try{
+                        var uri = await Plugins.Filesystem.getUri({
+                            path,
+                            directory
+                        })
+
+                        return callback(null, {
+                            path,
+                            directory,
+                            uri
+                        })
+                    }
+                    catch(e){
+                        return callback(e)
+                    }
+                }
+                else{
+                    return callback(e)
+                }
+            }
+        }
     }
     else{
         return callback(new Error("Can only run getdir function on native ios or android device"))
@@ -659,7 +791,7 @@ export async function getThumbnail(file, thumbURL, ext){
             directory: FilesystemDirectory.External
         }
 
-        let videoExts = ["mp4", "webm"]
+        let videoExts = ["mp4", "webm", "mov", "avi", "wmv"]
     
         await window.customVariables.thumbnailSemaphore.acquire()
 
@@ -780,7 +912,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     }
     
                     fileReader.readAsArrayBuffer(compressedImage)
-                }, 3)
+                }, 5, true)
             }
             else{
                 this.downloadPreview(file, undefined, async (err, data) => {
@@ -829,7 +961,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     else{
                         return writeThumbnail(data)
                     }
-                })
+                }, Infinity, true)
             }
         }
         else{
@@ -865,7 +997,7 @@ export async function getThumbnail(file, thumbURL, ext){
     })
 }
 
-export async function downloadPreview(file, progressCallback, callback, maxChunks = Infinity){
+export async function downloadPreview(file, progressCallback, callback, maxChunks = Infinity, isThumbnailDownload = false){
     let dataArray = []
     let currentIndex = -1
     let currentWriteIndex = 0
@@ -898,8 +1030,16 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
 
         let thisIndex = currentIndex
 
-        if(thisIndex < file.chunks && thisIndex < maxChunks){
+        if(isThumbnailDownload){
+            window.customVariables.stopGettingPreviewData = false
+        }
+
+        if(thisIndex < file.chunks && thisIndex < maxChunks && !window.customVariables.stopGettingPreviewData){
             this.downloadFileChunk(file, thisIndex, 0, 32, (err, downloadIndex, downloadData) => {
+                if(isThumbnailDownload){
+                    window.customVariables.stopGettingPreviewData = false
+                }
+
                 if(err){
                     return callback(err)
                 }
@@ -908,6 +1048,12 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
             })
         }
         else{
+            if(window.customVariables.stopGettingPreviewData && !isThumbnailDownload){
+                window.customVariables.isGettingPreviewData = false
+                
+                callback("stopped")
+            }
+
             clearInterval(downloadInterval)
         }
     }, 100)
