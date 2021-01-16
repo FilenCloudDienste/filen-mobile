@@ -221,15 +221,33 @@ export async function mainFabAction(){
                                             return this.spawnToast(res.message)
                                         }
 
-                                        loading.dismiss()
+                                        if(parent !== "base"){
+                                            utils.checkIfItemParentIsBeingShared(folderParent, "folder", {
+                                                uuid: folderUUID,
+                                                name: name
+                                            }, () => {
+                                                loading.dismiss()
 
-                                        this.spawnToast(language.get(this.state.lang, "folderCreated", true, ["__NAME__"], [name]))
+                                                this.spawnToast(language.get(this.state.lang, "folderCreated", true, ["__NAME__"], [name]))
 
-                                        clearTimeout(window.customVariables.reloadAfterActionTimeout)
+                                                clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
-                                        window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-                                            this.updateItemList()
-                                        }, 500)
+                                                window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+                                                    this.updateItemList()
+                                                }, 500)
+                                            })
+                                        }
+                                        else{
+                                            loading.dismiss()
+
+                                            this.spawnToast(language.get(this.state.lang, "folderCreated", true, ["__NAME__"], [name]))
+
+                                            clearTimeout(window.customVariables.reloadAfterActionTimeout)
+
+                                            window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+                                                this.updateItemList()
+                                            }, 500)
+                                        }
                                     })
                                 }
                             }

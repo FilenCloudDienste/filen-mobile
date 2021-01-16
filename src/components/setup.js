@@ -41,6 +41,10 @@ export function setupListeners(){
 
             if(isLoadingActive){
                 goBackHistory = false
+
+                if(window.customVariables.isGettingPreviewData){
+                    window.customVariables.stopGettingPreviewData = true
+                }
             }
 
             if(this.state.selectedItems > 0 && this.state.isLoggedIn){
@@ -180,8 +184,10 @@ export async function doSetup(){
     let getSettings = await Plugins.Storage.get({ key: "settings" })
     let getCachedFiles = await Plugins.Storage.get({ key: "cachedFiles" })
     let getCachedFolders = await Plugins.Storage.get({ key: "cachedFolders" })
+    let getCachedMetadata = await Plugins.Storage.get({ key: "cachedMetadata" })
     let getThumbnailCache = await Plugins.Storage.get({ key: "thumbnailCache" })
     let getGetThumbnailErrors = await Plugins.Storage.get({ key: "getThumbnailErrors" })
+    let getCachedAPIItemListRequests = await Plugins.Storage.get({ key: "cachedAPIItemListRequests" })
 
     if(getLang.value){
         this.setState({
@@ -256,6 +262,8 @@ export async function doSetup(){
                 settings: settings
             })
 
+            window.customVariables.userMasterKeys = JSON.parse(getUserMasterKeys.value)
+
             if(getOfflineSavedFiles.value == null){
                 window.customVariables.offlineSavedFiles = {}
             }
@@ -284,6 +292,13 @@ export async function doSetup(){
                 window.customVariables.cachedFolders = JSON.parse(getCachedFolders.value)
             }
 
+            if(getCachedMetadata.value == null){
+                window.customVariables.cachedMetadata = {}
+            }
+            else{
+                window.customVariables.cachedMetadata = JSON.parse(getCachedMetadata.value)
+            }
+
             if(getThumbnailCache.value == null){
                 window.customVariables.thumbnailCache = {}
             }
@@ -296,6 +311,13 @@ export async function doSetup(){
             }
             else{
                 window.customVariables.getThumbnailErrors = JSON.parse(getGetThumbnailErrors.value)
+            }
+
+            if(getCachedAPIItemListRequests.value == null){
+                window.customVariables.cachedAPIItemListRequests = {}
+            }
+            else{
+                window.customVariables.cachedAPIItemListRequests = JSON.parse(getCachedAPIItemListRequests.value)
             }
         }
         else{

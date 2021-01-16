@@ -92,9 +92,59 @@ export function fetchWithTimeout(ms, promise) {
     })
 }
 
+export function backgroundAPIRequest(method, endpoint, data = {}){
+    let cacheKey = method + endpoint
+
+    fetchWithTimeout(60000, fetch(getAPIServer() + endpoint, {
+        method: method.toUpperCase(),
+        cache: "no-cache",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    })).then((response) => {
+        response.json().then((obj) => {
+            window.customVariables.cachedAPIItemListRequests[cacheKey] = obj
+
+            return window.customFunctions.saveAPICache()
+        }).catch((err) => {
+            console.log(err)
+        })
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export function apiRequest(method, endpoint, data = {}){
     return new Promise((resolve, reject) => {
         let cacheKey = method + endpoint
+        
+        /*let useFastCache = false
+
+        if(method.toUpperCase() == "POST"){
+            if(endpoint == "/v1/dir/content"
+            || endpoint == "/v1/user/shared/in"
+            || endpoint == "/v1/user/shared/out"){
+                useFastCache = true
+            }
+        }
+
+        if(useFastCache){
+            if(typeof window.customVariables.cachedAPIItemListRequests[cacheKey] !== "undefined"){
+                try{
+                    let obj = JSON.parse(window.customVariables.cachedAPIItemListRequests[cacheKey])
+
+                    delete window.customVariables.cachedAPIItemListRequests[cacheKey]
+
+                    backgroundAPIRequest(method, endpoint, data)
+
+                    return obj
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+        }*/
 
         if(Capacitor.isNative){
             if(Plugins.Network.getStatus() == "none"){
@@ -104,7 +154,7 @@ export function apiRequest(method, endpoint, data = {}){
             }
         }
 
-        fetchWithTimeout(30000, fetch(getAPIServer() + endpoint, {
+        fetchWithTimeout(60000, fetch(getAPIServer() + endpoint, {
             method: method.toUpperCase(),
             cache: "no-cache",
             headers: {
@@ -117,7 +167,6 @@ export function apiRequest(method, endpoint, data = {}){
                 || endpoint == "/v1/user/baseFolders"
                 || endpoint == "/v1/user/shared/in"
                 || endpoint == "/v1/user/shared/out"
-                || endpoint == "/v1/user/usage"
                 || endpoint == "/v1/user/keyPair/info"){
                     window.customVariables.apiCache[cacheKey] = obj
 
@@ -187,10 +236,10 @@ export function unixTimestamp(){
 }
 
 export function decryptCryptoJSFolderName(str, userMasterKeys, uuid = undefined){
-    if(uuid){
-        if(window.customVariables.cachedFolders[uuid]){
-            return window.customVariables.cachedFolders[uuid].name
-        }
+    let cacheKey = "folder_" + uuid + "_" + str
+
+    if(window.customVariables.cachedMetadata[cacheKey]){
+        return window.customVariables.cachedMetadata[cacheKey].name
     }
 
     let folderName = "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"
@@ -212,20 +261,59 @@ export function decryptCryptoJSFolderName(str, userMasterKeys, uuid = undefined)
         }
     })
 
+    if(folderName !== "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"){
+        window.customVariables.cachedMetadata[cacheKey] = {
+            name: folderName
+        }
+    }
+
+    return folderName
+}
+
+export async function decryptFolderNamePrivateKey(str, usrPrivKey, uuid = undefined){
+    let cacheKey = "folder_" + uuid + "_" + str
+
+    if(window.customVariables.cachedMetadata[cacheKey]){
+        return window.customVariables.cachedMetadata[cacheKey].name
+    }
+
+    let folderName = "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"
+
+    try{
+        let decrypted = await window.crypto.subtle.decrypt({
+            name: "RSA-OAEP"
+        }, usrPrivKey, _base64ToArrayBuffer(str))
+
+        decrypted = JSON.parse(new TextDecoder().decode(decrypted))
+
+        if(decrypted && typeof decrypted == "object"){
+            folderName = decrypted.name
+        }
+    }
+    catch(e){
+        console.log(e)
+    }
+
+    if(folderName !== "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"){
+        window.customVariables.cachedMetadata[cacheKey] = {
+            name: folderName
+        }
+    }
+
     return folderName
 }
 
 export function decryptFileMetadata(metadata, userMasterKeys, uuid = undefined){
-    if(uuid){
-        if(window.customVariables.cachedFiles[uuid]){
-            let file = window.customVariables.cachedFiles[uuid]
+    let cacheKey = "file_" + uuid + "_" + metadata
 
-            return {
-                name: file.name,
-                size: file.size,
-                mime: file.mime,
-                key: file.key
-            }
+    if(window.customVariables.cachedMetadata[cacheKey]){
+        let file = window.customVariables.cachedMetadata[cacheKey]
+
+        return {
+            name: file.name,
+            size: file.size,
+            mime: file.mime,
+            key: file.key
         }
     }
 
@@ -257,6 +345,66 @@ export function decryptFileMetadata(metadata, userMasterKeys, uuid = undefined){
         size: fileSize,
         mime: fileMime,
         key: fileKey
+    }
+
+    if(obj.name.length >= 1){
+        window.customVariables.cachedMetadata[cacheKey] = obj
+    }
+
+    return obj
+}
+
+export async function decryptFileMetadataPrivateKey(str, usrPrivKey, uuid = undefined){
+    let cacheKey = "file_" + uuid + "_" + str
+
+    if(window.customVariables.cachedMetadata[cacheKey]){
+        let file = window.customVariables.cachedMetadata[cacheKey]
+
+        return {
+            name: file.name,
+            size: file.size,
+            mime: file.mime,
+            key: file.key
+        }
+    }
+
+    let fileName = ""
+    let fileSize = 0
+    let fileMime = ""
+    let fileKey = ""
+
+    try{
+        let decrypted = await window.crypto.subtle.decrypt({
+            name: "RSA-OAEP"
+        }, usrPrivKey, _base64ToArrayBuffer(str))
+
+        decrypted = JSON.parse(new TextDecoder().decode(decrypted))
+
+        if(decrypted && typeof decrypted == "object"){
+            fileName = decrypted.name
+            fileSize = parseInt(decrypted.size)
+            fileMime = decrypted.mime
+            fileKey = decrypted.key
+        }
+    }
+    catch(e){
+        return {
+            name: fileName,
+            size: fileSize,
+            mime: fileMime,
+            key: fileKey
+        }
+    }
+
+    let obj = {
+        name: fileName,
+        size: fileSize,
+        mime: fileMime,
+        key: fileKey
+    }
+
+    if(obj.name.length >= 1){
+        window.customVariables.cachedMetadata[cacheKey] = obj
     }
 
     return obj
@@ -504,7 +652,7 @@ export function Semaphore(max){
     }
 }
 
-export function checkIfItemParentIsBeingShared(parentUUID, type, metadata){
+/*export function checkIfItemParentIsBeingShared(parentUUID, type, metadata){
     const checkIfIsSharing = async (parent, callback) => {
         if(parent == "default" || parent == "base"){
             return callback(false)
@@ -694,6 +842,642 @@ export function checkIfItemIsBeingSharedForRename(type, uuid, metadata){
             }
         }
     })
+}*/
+
+export function decryptFolderLinkKey(str, userMasterKeys){
+	let link = ""
+
+    if(userMasterKeys.length > 1){
+      	userMasterKeys = userMasterKeys.reverse()
+    }
+
+    userMasterKeys.forEach((key) => {
+        try{
+            let obj = CryptoJS.AES.decrypt(str, key).toString(CryptoJS.enc.Utf8)
+
+            if(obj && typeof obj == "string"){
+                if(obj.length >= 16){
+                	link = obj
+                }
+            }
+        }
+        catch(e){
+            return
+        }
+    })
+
+    return link
+}
+
+export function checkIfItemIsBeingSharedForRename(type, uuid, metaData, optionalCallback){
+	let shareCheckDone = false
+	let linkCheckDone = false
+
+	let isItDoneInterval = undefined
+	let callbackFired = false
+
+	const isItDone = () => {
+		if(shareCheckDone && linkCheckDone){
+			clearInterval(isItDoneInterval)
+
+			if(typeof optionalCallback == "function" && !callbackFired){
+				callbackFired = true
+
+			 	optionalCallback()
+			}
+
+			return true
+		}
+	}
+
+	isItDoneInterval = setInterval(isItDone, 100)
+
+	const checkIfIsSharing = (itemUUID, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(false)
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/user/shared/item/status",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({
+				apiKey: window.customVariables.apiKey,
+				uuid: itemUUID
+			}),
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						checkIfIsSharing(itemUUID, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				if(!res.status){
+					callback(false)
+
+					return console.log(res.message)
+				}
+
+				return callback(res.data.sharing, res.data.users)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					checkIfIsSharing(itemUUID, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+	const checkIfIsInFolderLink = (itemUUID, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(false)
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/link/dir/item/status",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({
+				apiKey: window.customVariables.apiKey,
+				uuid: itemUUID
+			}),
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						checkIfIsInFolderLink(itemUUID, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				if(!res.status){
+					callback(false)
+
+					return console.log(res.message)
+				}
+
+				return callback(res.data.link, res.data.links)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					checkIfIsInFolderLink(itemUUID, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+	const renameItem = (data, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(new Error("Max requests reached"))
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/link/dir/item/rename",
+			type: "POST",
+			contentType: "application/json",
+			data: data,
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						renameItem(data, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				return callback(null)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					renameItem(data, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+	const shareItem = (data, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(new Error("Max requests reached"))
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/user/shared/item/rename",
+			type: "POST",
+			contentType: "application/json",
+			data: data,
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						shareItem(data, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				return callback(null)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					shareItem(data, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+	checkIfIsSharing(uuid, 0, 32, (isSharing, users) => {
+		if(!isSharing){
+			shareCheckDone = true
+
+			return isItDone()
+		}
+
+		let totalUsers = users.length
+		let doneUsers = 0
+
+		const doneSharingToUsers = () => {
+			doneUsers += 1
+
+			if(doneUsers >= totalUsers){
+				shareCheckDone = true
+
+				return isItDone()
+			}
+		}
+
+		users.forEach((user) => {
+			window.crypto.subtle.importKey("spki", _base64ToArrayBuffer(user.publicKey), {
+      			name: "RSA-OAEP",
+        		hash: "SHA-512"
+    		}, true, ["encrypt"]).then((usrPubKey) => {
+    			let mData = ""
+
+    			if(type == "file"){
+    				mData = JSON.stringify({
+	    				name: metaData.name,
+	    				size: parseInt(metaData.size),
+	    				mime: metaData.mime,
+	    				key: metaData.key
+	    			})
+				}
+				else{
+					mData = JSON.stringify({
+						name: metaData.name
+					})
+				}
+
+				window.crypto.subtle.encrypt({
+    				name: "RSA-OAEP"
+    			}, usrPubKey, new TextEncoder().encode(mData)).then((encrypted) => {
+    				shareItem(JSON.stringify({
+						apiKey: window.customVariables.apiKey,
+						uuid: uuid,
+						receiverId: user.id,
+						metadata: base64ArrayBuffer(encrypted)
+					}), 0, 32, (err) => {
+    					if(err){
+    						console.log(err)
+    					}
+
+    					doneSharingToUsers()
+    				})
+    			}).catch((err) => {
+	    			doneSharingToUsers()
+	    		})
+    		}).catch((err) => {
+    			doneSharingToUsers()
+    		})
+		})
+	})
+
+	checkIfIsInFolderLink(uuid, 0, 32, (isLinking, links) => {
+		if(!isLinking){
+			linkCheckDone = true
+
+			return isItDone()
+		}
+
+		let userMasterKeys = window.customVariables.userMasterKeys
+
+		let totalLinks = links.length
+		let linksDone = 0
+
+		const doneAddingToLink = () => {
+			linksDone += 1
+
+			if(linksDone >= totalLinks){
+				linkCheckDone = true
+
+				return isItDone()
+			}
+		}
+
+		links.forEach((link) => {
+			let key = decryptFolderLinkKey(link.linkKey, userMasterKeys)
+
+			let mData = ""
+
+			if(type == "file"){
+				mData = JSON.stringify({
+    				name: metaData.name,
+    				size: parseInt(metaData.size),
+    				mime: metaData.mime,
+    				key: metaData.key
+    			})
+			}
+			else{
+				mData = JSON.stringify({
+					name: metaData.name
+				})
+			}
+
+			mData = CryptoJS.AES.encrypt(mData, key).toString()
+
+			renameItem(JSON.stringify({
+				apiKey: window.customVariables.apiKey,
+				uuid: uuid,
+				linkUUID: link.linkUUID,
+				metadata: mData
+			}), 0, 32, (err) => {
+				if(err){
+					console.log(err)
+				}
+
+				doneAddingToLink()
+			})
+		})
+	})
+}
+
+export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optionalCallback){
+	let shareCheckDone = false
+	let linkCheckDone = false
+
+	let isItDoneInterval = undefined
+	let callbackFired = false
+
+	const isItDone = () => {
+		if(shareCheckDone && linkCheckDone){
+			clearInterval(isItDoneInterval)
+
+			if(typeof optionalCallback == "function" && !callbackFired){
+				callbackFired = true
+				
+			 	optionalCallback()
+			}
+
+			return true
+		}
+	}
+
+	isItDoneInterval = setInterval(isItDone, 100)
+
+	const checkIfIsSharing = (parent, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(false)
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/share/dir/status",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({
+				apiKey: window.customVariables.apiKey,
+				uuid: parent
+			}),
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						checkIfIsSharing(parent, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				if(!res.status){
+					console.log(res.message)
+
+					return callback(false)
+				}
+
+				return callback(res.data.sharing, res.data.users)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					checkIfIsSharing(parent, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+	const checkIfIsInFolderLink = (parent, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(false)
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/link/dir/status",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({
+				apiKey: window.customVariables.apiKey,
+				uuid: parent
+			}),
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						checkIfIsInFolderLink(parent, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				if(!res.status){
+					console.log(res.message)
+
+					return callback(false)
+				}
+
+				return callback(res.data.link, res.data.links)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					checkIfIsInFolderLink(parent, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+	const addItem = (data, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(new Error("Max requests reached"))
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/dir/link/add",
+			type: "POST",
+			contentType: "application/json",
+			data: data,
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						addItem(data, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				return callback(null)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					addItem(data, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+	const shareItem = (data, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(new Error("Max requests reached"))
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/share",
+			type: "POST",
+			contentType: "application/json",
+			data: data,
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						shareItem(data, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				return callback(null)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					shareItem(data, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+	checkIfIsSharing(parentUUID, 0, 32, (status, users) => {
+		if(!status){
+			shareCheckDone = true
+
+			return isItDone()
+		}
+
+		let totalUsers = users.length
+		let doneUsers = 0
+
+		const doneSharingToUsers = () => {
+			doneUsers += 1
+
+			if(doneUsers >= totalUsers){
+				shareCheckDone = true
+
+				return isItDone()
+			}
+		}
+
+		users.forEach((user) => {
+			window.crypto.subtle.importKey("spki", _base64ToArrayBuffer(user.publicKey), {
+      			name: "RSA-OAEP",
+        		hash: "SHA-512"
+    		}, true, ["encrypt"]).then((usrPubKey) => {
+    			let mData = ""
+
+    			if(type == "file"){
+    				mData = JSON.stringify({
+	    				name: metaData.name,
+	    				size: parseInt(metaData.size),
+	    				mime: metaData.mime,
+	    				key: metaData.key
+	    			})
+				}
+				else{
+					mData = JSON.stringify({
+						name: metaData.name
+					})
+				}
+
+				window.crypto.subtle.encrypt({
+    				name: "RSA-OAEP"
+    			}, usrPubKey, new TextEncoder().encode(mData)).then((encrypted) => {
+    				shareItem(JSON.stringify({
+						apiKey: window.customVariables.apiKey,
+						uuid: metaData.uuid,
+						parent: parentUUID,
+						email: user.email,
+						type: type,
+						metadata: base64ArrayBuffer(encrypted)
+					}), 0, 32, (err) => {
+    					if(err){
+    						console.log(err)
+    					}
+
+    					doneSharingToUsers()
+					})
+    			}).catch((err) => {
+	    			doneSharingToUsers()
+	    		})
+    		}).catch((err) => {
+    			doneSharingToUsers()
+    		})
+		})
+	})
+
+	checkIfIsInFolderLink(parentUUID, 0, 32, (status, links) => {
+		if(!status){
+			linkCheckDone = true
+
+			return isItDone()
+		}
+
+		let userMasterKeys = window.customVariables.userMasterKeys
+
+		let totalLinks = links.length
+		let linksDone = 0
+
+		const doneAddingToLink = () => {
+			linksDone += 1
+
+			if(linksDone >= totalLinks){
+				linkCheckDone = true
+
+				return isItDone()
+			}
+		}
+
+		links.forEach((link) => {
+			let key = decryptFolderLinkKey(link.linkKey, userMasterKeys)
+
+			let mData = ""
+
+			if(type == "file"){
+				mData = JSON.stringify({
+					name: metaData.name,
+					size: parseInt(metaData.size),
+					mime: metaData.mime,
+					key: metaData.key
+				})
+			}
+			else{
+				mData = JSON.stringify({
+					name: metaData.name
+				})
+			}
+
+			mData = CryptoJS.AES.encrypt(mData, key).toString()
+
+			addItem(JSON.stringify({
+				apiKey: window.customVariables.apiKey,
+				uuid: metaData.uuid,
+				parent: parentUUID,
+				linkUUID: link.linkUUID,
+				type: type,
+				metadata: mData,
+				key: link.linkKey,
+				expiration: "never",
+				password: "empty",
+				passwordHashed: hashFn("empty"),
+				downloadBtn: "enable"
+			}), 0, 32, (err) => {
+				if(err){
+					console.log(err)
+				}
+
+				doneAddingToLink()
+			})
+		})
+	})
 }
 
 export function currentParentFolder(){
@@ -725,6 +1509,9 @@ export function canShowThumbnail(ext){
         case "svg":
         case "mp4":
         case "webm":
+        case "avi":
+        case "mov":
+        case "wmv":
             return true
         break
         default:
@@ -1096,6 +1883,11 @@ export function getVideoCover(file, seekTo = 0.0) {
                 reject("video is too short.");
                 return;
             }
+
+            if(videoPlayer.duration >= 1){
+            	seekTo = 1.0
+            }
+
             // delay seeking or else 'seeked' event won't fire on Safari
             setTimeout(() => {
               videoPlayer.currentTime = seekTo;
@@ -1129,4 +1921,95 @@ export function getLanguageSelection(){
         <ion-select-option value="nl">Nederlands</ion-select-option>
         <ion-select-option value="hi">हिन्दी, हिंदी</ion-select-option>
     `
+}
+
+export function getFolderColorStyle(color = null, onlyColor = false){
+	let folderColorStyle = ""
+
+	switch(color){
+		case "default":
+            folderColorStyle = "style='color: #F6C358;'"
+            
+            if(onlyColor){
+                folderColorStyle = "#F6C358"
+            }
+		break
+		case "blue":
+            folderColorStyle = "style='color: #2992E5;'"
+            
+            if(onlyColor){
+                folderColorStyle = "#2992E5"
+            }
+		break
+		case "green":
+            folderColorStyle = "style='color: #57A15B;'"
+            
+            if(onlyColor){
+                folderColorStyle = "#57A15B"
+            }
+		break
+		case "purple":
+            folderColorStyle = "style='color: #8E3A9D;'"
+            
+            if(onlyColor){
+                folderColorStyle = "#8E3A9D"
+            }
+		break
+		case "red":
+            folderColorStyle = "style='color: #CB2E35;'"
+            
+            if(onlyColor){
+                folderColorStyle = "#CB2E35"
+            }
+		break
+		case "gray":
+            folderColorStyle = "style='color: gray;'"
+            
+            if(onlyColor){
+                folderColorStyle = "gray"
+            }
+		break
+		default:
+            folderColorStyle = "style='color: #F6C358;'"
+            
+            if(onlyColor){
+                folderColorStyle = "#F6C358"
+            }
+		break
+	}
+
+	return folderColorStyle
+}
+
+export function copyTextToClipboardWeb(text){
+	var textArea = document.createElement("textarea")
+
+	textArea.style.position = "fixed"
+	textArea.style.top = 0
+	textArea.style.left = 0
+	textArea.style.width = "2em"
+	textArea.style.height = "2em"
+	textArea.style.padding = 0
+	textArea.style.border = "none"
+	textArea.style.outline = "none"
+	textArea.style.boxShadow = "none"
+	textArea.style.background = "transparent"
+
+	textArea.value = text
+
+	document.body.appendChild(textArea)
+
+	textArea.focus()
+	textArea.select()
+
+	try{
+		document.execCommand("copy")
+	}
+	catch(e){
+		return console.log(e)
+	}
+
+	//alert("Link copied to clipboard!")
+
+	return document.body.removeChild(textArea)
 }

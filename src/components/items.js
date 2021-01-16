@@ -84,7 +84,8 @@ export async function updateItemList(){
 			receiverId: 0,
 			receiverEmail: "",
 			sharerId: 0,
-			sharerEmail: ""
+			sharerEmail: "",
+			color: null
 		})
 
 		for(let i = 0; i < res.data.folders.length; i++){
@@ -103,7 +104,8 @@ export async function updateItemList(){
 				receiverId: 0,
 				receiverEmail: "",
 				sharerId: 0,
-				sharerEmail: ""
+				sharerEmail: "",
+				color: folder.color || null
 			}
 
 			items.push(item)
@@ -194,108 +196,65 @@ export async function updateItemList(){
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
 
-				try{
-					let folderName = undefined
+				let folderName = await utils.decryptFolderNamePrivateKey(folder.metadata, usrPrivKey, folder.uuid)
+				let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
 
-					if(window.customVariables.cachedFolders[folder.uuid]){
-						folderName = window.customVariables.cachedFolders[folder.uuid]
-					}
-					else{
-						let decrypted = await window.crypto.subtle.decrypt({
-							name: "RSA-OAEP"
-						}, usrPrivKey, utils._base64ToArrayBuffer(folder.metadata))
-
-						decrypted = JSON.parse(new TextDecoder().decode(decrypted))
-
-						window.customVariables.cachedFolders[folder.uuid] = decrypted
-	
-						folderName = decrypted
-					}
-
-					folderName = folderName.name
-
-					let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
-
-					let item = {
-						type: "folder",
-						uuid: folder.uuid,
-						name: utils.sanitizeHTML(folderName),
-						date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
-						timestamp: folder.timestamp,
-						parent: folder.parent,
-						receiverId: 0,
-						receiverEmail: "",
-						sharerId: folder.sharerId,
-						sharerEmail: folder.sharerEmail
-					}
-
-					items.push(item)
-
-					window.customVariables.cachedFolders[folder.uuid] = item
+				let item = {
+					type: "folder",
+					uuid: folder.uuid,
+					name: utils.sanitizeHTML(folderName),
+					date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
+					timestamp: folder.timestamp,
+					parent: folder.parent,
+					receiverId: 0,
+					receiverEmail: "",
+					sharerId: folder.sharerId,
+					sharerEmail: folder.sharerEmail,
+					color: folder.color || null
 				}
-				catch(e){
-					console.log(e)
-				}
+
+				items.push(item)
+
+				window.customVariables.cachedFolders[folder.uuid] = item
 			}
 
 			for(let i = 0; i < res.data.uploads.length; i++){
 				let file = res.data.uploads[i]
 
-				try{
-					let decryptedMetadata = undefined
+				let decryptedMetadata = await utils.decryptFileMetadataPrivateKey(file.metadata, usrPrivKey, file.uuid)
+				let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
-					if(window.customVariables.cachedFiles[file.uuid]){
-						decryptedMetadata = window.customVariables.cachedFiles[file.uuid]
-					}
-					else{
-						let decrypted = await window.crypto.subtle.decrypt({
-							name: "RSA-OAEP"
-						}, usrPrivKey, utils._base64ToArrayBuffer(file.metadata))
+				let offline = false
 
-						decrypted = JSON.parse(new TextDecoder().decode(decrypted))
-
-						window.customVariables.cachedFiles[file.uuid] = decrypted
-	
-						decryptedMetadata = decrypted
-					}
-
-					let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
-
-					let offline = false
-
-					if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
-						offline = true
-					}
-
-					let item = {
-						type: "file",
-						uuid: file.uuid,
-						name: utils.sanitizeHTML(decryptedMetadata.name),
-						mime: utils.sanitizeHTML(decryptedMetadata.mime),
-						size: parseInt(decryptedMetadata.size),
-						key: utils.sanitizeHTML(decryptedMetadata.key),
-						bucket: file.bucket,
-						region: file.region,
-						parent: file.parent,
-						rm: file.rm,
-						chunks: file.chunks,
-						date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
-						timestamp: file.timestamp,
-						receiverId: 0,
-						receiverEmail: "",
-						sharerId: file.sharerId,
-						sharerEmail: file.sharerEmail,
-						offline: offline,
-						thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
-					}
-
-					items.push(item)
-
-					window.customVariables.cachedFiles[file.uuid] = item
+				if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
+					offline = true
 				}
-				catch(e){
-					console.log(e)
+
+				let item = {
+					type: "file",
+					uuid: file.uuid,
+					name: utils.sanitizeHTML(decryptedMetadata.name),
+					mime: utils.sanitizeHTML(decryptedMetadata.mime),
+					size: parseInt(decryptedMetadata.size),
+					key: utils.sanitizeHTML(decryptedMetadata.key),
+					bucket: file.bucket,
+					region: file.region,
+					parent: file.parent,
+					rm: file.rm,
+					chunks: file.chunks,
+					date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
+					timestamp: file.timestamp,
+					receiverId: 0,
+					receiverEmail: "",
+					sharerId: file.sharerId,
+					sharerEmail: file.sharerEmail,
+					offline: offline,
+					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
 				}
+
+				items.push(item)
+
+				window.customVariables.cachedFiles[file.uuid] = item
 			}
 		}
 		else if(routeEx[1] == "shared-out"){
@@ -355,7 +314,8 @@ export async function updateItemList(){
 					receiverId: folder.receiverId,
 					receiverEmail: folder.receiverEmail,
 					sharerId: 0,
-					sharerEmail: ""
+					sharerEmail: "",
+					color: folder.color || null
 				}
 
 				items.push(item)
@@ -458,7 +418,8 @@ export async function updateItemList(){
 					receiverId: 0,
 					receiverEmail: "",
 					sharerId: 0,
-					sharerEmail: ""
+					sharerEmail: "",
+					color: folder.color || null
 				}
 
 				items.push(item)
@@ -1237,20 +1198,40 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 		}
 
 		let loading = await loadingController.create({
-			message: "" //language.get(this.state.lang, "loadingPreview")
+			message: "", //language.get(this.state.lang, "loadingPreview")
+			backdropDismiss: true
 		})
 
 		loading.present()
 
+		try{
+			loading.onDidDismiss().then(() => {
+				window.customVariables.stopGettingPreviewData = true
+			})
+		}
+		catch(e){
+			console.log(e)
+		}
+
+		window.customVariables.isGettingPreviewData = true
+		window.customVariables.stopGettingPreviewData = false
+
 		this.downloadPreview(item, (chunksDone) => {
 			//console.log(chunksDone)
 		}, (err, dataArray) => {
+			window.customVariables.isGettingPreviewData = false
+
 			loading.dismiss()
 
 			if(err){
-				console.log(err)
+				if(err !== "stopped"){
+					console.log(err)
 
-				return this.spawnToast(language.get(this.state.lang, "fileNoPreviewAvailable", true, ["__NAME__"], [item.name]))
+					return this.spawnToast(language.get(this.state.lang, "fileNoPreviewAvailable", true, ["__NAME__"], [item.name]))
+				}
+				else{
+					return false
+				}
 			}
 
 			return gotPreviewData(dataArray)
@@ -1340,21 +1321,21 @@ export async function moveFolder(folder, destination, showLoader){
 			return this.spawnToast(res.message)
 		}
 
-		this.spawnToast(language.get(this.state.lang, "folderMoved", true, ["__NAME__"], [folder.name]))
-
 		utils.checkIfItemParentIsBeingShared(destination, "folder", {
 			name: folder.name
+		}, () => {
+			this.spawnToast(language.get(this.state.lang, "folderMoved", true, ["__NAME__"], [folder.name]))
+
+			clearTimeout(window.customVariables.reloadAfterActionTimeout)
+
+			window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+				if(utils.currentParentFolder() == destination){
+					this.updateItemList()
+				}
+			}, 500)
+
+			return true
 		})
-
-		clearTimeout(window.customVariables.reloadAfterActionTimeout)
-
-		window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-			if(utils.currentParentFolder() == destination){
-				this.updateItemList()
-			}
-		}, 500)
-
-		return true
 	})
 }
 
@@ -1415,25 +1396,25 @@ export async function moveFile(file, destination, showLoader){
 			return this.spawnToast(res.message)
 		}
 
-		this.spawnToast(language.get(this.state.lang, "fileMoved", true, ["__NAME__"], [file.name]))
-
 		utils.checkIfItemParentIsBeingShared(destination, "file", {
 			uuid: file.uuid,
 			name: file.name,
 			size: parseInt(file.size),
 			mime: file.mime,
 			key: file.key
+		}, () => {
+			this.spawnToast(language.get(this.state.lang, "fileMoved", true, ["__NAME__"], [file.name]))
+
+			clearTimeout(window.customVariables.reloadAfterActionTimeout)
+
+			window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+				if(utils.currentParentFolder() == destination){
+					this.updateItemList()
+				}
+			}, 500)
+
+			return true
 		})
-
-		clearTimeout(window.customVariables.reloadAfterActionTimeout)
-
-		window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-			if(utils.currentParentFolder() == destination){
-				this.updateItemList()
-			}
-		}, 500)
-
-		return true
 	})
 }
 
@@ -1540,53 +1521,53 @@ export async function renameItem(item){
 					return this.spawnToast(language.get(this.state.lang, "couldNotRenameFile"))
 				}
 
-				loading.dismiss()
-
-				this.spawnToast(language.get(this.state.lang, "fileRenamed", true, ["__NAME__", "__TO__"], [item.name, newName]))
-
-				utils.checkIfItemIsBeingSharedForRename("file", parent, {
+				utils.checkIfItemIsBeingSharedForRename("file", item.uuid, {
 					name: newName,
 					size: parseInt(item.size),
 					mime: item.mime,
 					key: item.key
-				})
+				}, () => {
+					loading.dismiss()
 
-				delete window.customVariables.cachedFiles[item.uuid]
+					this.spawnToast(language.get(this.state.lang, "fileRenamed", true, ["__NAME__", "__TO__"], [item.name, newName]))
 
-				clearTimeout(window.customVariables.reloadAfterActionTimeout)
+					delete window.customVariables.cachedFiles[item.uuid]
 
-				window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-					if(utils.currentParentFolder() == parent){
-						this.updateItemList()
+					clearTimeout(window.customVariables.reloadAfterActionTimeout)
+
+					window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+						if(utils.currentParentFolder() == parent){
+							this.updateItemList()
+						}
+					}, 500)
+
+					if(typeof window.customVariables.offlineSavedFiles !== "undefined" && Capacitor.isNative){
+						this.getDownloadDir(true, item.uuid, async (err, dirObj) => {
+							if(err){
+								console.log(err)
+
+								return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
+							}
+
+							try{
+								await Plugins.Filesystem.rename({
+									from: dirObj + "/" + item.name,
+									to: dirObj + "/" +  newName,
+									directory: dirObj.directory
+								})
+							}
+							catch(e){
+								console.log(err)
+
+								return this.spawnToast(language.get(this.state.lang, "couldNotRenameFileLocally"))
+							}
+
+							return console.log("File renamed locally")
+						})
 					}
-				}, 500)
 
-				if(typeof window.customVariables.offlineSavedFiles !== "undefined" && Capacitor.isNative){
-					this.getDownloadDir(true, item.uuid, async (err, dirObj) => {
-						if(err){
-							console.log(err)
-
-							return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
-						}
-
-						try{
-							await Plugins.Filesystem.rename({
-								from: dirObj + "/" + item.name,
-								to: dirObj + "/" +  newName,
-								directory: dirObj.directory
-							})
-						}
-						catch(e){
-							console.log(err)
-
-							return this.spawnToast(language.get(this.state.lang, "couldNotRenameFileLocally"))
-						}
-
-						return console.log("File renamed locally")
-					})
-				}
-
-				return true
+					return true
+				})
 			})
 		}
 		else{
@@ -1635,25 +1616,25 @@ export async function renameItem(item){
 					return this.spawnToast(language.get(this.state.lang, "couldNotRenameFolder"))
 				}
 
-				loading.dismiss()
-
-				this.spawnToast(language.get(this.state.lang, "folderRenamed", true, ["__NAME__", "__TO__"], [item.name, newName]))
-
-				utils.checkIfItemIsBeingSharedForRename("folder", parent, {
+				utils.checkIfItemIsBeingSharedForRename("folder", item.uuid, {
 					name: newName
+				}, () => {
+					loading.dismiss()
+
+					this.spawnToast(language.get(this.state.lang, "folderRenamed", true, ["__NAME__", "__TO__"], [item.name, newName]))
+
+					delete window.customVariables.cachedFolders[item.uuid]
+
+					clearTimeout(window.customVariables.reloadAfterActionTimeout)
+
+					window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+						if(utils.currentParentFolder() == parent){
+							this.updateItemList()
+						}
+					}, 500)
+
+					return true
 				})
-
-				delete window.customVariables.cachedFolders[item.uuid]
-
-				clearTimeout(window.customVariables.reloadAfterActionTimeout)
-
-				window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-					if(utils.currentParentFolder() == parent){
-						this.updateItemList()
-					}
-				}, 500)
-
-				return true
 			})
 		}
 	})
@@ -2070,7 +2051,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		let files = res.data.files
 		let folders = res.data.folders
 
-		if((files.length + folders.length) > 1000){
+		if((files.length + folders.length) > 1000000){
 			loading.dismiss()
 
 			return callback(language.get(this.state.lang, "shareTooBigForApp"))
@@ -2108,8 +2089,31 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		}
 
 		let itemsShared = 0
+		let erroredItems = 0
+		let isAlreadyShared = false
+
+		const shareItemRequest = async (data, tries, maxTries, cb) => {
+			if(tries >= maxTries){
+				return cb(language.get(this.state.lang, "apiRequestError"))
+			}
+
+			try{
+				var res = await utils.apiRequest("POST", "/v1/share", data)
+			}
+			catch(e){
+				console.log(e)
+
+				return setTimeout(() => {
+					shareItemRequest(data, (tries + 1), maxTries, cb)
+				}, 1000)
+			}
+
+			return cb(null)
+		}
 
 		for(let i = 0; i < shareItems.length; i++){
+			await window.customVariables.shareItemSemaphore.acquire()
+
 			let item = shareItems[i]
 			let itemMetadata = ""
 
@@ -2130,34 +2134,36 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 			catch(e){
 				loading.dismiss()
 
+				window.customVariables.shareItemSemaphore.release()
+
 				return callback(e)
 			}
 
-			try{
-				var res = await utils.apiRequest("POST", "/v1/share", {
-					apiKey: this.state.userAPIKey,
-					uuid: item.uuid,
-					parent: item.parent,
-					email: email,
-					type: item.type,
-					metadata: utils.base64ArrayBuffer(encrypted)
-				})
-			}
-			catch(e){
-				console.log(e)
-			}
-	
-			if(!res.status){
-				console.log(res.message)
-			}
+			shareItemRequest({
+				apiKey: this.state.userAPIKey,
+				uuid: item.uuid,
+				parent: item.parent,
+				email: email,
+				type: item.type,
+				metadata: utils.base64ArrayBuffer(encrypted)
+			}, 0, 32, (err) => {
+				if(err){
+					console.log(err)
 
-			itemsShared += 1
+					erroredItems += 1
+				}
 
-			if(itemsShared == shareItems.length){
-				loading.dismiss()
+				window.customVariables.shareItemSemaphore.release()
+				itemsShared += 1
 
-				return callback(null)
-			}
+				loading.message = language.get(this.state.lang, "sharedItemsCount", true, ["__SHARED__", "__TOTAL__"], [itemsShared, shareItems.length])
+
+				if(itemsShared == shareItems.length){
+					loading.dismiss()
+
+					return callback(null)
+				}
+			})
 		}
 	}
 }
@@ -2285,96 +2291,249 @@ export async function shareItem(item){
 }
 
 export async function openPublicLinkModal(item){
+	if(item.uuid == "default"){
+		return this.spawnToast(language.get(this.state.lang, "cannotCreatePublicLinkFolder"))
+	}
+
 	let loading = await loadingController.create({
 		message: ""
 	})
 
 	loading.present()
 
-	try{
-		var res = await utils.apiRequest("POST", "/v1/link/status", {
-			apiKey: this.state.userAPIKey,
-			fileUUID: item.uuid
-		})
-	}
-	catch(e){
-		console.log(e)
-
-		loading.dismiss()
-
-		return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
-	}
-
-	if(!res.status){
-		console.log(res.message)
-
-		loading.dismiss()
-
-		return this.spawnToast(res.message)
-	}
-
-	loading.dismiss()
-
-	let appLang = this.state.lang
-	let appDarkMode = this.state.darkMode
-	let modalId = "public-link-modal-" + utils.generateRandomClassName()
-
-	customElements.define(modalId, class ModalContent extends HTMLElement {
-		connectedCallback(){
-			this.innerHTML = `
-				<ion-header>
-					<ion-toolbar>
-						<ion-buttons slot="start">
-							<ion-button onClick="window.customFunctions.dismissModal()">
-								<ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
-							</ion-button>
-						</ion-buttons>
-						<ion-title>
-							` + language.get(appLang, "publicLinkHeader", true, ["__NAME__"], [item.name]) + `
-						</ion-title>
-					</ion-toolbar>
-				</ion-header>
-				<ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
-					<div id="enable-public-link-content" ` + (res.data.enabled && `style="display: none;"`) + `>
-						<div style="position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%); width: 100%;"> 
-							<center>
-								<ion-icon icon="` + Ionicons.link + `" style="font-size: 65pt; color: ` + (appDarkMode ? "white" : "gray") + `;"></ion-icon>
-								<br>
-								<br>
-								<ion-button color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable')">` + language.get(appLang, "enablePublicLink") + `</ion-button>	
-							</center>
-						</div>
-					</div>
-					<div id="public-link-enabled-content" ` + (!res.data.enabled && `style="display: none;"`) + `>
-						<ion-item lines="none">
-							<ion-label>
-								` + language.get(appLang, "publicLinkEnabled") + `
-							</ion-label>
-							<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'disable')" checked></ion-toggle>
-						</ion-item>
-						<ion-item lines="none">
-							<ion-input type="text" id="public-link-input" onClick="window.customFunctions.copyPublicLinkToClipboard()" value="https://filen.io/d/` + res.data.uuid + `#!` + item.key + `" disabled></ion-input>
-                            <ion-buttons slot="end" onClick="window.customFunctions.copyPublicLinkToClipboard()">
-                                <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
-                                    ` + language.get(appLang, "copy") + `
-                                </ion-button>
-                            </ion-buttons>
-                        </ion-item>
-					</div>
-				</ion-content>
-			`
+	if(item.type == "file"){
+		try{
+			var res = await utils.apiRequest("POST", "/v1/link/status", {
+				apiKey: this.state.userAPIKey,
+				fileUUID: item.uuid
+			})
 		}
-	})
-
-	let modal = await modalController.create({
-		component: modalId,
-		swipeToClose: false,
-		showBackdrop: false,
-		backdropDismiss: false,
-		cssClass: "modal-fullscreen"
-	})
-
-	return modal.present()
+		catch(e){
+			console.log(e)
+	
+			loading.dismiss()
+	
+			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+		}
+	
+		if(!res.status){
+			console.log(res.message)
+	
+			loading.dismiss()
+	
+			return this.spawnToast(res.message)
+		}
+	
+		loading.dismiss()
+	
+		let appLang = this.state.lang
+		let appDarkMode = this.state.darkMode
+		let modalId = "public-link-modal-" + utils.generateRandomClassName()
+	
+		customElements.define(modalId, class ModalContent extends HTMLElement {
+			connectedCallback(){
+				this.innerHTML = `
+					<ion-header>
+						<ion-toolbar>
+							<ion-buttons slot="start">
+								<ion-button onClick="window.customFunctions.dismissModal()">
+									<ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+								</ion-button>
+							</ion-buttons>
+							<ion-title>
+								` + language.get(appLang, "publicLinkHeader", true, ["__NAME__"], [item.name]) + `
+							</ion-title>
+						</ion-toolbar>
+					</ion-header>
+					<ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+						<div id="enable-public-link-content" ` + (res.data.enabled && `style="display: none;"`) + `>
+							<div style="position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%); width: 100%;"> 
+								<center>
+									<ion-icon icon="` + Ionicons.link + `" style="font-size: 65pt; color: ` + (appDarkMode ? "white" : "gray") + `;"></ion-icon>
+									<br>
+									<br>
+									<ion-button color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', false)">` + language.get(appLang, "enablePublicLink") + `</ion-button>	
+								</center>
+							</div>
+						</div>
+						<div id="public-link-enabled-content" ` + (!res.data.enabled && `style="display: none;"`) + `>
+							<ion-item lines="none">
+								<ion-label>
+									` + language.get(appLang, "publicLinkEnabled") + `
+								</ion-label>
+								<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'disable', false)" checked></ion-toggle>
+							</ion-item>
+							<ion-item lines="none">
+								<ion-input type="text" id="public-link-input" onClick="window.customFunctions.copyPublicLinkToClipboard()" value="https://filen.io/d/` + res.data.uuid + `#!` + item.key + `" disabled></ion-input>
+								<ion-buttons slot="end" onClick="window.customFunctions.copyPublicLinkToClipboard()">
+									<ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
+										` + language.get(appLang, "copy") + `
+									</ion-button>
+								</ion-buttons>
+							</ion-item>
+							<ion-item lines="none" style="margin-top: 30px;">
+								<ion-label>
+									` + language.get(appLang, "publicLinkExpire") + `
+								</ion-label>
+								<ion-select id="public-link-expires-select" value="` + (typeof res.data.expirationText == "string" ? res.data.expirationText : `never`) + `" ok-text="` + language.get(appLang, "alertOkButton") + `" cancel-text="` + language.get(appLang, "close") + `">
+									<ion-select-option value="never">` + language.get(appLang, "publicLinkExpiresNever") + `</ion-select-option>
+									<ion-select-option value="1h">1 ` + language.get(appLang, "publicLinkExpiresHour") + `</ion-select-option>
+									<ion-select-option value="6h">6 ` + language.get(appLang, "publicLinkExpiresHours") + `</ion-select-option>
+									<ion-select-option value="1d">1 ` + language.get(appLang, "publicLinkExpiresDay") + `</ion-select-option>
+									<ion-select-option value="3d">3 ` + language.get(appLang, "publicLinkExpiresDays") + `</ion-select-option>
+									<ion-select-option value="7d">7 ` + language.get(appLang, "publicLinkExpiresDays") + `</ion-select-option>
+									<ion-select-option value="14d">14 ` + language.get(appLang, "publicLinkExpiresDays") + `</ion-select-option>
+									<ion-select-option value="30d">30 ` + language.get(appLang, "publicLinkExpiresDays") + `</ion-select-option>
+								</ion-select>
+							</ion-item>
+							<ion-item lines="none">
+								<ion-label>
+									` + language.get(appLang, "publicLinkPassword") + `
+								</ion-label>
+								<ion-input slot="end" id="public-link-password-input" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `" ` + (res.data.password !== null ? `value="` + res.data.password + `"` : ``) + `></ion-input>
+							</ion-item>
+							<ion-item lines="none">
+								<ion-label>
+									` + language.get(appLang, "publicLinkEnableDownloadBtn") + `
+								</ion-label>
+								<ion-toggle slot="end" id="public-link-enable-download-btn-toggle" ` + (res.data.downloadBtn == 1 ? `checked` : ``) + `></ion-toggle>
+							</ion-item>
+							<section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
+								<ion-button expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', true, '` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `')">` + language.get(appLang, "savePublicLink") + `</ion-button>
+							</section>
+						</div>
+					</ion-content>
+				`
+			}
+		})
+	
+		let modal = await modalController.create({
+			component: modalId,
+			swipeToClose: false,
+			showBackdrop: false,
+			backdropDismiss: false,
+			cssClass: "modal-fullscreen"
+		})
+	
+		return modal.present()
+	}
+	else{
+		try{
+			var res = await utils.apiRequest("POST", "/v1/dir/link/status", {
+				apiKey: this.state.userAPIKey,
+				uuid: item.uuid
+			})
+		}
+		catch(e){
+			console.log(e)
+	
+			loading.dismiss()
+	
+			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+		}
+	
+		if(!res.status){
+			console.log(res.message)
+	
+			loading.dismiss()
+	
+			return this.spawnToast(res.message)
+		}
+	
+		loading.dismiss()
+	
+		let appLang = this.state.lang
+		let appDarkMode = this.state.darkMode
+		let appUserMasterKeys = this.state.userMasterKeys
+		let modalId = "public-link-modal-" + utils.generateRandomClassName()
+	
+		customElements.define(modalId, class ModalContent extends HTMLElement {
+			connectedCallback(){
+				this.innerHTML = `
+					<ion-header>
+						<ion-toolbar>
+							<ion-buttons slot="start">
+								<ion-button onClick="window.customFunctions.dismissModal()">
+									<ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+								</ion-button>
+							</ion-buttons>
+							<ion-title>
+								` + language.get(appLang, "publicLinkHeader", true, ["__NAME__"], [item.name]) + `
+							</ion-title>
+						</ion-toolbar>
+					</ion-header>
+					<ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+						<div id="enable-public-link-content" ` + (res.data.exists && `style="display: none;"`) + `>
+							<div style="position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%); width: 100%;"> 
+								<center>
+									<ion-icon icon="` + Ionicons.link + `" style="font-size: 65pt; color: ` + (appDarkMode ? "white" : "gray") + `;"></ion-icon>
+									<br>
+									<br>
+									<ion-button color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', false)">` + language.get(appLang, "enablePublicLink") + `</ion-button>	
+								</center>
+							</div>
+						</div>
+						<div id="public-link-enabled-content" ` + (!res.data.exists && `style="display: none;"`) + `>
+							<ion-item lines="none">
+								<ion-label>
+									` + language.get(appLang, "publicLinkEnabled") + `
+								</ion-label>
+								<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'disable', true, '` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `')" checked></ion-toggle>
+							</ion-item>
+							<ion-item lines="none">
+								<ion-input type="text" id="public-link-input" onClick="window.customFunctions.copyPublicLinkToClipboard()" value="https://filen.io/f/` + res.data.uuid + `#!` + utils.decryptFolderLinkKey(res.data.key, appUserMasterKeys) + `" disabled></ion-input>
+								<ion-buttons slot="end" onClick="window.customFunctions.copyPublicLinkToClipboard()">
+									<ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
+										` + language.get(appLang, "copy") + `
+									</ion-button>
+								</ion-buttons>
+							</ion-item>
+							<ion-item lines="none" style="margin-top: 30px;">
+								<ion-label>
+									` + language.get(appLang, "publicLinkExpire") + `
+								</ion-label>
+								<ion-select id="public-link-expires-select" value="` + (typeof res.data.expirationText == "string" ? res.data.expirationText : `never`) + `" ok-text="` + language.get(appLang, "alertOkButton") + `" cancel-text="` + language.get(appLang, "close") + `">
+									<ion-select-option value="never">` + language.get(appLang, "publicLinkExpiresNever") + `</ion-select-option>
+									<ion-select-option value="1h">1 ` + language.get(appLang, "publicLinkExpiresHour") + `</ion-select-option>
+									<ion-select-option value="6h">6 ` + language.get(appLang, "publicLinkExpiresHours") + `</ion-select-option>
+									<ion-select-option value="1d">1 ` + language.get(appLang, "publicLinkExpiresDay") + `</ion-select-option>
+									<ion-select-option value="3d">3 ` + language.get(appLang, "publicLinkExpiresDays") + `</ion-select-option>
+									<ion-select-option value="7d">7 ` + language.get(appLang, "publicLinkExpiresDays") + `</ion-select-option>
+									<ion-select-option value="14d">14 ` + language.get(appLang, "publicLinkExpiresDays") + `</ion-select-option>
+									<ion-select-option value="30d">30 ` + language.get(appLang, "publicLinkExpiresDays") + `</ion-select-option>
+								</ion-select>
+							</ion-item>
+							<ion-item lines="none">
+								<ion-label>
+									` + language.get(appLang, "publicLinkPassword") + `
+								</ion-label>
+								<ion-input slot="end" id="public-link-password-input" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `" ` + (typeof res.data.password !== "undefined" ? (res.data.password !== null ? `value="` + res.data.password + `"` : ``) : ``) + `></ion-input>
+							</ion-item>
+							<!--<ion-item lines="none">
+								<ion-label>
+									` + language.get(appLang, "publicLinkEnableDownloadBtn") + `
+								</ion-label>
+								<ion-toggle slot="end" id="public-link-enable-download-btn-toggle" ` + (typeof res.data.downloadBtn !== "undefined" ? (res.data.downloadBtn == 1 ? `checked` : ``) : ``) + `></ion-toggle>
+							</ion-item>-->
+							<section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
+								<ion-button expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', true, '` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `')">` + language.get(appLang, "savePublicLink") + `</ion-button>
+							</section>
+						</div>
+					</ion-content>
+				`
+			}
+		})
+	
+		let modal = await modalController.create({
+			component: modalId,
+			swipeToClose: false,
+			showBackdrop: false,
+			backdropDismiss: false,
+			cssClass: "modal-fullscreen"
+		})
+	
+		return modal.present()
+	}
 }
 
 export function makeItemAvailableOffline(offline, item){
@@ -2606,6 +2765,55 @@ export async function storeSelectedItemsOffline(){
 	return true
 }
 
+export async function colorItem(item){
+	if(item.uuid == "default"){
+		return this.spawnToast(language.get(this.state.lang, "thisFolderCannotBeColored")) 
+	}
+
+	let appLang = this.state.lang
+	let appDarkMode = this.state.darkMode
+	let modalId = "color-item-modal-" + utils.generateRandomClassName()
+
+	customElements.define(modalId, class ModalContent extends HTMLElement {
+		connectedCallback(){
+			this.innerHTML = `
+				<ion-header>
+					<ion-toolbar>
+						<ion-buttons slot="start">
+							<ion-button onClick="window.customFunctions.dismissModal()">
+								<ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+							</ion-button>
+						</ion-buttons>
+						<ion-title>
+							` + language.get(appLang, "colorItemLinkHeader", true, ["__NAME__"], [item.name]) + `
+						</ion-title>
+					</ion-toolbar>
+				</ion-header>
+				<ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+					<section style="padding: 15px;">
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'default')" style="--background: #F6C358;">` + language.get(appLang, "colorItemDefault") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'blue')" style="--background: #2992E5; margin-top: 10px;">` + language.get(appLang, "colorItemBlue") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'green')" style="--background: #57A15B; margin-top: 10px;">` + language.get(appLang, "colorItemGreen") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'purple')" style="--background: #8E3A9D; margin-top: 10px;">` + language.get(appLang, "colorItemPurple") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'red')" style="--background: #CB2E35; margin-top: 10px;">` + language.get(appLang, "colorItemRed") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'gray')" style="--background: gray; margin-top: 10px;">` + language.get(appLang, "colorItemGray") + `</ion-button>
+					</section>
+				</ion-content>
+			`
+		}
+	})
+
+	let modal = await modalController.create({
+		component: modalId,
+		swipeToClose: false,
+		showBackdrop: false,
+		backdropDismiss: false,
+		cssClass: "modal-fullscreen"
+	})
+
+	return modal.present()
+}
+
 export async function spawnItemActionSheet(item){
 	let buttons = undefined
 
@@ -2664,6 +2872,26 @@ export async function spawnItemActionSheet(item){
 				}
 			]
 		}
+		else if(window.location.href.indexOf("links") !== -1){
+			buttons = [
+				{
+					text: language.get(this.state.lang, "itemPublicLink"),
+					icon: Ionicons.link,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.openPublicLinkModal(item)
+					}
+				},
+				{
+					text: language.get(this.state.lang, "cancel"),
+					icon: Ionicons.close,
+					handler: () => {
+						return actionSheet.dismiss()
+					}
+				}
+			]
+		}
 		else{
 			buttons = [
 				{
@@ -2671,6 +2899,15 @@ export async function spawnItemActionSheet(item){
 					icon: Ionicons.shareSocial,
 					handler: () => {
 						return this.shareItem(item)
+					}
+				},
+				{
+					text: language.get(this.state.lang, "itemPublicLink"),
+					icon: Ionicons.link,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.openPublicLinkModal(item)
 					}
 				},
 				{
@@ -2685,6 +2922,13 @@ export async function spawnItemActionSheet(item){
 					icon: Ionicons.text,
 					handler: () => {
 						return this.renameItem(item)
+					}
+				},
+				{
+					text: language.get(this.state.lang, "colorItem"),
+					icon: Ionicons.colorFill,
+					handler: () => {
+						return this.colorItem(item)
 					}
 				},
 				{
@@ -2805,6 +3049,49 @@ export async function spawnItemActionSheet(item){
 						window.customFunctions.dismissModal()
 	
 						return this.restoreItem(item, false)
+					}
+				},
+				{
+					text: language.get(this.state.lang, "cancel"),
+					icon: Ionicons.close,
+					handler: () => {
+						return actionSheet.dismiss()
+					}
+				}
+			]
+		}
+		else if(window.location.href.indexOf("links") !== -1){
+			buttons = [
+				{
+					text: language.get(this.state.lang, "itemPublicLink"),
+					icon: Ionicons.link,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.openPublicLinkModal(item)
+					}
+				},
+				{
+					text: language.get(this.state.lang, "downloadItem"),
+					icon: Ionicons.download,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.queueFileDownload(item)
+					}
+				},
+				{
+					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
+					icon: Ionicons.save,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						if(item.offline){
+							return this.makeItemAvailableOffline(false, item)
+						}
+						else{
+							return this.makeItemAvailableOffline(true, item)
+						}
 					}
 				},
 				{

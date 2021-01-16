@@ -378,29 +378,29 @@ export async function queueFileUpload(file){
 												return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
 											}
 
-											if(utils.currentParentFolder() == parent){
-												clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
-
-												window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
-													if(utils.currentParentFolder() == parent){
-														this.updateItemList()
-													}
-												}, 500)
-											}
-
-											this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [file.name]))
-
 											utils.checkIfItemParentIsBeingShared(parent, "file", {
 												uuid,
 												name,
 												size: parseInt(size),
 												mime,
 												key
+											}, () => {
+												if(utils.currentParentFolder() == parent){
+													clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
+	
+													window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
+														if(utils.currentParentFolder() == parent){
+															this.updateItemList()
+														}
+													}, 500)
+												}
+	
+												this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [file.name]))
+
+												window.customVariables.uploadSemaphore.release()
+
+												return removeFromState()
 											})
-
-											window.customVariables.uploadSemaphore.release()
-
-											return removeFromState()
 										})
 									}
 								}

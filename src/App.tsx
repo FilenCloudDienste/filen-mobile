@@ -158,6 +158,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	shareSelectedItems = itemsComponents.shareSelectedItems.bind(this)
 	storeSelectedItemsOffline = itemsComponents.storeSelectedItemsOffline.bind(this)
 	getFileThumbnail = itemsComponents.getFileThumbnail.bind(this)
+	colorItem = itemsComponents.colorItem.bind(this)
 
     spawnToast = spawnComponents.spawnToast.bind(this)
     spawnMoveToast = spawnComponents.spawnMoveToast.bind(this)
