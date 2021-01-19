@@ -148,6 +148,7 @@ export function setupWindowFunctions(){
     window.customVariables.isGettingPreviewData = false
     window.customVariables.stopGettingPreviewData = false
     window.customVariables.cachedAPIItemListRequests = {}
+    window.customVariables.deviceHeightAndWidthInterval = undefined
 
     clearInterval(window.customVariables.mainSearchbarInterval)
 
@@ -184,12 +185,26 @@ export function setupWindowFunctions(){
         }
     }, 100)
 
-    window.onresize = () => {
+    const updateHeightAndWidthState = () => {
         this.setState({
             windowHeight: window.innerHeight,
             windowWidth: window.innerWidth
         })
     }
+
+    clearInterval(window.customVariables.deviceHeightAndWidthInterval)
+
+    window.customVariables.deviceHeightAndWidthInterval = setInterval(() => {
+        updateHeightAndWidthState()
+    }, 250)
+
+    window.addEventListener("orientationchange", () => {
+        updateHeightAndWidthState()
+    }, false)
+
+    window.addEventListener("resize", function() {
+        updateHeightAndWidthState()
+    }, false)
 
     document.onclick = (e) => {
         return window.customFunctions.togglePreviewHeader(e)

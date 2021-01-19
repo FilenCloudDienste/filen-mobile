@@ -6,7 +6,7 @@ import { FileOpener } from "@ionic-native/file-opener"
 
 const utils = require("../utils/utils")
 
-export async function updateItemList(){
+export async function updateItemList(showLoader = true){
 	if(!this.state.isLoggedIn){
 		return this.showLogin()
 	}
@@ -28,11 +28,13 @@ export async function updateItemList(){
 	let routeEx = window.location.hash.split("/")
 	let parent = routeEx[routeEx.length - 1]
 
-    let loading = await loadingController.create({
-        message: ""
-    })
-
-	loading.present()
+    if(showLoader){
+		var loading = await loadingController.create({
+			message: ""
+		})
+	
+		loading.present()
+	}
 
 	window.customVariables.currentThumbnailURL = window.location.href
 
@@ -715,7 +717,11 @@ export async function previewItem(item, lastModalPreviewType = undefined){
                 return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
             }
         }
-    }
+	}
+	
+	if(Capacitor.isNative){
+		Capacitor.Plugins.Keyboard.hide()
+	}
 
 	if(typeof window.customVariables.offlineSavedFiles[item.uuid] !== "undefined" && typeof lastModalPreviewType == "undefined"){
 		this.getDownloadDir(true, item.uuid, (err, dirObj) => {

@@ -390,9 +390,9 @@ export async function queueFileUpload(file){
 	
 													window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
 														if(utils.currentParentFolder() == parent){
-															this.updateItemList()
+															this.updateItemList(false)
 														}
-													}, 500)
+													}, 5000)
 												}
 	
 												this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [file.name]))
