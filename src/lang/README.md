@@ -6,6 +6,6 @@ Make sure to also rename the object properties to the corresponding ISO 639-1 co
 
 ```translations['en']['defaultFolder'] = "Default folder"``` -> ```translations['de']['defaultFolder'] = "Standard Ordner"```
 
-Also make sure to NOT remove any variables within the actual text (and leave any HTML/JS inside of the text as it is). Variables always look like this: ```__VARIABLENAME__```. Due to different grammar in languages you might have to place those variables differently within the text.
+Also make sure to NOT remove any variables within the actual text (and leave any HTML/JS inside of the text as it is). Variables always look like this: ```__VARIABLENAME__``` (TWO underscores in front of the name and after). Due to different grammar in languages you might have to place those variables differently within the text.
 
 ### Big thank you to everyone who contributes!
