@@ -219,7 +219,7 @@ translations['da']['colorItemPurple'] = "Lilla"
 translations['da']['colorItemRed'] = "Rød"
 translations['da']['colorItemGray'] = "Grå"
 translations['da']['thisFolderCannotBeColored'] = "Du kan ikke ændre farven på denne mappe"
-translations['da']['cannotCreatePublicLinkFolder'] = "Du kan ikke oprette et offentligt link til denne mappe "
+translations['da']['cannotCreatePublicLinkFolder'] = "Du kan ikke oprette et offentligt link til denne mappe"
 
 module.exports = {
     translations

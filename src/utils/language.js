@@ -1,8 +1,9 @@
 const en = require("../lang/en")
 const nl = require("../lang/nl")
-const sv = require("../lang/sv")
 const hi = require("../lang/hi")
 const de = require("../lang/de")
+const fr = require("../lang/fr")
+const da = require("../lang/da")
 
 let translations = {}
 
@@ -10,6 +11,8 @@ translations['en'] = en.translations['en']
 translations['nl'] = nl.translations['nl']
 translations['hi'] = hi.translations['hi']
 translations['de'] = de.translations['de']
+translations['fr'] = de.translations['fr']
+translations['da'] = de.translations['da']
 
 module.exports = {
     get: (lang = "en", text, firstUpperCase = true, replaceFrom = [], replaceTo = []) => {

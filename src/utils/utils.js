@@ -1920,6 +1920,8 @@ export function getLanguageSelection(){
         <ion-select-option value="de">Deutsch</ion-select-option>
         <ion-select-option value="nl">Nederlands</ion-select-option>
         <ion-select-option value="hi">हिन्दी, हिंदी</ion-select-option>
+        <ion-select-option value="fr">Français</ion-select-option>
+        <ion-select-option value="da">Dansk</ion-select-option>
     `
 }
 

@@ -966,6 +966,36 @@ export async function getThumbnail(file, thumbURL, ext){
         }
         else{
             try{
+                var stat = await Plugins.Filesystem.stat({
+                    path: dirObj.path + "/" + thumbnailFileName,
+                    directory: dirObj.directory
+                })
+            }
+            catch(e){
+                window.customVariables.thumbnailSemaphore.release()
+
+                delete window.customVariables.thumbnailCache[file.uuid]
+
+                return reject(e)
+            }
+
+            if(typeof stat.size == "undefined"){
+                window.customVariables.thumbnailSemaphore.release()
+
+                delete window.customVariables.thumbnailCache[file.uuid]
+
+                return reject("Thumbnail not found on device, it might have been deleted")
+            }
+
+            if(stat.size <= 0){
+                window.customVariables.thumbnailSemaphore.release()
+
+                delete window.customVariables.thumbnailCache[file.uuid]
+
+                return reject("Thumbnail not found on device, it might have been deleted")
+            }
+
+            try{
                 var uri = await Plugins.Filesystem.getUri({
                     path: dirObj.path + "/" + thumbnailFileName,
                     directory: dirObj.directory

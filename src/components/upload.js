@@ -318,7 +318,7 @@ export async function queueFileUpload(file){
 								parent: parent
 							}).toString()
 
-							this.uploadChunk(uuid, file, queryParams, blob, 0, 10, (err, res) => {
+							this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, (err, res) => {
 								if(err){
 									console.log(err)
 
@@ -367,7 +367,7 @@ export async function queueFileUpload(file){
 									if(!markedAsDone){
 										markedAsDone = true
 
-										this.markUploadAsDone(uuid, uploadKey, 0, 10, (err) => {
+										this.markUploadAsDone(uuid, uploadKey, 0, 1000000, (err) => {
 											if(err){
 												console.log(err)
 
