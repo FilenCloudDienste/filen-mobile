@@ -3,8 +3,10 @@ import { loadingController, modalController, popoverController, alertController,
 import * as Ionicons from 'ionicons/icons'
 import { Capacitor, HapticsImpactStyle, Plugins } from "@capacitor/core"
 import { FileOpener } from "@ionic-native/file-opener"
+import { isPlatform, getPlatforms } from "@ionic/react"
 
 const utils = require("../utils/utils")
+const safeAreaInsets = require('safe-area-insets')
 
 export async function updateItemList(showLoader = true){
 	if(!this.state.isLoggedIn){
@@ -486,7 +488,7 @@ export async function updateItemList(showLoader = true){
 		itemList: items,
 		scrollToIndex: scrollTo
 	}, () => {
-		loading.dismiss()
+		window.customFunctions.dismissLoader()
 
 		this.forceUpdate()
 
@@ -777,7 +779,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 
 			if(previewType == "image"){
 				previewModalContent = `
-					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute; display: none;" onClick="window.customFunctions.togglePreviewHeader(true)">
+					<ion-header class="ion-header-no-shadow preview-header-hidden" style="position: absolute; display: none; margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;" onClick="window.customFunctions.togglePreviewHeader(true)">
 						<ion-toolbar style="--background: black; color: white;">
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -807,7 +809,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 			}
 			else if(previewType == "video"){
 				previewModalContent = `
-					<ion-header class="ion-header-no-shadow" style="position: absolute;">
+					<ion-header class="ion-header-no-shadow" style="position: absolute; margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar style="--background: black; color: white;">
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -837,7 +839,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 			}
 			else if(previewType == "audio"){
 				previewModalContent = `
-					<ion-header class="ion-header-no-shadow" style="position: absolute;">
+					<ion-header class="ion-header-no-shadow" style="position: absolute; margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar style="--background: transparent; color: white;">
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -869,7 +871,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 				let text = new TextDecoder().decode(dataArray).split("<").join("&lt;")
 
 				previewModalContent = `
-					<ion-header>
+					<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar>
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -893,7 +895,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 			}
 			else if(previewType == "pdf"){
 				previewModalContent = `
-					<ion-header>
+					<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar>
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -2339,7 +2341,7 @@ export async function openPublicLinkModal(item){
 		customElements.define(modalId, class ModalContent extends HTMLElement {
 			connectedCallback(){
 				this.innerHTML = `
-					<ion-header>
+					<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar>
 							<ion-buttons slot="start">
 								<ion-button onClick="window.customFunctions.dismissModal()">
@@ -2456,7 +2458,7 @@ export async function openPublicLinkModal(item){
 		customElements.define(modalId, class ModalContent extends HTMLElement {
 			connectedCallback(){
 				this.innerHTML = `
-					<ion-header>
+					<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar>
 							<ion-buttons slot="start">
 								<ion-button onClick="window.customFunctions.dismissModal()">
@@ -2783,7 +2785,7 @@ export async function colorItem(item){
 	customElements.define(modalId, class ModalContent extends HTMLElement {
 		connectedCallback(){
 			this.innerHTML = `
-				<ion-header>
+				<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 					<ion-toolbar>
 						<ion-buttons slot="start">
 							<ion-button onClick="window.customFunctions.dismissModal()">

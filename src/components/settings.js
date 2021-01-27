@@ -2,8 +2,10 @@ import * as language from "../utils/language"
 import { loadingController, modalController, popoverController, alertController, actionSheetController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons'
 import { Capacitor, Plugins } from "@capacitor/core"
+import { isPlatform, getPlatforms } from "@ionic/react"
 
 const utils = require("../utils/utils")
+const safeAreaInsets = require('safe-area-insets')
 
 export async function openSettingsModal(){
     let appLang = this.state.lang
@@ -16,7 +18,7 @@ export async function openSettingsModal(){
     customElements.define(modalId, class ModalContent extends HTMLElement {
         connectedCallback() {
             this.innerHTML = `
-                <ion-header>
+                <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                     <ion-toolbar>
                         <ion-buttons slot="start">
                             <ion-button onclick="window.customFunctions.dismissModal()">

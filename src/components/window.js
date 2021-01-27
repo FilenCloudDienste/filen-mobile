@@ -2,8 +2,7 @@ import { Capacitor, Plugins, FilesystemDirectory } from "@capacitor/core"
 import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
-import { isPlatform } from '@ionic/react'
-import { kMaxLength } from "buffer"
+import { isPlatform, getPlatforms } from "@ionic/react"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
@@ -792,7 +791,7 @@ export function setupWindowFunctions(){
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
                 this.innerHTML = `
-                    <ion-header>
+                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                         <ion-toolbar>
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">

@@ -2,6 +2,7 @@ import React from 'react';
 import { IonToast, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText } from '@ionic/react'
 import { List } from 'react-virtualized';
 import { Plugins, StatusBarStyle, Capacitor } from "@capacitor/core"
+import { isPlatform, getPlatforms } from "@ionic/react"
 
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
@@ -387,7 +388,7 @@ export function render(){
 
     let bottomFab = undefined
     let bottomFabStyle = {
-        marginBottom: safeAreaInsets.bottom + "px"
+        marginBottom: (isPlatform("ipad") || isPlatform("iphone") ? safeAreaInsets.bottom : 0) + "px"
     }
 
     if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
@@ -636,7 +637,7 @@ export function render(){
                         </IonHeader>
                         <IonContent style={{
                             width: this.state.windowWidth + "px",
-                            height: this.state.windowHeight - 56 + "px",
+                            height: this.state.windowHeight - 56 - safeAreaInsets.bottom + "px",
                             "--background": this.state.darkMode ? "#1E1E1E" : "white",
                             outline: "none",
                             border: "none"
