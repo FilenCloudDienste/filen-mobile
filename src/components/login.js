@@ -15,9 +15,12 @@ export async function showLogin(){
             this.innerHTML = `
                 <ion-header class="ion-header-no-shadow" style="--background: transparent;">
                     <ion-toolbar style="--background: transparent;">
-                        <ion-select slot="start" id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert">
+                        <!--<ion-select slot="start" id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert">
                             ` + utils.getLanguageSelection() + `
-                        </ion-select>
+                        </ion-select>-->
+                        <ion-button onClick="window.customFunctions.openLanguageModal(); return false" fill="none">
+                            ` + language.name(appLang) + `
+                        </ion-button>
                         <ion-buttons slot="end">
                             <ion-button onClick="window.customFunctions.loginToggleDarkMode()">
                                 <ion-icon slot="icon-only" icon="` + (appDarkMode ? Ionicons.sunny : Ionicons.moon) + `"></ion-icon>

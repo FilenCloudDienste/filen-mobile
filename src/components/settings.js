@@ -90,11 +90,11 @@ export async function openSettingsModal(){
                             </ion-label>
                             <ion-toggle slot="end" id="settings-only-wifi-toggle" onClick="window.customFunctions.toggleOnlyWifi()" ` + (appSettings.onlyWifi && "checked") + `></ion-toggle>
                         </ion-item>
-                        <ion-item lines="none">
-                            <ion-label>` + language.get(appLang, "settingsLanguage") + `</ion-label>
-                            <ion-select id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert">
+                        <ion-item lines="none" button>
+                            <ion-label onClick="window.customFunctions.openLanguageModal()">` + language.get(appLang, "settingsLanguage") + `</ion-label>
+                            <!--<ion-select id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert">
                                 ` + utils.getLanguageSelection() + `
-                            </ion-select>
+                            </ion-select>-->
                         </ion-item>
                         <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
                             <ion-label>

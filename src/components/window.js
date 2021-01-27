@@ -783,6 +783,66 @@ export function setupWindowFunctions(){
         return this.openSettingsModal()
     }
 
+    window.customFunctions.setLang = async (lang = "en") => {
+        await Plugins.Storage.set({ key: "lang", value: lang })
+
+        return document.location.href = "index.html"
+    }
+
+    window.customFunctions.openLanguageModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "language-modal-" + utils.generateRandomClassName()
+
+        let languagesHTML = ""
+        let langList = language.list()
+
+        for(let prop in langList){
+            languagesHTML += `
+                <ion-item lines="none" onClick="window.customFunctions.setLang('` + prop + `')" button>
+                    <ion-label>` + language.name(prop) + `</ion-label>
+                    <ion-radio slot="end" value="` + prop + `"></ion-radio>
+                </ion-item>
+            `
+        }
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar>
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "settingsLanguage") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                        <ion-list>
+                            <ion-radio-group value="` + appLang + `">
+                                ` + languagesHTML + `
+                            </ion-radio-group>
+                        </ion-list>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        return modal.present()
+    }
+
     window.customFunctions.openEncryptionModal = async () => {
         let appLang = this.state.lang
         let appDarkMode = this.state.darkMode
