@@ -92,7 +92,7 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 						return callback(res.message)
 					}
 					else{
-						return callback(null, res)
+						return callback(null, res, utils.parseQuery(queryParams))
 					}
 				}
 			}
@@ -192,6 +192,7 @@ export async function queueFileUpload(file){
 		let firstDone = false
 		let doFirst = true
 		let markedAsDone = false
+		let chunksUploaded = 0
 
 		window.customVariables.stoppedUploads[uuid] = undefined
     	window.customVariables.stoppedUploadsDone[uuid] = undefined
@@ -318,7 +319,7 @@ export async function queueFileUpload(file){
 								parent: parent
 							}).toString()
 
-							this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, (err, res) => {
+							this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, (err, res, parsedQueryParams) => {
 								if(err){
 									console.log(err)
 
@@ -341,6 +342,8 @@ export async function queueFileUpload(file){
 									}
 								}
 
+								chunksUploaded += 1
+
 								if(typeof window.customVariables.uploads[uuid] !== "undefined"){
 									setLoaded(blob.length)
 
@@ -361,7 +364,7 @@ export async function queueFileUpload(file){
 								blob = null
 								firstDone = true
 
-								if(thisIndex >= fileChunks){
+								if((chunksUploaded - 1) >= fileChunks){
 									clearInterval(uploadInterval)
 
 									if(!markedAsDone){
@@ -392,7 +395,7 @@ export async function queueFileUpload(file){
 														if(utils.currentParentFolder() == parent){
 															this.updateItemList(false)
 														}
-													}, 5000)
+													}, 1000)
 												}
 	
 												this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [file.name]))
