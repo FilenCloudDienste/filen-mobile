@@ -500,25 +500,29 @@ export function render(){
                                 }}>
                                     {this.state.userStorageUsageMenuText}
                                 </div>
-                                <div style={{
-                                    float: "right"
-                                }}>
-                                    {
-                                        this.state.userMaxStorage < 107374182400 && (
-                                            <div>
-                                                <IonBadge button onClick={() => {
-                                                    window.open("https://filen.io/pro", "_system")
-                                                    
-                                                    return false
-                                                }} color={this.state.darkMode ? "dark" : "light"} style={{
-                                                    fontSize: "7pt"
-                                                }}>
-                                                    {language.get(this.state.lang, "goProBadge")}
-                                                </IonBadge>
-                                            </div>
-                                        )
-                                    }
-                                </div>
+                                {
+                                    !isPlatform("ios") && (
+                                        <div style={{
+                                            float: "right"
+                                        }}>
+                                            {
+                                                this.state.userMaxStorage < 107374182400 && (
+                                                    <div>
+                                                        <IonBadge button onClick={() => {
+                                                            window.open("https://filen.io/pro", "_system")
+                                                            
+                                                            return false
+                                                        }} color={this.state.darkMode ? "dark" : "light"} style={{
+                                                            fontSize: "7pt"
+                                                        }}>
+                                                            {language.get(this.state.lang, "goProBadge")}
+                                                        </IonBadge>
+                                                    </div>
+                                                )
+                                            }
+                                        </div>
+                                    )
+                                }
                             </div>
                         </IonHeader>
                         <IonContent style={{
@@ -587,14 +591,18 @@ export function render(){
                                     <IonIcon slot="start" icon={Ionicons.lockClosed}></IonIcon>
                                     <IonLabel>{language.get(this.state.lang, "encryption")}</IonLabel>
                                 </IonItem>
-                                <IonItem button lines="none" onClick={() => {
-                                    window.customFunctions.hideSidebarMenu()
-                                    
-                                    return window.customFunctions.openWebsiteModal()
-                                }}>
-                                    <IonIcon slot="start" icon={Ionicons.globe}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "website")}</IonLabel>
-                                </IonItem>
+                                {
+                                    !isPlatform("ios") && (
+                                        <IonItem button lines="none" onClick={() => {
+                                            window.customFunctions.hideSidebarMenu()
+                                            
+                                            return window.customFunctions.openWebsiteModal()
+                                        }}>
+                                            <IonIcon slot="start" icon={Ionicons.globe}></IonIcon>
+                                            <IonLabel>{language.get(this.state.lang, "website")}</IonLabel>
+                                        </IonItem>
+                                    )
+                                }
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     

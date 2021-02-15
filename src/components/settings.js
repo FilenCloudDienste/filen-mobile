@@ -41,11 +41,13 @@ export async function openSettingsModal(){
                             <ion-label>
                                 ` + appState.userEmail + `
                             </ion-label>
-                            <ion-buttons slot="end">
-                                <ion-button color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.open('https://filen.io/my-account/file-manager/settings', '_system'); return false;">
-                                    ` + language.get(appLang, "accountSettings") + `
-                                </ion-button>
-                            </ion-buttons>
+                            ` + (isPlatform("ios") ? `` : `
+                                <ion-buttons slot="end">
+                                    <ion-button color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.open('https://filen.io/my-account/file-manager/settings', '_system'); return false;">
+                                        ` + language.get(appLang, "accountSettings") + `
+                                    </ion-button>
+                                </ion-buttons>
+                            `) + `
                         </ion-item>
                         <ion-item lines="none">
                             <ion-label>
@@ -57,22 +59,24 @@ export async function openSettingsModal(){
                                 </ion-button>
                             </ion-buttons>
                         </ion-item>
-                        <ion-item lines="none">
-                            <ion-label>
-                                ` + language.get(appLang, "settingsAccountPro") + `
-                            </ion-label>
-                            <ion-buttons slot="end">
-                                ` + (appState.userMaxStorage >= 107374182400 ? `
-                                    <ion-button fill="none">
-                                        <ion-icon slot="icon-only" icon="` + Ionicons.checkbox + `"></ion-icon>
-                                    </ion-button>
-                                ` : `
-                                    <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.open('https://filen.io/pro', '_system'); return false;">
-                                        ` + language.get(appLang, "settingsAccountGoPro") + `
-                                    </ion-button>
-                                `) + `
-                            </ion-buttons>
-                        </ion-item>
+                        ` + (isPlatform("ios") ? `` : `
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + language.get(appLang, "settingsAccountPro") + `
+                                </ion-label>
+                                <ion-buttons slot="end">
+                                    ` + (appState.userMaxStorage >= 107374182400 ? `
+                                        <ion-button fill="none">
+                                            <ion-icon slot="icon-only" icon="` + Ionicons.checkbox + `"></ion-icon>
+                                        </ion-button>
+                                    ` : `
+                                        <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.open('https://filen.io/pro', '_system'); return false;">
+                                            ` + language.get(appLang, "settingsAccountGoPro") + `
+                                        </ion-button>
+                                    `) + `
+                                </ion-buttons>
+                            </ion-item>
+                        `) + `
                         <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
                             <ion-label>
                                 ` + language.get(appLang, "settingsGeneralHeader") + `
@@ -124,6 +128,13 @@ export async function openSettingsModal(){
                                 </ion-button>
                             </ion-buttons>
                         </ion-item>
+                        ` + (isPlatform("ios") ? `
+                            <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                                <ion-label>
+                                    ` + language.get(appLang, "iosDeviceSettingsMoreLink") + `
+                                </ion-label>
+                            </ion-item-divider>
+                        ` : ``) + `
                     </ion-list>
                 </ion-content>
             `

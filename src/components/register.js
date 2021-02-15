@@ -2,6 +2,7 @@ import * as language from "../utils/language"
 import { Plugins, Capacitor } from "@capacitor/core"
 import { modalController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons';
+import { isPlatform, getPlatforms } from "@ionic/react"
 
 const utils = require("../utils/utils")
 
@@ -38,7 +39,7 @@ export async function showRegister(){
                                 <ion-input type="password" id="register-password-repeat" placeholder="` + language.get(appLang, "passwordRepeatPlaceholder") + `"></ion-input>
                             </ion-item>
                             <div style="width: 90%; margin-top: 25px;">
-                                <small>` + language.get(appLang, "registerTOSInfo") + `</small>
+                                <small>` + (isPlatform("ios") ? utils.stripHtml(language.get(appLang, "registerTOSInfo")) : language.get(appLang, "registerTOSInfo")) + `</small>
                             </div>
                             <ion-button expand="block" style="width: 90%; margin-top: 50px;" onClick="window.customFunctions.doRegister()">` + language.get(appLang, "registerButton") + `</ion-button>
                             <br>

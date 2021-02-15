@@ -352,6 +352,14 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
     utils.fetchWithTimeout(3600000, fetch(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
         method: "GET"
     })).then((response) => {
+        if(response.status !== 200){
+            window.customVariables.downloadChunkSemaphore.release()
+
+            return setTimeout(() => {
+                this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
+            }, 1000)
+        }
+
         response.arrayBuffer().then((res) => {
             if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
                 return callback("stopped")

@@ -2,6 +2,7 @@ import * as language from "../utils/language"
 import { Plugins, Capacitor } from "@capacitor/core"
 import { modalController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons'
+import { isPlatform, getPlatforms } from "@ionic/react"
 
 const utils = require("../utils/utils")
 
@@ -48,7 +49,7 @@ export async function showLogin(){
                             ` + language.get(appLang, "or").toUpperCase() + `
                             <br>
                             <br>
-                            <a onClick="window.customFunctions.openRegisterModal()">` + language.get(appLang, "registerLink") + `</a>
+                            <a onClick="window.customFunctions.openRegisterModal()">` + (isPlatform("ios") ? language.get(appLang, "registerLink").replace(/ *\([^)]*\) */g, "") : language.get(appLang, "registerLink")) + `</a>
                         </center>
                     </div>
                 </ion-content>

@@ -1914,6 +1914,12 @@ export function getVideoCover(file, seekTo = 0.0) {
     });
 }
 
+export function stripHtml(html){
+   let tmp = document.createElement("DIV");
+   tmp.innerHTML = html;
+   return tmp.textContent || tmp.innerText || "";
+}
+
 export function parseQuery(queryString) {
     var query = {};
     var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');

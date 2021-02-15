@@ -932,9 +932,52 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openHelpModal = async () => {
-        let actionSheet = await actionSheetController.create({
-            header: language.get(this.state.lang, "help"),
-            buttons: [
+        let btns = [
+            {
+                text: language.get(this.state.lang, "support"),
+                icon: Ionicons.helpBuoyOutline,
+                handler: () => {
+                    window.open("https://support.filen.io/", "_system")
+
+                    return false
+                }
+            },
+            {
+                text: language.get(this.state.lang, "faq"),
+                icon: Ionicons.informationCircle,
+                handler: () => {
+                    window.open("https://filen.io/faq", "_system")
+
+                    return false
+                }
+            },
+            {
+                text: language.get(this.state.lang, "tos"),
+                icon: Ionicons.informationCircleOutline,
+                handler: () => {
+                    window.open("https://filen.io/terms", "_system")
+
+                    return false
+                }
+            },
+            {
+                text: language.get(this.state.lang, "privacyPolicy"),
+                icon: Ionicons.informationCircleOutline,
+                handler: () => {
+                    window.open("https://filen.io/privacy", "_system")
+
+                    return false
+                }
+            },
+            {
+                text: language.get(this.state.lang, "cancel"),
+                icon: "close",
+                role: "cancel"
+            }
+        ]
+
+        if(isPlatform("ios")){
+            btns = [
                 {
                     text: language.get(this.state.lang, "support"),
                     icon: Ionicons.helpBuoyOutline,
@@ -945,38 +988,16 @@ export function setupWindowFunctions(){
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "faq"),
-                    icon: Ionicons.informationCircle,
-                    handler: () => {
-                        window.open("https://filen.io/faq", "_system")
-
-                        return false
-                    }
-                },
-                {
-                    text: language.get(this.state.lang, "tos"),
-                    icon: Ionicons.informationCircleOutline,
-                    handler: () => {
-                        window.open("https://filen.io/terms", "_system")
-
-                        return false
-                    }
-                },
-                {
-                    text: language.get(this.state.lang, "privacyPolicy"),
-                    icon: Ionicons.informationCircleOutline,
-                    handler: () => {
-                        window.open("https://filen.io/privacy", "_system")
-
-                        return false
-                    }
-                },
-                {
                     text: language.get(this.state.lang, "cancel"),
                     icon: "close",
                     role: "cancel"
                 }
             ]
+        }
+
+        let actionSheet = await actionSheetController.create({
+            header: language.get(this.state.lang, "help"),
+            buttons: btns
         })
 
         return actionSheet.present()
