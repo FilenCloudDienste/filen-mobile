@@ -1,1 +1,0 @@
-{"ast":null,"code":"export * from './esm-es5/index.mjs';","map":{"version":3,"sources":["/Users/jan/Documents/filen/app/node_modules/ionicons/dist/index.mjs"],"names":[],"mappings":"AAAA,cAAc,qBAAd","sourcesContent":["export * from './esm-es5/index.mjs';"]},"metadata":{},"sourceType":"module"}

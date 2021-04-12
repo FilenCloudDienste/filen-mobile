@@ -1,1 +1,0 @@
-{"ast":null,"code":"export * from './esm-es5/index.js';","map":{"version":3,"sources":["/Users/jan/Documents/filen/app/node_modules/@ionic/core/dist/index.js"],"names":[],"mappings":"AAAA,cAAc,oBAAd","sourcesContent":["export * from './esm-es5/index.js';"]},"metadata":{},"sourceType":"module"}

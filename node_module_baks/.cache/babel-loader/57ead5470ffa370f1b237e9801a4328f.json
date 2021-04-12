@@ -1,1 +1,0 @@
-{"ast":null,"code":"import Hammer from './Hammer';\nexport default Hammer;","map":{"version":3,"sources":["/Users/jan/Documents/filen/app/node_modules/rc-hammerjs/es/index.js"],"names":["Hammer"],"mappings":"AAAA,OAAOA,MAAP,MAAmB,UAAnB;AAEA,eAAeA,MAAf","sourcesContent":["import Hammer from './Hammer';\n\nexport default Hammer;"]},"metadata":{},"sourceType":"module"}
