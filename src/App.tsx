@@ -59,7 +59,11 @@ interface AppStates {
 	downloadsCount: number,
 	settings: any,
 	scrollToIndex: number,
-	socketConnected: boolean
+	socketConnected: boolean,
+	userFiles: number,
+	userFolders: number,
+	twoFactorEnabled: boolean,
+	userIsPro: boolean
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -99,7 +103,11 @@ export default class App extends React.PureComponent<{}, AppStates> {
 				onlyWifi: false
 			},
 			scrollToIndex: 0,
-			socketConnected: false
+			socketConnected: false,
+			userFiles: 0,
+			userFolders: 0,
+			twoFactorEnabled: false,
+			userIsPro: false
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)

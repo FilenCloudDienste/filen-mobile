@@ -1707,6 +1707,454 @@ export function setupWindowFunctions(){
         return alert.present()
     }
 
+    window.customFunctions.deleteEverything = async () => {
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "settingsDeleteAll"),
+            message: language.get(this.state.lang, "settingsDeleteAllInfo"),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "alertOkButton"),
+                    handler: async () => {
+                        let confirmAlert = await alertController.create({
+                            header: language.get(this.state.lang, "settingsDeleteAll"),
+                            message: language.get(this.state.lang, "settingsDeleteAllConfirm"),
+                            buttons: [
+                                {
+                                    text: language.get(this.state.lang, "cancel"),
+                                    role: "cancel",
+                                    handler: () => {
+                                        return false
+                                    }
+                                },
+                                {
+                                    text: language.get(this.state.lang, "alertOkButton"),
+                                    handler: async () => {
+                                        var loading = await loadingController.create({
+                                            message: ""
+                                        })
+                                    
+                                        loading.present()
+
+                                        try{
+                                            var res = await utils.apiRequest("POST", "/v1/user/delete/all", {
+                                                apiKey: this.state.userAPIKey
+                                            })
+                                        }
+                                        catch(e){
+                                            console.log(e)
+                                    
+                                            window.customFunctions.dismissLoader()
+                                    
+                                            let apiAlert = await alertController.create({
+                                                header: "",
+                                                subHeader: "",
+                                                message: language.get(this.state.lang, "apiRequestError"),
+                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                            })
+                                    
+                                            return apiAlert.present()
+                                        }
+                                
+                                        if(!res.status){
+                                            console.log(res.message)
+                                    
+                                            window.customFunctions.dismissLoader()
+                                    
+                                            let apiAlert = await alertController.create({
+                                                header: "",
+                                                subHeader: "",
+                                                message: res.message,
+                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                            })
+                                    
+                                            return apiAlert.present()
+                                        }
+
+                                        window.customFunctions.dismissLoader()
+                                    
+                                        let apiAlert = await alertController.create({
+                                            header: "",
+                                            subHeader: "",
+                                            message: language.get(this.state.lang, "settingsDeleteAllSuccess"),
+                                            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                        })
+                                
+                                        return apiAlert.present()
+                                    }
+                                }
+                            ]
+                        })
+                
+                        return confirmAlert.present()
+                    }
+                }
+            ]
+        })
+
+        return alert.present()
+    }
+
+    window.customFunctions.deleteVersioned = async () => {
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "settingsDeleteVersioned"),
+            message: language.get(this.state.lang, "settingsDeleteVersionedInfo"),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "alertOkButton"),
+                    handler: async () => {
+                        let confirmAlert = await alertController.create({
+                            header: language.get(this.state.lang, "settingsDeleteVersioned"),
+                            message: language.get(this.state.lang, "settingsDeleteAllConfirm"),
+                            buttons: [
+                                {
+                                    text: language.get(this.state.lang, "cancel"),
+                                    role: "cancel",
+                                    handler: () => {
+                                        return false
+                                    }
+                                },
+                                {
+                                    text: language.get(this.state.lang, "alertOkButton"),
+                                    handler: async () => {
+                                        var loading = await loadingController.create({
+                                            message: ""
+                                        })
+                                    
+                                        loading.present()
+
+                                        try{
+                                            var res = await utils.apiRequest("POST", "/v1/user/versions/delete", {
+                                                apiKey: this.state.userAPIKey
+                                            })
+                                        }
+                                        catch(e){
+                                            console.log(e)
+                                    
+                                            window.customFunctions.dismissLoader()
+                                    
+                                            let apiAlert = await alertController.create({
+                                                header: "",
+                                                subHeader: "",
+                                                message: language.get(this.state.lang, "apiRequestError"),
+                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                            })
+                                    
+                                            return apiAlert.present()
+                                        }
+                                
+                                        if(!res.status){
+                                            console.log(res.message)
+                                    
+                                            window.customFunctions.dismissLoader()
+                                    
+                                            let apiAlert = await alertController.create({
+                                                header: "",
+                                                subHeader: "",
+                                                message: res.message,
+                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                            })
+                                    
+                                            return apiAlert.present()
+                                        }
+
+                                        window.customFunctions.dismissLoader()
+                                    
+                                        let apiAlert = await alertController.create({
+                                            header: "",
+                                            subHeader: "",
+                                            message: language.get(this.state.lang, "settingsDeleteVersionedSuccess"),
+                                            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                        })
+                                
+                                        return apiAlert.present()
+                                    }
+                                }
+                            ]
+                        })
+                
+                        return confirmAlert.present()
+                    }
+                }
+            ]
+        })
+
+        return alert.present()
+    }
+
+    window.customFunctions.deleteAccount = async () => {
+        const deleteIt = async (twoFactorKey = "XXXXXX") => {
+            let alert = await alertController.create({
+                header: language.get(this.state.lang, "settingsDeleteAccount"),
+                message: language.get(this.state.lang, "settingsDeleteAccountInfo"),
+                buttons: [
+                    {
+                        text: language.get(this.state.lang, "cancel"),
+                        role: "cancel",
+                        handler: () => {
+                            return false
+                        }
+                    },
+                    {
+                        text: language.get(this.state.lang, "alertOkButton"),
+                        handler: async () => {
+                            let confirmAlert = await alertController.create({
+                                header: language.get(this.state.lang, "settingsDeleteAccount"),
+                                message: language.get(this.state.lang, "settingsDeleteAllConfirm"),
+                                buttons: [
+                                    {
+                                        text: language.get(this.state.lang, "cancel"),
+                                        role: "cancel",
+                                        handler: () => {
+                                            return false
+                                        }
+                                    },
+                                    {
+                                        text: language.get(this.state.lang, "alertOkButton"),
+                                        handler: async () => {
+                                            var loading = await loadingController.create({
+                                                message: ""
+                                            })
+                                        
+                                            loading.present()
+    
+                                            try{
+                                                var res = await utils.apiRequest("POST", "/v1/user/account/delete", {
+                                                    apiKey: this.state.userAPIKey,
+                                                    twoFactorKey
+                                                })
+                                            }
+                                            catch(e){
+                                                console.log(e)
+                                        
+                                                window.customFunctions.dismissLoader()
+                                        
+                                                let apiAlert = await alertController.create({
+                                                    header: "",
+                                                    subHeader: "",
+                                                    message: language.get(this.state.lang, "apiRequestError"),
+                                                    buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                })
+                                        
+                                                return apiAlert.present()
+                                            }
+                                    
+                                            if(!res.status){
+                                                window.customFunctions.dismissLoader()
+                                        
+                                                let apiAlert = await alertController.create({
+                                                    header: "",
+                                                    subHeader: "",
+                                                    message: res.message,
+                                                    buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                })
+                                        
+                                                return apiAlert.present()
+                                            }
+    
+                                            window.customFunctions.dismissLoader()
+                                        
+                                            let apiAlert = await alertController.create({
+                                                header: "",
+                                                subHeader: "",
+                                                message: language.get(this.state.lang, "settingsDeleteAccountSuccess"),
+                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                            })
+                                    
+                                            return apiAlert.present()
+                                        }
+                                    }
+                                ]
+                            })
+                    
+                            return confirmAlert.present()
+                        }
+                    }
+                ]
+            })
+    
+            return alert.present()
+        }
+
+        if(this.state.twoFactorEnabled){
+            let alert = await alertController.create({
+                header: language.get(this.state.lang, "settingsDeleteAccount2FA"),
+                inputs: [
+                    {
+                        type: "number",
+                        id: "2fa-input",
+                        name: "2fa-input",
+                        value: ""
+                    }
+                ],
+                buttons: [
+                    {
+                        text: language.get(this.state.lang, "cancel"),
+                        role: "cancel",
+                        handler: () => {
+                            return false
+                        }
+                    },
+                    {
+                        text: language.get(this.state.lang, "alertOkButton"),
+                        handler: async (inputs) => {
+                            return deleteIt(inputs['2fa-input'])
+                        }
+                    }
+                ]
+            })
+        
+            return alert.present()
+        }
+        else{
+            return deleteIt()
+        }
+    }
+
+    window.customFunctions.redeemCode = async () => {
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "settingsRedeemCode"),
+            inputs: [
+                {
+                    type: "text",
+                    id: "code-input",
+                    name: "code-input",
+                    placeholder: language.get(this.state.lang, "settingsRedeemCodePlaceholder"),
+                    value: ""
+                }
+            ],
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "alertOkButton"),
+                    handler: async (inputs) => {
+                        let code = inputs['2fa-input']
+
+                        var loading = await loadingController.create({
+                            message: ""
+                        })
+                    
+                        loading.present()
+                    
+                        try{
+                            var res = await utils.apiRequest("POST", "/v1/user/code/redeem", {
+                                apiKey: this.state.userAPIKey,
+                                code
+                            })
+                        }
+                        catch(e){
+                            console.log(e)
+                    
+                            loading.dismiss()
+                    
+                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                        }
+                    
+                        if(!res.status){
+                            loading.dismiss()
+                    
+                            console.log(res.message)
+                    
+                            return this.spawnToast(res.message)
+                        }
+                    
+                        loading.dismiss()
+
+                        return this.spawnToast(language.get(this.state.lang, "codeRedeemSuccess"))
+                    }
+                }
+            ]
+        })
+    
+        return alert.present()
+    }
+
+    window.customFunctions.showGDPR = async () => {
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+    
+        try{
+            var res = await utils.apiRequest("POST", "/v1/user/gdpr/download", {
+                apiKey: this.state.userAPIKey
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            loading.dismiss()
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            loading.dismiss()
+    
+            console.log(res.message)
+    
+            return this.spawnToast(res.message)
+        }
+    
+        loading.dismiss()
+
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "gdpr-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar>
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "modalGDPRTitle") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content fullscreen style="-webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;">
+						<pre style="width: 100vw; height: 100%; margin-top: 0px; padding: 10px; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;">` + JSON.stringify(res.data, null, 4) + `</pre>
+					</ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        return modal.present()
+    }
+
     window.customFunctions.openOrderBy = async () => {
         let alert = await alertController.create({
             header: language.get(this.state.lang, "orderBy"),

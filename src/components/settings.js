@@ -15,6 +15,37 @@ export async function openSettingsModal(){
     let deviceInfo = await Plugins.Device.getInfo()
     let modalId = "settings-modal-" + utils.generateRandomClassName()
 
+    var loading = await loadingController.create({
+        message: ""
+    })
+
+    loading.present()
+
+    try{
+        var res = await utils.apiRequest("POST", "/v1/user/get/settings", {
+            apiKey: this.state.userAPIKey
+        })
+    }
+    catch(e){
+        console.log(e)
+
+        loading.dismiss()
+
+        return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+    }
+
+    if(!res.status){
+        loading.dismiss()
+
+        console.log(res.message)
+
+        return this.spawnToast(res.message)
+    }
+
+    loading.dismiss()
+
+    let gotUserSettings = res.data
+
     customElements.define(modalId, class ModalContent extends HTMLElement {
         connectedCallback() {
             this.innerHTML = `
@@ -59,13 +90,63 @@ export async function openSettingsModal(){
                                 </ion-button>
                             </ion-buttons>
                         </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsUserFiles") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="none">
+                                    ` + appState.userFiles + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsUserFolders") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="none">
+                                    ` + appState.userFolders + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsUserVersionedFiles") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="none">
+                                    ` + gotUserSettings.versionedFiles + ` (` + utils.formatBytes(gotUserSettings.versionedStorage) + `)
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsDeleteAccount") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteAccount()">
+                                    ` + language.get(appLang, "settingsDeleteButton") + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none" button onClick="window.customFunctions.redeemCode()">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsRedeemCode") + `
+                            </ion-label>
+                        </ion-item>
+                        <ion-item lines="none" button onClick="window.customFunctions.showGDPR()">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsShowGDPR") + `
+                            </ion-label>
+                        </ion-item>
                         ` + (isPlatform("ios") ? `` : `
                             <ion-item lines="none">
                                 <ion-label>
                                     ` + language.get(appLang, "settingsAccountPro") + `
                                 </ion-label>
                                 <ion-buttons slot="end">
-                                    ` + (appState.userMaxStorage >= 107374182400 ? `
+                                    ` + (appState.userIsPro ? `
                                         <ion-button fill="none">
                                             <ion-icon slot="icon-only" icon="` + Ionicons.checkbox + `"></ion-icon>
                                         </ion-button>
@@ -77,6 +158,31 @@ export async function openSettingsModal(){
                                 </ion-buttons>
                             </ion-item>
                         `) + `
+                        <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsFileManagementHeader") + `
+                            </ion-label>
+                        </ion-item-divider>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsDeleteVersioned") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteVersioned()">
+                                    ` + language.get(appLang, "settingsDeleteAllButton") + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsDeleteAll") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteEverything()">
+                                    ` + language.get(appLang, "settingsDeleteAllButton") + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
                         <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
                             <ion-label>
                                 ` + language.get(appLang, "settingsGeneralHeader") + `
@@ -137,6 +243,7 @@ export async function openSettingsModal(){
                         ` : ``) + `
                     </ion-list>
                 </ion-content>
+                <br><br><br><br><br><br><br>
             `
         }
     })

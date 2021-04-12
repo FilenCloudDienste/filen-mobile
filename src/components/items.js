@@ -31,7 +31,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = true)
 	let parent = routeEx[routeEx.length - 1]
 
 	if(!bypassItemsCache){
-		if(typeof window.customVariables.itemsCache[window.location.hash] !== "undefined"){
+		if(typeof window.customVariables.itemsCache[window.location.href] !== "undefined"){
 			//@todo
 		}
 	}
@@ -3186,6 +3186,76 @@ export async function spawnItemActionSheet(item){
 						else{
 							return this.makeItemAvailableOffline(true, item)
 						}
+					}
+				},
+				{
+					text: language.get(this.state.lang, "cancel"),
+					icon: Ionicons.close,
+					handler: () => {
+						return actionSheet.dismiss()
+					}
+				}
+			]
+		}
+		else if(window.location.href.indexOf("recent") !== -1){
+			buttons = [
+				{
+					text: language.get(this.state.lang, "shareItem"),
+					icon: Ionicons.shareSocial,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.shareItem(item)
+					}
+				},
+				{
+					text: language.get(this.state.lang, "itemPublicLink"),
+					icon: Ionicons.link,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.openPublicLinkModal(item)
+					}
+				},
+				{
+					text: language.get(this.state.lang, "downloadItem"),
+					icon: Ionicons.download,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.queueFileDownload(item)
+					}
+				},
+				{
+					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
+					icon: Ionicons.save,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						if(item.offline){
+							return this.makeItemAvailableOffline(false, item)
+						}
+						else{
+							return this.makeItemAvailableOffline(true, item)
+						}
+					}
+				},
+				{
+					text: language.get(this.state.lang, "renameItem"),
+					icon: Ionicons.text,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.renameItem(item)
+					}
+				},
+				{
+					text: language.get(this.state.lang, "trashItem"),
+					icon: Ionicons.trash,
+					handler: () => {
+						window.customFunctions.dismissModal()
+	
+						return this.trashItem(item, false)
 					}
 				},
 				{
