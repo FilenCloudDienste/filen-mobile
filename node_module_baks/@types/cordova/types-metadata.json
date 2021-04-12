@@ -1,0 +1,25 @@
+{
+    "authors": "Microsoft Open Technologies Inc <http://msopentech.com>",
+    "definitionFilename": "index.d.ts",
+    "libraryDependencies": [],
+    "moduleDependencies": [],
+    "libraryMajorVersion": "0",
+    "libraryMinorVersion": "0",
+    "libraryName": "Apache Cordova",
+    "typingsPackageName": "cordova",
+    "projectName": "http://cordova.apache.org",
+    "sourceRepoURL": "https://www.github.com/DefinitelyTyped/DefinitelyTyped",
+    "sourceBranch": "types-2.0",
+    "kind": "Mixed",
+    "globals": [
+        "cordova"
+    ],
+    "declaredModules": [
+        "cordova"
+    ],
+    "files": [
+        "index.d.ts"
+    ],
+    "hasPackageJson": false,
+    "contentHash": "896a4efd6d78d79d68698c8433123463c32a402ad8f64bd31f97a9e5a02d4cc6"
+}

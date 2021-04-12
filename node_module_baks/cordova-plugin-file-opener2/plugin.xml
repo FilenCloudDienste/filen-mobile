@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-file-opener2" version="3.0.5">
+
+    <name>File Opener2</name>
+    <description>A File Opener Plugin for Cordova. (The Original Version)</description>
+    <license>MIT</license>
+
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+
+    <js-module src="www/plugins.FileOpener2.js" name="FileOpener2">
+        <clobbers target="cordova.plugins.fileOpener2" />
+    </js-module>
+
+    <!-- Android -->
+    <platform name="android">
+        <source-file src="src/android/io/github/pwlin/cordova/plugins/fileopener2/FileOpener2.java" target-dir="src/io/github/pwlin/cordova/plugins/fileopener2" />
+        <source-file src="src/android/io/github/pwlin/cordova/plugins/fileopener2/FileProvider.java" target-dir="src/io/github/pwlin/cordova/plugins/fileopener2" />
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="FileOpener2">
+                <param name="android-package" value="io.github.pwlin.cordova.plugins.fileopener2.FileOpener2" />
+            </feature>
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="application">
+          <provider android:name="io.github.pwlin.cordova.plugins.fileopener2.FileProvider" android:authorities="${applicationId}.fileOpener2.provider" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/opener_paths" />
+          </provider>
+        </config-file>
+        <source-file src="src/android/res/xml/opener_paths.xml" target-dir="res/xml" />
+        <preference name="ANDROID_SUPPORT_V4_VERSION" default="27.+"/>
+        <framework src="com.android.support:support-v4:$ANDROID_SUPPORT_V4_VERSION"/>
+    </platform>
+
+    <!-- iOS -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="FileOpener2">
+                <param name="ios-package" value="FileOpener2" />
+            </feature>
+        </config-file>
+        <source-file src="src/ios/FileOpener2.m" />
+        <header-file src="src/ios/FileOpener2.h" />
+    </platform>
+
+	<!-- WP8 -->
+	<platform name="wp8">
+		<config-file target="config.xml" parent="/*">
+		  <feature name="FileOpener2">
+			<param name="wp-package" value="FileOpener2" />
+		  </feature>
+		</config-file>
+		<source-file src="src/wp8/FileOpener2.cs" />
+	</platform>
+
+	<!-- windows -->
+    <platform name="windows">
+        <js-module src="src/windows/fileOpener2Proxy.js" name="fileOpener2Proxy">
+            <merges target="" />
+        </js-module>
+    </platform>
+
+    <!-- browser -->
+    <platform name="browser">
+      <config-file parent="/*" target="config.xml">
+          <feature name="FileOpener2">
+              <param name="browser-package" value="FileOpener2"/>
+          </feature>
+      </config-file>
+
+      <!-- Required for browserify: we always link module below as there is conditional reference
+      to this module from requestFileSystem and resolveLocalFileSystemURI modules. -->
+      <js-module src="www/browser/isChrome.js" name="isChrome">
+          <runs />
+      </js-module>
+
+      <js-module src="src/browser/FileSaver.min.js" name="FileSaver">
+          <clobbers target="FileSaver"/>
+      </js-module>
+
+      <js-module src="src/browser/FileOpener2.js" name="FileOpener2Proxy">
+          <runs/>
+      </js-module>
+    </platform>
+
+    <!-- electron -->
+    <platform name="electron">
+        <js-module src="src/electron/FileOpener2.js" name="fileOpener2">
+            <merges target="" />
+        </js-module>
+    </platform>
+
+</plugin>

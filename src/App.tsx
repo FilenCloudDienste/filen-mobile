@@ -13,6 +13,7 @@ import * as userComponents from "./components/user"
 import * as uploadComponents from "./components/upload"
 import * as downloadComponents from "./components/download"
 import * as settingsComponents from "./components/settings"
+import * as socketCompontents from "./components/socket"
 
 import * as language from "./utils/language"
 
@@ -57,7 +58,8 @@ interface AppStates {
 	uploadsCount: number,
 	downloadsCount: number,
 	settings: any,
-	scrollToIndex: number
+	scrollToIndex: number,
+	socketConnected: boolean
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -96,7 +98,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			settings: {
 				onlyWifi: false
 			},
-			scrollToIndex: 0
+			scrollToIndex: 0,
+			socketConnected: false
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)
@@ -109,6 +112,9 @@ export default class App extends React.PureComponent<{}, AppStates> {
 
 		this.doSetup()
 	}
+
+	initSocket = socketCompontents.initSocket.bind(this)
+	sendSocket = socketCompontents.sendSocket.bind(this)
 
 	windowRouter = windowComponents.windowRouter.bind(this)
 	setupWindowFunctions = windowComponents.setupWindowFunctions.bind(this)

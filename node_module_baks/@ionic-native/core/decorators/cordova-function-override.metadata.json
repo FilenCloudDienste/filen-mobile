@@ -1,0 +1,1 @@
+[{"__symbolic":"module","version":4,"metadata":{"cordovaFunctionOverride":{"__symbolic":"function","parameters":["pluginObj","methodName","args"],"value":{"__symbolic":"error","message":"Reference to a non-exported function","line":4,"character":9,"context":{"name":"overrideFunction"}},"defaults":[null,null,[]]}}}]

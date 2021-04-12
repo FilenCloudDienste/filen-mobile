@@ -1,0 +1,1 @@
+{"ast":null,"code":"/** PURE_IMPORTS_START  PURE_IMPORTS_END */\nexport function noop() {}","map":{"version":3,"sources":["../../../src/internal/util/noop.ts"],"names":[],"mappings":"AACA","sourcesContent":["/** PURE_IMPORTS_START  PURE_IMPORTS_END */\nexport function noop() { }\n//# sourceMappingURL=noop.js.map\n"]},"metadata":{},"sourceType":"module"}

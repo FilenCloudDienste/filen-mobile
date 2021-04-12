@@ -188,6 +188,7 @@ export async function doSetup(){
     let getThumbnailCache = await Plugins.Storage.get({ key: "thumbnailCache" })
     let getGetThumbnailErrors = await Plugins.Storage.get({ key: "getThumbnailErrors" })
     let getCachedAPIItemListRequests = await Plugins.Storage.get({ key: "cachedAPIItemListRequests" })
+    let getItemsCache = await Plugins.Storage.get({ key: "itemsCache" })
 
     if(getLang.value){
         this.setState({
@@ -319,6 +320,13 @@ export async function doSetup(){
             else{
                 window.customVariables.cachedAPIItemListRequests = JSON.parse(getCachedAPIItemListRequests.value)
             }
+
+            if(getItemsCache.value == null){
+                window.customVariables.itemsCache = {}
+            }
+            else{
+                window.customVariables.itemsCache = JSON.parse(getItemsCache.value)
+            }
         }
         else{
             return this.showLogin()
@@ -347,6 +355,8 @@ export async function doSetup(){
     window.customVariables.getNetworkInfoInterval = setInterval(() => {
         window.customFunctions.getNetworkInfo()
     }, 60000)
+
+    this.initSocket()
 
     return this.routeTo("/base")
 }

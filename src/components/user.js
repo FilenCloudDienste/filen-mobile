@@ -115,7 +115,7 @@ export async function updateUserKeys(){
                         }
                     }
                     catch(e){
-                        console.log(e)
+                        //console.log(e)
 
                         return
                     }

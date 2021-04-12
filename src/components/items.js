@@ -8,7 +8,7 @@ import { isPlatform, getPlatforms } from "@ionic/react"
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 
-export async function updateItemList(showLoader = true){
+export async function updateItemList(showLoader = true, bypassItemsCache = true){
 	if(!this.state.isLoggedIn){
 		return this.showLogin()
 	}
@@ -29,6 +29,12 @@ export async function updateItemList(showLoader = true){
 
 	let routeEx = window.location.hash.split("/")
 	let parent = routeEx[routeEx.length - 1]
+
+	if(!bypassItemsCache){
+		if(typeof window.customVariables.itemsCache[window.location.hash] !== "undefined"){
+			//@todo
+		}
+	}
 
     if(showLoader){
 		var loading = await loadingController.create({
@@ -134,6 +140,81 @@ export async function updateItemList(showLoader = true){
 		}
 
 		items = iItems
+	}
+	else if(parent == "recent"){
+		try{
+			var res = await utils.apiRequest("POST", "/v1/user/recent", {
+				apiKey: this.state.userAPIKey
+			})
+		}
+		catch(e){
+			console.log(e)
+	
+			window.customFunctions.dismissLoader()
+	
+			let alert = await alertController.create({
+				header: "",
+				subHeader: "",
+				message: language.get(this.state.lang, "apiRequestError"),
+				buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+			})
+	
+			return alert.present()
+		}
+
+		if(!res.status){
+			console.log(res.message)
+	
+			window.customFunctions.dismissLoader()
+	
+			let alert = await alertController.create({
+				header: "",
+				subHeader: "",
+				message: language.get(this.state.lang, "apiRequestError"),
+				buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+			})
+	
+			return alert.present()
+		}
+
+		for(let i = 0; i < res.data.length; i++){
+			let file = res.data[i]
+
+			let metadata = utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+			let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
+
+			let offline = false
+
+			if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
+				offline = true
+			}
+
+			let item = {
+				type: "file",
+				uuid: file.uuid,
+				name: utils.sanitizeHTML(metadata.name),
+				mime: utils.sanitizeHTML(metadata.mime),
+				size: parseInt(metadata.size),
+				key: utils.sanitizeHTML(metadata.key),
+				bucket: file.bucket,
+				region: file.region,
+				parent: file.parent,
+				rm: file.rm,
+				chunks: file.chunks,
+				date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
+				timestamp: file.timestamp,
+				receiverId: 0,
+				receiverEmail: "",
+				sharerId: 0,
+				sharerEmail: "",
+				offline: offline,
+				thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
+			}
+
+			items.push(item)
+
+			window.customVariables.cachedFiles[file.uuid] = item
+		}
 	}
 	else{
 		if(routeEx[1] == "shared-in"){
@@ -472,7 +553,12 @@ export async function updateItemList(showLoader = true){
 		}
 	}
 
-	items = utils.orderItemsByType(items, window.customVariables.orderBy)
+	if(parent == "recent"){
+		items = utils.orderItemsByType(items, "dateDesc")
+	}
+	else{
+		items = utils.orderItemsByType(items, window.customVariables.orderBy)
+	}
 
 	window.customVariables.itemList = items
 

@@ -221,6 +221,7 @@ translations['en']['colorItemGray'] = "Gray"
 translations['en']['thisFolderCannotBeColored'] = "You cannot set a color for this folder"
 translations['en']['cannotCreatePublicLinkFolder'] = "You cannot create a public link for this folder"
 translations['en']['iosDeviceSettingsMoreLink'] = "Visit our website for more settings and options"
+translations['en']['recent'] = "Recent"
 
 module.exports = {
     translations

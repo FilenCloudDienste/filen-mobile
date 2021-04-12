@@ -19,7 +19,7 @@ export function windowRouter(){
             let routeEx = window.location.hash.split("/")
 
             if(this.state.isLoggedIn){
-                if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash" || routeEx[1] == "links"){
+                if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash" || routeEx[1] == "links" || routeEx[1] == "recent"){
                     await this.updateItemList()
     
                     let foldersInRoute = routeEx.slice(2)
@@ -65,6 +65,12 @@ export function windowRouter(){
                                 showMainToolbarBackButton: false
                             })
                         }
+                        else if(routeEx[1] == "recent"){
+                            this.setState({
+                                mainToolbarTitle: language.get(this.state.lang, "recent"),
+                                showMainToolbarBackButton: false
+                            })
+                        }
                         else{
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "myCloud"),
@@ -98,6 +104,8 @@ export function setupWindowFunctions(){
     window.customFunctions = {}
     window.customVariables = {}
 
+    window.customVariables.socket = undefined
+    window.customVariables.socketPingInterval = undefined
     window.customVariables.itemList = []
     window.customVariables.lang = this.state.lang
     window.customVariables.cachedFolders = {}
@@ -148,6 +156,7 @@ export function setupWindowFunctions(){
     window.customVariables.stopGettingPreviewData = false
     window.customVariables.cachedAPIItemListRequests = {}
     window.customVariables.deviceHeightAndWidthInterval = undefined
+    window.customVariables.itemsCache = {}
 
     clearInterval(window.customVariables.mainSearchbarInterval)
 
@@ -236,6 +245,18 @@ export function setupWindowFunctions(){
     window.customFunctions.getNetworkInfo = async () => {
         try{
             window.customVariables.networkStatus = await Plugins.Network.getStatus()
+        }
+        catch(e){
+            console.log(e)
+        }
+    }
+
+    window.customFunctions.saveItemsCache = async () => {
+        try{
+            await Plugins.Storage.set({
+                key: "itemsCache",
+                value: JSON.stringify(window.customVariables.itemsCache)
+            })
         }
         catch(e){
             console.log(e)

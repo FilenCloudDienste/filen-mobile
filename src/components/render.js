@@ -570,6 +570,14 @@ export function render(){
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
+                                    return this.routeTo("/recent")
+                                }}>
+                                    <IonIcon slot="start" icon={Ionicons.timeOutline}></IonIcon>
+                                    <IonLabel>{language.get(this.state.lang, "recent")}</IonLabel>
+                                </IonItem>
+                                <IonItem button lines="none" onClick={() => {
+                                    window.customFunctions.hideSidebarMenu()
+                                    
                                     return this.routeTo("/trash")
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.trash}></IonIcon>
