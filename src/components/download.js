@@ -809,7 +809,7 @@ export async function getThumbnail(file, thumbURL, ext){
             return reject("too big")
         }
 
-        let thumbnailFileName = file.name
+        let thumbnailFileName = file.name.toLowerCase()
 
         if(videoExts.includes(ext)){
             let nameEx = file.name.split(".")
@@ -827,6 +827,25 @@ export async function getThumbnail(file, thumbURL, ext){
             }
 
             const writeThumbnail = async (arrayBuffer) => {
+                if(typeof arrayBuffer !== "object"){
+                    window.customVariables.thumbnailSemaphore.release()
+
+                    return reject("not arraybuffer")
+                }
+
+                try{
+                    if(arrayBuffer.byteLength <= 0){
+                        window.customVariables.thumbnailSemaphore.release()
+    
+                        return reject("invalid arraybuffer length")
+                    }
+                }
+                catch(e){
+                    window.customVariables.thumbnailSemaphore.release()
+    
+                    return reject(e)
+                }
+
                 workers.convertArrayBufferToBase64(arrayBuffer, async (b64Data) => {
                     try{
                         await Plugins.Filesystem.writeFile({
@@ -864,7 +883,7 @@ export async function getThumbnail(file, thumbURL, ext){
                 })
             }
 
-            if(videoExts.includes(ext)){
+            if(videoExts.includes(ext)){ //video thumbnail
                 this.downloadPreview(file, undefined, async (err, downloadData) => {
                     if(err){
                         window.customVariables.thumbnailSemaphore.release()
@@ -920,7 +939,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     }
     
                     fileReader.readAsArrayBuffer(compressedImage)
-                }, 5, true)
+                }, 8, true)
             }
             else{
                 this.downloadPreview(file, undefined, async (err, data) => {
@@ -969,7 +988,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     else{
                         return writeThumbnail(data)
                     }
-                }, Infinity, true)
+                }, 32, true)
             }
         }
         else{
@@ -983,38 +1002,27 @@ export async function getThumbnail(file, thumbURL, ext){
                 window.customVariables.thumbnailSemaphore.release()
 
                 delete window.customVariables.thumbnailCache[file.uuid]
+                delete window.customVariables.thumbnailBlobCache[file.uuid]
 
                 return reject(e)
             }
 
-            if(typeof stat.size == "undefined"){
+            if(typeof stat.uri !== "string" || typeof stat.mtime == "undefined" || typeof stat.size == "undefined"){
                 window.customVariables.thumbnailSemaphore.release()
 
                 delete window.customVariables.thumbnailCache[file.uuid]
+                delete window.customVariables.thumbnailBlobCache[file.uuid]
 
                 return reject("Thumbnail not found on device, it might have been deleted")
             }
 
-            if(stat.size <= 0){
+            if(stat.uri.length <= 1 || stat.size <= 8){
                 window.customVariables.thumbnailSemaphore.release()
 
                 delete window.customVariables.thumbnailCache[file.uuid]
+                delete window.customVariables.thumbnailBlobCache[file.uuid]
 
                 return reject("Thumbnail not found on device, it might have been deleted")
-            }
-
-            try{
-                var uri = await Plugins.Filesystem.getUri({
-                    path: dirObj.path + "/" + thumbnailFileName,
-                    directory: dirObj.directory
-                })
-            }
-            catch(e){
-                window.customVariables.thumbnailSemaphore.release()
-
-                delete window.customVariables.thumbnailCache[file.uuid]
-
-                return reject(e)
             }
 
             if(thumbURL !== window.location.href){
@@ -1023,7 +1031,7 @@ export async function getThumbnail(file, thumbURL, ext){
                 return reject("url changed")
             }
 
-            let imageURL = window.Ionic.WebView.convertFileSrc(uri.uri)
+            let imageURL = window.Ionic.WebView.convertFileSrc(stat.uri)
 
             window.customVariables.thumbnailBlobCache[file.uuid] = imageURL
             window.customVariables.thumbnailCache[file.uuid] = true

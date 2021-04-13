@@ -82,6 +82,24 @@ export async function openSettingsModal(){
                                 </ion-buttons>
                             `) + `
                         </ion-item>
+                        ` + (isPlatform("ios") ? `` : `
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + language.get(appLang, "settingsAccountPro") + `
+                                </ion-label>
+                                <ion-buttons slot="end">
+                                    ` + (appState.userIsPro ? `
+                                        <ion-button fill="none">
+                                            <ion-icon slot="icon-only" icon="` + Ionicons.checkbox + `"></ion-icon>
+                                        </ion-button>
+                                    ` : `
+                                        <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.open('https://filen.io/pro', '_system'); return false;">
+                                            ` + language.get(appLang, "settingsAccountGoPro") + `
+                                        </ion-button>
+                                    `) + `
+                                </ion-buttons>
+                            </ion-item>
+                        `) + `
                         <ion-item lines="none">
                             <ion-label>
                                 ` + language.get(appLang, "settingsAccountUsage") + `
@@ -127,16 +145,6 @@ export async function openSettingsModal(){
                                 ` + language.get(appLang, "settings2FA") + `
                             </ion-label>
                         </ion-item>
-                        <ion-item lines="none">
-                            <ion-label>
-                                ` + language.get(appLang, "settingsDeleteAccount") + `
-                            </ion-label>
-                            <ion-buttons slot="end">
-                                <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteAccount()">
-                                    ` + language.get(appLang, "settingsDeleteButton") + `
-                                </ion-button>
-                            </ion-buttons>
-                        </ion-item>
                         <ion-item lines="none" button onClick="window.customFunctions.redeemCode()">
                             <ion-label>
                                 ` + language.get(appLang, "settingsRedeemCode") + `
@@ -147,24 +155,16 @@ export async function openSettingsModal(){
                                 ` + language.get(appLang, "settingsShowGDPR") + `
                             </ion-label>
                         </ion-item>
-                        ` + (isPlatform("ios") ? `` : `
-                            <ion-item lines="none">
-                                <ion-label>
-                                    ` + language.get(appLang, "settingsAccountPro") + `
-                                </ion-label>
-                                <ion-buttons slot="end">
-                                    ` + (appState.userIsPro ? `
-                                        <ion-button fill="none">
-                                            <ion-icon slot="icon-only" icon="` + Ionicons.checkbox + `"></ion-icon>
-                                        </ion-button>
-                                    ` : `
-                                        <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.open('https://filen.io/pro', '_system'); return false;">
-                                            ` + language.get(appLang, "settingsAccountGoPro") + `
-                                        </ion-button>
-                                    `) + `
-                                </ion-buttons>
-                            </ion-item>
-                        `) + `
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsDeleteAccount") + `
+                            </ion-label>
+                            <ion-buttons slot="end">
+                                <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteAccount()">
+                                    ` + language.get(appLang, "settingsDeleteButton") + `
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-item>
                         <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
                             <ion-label>
                                 ` + language.get(appLang, "settingsFileManagementHeader") + `

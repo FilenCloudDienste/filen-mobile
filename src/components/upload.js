@@ -144,9 +144,9 @@ export async function queueFileUpload(file){
 		Object.defineProperty(file, "name", { writable: true, value: utils.removeIllegalCharsFromString(fileNameWithLowerCaseEnding) })
 	}
 
-	if(utils.nameRegex(file.name) || utils.checkIfNameIsBanned(file.name) || utils.fileNameValidationRegex(file.name)){
-		return this.spawnToast(language.get(this.state.lang, "fileUploadInvalidFileName", true, ["__NAME__"], [file.name]))
-	}
+	//if(utils.nameRegex(file.name) || utils.checkIfNameIsBanned(file.name) || utils.fileNameValidationRegex(file.name)){
+	//	return this.spawnToast(language.get(this.state.lang, "fileUploadInvalidFileName", true, ["__NAME__"], [file.name]))
+	//}
 
 	this.fileExists(file.name, parent, async (err, exists, existsUUID) => {
 		if(err){
@@ -272,7 +272,7 @@ export async function queueFileUpload(file){
 
 		addToState()
 
-		this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
+		//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
 
 		await window.customVariables.uploadSemaphore.acquire()
 

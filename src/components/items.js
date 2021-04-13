@@ -600,7 +600,7 @@ export function getFileThumbnail(file, thumbURL, index){
 		}
 	}
 
-	let intervalTimer = utils.getRandomArbitrary(10, 50)
+	let intervalTimer = utils.getRandomArbitrary(10, 25)
 
 	if(document.getElementById("item-thumbnail-" + file.uuid) !== null){
 		intervalTimer = 1
@@ -614,7 +614,7 @@ export function getFileThumbnail(file, thumbURL, index){
 			if(document.getElementById("item-thumbnail-" + file.uuid) !== null){
 				clearInterval(onScreenInterval)
 
-				let ext = file.name.split(".")
+				let ext = file.name.toLowerCase().split(".")
 				ext = ext[ext.length - 1]
 
 				let thumbnail = undefined
@@ -626,16 +626,19 @@ export function getFileThumbnail(file, thumbURL, index){
 					catch(e){
 						console.log(e)
 
-						if(e.indexOf("url changed") == -1){
-							if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
-								window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
+						try{
+							if(e.indexOf("url changed") == -1){
+								if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
+									window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
+								}
+								else{
+									window.customVariables.getThumbnailErrors[file.uuid] = 1
+								}
+		
+								window.customFunctions.saveGetThumbnailErrors()
 							}
-							else{
-								window.customVariables.getThumbnailErrors[file.uuid] = 1
-							}
-	
-							window.customFunctions.saveGetThumbnailErrors()
 						}
+						catch(err){  }
 
 						return false
 					}
@@ -662,6 +665,8 @@ export function getFileThumbnail(file, thumbURL, index){
 							itemList: newItems
 						}, () => {
 							this.forceUpdate()
+
+							window.customFunctions.saveThumbnailCache()
 
 							window.customVariables.updateItemsSemaphore.release()
 						})

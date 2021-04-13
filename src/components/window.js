@@ -333,17 +333,19 @@ export function setupWindowFunctions(){
         }
     }
 
-    window.customFunctions.saveThumbnailCache = async () => {
-        if(typeof window.customVariables.lastThumbnailCacheLength !== "undefined"){
-            let length = JSON.stringify(window.customVariables.thumbnailCache)
-
-            length = length.length
-
-            if(length == window.customVariables.lastThumbnailCacheLength){
-                return false
-            }
-            else{
-                window.customVariables.lastThumbnailCacheLength = length
+    window.customFunctions.saveThumbnailCache = async (skipLengthCheck = false) => {
+        if(!skipLengthCheck){
+            if(typeof window.customVariables.lastThumbnailCacheLength !== "undefined"){
+                let length = JSON.stringify(window.customVariables.thumbnailCache)
+    
+                length = length.length
+    
+                if(length == window.customVariables.lastThumbnailCacheLength){
+                    return false
+                }
+                else{
+                    window.customVariables.lastThumbnailCacheLength = length
+                }
             }
         }
 
@@ -355,7 +357,11 @@ export function setupWindowFunctions(){
         }
         catch(e){
             console.log(e)
+
+            return false
         }
+
+        return true
     }
 
     window.customFunctions.saveCachedItems = async () => {
@@ -385,7 +391,11 @@ export function setupWindowFunctions(){
         }
         catch(e){
             console.log(e)
+
+            return false
         }
+
+        return true
     }
 
     window.customFunctions.dismissActionSheet = async (all = false) => {
@@ -1715,8 +1725,6 @@ export function setupWindowFunctions(){
                             directory: FilesystemDirectory.External
                         }
 
-                        alert.dismiss()
-
                         try{
                             await Plugins.Filesystem.rmdir({
                                 path: dirObj.path,
@@ -1728,11 +1736,13 @@ export function setupWindowFunctions(){
                             window.customVariables.thumbnailBlobCache = {}
                             window.customVariables.lastThumbnailCacheLength = undefined
 
-                            window.customFunctions.saveThumbnailCache()
+                            await window.customFunctions.saveThumbnailCache(true)
                         }
                         catch(e){
                             console.log(e)
                         }
+
+                        alert.dismiss()
 
                         return this.spawnToast(language.get(this.state.lang, "settingsClearThumbnailCacheDone"))
                     }
@@ -2114,6 +2124,8 @@ export function setupWindowFunctions(){
                         }
                     
                         loading.dismiss()
+
+                        this.updateUserUsage()
 
                         return this.spawnToast(language.get(this.state.lang, "codeRedeemSuccess"))
                     }
