@@ -101,6 +101,13 @@ export function setupWindowFunctions(){
 
     document.getElementsByTagName("head")[0].appendChild(pdfJsScript)
 
+    let qrCodeScript = document.createElement("script")
+
+    qrCodeScript.type = "text/javascript"
+    qrCodeScript.src = "assets/qr/qrcode.min.js"
+
+    document.getElementsByTagName("head")[0].appendChild(qrCodeScript)
+
     window.customFunctions = {}
     window.customVariables = {}
 
@@ -157,6 +164,7 @@ export function setupWindowFunctions(){
     window.customVariables.cachedAPIItemListRequests = {}
     window.customVariables.deviceHeightAndWidthInterval = undefined
     window.customVariables.itemsCache = {}
+    window.customVariables.lastSettingsRes = undefined
 
     clearInterval(window.customVariables.mainSearchbarInterval)
 
@@ -1655,6 +1663,34 @@ export function setupWindowFunctions(){
         return this.spawnToast(language.get(this.state.lang, "copiedToClipboard")) 
     }
 
+    window.customFunctions.copyStringToClipboard = async (string) => {
+        if(!Capacitor.isNative){
+            try{
+                utils.copyTextToClipboardWeb(string)
+            }
+            catch(e){
+                console.log(e)
+    
+                return this.spawnToast(language.get(this.state.lang, "couldNotCopyToClipboard")) 
+            }
+    
+            return this.spawnToast(language.get(this.state.lang, "copiedToClipboard"))
+        }
+
+        try{
+            await Plugins.Clipboard.write({
+                url: string
+            })
+        }
+        catch(e){
+            console.log(e)
+
+            return this.spawnToast(language.get(this.state.lang, "couldNotCopyToClipboard")) 
+        }
+
+        return this.spawnToast(language.get(this.state.lang, "copiedToClipboard")) 
+    }
+
     window.customFunctions.clearThumbnailCache = async () => {
         let alert = await alertController.create({
             header: language.get(this.state.lang, "settingsClearThumbnailCacheHeader"),
@@ -2047,7 +2083,7 @@ export function setupWindowFunctions(){
                 {
                     text: language.get(this.state.lang, "alertOkButton"),
                     handler: async (inputs) => {
-                        let code = inputs['2fa-input']
+                        let code = inputs['code-input']
 
                         var loading = await loadingController.create({
                             message: ""
@@ -2153,6 +2189,252 @@ export function setupWindowFunctions(){
         })
 
         return modal.present()
+    }
+
+    window.customFunctions.open2FAModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "two-factor-modal-" + utils.generateRandomClassName()
+
+        if(typeof window.customVariables.lastSettingsRes.twoFactorKey !== "string"){
+            return false
+        }
+
+        if(window.customVariables.lastSettingsRes.twoFactorKey.length <= 6){
+            return false
+        }
+
+        if(this.state.twoFactorEnabled){
+            customElements.define(modalId, class ModalContent extends HTMLElement {
+                connectedCallback(){
+                    this.innerHTML = `
+                        <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                            <ion-toolbar>
+                                <ion-buttons slot="start">
+                                    <ion-button onClick="window.customFunctions.dismissModal()">
+                                        <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                    </ion-button>
+                                </ion-buttons>
+                                <ion-title>
+                                    ` + language.get(appLang, "settings2FA") + `
+                                </ion-title>
+                            </ion-toolbar>
+                        </ion-header>
+                        <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                            <section style="padding-left: 15px; padding-right: 15px; margin-top: 15px;">
+                                ` + language.get(appLang, "settings2FADisableInfo") + `
+                            </section>
+                            <br>
+                            <section style="padding-left: 15px; padding-right: 15px; margin-top: 15px;">
+                                <ion-button expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.toggle2FA(false)">` + language.get(appLang, "disable") + `</ion-button>
+                            </section>
+                        </ion-content>
+                    `
+                }
+            })
+        }
+        else{
+            customElements.define(modalId, class ModalContent extends HTMLElement {
+                connectedCallback(){
+                    this.innerHTML = `
+                        <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                            <ion-toolbar>
+                                <ion-buttons slot="start">
+                                    <ion-button onClick="window.customFunctions.dismissModal()">
+                                        <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                    </ion-button>
+                                </ion-buttons>
+                                <ion-title>
+                                    ` + language.get(appLang, "settings2FA") + `
+                                </ion-title>
+                            </ion-toolbar>
+                        </ion-header>
+                        <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                            <ion-list>
+                                <ion-item lines="none" style="--background: white; margin-top: -10px;">
+                                    <div id="qr-code-container" style="margin: 0px auto; padding: 20px;"></div>
+                                </ion-item>
+                                <ion-item lines="none" style="margin-top: 30px;">
+                                    <ion-input value="` + window.customVariables.lastSettingsRes.twoFactorKey + `" style="-webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;" disabled></ion-input>
+                                    <ion-button slot="end" fill="solid" color="primary" onClick="window.customFunctions.copyStringToClipboard('` + window.customVariables.lastSettingsRes.twoFactorKey + `')">
+                                        ` + language.get(appLang, "copy") + `
+                                    </ion-button>
+                                </ion-item>
+                            </ion-list>
+                            <section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
+								<ion-button expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.toggle2FA(true)">` + language.get(appLang, "activate") + `</ion-button>
+							</section>
+                        </ion-content>
+                    `
+                }
+            })
+        }
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        if(!this.state.twoFactorEnabled){
+            new window.QRCode(document.getElementById("qr-code-container"), {
+                text: `otpauth://totp/` + encodeURIComponent("Filen") + `:` + encodeURIComponent(this.state.userEmail) + `?secret=` + window.customVariables.lastSettingsRes.twoFactorKey + `&issuer=` + encodeURIComponent("Filen") + `&digits=6&period=30`,
+                width: 250,
+                height: 250,
+                colorDark: (this.state.darkMode ? "#000000" : "#000000"),
+                colorLight: (this.state.darkMode ? "#ffffff" : "#ffffff"),
+                correctLevel: window.QRCode.CorrectLevel.H
+            })
+        }
+
+        return true
+    }
+
+    window.customFunctions.toggle2FA = async (activate) => {
+        if(activate){
+            let alert = await alertController.create({
+                header: language.get(this.state.lang, "settings2FAActivate"),
+                inputs: [
+                    {
+                        type: "number",
+                        id: "two-factor-input",
+                        name: "two-factor-input",
+                        placeholder: language.get(this.state.lang, "enterGenerated2FACode"),
+                        value: ""
+                    }
+                ],
+                buttons: [
+                    {
+                        text: language.get(this.state.lang, "cancel"),
+                        role: "cancel",
+                        handler: () => {
+                            return false
+                        }
+                    },
+                    {
+                        text: language.get(this.state.lang, "alertOkButton"),
+                        handler: async (inputs) => {
+                            let code = inputs['two-factor-input']
+    
+                            var loading = await loadingController.create({
+                                message: ""
+                            })
+                        
+                            loading.present()
+                        
+                            try{
+                                var res = await utils.apiRequest("POST", "/v1/user/settings/2fa/enable", {
+                                    apiKey: this.state.userAPIKey,
+                                    code
+                                })
+                            }
+                            catch(e){
+                                console.log(e)
+                        
+                                loading.dismiss()
+                        
+                                return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                            }
+                        
+                            if(!res.status){
+                                loading.dismiss()
+                        
+                                console.log(res.message)
+                        
+                                return this.spawnToast(res.message)
+                            }
+                        
+                            loading.dismiss()
+
+                            this.setState({
+                                twoFactorEnabled: true
+                            })
+
+                            window.customFunctions.dismissModal(true)
+                            window.customFunctions.dismissModal(true)
+    
+                            return this.spawnToast(language.get(this.state.lang, "2faActivated"))
+                        }
+                    }
+                ]
+            })
+        
+            return alert.present()
+        }
+        else{
+            let alert = await alertController.create({
+                header: language.get(this.state.lang, "settings2FADisable"),
+                inputs: [
+                    {
+                        type: "number",
+                        id: "two-factor-input",
+                        name: "two-factor-input",
+                        placeholder: language.get(this.state.lang, "enterGenerated2FACode"),
+                        value: ""
+                    }
+                ],
+                buttons: [
+                    {
+                        text: language.get(this.state.lang, "cancel"),
+                        role: "cancel",
+                        handler: () => {
+                            return false
+                        }
+                    },
+                    {
+                        text: language.get(this.state.lang, "alertOkButton"),
+                        handler: async (inputs) => {
+                            let code = inputs['two-factor-input']
+    
+                            var loading = await loadingController.create({
+                                message: ""
+                            })
+                        
+                            loading.present()
+                        
+                            try{
+                                var res = await utils.apiRequest("POST", "/v1/user/settings/2fa/disable", {
+                                    apiKey: this.state.userAPIKey,
+                                    code
+                                })
+                            }
+                            catch(e){
+                                console.log(e)
+                        
+                                loading.dismiss()
+                        
+                                return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                            }
+                        
+                            if(!res.status){
+                                loading.dismiss()
+                        
+                                console.log(res.message)
+                        
+                                return this.spawnToast(res.message)
+                            }
+                        
+                            loading.dismiss()
+
+                            this.setState({
+                                twoFactorEnabled: false
+                            })
+
+                            window.customFunctions.dismissModal(true)
+                            window.customFunctions.dismissModal(true)
+    
+                            return this.spawnToast(language.get(this.state.lang, "2faDisabled"))
+                        }
+                    }
+                ]
+            })
+        
+            return alert.present()
+        }
     }
 
     window.customFunctions.openOrderBy = async () => {

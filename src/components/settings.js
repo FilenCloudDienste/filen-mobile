@@ -46,6 +46,8 @@ export async function openSettingsModal(){
 
     let gotUserSettings = res.data
 
+    window.customVariables.lastSettingsRes = gotUserSettings
+
     customElements.define(modalId, class ModalContent extends HTMLElement {
         connectedCallback() {
             this.innerHTML = `
@@ -119,6 +121,11 @@ export async function openSettingsModal(){
                                     ` + gotUserSettings.versionedFiles + ` (` + utils.formatBytes(gotUserSettings.versionedStorage) + `)
                                 </ion-button>
                             </ion-buttons>
+                        </ion-item>
+                        <ion-item lines="none" button onClick="window.customFunctions.open2FAModal()">
+                            <ion-label>
+                                ` + language.get(appLang, "settings2FA") + `
+                            </ion-label>
                         </ion-item>
                         <ion-item lines="none">
                             <ion-label>

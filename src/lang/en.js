@@ -244,6 +244,15 @@ translations['en']['modalGDPRTitle'] = "GDPR info"
 translations['en']['settingsRedeemCode'] = "Redeem a code"
 translations['en']['codeRedeemSuccess'] = "Code redeemed successfully"
 translations['en']['settingsRedeemCodePlaceholder'] = "Code"
+translations['en']['settings2FA'] = "Two Factor Authentication"
+translations['en']['activate'] = "Activate"
+translations['en']['disable'] = "Disable"
+translations['en']['settings2FAActivate'] = "Activate Two Factor Authentication"
+translations['en']['settings2FADisable'] = "Disable Two Factor Authentication"
+translations['en']['enterGenerated2FACode'] = "Enter generated Two Factor Authentication Code"
+translations['en']['2faActivated'] = "Two Factor Authentication activated"
+translations['en']['2faDisabled'] = "Two Factor Authentication disabled"
+translations['en']['settings2FADisableInfo'] = "Disabling Two Factor Authentication is not recommended."
 
 module.exports = {
     translations
