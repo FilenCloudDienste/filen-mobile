@@ -939,7 +939,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     }
     
                     fileReader.readAsArrayBuffer(compressedImage)
-                }, 8, true)
+                }, 10, true)
             }
             else{
                 this.downloadPreview(file, undefined, async (err, data) => {
@@ -988,7 +988,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     else{
                         return writeThumbnail(data)
                     }
-                }, 32, true)
+                }, Infinity, true)
             }
         }
         else{

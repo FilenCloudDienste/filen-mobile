@@ -2044,3 +2044,216 @@ export function copyTextToClipboardWeb(text){
 
 	return document.body.removeChild(textArea)
 }
+
+export function renderEventRow(event, userMasterKeys, lang = "en"){
+	let eventDate = (new Date(event.timestamp * 1000)).toString().split(" ")
+	let dateString = eventDate[1] + ` ` + eventDate[2] + ` ` + eventDate[3] + ` ` + eventDate[4]
+
+	let str = ""
+
+	switch(event.type){
+		case "fileUploaded":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` uploaded
+			`
+		break
+		case "fileVersioned":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` versioned
+			`
+		break
+		case "versionedFileRestored":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` versioned file restored
+			`
+		break
+		case "fileMoved":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` moved
+			`
+		break
+		case "fileRenamed":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decryptedOld = decryptFileMetadata(event.info.oldMetadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decryptedOld.name) + ` renamed to` + escapeHTML(decrypted.name) + `
+			`
+		break
+		case "fileTrash":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` moved to trash
+			`
+		break
+		case "fileRm":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` deleted permanently
+			`
+		break
+		case "fileRestored":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` restored from trash
+			`
+		break
+		case "fileShared":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` shared with ` + event.info.receiverEmail + `
+			`
+		break
+		case "fileLinkEdited":
+			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted.name) + ` public link edited
+			`
+		break
+		case "folderTrash":
+			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted) + ` moved to trash
+			`
+		break
+		case "folderShared":
+			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted) + ` shared with ` + event.info.receiverEmail + `
+			`
+		break
+		case "folderMoved":
+			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted) + ` moved
+			`
+		break
+		case "folderRenamed":
+			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+			var decryptedOld = decryptCryptoJSFolderName(event.info.oldName, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decryptedOld) + ` renamed to ` + escapeHTML(decrypted) + `
+			`
+		break
+		case "subFolderCreated":
+		case "baseFolderCreated":
+			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted) + ` created
+			`
+		break
+		case "folderRestored":
+			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted) + ` restored from trash
+			`
+		break
+		case "folderColorChanged":
+			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+
+			str += `
+				` + escapeHTML(decrypted) + ` color changed
+			`
+		break
+		case "login":
+			str += `
+				Logged in
+			`
+		break
+		case "deleteVersioned":
+			str += `
+				All versioned files deleted permanently
+			`
+		break
+		case "deleteAll":
+			str += `
+				All files and folders deleted permanently
+			`
+		break
+		case "deleteUnfinished":
+			str += `
+				All unfinished uploads deleted permanently
+			`
+		break
+		case "trashEmptied":
+			str += `
+				Trash emptied
+			`
+		break
+		case "requestAccountDeletion":
+			str += `
+				Requested account deletion
+			`
+		break
+		case "2faEnabled":
+			str += `
+				Two Factor Authentication enabled
+			`
+		break
+		case "2faDisabled":
+			str += `
+				Two Factor Authentication disabled
+			`
+		break
+		case "codeRedeemed":
+			str += `
+				Redeemed code ` + event.info.code + `
+			`
+		break
+		case "emailChanged":
+			str += `
+				Email changed to ` + event.info.email + `
+			`
+		break
+		case "passwordChanged":
+			str += `
+				Password changed
+			`
+		break
+		case "removedSharedInItems":
+			str += `
+				Removed ` + event.info.count + ` items shared by ` + event.info.sharerEmail + `
+			`
+		break
+		case "removedSharedOutItems":
+			str += `
+				Stopped sharing ` + event.info.count + ` items with ` + event.info.receiverEmail + `
+			`
+		break
+		default:
+			//str = event.type
+			str = ""
+		break
+	}
+
+	if(str.length == 0){
+		return ""
+	}
+
+	return `
+        <ion-item button onClick="window.customFunctions.openEventDetailsModal('` + event.uuid + `')">
+            <ion-label>
+                ` + str + `
+            </ion-label>
+        </ion-item>
+	`
+}

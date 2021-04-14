@@ -253,6 +253,10 @@ translations['en']['enterGenerated2FACode'] = "Enter generated Two Factor Authen
 translations['en']['2faActivated'] = "Two Factor Authentication activated"
 translations['en']['2faDisabled'] = "Two Factor Authentication disabled"
 translations['en']['settings2FADisableInfo'] = "Disabling Two Factor Authentication is not recommended."
+translations['en']['events'] = "Events"
+translations['en']['eventDetail'] = "Event details"
+translations['en']['eventDetailIP'] = "IP address"
+translations['en']['date'] = "Date"
 
 module.exports = {
     translations

@@ -8,7 +8,7 @@ import { isPlatform, getPlatforms } from "@ionic/react"
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 
-export async function updateItemList(showLoader = true, bypassItemsCache = true){
+export async function updateItemList(showLoader = true, bypassItemsCache = false, isFollowUpRequest = false, windowLocationHref = undefined, callStack = 0){
 	if(!this.state.isLoggedIn){
 		return this.showLogin()
 	}
@@ -30,10 +30,47 @@ export async function updateItemList(showLoader = true, bypassItemsCache = true)
 	let routeEx = window.location.hash.split("/")
 	let parent = routeEx[routeEx.length - 1]
 
-	if(!bypassItemsCache){
-		if(typeof window.customVariables.itemsCache[window.location.href] !== "undefined"){
-			//@todo
+	if(typeof window.customVariables.itemsCache[window.location.href] == "object" && !bypassItemsCache){
+		if(callStack == 0){
+			this.updateItemList(false, true, true, window.location.href, 1)
 		}
+
+		let items = window.customVariables.itemsCache[window.location.href]
+
+		if(parent == "recent"){
+			items = utils.orderItemsByType(items, "dateDesc")
+		}
+		else{
+			items = utils.orderItemsByType(items, window.customVariables.orderBy)
+		}
+	
+		window.customVariables.itemList = items
+	
+		let scrollTo = 0
+	
+		if(typeof window.customVariables.scrollToIndex[parent] !== "undefined"){
+			scrollTo = window.customVariables.scrollToIndex[parent]
+	
+			delete window.customVariables.scrollToIndex[parent]
+		}
+	
+		return this.setState({
+			itemList: items,
+			scrollToIndex: scrollTo
+		}, () => {
+			window.customFunctions.dismissLoader()
+	
+			this.forceUpdate()
+	
+			window.customVariables.currentThumbnailURL = window.location.href
+	
+			for(let i = 0; i < items.length; i++){
+				this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
+			}
+
+			window.customFunctions.saveCachedItems()
+			window.customFunctions.saveThumbnailCache()
+		})
 	}
 
     if(showLoader){
@@ -562,6 +599,17 @@ export async function updateItemList(showLoader = true, bypassItemsCache = true)
 
 	window.customVariables.itemList = items
 
+	window.customVariables.itemsCache[window.location.href] = items
+	window.customFunctions.saveItemsCache()
+
+	if(isFollowUpRequest){
+		if(typeof windowLocationHref !== "undefined"){
+			if(window.location.href !== windowLocationHref){
+				return false
+			}
+		}
+	}
+
 	let scrollTo = 0
 
 	if(typeof window.customVariables.scrollToIndex[parent] !== "undefined"){
@@ -570,22 +618,32 @@ export async function updateItemList(showLoader = true, bypassItemsCache = true)
 		delete window.customVariables.scrollToIndex[parent]
 	}
 
-	return this.setState({
+	let stateObj = {
 		itemList: items,
 		scrollToIndex: scrollTo
-	}, () => {
+	}
+
+	if(isFollowUpRequest){
+		stateObj = {
+			itemList: items
+		}
+	}
+
+	return this.setState(stateObj, () => {
 		window.customFunctions.dismissLoader()
 
 		this.forceUpdate()
 
-		window.customVariables.currentThumbnailURL = window.location.href
+		if(!isFollowUpRequest){
+			window.customVariables.currentThumbnailURL = window.location.href
 
-		for(let i = 0; i < items.length; i++){
-			this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
+			for(let i = 0; i < items.length; i++){
+				this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
+			}
+
+			window.customFunctions.saveCachedItems()
+			window.customFunctions.saveThumbnailCache()
 		}
-
-		window.customFunctions.saveCachedItems()
-		window.customFunctions.saveThumbnailCache()
 	})
 }
 

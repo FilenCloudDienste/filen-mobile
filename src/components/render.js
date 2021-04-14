@@ -578,6 +578,14 @@ export function render(){
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
+                                    return window.customFunctions.openEventsModal()
+                                }}>
+                                    <IonIcon slot="start" icon={Ionicons.alertOutline}></IonIcon>
+                                    <IonLabel>{language.get(this.state.lang, "events")}</IonLabel>
+                                </IonItem>
+                                <IonItem button lines="none" onClick={() => {
+                                    window.customFunctions.hideSidebarMenu()
+                                    
                                     return this.routeTo("/trash")
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.trash}></IonIcon>

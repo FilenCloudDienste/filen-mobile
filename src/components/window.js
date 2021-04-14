@@ -71,6 +71,12 @@ export function windowRouter(){
                                 showMainToolbarBackButton: false
                             })
                         }
+                        else if(routeEx[1] == "events"){
+                            this.setState({
+                                mainToolbarTitle: language.get(this.state.lang, "events"),
+                                showMainToolbarBackButton: false
+                            })
+                        }
                         else{
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "myCloud"),
@@ -566,8 +572,13 @@ export function setupWindowFunctions(){
         return window.customFunctions.dismissPopover()
     }
 
-    window.customFunctions.refreshItemList = () => {
-        this.updateItemList()
+    window.customFunctions.refreshItemList = async () => {
+        try{
+            await this.updateItemList(true, true, false)
+        }
+        catch(e){
+            console.log(e)
+        }
 
         return window.customFunctions.dismissPopover()
     }
@@ -2447,6 +2458,169 @@ export function setupWindowFunctions(){
         
             return alert.present()
         }
+    }
+
+    window.customFunctions.openEventsModal = async () => {
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+    
+        try{
+            var res = await utils.apiRequest("POST", "/v1/user/events", {
+                apiKey: this.state.userAPIKey,
+                id: 0
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            loading.dismiss()
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            loading.dismiss()
+    
+            console.log(res.message)
+    
+            return this.spawnToast(res.message)
+        }
+    
+        loading.dismiss()
+
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "events-modal-" + utils.generateRandomClassName()
+
+        let eventsHTML = ""
+
+        for(let i = 0; i < res.data.events.length; i++){
+            eventsHTML += utils.renderEventRow(res.data.events[i], this.state.userMasterKeys, appLang)
+        }
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar>
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "events") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                        <ion-list style="margin-top: -7px;">
+                            ` + eventsHTML + `
+                        </ion-list>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        return await modal.present()
+    }
+
+    window.customFunctions.openEventDetailsModal = async (uuid) => {
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+    
+        try{
+            var res = await utils.apiRequest("POST", "/v1/user/events/get", {
+                apiKey: this.state.userAPIKey,
+                uuid
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            loading.dismiss()
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            loading.dismiss()
+    
+            console.log(res.message)
+    
+            return this.spawnToast(res.message)
+        }
+    
+        loading.dismiss()
+
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "event-detail-modal-" + utils.generateRandomClassName()
+
+        let eventDate = (new Date(res.data.timestamp * 1000)).toString().split(" ")
+	    let dateString = eventDate[1] + ` ` + eventDate[2] + ` ` + eventDate[3] + ` ` + eventDate[4]
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar>
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "eventDetail") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                        <ion-list style="margin-top: -7px;">
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + res.data.info.ip + `
+                                </ion-label>
+                            </ion-item>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + dateString + `
+                                </ion-label>
+                            </ion-item>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + res.data.info.userAgent + `
+                                </ion-label>
+                            </ion-item>
+                        </ion-list>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        return await modal.present()
     }
 
     window.customFunctions.openOrderBy = async () => {
