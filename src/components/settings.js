@@ -145,6 +145,11 @@ export async function openSettingsModal(){
                                 ` + language.get(appLang, "settings2FA") + `
                             </ion-label>
                         </ion-item>
+                        <ion-item lines="none" button onClick="window.customFunctions.openEmailPasswordModal()">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsChangeEmailPassword") + `
+                            </ion-label>
+                        </ion-item>
                         <ion-item lines="none" button onClick="window.customFunctions.redeemCode()">
                             <ion-label>
                                 ` + language.get(appLang, "settingsRedeemCode") + `

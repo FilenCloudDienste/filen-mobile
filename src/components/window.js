@@ -635,7 +635,7 @@ export function setupWindowFunctions(){
         try{
             var res = await utils.apiRequest("POST", "/v1/login", {
                 email,
-                password,
+                password: utils.hashPassword(password),
                 twoFactorKey
             })
         }
@@ -751,8 +751,8 @@ export function setupWindowFunctions(){
         try{
             var res = await utils.apiRequest("POST", "/v1/register", {
                 email,
-                password,
-                passwordRepeat
+                password: utils.hashPassword(password),
+                passwordRepeat: utils.hashPassword(passwordRepeat)
             })
         }
         catch(e){
@@ -2249,7 +2249,7 @@ export function setupWindowFunctions(){
                             </section>
                             <br>
                             <section style="padding-left: 15px; padding-right: 15px; margin-top: 15px;">
-                                <ion-button expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.toggle2FA(false)">` + language.get(appLang, "disable") + `</ion-button>
+                                <ion-button expand="block" size="small" color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.customFunctions.toggle2FA(false)">` + language.get(appLang, "disable") + `</ion-button>
                             </section>
                         </ion-content>
                     `
@@ -2279,13 +2279,13 @@ export function setupWindowFunctions(){
                                 </ion-item>
                                 <ion-item lines="none" style="margin-top: 30px;">
                                     <ion-input value="` + window.customVariables.lastSettingsRes.twoFactorKey + `" style="-webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;" disabled></ion-input>
-                                    <ion-button slot="end" fill="solid" color="primary" onClick="window.customFunctions.copyStringToClipboard('` + window.customVariables.lastSettingsRes.twoFactorKey + `')">
+                                    <ion-button slot="end" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.customFunctions.copyStringToClipboard('` + window.customVariables.lastSettingsRes.twoFactorKey + `')">
                                         ` + language.get(appLang, "copy") + `
                                     </ion-button>
                                 </ion-item>
                             </ion-list>
                             <section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
-								<ion-button expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.toggle2FA(true)">` + language.get(appLang, "activate") + `</ion-button>
+								<ion-button expand="block" size="small" color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.customFunctions.toggle2FA(true)">` + language.get(appLang, "activate") + `</ion-button>
 							</section>
                         </ion-content>
                     `
@@ -2621,6 +2621,232 @@ export function setupWindowFunctions(){
         })
 
         return await modal.present()
+    }
+
+    window.customFunctions.openEmailPasswordModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "change-email-password-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar>
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "settingsChangeEmailPassword") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                        <ion-list>
+                            <ion-item>
+                                <ion-label>
+                                    <ion-input placeholder="` + language.get(appLang, "changeEmailNewEmail") + `" type="email" id="change-email-email"></ion-input>
+                                </ion-label>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>
+                                    <ion-input placeholder="` + language.get(appLang, "changeEmailNewEmailRepeat") + `" type="email" id="change-email-email-repeat"></ion-input>
+                                </ion-label>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>
+                                    <ion-input placeholder="` + language.get(appLang, "yourCurrentPassword") + `" type="password" id="change-email-password"></ion-input>
+                                </ion-label>
+                            </ion-item>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    <ion-button expand="block" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.customFunctions.changeEmail()">` + language.get(appLang, "save") + `</ion-button>
+                                </ion-label>
+                            </ion-item>
+                        </ion-list>
+                        <ion-list style="margin-top: 30px;">
+                            <ion-item>
+                                <ion-label>
+                                    <ion-input placeholder="` + language.get(appLang, "changePasswordNewPassword") + `" type="password" id="change-password-password"></ion-input>
+                                </ion-label>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>
+                                    <ion-input placeholder="` + language.get(appLang, "changePasswordNewPasswordRepeat") + `" type="password" id="change-password-password-repeat"></ion-input>
+                                </ion-label>
+                            </ion-item>
+                            <ion-item>
+                                <ion-label>
+                                    <ion-input placeholder="` + language.get(appLang, "yourCurrentPassword") + `" type="password" id="change-password-current"></ion-input>
+                                </ion-label>
+                            </ion-item>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    <ion-button expand="block" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.customFunctions.changePassword()">` + language.get(appLang, "save") + `</ion-button>
+                                </ion-label>
+                            </ion-item>
+                        </ion-list>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        return await modal.present()
+    }
+
+    window.customFunctions.changeEmail = async () => {
+        let newEmail = document.getElementById("change-email-email").value
+        let newEmailRepeat = document.getElementById("change-email-email-repeat").value
+        let password = document.getElementById("change-email-password").value
+
+        if(typeof newEmail !== "string" || typeof newEmailRepeat !== "string" || typeof password !== "string"){
+            document.getElementById("change-email-email").value = ""
+            document.getElementById("change-email-email-repeat").value = ""
+            document.getElementById("change-email-password").value = ""
+
+            return this.spawnToast(language.get(this.state.lang, "changeEmailInvalidFields"))
+        }
+
+        if(newEmail.length <= 1 || newEmailRepeat.length <= 1 || password.length <= 1){
+            document.getElementById("change-email-email").value = ""
+            document.getElementById("change-email-email-repeat").value = ""
+            document.getElementById("change-email-password").value = ""
+
+            return this.spawnToast(language.get(this.state.lang, "changeEmailInvalidFields"))
+        }
+
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+    
+        try{
+            var res = await utils.apiRequest("POST", "/v1/user/settings/email/change", {
+                apiKey: this.state.userAPIKey,
+                email: newEmail,
+                emailRepeat: newEmailRepeat,
+                password: utils.hashPassword(password)
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            loading.dismiss()
+
+            document.getElementById("change-email-email").value = ""
+            document.getElementById("change-email-email-repeat").value = ""
+            document.getElementById("change-email-password").value = ""
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            loading.dismiss()
+    
+            console.log(res.message)
+
+            document.getElementById("change-email-email").value = ""
+            document.getElementById("change-email-email-repeat").value = ""
+            document.getElementById("change-email-password").value = ""
+    
+            return this.spawnToast(res.message)
+        }
+    
+        loading.dismiss()
+
+        document.getElementById("change-email-email").value = ""
+        document.getElementById("change-email-email-repeat").value = ""
+        document.getElementById("change-email-password").value = ""
+
+        let successAlert = await alertController.create({
+            header: "",
+            subHeader: "",
+            message: language.get(this.state.lang, "changeEmailSuccess"),
+            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+        })
+
+        return successAlert.present()
+    }
+
+    window.customFunctions.changePassword = async () => {
+        let newPassword = document.getElementById("change-password-password").value
+        let newPasswordRepeat = document.getElementById("change-password-password-repeat").value
+        let password = document.getElementById("change-password-current").value
+
+        if(typeof newPassword !== "string" || typeof newPasswordRepeat !== "string" || typeof password !== "string"){
+            document.getElementById("change-password-password").value = ""
+            document.getElementById("change-password-password-repeat").value = ""
+            document.getElementById("change-password-current").value = ""
+
+            return this.spawnToast(language.get(this.state.lang, "changePasswordInvalidFields"))
+        }
+
+        if(newPassword.length <= 1 || newPasswordRepeat.length <= 1 || password.length <= 1){
+            document.getElementById("change-password-password").value = ""
+            document.getElementById("change-password-password-repeat").value = ""
+            document.getElementById("change-password-current").value = ""
+
+            return this.spawnToast(language.get(this.state.lang, "changePasswordInvalidFields"))
+        }
+
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+    
+        try{
+            var res = await utils.apiRequest("POST", "/v1/user/settings/password/change", {
+                apiKey: this.state.userAPIKey,
+                password: utils.hashPassword(newPassword),
+                passwordRepeat: utils.hashPassword(newPasswordRepeat),
+                currentPassword: utils.hashPassword(password)
+            })
+        }
+        catch(e){
+            console.log(e)
+
+            document.getElementById("change-password-password").value = ""
+            document.getElementById("change-password-password-repeat").value = ""
+            document.getElementById("change-password-current").value = ""
+    
+            loading.dismiss()
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            loading.dismiss()
+
+            document.getElementById("change-password-password").value = ""
+            document.getElementById("change-password-password-repeat").value = ""
+            document.getElementById("change-password-current").value = ""
+    
+            console.log(res.message)
+    
+            return this.spawnToast(res.message)
+        }
+
+        document.getElementById("change-password-password").value = ""
+        document.getElementById("change-password-password-repeat").value = ""
+        document.getElementById("change-password-current").value = ""
+    
+        loading.dismiss()
+
+        window.customFunctions.doLogout()
+
+        return this.spawnToast(language.get(this.state.lang, "changePasswordSuccess"))
     }
 
     window.customFunctions.openOrderBy = async () => {

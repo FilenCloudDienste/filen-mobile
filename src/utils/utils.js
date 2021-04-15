@@ -3,6 +3,18 @@ import { Capacitor, Plugins } from "@capacitor/core";
 const CryptoJS = require("crypto-js")
 const striptags = require("striptags")
 
+const md2 = require("js-md2")
+const md4 = require("js-md4")
+const md5 = require("js-md5")
+const sha256 = require("js-sha256")
+const sha1 = require("js-sha1")
+const sha512 = require("js-sha512")
+const sha384 = require("js-sha512").sha384
+
+export function hashPassword(password){
+	return sha512(sha384(sha256(sha1(password)))) + sha512(md5(md4(md2(password))))
+}
+
 export function sanitizeHTML(html){
     return striptags(html)
 }

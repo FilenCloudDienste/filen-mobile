@@ -257,6 +257,17 @@ translations['en']['events'] = "Events"
 translations['en']['eventDetail'] = "Event details"
 translations['en']['eventDetailIP'] = "IP address"
 translations['en']['date'] = "Date"
+translations['en']['settingsChangeEmailPassword'] = "Change email or password"
+translations['en']['changeEmailNewEmail'] = "New email"
+translations['en']['changeEmailNewEmailRepeat'] = "Repeat new email"
+translations['en']['yourCurrentPassword'] = "Your current password"
+translations['en']['changePasswordNewPassword'] = "New password"
+translations['en']['changePasswordNewPasswordRepeat'] = "Repeat new password"
+translations['en']['save'] = "Save"
+translations['en']['changeEmailInvalidFields'] = "Please enter a valid email and your current password"
+translations['en']['changeEmailSuccess'] = "We have sent a confirmation email to your new email address. Please click the link provided in the email."
+translations['en']['changePasswordInvalidFields'] = "Please enter a valid new password and your current password"
+translations['en']['changePasswordSuccess'] = "Password changed. Please login again."
 
 module.exports = {
     translations
