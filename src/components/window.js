@@ -1160,14 +1160,26 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.logoutUser = async () => {
-        await Plugins.Storage.remove({ key: "isLoggedIn" })
-        await Plugins.Storage.remove({ key: "userAPIKey" })
-        await Plugins.Storage.remove({ key: "userEmail" })
-        await Plugins.Storage.remove({ key: "userMasterKeys" })
-        await Plugins.Storage.remove({ key: "userPublicKey" })
-        await Plugins.Storage.remove({ key: "userPrivateKey" })
-        await Plugins.Storage.remove({ key: "offlineSavedFiles" })
-        await Plugins.Storage.remove({ key: "apiCache" })
+        try{
+            await Plugins.Storage.remove({ key: "isLoggedIn" })
+            await Plugins.Storage.remove({ key: "userAPIKey" })
+            await Plugins.Storage.remove({ key: "userEmail" })
+            await Plugins.Storage.remove({ key: "userMasterKeys" })
+            await Plugins.Storage.remove({ key: "userPublicKey" })
+            await Plugins.Storage.remove({ key: "userPrivateKey" })
+            await Plugins.Storage.remove({ key: "offlineSavedFiles" })
+            await Plugins.Storage.remove({ key: "apiCache" })
+            await Plugins.Storage.remove({ key: "cachedFiles" })
+            await Plugins.Storage.remove({ key: "cachedFolders" })
+            await Plugins.Storage.remove({ key: "cachedMetadata" })
+            await Plugins.Storage.remove({ key: "thumbnailCache" })
+            await Plugins.Storage.remove({ key: "getThumbnailErrors" })
+            await Plugins.Storage.remove({ key: "cachedAPIItemListRequests" })
+            await Plugins.Storage.remove({ key: "itemsCache" })
+        }
+        catch(e){
+            console.log(e)
+        }
 
         return document.location.href = "index.html"
     }
@@ -2704,6 +2716,104 @@ export function setupWindowFunctions(){
         return await modal.present()
     }
 
+    window.customFunctions.openInviteModal = async () => {
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+    
+        try{
+            var res = await utils.apiRequest("POST", "/v1/user/get/account", {
+                apiKey: this.state.userAPIKey
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            loading.dismiss()
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            loading.dismiss()
+    
+            console.log(res.message)
+    
+            return this.spawnToast(res.message)
+        }
+    
+        loading.dismiss()
+
+        let accountData = res.data
+
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "invite-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar>
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "settingsInvite") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                        <section style="padding: 16px;">
+                            ` + language.get(appLang, "settingsInviteInfo") + `
+                        </section>
+                        <ion-list>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + language.get(appLang, "settingsInviteCount") + `
+                                </ion-label>
+                                <ion-buttons slot="end">
+                                    <ion-button fill="none">
+                                        ` + accountData.referCount + `
+                                    </ion-button>
+                                </ion-buttons>
+                            </ion-item>
+                            <ion-item>
+                                <ion-input id="ref-link" value="https://filen.io/r/` + accountData.refId + `" disabled></ion-input>
+                                <ion-buttons slot="end" onClick="window.customFunctions.copyRefLink()">
+                                    <ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
+                                        ` + language.get(appLang, "copy") + `
+                                    </ion-button>
+                                </ion-buttons>
+                            </ion-item>
+                        </ion-list>
+                        <section style="padding: 16px; font-size: 9pt; color: gray;">
+                            ` + language.get(appLang, "settingsInviteInfo2") + `
+                        </section>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        return await modal.present()
+    }
+
+    window.customFunctions.copyRefLink = () => {
+        return window.customFunctions.copyStringToClipboard(document.getElementById("ref-link").value)
+    }
+
     window.customFunctions.changeEmail = async () => {
         let newEmail = document.getElementById("change-email-email").value
         let newEmailRepeat = document.getElementById("change-email-email-repeat").value
@@ -2844,7 +2954,7 @@ export function setupWindowFunctions(){
     
         loading.dismiss()
 
-        window.customFunctions.doLogout()
+        window.customFunctions.logoutUser()
 
         return this.spawnToast(language.get(this.state.lang, "changePasswordSuccess"))
     }

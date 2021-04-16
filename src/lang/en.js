@@ -268,6 +268,10 @@ translations['en']['changeEmailInvalidFields'] = "Please enter a valid email and
 translations['en']['changeEmailSuccess'] = "We have sent a confirmation email to your new email address. Please click the link provided in the email."
 translations['en']['changePasswordInvalidFields'] = "Please enter a valid new password and your current password"
 translations['en']['changePasswordSuccess'] = "Password changed. Please login again."
+translations['en']['settingsInvite'] = "Invite a friend"
+translations['en']['settingsInviteInfo'] = "Invite friends and family to Filen! You and the person you refer receive 10 GB of storage permanently. This applies to every person you refer."
+translations['en']['settingsInviteInfo2'] = "When someone clicks your referral link Filen saves a cookie in their browser which stays there for 30 days. That means you will still get the bonus when the person does not sign up directly. This link is limited to 3 uses."
+translations['en']['settingsInviteCount'] = "Invited"
 
 module.exports = {
     translations

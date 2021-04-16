@@ -155,6 +155,11 @@ export async function openSettingsModal(){
                                 ` + language.get(appLang, "settingsRedeemCode") + `
                             </ion-label>
                         </ion-item>
+                        <ion-item lines="none" button onClick="window.customFunctions.openInviteModal()">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsInvite") + `
+                            </ion-label>
+                        </ion-item>
                         <ion-item lines="none" button onClick="window.customFunctions.showGDPR()">
                             <ion-label>
                                 ` + language.get(appLang, "settingsShowGDPR") + `
