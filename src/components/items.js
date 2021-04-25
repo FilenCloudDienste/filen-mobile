@@ -679,7 +679,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		delete window.customVariables.scrollToIndex[parent]
 	}
 
-	let stateObj = {
+	let stateObj = { //
 		itemList: items,
 		scrollToIndex: scrollTo
 	}
