@@ -246,7 +246,8 @@ export async function doSetup(){
     else{
         if(getIsLoggedIn.value == "true"){
             let settings = {
-                onlyWifi: false
+                onlyWifi: false,
+                showThumbnails: true
             }
 
             if(typeof getSettings.value == "string"){

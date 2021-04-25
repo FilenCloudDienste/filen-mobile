@@ -19,7 +19,28 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 	if(Capacitor.isNative){
 		Capacitor.Plugins.Keyboard.hide()
-		Plugins.SplashScreen.hide()
+	}
+
+	if(Capacitor.isNative && window.customVariables.isDocumentReady){
+        Plugins.SplashScreen.hide()
+    }
+
+	let isDeviceOnline = false
+
+	if(Capacitor.isNative){
+        try{
+			let networkStatus = await Plugins.Network.getStatus()
+
+			isDeviceOnline = (networkStatus.connected ? true : false)
+		}
+		catch(e){
+			console.log(e)
+
+			isDeviceOnline = true
+		}
+    }
+	else{
+		isDeviceOnline = (window.navigator.onLine ? true : false)
 	}
 
 	this.setState({
@@ -30,12 +51,30 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	let routeEx = window.location.hash.split("/")
 	let parent = routeEx[routeEx.length - 1]
 
+	if(!isDeviceOnline){
+		bypassItemsCache = false
+	}
+
 	if(typeof window.customVariables.itemsCache[window.location.href] == "object" && !bypassItemsCache){
-		if(callStack == 0){
+		if(callStack == 0 && isDeviceOnline){
 			this.updateItemList(false, true, true, window.location.href, 1)
 		}
 
 		let items = window.customVariables.itemsCache[window.location.href]
+
+		if(!this.state.settings.showThumbnails){
+			let itemsWithoutThumbnails = []
+	
+			for(let i = 0; i < items.length; i++){
+				let item = items[i]
+	
+				item.thumbnail = undefined
+	
+				itemsWithoutThumbnails.push(item)
+			}
+	
+			items = itemsWithoutThumbnails
+		}
 
 		if(parent == "recent"){
 			items = utils.orderItemsByType(items, "dateDesc")
@@ -43,7 +82,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		else{
 			items = utils.orderItemsByType(items, window.customVariables.orderBy)
 		}
-	
+
 		window.customVariables.itemList = items
 	
 		let scrollTo = 0
@@ -58,8 +97,6 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			itemList: items,
 			scrollToIndex: scrollTo
 		}, () => {
-			window.customFunctions.dismissLoader()
-	
 			this.forceUpdate()
 	
 			window.customVariables.currentThumbnailURL = window.location.href
@@ -68,9 +105,21 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
 			}
 
-			window.customFunctions.saveCachedItems()
-			window.customFunctions.saveThumbnailCache()
+			setTimeout(window.customFunctions.saveCachedItems, 1000)
 		})
+	}
+
+	if(!isDeviceOnline){
+		window.customFunctions.dismissLoader()
+	
+		let alert = await alertController.create({
+			header: "",
+			subHeader: "",
+			message: language.get(this.state.lang, "apiRequestError"),
+			buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+		})
+
+		return alert.present()
 	}
 
     if(showLoader){
@@ -590,6 +639,20 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		}
 	}
 
+	if(!this.state.settings.showThumbnails){
+		let itemsWithoutThumbnails = []
+
+		for(let i = 0; i < items.length; i++){
+			let item = items[i]
+
+			item.thumbnail = undefined
+
+			itemsWithoutThumbnails.push(item)
+		}
+
+		items = itemsWithoutThumbnails
+	}
+
 	if(parent == "recent"){
 		items = utils.orderItemsByType(items, "dateDesc")
 	}
@@ -598,9 +661,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	}
 
 	window.customVariables.itemList = items
-
 	window.customVariables.itemsCache[window.location.href] = items
-	window.customFunctions.saveItemsCache()
 
 	if(isFollowUpRequest){
 		if(typeof windowLocationHref !== "undefined"){
@@ -630,25 +691,27 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	}
 
 	return this.setState(stateObj, () => {
-		window.customFunctions.dismissLoader()
-
 		this.forceUpdate()
 
-		if(!isFollowUpRequest){
-			window.customVariables.currentThumbnailURL = window.location.href
+		window.customVariables.currentThumbnailURL = window.location.href
 
-			for(let i = 0; i < items.length; i++){
-				this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
-			}
-
-			window.customFunctions.saveCachedItems()
-			window.customFunctions.saveThumbnailCache()
+		for(let i = 0; i < items.length; i++){
+			this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
 		}
+
+		setTimeout(window.customFunctions.saveCachedItems, 1000)
+		setTimeout(window.customFunctions.saveItemsCache, 1000)
+
+		window.customFunctions.dismissLoader()
 	})
 }
 
 export function getFileThumbnail(file, thumbURL, index){
-	if(file.type !== "file" || file.name.indexOf(".") == -1 || typeof file.thumbnail !== "undefined"){
+	if(!this.state.settings.showThumbnails){
+		return false
+	}
+
+	if(file.type !== "file" || file.name.indexOf(".") == -1){
 		return false
 	}
 
@@ -658,6 +721,58 @@ export function getFileThumbnail(file, thumbURL, index){
 		}
 	}
 
+	if(typeof window.customVariables.isGettingThumbnail[file.uuid] !== "undefined"){
+		return false
+	}
+
+	let ext = file.name.toLowerCase().split(".")
+	ext = ext[ext.length - 1]
+
+	if(!utils.canShowThumbnail(ext)){
+		return false
+	}
+
+	const gotThumbnail = async (thumbnail) => {
+		//await window.customVariables.updateItemsSemaphore.acquire()
+
+		let newItems = this.state.itemList
+
+		for(let i = 0; i < newItems.length; i++){
+			if(newItems[i].uuid == file.uuid){
+				newItems[i].thumbnail = thumbnail
+			}
+		}
+
+		window.customVariables.itemList = newItems
+
+		if(thumbURL == window.location.href){
+			return this.setState({
+				itemList: newItems
+			}, () => {
+				this.forceUpdate()
+
+				setTimeout(window.customFunctions.saveThumbnailCache, 1000)
+
+				//window.customVariables.updateItemsSemaphore.release()
+
+				delete window.customVariables.isGettingThumbnail[file.uuid]
+			})
+		}
+		else{
+			//window.customVariables.updateItemsSemaphore.release()
+
+			delete window.customVariables.isGettingThumbnail[file.uuid]
+
+			return false
+		}
+	}
+
+	if(typeof file.thumbnail == "string"){
+		return gotThumbnail(file.thumbnail)
+	}
+
+	window.customVariables.isGettingThumbnail[file.uuid] = true
+
 	let intervalTimer = utils.getRandomArbitrary(10, 25)
 
 	if(document.getElementById("item-thumbnail-" + file.uuid) !== null){
@@ -666,76 +781,45 @@ export function getFileThumbnail(file, thumbURL, index){
 
 	let onScreenInterval = setInterval(async () => {
 		if(thumbURL !== window.location.href){
+			delete window.customVariables.isGettingThumbnail[file.uuid]
+
 			return clearInterval(onScreenInterval)
 		}
 		else{
 			if(document.getElementById("item-thumbnail-" + file.uuid) !== null){
 				clearInterval(onScreenInterval)
-
-				let ext = file.name.toLowerCase().split(".")
-				ext = ext[ext.length - 1]
-
-				let thumbnail = undefined
 		
-				if(utils.canShowThumbnail(ext)){
-					try{
-						thumbnail = await this.getThumbnail(file, thumbURL, ext)
-					}
-					catch(e){
-						console.log(e)
+				try{
+					let thumbnail = await this.getThumbnail(file, thumbURL, ext)
 
-						try{
-							if(e.indexOf("url changed") == -1){
-								if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
-									window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
-								}
-								else{
-									window.customVariables.getThumbnailErrors[file.uuid] = 1
-								}
-		
-								window.customFunctions.saveGetThumbnailErrors()
-							}
-						}
-						catch(err){  }
-
-						return false
-					}
-				}
-				else{
-					return false
-				}
-
-				if(typeof thumbnail !== "undefined"){
-					await window.customVariables.updateItemsSemaphore.acquire()
-
-					let newItems = this.state.itemList
-
-					for(let i = 0; i < newItems.length; i++){
-						if(newItems[i].uuid == file.uuid){
-							newItems[i].thumbnail = thumbnail
-						}
-					}
-
-					window.customVariables.itemList = newItems
-
-					if(thumbURL == window.location.href){
-						return this.setState({
-							itemList: newItems
-						}, () => {
-							this.forceUpdate()
-
-							window.customFunctions.saveThumbnailCache()
-
-							window.customVariables.updateItemsSemaphore.release()
-						})
+					if(typeof thumbnail !== "undefined"){
+						return gotThumbnail(thumbnail)
 					}
 					else{
-						window.customVariables.updateItemsSemaphore.release()
-
+						delete window.customVariables.isGettingThumbnail[file.uuid]
+						
 						return false
 					}
 				}
-				else{
+				catch(e){
+					console.log(e)
+
+					try{
+						if(e.indexOf("url changed") == -1){
+							if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
+								window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
+							}
+							else{
+								window.customVariables.getThumbnailErrors[file.uuid] = 1
+							}
+	
+							window.customFunctions.saveGetThumbnailErrors()
+						}
+					}
+					catch(err){  }
+
+					delete window.customVariables.isGettingThumbnail[file.uuid]
+
 					return false
 				}
 			}
@@ -2752,9 +2836,7 @@ export function makeItemAvailableOffline(offline, item){
 	else{
 		let nItem = item
 
-		nItem.makeOffline = true
-
-		return this.queueFileDownload(nItem)
+		return this.queueFileDownload(nItem, true)
 	}
 }
 
@@ -2913,9 +2995,7 @@ export async function storeSelectedItemsOffline(){
 		let item = items[i]
 
 		if(item.type == "file"){
-			item.makeOffline = true
-
-			this.queueFileDownload(item)
+			this.queueFileDownload(item, true)
 		}
 	}
 
@@ -3108,7 +3188,7 @@ export async function spawnItemActionSheet(item){
 	else{
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
-				{
+				...(!isPlatform("ios") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3116,7 +3196,7 @@ export async function spawnItemActionSheet(item){
 	
 						return this.queueFileDownload(item)
 					}
-				},
+				}] : []),
 				{
 					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
 					icon: Ionicons.save,
@@ -3149,7 +3229,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else if(window.location.href.indexOf("shared-out") !== -1){
 			buttons = [
-				{
+				...(!isPlatform("ios") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3157,7 +3237,7 @@ export async function spawnItemActionSheet(item){
 	
 						return this.queueFileDownload(item)
 					}
-				},
+				}] : []),
 				{
 					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
 					icon: Ionicons.save,
@@ -3190,7 +3270,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
-				{
+				...(!isPlatform("ios") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3198,7 +3278,7 @@ export async function spawnItemActionSheet(item){
 	
 						return this.queueFileDownload(item)
 					}
-				},
+				}] : []),
 				{
 					text: language.get(this.state.lang, "restoreItem"),
 					icon: Ionicons.bagAdd,
@@ -3228,7 +3308,7 @@ export async function spawnItemActionSheet(item){
 						return this.openPublicLinkModal(item)
 					}
 				},
-				{
+				...(!isPlatform("ios") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3236,7 +3316,7 @@ export async function spawnItemActionSheet(item){
 	
 						return this.queueFileDownload(item)
 					}
-				},
+				}] : []),
 				{
 					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
 					icon: Ionicons.save,
@@ -3280,7 +3360,7 @@ export async function spawnItemActionSheet(item){
 						return this.openPublicLinkModal(item)
 					}
 				},
-				{
+				...(!isPlatform("ios") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3288,7 +3368,7 @@ export async function spawnItemActionSheet(item){
 	
 						return this.queueFileDownload(item)
 					}
-				},
+				}] : []),
 				{
 					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
 					icon: Ionicons.save,
@@ -3350,7 +3430,7 @@ export async function spawnItemActionSheet(item){
 						return this.openPublicLinkModal(item)
 					}
 				},
-				{
+				...(!isPlatform("ios") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3358,7 +3438,7 @@ export async function spawnItemActionSheet(item){
 	
 						return this.queueFileDownload(item)
 					}
-				},
+				}] : []),
 				{
 					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
 					icon: Ionicons.save,

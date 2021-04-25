@@ -272,6 +272,7 @@ translations['en']['settingsInvite'] = "Invite a friend"
 translations['en']['settingsInviteInfo'] = "Invite friends and family to Filen! You and the person you refer receive 10 GB of storage permanently. This applies to every person you refer."
 translations['en']['settingsInviteInfo2'] = "When someone clicks your referral link Filen saves a cookie in their browser which stays there for 30 days. That means you will still get the bonus when the person does not sign up directly. This link is limited to 3 uses."
 translations['en']['settingsInviteCount'] = "Invited"
+translations['en']['settingsShowThumbnails'] = "Show thumbnails"
 
 module.exports = {
     translations

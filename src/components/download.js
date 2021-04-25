@@ -475,7 +475,7 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
     })
 }
 
-export async function queueFileDownload(file){
+export async function queueFileDownload(file, isOfflineRequest = false){
     if(Capacitor.isNative){
         if(this.state.settings.onlyWifi){
             let networkStatus = await Plugins.Network.getStatus()
@@ -506,7 +506,7 @@ export async function queueFileDownload(file){
     window.customVariables.stoppedDownloads[uuid] = undefined
     window.customVariables.stoppedDownloadsDone[uuid] = undefined
 
-	if(typeof file.makeOffline !== "undefined"){
+	if(isOfflineRequest){
         if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
             return this.spawnToast(language.get(this.state.lang, "fileAlreadyStoredOffline", true, ["__NAME__"], [file.name]))
         }
@@ -536,7 +536,7 @@ export async function queueFileDownload(file){
                 chunksWritten: 0,
 				loaded: 0,
                 progress: 0,
-                makeOffline: file.makeOffline
+                makeOffline: makeOffline
 			}
 
 			window.customVariables.downloads[uuid] = {
@@ -550,7 +550,7 @@ export async function queueFileDownload(file){
                 chunksWritten: 0,
 				loaded: 0,
                 progress: 0,
-                makeOffline: file.makeOffline
+                makeOffline: makeOffline
 			}
 
 			return this.setState({
@@ -641,7 +641,7 @@ export async function queueFileDownload(file){
 
 		addToState()
 
-        this.spawnToast(language.get(this.state.lang, "fileDownloadStarted", true, ["__NAME__"], [file.name]))
+        //this.spawnToast(language.get(this.state.lang, "fileDownloadStarted", true, ["__NAME__"], [file.name]))
 
         await window.customVariables.downloadSemaphore.acquire()
         
@@ -716,7 +716,7 @@ export async function queueFileDownload(file){
 
                             try{
                                 if(window.customVariables.downloads[uuid].chunksWritten >= window.customVariables.downloads[uuid].chunks){
-                                    if(typeof window.customVariables.downloads[uuid].makeOffline !== "undefined"){
+                                    if(window.customVariables.downloads[uuid].makeOffline){
                                         window.customVariables.offlineSavedFiles[file.uuid] = true
     
                                         let items = this.state.itemList

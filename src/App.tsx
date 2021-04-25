@@ -100,7 +100,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			uploadsCount: 0,
 			downloadsCount: 0,
 			settings: {
-				onlyWifi: false
+				onlyWifi: false,
+				showThumbnails: true
 			},
 			scrollToIndex: 0,
 			socketConnected: false,

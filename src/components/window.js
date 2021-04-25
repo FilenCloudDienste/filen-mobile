@@ -171,6 +171,17 @@ export function setupWindowFunctions(){
     window.customVariables.deviceHeightAndWidthInterval = undefined
     window.customVariables.itemsCache = {}
     window.customVariables.lastSettingsRes = undefined
+    window.customVariables.isDocumentReady = false
+    window.customVariables.isGettingThumbnail = {}
+    window.customVariables.lastItemsCacheLength = undefined
+
+    window.addEventListener("load", () => {
+        window.customVariables.isDocumentReady = true
+
+        if(Capacitor.isNative && window.customVariables.isDocumentReady){
+            Plugins.SplashScreen.hide()
+        }
+    })
 
     clearInterval(window.customVariables.mainSearchbarInterval)
 
@@ -235,6 +246,34 @@ export function setupWindowFunctions(){
     window.customFunctions.isPlatform = isPlatform
     window.customFunctions.safeAreaInsets = safeAreaInsets
 
+    window.customFunctions.setupErrorReporter = () => {
+        window.addEventListener("error", async (e) => {
+            try{
+                let errObj = {
+                    message: e.message,
+                    file: e.filename,
+                    line: e.lineno,
+                    column: e.colno,
+                    stack: {
+                        message: e.error.message || "none",
+                        trace: e.error.stack || "none"
+                    },
+                    cancelable: e.cancelable,
+                    timestamp: e.timeStamp,
+                    type: e.type,
+                    isTrusted: e.isTrusted
+                }
+
+                await utils.apiRequest("POST", "/v1/error/report", {
+                    apiKey: this.state.userAPIKey || "none",
+                    error: JSON.stringify(errObj),
+                    platform: "mobile"
+                })
+            }
+            catch(e){  }
+        })
+    }
+
     window.customFunctions.togglePreviewHeader = (e) => {
         if(typeof e.target == "undefined"){
             return
@@ -266,6 +305,19 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveItemsCache = async () => {
+        if(typeof window.customVariables.lastItemsCacheLength !== "undefined"){
+            let length = JSON.stringify(window.customVariables.itemsCache)
+
+            length = length.length
+
+            if(length == window.customVariables.lastItemsCacheLength){
+                return false
+            }
+            else{
+                window.customVariables.lastItemsCacheLength = length
+            }
+        }
+
         try{
             await Plugins.Storage.set({
                 key: "itemsCache",
@@ -1146,6 +1198,17 @@ export function setupWindowFunctions(){
         return this.setState({
             settings: newSettings
         })
+    }
+
+    window.customFunctions.toggleShowThumbnails = () => {
+        let newSettings = this.state.settings
+        let newVal = !newSettings.showThumbnails
+
+        newSettings.showThumbnails = newVal
+
+        document.getElementById("settings-show-thumbnails-toggle").checked = !newVal
+
+        return window.customFunctions.saveSettings(newSettings)
     }
 
     window.customFunctions.toggleOnlyWifi = () => {

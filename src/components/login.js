@@ -73,7 +73,7 @@ export async function showLogin(){
         this.setupStatusbar()
     })
 
-    if(Capacitor.isNative){
+    if(Capacitor.isNative && window.customVariables.isDocumentReady){
         Plugins.SplashScreen.hide()
     }
 

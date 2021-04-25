@@ -399,7 +399,11 @@ export function render(){
                     </IonFab>
     }
     else if(window.location.href.indexOf("base") !== -1){
-        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => this.mainFabAction()}>
+        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => {
+            this.hideMainSearchbar()
+
+            this.mainFabAction()
+        }}>
                         <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
                             <IonIcon icon={Ionicons.add} />
                         </IonFabButton>

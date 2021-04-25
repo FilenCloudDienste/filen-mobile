@@ -217,6 +217,12 @@ export async function openSettingsModal(){
                             </ion-label>
                             <ion-toggle slot="end" id="settings-only-wifi-toggle" onClick="window.customFunctions.toggleOnlyWifi()" ` + (appSettings.onlyWifi && "checked") + `></ion-toggle>
                         </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsShowThumbnails") + `
+                            </ion-label>
+                            <ion-toggle slot="end" id="settings-show-thumbnails-toggle" onClick="window.customFunctions.toggleShowThumbnails()" ` + (appSettings.showThumbnails && "checked") + `></ion-toggle>
+                        </ion-item>
                         <ion-item lines="none" button>
                             <ion-label onClick="window.customFunctions.openLanguageModal()">` + language.get(appLang, "settingsLanguage") + `</ion-label>
                             <!--<ion-select id="settings-lang-select" value="` + appLang + `" cancel-text="` + language.get(appLang, "cancel") + `" ok-text="` + language.get(appLang, "alertOkButton") + `" interface="alert">
