@@ -261,7 +261,8 @@ export function setupWindowFunctions(){
                     cancelable: e.cancelable,
                     timestamp: e.timeStamp,
                     type: e.type,
-                    isTrusted: e.isTrusted
+                    isTrusted: e.isTrusted,
+                    url: window.location.href || "none"
                 }
 
                 await utils.apiRequest("POST", "/v1/error/report", {

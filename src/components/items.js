@@ -953,6 +953,10 @@ export async function previewItem(item, lastModalPreviewType = undefined){
             }
         }
 	}
+
+	if(document.getElementById("main-searchbar") !== null){
+		document.getElementById("main-searchbar").blur()
+	}
 	
 	if(Capacitor.isNative){
 		Capacitor.Plugins.Keyboard.hide()
