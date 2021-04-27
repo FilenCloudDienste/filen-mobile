@@ -5,6 +5,7 @@ const de = require("../lang/de")
 const fr = require("../lang/fr")
 const da = require("../lang/da")
 const es = require("../lang/es")
+const it = require("../lang/it")
 
 let translations = {}
 
@@ -15,6 +16,7 @@ translations['de'] = de.translations['de']
 translations['fr'] = fr.translations['fr']
 translations['da'] = da.translations['da']
 translations['es'] = es.translations['es']
+translations['it'] = it.translations['it']
 
 module.exports = {
     get: (lang = "en", text, firstUpperCase = true, replaceFrom = [], replaceTo = []) => {
@@ -73,6 +75,9 @@ module.exports = {
             break
             case "es":
                 return "Español"
+            break
+            case "it":
+                return "Italiano"
             break
             default:
                 return "Language name not found"
