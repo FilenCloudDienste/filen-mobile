@@ -1,0 +1,22 @@
+{
+  "appId": "io.filen.app",
+  "appName": "Filen",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "build",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 15000,
+      "launchAutoHide": false,
+      "showSpinner": true
+    }
+  },
+  "cordova": {},
+  "server": {
+    "hostname": "localhost",
+    "iosScheme": "http",
+    "androidScheme": "http",
+    "allowMixedContent": true,
+    "webContentsDebuggingEnabled": true
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "name": "io.filen.app",
+  "version": "1.0.30",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^2.4.2",
+    "@capacitor/core": "2.4.2",
+    "@capacitor/ios": "^2.4.2",
+    "@ionic-native/core": "^5.29.0",
+    "@ionic-native/file-opener": "^5.29.0",
+    "@ionic-native/status-bar": "^5.29.0",
+    "@ionic/react": "^5.0.7",
+    "@ionic/react-router": "^5.0.7",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.4.0",
+    "@testing-library/user-event": "^8.0.3",
+    "@types/jest": "^24.0.25",
+    "@types/node": "^12.12.24",
+    "@types/react": "^16.9.17",
+    "@types/react-dom": "^16.9.4",
+    "@types/react-router": "^5.1.4",
+    "@types/react-router-dom": "^5.1.3",
+    "@vitalets/google-translate-api": "^4.0.0",
+    "argon2": "^0.27.2",
+    "browser-image-compression": "^1.0.13",
+    "cordova-plugin-file-opener2": "^3.0.5",
+    "cordova-plugin-navigationbar-color": "^0.1.0",
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.0.0",
+    "ionicons": "^5.0.0",
+    "js-md2": "^0.2.2",
+    "js-md4": "^0.3.2",
+    "js-md5": "^0.7.3",
+    "js-sha1": "^0.6.0",
+    "js-sha256": "^0.9.0",
+    "js-sha512": "^0.8.0",
+    "memoize-one": "^5.1.1",
+    "pdf-viewer-reactjs": "^2.1.2",
+    "qrcode.react": "^1.0.1",
+    "rc-hammerjs": "^0.6.10",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "react-long": "^1.1.9",
+    "react-router": "^5.1.2",
+    "react-router-dom": "^5.1.2",
+    "react-scripts": "3.4.0",
+    "react-use": "^15.3.4",
+    "react-virtualized": "^9.22.2",
+    "react-virtualized-auto-sizer": "^1.0.2",
+    "react-window": "^1.8.6",
+    "safe-area-insets": "^1.4.1",
+    "socket.io-client": "2.3.0",
+    "striptags": "^3.1.1",
+    "typescript": "3.8.3",
+    "video-metadata-thumbnails": "^1.0.18",
+    "virtualized-list": "^2.2.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "dev-android": "ionic capacitor run android --livereload --external --watch",
+    "dev-ios": "ionic capacitor run ios --livereload --external --watch",
+    "build-android": "ionic capacitor run android --prod",
+    "build-ios": "ionic capacitor run ios --prod"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@capacitor/cli": "2.4.2",
+    "@types/browser-image-compression": "^1.0.1",
+    "@types/pdf-viewer-reactjs": "^2.0.0"
+  },
+  "description": "Filen App"
+}

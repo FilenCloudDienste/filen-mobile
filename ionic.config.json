@@ -1,0 +1,7 @@
+{
+    "name": "io.filen.app",
+    "integrations": {
+    	"capacitor": {}
+  	},
+  	"type": "react"
+}
