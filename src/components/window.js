@@ -664,7 +664,7 @@ export function setupWindowFunctions(){
         let password = document.getElementById("login-password").value
         let twoFactorKey = document.getElementById("login-2fa").value
 
-        if(!email || !password){
+        /*if(!email || !password){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
@@ -673,7 +673,7 @@ export function setupWindowFunctions(){
             })
 
             return alert.present()
-        }
+        }*/
 
         if(twoFactorKey.length == 0){
             twoFactorKey = "XXXXXX"
@@ -784,7 +784,7 @@ export function setupWindowFunctions(){
         let password = document.getElementById("register-password").value
         let passwordRepeat = document.getElementById("register-password-repeat").value
 
-        if(!email || !password || !passwordRepeat){
+        /*if(!email || !password || !passwordRepeat){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
@@ -793,7 +793,7 @@ export function setupWindowFunctions(){
             })
 
             return alert.present()
-        }
+        }*/
 
         let loading = await loadingController.create({
             message: ""

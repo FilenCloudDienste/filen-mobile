@@ -3,7 +3,7 @@ import { Plugins } from "@capacitor/core"
 
 const utils = require("../utils/utils")
 
-export async function updateUserKeys(){
+export async function updateUserKeys(cb){
     if(!this.state.isLoggedIn){
         return false
     }
@@ -186,10 +186,18 @@ export async function updateUserKeys(){
         })
     }
     catch(e){
+        if(typeof cb == "function"){
+            cb()
+        }
+        
         return console.log(e)
     }
 
     if(!res.status){
+        if(typeof cb == "function"){
+            cb()
+        }
+
         if(res.message.toLowerCase().indexOf("api key not found") !== -1){
             return window.customFunctions.logoutUser()
         }
@@ -234,6 +242,10 @@ export async function updateUserKeys(){
     }
     else{
         console.log("Could not decrypt master keys.")
+    }
+
+    if(typeof cb == "function"){
+        cb()
     }
 
     return updatePubAndPrivKey()
