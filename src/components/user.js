@@ -187,7 +187,7 @@ export async function updateUserKeys(cb){
     }
     catch(e){
         if(typeof cb == "function"){
-            cb()
+            cb(e)
         }
         
         return console.log(e)
@@ -195,7 +195,7 @@ export async function updateUserKeys(cb){
 
     if(!res.status){
         if(typeof cb == "function"){
-            cb()
+            cb(res.message)
         }
 
         if(res.message.toLowerCase().indexOf("api key not found") !== -1){
@@ -245,7 +245,7 @@ export async function updateUserKeys(cb){
     }
 
     if(typeof cb == "function"){
-        cb()
+        cb(null)
     }
 
     return updatePubAndPrivKey()
@@ -273,6 +273,10 @@ export async function updateUserUsage(){
         }
 
         return false
+    }
+
+    if(res.data.email !== this.state.userEmail){
+        return window.customFunctions.logoutUser()
     }
 
     let storageUsedPercent = ((res.data.storage / res.data.max) * 100).toFixed(2)

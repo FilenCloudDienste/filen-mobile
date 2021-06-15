@@ -1,8 +1,7 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor, FilesystemDirectory, Plugins } from "@capacitor/core"
-import imageCompression from 'browser-image-compression';
-import { call } from "ionicons/icons";
+import imageCompression from "browser-image-compression"
 
 const utils = require("../utils/utils")
 

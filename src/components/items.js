@@ -1108,7 +1108,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 				let text = new TextDecoder().decode(dataArray).split("<").join("&lt;")
 
 				previewModalContent = `
-					<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+					<ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar>
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -1132,7 +1132,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 			}
 			else if(previewType == "pdf"){
 				previewModalContent = `
-					<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+					<ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar>
 							<ion-buttons slot="start">
 								<ion-button onclick="window.customFunctions.dismissModal()">
@@ -1558,17 +1558,22 @@ export async function moveFolder(folder, destination, showLoader){
 			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
 		}
 
-		if(showLoader){
-			loading.dismiss()
-		}
-
 		if(!res.status){
+			if(showLoader){
+				loading.dismiss()
+			}
+
 			return this.spawnToast(res.message)
 		}
 
 		utils.checkIfItemParentIsBeingShared(destination, "folder", {
-			name: folder.name
+			name: folder.name,
+			uuid: folder.uuid
 		}, () => {
+			if(showLoader){
+				loading.dismiss()
+			}
+
 			this.spawnToast(language.get(this.state.lang, "folderMoved", true, ["__NAME__"], [folder.name]))
 
 			clearTimeout(window.customVariables.reloadAfterActionTimeout)
@@ -1633,11 +1638,11 @@ export async function moveFile(file, destination, showLoader){
 			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
 		}
 
-		if(showLoader){
-			loading.dismiss()
-		}
-
 		if(!res.status){
+			if(showLoader){
+				loading.dismiss()
+			}
+
 			return this.spawnToast(res.message)
 		}
 
@@ -1648,6 +1653,10 @@ export async function moveFile(file, destination, showLoader){
 			mime: file.mime,
 			key: file.key
 		}, () => {
+			if(showLoader){
+				loading.dismiss()
+			}
+
 			this.spawnToast(language.get(this.state.lang, "fileMoved", true, ["__NAME__"], [file.name]))
 
 			clearTimeout(window.customVariables.reloadAfterActionTimeout)
@@ -2578,7 +2587,7 @@ export async function openPublicLinkModal(item){
 		customElements.define(modalId, class ModalContent extends HTMLElement {
 			connectedCallback(){
 				this.innerHTML = `
-					<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+					<ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar>
 							<ion-buttons slot="start">
 								<ion-button onClick="window.customFunctions.dismissModal()">
@@ -2695,7 +2704,7 @@ export async function openPublicLinkModal(item){
 		customElements.define(modalId, class ModalContent extends HTMLElement {
 			connectedCallback(){
 				this.innerHTML = `
-					<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+					<ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 						<ion-toolbar>
 							<ion-buttons slot="start">
 								<ion-button onClick="window.customFunctions.dismissModal()">
@@ -3018,7 +3027,7 @@ export async function colorItem(item){
 	customElements.define(modalId, class ModalContent extends HTMLElement {
 		connectedCallback(){
 			this.innerHTML = `
-				<ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+				<ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
 					<ion-toolbar>
 						<ion-buttons slot="start">
 							<ion-button onClick="window.customFunctions.dismissModal()">

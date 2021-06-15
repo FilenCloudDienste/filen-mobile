@@ -153,7 +153,7 @@ export function setupWindowFunctions(){
     window.customVariables.thumbnailBlobCache = {}
     window.customVariables.currentThumbnailURL = undefined
     window.customVariables.lastThumbnailCacheLength = undefined
-    window.customVariables.thumbnailSemaphore = new utils.Semaphore(2)
+    window.customVariables.thumbnailSemaphore = new utils.Semaphore(3)
     window.customVariables.updateItemsSemaphore = new utils.Semaphore(1)
     window.customVariables.getNetworkInfoInterval = undefined
     window.customVariables.networkStatus = undefined
@@ -912,7 +912,7 @@ export function setupWindowFunctions(){
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
                 this.innerHTML = `
-                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                         <ion-toolbar>
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
@@ -954,7 +954,7 @@ export function setupWindowFunctions(){
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
                 this.innerHTML = `
-                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                         <ion-toolbar>
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
@@ -2260,7 +2260,7 @@ export function setupWindowFunctions(){
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
                 this.innerHTML = `
-                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                         <ion-toolbar>
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
@@ -2307,7 +2307,7 @@ export function setupWindowFunctions(){
             customElements.define(modalId, class ModalContent extends HTMLElement {
                 connectedCallback(){
                     this.innerHTML = `
-                        <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                             <ion-toolbar>
                                 <ion-buttons slot="start">
                                     <ion-button onClick="window.customFunctions.dismissModal()">
@@ -2336,7 +2336,7 @@ export function setupWindowFunctions(){
             customElements.define(modalId, class ModalContent extends HTMLElement {
                 connectedCallback(){
                     this.innerHTML = `
-                        <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                             <ion-toolbar>
                                 <ion-buttons slot="start">
                                     <ion-button onClick="window.customFunctions.dismissModal()">
@@ -2580,7 +2580,7 @@ export function setupWindowFunctions(){
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
                 this.innerHTML = `
-                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                         <ion-toolbar>
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
@@ -2653,7 +2653,7 @@ export function setupWindowFunctions(){
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
                 this.innerHTML = `
-                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                         <ion-toolbar>
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
@@ -2707,7 +2707,7 @@ export function setupWindowFunctions(){
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
                 this.innerHTML = `
-                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                         <ion-toolbar>
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
@@ -2742,7 +2742,12 @@ export function setupWindowFunctions(){
                                 </ion-label>
                             </ion-item>
                         </ion-list>
-                        <ion-list style="margin-top: 30px;">
+                        <ion-list>
+                            <ion-item lines="none" style="font-size: small; padding: 10px;">
+                                ` + language.get(appLang, "changePasswordInfo") + `
+                            </ion-item>
+                        </ion-list>
+                        <!--<ion-list style="margin-top: 30px;">
                             <ion-item>
                                 <ion-label>
                                     <ion-input placeholder="` + language.get(appLang, "changePasswordNewPassword") + `" type="password" id="change-password-password"></ion-input>
@@ -2758,12 +2763,15 @@ export function setupWindowFunctions(){
                                     <ion-input placeholder="` + language.get(appLang, "yourCurrentPassword") + `" type="password" id="change-password-current"></ion-input>
                                 </ion-label>
                             </ion-item>
+                            <ion-item lines="none" style="font-size: small; padding: 10px;">
+                                ` + language.get(appLang, "changePasswordWarning") + `
+                            </ion-item>
                             <ion-item lines="none">
                                 <ion-label>
                                     <ion-button expand="block" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.customFunctions.changePassword()">` + language.get(appLang, "save") + `</ion-button>
                                 </ion-label>
                             </ion-item>
-                        </ion-list>
+                        </ion-list>-->
                     </ion-content>
                 `
             }
@@ -2819,7 +2827,7 @@ export function setupWindowFunctions(){
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
                 this.innerHTML = `
-                    <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                         <ion-toolbar>
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
@@ -3015,12 +3023,32 @@ export function setupWindowFunctions(){
         document.getElementById("change-password-password").value = ""
         document.getElementById("change-password-password-repeat").value = ""
         document.getElementById("change-password-current").value = ""
-    
-        loading.dismiss()
 
-        window.customFunctions.logoutUser()
+        let newKeys = this.state.userMasterKeys.join("|") + "|" + utils.hashFn(newPassword)
 
-        return this.spawnToast(language.get(this.state.lang, "changePasswordSuccess"))
+        await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify(newKeys.split("|")) })
+
+        this.setState({
+            userMasterKeys: newKeys.split("|")
+        }, () => {
+            window.customVariables.userMasterKeys = newKeys.split("|")
+
+            this.updateUserKeys((err) => {
+                if(err){
+                    loading.dismiss()
+            
+                    console.log(res.message)
+            
+                    return this.spawnToast(language.get(this.state.language, "apiRequestError"))
+                }
+
+                loading.dismiss()
+
+                window.customFunctions.logoutUser()
+
+                return this.spawnToast(language.get(this.state.lang, "changePasswordSuccess"))
+            })
+        })
     }
 
     window.customFunctions.openOrderBy = async () => {

@@ -273,6 +273,8 @@ translations['en']['settingsInviteInfo'] = "Invite friends and family to Filen! 
 translations['en']['settingsInviteInfo2'] = "When someone clicks your referral link Filen saves a cookie in their browser which stays there for 30 days. That means you will still get the bonus when the person does not sign up directly. This link is limited to 3 uses."
 translations['en']['settingsInviteCount'] = "Invited"
 translations['en']['settingsShowThumbnails'] = "Show thumbnails"
+translations['en']['changePasswordWarning'] = "Attention: Changing your password will change your encryption keys and that may render all your previously uploaded files and folders inaccessible! Continue with caution."
+translations['en']['changePasswordInfo'] = "You can change your password on our website."
 
 module.exports = {
     translations

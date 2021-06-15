@@ -51,7 +51,9 @@ export function initSocket(){
     })
 
     window.customVariables.socket.on("new-event", (data) => {
-        console.log(data)
+        if(data.type == "passwordChanged"){
+            return window.customFunctions.logoutUser()
+        }
     })
 }
 

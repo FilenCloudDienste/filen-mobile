@@ -664,198 +664,6 @@ export function Semaphore(max){
     }
 }
 
-/*export function checkIfItemParentIsBeingShared(parentUUID, type, metadata){
-    const checkIfIsSharing = async (parent, callback) => {
-        if(parent == "default" || parent == "base"){
-            return callback(false)
-        }
-
-        try{
-            var res = await apiRequest("POST", "/v1/share/dir/status", {
-                apiKey: window.customVariables.apiKey,
-                uuid: parent
-            })
-        }
-        catch(e){
-            console.log(e)
-
-            return callback(false)
-        }
-
-        if(!res.status){
-            console.log(res.message)
-
-            return callback(false)
-        }
-
-        return callback(res.data.sharing, res.data.users)
-    }
-
-    checkIfIsSharing(parentUUID, async (status, users) => {
-        if(!status){
-            return false
-        }
-
-        for(let i = 0; i < users.length; i++){
-            let user = users[i]
-
-            try{
-                var usrPubKey = await window.crypto.subtle.importKey("spki", _base64ToArrayBuffer(user.publicKey), {
-                    name: "RSA-OAEP",
-                    hash: "SHA-512"
-                }, true, ["encrypt"])
-            }
-            catch(e){
-                console.log(e)
-
-                return false
-            }
-
-            let mData = ""
-
-            if(type == "file"){
-                mData = JSON.stringify({
-                    name: metadata.name,
-                    size: parseInt(metadata.size),
-                    mime: metadata.mime,
-                    key: metadata.key
-                })
-            }
-            else{
-                mData = JSON.stringify({
-                    name: metadata.name
-                })
-            }
-            
-            try{
-                var encrypted = await window.crypto.subtle.encrypt({
-                    name: "RSA-OAEP"
-                }, usrPubKey, new TextEncoder().encode(mData))
-            }
-            catch(e){
-                console.log(e)
-
-                return false
-            }
-
-            try{
-                var res = await apiRequest("POST", "/v1/share", {
-                    apiKey: window.customVariables.apiKey,
-                    uuid: metadata.uuid,
-                    parent: parentUUID,
-                    email: user.email,
-                    type,
-                    metadata: base64ArrayBuffer(encrypted)
-                })
-            }
-            catch(e){
-                console.log(e)
-
-                return false
-            }
-
-            if(!res.status){
-                console.log(res.message)
-
-                return false
-            }
-        }
-    })
-}
-
-export function checkIfItemIsBeingSharedForRename(type, uuid, metadata){
-    const checkIfIsSharing = async (itemUUID, callback) => {
-        try{
-            var res = await apiRequest("POST", "/v1/user/shared/item/status", {
-                apiKey: window.customVariables.apiKey,
-                uuid: itemUUID
-            })
-        }
-        catch(e){
-            console.log(e)
-
-            return callback(false)
-        }
-
-        if(!res.status){
-            console.log(res.message)
-
-            return callback(false)
-        }
-
-        return callback(res.data.sharing, res.data.users)
-    }
-
-    checkIfIsSharing(uuid, async (sharing, users) => {
-        if(!sharing){
-            return false
-        }
-
-        for(let i = 0; i < users.length; i++){
-            let user = users[i]
-
-            try{
-                var usrPubKey = await window.crypto.subtle.importKey("spki", _base64ToArrayBuffer(user.publicKey), {
-                    name: "RSA-OAEP",
-                    hash: "SHA-512"
-                }, true, ["encrypt"])
-            }
-            catch(e){
-                console.log(e)
-
-                return false
-            }
-
-            let mData = ""
-
-            if(type == "file"){
-                mData = JSON.stringify({
-                    name: metadata.name,
-                    size: parseInt(metadata.size),
-                    mime: metadata.mime,
-                    key: metadata.key
-                })
-            }
-            else{
-                mData = JSON.stringify({
-                    name: metadata.name
-                })
-            }
-            
-            try{
-                var encrypted = await window.crypto.subtle.encrypt({
-                    name: "RSA-OAEP"
-                }, usrPubKey, new TextEncoder().encode(mData))
-            }
-            catch(e){
-                console.log(e)
-
-                return false
-            }
-
-            try{
-                var res = await apiRequest("POST", "/v1/user/shared/item/rename", {
-                    apiKey: window.customVariables.apiKey,
-                    uuid,
-                    receiverId: user.id,
-                    metadata: base64ArrayBuffer(encrypted)
-                })
-            }
-            catch(e){
-                console.log(e)
-
-                return false
-            }
-
-            if(!res.status){
-                console.log(res.message)
-
-                return false
-            }
-        }
-    })
-}*/
-
 export function decryptFolderLinkKey(str, userMasterKeys){
 	let link = ""
 
@@ -1183,6 +991,16 @@ export function checkIfItemIsBeingSharedForRename(type, uuid, metaData, optional
 }
 
 export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optionalCallback){
+    let userMasterKeys = window.customVariables.userMasterKeys
+
+    if(typeof userMasterKeys == "undefined"){
+        if(typeof optionalCallback == "function" && !callbackFired){
+            callbackFired = true
+            
+            optionalCallback()
+        }
+    }
+
 	let shareCheckDone = false
 	let linkCheckDone = false
 
@@ -1359,7 +1177,48 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 		})
 	}
 
-	checkIfIsSharing(parentUUID, 0, 32, (status, users) => {
+    const getFolderInfo = (folderUUID, tries, maxTries, callback) => {
+		if(tries >= maxTries){
+			return callback(new Error("Max requests reached"))
+		}
+
+		window.$.ajax({
+			url: getAPIServer() + "/v1/download/dir",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({
+				apiKey: window.customVariables.apiKey,
+				uuid: folderUUID
+			}),
+			processData: false,
+			cache: false,
+			timeout: 300000,
+			success: (res) => {
+				if(!res){
+					console.log("Request error")
+
+					return setTimeout(() => {
+						getFolderInfo(folderUUID, (tries + 1), maxTries, callback)
+					}, 1000)
+				}
+
+				if(!res.status){
+					return callback(new Error(res.message))
+				}
+
+				return callback(null, res)
+			},
+			error: (err) => {
+				console.log(err)
+
+				return setTimeout(() => {
+					getFolderInfo(folderUUID, (tries + 1), maxTries, callback)
+				}, 1000)
+			}
+		})
+	}
+
+    checkIfIsSharing(parentUUID, 0, 128, (status, users) => {
 		if(!status){
 			shareCheckDone = true
 
@@ -1379,61 +1238,171 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 			}
 		}
 
-		users.forEach((user) => {
-			window.crypto.subtle.importKey("spki", _base64ToArrayBuffer(user.publicKey), {
-      			name: "RSA-OAEP",
-        		hash: "SHA-512"
-    		}, true, ["encrypt"]).then((usrPubKey) => {
-    			let mData = ""
-
-    			if(type == "file"){
-    				mData = JSON.stringify({
+		if(type == "file"){
+			users.forEach((user) => {
+				window.crypto.subtle.importKey("spki", _base64ToArrayBuffer(user.publicKey), {
+	      			name: "RSA-OAEP",
+	        		hash: "SHA-512"
+	    		}, true, ["encrypt"]).then((usrPubKey) => {
+	    			let mData = JSON.stringify({
 	    				name: metaData.name,
 	    				size: parseInt(metaData.size),
 	    				mime: metaData.mime,
 	    				key: metaData.key
 	    			})
-				}
-				else{
-					mData = JSON.stringify({
-						name: metaData.name
-					})
-				}
 
-				window.crypto.subtle.encrypt({
-    				name: "RSA-OAEP"
-    			}, usrPubKey, new TextEncoder().encode(mData)).then((encrypted) => {
-    				shareItem(JSON.stringify({
-						apiKey: window.customVariables.apiKey,
-						uuid: metaData.uuid,
-						parent: parentUUID,
-						email: user.email,
-						type: type,
-						metadata: base64ArrayBuffer(encrypted)
-					}), 0, 32, (err) => {
-    					if(err){
-    						console.log(err)
-    					}
+					window.crypto.subtle.encrypt({
+	    				name: "RSA-OAEP"
+	    			}, usrPubKey, new TextEncoder().encode(mData)).then((encrypted) => {
+	    				shareItem(JSON.stringify({
+							apiKey: window.customVariables.apiKey,
+							uuid: metaData.uuid,
+							parent: parentUUID,
+							email: user.email,
+							type: type,
+							metadata: base64ArrayBuffer(encrypted)
+						}), 0, 128, (err) => {
+	    					if(err){
+	    						console.log(err)
+	    					}
 
-    					doneSharingToUsers()
-					})
-    			}).catch((err) => {
+	    					doneSharingToUsers()
+						})
+	    			}).catch((err) => {
+		    			doneSharingToUsers()
+		    		})
+	    		}).catch((err) => {
 	    			doneSharingToUsers()
 	    		})
-    		}).catch((err) => {
-    			doneSharingToUsers()
-    		})
-		})
+			})
+		}
+		else{
+			getFolderInfo(metaData.uuid, 0, 128, async (err, folderData) => {
+				if(err){
+					return doneSharingToUsers()
+				}
+
+				let shareItems = []
+
+				shareItems.push({
+					uuid: metaData.uuid,
+					parent: parentUUID,
+					metadata: metaData.name,
+					type: "folder"
+				})
+
+				let files = folderData.data.files
+				let folders = folderData.data.folders
+
+				for(let i = 0; i < files.length; i++){
+					await window.customVariables.decryptShareItemSemaphore.acquire()
+
+					let metadata = files[i].metadata
+					let decryptedData = decryptFileMetadata(metadata, userMasterKeys, files[i].uuid)
+					let fName = decryptedData.name
+					let fSize = decryptedData.size
+					let fMime = decryptedData.mime
+					let fKey = decryptedData.key
+
+					shareItems.push({
+						uuid: files[i].uuid,
+						parent: files[i].parent,
+						metadata: {
+							name: fName,
+							size: fSize,
+							mime: fMime,
+							key: fKey
+						},
+						type: "file"
+					})
+
+					window.customVariables.decryptShareItemSemaphore.release()
+				}
+
+				for(let i = 0; i < folders.length; i++){
+					if(folders[i].uuid !== metaData.uuid && folders[i].parent !== "base"){
+						await window.customVariables.decryptShareItemSemaphore.acquire()
+
+						let dirName = decryptCryptoJSFolderName(folders[i].name, userMasterKeys, folders[i].uuid)
+
+						shareItems.push({
+							uuid: folders[i].uuid,
+							parent: (i == 0 ? "none" : folders[i].parent),
+							metadata: dirName,
+							type: "folder"
+						})
+
+						window.customVariables.decryptShareItemSemaphore.release()
+					}
+				}
+
+				let shareItemsFolderDone = 0
+
+				const isDoneSharingFolder = () => {
+					shareItemsFolderDone += 1
+
+					if(shareItemsFolderDone >= shareItems.length){
+						return doneSharingToUsers()
+					}
+				}
+
+				for(let i = 0; i < shareItems.length; i++){
+					users.forEach((user) => {
+						window.crypto.subtle.importKey("spki", _base64ToArrayBuffer(user.publicKey), {
+			      			name: "RSA-OAEP",
+			        		hash: "SHA-512"
+			    		}, true, ["encrypt"]).then((usrPubKey) => {
+			    			let mData = ""
+
+			    			if(shareItems[i].type == "file"){
+			    				mData = JSON.stringify({
+				    				name: shareItems[i].metadata.name,
+				    				size: parseInt(shareItems[i].metadata.size),
+				    				mime: shareItems[i].metadata.mime,
+				    				key: shareItems[i].metadata.key
+				    			})
+							}
+							else{
+								mData = JSON.stringify({
+									name: shareItems[i].metadata
+								})
+							}
+
+							window.crypto.subtle.encrypt({
+			    				name: "RSA-OAEP"
+			    			}, usrPubKey, new TextEncoder().encode(mData)).then((encrypted) => {
+			    				shareItem(JSON.stringify({
+									apiKey: window.customVariables.apiKey,
+									uuid: shareItems[i].uuid,
+									parent: shareItems[i].parent,
+									email: user.email,
+									type: shareItems[i].type,
+									metadata: base64ArrayBuffer(encrypted)
+								}), 0, 128, (err) => {
+			    					if(err){
+			    						console.log(err)
+			    					}
+
+			    					isDoneSharingFolder()
+								})
+			    			}).catch((err) => {
+				    			isDoneSharingFolder()
+				    		})
+			    		}).catch((err) => {
+			    			isDoneSharingFolder()
+			    		})
+					})
+				}
+			})
+		}
 	})
 
-	checkIfIsInFolderLink(parentUUID, 0, 32, (status, links) => {
+	checkIfIsInFolderLink(parentUUID, 0, 128, (status, links) => {
 		if(!status){
 			linkCheckDone = true
 
 			return isItDone()
 		}
-
-		let userMasterKeys = window.customVariables.userMasterKeys
 
 		let totalLinks = links.length
 		let linksDone = 0
@@ -1448,47 +1417,155 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 			}
 		}
 
-		links.forEach((link) => {
-			let key = decryptFolderLinkKey(link.linkKey, userMasterKeys)
+		if(type == "file"){
+			links.forEach((link) => {
+				let key = decryptFolderLinkKey(link.linkKey, userMasterKeys)
 
-			let mData = ""
-
-			if(type == "file"){
-				mData = JSON.stringify({
+				let mData = JSON.stringify({
 					name: metaData.name,
 					size: parseInt(metaData.size),
 					mime: metaData.mime,
 					key: metaData.key
 				})
-			}
-			else{
-				mData = JSON.stringify({
-					name: metaData.name
+
+				mData = CryptoJS.AES.encrypt(mData, key).toString()
+
+				addItem(JSON.stringify({
+					apiKey: window.customVariables.apiKey,
+					uuid: metaData.uuid,
+					parent: parentUUID,
+					linkUUID: link.linkUUID,
+					type: type,
+					metadata: mData,
+					key: link.linkKey,
+					expiration: "never",
+					password: "empty",
+					passwordHashed: hashFn("empty"),
+					downloadBtn: "enable"
+				}), 0, 128, (err) => {
+					if(err){
+						console.log(err)
+					}
+
+					doneAddingToLink()
 				})
-			}
-
-			mData = CryptoJS.AES.encrypt(mData, key).toString()
-
-			addItem(JSON.stringify({
-				apiKey: window.customVariables.apiKey,
-				uuid: metaData.uuid,
-				parent: parentUUID,
-				linkUUID: link.linkUUID,
-				type: type,
-				metadata: mData,
-				key: link.linkKey,
-				expiration: "never",
-				password: "empty",
-				passwordHashed: hashFn("empty"),
-				downloadBtn: "enable"
-			}), 0, 32, (err) => {
+			})
+		}
+		else{
+			getFolderInfo(metaData.uuid, 0, 128, async (err, folderData) => {
 				if(err){
-					console.log(err)
+					return doneAddingToLink()
 				}
 
-				doneAddingToLink()
+				let shareItems = []
+
+				shareItems.push({
+					uuid: metaData.uuid,
+					parent: parentUUID,
+					metadata: metaData.name,
+					type: "folder"
+				})
+
+				let files = folderData.data.files
+				let folders = folderData.data.folders
+
+				for(let i = 0; i < files.length; i++){
+					await window.customVariables.decryptShareItemSemaphore.acquire()
+
+					let metadata = files[i].metadata
+					let decryptedData = decryptFileMetadata(metadata, userMasterKeys, files[i].uuid)
+					let fName = decryptedData.name
+					let fSize = decryptedData.size
+					let fMime = decryptedData.mime
+					let fKey = decryptedData.key
+
+					shareItems.push({
+						uuid: files[i].uuid,
+						parent: files[i].parent,
+						metadata: {
+							name: fName,
+							size: fSize,
+							mime: fMime,
+							key: fKey
+						},
+						type: "file"
+					})
+
+					window.customVariables.decryptShareItemSemaphore.release()
+				}
+
+				for(let i = 0; i < folders.length; i++){
+					if(folders[i].uuid !== metaData.uuid && folders[i].parent !== "base"){
+						await window.customVariables.decryptShareItemSemaphore.acquire()
+
+						let dirName = decryptCryptoJSFolderName(folders[i].name, userMasterKeys, folders[i].uuid)
+
+						shareItems.push({
+							uuid: folders[i].uuid,
+							parent: (i == 0 ? "none" : folders[i].parent),
+							metadata: dirName,
+							type: "folder"
+						})
+
+						window.customVariables.decryptShareItemSemaphore.release()
+					}
+				}
+
+				let shareItemsFolderDone = 0
+
+				const isDoneLinkingFolder = () => {
+					shareItemsFolderDone += 1
+
+					if(shareItemsFolderDone >= shareItems.length){
+						return doneAddingToLink()
+					}
+				}
+
+				for(let i = 0; i < shareItems.length; i++){
+					links.forEach((link) => {
+						let key = decryptFolderLinkKey(link.linkKey, userMasterKeys)
+
+						let mData = ""
+
+		    			if(shareItems[i].type == "file"){
+		    				mData = JSON.stringify({
+			    				name: shareItems[i].metadata.name,
+			    				size: parseInt(shareItems[i].metadata.size),
+			    				mime: shareItems[i].metadata.mime,
+			    				key: shareItems[i].metadata.key
+			    			})
+						}
+						else{
+							mData = JSON.stringify({
+								name: shareItems[i].metadata
+							})
+						}
+
+						mData = CryptoJS.AES.encrypt(mData, key).toString()
+
+						addItem(JSON.stringify({
+							apiKey: window.customVariables.apiKey,
+							uuid: shareItems[i].uuid,
+							parent: shareItems[i].parent,
+							linkUUID: link.linkUUID,
+							type: shareItems[i].type,
+							metadata: mData,
+							key: link.linkKey,
+							expiration: "never",
+							password: "empty",
+							passwordHashed: hashFn("empty"),
+							downloadBtn: "enable"
+						}), 0, 128, (err) => {
+							if(err){
+								console.log(err)
+							}
+
+							isDoneLinkingFolder()
+						})
+					})
+				}
 			})
-		})
+		}
 	})
 }
 
@@ -1532,7 +1609,7 @@ export function canShowThumbnail(ext){
     }
 }
 
-export function getFilePreviewType(ext){
+export function getFilePreviewType(ext, mime = undefined){
     switch(ext.toLowerCase()){
       case "jpeg":
       case "jpg":
@@ -1599,7 +1676,7 @@ export function getFilePreviewType(ext){
       case "properties":
       case "cfg":
       case "ahk":
-      case "ts":
+      //case "ts":
       case "tsx":
         return "code"
       break

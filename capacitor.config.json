@@ -17,6 +17,8 @@
     "iosScheme": "http",
     "androidScheme": "http",
     "allowMixedContent": true,
-    "webContentsDebuggingEnabled": true
+    "webContentsDebuggingEnabled": true,
+    "url": "http://192.168.178.20:8100",
+    "cleartext": true
   }
 }

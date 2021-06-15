@@ -1,5 +1,5 @@
 import React from 'react';
-import { IonToast, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText } from '@ionic/react'
+import { IonToast, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText, IonTabBar, IonTabButton } from '@ionic/react'
 import { List } from 'react-virtualized';
 import { Plugins, StatusBarStyle, Capacitor } from "@capacitor/core"
 import { isPlatform, getPlatforms } from "@ionic/react"
@@ -20,11 +20,14 @@ import * as Ionicons from 'ionicons/icons';
 import * as language from "../utils/language"
 
 import Hammer from "rc-hammerjs"
+import { routeTo } from './router';
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 
 export function render(){
+    let showShareLinks = (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0)
+    
     let rowRenderer = ({ index, style }) => {
         let startContent = this.state.selectedItems > 0 ? (
             <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.selectItem(true, index)}>
@@ -294,7 +297,7 @@ export function render(){
                     }
                 }
             }} style={style}>
-                <IonItem type="button" button lines="none" className={this.state.itemList[index].selected ? (this.state.darkMode ? "item-selected-dark-mode" : "item-selected-light-mode") : "not-activated"}>
+                <IonItem type="button" button lines="none" className={this.state.itemList[index].selected ? (this.state.darkMode ? "item-selected-dark-mode" : "item-selected-light-mode") : "item-not-activated-mode"}>
                     {startContent}
                     {itemLabel}
                     {endContent}
@@ -304,7 +307,9 @@ export function render(){
     }
 
     let mainToolbar = this.state.selectedItems > 0 ? (
-        <IonToolbar>
+        <IonToolbar style={{
+            "--background": this.state.darkMode ? "#121212" : "white"
+        }}>
             <IonButtons slot="start">
                 <IonButton onClick={() => this.clearSelectedItems()}>
                     <IonIcon slot="icon-only" icon={Ionicons.arrowBack} />
@@ -333,7 +338,9 @@ export function render(){
         </IonToolbar>
     ) : (
         this.state.searchbarOpen ? (
-            <IonToolbar>
+            <IonToolbar style={{
+                "--background": this.state.darkMode ? "#121212" : "white"
+            }}>
                 <IonButtons slot="start">
                     <IonButton onClick={this.hideMainSearchbar}>
                         <IonIcon slot="icon-only" icon={Ionicons.arrowBack} />
@@ -342,7 +349,9 @@ export function render(){
                 <IonSearchbar id="main-searchbar" ref={(el) => el !== null && setTimeout(() => el.setFocus(), 100)} type="search" inputmode="search" value={this.state.mainSearchTerm}></IonSearchbar>
             </IonToolbar>
         ) : (
-            <IonToolbar>
+            <IonToolbar style={{
+                "--background": this.state.darkMode ? "#121212" : "white"
+            }}>
                 {
                     this.state.showMainToolbarBackButton ? (
                         <IonButtons slot="start">
@@ -388,7 +397,8 @@ export function render(){
 
     let bottomFab = undefined
     let bottomFabStyle = {
-        marginBottom: (isPlatform("ipad") || isPlatform("iphone") ? safeAreaInsets.bottom : 0) + "px"
+        //marginBottom: (isPlatform("ipad") || isPlatform("iphone") ? safeAreaInsets.bottom : 0) + "px"
+        marginBottom: "0px"
     }
 
     if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
@@ -468,7 +478,7 @@ export function render(){
             <IonApp>
                 <IonPage>
                     <IonMenu side="start" menuId="sideBarMenu" content-id="main-content">
-                        <IonHeader style={{
+                        <IonHeader className="ion-no-border" style={{
                             padding: "15px",
                             alignItems: "center",
                             textAlign: "center",
@@ -533,7 +543,7 @@ export function render(){
                             "--background": this.state.darkMode ? "#1E1E1E" : "white"
                         }} fullscreen={true}>
                             <IonList>
-                                <IonItem button lines="none" onClick={() => {
+                                {/*<IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
                                     return this.routeTo("/base")
@@ -542,7 +552,7 @@ export function render(){
                                     <IonLabel>{language.get(this.state.lang, "myCloud")}</IonLabel>
                                 </IonItem>
                                 {
-                                    (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0) && (
+                                    showShareLinks && (
                                         <div>
                                             <IonItem button lines="none" onClick={() => {
                                                 window.customFunctions.hideSidebarMenu()
@@ -578,7 +588,7 @@ export function render(){
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.timeOutline}></IonIcon>
                                     <IonLabel>{language.get(this.state.lang, "recent")}</IonLabel>
-                                </IonItem>
+                                </IonItem>*/}
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
@@ -635,7 +645,7 @@ export function render(){
                         </IonContent>
                     </IonMenu>
                     <IonMenu side="end" menuId="transfersMenu" content-id="main-content">
-                        <IonHeader>
+                        <IonHeader className="ion-no-border">
                             <IonToolbar>
                                 <IonTitle>
                                     {language.get(this.state.lang, "transfersMenuTitle")}
@@ -660,13 +670,13 @@ export function render(){
                         </IonContent>
                     </IonMenu>
                     <div id="main-content">
-                        <IonHeader>
+                        <IonHeader className="ion-no-border">
                             {mainToolbar}
                         </IonHeader>
                         <IonContent style={{
                             width: this.state.windowWidth + "px",
-                            height: this.state.windowHeight - 56 - safeAreaInsets.bottom + "px",
-                            "--background": this.state.darkMode ? "#1E1E1E" : "white",
+                            height: this.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 25 : 0) - safeAreaInsets.bottom + "px",
+                            "--background": this.state.darkMode ? "" : "white", //#1E1E1E darkmode
                             outline: "none",
                             border: "none"
                         }} fullscreen={true}>
@@ -803,7 +813,7 @@ export function render(){
                                         </div>
                                     ) : (
                                         <List 
-                                            height={this.state.windowHeight - 56}
+                                            height={this.state.windowHeight - 56 - 57}
                                             width={this.state.windowWidth}
                                             rowCount={this.state.itemList.length}
                                             rowHeight={72}
@@ -842,6 +852,64 @@ export function render(){
                             }} multiple />
                         </IonContent>
                     </div>
+                    <IonToolbar style={{
+                        "--background": (this.state.darkMode ? "" : "rgba(1, 1, 1, 0.075)"),
+                        paddingBottom: safeAreaInsets.bottom + "px"
+                    }}>
+                        <IonButtons>
+                            <IonButton onClick={() => {
+                                return routeTo("/base")
+                            }} style={{
+                                width: (showShareLinks ? "20%" : "33%"),
+                                "--ripple-color": "transparent",
+                                color: (window.location.href.indexOf("base") !== -1 ? "#3780FF" : "")
+                            }}>
+                                <IonIcon icon={Ionicons.cloud} />
+                            </IonButton>
+                            {
+                                showShareLinks && (
+                                    <>
+                                        <IonButton onClick={() => {
+                                            return routeTo("/shared-in")
+                                        }} style={{
+                                            width: (showShareLinks ? "20%" : "33%"),
+                                            "--ripple-color": "transparent",
+                                            color: (window.location.href.indexOf("shared-in") !== -1 ? "#3780FF" : "")
+                                        }}>
+                                            <IonIcon icon={Ionicons.folderOpen} />
+                                        </IonButton>
+                                        <IonButton onClick={() => {
+                                            return routeTo("/shared-out")
+                                        }} style={{
+                                            width: (showShareLinks ? "20%" : "33%"),
+                                            "--ripple-color": "transparent",
+                                            color: (window.location.href.indexOf("shared-out") !== -1 ? "#3780FF" : "")
+                                        }}>
+                                            <IonIcon icon={Ionicons.folder} />
+                                        </IonButton>
+                                    </>
+                                )
+                            }
+                            <IonButton onClick={() => {
+                                return routeTo("/links")
+                            }} style={{
+                                width: (showShareLinks ? "20%" : "33%"),
+                                "--ripple-color": "transparent",
+                                color: (window.location.href.indexOf("links") !== -1 ? "#3780FF" : "")
+                            }}>
+                                <IonIcon icon={Ionicons.link} />
+                            </IonButton>
+                            <IonButton onClick={() => {
+                                return routeTo("/recent")
+                            }} style={{
+                                width: (showShareLinks ? "20%" : "33%"),
+                                "--ripple-color": "transparent",
+                                color: (window.location.href.indexOf("recent") !== -1 ? "#3780FF" : "")
+                            }}>
+                                <IonIcon icon={Ionicons.time} />
+                            </IonButton>
+                        </IonButtons>
+                    </IonToolbar>
                 </IonPage>
             </IonApp> 
         )

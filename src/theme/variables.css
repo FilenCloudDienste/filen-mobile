@@ -261,3 +261,8 @@ body {
   --background: rgba(0, 0, 0, 0.08) !important;
   background-color: rgba(0, 0, 0, 0.08) !important;
 }
+
+.item-not-activated-mode {
+  --background: transparent !important;
+  background-color: transparent !important;
+}

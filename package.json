@@ -22,7 +22,7 @@
     "@types/react-router-dom": "^5.1.3",
     "@vitalets/google-translate-api": "^4.0.0",
     "argon2": "^0.27.2",
-    "browser-image-compression": "^1.0.13",
+    "browser-image-compression": "https://github.com/Dwynr/browser-image-compression",
     "cordova-plugin-file-opener2": "^3.0.5",
     "cordova-plugin-navigationbar-color": "^0.1.0",
     "crypto": "^1.0.1",
@@ -82,7 +82,6 @@
   },
   "devDependencies": {
     "@capacitor/cli": "2.4.2",
-    "@types/browser-image-compression": "^1.0.1",
     "@types/pdf-viewer-reactjs": "^2.0.0"
   },
   "description": "Filen App"

@@ -97,7 +97,7 @@ export async function setupStatusbar(type = "normal"){
         if(type == "normal"){
             if(this.state.darkMode){
                 Plugins.StatusBar.setBackgroundColor({
-                    color: "#1F1F1F"
+                    color: "#121212"
                 })
                 
                 Plugins.StatusBar.setStyle({
@@ -273,13 +273,6 @@ export async function doSetup(){
                 window.customVariables.offlineSavedFiles = JSON.parse(getOfflineSavedFiles.value)
             }
 
-            if(getAPICache.value == null){
-                window.customVariables.apiCache = {}
-            }
-            else{
-                window.customVariables.apiCache = JSON.parse(getAPICache.value)
-            }
-
             if(getCachedFiles.value == null){
                 window.customVariables.cachedFiles = {}
             }
@@ -315,19 +308,26 @@ export async function doSetup(){
                 window.customVariables.getThumbnailErrors = JSON.parse(getGetThumbnailErrors.value)
             }
 
-            if(getCachedAPIItemListRequests.value == null){
+            /*if(getAPICache.value == null){
+                window.customVariables.apiCache = {}
+            }
+            else{
+                window.customVariables.apiCache = JSON.parse(getAPICache.value)
+            }*/
+
+            /*if(getCachedAPIItemListRequests.value == null){
                 window.customVariables.cachedAPIItemListRequests = {}
             }
             else{
                 window.customVariables.cachedAPIItemListRequests = JSON.parse(getCachedAPIItemListRequests.value)
-            }
+            }*/
 
-            if(getItemsCache.value == null){
+            /*if(getItemsCache.value == null){
                 window.customVariables.itemsCache = {}
             }
             else{
                 window.customVariables.itemsCache = JSON.parse(getItemsCache.value)
-            }
+            }*/
         }
         else{
             return this.showLogin()
@@ -339,11 +339,11 @@ export async function doSetup(){
     this.updateUserKeys()
     this.updateUserUsage()
 
-    clearInterval(window.customVariables.keyUpdateInterval)
+    /*clearInterval(window.customVariables.keyUpdateInterval)
 
     window.customVariables.keyUpdateInterval = setInterval(() => {
         this.updateUserKeys()
-    }, 60000)
+    }, 60000)*/
 
     clearInterval(window.customVariables.usageUpdateInterval)
 

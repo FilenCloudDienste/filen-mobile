@@ -51,7 +51,7 @@ export async function openSettingsModal(){
     customElements.define(modalId, class ModalContent extends HTMLElement {
         connectedCallback() {
             this.innerHTML = `
-                <ion-header style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
                     <ion-toolbar>
                         <ion-buttons slot="start">
                             <ion-button onclick="window.customFunctions.dismissModal()">
