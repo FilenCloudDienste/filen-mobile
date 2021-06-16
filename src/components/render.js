@@ -594,7 +594,7 @@ export function render(){
                                     
                                     return window.customFunctions.openEventsModal()
                                 }}>
-                                    <IonIcon slot="start" icon={Ionicons.alertOutline}></IonIcon>
+                                    <IonIcon slot="start" icon={Ionicons.informationCircleOutline}></IonIcon>
                                     <IonLabel>{language.get(this.state.lang, "events")}</IonLabel>
                                 </IonItem>
                                 <IonItem button lines="none" onClick={() => {
@@ -853,7 +853,7 @@ export function render(){
                         </IonContent>
                     </div>
                     <IonToolbar style={{
-                        "--background": (this.state.darkMode ? "" : "rgba(1, 1, 1, 0.075)"),
+                        "--background": (this.state.darkMode ? "" : "#F0F0F0"),
                         paddingBottom: safeAreaInsets.bottom + "px"
                     }}>
                         <IonButtons>
