@@ -52,14 +52,7 @@ export function uuidv4(){ // Public Domain/MIT
 }
 
 export function generateRandomString(length = 32){
-    let result = ""
-    let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-
-    for(let i = 0; i < length; i++){
-        result += characters.charAt(Math.floor(Math.random() * characters.length))
-    }
-
-    return result
+    return window.btoa(Array.from(window.crypto.getRandomValues(new Uint8Array(length * 2))).map((b) => String.fromCharCode(b)).join("")).replace(/[+/]/g, "").substring(0, length)
 }
 
 export function generateRandomClassName(length = 16){
@@ -107,24 +100,36 @@ export function fetchWithTimeout(ms, promise) {
 export function backgroundAPIRequest(method, endpoint, data = {}){
     let cacheKey = method + endpoint
 
-    fetchWithTimeout(60000, fetch(getAPIServer() + endpoint, {
-        method: method.toUpperCase(),
-        cache: "no-cache",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-    })).then((response) => {
-        response.json().then((obj) => {
-            window.customVariables.cachedAPIItemListRequests[cacheKey] = obj
+    const doRequest = (tries, maxTries) => {
+		if(tries >= maxTries){
+			return console.log("Request failed")
+		}
 
-            return window.customFunctions.saveAPICache()
-        }).catch((err) => {
-            console.log(err)
-        })
-    }).catch((err) => {
-        console.log(err)
-    })
+		fetchWithTimeout(60000, fetch(getAPIServer() + endpoint, {
+			method: method.toUpperCase(),
+			cache: "no-cache",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(data)
+		})).then((response) => {
+			response.json().then((obj) => {
+				window.customVariables.cachedAPIItemListRequests[cacheKey] = obj
+
+				return window.customFunctions.saveAPICache()
+			}).catch((err) => {
+				console.log(err)
+
+				return doRequest((tries + 1), maxTries)
+			})
+		}).catch((err) => {
+			console.log(err)
+
+			return doRequest((tries + 1), maxTries)
+		})
+	}
+
+	return doRequest(0, 16)
 }
 
 export function apiRequest(method, endpoint, data = {}){
@@ -166,44 +171,52 @@ export function apiRequest(method, endpoint, data = {}){
             }
         }
 
-        fetchWithTimeout(60000, fetch(getAPIServer() + endpoint, {
-            method: method.toUpperCase(),
-            cache: "no-cache",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })).then((response) => {
-            response.json().then((obj) => {
-                if(endpoint == "/v1/dir/content"
-                || endpoint == "/v1/user/baseFolders"
-                || endpoint == "/v1/user/shared/in"
-                || endpoint == "/v1/user/shared/out"
-                || endpoint == "/v1/user/keyPair/info"){
-                    window.customVariables.apiCache[cacheKey] = obj
+        const doRequest = (tries, maxTries) => {
+			if(tries >= maxTries){
+				return reject(new Error("Request failed"))
+			}
 
-                    window.customFunctions.saveAPICache()
-                }
+			fetchWithTimeout(60000, fetch(getAPIServer() + endpoint, {
+				method: method.toUpperCase(),
+				cache: "no-cache",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(data)
+			})).then((response) => {
+				response.json().then((obj) => {
+					if(endpoint == "/v1/dir/content"
+					|| endpoint == "/v1/user/baseFolders"
+					|| endpoint == "/v1/user/shared/in"
+					|| endpoint == "/v1/user/shared/out"
+					|| endpoint == "/v1/user/keyPair/info"){
+						window.customVariables.apiCache[cacheKey] = obj
 
-                return resolve(obj)
-            }).catch((err) => {
-                console.log(err)
+						window.customFunctions.saveAPICache()
+					}
 
-                if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
-                    return resolve(window.customVariables.apiCache[cacheKey])
-                }
+					return resolve(obj)
+				}).catch((err) => {
+					console.log(err)
 
-                return reject(err)
-            })
-        }).catch((err) => {
-            console.log(err)
+					if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
+						return resolve(window.customVariables.apiCache[cacheKey])
+					}
 
-            if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
-                return resolve(window.customVariables.apiCache[cacheKey])
-            }
+					return doRequest((tries + 1), maxTries)
+				})
+			}).catch((err) => {
+				console.log(err)
 
-            return reject(err)
-        })
+				if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
+					return resolve(window.customVariables.apiCache[cacheKey])
+				}
+
+				return doRequest((tries + 1), maxTries)
+			})
+		}
+
+		return doRequest(0, 16)
     })
 }
 
