@@ -367,7 +367,7 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
             try{
                 if(res.byteLength){
                     if(res.byteLength > 1){
-                        workers.decryptData(file.uuid, index, file.key, res, (decrypted) => {
+                        workers.decryptData(file.uuid, index, file.key, res, file.version, (decrypted) => {
                             window.customVariables.downloadChunkSemaphore.release()
     
                             return callback(null, index, decrypted)
@@ -1066,7 +1066,7 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
         else{
             return setTimeout(() => {
                 write(index, data, callback)
-            }, 50)
+            }, 25)
         }
     }
 
@@ -1080,7 +1080,7 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
         }
 
         if(thisIndex < file.chunks && thisIndex < maxChunks && !window.customVariables.stopGettingPreviewData){
-            this.downloadFileChunk(file, thisIndex, 0, 32, (err, downloadIndex, downloadData) => {
+            this.downloadFileChunk(file, thisIndex, 0, 64, (err, downloadIndex, downloadData) => {
                 if(isThumbnailDownload){
                     window.customVariables.stopGettingPreviewData = false
                 }

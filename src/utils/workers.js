@@ -6099,22 +6099,44 @@ const createEncryptionWorker = () => {
 			let preKey = new TextEncoder().encode(e.data.key)
 			let iv = preKey.slice(0, 16)
 
-			nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["encrypt", "decrypt"]).then((key) => {
-				nativeCrypto.subtle.encrypt({
-					name: "AES-CBC",
-					iv: iv
-				}, key, e.data.data).then((encrypted) => {
-					return postMessage({
-						uuid: e.data.uuid,
-						index: e.data.index,
-						data: convertUint8ArrayToBinaryString(new Uint8Array(encrypted))
+			if(e.data.version == 1){
+				nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["encrypt"]).then((key) => {
+					nativeCrypto.subtle.encrypt({
+						name: "AES-CBC",
+						iv: iv
+					}, key, e.data.data).then((encrypted) => {
+						return postMessage({
+							uuid: e.data.uuid,
+							index: e.data.index,
+							data: convertUint8ArrayToBinaryString(new Uint8Array(encrypted)),
+							version: e.data.version
+						})
+					}).catch((err) => {
+						console.log(err)
 					})
 				}).catch((err) => {
 					console.log(err)
 				})
-			}).catch((err) => {
-				console.log(err)
-			})
+			}
+			else if(e.data.version == 2){
+				nativeCrypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["encrypt"]).then((key) => {
+					nativeCrypto.subtle.encrypt({
+						name: "AES-GCM",
+						iv: iv
+					}, key, e.data.data).then((encrypted) => {
+						return postMessage({
+							uuid: e.data.uuid,
+							index: e.data.index,
+							data: convertUint8ArrayToBinaryString(new Uint8Array(encrypted)),
+							version: e.data.version
+						})
+					}).catch((err) => {
+						console.log(err)
+					})
+				}).catch((err) => {
+					console.log(err)
+				})
+			}
 		}
   	`], {
   		type: "text/javascript"
@@ -6227,40 +6249,64 @@ const createDecryptionWorker = () => {
 			let preKey = new TextEncoder().encode(e.data.key)
 			let iv = preKey.slice(0, 16)
 
-			nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["encrypt", "decrypt"]).then((genKey) => {
-				let sliced = convertUint8ArrayToBinaryString(new Uint8Array(e.data.data.slice(0, 16)))
+			if(e.data.version == 1){
+				nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["decrypt"]).then((genKey) => {
+					let sliced = convertUint8ArrayToBinaryString(new Uint8Array(e.data.data.slice(0, 16)))
 
-				if(sliced.indexOf("Salted") !== -1){
-					return postMessage({
-						uuid: e.data.uuid,
-						index: e.data.index,
-						data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(base64ArrayBuffer(e.data.data), e.data.key))
-					})
-				}
-				else if(sliced.indexOf("U2FsdGVk") !== -1){
-					return postMessage({
-						uuid: e.data.uuid,
-						index: e.data.index,
-						data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(convertUint8ArrayToBinaryString(new Uint8Array(e.data.data)), e.data.key))
-					})
-				}
-				else{
+					if(sliced.indexOf("Salted") !== -1){
+						return postMessage({
+							uuid: e.data.uuid,
+							index: e.data.index,
+							data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(base64ArrayBuffer(e.data.data), e.data.key)),
+							version: e.data.version
+						})
+					}
+					else if(sliced.indexOf("U2FsdGVk") !== -1){
+						return postMessage({
+							uuid: e.data.uuid,
+							index: e.data.index,
+							data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(convertUint8ArrayToBinaryString(new Uint8Array(e.data.data)), e.data.key)),
+							version: e.data.version
+						})
+					}
+					else{
+						nativeCrypto.subtle.decrypt({
+							name: "AES-CBC",
+							iv: iv
+						}, genKey, e.data.data).then((decrypted) => {
+							return postMessage({
+								uuid: e.data.uuid,
+								index: e.data.index,
+								data: new Uint8Array(decrypted),
+								version: e.data.version
+							})
+						}).catch((err) => {
+							return console.log(err)
+						})
+					}
+				}).catch((err) => {
+					return console.log(err)
+				})
+			}
+			else if(e.data.version == 2){
+				nativeCrypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["decrypt"]).then((genKey) => {
 					nativeCrypto.subtle.decrypt({
-						name: "AES-CBC",
+						name: "AES-GCM",
 						iv: iv
 					}, genKey, e.data.data).then((decrypted) => {
 						return postMessage({
 							uuid: e.data.uuid,
 							index: e.data.index,
-							data: new Uint8Array(decrypted)
+							data: new Uint8Array(decrypted),
+							version: e.data.version
 						})
 					}).catch((err) => {
 						return console.log(err)
 					})
-				}
-			}).catch((err) => {
-				return console.log(err)
-			})
+				}).catch((err) => {
+					return console.log(err)
+				})
+			}
 		}
   	`], {
   		type: "text/javascript"
@@ -6386,14 +6432,15 @@ const getRandomArbitrary = (min, max) => {
 }
 
 module.exports = {
-    encryptData: (uuid, index, key, data, callback) => {
+    encryptData: (uuid, index, key, data, version, callback) => {
 		let worker = encryptionWorker[getRandomArbitrary(0, encryptionWorker.length - 1)]
 
         worker.postMessage({
             uuid,
             index,
             key,
-            data
+            data,
+			version
         })
     
         let waitInterval = setInterval(() => {
@@ -6406,16 +6453,17 @@ module.exports = {
     
                 return callback(res)
             }
-        }, 50)
+        }, 10)
     },
-    decryptData: (uuid, index, key, data, callback) => {
+    decryptData: (uuid, index, key, data, version, callback) => {
 		let worker = decryptionWorker[getRandomArbitrary(0, decryptionWorker.length - 1)]
 
         worker.postMessage({
             uuid,
             index,
             key,
-            data
+            data,
+			version
         })
     
         let waitInterval = setInterval(() => {
@@ -6428,7 +6476,7 @@ module.exports = {
     
                 return callback(res)
             }
-        }, 50)
+        }, 10)
     },
     convertArrayBufferToBase64: (data, callback) => {
         let type = "arrayBufferToBase64"
@@ -6450,7 +6498,7 @@ module.exports = {
     
                 return callback(res)
             }
-        }, 50)
+        }, 10)
 	},
 	convertBase64ToArrayBuffer: (data, callback) => {
         let type = "base64ToArrayBuffer"
@@ -6472,6 +6520,6 @@ module.exports = {
     
                 return callback(res)
             }
-        }, 50)
+        }, 10)
     }
 }

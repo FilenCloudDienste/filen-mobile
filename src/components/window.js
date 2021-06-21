@@ -913,7 +913,7 @@ export function setupWindowFunctions(){
             connectedCallback(){
                 this.innerHTML = `
                     <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                        <ion-toolbar>
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
                                     <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -955,7 +955,7 @@ export function setupWindowFunctions(){
             connectedCallback(){
                 this.innerHTML = `
                     <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                        <ion-toolbar>
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
                                     <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -2261,7 +2261,7 @@ export function setupWindowFunctions(){
             connectedCallback(){
                 this.innerHTML = `
                     <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                        <ion-toolbar>
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
                                     <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -2308,7 +2308,7 @@ export function setupWindowFunctions(){
                 connectedCallback(){
                     this.innerHTML = `
                         <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                            <ion-toolbar>
+                            <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                                 <ion-buttons slot="start">
                                     <ion-button onClick="window.customFunctions.dismissModal()">
                                         <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -2337,7 +2337,7 @@ export function setupWindowFunctions(){
                 connectedCallback(){
                     this.innerHTML = `
                         <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                            <ion-toolbar>
+                            <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                                 <ion-buttons slot="start">
                                     <ion-button onClick="window.customFunctions.dismissModal()">
                                         <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -2581,7 +2581,7 @@ export function setupWindowFunctions(){
             connectedCallback(){
                 this.innerHTML = `
                     <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                        <ion-toolbar>
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
                                     <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -2654,7 +2654,7 @@ export function setupWindowFunctions(){
             connectedCallback(){
                 this.innerHTML = `
                     <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                        <ion-toolbar>
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
                                     <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -2708,7 +2708,7 @@ export function setupWindowFunctions(){
             connectedCallback(){
                 this.innerHTML = `
                     <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                        <ion-toolbar>
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
                                     <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -2828,7 +2828,7 @@ export function setupWindowFunctions(){
             connectedCallback(){
                 this.innerHTML = `
                     <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-                        <ion-toolbar>
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.dismissModal()">
                                     <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>

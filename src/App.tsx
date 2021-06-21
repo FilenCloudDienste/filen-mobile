@@ -63,7 +63,9 @@ interface AppStates {
 	userFiles: number,
 	userFolders: number,
 	twoFactorEnabled: boolean,
-	userIsPro: boolean
+	userIsPro: boolean,
+	showItemsSekeleton: boolean,
+	currentFileVersion: number
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -108,7 +110,9 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			userFiles: 0,
 			userFolders: 0,
 			twoFactorEnabled: false,
-			userIsPro: false
+			userIsPro: false,
+			showItemsSekeleton: false,
+			currentFileVersion: 1
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)

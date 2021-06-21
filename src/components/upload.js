@@ -298,7 +298,7 @@ export async function queueFileUpload(file){
 					fileReader.onload = async () => {
 						let arrayBuffer = fileReader.result
 
-						workers.encryptData(uuid, thisIndex, key, arrayBuffer, (encrypted) => {
+						workers.encryptData(uuid, thisIndex, key, arrayBuffer, this.state.currentFileVersion, (encrypted) => {
 							let blob = encrypted
 
 							arrayBuffer = null
