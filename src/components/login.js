@@ -76,32 +76,4 @@ export async function showLogin(){
     if(Capacitor.isNative && window.customVariables.isDocumentReady){
         Plugins.SplashScreen.hide()
     }
-
-    clearInterval(window.customVariables.selectLangInterval)
-
-    window.customVariables.selectLangInterval = setInterval(async () => {
-        if(typeof document.getElementById("settings-lang-select") == "undefined"){
-            return clearInterval(window.customVariables.selectLangInterval)
-        }
-
-        if(document.getElementById("settings-lang-select") == null){
-            return clearInterval(window.customVariables.selectLangInterval)
-        }
-
-        if(typeof document.getElementById("settings-lang-select").value == "undefined"){
-            return clearInterval(window.customVariables.selectLangInterval)
-        }
-
-        let selectedLang = document.getElementById("settings-lang-select").value
-
-        if(selectedLang !== appLang){
-            if(language.isAvailable(selectedLang)){
-                clearInterval(window.customVariables.selectLangInterval)
-
-                await Plugins.Storage.set({ key: "lang", value: selectedLang })
-
-                return document.location.href = "index.html"
-            }
-        }
-    }, 100)
 }

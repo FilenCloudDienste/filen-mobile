@@ -65,7 +65,8 @@ interface AppStates {
 	twoFactorEnabled: boolean,
 	userIsPro: boolean,
 	showItemsSekeleton: boolean,
-	currentFileVersion: number
+	currentFileVersion: number,
+	currentAuthVersion: number
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -112,7 +113,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			twoFactorEnabled: false,
 			userIsPro: false,
 			showItemsSekeleton: false,
-			currentFileVersion: 1
+			currentFileVersion: 1,
+			currentAuthVersion: 1
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)

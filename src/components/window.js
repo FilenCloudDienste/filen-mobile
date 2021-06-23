@@ -6,6 +6,7 @@ import { isPlatform, getPlatforms } from "@ionic/react"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
+const CryptoJS = require("crypto-js")
 
 export function windowRouter(){
     window.onhashchange = async () => {
@@ -664,7 +665,7 @@ export function setupWindowFunctions(){
         let password = document.getElementById("login-password").value
         let twoFactorKey = document.getElementById("login-2fa").value
 
-        /*if(!email || !password){
+        if(!email || !password){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
@@ -673,7 +674,7 @@ export function setupWindowFunctions(){
             })
 
             return alert.present()
-        }*/
+        }
 
         if(twoFactorKey.length == 0){
             twoFactorKey = "XXXXXX"
@@ -686,10 +687,86 @@ export function setupWindowFunctions(){
         loading.present()
 
         try{
+            var authInfo = await utils.apiRequest("POST", "/v1/auth/info", {
+                email
+            })
+        }
+        catch(e){
+            document.getElementById("login-password").value = ""
+            document.getElementById("login-2fa").value = ""
+
+            console.log(e)
+
+            window.customFunctions.dismissLoader()
+
+            let alert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: language.get(this.state.lang, "apiRequestError"),
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+
+            return alert.present()
+        }
+
+        if(!authInfo.status){
+            document.getElementById("login-password").value = ""
+            document.getElementById("login-2fa").value = ""
+
+            window.customFunctions.dismissLoader()
+
+            let alert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: language.get(this.state.lang, "loginWrongCredentials"),
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+
+            return alert.present()
+        }
+
+        let passwordToSend = undefined
+        let mKey = undefined
+        let salt = authInfo.data.salt
+        let authVersion = authInfo.data.authVersion
+
+        try{
+            if(authVersion == 1){
+                passwordToSend = utils.hashPassword(password)
+                mKey = utils.hashFn(password)
+            }
+            else if(authVersion == 2){
+                try{
+					let derivedKey = await utils.deriveKeyFromPassword(password, salt, 200000, "SHA-512", 512) //PBKDF2, 200.000 iterations, sha-512, 512 bit key, first half (from left) = master key, second half = auth key
+
+					mKey = derivedKey.substring(0, (derivedKey.length / 2))
+			  		passwordToSend = derivedKey.substring((derivedKey.length / 2), derivedKey.length)
+			  		passwordToSend = CryptoJS.SHA512(passwordToSend).toString()
+				}
+				catch(err){
+					document.getElementById("login-password").value = ""
+                    document.getElementById("login-2fa").value = ""
+
+                    console.log(err)
+
+                    window.customFunctions.dismissLoader()
+
+                    let alert = await alertController.create({
+                        header: "",
+                        subHeader: "",
+                        message: language.get(this.state.lang, "passwordDerivationError"),
+                        buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                    })
+
+                    return alert.present()
+				}
+            }
+
             var res = await utils.apiRequest("POST", "/v1/login", {
                 email,
-                password: utils.hashPassword(password),
-                twoFactorKey
+                password: passwordToSend,
+                twoFactorKey,
+                authVersion
             })
         }
         catch(e){
@@ -766,7 +843,8 @@ export function setupWindowFunctions(){
         await Plugins.Storage.set({ key: "isLoggedIn", value: "true" })
         await Plugins.Storage.set({ key: "userAPIKey", value: res.data.apiKey })
         await Plugins.Storage.set({ key: "userEmail", value: email })
-        await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify([utils.hashFn(password)]) })
+        await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify([mKey]) })
+        await Plugins.Storage.set({ key: "userAuthVersion", value: authVersion })
 
         /*window.customFunctions.dismissLoader(true)
         window.customFunctions.dismissModal(true)
@@ -784,7 +862,7 @@ export function setupWindowFunctions(){
         let password = document.getElementById("register-password").value
         let passwordRepeat = document.getElementById("register-password-repeat").value
 
-        /*if(!email || !password || !passwordRepeat){
+        if(!email || !password || !passwordRepeat){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
@@ -793,7 +871,29 @@ export function setupWindowFunctions(){
             })
 
             return alert.present()
-        }*/
+        }
+
+        if(password.length < 10){
+            let alert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: language.get(this.state.lang, "registerPasswordAtLeast10Chars"),
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+
+            return alert.present()
+        }
+
+        if(password !== passwordRepeat){
+            let alert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: language.get(this.state.lang, "registerPasswordsDoNotMatch"),
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+
+            return alert.present()
+        }
 
         let loading = await loadingController.create({
             message: ""
@@ -801,11 +901,41 @@ export function setupWindowFunctions(){
     
         loading.present()
 
+        let salt = utils.generateRandomString(256)
+
         try{
+            if(this.state.currentAuthVersion == 1){
+                password = utils.hashPassword(password)
+                passwordRepeat = password
+            }
+            else if(this.state.currentAuthVersion == 2){
+                try{
+					let derivedKey = await utils.deriveKeyFromPassword(password, salt, 200000, "SHA-512", 512) //PBKDF2, 200.000 iterations, sha-512, 512 bit key, first half (from left) = master key, second half = auth key
+
+			  		password = derivedKey.substring((derivedKey.length / 2), derivedKey.length)
+			  		password = CryptoJS.SHA512(password).toString()
+                    passwordRepeat = password
+				}
+				catch(err){
+                    console.log(err)
+
+                    let alert = await alertController.create({
+                        header: "",
+                        subHeader: "",
+                        message: language.get(this.state.lang, "passwordDerivationError"),
+                        buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                    })
+
+                    return alert.present()
+				}
+            }
+
             var res = await utils.apiRequest("POST", "/v1/register", {
                 email,
                 password: utils.hashPassword(password),
-                passwordRepeat: utils.hashPassword(passwordRepeat)
+                passwordRepeat: utils.hashPassword(passwordRepeat),
+                salt,
+                authVersion: this.state.currentAuthVersion
             })
         }
         catch(e){
@@ -2720,7 +2850,7 @@ export function setupWindowFunctions(){
                         </ion-toolbar>
                     </ion-header>
                     <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
-                        <ion-list>
+                        <!--<ion-list>
                             <ion-item>
                                 <ion-label>
                                     <ion-input placeholder="` + language.get(appLang, "changeEmailNewEmail") + `" type="email" id="change-email-email"></ion-input>
@@ -2741,10 +2871,10 @@ export function setupWindowFunctions(){
                                     <ion-button expand="block" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.customFunctions.changeEmail()">` + language.get(appLang, "save") + `</ion-button>
                                 </ion-label>
                             </ion-item>
-                        </ion-list>
+                        </ion-list>-->
                         <ion-list>
                             <ion-item lines="none" style="font-size: small; padding: 10px;">
-                                ` + language.get(appLang, "changePasswordInfo") + `
+                                ` + language.get(appLang, "changeEmailPasswordInfo") + `
                             </ion-item>
                         </ion-list>
                         <!--<ion-list style="margin-top: 30px;">

@@ -157,6 +157,10 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 		if(!res.status){
 			console.log(res.message)
+
+			if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+				return window.customFunctions.logoutUser()
+			}
 	
 			window.customFunctions.dismissLoader()
 	
@@ -250,6 +254,10 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 		if(!res.status){
 			console.log(res.message)
+
+			if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+				return window.customFunctions.logoutUser()
+			}
 	
 			window.customFunctions.dismissLoader()
 	
@@ -352,6 +360,10 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 			if(!res.status){
 				console.log(res.message)
+
+				if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+					return window.customFunctions.logoutUser()
+				}
 		
 				window.customFunctions.dismissLoader()
 		
@@ -458,6 +470,10 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 			if(!res.status){
 				console.log(res.message)
+
+				if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+					return window.customFunctions.logoutUser()
+				}
 		
 				window.customFunctions.dismissLoader()
 		
@@ -507,6 +523,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
 					offline = true
 				}
+
+				console.log(file)
 
 				let item = {
 					type: "file",

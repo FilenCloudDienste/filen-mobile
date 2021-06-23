@@ -349,7 +349,7 @@ export async function doSetup(){
 
     window.customVariables.usageUpdateInterval = setInterval(() => {
         this.updateUserUsage()
-    }, 60000)
+    }, 30000)
 
     clearInterval(window.customVariables.getNetworkInfoInterval)
 

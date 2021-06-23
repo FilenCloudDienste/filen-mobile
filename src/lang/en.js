@@ -275,6 +275,8 @@ translations['en']['settingsInviteCount'] = "Invited"
 translations['en']['settingsShowThumbnails'] = "Show thumbnails"
 translations['en']['changePasswordWarning'] = "Attention: Changing your password will change your encryption keys and that may render all your previously uploaded files and folders inaccessible! Continue with caution."
 translations['en']['changePasswordInfo'] = "You can change your password on our website."
+translations['en']['changeEmailPasswordInfo'] = "You can change your email address or password on our website."
+translations['en']['passwordDerivationError'] = "Password derivation error"
 
 module.exports = {
     translations

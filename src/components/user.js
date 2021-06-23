@@ -97,6 +97,10 @@ export async function updateUserKeys(cb){
         }
 
         if(!res.status){
+            if(res.message.toLowerCase().indexOf("api key not found") !== -1){
+                return window.customFunctions.logoutUser()
+            }
+            
             return console.log(res.message)
         }
 
