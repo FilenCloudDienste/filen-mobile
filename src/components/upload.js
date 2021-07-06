@@ -316,7 +316,8 @@ export async function queueFileUpload(file){
 								expire: expire,
 								uploadKey: uploadKey,
 								metaData: metaData,
-								parent: parent
+								parent: parent,
+								version: this.state.currentFileVersion
 							}).toString()
 
 							this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, (err, res, parsedQueryParams) => {

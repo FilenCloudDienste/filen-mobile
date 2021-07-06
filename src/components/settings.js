@@ -145,11 +145,11 @@ export async function openSettingsModal(){
                                 ` + language.get(appLang, "settings2FA") + `
                             </ion-label>
                         </ion-item>
-                        <ion-item lines="none" button onClick="window.customFunctions.openEmailPasswordModal()">
+                        <!--<ion-item lines="none" button onClick="window.customFunctions.openEmailPasswordModal()">
                             <ion-label>
                                 ` + language.get(appLang, "settingsChangeEmailPassword") + `
                             </ion-label>
-                        </ion-item>
+                        </ion-item>-->
                         <ion-item lines="none" button onClick="window.customFunctions.redeemCode()">
                             <ion-label>
                                 ` + language.get(appLang, "settingsRedeemCode") + `
@@ -281,33 +281,18 @@ export async function openSettingsModal(){
 
     await modal.present()
 
-    clearInterval(window.customVariables.selectLangInterval)
+    this.setupStatusbar("modal")
 
-    window.customVariables.selectLangInterval = setInterval(async () => {
-        if(typeof document.getElementById("settings-lang-select") == "undefined"){
-            return clearInterval(window.customVariables.selectLangInterval)
-        }
+    try{
+        let sModal = await modalController.getTop()
 
-        if(document.getElementById("settings-lang-select") == null){
-            return clearInterval(window.customVariables.selectLangInterval)
-        }
-
-        if(typeof document.getElementById("settings-lang-select").value == "undefined"){
-            return clearInterval(window.customVariables.selectLangInterval)
-        }
-
-        let selectedLang = document.getElementById("settings-lang-select").value
-
-        if(selectedLang !== appLang){
-            if(language.isAvailable(selectedLang)){
-                clearInterval(window.customVariables.selectLangInterval)
-
-                await Plugins.Storage.set({ key: "lang", value: selectedLang })
-
-                return document.location.href = "index.html"
-            }
-        }
-    }, 100)
+        sModal.onDidDismiss().then(() => {
+            this.setupStatusbar()
+        })
+    }
+    catch(e){
+        console.log(e)
+    }
 
     return true
 }

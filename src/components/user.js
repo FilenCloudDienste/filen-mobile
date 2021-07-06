@@ -246,6 +246,12 @@ export async function updateUserKeys(cb){
     }
     else{
         console.log("Could not decrypt master keys.")
+
+        if(typeof cb == "function"){
+            cb(null)
+        }
+
+        return false
     }
 
     if(typeof cb == "function"){

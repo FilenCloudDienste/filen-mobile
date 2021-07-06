@@ -1200,6 +1200,20 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 						console.log(e)
 					}
 				}
+				else{
+					this.setupStatusbar("modal")
+
+					try{
+						let modal = await modalController.getTop()
+	
+						modal.onDidDismiss().then(() => {
+							this.setupStatusbar()
+						})
+					}
+					catch(e){
+						console.log(e)
+					}
+				}
 			}
 
 			const setupSlider = (lastPreviewType) => {

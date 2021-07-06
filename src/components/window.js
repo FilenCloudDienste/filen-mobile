@@ -186,6 +186,26 @@ export function setupWindowFunctions(){
 
     clearInterval(window.customVariables.mainSearchbarInterval)
 
+    setInterval(() => {
+        if(document.getElementById("main-virtual-list") !== null){
+            if(document.getElementById("main-virtual-list").scrollTop > 0 && document.getElementById("main-virtual-list").scrollTop === (document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight)){
+                this.setState({
+                    hideMainFab: true
+                })
+            }
+            else{
+                this.setState({
+                    hideMainFab: false
+                })
+            }
+        }
+        else{
+            this.setState({
+                hideMainFab: false
+            })
+        }
+    }, 1000)
+
     window.customVariables.mainSearchbarInterval = setInterval(() => {
         if(document.getElementById("main-searchbar") !== null){
             let term = document.getElementById("main-searchbar").value.trim()
@@ -1073,7 +1093,24 @@ export function setupWindowFunctions(){
             cssClass: "modal-fullscreen"
         })
 
-        return modal.present()
+        await modal.present()
+
+        if(!this.state.isLoggedIn){
+            this.setupStatusbar("modal")
+
+            try{
+                let sModal = await modalController.getTop()
+
+                sModal.onDidDismiss().then(() => {
+                    this.setupStatusbar()
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return true
     }
 
     window.customFunctions.openEncryptionModal = async () => {
@@ -1128,7 +1165,22 @@ export function setupWindowFunctions(){
             cssClass: "modal-fullscreen"
         })
 
-        return modal.present()
+        await modal.present()
+
+        this.setupStatusbar("modal")
+
+        try{
+            let sModal = await modalController.getTop()
+
+            sModal.onDidDismiss().then(() => {
+                this.setupStatusbar()
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+
+        return true
     }
 
     window.customFunctions.openWebsiteModal = async () => {
@@ -2417,7 +2469,9 @@ export function setupWindowFunctions(){
             cssClass: "modal-fullscreen"
         })
 
-        return modal.present()
+        await modal.present()
+
+        return true
     }
 
     window.customFunctions.open2FAModal = async () => {
@@ -2739,7 +2793,22 @@ export function setupWindowFunctions(){
             cssClass: "modal-fullscreen"
         })
 
-        return await modal.present()
+        await modal.present()
+
+        this.setupStatusbar("modal")
+
+        try{
+            let sModal = await modalController.getTop()
+
+            sModal.onDidDismiss().then(() => {
+                this.setupStatusbar()
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+
+        return true
     }
 
     window.customFunctions.openEventDetailsModal = async (uuid) => {
@@ -2826,7 +2895,22 @@ export function setupWindowFunctions(){
             cssClass: "modal-fullscreen"
         })
 
-        return await modal.present()
+        await modal.present()
+
+        this.setupStatusbar("modal")
+
+        try{
+            let sModal = await modalController.getTop()
+
+            sModal.onDidDismiss().then(() => {
+                this.setupStatusbar()
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+
+        return true
     }
 
     window.customFunctions.openEmailPasswordModal = async () => {
@@ -2915,7 +2999,22 @@ export function setupWindowFunctions(){
             cssClass: "modal-fullscreen"
         })
 
-        return await modal.present()
+        await modal.present()
+
+        this.setupStatusbar("modal")
+
+        try{
+            let sModal = await modalController.getTop()
+
+            sModal.onDidDismiss().then(() => {
+                this.setupStatusbar()
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+
+        return true
     }
 
     window.customFunctions.openInviteModal = async () => {
@@ -3009,7 +3108,9 @@ export function setupWindowFunctions(){
             cssClass: "modal-fullscreen"
         })
 
-        return await modal.present()
+        await modal.present()
+
+        return true
     }
 
     window.customFunctions.copyRefLink = () => {

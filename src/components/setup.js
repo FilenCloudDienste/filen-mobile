@@ -122,6 +122,34 @@ export async function setupStatusbar(type = "normal"){
                 }
             }
         }
+        else if(type == "modal"){
+            if(this.state.darkMode){
+                Plugins.StatusBar.setBackgroundColor({
+                    color: "#1E1E1E"
+                })
+                
+                Plugins.StatusBar.setStyle({
+                    style: StatusBarStyle.Dark
+                })
+    
+                if(Capacitor.platform == "android"){
+                    window.NavigationBar.backgroundColorByHexString("#1E1E1E", false)
+                }
+            }
+            else{
+                Plugins.StatusBar.setBackgroundColor({
+                    color: "#ffffff"
+                })
+                
+                Plugins.StatusBar.setStyle({
+                    style: StatusBarStyle.Light
+                })
+
+                if(Capacitor.platform == "android"){
+                    window.NavigationBar.backgroundColorByHexString("#ffffff", true)
+                }
+            }
+        }
         else if(type == "image/video"){
             Plugins.StatusBar.setBackgroundColor({
                 color: "#000000"

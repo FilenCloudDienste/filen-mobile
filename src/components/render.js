@@ -401,26 +401,28 @@ export function render(){
         marginBottom: "0px"
     }
 
-    if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
-        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
-                        <IonFabButton color="danger">
-                            <IonIcon icon={Ionicons.trash} />
-                        </IonFabButton>
-                    </IonFab>
-    }
-    else if(window.location.href.indexOf("base") !== -1){
-        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => {
-            this.hideMainSearchbar()
-
-            this.mainFabAction()
-        }}>
-                        <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
-                            <IonIcon icon={Ionicons.add} />
-                        </IonFabButton>
-                    </IonFab>
-    }
-    else{
-        bottomFab = <div></div>
+    if(!this.state.hideMainFab){
+        if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
+            bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
+                            <IonFabButton color="danger">
+                                <IonIcon icon={Ionicons.trash} />
+                            </IonFabButton>
+                        </IonFab>
+        }
+        else if(window.location.href.indexOf("base") !== -1){
+            bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => {
+                this.hideMainSearchbar()
+    
+                this.mainFabAction()
+            }}>
+                            <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
+                                <IonIcon icon={Ionicons.add} />
+                            </IonFabButton>
+                        </IonFab>
+        }
+        else{
+            bottomFab = <div></div>
+        }
     }
 
     let transfersUploads = Object.keys(this.state.uploads).map((key) => {
@@ -514,7 +516,7 @@ export function render(){
                                 }}>
                                     {this.state.userStorageUsageMenuText}
                                 </div>
-                                {
+                                {/*{
                                     !isPlatform("ios") && (
                                         <div style={{
                                             float: "right"
@@ -536,7 +538,7 @@ export function render(){
                                             }
                                         </div>
                                     )
-                                }
+                                }*/}
                             </div>
                         </IonHeader>
                         <IonContent style={{
@@ -621,7 +623,7 @@ export function render(){
                                     <IonIcon slot="start" icon={Ionicons.lockClosed}></IonIcon>
                                     <IonLabel>{language.get(this.state.lang, "encryption")}</IonLabel>
                                 </IonItem>
-                                {
+                                {/*{
                                     !isPlatform("ios") && (
                                         <IonItem button lines="none" onClick={() => {
                                             window.customFunctions.hideSidebarMenu()
@@ -632,7 +634,7 @@ export function render(){
                                             <IonLabel>{language.get(this.state.lang, "website")}</IonLabel>
                                         </IonItem>
                                     )
-                                }
+                                }*/}
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
@@ -813,6 +815,7 @@ export function render(){
                                         </div>
                                     ) : (
                                         <List 
+                                            id="main-virtual-list"
                                             height={this.state.windowHeight - 56 - 57}
                                             width={this.state.windowWidth}
                                             rowCount={this.state.itemList.length}
