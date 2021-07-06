@@ -6153,10 +6153,6 @@ const createEncryptionWorker = () => {
 }
 
 let encryptionWorker = [
-	createEncryptionWorker(),
-	createEncryptionWorker(),
-	createEncryptionWorker(),
-	createEncryptionWorker(),
 	createEncryptionWorker()
 ]
 let encryptionWorkerResults = {}
@@ -6327,9 +6323,6 @@ const createDecryptionWorker = () => {
 }
 
 let decryptionWorker = [
-	createDecryptionWorker(),
-	createDecryptionWorker(),
-	createDecryptionWorker(),
 	createDecryptionWorker()
 ]
 let decryptionWorkerResults = {}
