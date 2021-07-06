@@ -188,7 +188,7 @@ export function setupWindowFunctions(){
 
     setInterval(() => {
         if(document.getElementById("main-virtual-list") !== null){
-            if(document.getElementById("main-virtual-list").scrollTop > 0 && document.getElementById("main-virtual-list").scrollTop === (document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight)){
+            if(document.getElementById("main-virtual-list").scrollTop > 0 && Math.floor(document.getElementById("main-virtual-list").scrollTop) === Math.floor(document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight)){
                 this.setState({
                     hideMainFab: true
                 })

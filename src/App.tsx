@@ -114,7 +114,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			twoFactorEnabled: false,
 			userIsPro: false,
 			showItemsSekeleton: false,
-			currentFileVersion: 2,
+			currentFileVersion: 1,
 			currentAuthVersion: 1,
 			hideMainFab: false
 		}
