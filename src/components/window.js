@@ -2897,19 +2897,6 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        this.setupStatusbar("modal")
-
-        try{
-            let sModal = await modalController.getTop()
-
-            sModal.onDidDismiss().then(() => {
-                this.setupStatusbar()
-            })
-        }
-        catch(e){
-            console.log(e)
-        }
-
         return true
     }
 

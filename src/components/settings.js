@@ -257,13 +257,11 @@ export async function openSettingsModal(){
                                 </ion-button>
                             </ion-buttons>
                         </ion-item>
-                        ` + (isPlatform("ios") ? `
-                            <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
-                                <ion-label>
-                                    ` + language.get(appLang, "iosDeviceSettingsMoreLink") + `
-                                </ion-label>
-                            </ion-item-divider>
-                        ` : ``) + `
+                        <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                            <ion-label>
+                                ` + language.get(appLang, "iosDeviceSettingsMoreLink") + `
+                            </ion-label>
+                        </ion-item-divider>
                     </ion-list>
                 </ion-content>
                 <br><br><br><br><br><br><br>

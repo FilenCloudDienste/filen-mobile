@@ -30,7 +30,7 @@ export async function showRegister(){
                                 <img src="assets/img/icon.png">
                             </ion-avatar>
                             <ion-item style="width: 90%; margin-top: 30px;">
-                                <ion-input type="text" id="register-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
+                                <ion-input type="email" id="register-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
                             </ion-item>
                             <ion-item style="width: 90%;">
                                 <ion-input type="password" id="register-password" placeholder="` + language.get(appLang, "passwordPlaceholder") + `"></ion-input>

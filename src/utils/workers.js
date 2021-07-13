@@ -6100,6 +6100,33 @@ const createEncryptionWorker = () => {
 		}
 
 		onmessage = (e) => {
+			if(typeof e.data.data == "undefined"){
+				return postMessage({
+					uuid: e.data.uuid,
+					index: e.data.index,
+					data: "",
+					version: e.data.version
+				})
+			}
+
+			if(typeof e.data.data.byteLength == "undefined"){
+				return postMessage({
+					uuid: e.data.uuid,
+					index: e.data.index,
+					data: "",
+					version: e.data.version
+				})
+			}
+
+			if(e.data.data.byteLength == 0){
+				return postMessage({
+					uuid: e.data.uuid,
+					index: e.data.index,
+					data: "",
+					version: e.data.version
+				})
+			}
+
 			let preKey = new TextEncoder().encode(e.data.key)
 
 			if(e.data.version == 1){

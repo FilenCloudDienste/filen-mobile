@@ -55,9 +55,9 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>To record audio for videos</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Store imgaes to camera</string>
+	<string>Store downloaded images to camera</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>To pick images from library</string>
+	<string>To pick images from library to upload</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -80,6 +80,10 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 </dict>
 </plist>

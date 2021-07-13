@@ -193,6 +193,7 @@ export async function queueFileUpload(file){
 		let doFirst = true
 		let markedAsDone = false
 		let chunksUploaded = 0
+		let uploadVersion = this.state.currentFileVersion
 
 		window.customVariables.stoppedUploads[uuid] = undefined
     	window.customVariables.stoppedUploadsDone[uuid] = undefined
@@ -317,7 +318,7 @@ export async function queueFileUpload(file){
 								uploadKey: uploadKey,
 								metaData: metaData,
 								parent: parent,
-								version: this.state.currentFileVersion
+								version: uploadVersion
 							}).toString()
 
 							this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, (err, res, parsedQueryParams) => {

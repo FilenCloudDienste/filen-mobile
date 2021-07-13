@@ -128,6 +128,29 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		})
 	
 		loading.present()
+
+		/*let skeletonItems = []
+
+		for(let i = 0; i < 10; i++){
+			skeletonItems.push({
+				type: "folder",
+				uuid: "default" + i,
+				name: "Default" + i,
+				date: language.get(this.state.lang, "defaultFolder"),
+				timestamp: (((+new Date()) / 1000) - (86400 * 3650)),
+				parent: "base",
+				receiverId: 0,
+				receiverEmail: "",
+				sharerId: 0,
+				sharerEmail: "",
+				color: null
+			})
+		}
+
+		this.setState({
+			showMainSkeletonPlaceholder: true,
+			items: skeletonItems
+		})*/
 	}
 
 	window.customVariables.currentThumbnailURL = window.location.href
@@ -703,12 +726,14 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 	let stateObj = { //
 		itemList: items,
-		scrollToIndex: scrollTo
+		scrollToIndex: scrollTo,
+		showMainSkeletonPlaceholder: false
 	}
 
 	if(isFollowUpRequest){
 		stateObj = {
-			itemList: items
+			itemList: items,
+			showMainSkeletonPlaceholder: false
 		}
 	}
 
@@ -3237,7 +3262,7 @@ export async function spawnItemActionSheet(item){
 	else{
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
-				...(!isPlatform("ios") ? [{
+				...(!isPlatform("ioss") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3278,7 +3303,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else if(window.location.href.indexOf("shared-out") !== -1){
 			buttons = [
-				...(!isPlatform("ios") ? [{
+				...(!isPlatform("ioss") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3319,7 +3344,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
-				...(!isPlatform("ios") ? [{
+				...(!isPlatform("ioss") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3357,7 +3382,7 @@ export async function spawnItemActionSheet(item){
 						return this.openPublicLinkModal(item)
 					}
 				},
-				...(!isPlatform("ios") ? [{
+				...(!isPlatform("ioss") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3409,7 +3434,7 @@ export async function spawnItemActionSheet(item){
 						return this.openPublicLinkModal(item)
 					}
 				},
-				...(!isPlatform("ios") ? [{
+				...(!isPlatform("ioss") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {
@@ -3479,7 +3504,7 @@ export async function spawnItemActionSheet(item){
 						return this.openPublicLinkModal(item)
 					}
 				},
-				...(!isPlatform("ios") ? [{
+				...(!isPlatform("ioss") ? [{
 					text: language.get(this.state.lang, "downloadItem"),
 					icon: Ionicons.download,
 					handler: () => {

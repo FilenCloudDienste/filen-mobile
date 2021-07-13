@@ -1,18 +1,15 @@
 {
-	"appId": "io.filen.app",
-	"appName": "Filen",
-	"bundledWebRuntime": false,
-	"npmClient": "npm",
-	"webDir": "build",
-	"plugins": {
-		"SplashScreen": {
-			"launchShowDuration": 15000,
-			"launchAutoHide": false,
-			"showSpinner": true
-		}
-	},
-	"cordova": {},
-	"server": {
-		"url": "http://192.168.178.20:8100"
-	}
+  "appId": "io.filen.app",
+  "appName": "Filen",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "build",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 15000,
+      "launchAutoHide": false,
+      "showSpinner": true
+    }
+  },
+  "cordova": {}
 }

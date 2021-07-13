@@ -67,7 +67,8 @@ interface AppStates {
 	showItemsSekeleton: boolean,
 	currentFileVersion: number,
 	currentAuthVersion: number,
-	hideMainFab: boolean
+	hideMainFab: boolean,
+	showMainSkeletonPlaceholder: boolean
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -116,7 +117,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			showItemsSekeleton: false,
 			currentFileVersion: 1,
 			currentAuthVersion: 1,
-			hideMainFab: false
+			hideMainFab: false,
+			showMainSkeletonPlaceholder: false
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)
