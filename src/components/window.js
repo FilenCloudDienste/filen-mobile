@@ -952,8 +952,8 @@ export function setupWindowFunctions(){
 
             var res = await utils.apiRequest("POST", "/v1/register", {
                 email,
-                password: utils.hashPassword(password),
-                passwordRepeat: utils.hashPassword(passwordRepeat),
+                password,
+                passwordRepeat,
                 salt,
                 authVersion: this.state.currentAuthVersion
             })
