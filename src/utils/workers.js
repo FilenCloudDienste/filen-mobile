@@ -6180,6 +6180,8 @@ const createEncryptionWorker = () => {
 }
 
 let encryptionWorker = [
+	createEncryptionWorker(),
+	createEncryptionWorker(),
 	createEncryptionWorker()
 ]
 let encryptionWorkerResults = {}
@@ -6350,6 +6352,8 @@ const createDecryptionWorker = () => {
 }
 
 let decryptionWorker = [
+	createDecryptionWorker(),
+	createDecryptionWorker(),
 	createDecryptionWorker()
 ]
 let decryptionWorkerResults = {}
@@ -6552,5 +6556,52 @@ module.exports = {
                 return callback(res)
             }
         }, 10)
-    }
+    },
+	fileChunkToArrayBuffer: (chunk, callback) => {
+		let blob = new Blob([`
+			onmessage = (e) => {
+				let fileReader = new FileReaderSync()
+
+				let arrayBuffer = null
+
+				try{
+					arrayBuffer = fileReader.readAsArrayBuffer(e.data.chunk)
+				}
+				catch(e){
+					arrayBuffer = null
+
+					return postMessage({
+						err: e,
+						arrayBuffer
+					})
+				}
+
+				return postMessage({
+					err: null,
+					arrayBuffer
+				})
+			}
+		`], {
+			type: "text/javascript"
+		})
+  
+  		let worker = new Worker((window.URL || window.webkitURL).createObjectURL(blob))
+
+		worker.onmessage = (e) => {
+			chunk = undefined
+
+			worker.terminate()
+			worker = undefined
+
+			if(e.data.err){
+				return callback(e.data.err)
+			}
+
+			return callback(null, e.data.arrayBuffer)
+		}
+
+		worker.postMessage({
+			chunk
+		})
+	}
 }

@@ -63,13 +63,21 @@ export async function spawnMoveToast(callback){
 export async function spawnRenamePrompt(item, callback){
     let name = item.name
 
-    if(name.indexOf(".") !== -1){
-        let nameEx = name.split(".")
-
-        nameEx.pop()
-
-        name = nameEx.join(".")
+    if(item.type == "file"){
+        if(name.indexOf(".") !== -1){
+            let nameEx = name.split(".")
+    
+            nameEx.pop()
+    
+            name = nameEx.join(".")
+        }
     }
+
+    window.$("#main-searchbar").find("input").blur()
+
+    this.setState({
+        mainSearchbarDisabled: true
+    })
 
     let alert = await alertController.create({
         header: item.type == "file" ? language.get(this.state.lang, "renameFile") : language.get(this.state.lang, "renameFolder"),
@@ -100,9 +108,24 @@ export async function spawnRenamePrompt(item, callback){
 
     await alert.present()
 
+    alert.onWillDismiss(() => {
+        this.setState({
+            mainSearchbarDisabled: false
+        })
+    })
+
     setTimeout(() => {
         try{
-            document.querySelector("ion-alert input").focus()
+            //document.querySelector("ion-alert input").focus()
+
+            window.$("input").each(function(){
+                if(window.$(this).attr("id") !== "main-searchbar"){
+                    window.$(this).focus()
+                }
+                else{
+                    window.$(this).focus()
+                }
+            })
         } catch(e){ }
     }, 500)
 
@@ -295,12 +318,18 @@ export async function mainFabAction(){
                     }
 
                     workers.convertBase64ToArrayBuffer(image.base64String, (arrayBuffer) => {
-                        let blob = new Blob([arrayBuffer], {
-                            type: "image/jpeg"
-                        })
+                        let name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpeg"
 
-                        blob.lastModifiedDate = new Date()
-                        blob.name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpeg"
+                        try{
+                            var blob = new File([arrayBuffer], name, {
+                                type: "image/jpeg",
+                                size: arrayBuffer.byteLength,
+                                lastModified: new Date()
+                            })
+                        }
+                        catch(e){
+                            return console.log(e)
+                        }
 
                         return this.queueFileUpload(blob)
                     })

@@ -228,7 +228,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				receiverEmail: "",
 				sharerId: 0,
 				sharerEmail: "",
-				color: folder.color || null
+				color: folder.color || null,
+				favorited: folder.favorited
 			}
 
 			items.push(item)
@@ -326,6 +327,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				sharerEmail: "",
 				offline: offline,
 				version: file.version,
+				favorited: file.favorited,
 				thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
 			}
 
@@ -527,7 +529,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					receiverEmail: folder.receiverEmail,
 					sharerId: 0,
 					sharerEmail: "",
-					color: folder.color || null
+					color: folder.color || null,
+					favorited: folder.favorited
 				}
 
 				items.push(item)
@@ -546,8 +549,6 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
 					offline = true
 				}
-
-				console.log(file)
 
 				let item = {
 					type: "file",
@@ -569,6 +570,114 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					sharerEmail: "",
 					offline: offline,
 					version: file.version,
+					favorited: file.favorited,
+					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
+				}
+
+				items.push(item)
+
+				window.customVariables.cachedFiles[file.uuid] = item
+			}
+		}
+		else if(routeEx[1] == "favorites"){
+			try{
+				var res = await utils.apiRequest("POST", "/v1/dir/content", {
+					apiKey: this.state.userAPIKey,
+					uuid: "favorites",
+					folders: JSON.stringify(["favorites"]),
+					page: 1,
+					app: "true"
+				})
+			}
+			catch(e){
+				console.log(e)
+		
+				window.customFunctions.dismissLoader()
+		
+				let alert = await alertController.create({
+					header: "",
+					subHeader: "",
+					message: language.get(this.state.lang, "apiRequestError"),
+					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+				})
+		
+				return alert.present()
+			}
+
+			if(!res.status){
+				console.log(res.message)
+		
+				window.customFunctions.dismissLoader()
+		
+				let alert = await alertController.create({
+					header: "",
+					subHeader: "",
+					message: language.get(this.state.lang, "apiRequestError"),
+					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+				})
+		
+				return alert.present()
+			}
+
+			for(let i = 0; i < res.data.folders.length; i++){
+				let folder = res.data.folders[i]
+
+				let folderName = utils.decryptCryptoJSFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+				let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
+
+				let item = {
+					type: "folder",
+					uuid: folder.uuid,
+					name: utils.sanitizeHTML(folderName),
+					date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
+					timestamp: folder.timestamp,
+					parent: folder.parent,
+					receiverId: 0,
+					receiverEmail: "",
+					sharerId: 0,
+					sharerEmail: "",
+					favorited: folder.favorited,
+					color: folder.color || null
+				}
+
+				items.push(item)
+
+				window.customVariables.cachedFolders[folder.uuid] = item
+			}
+
+			for(let i = 0; i < res.data.uploads.length; i++){
+				let file = res.data.uploads[i]
+
+				let metadata = utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+				let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
+
+				let offline = false
+
+				if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
+					offline = true
+				}
+
+				let item = {
+					type: "file",
+					uuid: file.uuid,
+					name: utils.sanitizeHTML(metadata.name),
+					mime: utils.sanitizeHTML(metadata.mime),
+					size: parseInt(metadata.size),
+					key: utils.sanitizeHTML(metadata.key),
+					bucket: file.bucket,
+					region: file.region,
+					parent: file.parent,
+					rm: file.rm,
+					chunks: file.chunks,
+					date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
+					timestamp: file.timestamp,
+					receiverId: 0,
+					receiverEmail: "",
+					sharerId: 0,
+					sharerEmail: "",
+					offline: offline,
+					version: file.version,
+					favorited: file.favorited,
 					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
 				}
 
@@ -634,7 +743,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					receiverEmail: "",
 					sharerId: 0,
 					sharerEmail: "",
-					color: folder.color || null
+					color: folder.color || null,
+					favorited: folder.favorited
 				}
 
 				items.push(item)
@@ -674,6 +784,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					sharerEmail: "",
 					offline: offline,
 					version: file.version,
+					favorited: file.favorited,
 					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
 				}
 
@@ -926,7 +1037,8 @@ export async function selectItemsAction(event){
 	let appLang = this.state.lang
 	let customElementId = utils.generateRandomClassName()
 	let selectedItemsDoesNotContainFolder = utils.selectedItemsDoesNotContainFolder(this.state.itemList)
-	
+	let selectedItemsContainsDefaultFolder = utils.selectedItemsContainsDefaultFolder(this.state.itemList)
+
 	let inner = ""
 
 	if(window.location.href.indexOf("shared-in") !== -1){
@@ -944,7 +1056,12 @@ export async function selectItemsAction(event){
 			<ion-list>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(appLang, "selectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.unselectAllItems()">` + language.get(appLang, "unselectAll") + `</ion-item>
+				` + (selectedItemsDoesNotContainFolder ? `<ion-item lines="none" detail="false" button onClick="window.customFunctions.storeSelectedItemsOffline()">` + language.get(appLang, "storeSelectedItemsOffline") + `</ion-item>` : ``) + `
+				<ion-item lines="none" detail="false" button onClick="window.customFunctions.favoriteSelectedItems(1)">` + language.get(appLang, "favorite") + `</ion-item>
+				<ion-item lines="none" detail="false" button onClick="window.customFunctions.favoriteSelectedItems(0)">` + language.get(appLang, "unfavorite") + `</ion-item>
+				<ion-item lines="none" detail="false" button onClick="window.customFunctions.moveSelectedItems()">` + language.get(appLang, "moveItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.stopSharingSelectedItems()">` + language.get(appLang, "stopSharing") + `</ion-item>
+				<ion-item lines="none" detail="false" button onClick="window.customFunctions.trashSelectedItems()">` + language.get(appLang, "trashItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
 			</ion-list>
 		`
@@ -965,8 +1082,12 @@ export async function selectItemsAction(event){
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(appLang, "selectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.unselectAllItems()">` + language.get(appLang, "unselectAll") + `</ion-item>
 				` + (selectedItemsDoesNotContainFolder ? `<ion-item lines="none" detail="false" button onClick="window.customFunctions.storeSelectedItemsOffline()">` + language.get(appLang, "storeSelectedItemsOffline") + `</ion-item>` : ``) + `
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.moveSelectedItems()">` + language.get(appLang, "moveItem") + `</ion-item>
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.trashSelectedItems()">` + language.get(appLang, "trashItem") + `</ion-item>
+				` + (selectedItemsContainsDefaultFolder ? `` : `
+					<ion-item lines="none" detail="false" button onClick="window.customFunctions.favoriteSelectedItems(1)">` + language.get(appLang, "favorite") + `</ion-item>
+					<ion-item lines="none" detail="false" button onClick="window.customFunctions.favoriteSelectedItems(0)">` + language.get(appLang, "unfavorite") + `</ion-item>
+					<ion-item lines="none" detail="false" button onClick="window.customFunctions.moveSelectedItems()">` + language.get(appLang, "moveItem") + `</ion-item>
+					<ion-item lines="none" detail="false" button onClick="window.customFunctions.trashSelectedItems()">` + language.get(appLang, "trashItem") + `</ion-item>
+				`) + `
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
 			</ion-list>
 		`
@@ -1399,7 +1520,7 @@ export async function previewItem(item, lastModalPreviewType = undefined){
         
 				function renderPage(page){
 					let viewport = page.getViewport({
-						scale: 2
+						scale: 1
 					})
 
 					let canvas = document.createElement('canvas')
@@ -2730,7 +2851,22 @@ export async function openPublicLinkModal(item){
 			cssClass: "modal-fullscreen"
 		})
 	
-		return modal.present()
+		await modal.present()
+
+		this.setupStatusbar("modal")
+
+		try{
+			let sModal = await modalController.getTop()
+
+			sModal.onDidDismiss().then(() => {
+				this.setupStatusbar()
+			})
+		}
+		catch(e){
+			console.log(e)
+		}
+
+		return true
 	}
 	else{
 		try{
@@ -2847,7 +2983,22 @@ export async function openPublicLinkModal(item){
 			cssClass: "modal-fullscreen"
 		})
 	
-		return modal.present()
+		await modal.present()
+
+		this.setupStatusbar("modal")
+
+		try{
+			let sModal = await modalController.getTop()
+
+			sModal.onDidDismiss().then(() => {
+				this.setupStatusbar()
+			})
+		}
+		catch(e){
+			console.log(e)
+		}
+
+		return true
 	}
 }
 
@@ -3122,445 +3273,411 @@ export async function colorItem(item){
 		cssClass: "modal-fullscreen"
 	})
 
-	return modal.present()
+	await modal.present()
+
+	this.setupStatusbar("modal")
+
+	try{
+		let sModal = await modalController.getTop()
+
+		sModal.onDidDismiss().then(() => {
+			this.setupStatusbar()
+		})
+	}
+	catch(e){
+		console.log(e)
+	}
+
+	return true
+}
+
+export async function favoriteItemRequest(item, value, showLoader = true){
+	if(showLoader){
+		var loading = await loadingController.create({
+			message: ""
+		})
+	
+		loading.present()
+	}
+
+	try{
+		var res = await utils.apiRequest("POST", "/v1/item/favorite", {
+			apiKey: this.state.userAPIKey,
+			uuid: item.uuid,
+			type: item.type,
+			value
+		})
+	}
+	catch(e){
+		console.log(e)
+
+		if(showLoader){
+			loading.dismiss()
+		}
+
+		return {
+			err: language.get(this.state.lang, "apiRequestError")
+		}
+	}
+
+	if(!res.status){
+		console.log(res.message)
+
+		if(showLoader){
+			loading.dismiss()
+		}
+
+		return {
+			err: res.message
+		}
+	}
+
+	if(showLoader){
+		loading.dismiss()
+	}
+
+	return {
+		err: null
+	}
+}
+
+export async function favoriteItem(item, value, showLoader = true){
+	if(item.uuid == "default" || item.uuid == null){
+		return false
+	}
+
+	let req = await this.favoriteItemRequest(item, value, showLoader)
+
+	if(req.err){
+		this.spawnToast(req.err)
+
+		return false
+	}
+
+	if(utils.currentParentFolder() == "favorites"){
+		if(value == 0){
+			clearTimeout(window.customVariables.reloadAfterActionTimeout)
+
+			window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+				this.updateItemList()
+			}, 500)
+		}
+	}
+
+	let items = this.state.itemList
+
+	for(let i = 0; i < items.length; i++){
+		if(items[i].uuid == item.uuid){
+			items[i].favorited = value
+		}
+	}
+
+	window.customVariables.itemList = items
+
+	this.setState({
+		itemList: items
+	}, () => {
+		this.forceUpdate()
+	})
+
+	return true
 }
 
 export async function spawnItemActionSheet(item){
-	let buttons = undefined
+	window.$("#main-searchbar").find("input").blur()
+
+	if(Capacitor.isNative){
+		Capacitor.Plugins.Keyboard.hide()
+	}
+
+	let buttons = []
+	let options = {}
+
+	options['removeFromShared'] = {
+		text: language.get(this.state.lang, "removeFromShared"),
+		icon: Ionicons.stopCircle,
+		handler: () => {
+			this.removeSharedInItem(item, false)
+		}
+	}
+
+	options['cancel'] = {
+		text: language.get(this.state.lang, "cancel"),
+		icon: Ionicons.close,
+		handler: () => {
+			return actionSheet.dismiss()
+		}
+	}
+
+	options['stopSharing'] = {
+		text: language.get(this.state.lang, "stopSharing"),
+		icon: Ionicons.stopCircle,
+		handler: () => {
+			this.stopSharingItem(item, false)
+		}
+	}
+
+	options['restore'] = {
+		text: language.get(this.state.lang, "restoreItem"),
+		icon: Ionicons.bagAdd,
+		handler: () => {
+			return this.restoreItem(item, false)
+		}
+	}
+
+	options['publicLink'] = {
+		text: language.get(this.state.lang, "itemPublicLink"),
+		icon: Ionicons.link,
+		handler: () => {
+			window.customFunctions.dismissModal()
+
+			return this.openPublicLinkModal(item)
+		}
+	}
+
+	options['share'] = {
+		text: language.get(this.state.lang, "shareItem"),
+		icon: Ionicons.shareSocial,
+		handler: () => {
+			return this.shareItem(item)
+		}
+	}
+
+	options['move'] = {
+		text: language.get(this.state.lang, "moveItem"),
+		icon: Ionicons.move,
+		handler: () => {
+			return this.moveItem(item)
+		}
+	}
+
+	options['rename'] = {
+		text: language.get(this.state.lang, "renameItem"),
+		icon: Ionicons.text,
+		handler: () => {
+			return this.renameItem(item)
+		}
+	}
+
+	options['color'] = {
+		text: language.get(this.state.lang, "colorItem"),
+		icon: Ionicons.colorFill,
+		handler: () => {
+			return this.colorItem(item)
+		}
+	}
+
+	options['trash'] = {
+		text: language.get(this.state.lang, "trashItem"),
+		icon: Ionicons.trash,
+		handler: () => {
+			return this.trashItem(item, false)
+		}
+	}
+
+	options['download'] = {
+		text: language.get(this.state.lang, "downloadItem"),
+		icon: Ionicons.download,
+		handler: async () => {
+			await window.customFunctions.dismissActionSheet()
+
+			return this.queueFileDownload(item)
+		}
+	}
+
+	options['offline'] = {
+		text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
+		icon: Ionicons.save,
+		handler: async () => {
+			await window.customFunctions.dismissActionSheet()
+
+			if(item.offline){
+				return this.makeItemAvailableOffline(false, item)
+			}
+			else{
+				return this.makeItemAvailableOffline(true, item)
+			}
+		}
+	}
+
+	options['favorite'] ={
+		text: item.favorited == 1 ? language.get(this.state.lang, "unfavorite") : language.get(this.state.lang, "favorite"),
+		icon: Ionicons.star,
+		handler: async () => {
+			await window.customFunctions.dismissActionSheet()
+
+			if(typeof item.favorited == "undefined"){
+				return false
+			}
+
+			if(item.favorited == 1){
+				return this.favoriteItem(item, 0)
+			}
+			else{
+				return this.favoriteItem(item, 1)
+			}
+		}
+	}
 
 	if(item.type == "folder"){
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
-				{
-					text: language.get(this.state.lang, "removeFromShared"),
-					icon: Ionicons.stopCircle,
-					handler: () => {
-						this.removeSharedInItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['removeFromShared'],
+				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("shared-out") !== -1){
-			buttons = [
-				{
-					text: language.get(this.state.lang, "stopSharing"),
-					icon: Ionicons.stopCircle,
-					handler: () => {
-						this.stopSharingItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
-			]
+			if(item.name.toLowerCase() == "filen sync"){
+				buttons = [
+					options['share'],
+					options['publicLink'],
+					options['color'],
+					//options['favorite'],
+					options['trash'],
+					options['stopSharing'],
+					options['cancel']
+				]
+			}
+			else{
+				buttons = [
+					options['share'],
+					options['publicLink'],
+					//options['move'],
+					options['rename'],
+					options['color'],
+					//options['favorite'],
+					options['trash'],
+					options['stopSharing'],
+					options['cancel']
+				]
+			}
 		}
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
-				{
-					text: language.get(this.state.lang, "restoreItem"),
-					icon: Ionicons.bagAdd,
-					handler: () => {
-						return this.restoreItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['restore'],
+				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("links") !== -1){
 			buttons = [
-				{
-					text: language.get(this.state.lang, "itemPublicLink"),
-					icon: Ionicons.link,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.openPublicLinkModal(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['share'],
+				options['publicLink'],
+				//options['move'],
+				options['rename'],
+				options['color'],
+				options['favorite'],
+				options['trash'],
+				options['cancel']
 			]
+		}
+		else if(utils.currentParentFolder() == "base"){
+			if(item.name.toLowerCase() == "filen sync"){
+				buttons = [
+					options['share'],
+					options['publicLink'],
+					options['color'],
+					options['favorite'],
+					options['trash'],
+					options['cancel']
+				]
+			}
+			else{
+				buttons = [
+					options['cancel']
+				]
+			}
 		}
 		else{
 			buttons = [
-				{
-					text: language.get(this.state.lang, "shareItem"),
-					icon: Ionicons.shareSocial,
-					handler: () => {
-						return this.shareItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "itemPublicLink"),
-					icon: Ionicons.link,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.openPublicLinkModal(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "moveItem"),
-					icon: Ionicons.move,
-					handler: () => {
-						return this.moveItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "renameItem"),
-					icon: Ionicons.text,
-					handler: () => {
-						return this.renameItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "colorItem"),
-					icon: Ionicons.colorFill,
-					handler: () => {
-						return this.colorItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "trashItem"),
-					icon: Ionicons.trash,
-					handler: () => {
-						return this.trashItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['share'],
+				options['publicLink'],
+				options['move'],
+				options['rename'],
+				options['color'],
+				options['favorite'],
+				options['trash'],
+				options['cancel']
 			]
 		}
 	}
+	/*
+	conditional
+	...(!isPlatform("ioss") ? [{
+		text: language.get(this.state.lang, "downloadItem"),
+		icon: Ionicons.download,
+		handler: () => {
+			window.customFunctions.dismissModal()
+
+			return this.queueFileDownload(item)
+		}
+	}] : [])
+	*/
 	else{
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
-				...(!isPlatform("ioss") ? [{
-					text: language.get(this.state.lang, "downloadItem"),
-					icon: Ionicons.download,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.queueFileDownload(item)
-					}
-				}] : []),
-				{
-					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
-					icon: Ionicons.save,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						if(item.offline){
-							return this.makeItemAvailableOffline(false, item)
-						}
-						else{
-							return this.makeItemAvailableOffline(true, item)
-						}
-					}
-				},
-				{
-					text: language.get(this.state.lang, "removeFromShared"),
-					icon: Ionicons.stopCircle,
-					handler: () => {
-						this.removeSharedInItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['download'],
+				options['offline'],
+				options['removeFromShared'],
+				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("shared-out") !== -1){
 			buttons = [
-				...(!isPlatform("ioss") ? [{
-					text: language.get(this.state.lang, "downloadItem"),
-					icon: Ionicons.download,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.queueFileDownload(item)
-					}
-				}] : []),
-				{
-					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
-					icon: Ionicons.save,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						if(item.offline){
-							return this.makeItemAvailableOffline(false, item)
-						}
-						else{
-							return this.makeItemAvailableOffline(true, item)
-						}
-					}
-				},
-				{
-					text: language.get(this.state.lang, "stopSharing"),
-					icon: Ionicons.stopCircle,
-					handler: () => {
-						this.stopSharingItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['share'],
+				options['publicLink'],
+				options['download'],
+				options['offline'],
+				//options['favorite'],
+				//options['move'],
+				options['rename'],
+				options['trash'],
+				options['stopSharing'],
+				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
-				...(!isPlatform("ioss") ? [{
-					text: language.get(this.state.lang, "downloadItem"),
-					icon: Ionicons.download,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.queueFileDownload(item)
-					}
-				}] : []),
-				{
-					text: language.get(this.state.lang, "restoreItem"),
-					icon: Ionicons.bagAdd,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.restoreItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['download'],
+				options['restore'],
+				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("links") !== -1){
 			buttons = [
-				{
-					text: language.get(this.state.lang, "itemPublicLink"),
-					icon: Ionicons.link,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.openPublicLinkModal(item)
-					}
-				},
-				...(!isPlatform("ioss") ? [{
-					text: language.get(this.state.lang, "downloadItem"),
-					icon: Ionicons.download,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.queueFileDownload(item)
-					}
-				}] : []),
-				{
-					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
-					icon: Ionicons.save,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						if(item.offline){
-							return this.makeItemAvailableOffline(false, item)
-						}
-						else{
-							return this.makeItemAvailableOffline(true, item)
-						}
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['share'],
+				options['publicLink'],
+				options['download'],
+				options['offline'],
+				options['favorite'],
+				//options['move'],
+				options['rename'],
+				options['trash'],
+				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("recent") !== -1){
 			buttons = [
-				{
-					text: language.get(this.state.lang, "shareItem"),
-					icon: Ionicons.shareSocial,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.shareItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "itemPublicLink"),
-					icon: Ionicons.link,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.openPublicLinkModal(item)
-					}
-				},
-				...(!isPlatform("ioss") ? [{
-					text: language.get(this.state.lang, "downloadItem"),
-					icon: Ionicons.download,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.queueFileDownload(item)
-					}
-				}] : []),
-				{
-					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
-					icon: Ionicons.save,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						if(item.offline){
-							return this.makeItemAvailableOffline(false, item)
-						}
-						else{
-							return this.makeItemAvailableOffline(true, item)
-						}
-					}
-				},
-				{
-					text: language.get(this.state.lang, "renameItem"),
-					icon: Ionicons.text,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.renameItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "trashItem"),
-					icon: Ionicons.trash,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.trashItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['share'],
+				options['publicLink'],
+				options['download'],
+				options['offline'],
+				options['favorite'],
+				options['rename'],
+				options['trash'],
+				options['cancel']
 			]
 		}
 		else{
 			buttons = [
-				{
-					text: language.get(this.state.lang, "shareItem"),
-					icon: Ionicons.shareSocial,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.shareItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "itemPublicLink"),
-					icon: Ionicons.link,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.openPublicLinkModal(item)
-					}
-				},
-				...(!isPlatform("ioss") ? [{
-					text: language.get(this.state.lang, "downloadItem"),
-					icon: Ionicons.download,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.queueFileDownload(item)
-					}
-				}] : []),
-				{
-					text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
-					icon: Ionicons.save,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						if(item.offline){
-							return this.makeItemAvailableOffline(false, item)
-						}
-						else{
-							return this.makeItemAvailableOffline(true, item)
-						}
-					}
-				},
-				{
-					text: language.get(this.state.lang, "moveItem"),
-					icon: Ionicons.move,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.moveItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "renameItem"),
-					icon: Ionicons.text,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.renameItem(item)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "trashItem"),
-					icon: Ionicons.trash,
-					handler: () => {
-						window.customFunctions.dismissModal()
-	
-						return this.trashItem(item, false)
-					}
-				},
-				{
-					text: language.get(this.state.lang, "cancel"),
-					icon: Ionicons.close,
-					handler: () => {
-						return actionSheet.dismiss()
-					}
-				}
+				options['share'],
+				options['publicLink'],
+				options['download'],
+				options['offline'],
+				options['favorite'],
+				options['move'],
+				options['rename'],
+				options['trash'],
+				options['cancel']
 			]
 		}
 	}

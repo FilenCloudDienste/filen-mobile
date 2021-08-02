@@ -1,6 +1,6 @@
 {
   "name": "io.filen.app",
-  "version": "1.0.41",
+  "version": "1.0.45",
   "private": true,
   "dependencies": {
     "@capacitor/android": "^2.4.2",

@@ -68,7 +68,8 @@ interface AppStates {
 	currentFileVersion: number,
 	currentAuthVersion: number,
 	hideMainFab: boolean,
-	showMainSkeletonPlaceholder: boolean
+	showMainSkeletonPlaceholder: boolean,
+	mainSearchbarDisabled: boolean
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -118,7 +119,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			currentFileVersion: 1,
 			currentAuthVersion: 1,
 			hideMainFab: false,
-			showMainSkeletonPlaceholder: false
+			showMainSkeletonPlaceholder: false,
+			mainSearchbarDisabled: false
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)
@@ -184,6 +186,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	storeSelectedItemsOffline = itemsComponents.storeSelectedItemsOffline.bind(this)
 	getFileThumbnail = itemsComponents.getFileThumbnail.bind(this)
 	colorItem = itemsComponents.colorItem.bind(this)
+	favoriteItem = itemsComponents.favoriteItem.bind(this)
+	favoriteItemRequest = itemsComponents.favoriteItemRequest.bind(this)
 
     spawnToast = spawnComponents.spawnToast.bind(this)
     spawnMoveToast = spawnComponents.spawnMoveToast.bind(this)

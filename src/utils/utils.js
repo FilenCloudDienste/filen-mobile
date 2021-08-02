@@ -507,6 +507,18 @@ export function selectedItemsContainsFolder(items){
     return false
 }
 
+export function selectedItemsContainsDefaultFolder(items){
+    for(let i = 0; i < items.length; i++){
+        if(items[i].type == "folder" && items[i].selected){
+            if(items[i].uuid == "default" || items[i].uuid == null){
+				return true
+			}
+        }
+    }
+
+    return false
+}
+
 export function _base64ToArrayBuffer(base64){
     var binary_string = window.atob(base64);
     var len = binary_string.length;

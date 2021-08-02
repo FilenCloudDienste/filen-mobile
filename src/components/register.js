@@ -11,6 +11,8 @@ export async function showRegister(){
     let appDarkMode = this.state.darkMode
     let modalId = "register-modal-" + utils.generateRandomClassName()
 
+    let tosPrivacy = language.get(appLang, "registerTOSInfo")
+
     customElements.define(modalId, class ModalContent extends HTMLElement {
         connectedCallback(){
             this.innerHTML = `
@@ -39,7 +41,7 @@ export async function showRegister(){
                                 <ion-input type="password" id="register-password-repeat" placeholder="` + language.get(appLang, "passwordRepeatPlaceholder") + `"></ion-input>
                             </ion-item>
                             <div style="width: 90%; margin-top: 25px;">
-                                <small>` + (isPlatform("ios") ? utils.stripHtml(language.get(appLang, "registerTOSInfo")) : language.get(appLang, "registerTOSInfo")) + `</small>
+                                <small>` + tosPrivacy + `</small>
                             </div>
                             <ion-button expand="block" style="width: 90%; margin-top: 50px;" onClick="window.customFunctions.doRegister()">` + language.get(appLang, "registerButton") + `</ion-button>
                             <br>
@@ -47,6 +49,9 @@ export async function showRegister(){
                             <br>
                             <br>
                             <a onClick="window.customFunctions.dismissModal()">` + language.get(appLang, "loginLink") + `</a>
+                            <br>
+                            <br>
+                            <a onClick="window.customFunctions.openResendConfirmationModal()">` + language.get(appLang, "resendConfirmationLink") + `</a>
                         </center>
                     </div>
                 </ion-content>

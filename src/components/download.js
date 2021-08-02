@@ -333,7 +333,7 @@ export async function getDownloadDir(makeOffline, fileName, callback){
     }
 }
 
-export async function downloadFileChunk(file, index, tries, maxTries, callback){
+export async function downloadFileChunk(file, index, tries, maxTries, callback, isPreview = false){
     if(tries >= maxTries){
 		return callback(new Error("Max download retries reached for " + file.uuid + ", returning."))
 	}
@@ -346,13 +346,17 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
         return callback("stopped")
     }
 
-    await window.customVariables.downloadChunkSemaphore.acquire()
+    if(!isPreview){
+        await window.customVariables.downloadChunkSemaphore.acquire()
+    }
 
     utils.fetchWithTimeout(3600000, fetch(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
         method: "GET"
     })).then((response) => {
         if(response.status !== 200){
-            window.customVariables.downloadChunkSemaphore.release()
+            if(!isPreview){
+                window.customVariables.downloadChunkSemaphore.release()
+            }
 
             return setTimeout(() => {
                 this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
@@ -368,13 +372,17 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
                 if(res.byteLength){
                     if(res.byteLength > 1){
                         workers.decryptData(file.uuid, index, file.key, res, file.version, (decrypted) => {
-                            window.customVariables.downloadChunkSemaphore.release()
+                            if(!isPreview){
+                                window.customVariables.downloadChunkSemaphore.release()
+                            }
     
                             return callback(null, index, decrypted)
                         })
                     }
                     else{
-                        window.customVariables.downloadChunkSemaphore.release()
+                        if(!isPreview){
+                            window.customVariables.downloadChunkSemaphore.release()
+                        }
 
                         return setTimeout(() => {
                             this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
@@ -382,7 +390,9 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
                     }
                 }
                 else{
-                    window.customVariables.downloadChunkSemaphore.release()
+                    if(!isPreview){
+                        window.customVariables.downloadChunkSemaphore.release()
+                    }
 
                     return setTimeout(() => {
                         this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
@@ -392,7 +402,9 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
             catch(e){
                 console.log(e)
 
-                window.customVariables.downloadChunkSemaphore.release()
+                if(!isPreview){
+                    window.customVariables.downloadChunkSemaphore.release()
+                }
 
                 return setTimeout(() => {
                     this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
@@ -401,7 +413,9 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
         }).catch((err) => {
             console.log(err)
 
-            window.customVariables.downloadChunkSemaphore.release()
+            if(!isPreview){
+                window.customVariables.downloadChunkSemaphore.release()
+            }
 
             return setTimeout(() => {
                 this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
@@ -410,7 +424,9 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
     }).catch((err) => {
         console.log(err)
 
-        window.customVariables.downloadChunkSemaphore.release()
+        if(!isPreview){
+            window.customVariables.downloadChunkSemaphore.release()
+        }
 
         return setTimeout(() => {
             this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
@@ -420,13 +436,21 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback){
 
 export async function writeChunkToFile(file, dirObj, uuid, index, data, callback){
     if(!window.customVariables.downloads[uuid]){
+        window.customVariables.currentWriteThreads -= 1
+
         return callback(new Error("Download does not exist"))
     }
 
     if(window.customVariables.downloads[uuid].nextWriteChunk !== index){
         return setTimeout(() => {
             this.writeChunkToFile(file, dirObj, uuid, index, data, callback)
-        }, 50)
+        }, 10)
+    }
+
+    if(typeof window.customVariables.stoppedDownloads[uuid] !== "undefined"){
+        window.customVariables.currentWriteThreads -= 1
+
+        return callback("stopped")
     }
 
     if(index == 0){
@@ -450,10 +474,14 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
                     data: b64Data,
                     recursive: true
                 })
+
+                window.customVariables.currentWriteThreads -= 1
     
                 return callback(null)
             }
             catch(e){
+                window.customVariables.currentWriteThreads -= 1
+
                 return callback(e)
             }
         }
@@ -464,10 +492,14 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
                     directory: dirObj.directory,
                     data: b64Data
                 })
+
+                window.customVariables.currentWriteThreads -= 1
     
                 return callback(null)
             }
             catch(e){
+                window.customVariables.currentWriteThreads -= 1
+
                 return callback(e)
             }
         }
@@ -494,6 +526,7 @@ export async function queueFileDownload(file, isOfflineRequest = false){
     let uuid = file.uuid
 	let name = file.name
 	let size = file.size
+
 	let currentIndex = -1
 
 	let ext = file.name.split(".")
@@ -650,124 +683,135 @@ export async function queueFileDownload(file, isOfflineRequest = false){
             let thisIndex = currentIndex
 
             if(thisIndex < file.chunks && typeof window.customVariables.downloads[uuid] !== "undefined"){
-                this.downloadFileChunk(file, thisIndex, 0, 10, async (err, downloadIndex, downloadData) => {
-                    if(err){
-                        console.log(err)
+                //window.customVariables.currentWriteThreads < window.customVariables.maxWriteThreads
+                if(true){
+                    window.customVariables.currentWriteThreads += 1
 
-                        window.customVariables.downloadSemaphore.release()
-
-                        removeFromState()
-
-                        if(err == "stopped"){
-                            if(typeof window.customVariables.stoppedDownloadsDone[uuid] == "undefined"){
-                                window.customVariables.stoppedDownloadsDone[uuid] = true
-
+                    this.downloadFileChunk(file, thisIndex, 0, 32, async (err, downloadIndex, downloadData) => {
+                        if(err){
+                            console.log(err)
+    
+                            window.customVariables.downloadSemaphore.release()
+                            window.customVariables.currentWriteThreads -= 1
+    
+                            removeFromState()
+    
+                            if(err == "stopped"){
+                                if(typeof window.customVariables.stoppedDownloadsDone[uuid] == "undefined"){
+                                    window.customVariables.stoppedDownloadsDone[uuid] = true
+    
+                                    try{
+                                        await Plugins.Filesystem.deleteFile({
+                                            path: dirObj.path + "/" + file.name,
+                                            directory: dirObj.directory
+                                        })
+                                    }
+                                    catch(e){
+                                        console.log(e)
+                                    }
+    
+                                    return this.spawnToast(language.get(this.state.lang, "downloadStopped", true, ["__NAME__"], [file.name]))
+                                }
+                                else{
+                                    return false
+                                }
+                            }
+                            else{
+                                return this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [file.name]))
+                            }
+                        }
+    
+                        if(typeof window.customVariables.downloads[uuid] !== "undefined"){
+                            chunksDonePlus()
+                            setLoaded(downloadData.length)
+                            
+                            this.writeChunkToFile(file, dirObj, uuid, downloadIndex, downloadData, async (err) => {
+                                if(err){
+                                    console.log(err)
+    
+                                    window.customVariables.downloadSemaphore.release()
+    
+                                    removeFromState()
+    
+                                    if(err == "stopped"){
+                                        return false
+                                    }
+                                    else{
+                                        return this.spawnToast(language.get(this.state.lang, "fileWriteError", true, ["__NAME__"], [file.name]))
+                                    }
+                                }
+    
+                                chunksWrittenPlus()
+    
                                 try{
-                                    await Plugins.Filesystem.deleteFile({
-                                        path: dirObj.path + "/" + file.name,
-                                        directory: dirObj.directory
-                                    })
+                                    let progress = ((window.customVariables.downloads[uuid].loaded / window.customVariables.downloads[uuid].size) * 100).toFixed(2)
+        
+                                    if(progress >= 100){
+                                        progress = 100
+                                    }
+        
+                                    setProgress(progress)
                                 }
                                 catch(e){
                                     console.log(e)
                                 }
-
-                                return this.spawnToast(language.get(this.state.lang, "downloadStopped", true, ["__NAME__"], [file.name]))
-                            }
-                            else{
-                                return false
-                            }
-                        }
-                        else{
-                            return this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [file.name]))
-                        }
-                    }
-
-                    if(typeof window.customVariables.downloads[uuid] !== "undefined"){
-                        chunksDonePlus()
-                        setLoaded(downloadData.length)
-                        
-                        this.writeChunkToFile(file, dirObj, uuid, downloadIndex, downloadData, async (err) => {
-                            if(err){
-                                console.log(err)
-
-                                window.customVariables.downloadSemaphore.release()
-
-                                removeFromState()
-
-                                return this.spawnToast(language.get(this.state.lang, "fileWriteError", true, ["__NAME__"], [file.name]))
-                            }
-
-                            chunksWrittenPlus()
-
-                            try{
-                                let progress = ((window.customVariables.downloads[uuid].loaded / window.customVariables.downloads[uuid].size) * 100).toFixed(2)
     
-                                if(progress >= 100){
-                                    progress = 100
+                                try{
+                                    if(window.customVariables.downloads[uuid].chunksWritten >= window.customVariables.downloads[uuid].chunks){
+                                        if(window.customVariables.downloads[uuid].makeOffline){
+                                            window.customVariables.offlineSavedFiles[file.uuid] = true
+        
+                                            let items = this.state.itemList
+                                            let windowItems = window.customVariables.itemList
+        
+                                            for(let i = 0; i < items.length; i++){
+                                                if(items[i].uuid == file.uuid){
+                                                    items[i].offline = true
+                                                }
+                                            }
+        
+                                            for(let i = 0; i < windowItems.length; i++){
+                                                if(windowItems[i].uuid == file.uuid){
+                                                    windowItems[i].offline = true
+                                                }
+                                            }
+        
+                                            this.setState({
+                                                itemList: items
+                                            })
+        
+                                            window.customVariables.itemList = windowItems
+                                            
+                                            if(typeof window.customVariables.cachedFiles[uuid] !== "undefined"){
+                                                window.customVariables.cachedFiles[uuid].offline = true
+                                            }
+                                
+                                            this.spawnToast(language.get(this.state.lang, "fileIsNowAvailableOffline", true, ["__NAME__"], [file.name]))
+        
+                                            removeFromState()
+        
+                                            window.customFunctions.saveOfflineSavedFiles()
+        
+                                            window.customVariables.downloadSemaphore.release()
+                                            
+                                            return this.forceUpdate()
+                                        }
+                                        else{
+                                            this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [file.name]))
+        
+                                            window.customVariables.downloadSemaphore.release()
+        
+                                            return removeFromState()
+                                        }
+                                    }  
                                 }
-    
-                                setProgress(progress)
-                            }
-                            catch(e){
-                                console.log(e)
-                            }
-
-                            try{
-                                if(window.customVariables.downloads[uuid].chunksWritten >= window.customVariables.downloads[uuid].chunks){
-                                    if(window.customVariables.downloads[uuid].makeOffline){
-                                        window.customVariables.offlineSavedFiles[file.uuid] = true
-    
-                                        let items = this.state.itemList
-                                        let windowItems = window.customVariables.itemList
-    
-                                        for(let i = 0; i < items.length; i++){
-                                            if(items[i].uuid == file.uuid){
-                                                items[i].offline = true
-                                            }
-                                        }
-    
-                                        for(let i = 0; i < windowItems.length; i++){
-                                            if(windowItems[i].uuid == file.uuid){
-                                                windowItems[i].offline = true
-                                            }
-                                        }
-    
-                                        this.setState({
-                                            itemList: items
-                                        })
-    
-                                        window.customVariables.itemList = windowItems
-                                        
-                                        if(typeof window.customVariables.cachedFiles[uuid] !== "undefined"){
-                                            window.customVariables.cachedFiles[uuid].offline = true
-                                        }
-                            
-                                        this.spawnToast(language.get(this.state.lang, "fileIsNowAvailableOffline", true, ["__NAME__"], [file.name]))
-    
-                                        removeFromState()
-    
-                                        window.customFunctions.saveOfflineSavedFiles()
-    
-                                        window.customVariables.downloadSemaphore.release()
-                                        
-                                        return this.forceUpdate()
-                                    }
-                                    else{
-                                        this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [file.name]))
-    
-                                        window.customVariables.downloadSemaphore.release()
-    
-                                        return removeFromState()
-                                    }
-                                }  
-                            }
-                            catch(e){
-                                console.log(e)
-                            }
-                        })
-                    }
-                })
+                                catch(e){
+                                    console.log(e)
+                                }
+                            })
+                        }
+                    })
+                }
             }
             else{
                 clearInterval(downloadInterval)
@@ -1090,7 +1134,7 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
                 }
 
                 write(downloadIndex, downloadData, callback)
-            })
+            }, true)
         }
         else{
             if(window.customVariables.stopGettingPreviewData && !isThumbnailDownload){

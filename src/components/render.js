@@ -108,6 +108,14 @@ export function render(){
                                     fontSize: "9pt"
                                 }}>
                                     {
+                                        this.state.itemList[index].favorited == 1 && (
+                                            <IonIcon icon={Ionicons.star} style={{
+                                                marginRight: "5px",
+                                                fontWeight: "bold"
+                                            }}></IonIcon>
+                                        )
+                                    }
+                                    {
                                         window.location.href.indexOf("shared-in") !== -1 && (
                                             <div>
                                                 {this.state.itemList[index].sharerEmail}, 
@@ -135,6 +143,14 @@ export function render(){
                                         this.state.itemList[index].offline && (
                                             <IonIcon icon={Ionicons.checkmark} style={{
                                                 color: "darkgreen",
+                                                marginRight: "5px",
+                                                fontWeight: "bold"
+                                            }}></IonIcon>
+                                        )
+                                    }
+                                    {
+                                        this.state.itemList[index].favorited == 1 && (
+                                            <IonIcon icon={Ionicons.star} style={{
                                                 marginRight: "5px",
                                                 fontWeight: "bold"
                                             }}></IonIcon>
@@ -172,6 +188,13 @@ export function render(){
                                         fontSize: "9pt"
                                     }}>
                                         {
+                                            this.state.itemList[index].favorited == 1 && (
+                                                <IonIcon icon={Ionicons.star} style={{
+                                                    marginRight: "5px"
+                                                }}></IonIcon>
+                                            )
+                                        }
+                                        {
                                             window.location.href.indexOf("shared-in") !== -1 && (
                                                 <div>
                                                     {this.state.itemList[index].sharerEmail}, 
@@ -201,6 +224,13 @@ export function render(){
                                                     color: "darkgreen",
                                                     marginRight: "5px",
                                                     fontWeight: "bold"
+                                                }}></IonIcon>
+                                            )
+                                        }
+                                        {
+                                            this.state.itemList[index].favorited == 1 && (
+                                                <IonIcon icon={Ionicons.star} style={{
+                                                    marginRight: "5px"
                                                 }}></IonIcon>
                                             )
                                         }
@@ -235,6 +265,13 @@ export function render(){
                                         fontSize: "9pt"
                                     }}>
                                         {
+                                            this.state.itemList[index].favorited == 1 && (
+                                                <IonIcon icon={Ionicons.star} style={{
+                                                    marginRight: "5px"
+                                                }}></IonIcon>
+                                            )
+                                        }
+                                        {
                                             window.location.href.indexOf("shared-in") !== -1 && (
                                                 <span>
                                                     {this.state.itemList[index].sharerEmail},&nbsp;
@@ -264,6 +301,13 @@ export function render(){
                                                     color: "darkgreen",
                                                     marginRight: "5px",
                                                     fontWeight: "bold"
+                                                }}></IonIcon>
+                                            )
+                                        }
+                                        {
+                                            this.state.itemList[index].favorited == 1 && (
+                                                <IonIcon icon={Ionicons.star} style={{
+                                                    marginRight: "5px"
                                                 }}></IonIcon>
                                             )
                                         }
@@ -337,7 +381,7 @@ export function render(){
             <IonTitle>{this.state.selectedItems} item{this.state.selectedItems == 1 ? "" : "s"}</IonTitle>
             <IonButtons slot="end">
                 {
-                    window.location.href.indexOf("base") !== -1 && (
+                    window.location.href.indexOf("base") !== -1 && !utils.selectedItemsContainsDefaultFolder(this.state.itemList) && (
                         <IonButton onClick={() => window.customFunctions.shareSelectedItems()}>
                             <IonIcon slot="icon-only" icon={Ionicons.shareSocial} />
                         </IonButton>
@@ -365,7 +409,7 @@ export function render(){
                         <IonIcon slot="icon-only" icon={Ionicons.arrowBack} />
                     </IonButton>
                 </IonButtons>
-                <IonSearchbar id="main-searchbar" ref={(el) => el !== null && setTimeout(() => el.setFocus(), 100)} type="search" inputmode="search" value={this.state.mainSearchTerm}></IonSearchbar>
+                <IonSearchbar id="main-searchbar" ref={(el) => el !== null && setTimeout(() => /* el.setFocus() */ {}, 100)} type="search" inputmode="search" value={this.state.mainSearchTerm}></IonSearchbar>
             </IonToolbar>
         ) : (
             <IonToolbar style={{
@@ -451,7 +495,7 @@ export function render(){
                 <IonLabel>{this.state.uploads[key].name}</IonLabel>
                 <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
                     {
-                        this.state.uploads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.uploads[key].progress + "%"
+                        this.state.uploads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.uploads[key].progress == 0 ? language.get(this.state.lang, "transfersQueued") : this.state.uploads[key].progress + "%"
                     }
                 </IonBadge>
                 {
@@ -476,7 +520,7 @@ export function render(){
                 <IonLabel>{this.state.downloads[key].name}</IonLabel>
                 <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
                     {
-                        this.state.downloads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.downloads[key].progress + "%"
+                        this.state.downloads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") + " " + this.state.downloads[key].chunksWritten + "/" + this.state.downloads[key].chunks : this.state.downloads[key].progress == 0 ? language.get(this.state.lang, "transfersQueued") : this.state.downloads[key].progress + "%"
                     }
                 </IonBadge>
                 {
@@ -535,81 +579,12 @@ export function render(){
                                 }}>
                                     {this.state.userStorageUsageMenuText}
                                 </div>
-                                {/*{
-                                    !isPlatform("ios") && (
-                                        <div style={{
-                                            float: "right"
-                                        }}>
-                                            {
-                                                this.state.userMaxStorage < 107374182400 && (
-                                                    <div>
-                                                        <IonBadge button onClick={() => {
-                                                            window.open("https://filen.io/pro", "_system")
-                                                            
-                                                            return false
-                                                        }} color={this.state.darkMode ? "dark" : "light"} style={{
-                                                            fontSize: "7pt"
-                                                        }}>
-                                                            {language.get(this.state.lang, "goProBadge")}
-                                                        </IonBadge>
-                                                    </div>
-                                                )
-                                            }
-                                        </div>
-                                    )
-                                }*/}
                             </div>
                         </IonHeader>
                         <IonContent style={{
                             "--background": this.state.darkMode ? "#1E1E1E" : "white"
                         }} fullscreen={true}>
                             <IonList>
-                                {/*<IonItem button lines="none" onClick={() => {
-                                    window.customFunctions.hideSidebarMenu()
-                                    
-                                    return this.routeTo("/base")
-                                }}>
-                                    <IonIcon slot="start" icon={Ionicons.cloud}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "myCloud")}</IonLabel>
-                                </IonItem>
-                                {
-                                    showShareLinks && (
-                                        <div>
-                                            <IonItem button lines="none" onClick={() => {
-                                                window.customFunctions.hideSidebarMenu()
-                                                
-                                                return this.routeTo("/shared-in")
-                                            }}>
-                                                <IonIcon slot="start" icon={Ionicons.folderOpen}></IonIcon>
-                                                <IonLabel>{language.get(this.state.lang, "sharedWithMe")}</IonLabel>
-                                            </IonItem>
-                                            <IonItem button lines="none" onClick={() => {
-                                                window.customFunctions.hideSidebarMenu()
-                                                
-                                                return this.routeTo("/shared-out")
-                                            }}>
-                                                <IonIcon slot="start" icon={Ionicons.folder}></IonIcon>
-                                                <IonLabel>{language.get(this.state.lang, "currentlySharing")}</IonLabel>
-                                            </IonItem>
-                                        </div>
-                                    )
-                                }
-                                <IonItem button lines="none" onClick={() => {
-                                    window.customFunctions.hideSidebarMenu()
-                                    
-                                    return this.routeTo("/links")
-                                }}>
-                                    <IonIcon slot="start" icon={Ionicons.link}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "links")}</IonLabel>
-                                </IonItem>
-                                <IonItem button lines="none" onClick={() => {
-                                    window.customFunctions.hideSidebarMenu()
-                                    
-                                    return this.routeTo("/recent")
-                                }}>
-                                    <IonIcon slot="start" icon={Ionicons.timeOutline}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "recent")}</IonLabel>
-                                </IonItem>*/}
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
@@ -642,18 +617,6 @@ export function render(){
                                     <IonIcon slot="start" icon={Ionicons.lockClosed}></IonIcon>
                                     <IonLabel>{language.get(this.state.lang, "encryption")}</IonLabel>
                                 </IonItem>
-                                {/*{
-                                    !isPlatform("ios") && (
-                                        <IonItem button lines="none" onClick={() => {
-                                            window.customFunctions.hideSidebarMenu()
-                                            
-                                            return window.customFunctions.openWebsiteModal()
-                                        }}>
-                                            <IonIcon slot="start" icon={Ionicons.globe}></IonIcon>
-                                            <IonLabel>{language.get(this.state.lang, "website")}</IonLabel>
-                                        </IonItem>
-                                    )
-                                }*/}
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
@@ -807,27 +770,51 @@ export function render(){
                                                             </center>
                                                         </div>
                                                     ) : (
-                                                        <div style={{
-                                                            position: "absolute",
-                                                            left: "50%",
-                                                            top: "32%",
-                                                            transform: "translate(-50%, -50%)",
-                                                            width: "100%"
-                                                        }}> 
-                                                            <center>
-                                                                <IonIcon icon={Ionicons.folderOpen} style={{
-                                                                    fontSize: "65pt",
-                                                                    color: this.state.darkMode ? "white" : "gray"
-                                                                }}></IonIcon>
-                                                                <br />
-                                                                <br />
-                                                                <div style={{
-                                                                    width: "75%"
-                                                                }}>
-                                                                    {language.get(this.state.lang, "nothingInThisFolderYetPlaceholder")}
-                                                                </div>
-                                                            </center>
-                                                        </div>
+                                                        this.state.currentHref.indexOf("favorites") !== -1 ? (
+                                                            <div style={{
+                                                                position: "absolute",
+                                                                left: "50%",
+                                                                top: "32%",
+                                                                transform: "translate(-50%, -50%)",
+                                                                width: "100%"
+                                                            }}> 
+                                                                <center>
+                                                                    <IonIcon icon={Ionicons.star} style={{
+                                                                        fontSize: "65pt",
+                                                                        color: this.state.darkMode ? "white" : "gray"
+                                                                    }}></IonIcon>
+                                                                    <br />
+                                                                    <br />
+                                                                    <div style={{
+                                                                        width: "75%"
+                                                                    }}>
+                                                                        {language.get(this.state.lang, "noFavorites")}
+                                                                    </div>
+                                                                </center>
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{
+                                                                position: "absolute",
+                                                                left: "50%",
+                                                                top: "32%",
+                                                                transform: "translate(-50%, -50%)",
+                                                                width: "100%"
+                                                            }}> 
+                                                                <center>
+                                                                    <IonIcon icon={Ionicons.folderOpen} style={{
+                                                                        fontSize: "65pt",
+                                                                        color: this.state.darkMode ? "white" : "gray"
+                                                                    }}></IonIcon>
+                                                                    <br />
+                                                                    <br />
+                                                                    <div style={{
+                                                                        width: "75%"
+                                                                    }}>
+                                                                        {language.get(this.state.lang, "nothingInThisFolderYetPlaceholder")}
+                                                                    </div>
+                                                                </center>
+                                                            </div>
+                                                        )
                                                     )
                                                 )
                                             }
@@ -882,7 +869,7 @@ export function render(){
                             <IonButton onClick={() => {
                                 return routeTo("/base")
                             }} style={{
-                                width: (showShareLinks ? "20%" : "33%"),
+                                width: (showShareLinks ? "16.66%" : "25%"),
                                 "--ripple-color": "transparent",
                                 color: (window.location.href.indexOf("base") !== -1 ? "#3780FF" : "")
                             }}>
@@ -894,7 +881,7 @@ export function render(){
                                         <IonButton onClick={() => {
                                             return routeTo("/shared-in")
                                         }} style={{
-                                            width: (showShareLinks ? "20%" : "33%"),
+                                            width: (showShareLinks ? "16.66%" : "25%"),
                                             "--ripple-color": "transparent",
                                             color: (window.location.href.indexOf("shared-in") !== -1 ? "#3780FF" : "")
                                         }}>
@@ -903,7 +890,7 @@ export function render(){
                                         <IonButton onClick={() => {
                                             return routeTo("/shared-out")
                                         }} style={{
-                                            width: (showShareLinks ? "20%" : "33%"),
+                                            width: (showShareLinks ? "16.66%" : "25%"),
                                             "--ripple-color": "transparent",
                                             color: (window.location.href.indexOf("shared-out") !== -1 ? "#3780FF" : "")
                                         }}>
@@ -915,16 +902,25 @@ export function render(){
                             <IonButton onClick={() => {
                                 return routeTo("/links")
                             }} style={{
-                                width: (showShareLinks ? "20%" : "33%"),
+                                width: (showShareLinks ? "16.66%" : "25%"),
                                 "--ripple-color": "transparent",
                                 color: (window.location.href.indexOf("links") !== -1 ? "#3780FF" : "")
                             }}>
                                 <IonIcon icon={Ionicons.link} />
                             </IonButton>
                             <IonButton onClick={() => {
+                                return routeTo("/favorites")
+                            }} style={{
+                                width: (showShareLinks ? "16.66%" : "25%"),
+                                "--ripple-color": "transparent",
+                                color: (window.location.href.indexOf("favorites") !== -1 ? "#3780FF" : "")
+                            }}>
+                                <IonIcon icon={Ionicons.star} />
+                            </IonButton>
+                            <IonButton onClick={() => {
                                 return routeTo("/recent")
                             }} style={{
-                                width: (showShareLinks ? "20%" : "33%"),
+                                width: (showShareLinks ? "16.66%" : "25%"),
                                 "--ripple-color": "transparent",
                                 color: (window.location.href.indexOf("recent") !== -1 ? "#3780FF" : "")
                             }}>

@@ -80,6 +80,8 @@ export function setupListeners(){
             || window.location.href == origin + "/index.html#!/shared-out"
             || window.location.href == origin + "/#!/trash"
             || window.location.href == origin + "/index.html#!/trash"
+            || window.location.href == origin + "/#!/favorites"
+            || window.location.href == origin + "/index.html#!/favorites"
             || window.location.href == origin + "/#!/links"
             || window.location.href == origin + "/index.html#!/links"){
                 goBackHistory = false

@@ -1,6 +1,7 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor, Plugins } from "@capacitor/core"
+import { isPlatform } from "@ionic/react"
 
 const utils = require("../utils/utils")
 
@@ -89,6 +90,10 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 				}
 				else{
 					if(!res.status){
+						if(res.message.toLowerCase().indexOf("blacklisted") !== -1){
+							return callback("blacklisted")
+						}
+
 						return callback(res.message)
 					}
 					else{
@@ -117,6 +122,25 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 }
 
 export async function queueFileUpload(file){
+	//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
+
+	if(Capacitor.platform == "ios"){ //this is really bad for performance and memory, but WKWebview aka. mobile safari is a bitch and times out file blobs after 60 seconds, so we need to clone the file in case of slow chunk processing or uploads :/ thx apple
+		try{
+			file = new File([await file.arrayBuffer()], file.name, {
+				type: file.type,
+				lastModified: file.lastModified,
+				size: file.size
+			})
+		}
+		catch(e){
+			console.log(e)
+
+			let fName = file.name
+
+			return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFileOrTooBig", true, ["__NAME__"], [fName]))
+		}
+	}
+
 	if(Capacitor.isNative){
         if(this.state.settings.onlyWifi){
             let networkStatus = await Plugins.Network.getStatus()
@@ -272,158 +296,191 @@ export async function queueFileUpload(file){
 		}
 
 		addToState()
-
-		//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
-
+		
 		await window.customVariables.uploadSemaphore.acquire()
 
-		let uploadInterval = setInterval(() => {
-			if(offset < file.size){
-				if(firstDone){
-					doFirst = true
+		let uploadInterval = setInterval(async () => {
+			if(typeof file == "undefined"){
+				clearInterval(uploadInterval)
+
+				if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
+					window.customVariables.stoppedUploadsDone[uuid] = true
+
+					return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
 				}
-
-				if(doFirst){
-					if(!firstDone){
-						doFirst = false
+				else{
+					return false
+				}
+			}
+			else{
+				if(offset < file.size){
+					if(firstDone){
+						doFirst = true
 					}
-
-					offset += chunkSizeToUse
-					currentIndex += 1
-
-					let thisIndex = currentIndex
-					let chunk = file.slice(offset, (offset + chunkSizeToUse))
-
-					let fileReader = new FileReader()
-
-					fileReader.onload = async () => {
-						let arrayBuffer = fileReader.result
-
-						workers.encryptData(uuid, thisIndex, key, arrayBuffer, this.state.currentFileVersion, (encrypted) => {
-							let blob = encrypted
-
-							arrayBuffer = null
-
-							let queryParams = new URLSearchParams({
-								apiKey: this.state.userAPIKey,
-								uuid: uuid,
-								name: nameEnc,
-								nameHashed: nameH,
-								size: sizeEnc,
-								chunks: fileChunks,
-								mime: mimeEnc,
-								index: thisIndex,
-								rm: rm,
-								expire: expire,
-								uploadKey: uploadKey,
-								metaData: metaData,
-								parent: parent,
-								version: uploadVersion
-							}).toString()
-
-							this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, (err, res, parsedQueryParams) => {
-								if(err){
-									console.log(err)
-
-									window.customVariables.uploadSemaphore.release()
-
-									removeFromState()
-
-									if(err == "stopped"){
-										if(typeof window.customVariables.stoppedUploadsDone[file.uuid] == "undefined"){
-											window.customVariables.stoppedUploadsDone[file.uuid] = true
-
-											return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [file.name]))
-										}
-										else{
-											return false
-										}
-									}
-									else{
-										return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
-									}
-								}
-
-								chunksUploaded += 1
-
-								if(typeof window.customVariables.uploads[uuid] !== "undefined"){
-									setLoaded(blob.length)
-
-									try{
-										let progress = ((window.customVariables.uploads[uuid].loaded / window.customVariables.uploads[uuid].size) * 100).toFixed(2)
-
-										if(progress >= 100){
-											progress = 100
-										}
-
-										setProgress(progress)
-									}
-									catch(e){
-										console.log(e)
-									}
-								}
-
-								blob = null
-								firstDone = true
-
-								if((chunksUploaded - 1) >= fileChunks){
-									clearInterval(uploadInterval)
-
-									if(!markedAsDone){
-										markedAsDone = true
-
-										this.markUploadAsDone(uuid, uploadKey, 0, 1000000, (err) => {
-											if(err){
-												console.log(err)
-
-												window.customVariables.uploadSemaphore.release()
-
-												removeFromState()
-
-												return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
-											}
-
-											utils.checkIfItemParentIsBeingShared(parent, "file", {
-												uuid,
-												name,
-												size: parseInt(size),
-												mime,
-												key
-											}, () => {
-												if(utils.currentParentFolder() == parent){
-													clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
 	
-													window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
-														if(utils.currentParentFolder() == parent){
-															this.updateItemList(false)
-														}
-													}, 1000)
+					if(doFirst){
+						if(!firstDone){
+							doFirst = false
+						}
+	
+						if(window.customVariables.currentUploadThreads < window.customVariables.maxUploadThreads){
+							window.customVariables.currentUploadThreads += 1
+	
+							offset += chunkSizeToUse
+							currentIndex += 1
+	
+							let thisIndex = currentIndex
+	
+							let chunk = file.slice(offset, (offset + chunkSizeToUse))
+	
+							let fileReader = new FileReader()
+	
+							fileReader.onload = async () => {
+								let arrayBuffer = fileReader.result
+	
+								chunk = undefined
+	
+								workers.encryptData(uuid, thisIndex, key, arrayBuffer, this.state.currentFileVersion, (encrypted) => {
+									let blob = encrypted
+	
+									arrayBuffer = undefined
+	
+									let queryParams = new URLSearchParams({
+										apiKey: this.state.userAPIKey,
+										uuid: uuid,
+										name: nameEnc,
+										nameHashed: nameH,
+										size: sizeEnc,
+										chunks: fileChunks,
+										mime: mimeEnc,
+										index: thisIndex,
+										rm: rm,
+										expire: expire,
+										uploadKey: uploadKey,
+										metaData: metaData,
+										parent: parent,
+										version: uploadVersion
+									}).toString()
+	
+									this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, (err, res, parsedQueryParams) => {
+										if(err){
+											console.log(err)
+	
+											window.customVariables.uploadSemaphore.release()
+											window.customVariables.currentUploadThreads -= 1
+	
+											removeFromState()
+	
+											if(err == "stopped"){
+												if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
+													window.customVariables.stoppedUploadsDone[uuid] = true
+	
+													return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+												}
+												else{
+													return false
+												}
+											}
+											else if(err == "blacklisted"){
+												window.customVariables.stoppedUploads[uuid] = true
+
+												if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
+													window.customVariables.stoppedUploadsDone[uuid] = true
+												}
+												
+												return this.spawnToast(language.get(this.state.lang, "uploadStorageExceeded", true, ["__NAME__"], [name]))
+											}
+											else{
+												return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+											}
+										}
+	
+										if(typeof window.customVariables.uploads[uuid] !== "undefined"){
+											setLoaded(blob.length)
+	
+											try{
+												let progress = ((window.customVariables.uploads[uuid].loaded / window.customVariables.uploads[uuid].size) * 100).toFixed(2)
+	
+												if(progress >= 100){
+													progress = 100
 												}
 	
-												this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [file.name]))
-
-												window.customVariables.uploadSemaphore.release()
-
-												return removeFromState()
-											})
-										})
-									}
-								}
-							})
-						})
+												setProgress(progress)
+											}
+											catch(e){
+												console.log(e)
+											}
+										}
+	
+										window.customVariables.currentUploadThreads -= 1
+										firstDone = true
+										blob = undefined
+										chunksUploaded += 1
+	
+										if((chunksUploaded - 1) >= fileChunks){
+											clearInterval(uploadInterval)
+	
+											window.customVariables.uploadSemaphore.release()
+	
+											if(!markedAsDone){
+												markedAsDone = true
+	
+												this.markUploadAsDone(uuid, uploadKey, 0, 1000000, (err) => {
+													if(err){
+														console.log(err)
+	
+														removeFromState()
+	
+														return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+													}
+	
+													utils.checkIfItemParentIsBeingShared(parent, "file", {
+														uuid,
+														name,
+														size: parseInt(size),
+														mime,
+														key
+													}, () => {
+														if(utils.currentParentFolder() == parent){
+															clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
+			
+															window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
+																if(utils.currentParentFolder() == parent){
+																	this.updateItemList(false)
+																}
+															}, 500)
+														}
+			
+														this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [name]))
+	
+														return removeFromState()
+													})
+												})
+											}
+										}
+									})
+								})
+							}
+	
+							fileReader.onerror = (err) => {
+								window.customVariables.uploadSemaphore.release()
+								window.customVariables.currentUploadThreads -= 1
+	
+								console.log(err)
+	
+								removeFromState()
+	
+								window.customVariables.stoppedUploads[uuid] = true
+	
+								return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
+							}
+	
+							fileReader.readAsArrayBuffer(chunk)
+						}
 					}
-
-					fileReader.onerror = (err) => {
-						window.customVariables.uploadSemaphore.release()
-
-						console.log(err)
-
-						removeFromState()
-
-						return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
-					}
-
-					fileReader.readAsArrayBuffer(chunk)
+				}
+				else{
+					clearInterval(uploadInterval)
 				}
 			}
 		}, 100)

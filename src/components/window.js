@@ -20,7 +20,7 @@ export function windowRouter(){
             let routeEx = window.location.hash.split("/")
 
             if(this.state.isLoggedIn){
-                if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash" || routeEx[1] == "links" || routeEx[1] == "recent"){
+                if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash" || routeEx[1] == "links" || routeEx[1] == "recent" || routeEx[1] == "favorites"){
                     await this.updateItemList()
     
                     let foldersInRoute = routeEx.slice(2)
@@ -78,6 +78,12 @@ export function windowRouter(){
                                 showMainToolbarBackButton: false
                             })
                         }
+                        else if(routeEx[1] == "favorites"){
+                            this.setState({
+                                mainToolbarTitle: language.get(this.state.lang, "favorites"),
+                                showMainToolbarBackButton: false
+                            })
+                        }
                         else{
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "myCloud"),
@@ -128,12 +134,19 @@ export function setupWindowFunctions(){
     window.customVariables.keyUpdateInterval = undefined
     window.customVariables.usageUpdateInterval = undefined
     window.customVariables.apiKey = ""
-    window.customVariables.uploadSemaphore = new utils.Semaphore(3)
-    window.customVariables.uploadChunkSemaphore = new utils.Semaphore(5)
-    window.customVariables.downloadSemaphore = new utils.Semaphore(5)
-    window.customVariables.downloadChunkSemaphore = new utils.Semaphore(30)
-    window.customVariables.shareItemSemaphore = new utils.Semaphore(4)
+    window.customVariables.uploadSemaphore = new utils.Semaphore(1)
+    window.customVariables.uploadChunkSemaphore = new utils.Semaphore(8)
+    window.customVariables.downloadSemaphore = new utils.Semaphore(1)
+    window.customVariables.downloadChunkSemaphore = new utils.Semaphore(16)
+    window.customVariables.shareItemSemaphore = new utils.Semaphore(8)
     window.customVariables.decryptShareItemSemaphore = new utils.Semaphore(128)
+    window.customVariables.writeSemaphore = new utils.Semaphore(20)
+    window.customVariables.currentUploadThreads = 0
+    window.customVariables.maxUploadThreads = 6
+    window.customVariables.maxDownloadThreads = 16
+    window.customVariables.currentDownloadThreads = 0
+    window.customVariables.maxWriteThreads = 16
+    window.customVariables.currentWriteThreads = 0
     window.customVariables.uploads = {}
     window.customVariables.downloads = {}
     window.customVariables.reloadContentAfterUploadTimeout = undefined
@@ -154,7 +167,7 @@ export function setupWindowFunctions(){
     window.customVariables.thumbnailBlobCache = {}
     window.customVariables.currentThumbnailURL = undefined
     window.customVariables.lastThumbnailCacheLength = undefined
-    window.customVariables.thumbnailSemaphore = new utils.Semaphore(3)
+    window.customVariables.thumbnailSemaphore = new utils.Semaphore(4)
     window.customVariables.updateItemsSemaphore = new utils.Semaphore(1)
     window.customVariables.getNetworkInfoInterval = undefined
     window.customVariables.networkStatus = undefined
@@ -188,7 +201,9 @@ export function setupWindowFunctions(){
 
     setInterval(() => {
         if(document.getElementById("main-virtual-list") !== null){
-            if(document.getElementById("main-virtual-list").scrollTop > 0 && Math.floor(document.getElementById("main-virtual-list").scrollTop) === Math.floor(document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight)){
+            let diff = Math.floor(Math.floor(document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight) - Math.floor(document.getElementById("main-virtual-list").scrollTop))
+
+            if(document.getElementById("main-virtual-list").scrollTop > 0 && diff <= 50){
                 this.setState({
                     hideMainFab: true
                 })
@@ -250,7 +265,7 @@ export function setupWindowFunctions(){
 
     window.customVariables.deviceHeightAndWidthInterval = setInterval(() => {
         updateHeightAndWidthState()
-    }, 250)
+    }, 500)
 
     window.addEventListener("orientationchange", () => {
         updateHeightAndWidthState()
@@ -298,7 +313,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.togglePreviewHeader = (e) => {
         if(typeof e.target == "undefined"){
-            return
+            return false
         }
 
         if(e.target.innerHTML.indexOf("<ion-icon") !== -1){
@@ -1036,6 +1051,511 @@ export function setupWindowFunctions(){
         return this.openSettingsModal()
     }
 
+    window.customFunctions.openTermsModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "terms-modal-" + utils.generateRandomClassName()
+
+        let loading = await loadingController.create({
+            message: ""
+        })
+
+        loading.present()
+
+        try{
+            var res = await utils.fetchWithTimeout(60000, fetch("https://filen.io/raw/terms"))
+
+            res = await res.text()
+        }
+        catch(e){
+            console.log(e)
+
+            loading.dismiss()
+
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+
+        loading.dismiss()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "termsHeader") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="padding: 10px; color: ` + (appDarkMode ? `white` : `black`) + `;" fullscreen>
+                        <div style="padding: 15px;">
+                            ` + res + `
+                        </div>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        if(!this.state.isLoggedIn){
+            this.setupStatusbar("modal")
+
+            try{
+                let sModal = await modalController.getTop()
+
+                sModal.onDidDismiss().then(() => {
+                    this.setupStatusbar()
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return true
+    }
+
+    window.customFunctions.openPrivacyModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "privacy-modal-" + utils.generateRandomClassName()
+
+        let loading = await loadingController.create({
+            message: ""
+        })
+
+        loading.present()
+
+        try{
+            var res = await utils.fetchWithTimeout(60000, fetch("https://filen.io/raw/privacy"))
+
+            res = await res.text()
+        }
+        catch(e){
+            console.log(e)
+
+            loading.dismiss()
+
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+
+        loading.dismiss()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "privacyHeader") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="padding: 10px; color: ` + (appDarkMode ? `white` : `black`) + `;" fullscreen>
+                        ` + res + `
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        if(!this.state.isLoggedIn){
+            this.setupStatusbar("modal")
+
+            try{
+                let sModal = await modalController.getTop()
+
+                sModal.onDidDismiss().then(() => {
+                    this.setupStatusbar()
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return true
+    }
+
+    window.customFunctions.openImprintModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "imprint-modal-" + utils.generateRandomClassName()
+
+        let loading = await loadingController.create({
+            message: ""
+        })
+
+        loading.present()
+
+        try{
+            var res = await utils.fetchWithTimeout(60000, fetch("https://filen.io/raw/imprint"))
+
+            res = await res.text()
+        }
+        catch(e){
+            console.log(e)
+
+            loading.dismiss()
+
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+
+        loading.dismiss()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "imprintHeader") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="padding: 10px; color: ` + (appDarkMode ? `white` : `black`) + `;" fullscreen>
+                        ` + res + `
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        if(!this.state.isLoggedIn){
+            this.setupStatusbar("modal")
+
+            try{
+                let sModal = await modalController.getTop()
+
+                sModal.onDidDismiss().then(() => {
+                    this.setupStatusbar()
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return true
+    }
+
+    window.customFunctions.sendForgotPassword = async () => {
+        if(!document.getElementById('forgot-password-check').checked){
+            return window.$("#forgot-password-check-label").fadeOut(150).fadeIn(150).fadeOut(150).fadeIn(150).fadeOut(150).fadeIn(150)
+        }
+
+        let email = document.getElementById("forgot-password-email").value
+
+        if(!email){
+            document.getElementById("forgot-password-email").value = ""
+
+            let apiAlert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: language.get(this.state.lang, "registerInvalidEmail"),
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+    
+            return apiAlert.present()
+        }
+
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+
+        try{
+            var res = await utils.apiRequest("POST", "/v1/forgot-password", {
+                email
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            window.customFunctions.dismissLoader()
+    
+            let apiAlert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: language.get(this.state.lang, "apiRequestError"),
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+    
+            return apiAlert.present()
+        }
+
+        if(!res.status){
+            console.log(res.message)
+    
+            window.customFunctions.dismissLoader()
+
+            document.getElementById("forgot-password-email").value = ""
+    
+            let apiAlert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: res.message,
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+    
+            return apiAlert.present()
+        }
+
+        window.customFunctions.dismissLoader()
+
+        document.getElementById("forgot-password-email").value = ""
+    
+        let apiAlert = await alertController.create({
+            header: "",
+            subHeader: "",
+            message: language.get(this.state.lang, "forgotPasswordEmailSendSuccess"),
+            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+        })
+
+        return apiAlert.present()
+    }
+
+    window.customFunctions.openForgotPasswordModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "forgot-password-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "forgotPasswordHeader") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content fullscreen>
+                        <div style="padding: 5%; padding-top: 0px; padding-bottom: 0px;">
+                            <ion-item style="width: 100%; margin-top: 30px;">
+                                <ion-input type="email" id="forgot-password-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
+                            </ion-item>
+                            <div style="width: 100%; margin-top: 30px;">
+                                <ion-checkbox color="secondary" slot="start" id="forgot-password-check"></ion-checkbox>
+                                &nbsp;
+                                <ion-label id="forgot-password-check-label" onClick="if(document.getElementById('forgot-password-check').checked){ document.getElementById('forgot-password-check').checked = false }else{ document.getElementById('forgot-password-check').checked = true }">` + language.get(appLang, "forgotPasswordInfo") + `</ion-label>
+                            </div>
+                            <ion-button expand="block" style="width: 100%; margin-top: 25px;" onClick="window.customFunctions.sendForgotPassword()">` + language.get(appLang, "send") + `</ion-button>
+                        </div>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        if(!this.state.isLoggedIn){
+            this.setupStatusbar("modal")
+
+            try{
+                let sModal = await modalController.getTop()
+
+                sModal.onDidDismiss().then(() => {
+                    this.setupStatusbar()
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return true
+    }
+
+    window.customFunctions.resendConfirmationEmail = async () => {
+        let email = document.getElementById("resend-confirmation-email").value
+
+        if(!email){
+            document.getElementById("resend-confirmation-email").value = ""
+
+            let apiAlert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: language.get(this.state.lang, "registerInvalidEmail"),
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+    
+            return apiAlert.present()
+        }
+
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+
+        try{
+            var res = await utils.apiRequest("POST", "/v1/confirmation/resend", {
+                email
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            window.customFunctions.dismissLoader()
+    
+            let apiAlert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: language.get(this.state.lang, "apiRequestError"),
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+    
+            return apiAlert.present()
+        }
+
+        if(!res.status){
+            console.log(res.message)
+    
+            window.customFunctions.dismissLoader()
+
+            document.getElementById("resend-confirmation-email").value = ""
+    
+            let apiAlert = await alertController.create({
+                header: "",
+                subHeader: "",
+                message: res.message,
+                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            })
+    
+            return apiAlert.present()
+        }
+
+        window.customFunctions.dismissLoader()
+
+        document.getElementById("resend-confirmation-email").value = ""
+    
+        let apiAlert = await alertController.create({
+            header: "",
+            subHeader: "",
+            message: language.get(this.state.lang, "resendConfirmationEmailSuccess"),
+            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+        })
+
+        return apiAlert.present()
+    }
+
+    window.customFunctions.openResendConfirmationModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "resend-confirmation-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "resendConfirmationHeader") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content fullscreen>
+                        <div style="padding: 5%; padding-top: 0px; padding-bottom: 0px;">
+                            <ion-item style="width: 100%; margin-top: 30px;">
+                                <ion-input type="email" id="resend-confirmation-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
+                            </ion-item>
+                            <ion-button expand="block" style="width: 100%; margin-top: 25px;" onClick="window.customFunctions.resendConfirmationEmail()">` + language.get(appLang, "resend") + `</ion-button>
+                        </div>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        if(!this.state.isLoggedIn){
+            this.setupStatusbar("modal")
+
+            try{
+                let sModal = await modalController.getTop()
+
+                sModal.onDidDismiss().then(() => {
+                    this.setupStatusbar()
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return true
+    }
+
     window.customFunctions.setLang = async (lang = "en") => {
         await Plugins.Storage.set({ key: "lang", value: lang })
 
@@ -1228,30 +1748,17 @@ export function setupWindowFunctions(){
                 }
             },
             {
-                text: language.get(this.state.lang, "faq"),
-                icon: Ionicons.informationCircle,
-                handler: () => {
-                    window.open("https://filen.io/faq", "_system")
-
-                    return false
-                }
-            },
-            {
                 text: language.get(this.state.lang, "tos"),
                 icon: Ionicons.informationCircleOutline,
                 handler: () => {
-                    window.open("https://filen.io/terms", "_system")
-
-                    return false
+                    return window.customFunctions.openTermsModal()
                 }
             },
             {
                 text: language.get(this.state.lang, "privacyPolicy"),
                 icon: Ionicons.informationCircleOutline,
                 handler: () => {
-                    window.open("https://filen.io/privacy", "_system")
-
-                    return false
+                    return window.customFunctions.openPrivacyModal()
                 }
             },
             {
@@ -1260,25 +1767,6 @@ export function setupWindowFunctions(){
                 role: "cancel"
             }
         ]
-
-        if(isPlatform("ios")){
-            btns = [
-                {
-                    text: language.get(this.state.lang, "support"),
-                    icon: Ionicons.helpBuoyOutline,
-                    handler: () => {
-                        window.open("https://support.filen.io/", "_system")
-
-                        return false
-                    }
-                },
-                {
-                    text: language.get(this.state.lang, "cancel"),
-                    icon: "close",
-                    role: "cancel"
-                }
-            ]
-        }
 
         let actionSheet = await actionSheetController.create({
             header: language.get(this.state.lang, "help"),
@@ -1295,6 +1783,30 @@ export function setupWindowFunctions(){
         let item = JSON.parse(window.atob(itemJSON))
 
         return this.spawnItemActionSheet(item)
+    }
+
+    window.customFunctions.favoriteSelectedItems = async (value) => {
+        window.customFunctions.dismissPopover()
+
+        var loading = await loadingController.create({
+			message: ""
+		})
+	
+		loading.present()
+
+        let items = this.state.itemList
+
+        for(let i = 0; i < items.length; i++){
+            if(items[i].selected){
+                await this.favoriteItem(items[i], value, false)
+            }
+        }
+
+        loading.dismiss()
+
+        window.customFunctions.unselectAllItems()
+
+        return true
     }
 
     window.customFunctions.moveSelectedItems = () => {

@@ -50,6 +50,9 @@ export async function showLogin(){
                             <br>
                             <br>
                             <a onClick="window.customFunctions.openRegisterModal()">` + (isPlatform("ios") ? language.get(appLang, "registerLink").replace(/ *\([^)]*\) */g, "") : language.get(appLang, "registerLink")) + `</a>
+                            <br>
+                            <br>
+                            <a onClick="window.customFunctions.openForgotPasswordModal()">` + language.get(appLang, "forgotPasswordLink") + `</a>
                         </center>
                     </div>
                 </ion-content>
