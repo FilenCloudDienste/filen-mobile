@@ -2395,3 +2395,72 @@ export async function deriveKeyFromPassword(password, salt, iterations = 200000,
 
     return buf2hex(bits)
 }
+
+export async function encryptMetadata(data, key, version = 1){
+	if(version == 1){
+		try{
+			return CryptoJS.AES.encrypt(data.toString(), key.toString()).toString()
+		}
+		catch(e){
+			console.log(e)
+
+			return ""
+		}
+	}
+	else if(version == 2){
+		try{
+			let textEncoder = new TextEncoder()
+
+			let preKey = textEncoder.encode(key.toString())
+			let iv = generateRandomString(12)
+			let string = textEncoder.encode(data.toString())
+
+			let encrypted = await window.crypto.subtle.encrypt({
+				name: "AES-GCM",
+				iv: textEncoder.encode(iv)
+			}, await window.crypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["encrypt"]), string)
+
+			return iv + base64ArrayBuffer(new Uint8Array(encrypted))
+		}
+		catch(e){
+			console.log(e)
+
+			return ""
+		}
+	}
+}
+
+export async function decryptMetadata(data, key, version = 1){
+	if(version == 1){
+		try{
+			return CryptoJS.AES.decrypt(data.toString(), key.toString()).toString(CryptoJS.enc.Utf8)
+		}
+		catch(e){
+			console.log(e)
+
+			return ""
+		}
+	}
+	else if(version == 2){
+		try{
+			let textDecoder = new TextDecoder()
+			let textEncoder = new TextEncoder()
+
+			let preKey = textEncoder.encode(key.toString())
+			let iv = textEncoder(e.data.data.slice(0, 12))
+			let encrypted = _base64ToArrayBuffer(e.data.data.slice(12))
+
+			let decrypted = await window.crypto.subtle.decrypt({
+				name: "AES-GCM",
+				iv
+			}, await window.crypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["decrypt"]), encrypted)
+
+			return textDecoder.decode(decrypted)
+		}
+		catch(e){
+			console.log(e)
+
+			return ""
+		}
+	}
+}
