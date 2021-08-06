@@ -13,7 +13,7 @@ export async function updateUserKeys(cb){
             var res = await utils.apiRequest("POST", "/v1/user/keyPair/update", {
                 apiKey: this.state.userAPIKey,
                 publicKey: pub,
-                privateKey: utils.cryptoJSEncrypt(priv, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+                privateKey: await utils.encryptMetadata(priv, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
             })
         }
         catch(e){
@@ -52,7 +52,7 @@ export async function updateUserKeys(cb){
             var res = await utils.apiRequest("POST", "/v1/user/keyPair/set", {
                 apiKey: this.state.userAPIKey,
                 publicKey: pub,
-                privateKey: utils.cryptoJSEncrypt(priv, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+                privateKey: await utils.encryptMetadata(priv, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
             })
         }
         catch(e){
@@ -107,24 +107,26 @@ export async function updateUserKeys(cb){
         if(res.data.publicKey.length > 16 && res.data.privateKey.length > 16){
             let privKey = ""
 
-            this.state.userMasterKeys.forEach((key) => {
+            for(let i = 0; i < this.state.userMasterKeys.length; i++){
                 if(privKey.length == 0){
                     try{
-                        let decrypted = utils.cryptoJSDecrypt(res.data.privateKey, key)
+                        let decrypted = await utils.decryptMetadata(res.data.privateKey, this.state.userMasterKeys[i])
 
                         if(typeof decrypted == "string"){
                             if(decrypted.length > 16){
                                 privKey = decrypted
+
+                                break
                             }
                         }
                     }
                     catch(e){
                         //console.log(e)
 
-                        return
+                        continue
                     }
                 }
-            })
+            }
 
             if(privKey.length > 16){
                 await Plugins.Storage.set({ key: "userPublicKey", value: res.data.publicKey })
@@ -186,7 +188,7 @@ export async function updateUserKeys(cb){
     try{
         var res = await utils.apiRequest("POST", "/v1/user/masterKeys", {
             apiKey: this.state.userAPIKey,
-            masterKeys: utils.cryptoJSEncrypt(this.state.userMasterKeys.join("|"), this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+            masterKeys: await utils.encryptMetadata(this.state.userMasterKeys.join("|"), this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
         })
     }
     catch(e){
@@ -211,27 +213,26 @@ export async function updateUserKeys(cb){
 
     let newKeys = ""
 
-    this.state.userMasterKeys.forEach((key) => {
+    for(let i = 0; i < this.state.userMasterKeys.length; i++){
         try{
             if(newKeys.length == 0){
-                let decrypted = utils.cryptoJSDecrypt(res.data.keys, key)
+                let decrypted = await utils.decryptMetadata(res.data.keys, this.state.userMasterKeys[i])
 
                 if(typeof decrypted == "string"){
                     if(decrypted.length > 16){
                         newKeys = decrypted
+
+                        break
                     }
                 }
-            }
-            else{
-                return
             }
         }
         catch(e){
             //console.log(e)
 
-            return
+            continue
         }
-    })
+    }
 
     if(newKeys.length > 16){
         await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify(newKeys.split("|")) })

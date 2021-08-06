@@ -214,7 +214,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		for(let i = 0; i < res.data.folders.length; i++){
 			let folder = res.data.folders[i]
 
-			let folderName = utils.decryptCryptoJSFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+			let folderName = await utils.decryptFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
 			let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
 
 			let item = {
@@ -298,7 +298,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		for(let i = 0; i < res.data.length; i++){
 			let file = res.data[i]
 
-			let metadata = utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+			let metadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
 			let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
 			let offline = false
@@ -515,7 +515,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
 
-				let folderName = utils.decryptCryptoJSFolderName(folder.metadata, this.state.userMasterKeys, folder.uuid)
+				let folderName = await utils.decryptFolderName(folder.metadata, this.state.userMasterKeys, folder.uuid)
 				let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
 
 				let item = {
@@ -541,7 +541,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			for(let i = 0; i < res.data.uploads.length; i++){
 				let file = res.data.uploads[i]
 
-				let metadata = utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+				let metadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
 				let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
 				let offline = false
@@ -622,7 +622,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
 
-				let folderName = utils.decryptCryptoJSFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+				let folderName = await utils.decryptFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
 				let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
 
 				let item = {
@@ -648,7 +648,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			for(let i = 0; i < res.data.uploads.length; i++){
 				let file = res.data.uploads[i]
 
-				let metadata = utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+				let metadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
 				let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
 				let offline = false
@@ -729,7 +729,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
 
-				let folderName = utils.decryptCryptoJSFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+				let folderName = await utils.decryptFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
 				let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
 
 				let item = {
@@ -755,7 +755,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			for(let i = 0; i < res.data.uploads.length; i++){
 				let file = res.data.uploads[i]
 
-				let metadata = utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+				let metadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
 				let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
 				let offline = false
@@ -1933,9 +1933,9 @@ export async function renameItem(item){
 					var res = await utils.apiRequest("POST", "/v1/file/rename", {
 						apiKey: this.state.userAPIKey,
 						uuid: item.uuid,
-						name: utils.cryptoJSEncrypt(newName, item.key),
+						name: await utils.encryptMetadata(newName, item.key),
 						nameHashed: utils.hashFn(newName.toLowerCase()),
-						metaData: utils.cryptoJSEncrypt(JSON.stringify({
+						metaData: await utils.encryptMetadata(JSON.stringify({
 							name: newName,
 							size: parseInt(item.size),
 							mime: item.mime,
@@ -2032,7 +2032,7 @@ export async function renameItem(item){
 					var res = await utils.apiRequest("POST", "/v1/dir/rename", {
 						apiKey: this.state.userAPIKey,
 						uuid: item.uuid,
-						name: utils.cryptoJSEncrypt(JSON.stringify({
+						name: await utils.encryptMetadata(JSON.stringify({
 							name: newName,
 						}), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
 						nameHashed: utils.hashFn(newName.toLowerCase())
@@ -2494,7 +2494,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		}
 
 		for(let i = 0; i < files.length; i++){
-			let metadata = utils.decryptFileMetadata(files[i].metadata, this.state.userMasterKeys, files[i].uuid)
+			let metadata = await utils.decryptFileMetadata(files[i].metadata, this.state.userMasterKeys, files[i].uuid)
 
 			if(metadata.key.length > 0){
 				shareItems.push({
@@ -2512,9 +2512,9 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		}
 
 		for(let i = 0; i < folders.length; i++){
-			let dirName = utils.decryptCryptoJSFolderName(folders[i].name, this.state.userMasterKeys, folders[i].uuid)
+			let dirName = await utils.decryptFolderName(folders[i].name, this.state.userMasterKeys, folders[i].uuid)
 
-			if(dirName !== "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"){
+			if(dirName.length > 0){
 				shareItems.push({
 					uuid: folders[i].uuid,
 					parent: (i == 0 ? "none" : folders[i].parent),
@@ -2897,6 +2897,8 @@ export async function openPublicLinkModal(item){
 		let appDarkMode = this.state.darkMode
 		let appUserMasterKeys = this.state.userMasterKeys
 		let modalId = "public-link-modal-" + utils.generateRandomClassName()
+
+		let linkKey = await utils.decryptFolderLinkKey(res.data.key, appUserMasterKeys)
 	
 		customElements.define(modalId, class ModalContent extends HTMLElement {
 			connectedCallback(){
@@ -2932,7 +2934,7 @@ export async function openPublicLinkModal(item){
 								<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'disable', true, '` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `')" checked></ion-toggle>
 							</ion-item>
 							<ion-item lines="none">
-								<ion-input type="text" id="public-link-input" onClick="window.customFunctions.copyPublicLinkToClipboard()" value="https://filen.io/f/` + res.data.uuid + `#!` + utils.decryptFolderLinkKey(res.data.key, appUserMasterKeys) + `" disabled></ion-input>
+								<ion-input type="text" id="public-link-input" onClick="window.customFunctions.copyPublicLinkToClipboard()" value="https://filen.io/f/` + res.data.uuid + `#!` + linkKey + `" disabled></ion-input>
 								<ion-buttons slot="end" onClick="window.customFunctions.copyPublicLinkToClipboard()">
 									<ion-button fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
 										` + language.get(appLang, "copy") + `

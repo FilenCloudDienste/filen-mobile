@@ -67,6 +67,7 @@ interface AppStates {
 	showItemsSekeleton: boolean,
 	currentFileVersion: number,
 	currentAuthVersion: number,
+	currentMetadataVersion: number,
 	hideMainFab: boolean,
 	showMainSkeletonPlaceholder: boolean,
 	mainSearchbarDisabled: boolean
@@ -118,6 +119,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			showItemsSekeleton: false,
 			currentFileVersion: 1,
 			currentAuthVersion: 1,
+			currentMetadataVersion: 1,
 			hideMainFab: false,
 			showMainSkeletonPlaceholder: false,
 			mainSearchbarDisabled: false
@@ -128,6 +130,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 
 	componentDidMount(){
 		this.setupWindowFunctions()
+		
 		this.setupListeners()
 		this.windowRouter()
 

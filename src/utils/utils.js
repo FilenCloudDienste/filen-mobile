@@ -248,45 +248,41 @@ export function hashFn(val){
     return CryptoJS.SHA1(CryptoJS.SHA512(val).toString()).toString()
 }
 
-export function cryptoJSEncrypt(val, key){
-    return CryptoJS.AES.encrypt(val, key).toString()
-}
-
-export function cryptoJSDecrypt(val, key){
-    return CryptoJS.AES.decrypt(val, key).toString(CryptoJS.enc.Utf8)
-}
-
 export function unixTimestamp(){
     return Math.floor((+new Date()) / 1000)
 }
 
-export function decryptCryptoJSFolderName(str, userMasterKeys, uuid = undefined){
+export async function decryptFolderName(str, userMasterKeys, uuid = undefined){
     let cacheKey = "folder_" + uuid + "_" + str
 
     if(window.customVariables.cachedMetadata[cacheKey]){
         return window.customVariables.cachedMetadata[cacheKey].name
     }
 
-    let folderName = "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"
+    let folderName = ""
 
-    userMasterKeys = userMasterKeys.reverse()
+    if(userMasterKeys.length > 0){
+		userMasterKeys = userMasterKeys.reverse()
+	}
 
     let obj = undefined
 
-    userMasterKeys.forEach((key) => {
-        try{
-            obj = JSON.parse(CryptoJS.AES.decrypt(str, key).toString(CryptoJS.enc.Utf8))
+    for(let i = 0; i < userMasterKeys.length; i++){
+		try{
+            obj = JSON.parse(await decryptMetadata(str, userMasterKeys[i]))
 
             if(obj && typeof obj == "object"){
                 folderName = obj.name
+
+				break
             }
         }
         catch(e){
-            return
+            continue
         }
-    })
+	}
 
-    if(folderName !== "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"){
+    if(folderName.length > 0){
         window.customVariables.cachedMetadata[cacheKey] = {
             name: folderName
         }
@@ -302,7 +298,7 @@ export async function decryptFolderNamePrivateKey(str, usrPrivKey, uuid = undefi
         return window.customVariables.cachedMetadata[cacheKey].name
     }
 
-    let folderName = "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"
+    let folderName = ""
 
     try{
         let decrypted = await window.crypto.subtle.decrypt({
@@ -319,7 +315,7 @@ export async function decryptFolderNamePrivateKey(str, usrPrivKey, uuid = undefi
         console.log(e)
     }
 
-    if(folderName !== "CON_NO_DECRYPT_POSSIBLE_NO_NAME_FOUND_FOR_FOLDER"){
+    if(folderName.length > 0){
         window.customVariables.cachedMetadata[cacheKey] = {
             name: folderName
         }
@@ -328,7 +324,7 @@ export async function decryptFolderNamePrivateKey(str, usrPrivKey, uuid = undefi
     return folderName
 }
 
-export function decryptFileMetadata(metadata, userMasterKeys, uuid = undefined){
+export async function decryptFileMetadata(metadata, userMasterKeys, uuid = undefined){
     let cacheKey = "file_" + uuid + "_" + metadata
 
     if(window.customVariables.cachedMetadata[cacheKey]){
@@ -347,23 +343,27 @@ export function decryptFileMetadata(metadata, userMasterKeys, uuid = undefined){
     let fileMime = ""
     let fileKey = ""
 
-    userMasterKeys = userMasterKeys.reverse()
+    if(userMasterKeys.length > 0){
+		userMasterKeys = userMasterKeys.reverse()
+	}
 
-    userMasterKeys.forEach((key) => {
-        try{
-            let obj = JSON.parse(CryptoJS.AES.decrypt(metadata, key).toString(CryptoJS.enc.Utf8))
+	for(let i = 0; i < userMasterKeys.length; i++){
+		try{
+            let obj = JSON.parse(await decryptMetadata(metadata, userMasterKeys[i]))
 
             if(obj && typeof obj == "object"){
                 fileName = obj.name
                 fileSize = parseInt(obj.size)
                 fileMime = obj.mime
                 fileKey = obj.key
+
+				break
             }
         }
         catch(e){
-            return
+            continue
         }
-    })
+	}
 
     let obj = {
         name: fileName,
@@ -689,27 +689,29 @@ export function Semaphore(max){
     }
 }
 
-export function decryptFolderLinkKey(str, userMasterKeys){
+export async function decryptFolderLinkKey(str, userMasterKeys){
 	let link = ""
 
     if(userMasterKeys.length > 1){
       	userMasterKeys = userMasterKeys.reverse()
     }
 
-    userMasterKeys.forEach((key) => {
-        try{
-            let obj = CryptoJS.AES.decrypt(str, key).toString(CryptoJS.enc.Utf8)
+	for(let i = 0; i < userMasterKeys.length; i++){
+		try{
+            let obj = await decryptMetadata(str, userMasterKeys[i])
 
             if(obj && typeof obj == "string"){
                 if(obj.length >= 16){
                 	link = obj
+
+					break
                 }
             }
         }
         catch(e){
-            return
+            continue
         }
-    })
+	}
 
     return link
 }
@@ -956,7 +958,7 @@ export function checkIfItemIsBeingSharedForRename(type, uuid, metaData, optional
 		})
 	})
 
-	checkIfIsInFolderLink(uuid, 0, 32, (isLinking, links) => {
+	checkIfIsInFolderLink(uuid, 0, 32, async (isLinking, links) => {
 		if(!isLinking){
 			linkCheckDone = true
 
@@ -978,8 +980,10 @@ export function checkIfItemIsBeingSharedForRename(type, uuid, metaData, optional
 			}
 		}
 
-		links.forEach((link) => {
-			let key = decryptFolderLinkKey(link.linkKey, userMasterKeys)
+		for(let i = 0; i < links.length; i++){
+			let link = links[i]
+
+			let key = await decryptFolderLinkKey(link.linkKey, userMasterKeys)
 
 			let mData = ""
 
@@ -997,7 +1001,7 @@ export function checkIfItemIsBeingSharedForRename(type, uuid, metaData, optional
 				})
 			}
 
-			mData = CryptoJS.AES.encrypt(mData, key).toString()
+			mData = await encryptMetadata(mData, key)
 
 			renameItem(JSON.stringify({
 				apiKey: window.customVariables.apiKey,
@@ -1011,7 +1015,7 @@ export function checkIfItemIsBeingSharedForRename(type, uuid, metaData, optional
 
 				doneAddingToLink()
 			})
-		})
+		}
 	})
 }
 
@@ -1323,7 +1327,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 					await window.customVariables.decryptShareItemSemaphore.acquire()
 
 					let metadata = files[i].metadata
-					let decryptedData = decryptFileMetadata(metadata, userMasterKeys, files[i].uuid)
+					let decryptedData = await decryptFileMetadata(metadata, userMasterKeys, files[i].uuid)
 					let fName = decryptedData.name
 					let fSize = decryptedData.size
 					let fMime = decryptedData.mime
@@ -1348,7 +1352,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 					if(folders[i].uuid !== metaData.uuid && folders[i].parent !== "base"){
 						await window.customVariables.decryptShareItemSemaphore.acquire()
 
-						let dirName = decryptCryptoJSFolderName(folders[i].name, userMasterKeys, folders[i].uuid)
+						let dirName = await decryptFolderName(folders[i].name, userMasterKeys, folders[i].uuid)
 
 						shareItems.push({
 							uuid: folders[i].uuid,
@@ -1422,7 +1426,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 		}
 	})
 
-	checkIfIsInFolderLink(parentUUID, 0, 128, (status, links) => {
+	checkIfIsInFolderLink(parentUUID, 0, 128, async (status, links) => {
 		if(!status){
 			linkCheckDone = true
 
@@ -1443,8 +1447,10 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 		}
 
 		if(type == "file"){
-			links.forEach((link) => {
-				let key = decryptFolderLinkKey(link.linkKey, userMasterKeys)
+			for(let i = 0; i < links.length; i++){
+				let link = links[i]
+
+				let key = await decryptFolderLinkKey(link.linkKey, userMasterKeys)
 
 				let mData = JSON.stringify({
 					name: metaData.name,
@@ -1453,7 +1459,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 					key: metaData.key
 				})
 
-				mData = CryptoJS.AES.encrypt(mData, key).toString()
+				mData = await encryptMetadata(mData, key)
 
 				addItem(JSON.stringify({
 					apiKey: window.customVariables.apiKey,
@@ -1474,7 +1480,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 
 					doneAddingToLink()
 				})
-			})
+			}
 		}
 		else{
 			getFolderInfo(metaData.uuid, 0, 128, async (err, folderData) => {
@@ -1498,7 +1504,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 					await window.customVariables.decryptShareItemSemaphore.acquire()
 
 					let metadata = files[i].metadata
-					let decryptedData = decryptFileMetadata(metadata, userMasterKeys, files[i].uuid)
+					let decryptedData = await decryptFileMetadata(metadata, userMasterKeys, files[i].uuid)
 					let fName = decryptedData.name
 					let fSize = decryptedData.size
 					let fMime = decryptedData.mime
@@ -1523,14 +1529,16 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 					if(folders[i].uuid !== metaData.uuid && folders[i].parent !== "base"){
 						await window.customVariables.decryptShareItemSemaphore.acquire()
 
-						let dirName = decryptCryptoJSFolderName(folders[i].name, userMasterKeys, folders[i].uuid)
+						let dirName = await decryptFolderName(folders[i].name, userMasterKeys, folders[i].uuid)
 
-						shareItems.push({
-							uuid: folders[i].uuid,
-							parent: (i == 0 ? "none" : folders[i].parent),
-							metadata: dirName,
-							type: "folder"
-						})
+						if(dirName.length > 0){
+							shareItems.push({
+								uuid: folders[i].uuid,
+								parent: (i == 0 ? "none" : folders[i].parent),
+								metadata: dirName,
+								type: "folder"
+							})
+						}
 
 						window.customVariables.decryptShareItemSemaphore.release()
 					}
@@ -1547,8 +1555,10 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 				}
 
 				for(let i = 0; i < shareItems.length; i++){
-					links.forEach((link) => {
-						let key = decryptFolderLinkKey(link.linkKey, userMasterKeys)
+					for(let x = 0; x < links.length; x++){
+						let link = links[x]
+
+						let key = await decryptFolderLinkKey(link.linkKey, userMasterKeys)
 
 						let mData = ""
 
@@ -1566,7 +1576,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 							})
 						}
 
-						mData = CryptoJS.AES.encrypt(mData, key).toString()
+						mData = await encryptMetadata(mData, key)
 
 						addItem(JSON.stringify({
 							apiKey: window.customVariables.apiKey,
@@ -1587,7 +1597,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 
 							isDoneLinkingFolder()
 						})
-					})
+					}
 				}
 			})
 		}
@@ -2159,7 +2169,7 @@ export function copyTextToClipboardWeb(text){
 	return document.body.removeChild(textArea)
 }
 
-export function renderEventRow(event, userMasterKeys, lang = "en"){
+export async function renderEventRow(event, userMasterKeys, lang = "en"){
 	let eventDate = (new Date(event.timestamp * 1000)).toString().split(" ")
 	let dateString = eventDate[1] + ` ` + eventDate[2] + ` ` + eventDate[3] + ` ` + eventDate[4]
 
@@ -2167,100 +2177,100 @@ export function renderEventRow(event, userMasterKeys, lang = "en"){
 
 	switch(event.type){
 		case "fileUploaded":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` uploaded
 			`
 		break
 		case "fileVersioned":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` versioned
 			`
 		break
 		case "versionedFileRestored":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` versioned file restored
 			`
 		break
 		case "fileMoved":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` moved
 			`
 		break
 		case "fileRenamed":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
-			var decryptedOld = decryptFileMetadata(event.info.oldMetadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decryptedOld = await decryptFileMetadata(event.info.oldMetadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decryptedOld.name) + ` renamed to` + escapeHTML(decrypted.name) + `
 			`
 		break
 		case "fileTrash":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` moved to trash
 			`
 		break
 		case "fileRm":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` deleted permanently
 			`
 		break
 		case "fileRestored":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` restored from trash
 			`
 		break
 		case "fileShared":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` shared with ` + event.info.receiverEmail + `
 			`
 		break
 		case "fileLinkEdited":
-			var decrypted = decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFileMetadata(event.info.metadata, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted.name) + ` public link edited
 			`
 		break
 		case "folderTrash":
-			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFolderName(event.info.name, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted) + ` moved to trash
 			`
 		break
 		case "folderShared":
-			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFolderName(event.info.name, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted) + ` shared with ` + event.info.receiverEmail + `
 			`
 		break
 		case "folderMoved":
-			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFolderName(event.info.name, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted) + ` moved
 			`
 		break
 		case "folderRenamed":
-			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
-			var decryptedOld = decryptCryptoJSFolderName(event.info.oldName, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFolderName(event.info.name, userMasterKeys, event.info.uuid)
+			var decryptedOld = await decryptFolderName(event.info.oldName, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decryptedOld) + ` renamed to ` + escapeHTML(decrypted) + `
@@ -2268,21 +2278,21 @@ export function renderEventRow(event, userMasterKeys, lang = "en"){
 		break
 		case "subFolderCreated":
 		case "baseFolderCreated":
-			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFolderName(event.info.name, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted) + ` created
 			`
 		break
 		case "folderRestored":
-			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFolderName(event.info.name, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted) + ` restored from trash
 			`
 		break
 		case "folderColorChanged":
-			var decrypted = decryptCryptoJSFolderName(event.info.name, userMasterKeys, event.info.uuid)
+			var decrypted = await decryptFolderName(event.info.name, userMasterKeys, event.info.uuid)
 
 			str += `
 				` + escapeHTML(decrypted) + ` color changed
@@ -2376,7 +2386,7 @@ export function buf2hex(buffer) { // buffer is an ArrayBuffer
   return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
-export async function deriveKeyFromPassword(password, salt, iterations = 200000, hash = "SHA-512", bitLength = 512){
+export async function deriveKeyFromPassword (password, salt, iterations = 200000, hash = "SHA-512", bitLength = 512, returnHex = true){
     try{
         var bits = await window.crypto.subtle.deriveBits({
             name: "PBKDF2",
@@ -2392,75 +2402,95 @@ export async function deriveKeyFromPassword(password, salt, iterations = 200000,
     catch(e){
         throw new Error(e)
     }
+  
+    if(returnHex){
+      return buf2hex(bits)
+    }
 
-    return buf2hex(bits)
+    return bits
 }
 
-export async function encryptMetadata(data, key, version = 1){
-	if(version == 1){
-		try{
-			return CryptoJS.AES.encrypt(data.toString(), key.toString()).toString()
-		}
-		catch(e){
-			console.log(e)
+export async function encryptMetadata(data, key){
+  data = data.toString()
+  key = key.toString()
 
-			return ""
-		}
-	}
-	else if(version == 2){
-		try{
-			let textEncoder = new TextEncoder()
+  let metadataVersion = 1
 
-			let preKey = textEncoder.encode(key.toString())
-			let iv = generateRandomString(12)
-			let string = textEncoder.encode(data.toString())
+  if(typeof window.customVariables.currentMetadataVersion == "number"){
+	  metadataVersion = window.customVariables.currentMetadataVersion
+  }
 
-			let encrypted = await window.crypto.subtle.encrypt({
-				name: "AES-GCM",
-				iv: textEncoder.encode(iv)
-			}, await window.crypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["encrypt"]), string)
+  if(metadataVersion == 1){ //old deprecated
+    try{
+      return CryptoJS.AES.encrypt(data, key).toString()
+    }
+    catch(e){
+      console.log(e)
 
-			return iv + base64ArrayBuffer(new Uint8Array(encrypted))
-		}
-		catch(e){
-			console.log(e)
+      return ""
+    }
+  }
+  else if(metadataVersion == 2){
+    try{
+      key = await deriveKeyFromPassword(key, key, 1, "SHA-512", 256, false) //transform variable length input key to 256 bit (32 bytes) as fast as possible since it's already derived and safe
 
-			return ""
-		}
-	}
+      let iv = generateRandomString(12)
+      let string = new TextEncoder().encode(data)
+
+      let encrypted = await window.crypto.subtle.encrypt({
+        name: "AES-GCM",
+        iv: new TextEncoder().encode(iv)
+      }, await window.crypto.subtle.importKey("raw", key, "AES-GCM", false, ["encrypt"]), string)
+
+      return "002" + iv + base64ArrayBuffer(new Uint8Array(encrypted))
+    }
+    catch(e){
+      console.log(e)
+
+      return ""
+    }
+  }
 }
 
-export async function decryptMetadata(data, key, version = 1){
-	if(version == 1){
-		try{
-			return CryptoJS.AES.decrypt(data.toString(), key.toString()).toString(CryptoJS.enc.Utf8)
-		}
-		catch(e){
-			console.log(e)
+export async function decryptMetadata(data, key){
+  data = data.toString()
+  key = key.toString()
 
-			return ""
-		}
-	}
-	else if(version == 2){
-		try{
-			let textDecoder = new TextDecoder()
-			let textEncoder = new TextEncoder()
+  let sliced = data.slice(0, 8)
 
-			let preKey = textEncoder.encode(key.toString())
-			let iv = textEncoder(e.data.data.slice(0, 12))
-			let encrypted = _base64ToArrayBuffer(e.data.data.slice(12))
+  if(sliced == "U2FsdGVk"){ //old deprecated
+    try{
+      let dec = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8)
 
-			let decrypted = await window.crypto.subtle.decrypt({
-				name: "AES-GCM",
-				iv
-			}, await window.crypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["decrypt"]), encrypted)
+      return dec
+    }
+    catch(e){
+          return ""
+      }
+  }
+  else{
+    let version = data.slice(0, 3)
 
-			return textDecoder.decode(decrypted)
-		}
-		catch(e){
-			console.log(e)
+    if(version == "002"){
+      try{
+        key = await deriveKeyFromPassword(key, key, 1, "SHA-512", 256, false) //transform variable length input key to 256 bit (32 bytes) as fast as possible since it's already derived and safe
 
-			return ""
-		}
-	}
+        let iv = new TextEncoder().encode(data.slice(3, 15))
+        let encrypted = _base64ToArrayBuffer(data.slice(15))
+
+        let decrypted = await window.crypto.subtle.decrypt({
+          name: "AES-GCM",
+          iv
+        }, await window.crypto.subtle.importKey("raw", key, "AES-GCM", false, ["decrypt"]), encrypted)
+
+        return new TextDecoder().decode(new Uint8Array(decrypted))
+      }
+      catch(e){
+        return ""
+      }
+    }
+    else{
+      return ""
+    }
+  }
 }

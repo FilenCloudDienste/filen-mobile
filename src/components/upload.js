@@ -201,12 +201,12 @@ export async function queueFileUpload(file){
 		let offset = (0 - chunkSizeToUse)
 		let currentIndex = -1
 
-		let nameEnc = utils.cryptoJSEncrypt(name, key)
+		let nameEnc = await utils.encryptMetadata(name, key)
 		let nameH = utils.hashFn(name.toLowerCase())
-		let mimeEnc = utils.cryptoJSEncrypt(mime, key)
-		let sizeEnc = utils.cryptoJSEncrypt(size.toString(), key)
+		let mimeEnc = await utils.encryptMetadata(mime, key)
+		let sizeEnc = await utils.encryptMetadata(size.toString(), key)
 		
-		let metaData = utils.cryptoJSEncrypt(JSON.stringify({
+		let metaData = await utils.encryptMetadata(JSON.stringify({
 			name,
 			size,
 			mime,

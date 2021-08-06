@@ -188,6 +188,9 @@ export function setupWindowFunctions(){
     window.customVariables.isDocumentReady = false
     window.customVariables.isGettingThumbnail = {}
     window.customVariables.lastItemsCacheLength = undefined
+    window.customVariables.currentFileVersion = this.state.currentFileVersion
+    window.customVariables.currentAuthVersion = this.state.currentAuthVersion
+    window.customVariables.currentMetadataVersion = this.state.currentMetadataVersion
 
     window.addEventListener("load", () => {
         window.customVariables.isDocumentReady = true
@@ -2259,7 +2262,7 @@ export function setupWindowFunctions(){
                 }
 
                 let key = utils.generateRandomString(32)
-                let keyEnc = utils.cryptoJSEncrypt(key, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+                let keyEnc = await utils.encryptMetadata(key, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
                 let newLinkUUID = utils.uuidv4()
                 let totalItems = (res.data.folders.length + res.data.files.length)
                 let doneItems = 0
@@ -2311,7 +2314,7 @@ export function setupWindowFunctions(){
                     let itemMetadata = ""
 
 					if(itemType == "file"){
-						itemMetadata = utils.cryptoJSEncrypt(JSON.stringify({
+						itemMetadata = await utils.encryptMetadata(JSON.stringify({
 							name: itemToAdd.name,
 							mime: itemToAdd.mime,
 							key: itemToAdd.key,
@@ -2319,7 +2322,7 @@ export function setupWindowFunctions(){
 						}), key)
 					}
 					else{
-						itemMetadata = utils.cryptoJSEncrypt(JSON.stringify({
+						itemMetadata = await utils.encryptMetadata(JSON.stringify({
 							name: itemToAdd.name
 						}), key)
 					}
@@ -2357,7 +2360,7 @@ export function setupWindowFunctions(){
 					addItem("folder", {
 						uuid: folder.uuid,
 						parent: folder.parent,
-						name: utils.decryptCryptoJSFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+						name: await utils.decryptFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
 					})
 
 					window.customVariables.decryptShareItemSemaphore.release()
@@ -2368,7 +2371,7 @@ export function setupWindowFunctions(){
 
 					await window.customVariables.decryptShareItemSemaphore.acquire()
 
-					let fileMetadata = utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+					let fileMetadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
 
 					addItem("file", {
 						uuid: file.uuid,
@@ -3270,7 +3273,7 @@ export function setupWindowFunctions(){
         let eventsHTML = ""
 
         for(let i = 0; i < res.data.events.length; i++){
-            eventsHTML += utils.renderEventRow(res.data.events[i], this.state.userMasterKeys, appLang)
+            eventsHTML += await utils.renderEventRow(res.data.events[i], this.state.userMasterKeys, appLang)
         }
 
         customElements.define(modalId, class ModalContent extends HTMLElement {

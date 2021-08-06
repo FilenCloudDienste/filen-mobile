@@ -210,7 +210,7 @@ export async function mainFabAction(){
                                                 var res = await utils.apiRequest("POST", "/v1/dir/create", {
                                                     apiKey: this.state.userAPIKey,
                                                     uuid: folderUUID,
-                                                    name: utils.cryptoJSEncrypt(JSON.stringify({
+                                                    name: await utils.encryptMetadata(JSON.stringify({
                                                         name: name
                                                     }), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
                                                     nameHashed: utils.hashFn(name.toLowerCase())
@@ -220,7 +220,7 @@ export async function mainFabAction(){
                                                 var res = await utils.apiRequest("POST", "/v1/dir/sub/create", {
                                                     apiKey: this.state.userAPIKey,
                                                     uuid: folderUUID,
-                                                    name: utils.cryptoJSEncrypt(JSON.stringify({
+                                                    name: await utils.encryptMetadata(JSON.stringify({
                                                         name: name
                                                     }), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
                                                     nameHashed: utils.hashFn(name.toLowerCase()),
