@@ -2826,7 +2826,7 @@ export async function openPublicLinkModal(item){
 								<ion-label>
 									` + language.get(appLang, "publicLinkPassword") + `
 								</ion-label>
-								<ion-input slot="end" id="public-link-password-input" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `" ` + (res.data.password !== null ? `value="` + res.data.password + `"` : ``) + `></ion-input>
+								<ion-input slot="end" id="public-link-password-input" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `"></ion-input>
 							</ion-item>
 							<ion-item lines="none">
 								<ion-label>
@@ -2835,7 +2835,7 @@ export async function openPublicLinkModal(item){
 								<ion-toggle slot="end" id="public-link-enable-download-btn-toggle" ` + (res.data.downloadBtn == 1 ? `checked` : ``) + `></ion-toggle>
 							</ion-item>
 							<section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
-								<ion-button expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', true, '` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `')">` + language.get(appLang, "savePublicLink") + `</ion-button>
+								<ion-button id="save-link-btn" data-currentlinkuuid="` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `" expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', true)">` + language.get(appLang, "savePublicLink") + `</ion-button>
 							</section>
 						</div>
 					</ion-content>
@@ -2960,7 +2960,7 @@ export async function openPublicLinkModal(item){
 								<ion-label>
 									` + language.get(appLang, "publicLinkPassword") + `
 								</ion-label>
-								<ion-input slot="end" id="public-link-password-input" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `" ` + (typeof res.data.password !== "undefined" ? (res.data.password !== null ? `value="` + res.data.password + `"` : ``) : ``) + `></ion-input>
+								<ion-input slot="end" id="public-link-password-input" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `"></ion-input>
 							</ion-item>
 							<!--<ion-item lines="none">
 								<ion-label>
@@ -2969,7 +2969,7 @@ export async function openPublicLinkModal(item){
 								<ion-toggle slot="end" id="public-link-enable-download-btn-toggle" ` + (typeof res.data.downloadBtn !== "undefined" ? (res.data.downloadBtn == 1 ? `checked` : ``) : ``) + `></ion-toggle>
 							</ion-item>-->
 							<section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
-								<ion-button expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', true, '` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `')">` + language.get(appLang, "savePublicLink") + `</ion-button>
+								<ion-button id="save-link-btn" data-currentlinkuuid="` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `" expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', true)">` + language.get(appLang, "savePublicLink") + `</ion-button>
 							</section>
 						</div>
 					</ion-content>

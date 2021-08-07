@@ -2072,6 +2072,8 @@ export function setupWindowFunctions(){
         let item = JSON.parse(window.atob(itemJSON))
         let linkUUID = utils.uuidv4()
 
+        currentLinkUUID = window.$("#save-link-btn").attr("data-currentlinkuuid")
+
         if(isEdit && typeof currentLinkUUID == "string"){
             if(currentLinkUUID.length > 1){
                 linkUUID = currentLinkUUID
@@ -2090,12 +2092,20 @@ export function setupWindowFunctions(){
             expires = document.getElementById("public-link-expires-select").value
         }
 
-        let password = "empty"
+        let password = ""
 
         if(typeof document.getElementById("public-link-password-input").value == "string"){
-            if(document.getElementById("public-link-password-input").value){
+            if(document.getElementById("public-link-password-input").value.length > 0){
                 password = document.getElementById("public-link-password-input").value
             }
+        }
+
+        let pass = "empty"
+        let passH = "empty"
+
+        if(password.length > 0){
+            pass = "notempty"
+            passH = password
         }
 
         let downloadBtn = "enable"
@@ -2105,6 +2115,8 @@ export function setupWindowFunctions(){
                 downloadBtn = "disable"
             }
         }
+
+        let salt = utils.generateRandomString(32)
         
         if(item.type == "file"){
             try{
@@ -2113,8 +2125,9 @@ export function setupWindowFunctions(){
                     uuid: linkUUID,
                     fileUUID: item.uuid,
                     expiration: expires,
-                    password: password,
-                    passwordHashed: utils.hashFn(password),
+                    password: pass,
+                    passwordHashed: await utils.deriveKeyFromPassword(passH, salt, 200000, "SHA-512", 512),
+                    salt,
                     downloadBtn: downloadBtn,
                     type: type
                 })
@@ -2139,6 +2152,8 @@ export function setupWindowFunctions(){
 
             document.getElementById("public-link-enabled-toggle").checked = true
             document.getElementById("public-link-input").value = "https://filen.io/d/" + linkUUID + "#!" + item.key
+
+            window.$("#save-link-btn").attr("data-currentlinkuuid", linkUUID)
 
             if(type == "enable"){
                 document.getElementById("enable-public-link-content").style.display = "none"
@@ -2200,13 +2215,16 @@ export function setupWindowFunctions(){
 
                 editLoading.present()
 
+                let salt = utils.generateRandomString(32)
+
                 try{
                     var res = await utils.apiRequest("POST", "/v1/dir/link/edit", {
                         apiKey: this.state.userAPIKey,
                         uuid: item.uuid,
                         expiration: expires,
-                        password: password,
-                        passwordHashed: utils.hashFn(password),
+                        password: pass,
+                        passwordHashed: await utils.deriveKeyFromPassword(passH, salt, 200000, "SHA-512", 512),
+                        salt,
                         downloadBtn: downloadBtn
                     })
                 }

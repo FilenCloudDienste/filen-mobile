@@ -2386,8 +2386,8 @@ export function buf2hex(buffer) { // buffer is an ArrayBuffer
   return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
-export async function deriveKeyFromPassword (password, salt, iterations = 200000, hash = "SHA-512", bitLength = 512, returnHex = true){
-    try{
+export async function deriveKeyFromPassword (password, salt, iterations = 200000, hash = "SHA-512", bitLength = 512, returnHex = true){	
+	try{
         var bits = await window.crypto.subtle.deriveBits({
             name: "PBKDF2",
           salt: new TextEncoder().encode(salt),
