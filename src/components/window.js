@@ -664,6 +664,19 @@ export function setupWindowFunctions(){
         return window.customFunctions.dismissPopover()
     }
 
+    window.customFunctions.refresherPulled = async () => {
+        try{
+            await this.updateItemList(false, true, false)
+
+            document.getElementById("refresher").complete()
+        }
+        catch(e){
+            console.log(e)
+        }
+
+        return true
+    }
+
     window.customFunctions.refreshItemList = async () => {
         try{
             await this.updateItemList(true, true, false)

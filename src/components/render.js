@@ -609,14 +609,14 @@ export function render(){
                                     <IonIcon slot="start" icon={Ionicons.settings}></IonIcon>
                                     <IonLabel>{language.get(this.state.lang, "settings")}</IonLabel>
                                 </IonItem>
-                                <IonItem button lines="none" onClick={() => {
+                                {/*<IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
                                     return window.customFunctions.openEncryptionModal()
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.lockClosed}></IonIcon>
                                     <IonLabel>{language.get(this.state.lang, "encryption")}</IonLabel>
-                                </IonItem>
+                                </IonItem>*/}
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
@@ -665,6 +665,11 @@ export function render(){
                             border: "none"
                         }} fullscreen={true}>
                             {bottomFab}
+                            <IonRefresher slot="fixed" id="refresher" onIonRefresh={() => {
+                                return window.customFunctions.refresherPulled()
+                            }}>
+                                <IonRefresherContent></IonRefresherContent>
+                            </IonRefresher>
                             {
                                 this.state.itemList.length == 0 && this.state.mainSearchTerm.trim().length > 0 ? (
                                     <IonList>
@@ -820,21 +825,23 @@ export function render(){
                                             }
                                         </div>
                                     ) : (
-                                        <List 
-                                            id="main-virtual-list"
-                                            height={this.state.windowHeight - 56 - 57}
-                                            width={this.state.windowWidth}
-                                            rowCount={this.state.itemList.length}
-                                            rowHeight={72}
-                                            overscanRowCount={3}
-                                            rowRenderer={rowRenderer}
-                                            scrollToIndex={this.state.scrollToIndex}
-                                            scrollToAlignment="center"
-                                            style={{
-                                                outline: "none",
-                                                border: "none"
-                                            }}
-                                        ></List>
+                                        <>
+                                            <List 
+                                                id="main-virtual-list"
+                                                height={this.state.windowHeight - 56 - 57}
+                                                width={this.state.windowWidth}
+                                                rowCount={this.state.itemList.length}
+                                                rowHeight={72}
+                                                overscanRowCount={3}
+                                                rowRenderer={rowRenderer}
+                                                scrollToIndex={this.state.scrollToIndex}
+                                                scrollToAlignment="center"
+                                                style={{
+                                                    outline: "none",
+                                                    border: "none"
+                                                }}
+                                            ></List>
+                                        </>
                                     )
                                 )
                             }

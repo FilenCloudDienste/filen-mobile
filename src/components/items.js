@@ -2826,7 +2826,8 @@ export async function openPublicLinkModal(item){
 								<ion-label>
 									` + language.get(appLang, "publicLinkPassword") + `
 								</ion-label>
-								<ion-input slot="end" id="public-link-password-input" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `"></ion-input>
+								<ion-input slot="end" id="public-link-password-input-dummy" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `" oninput="window.$('#public-link-password-input').val(window.$('#public-link-password-input-dummy').val())"></ion-input>
+								<input type="hidden" id="public-link-password-input" value="">
 							</ion-item>
 							<ion-item lines="none">
 								<ion-label>
@@ -2960,7 +2961,8 @@ export async function openPublicLinkModal(item){
 								<ion-label>
 									` + language.get(appLang, "publicLinkPassword") + `
 								</ion-label>
-								<ion-input slot="end" id="public-link-password-input" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `"></ion-input>
+								<ion-input slot="end" id="public-link-password-input-dummy" type="password" placeholder="` + language.get(appLang, "publicLinkPasswordPlaceholder") + `" oninput="window.$('#public-link-password-input').val(window.$('#public-link-password-input-dummy').val())"></ion-input>
+								<input type="hidden" id="public-link-password-input" value="">
 							</ion-item>
 							<!--<ion-item lines="none">
 								<ion-label>
@@ -3583,8 +3585,20 @@ export async function spawnItemActionSheet(item){
 					options['cancel']
 				]
 			}
+			else if(item.uuid == "default" || item.uuid == null){
+				buttons = [
+					options['cancel']
+				]
+			}
 			else{
 				buttons = [
+					options['share'],
+					options['publicLink'],
+					options['move'],
+					options['rename'],
+					options['color'],
+					options['favorite'],
+					options['trash'],
 					options['cancel']
 				]
 			}
