@@ -6446,6 +6446,27 @@ const createUtilWorker = () => {
 						data: _base64ToArrayBuffer(e.data.data)
 					})
 				break
+				case "JSONParse":
+					return postMessage({
+						type: e.data.type,
+						id: e.data.id,
+						data: JSON.parse(e.data.data)
+					})
+				break
+				case "JSONStringify":
+					return postMessage({
+						type: e.data.type,
+						id: e.data.id,
+						data: JSON.stringify(e.data.data)
+					})
+				break
+				case "JSONStringifyLength":
+					return postMessage({
+						type: e.data.type,
+						id: e.data.id,
+						data: JSON.stringify(e.data.data).length
+					})
+				break
 			}
 		}
   	`], {
@@ -6557,6 +6578,78 @@ module.exports = {
             }
         }, 10)
     },
+	JSONStringifyLengthWorker: (data) => {
+		return new Promise((resolve) => {
+			let type = "JSONStringifyLength"
+			let id = uuidv4()
+		
+			utilWorker.postMessage({
+				type,
+				id,
+				data
+			})
+		
+			let waitInterval = setInterval(() => {
+				if(typeof utilWorkerResults[type + "_" + id] !== "undefined"){
+					clearInterval(waitInterval)
+		
+					let res = utilWorkerResults[type + "_" + id]
+		
+					delete utilWorkerResults[type + "_" + id]
+		
+					return resolve(res)
+				}
+			}, 10)
+		})
+	},
+	JSONStringifyWorker: (data) => {
+		return new Promise((resolve) => {
+			let type = "JSONStringify"
+			let id = uuidv4()
+		
+			utilWorker.postMessage({
+				type,
+				id,
+				data
+			})
+		
+			let waitInterval = setInterval(() => {
+				if(typeof utilWorkerResults[type + "_" + id] !== "undefined"){
+					clearInterval(waitInterval)
+		
+					let res = utilWorkerResults[type + "_" + id]
+		
+					delete utilWorkerResults[type + "_" + id]
+		
+					return resolve(res)
+				}
+			}, 10)
+		})
+	},
+	JSONParseWorker: (data) => {
+		return new Promise((resolve) => {
+			let type = "JSONParse"
+			let id = uuidv4()
+		
+			utilWorker.postMessage({
+				type,
+				id,
+				data
+			})
+		
+			let waitInterval = setInterval(() => {
+				if(typeof utilWorkerResults[type + "_" + id] !== "undefined"){
+					clearInterval(waitInterval)
+		
+					let res = utilWorkerResults[type + "_" + id]
+		
+					delete utilWorkerResults[type + "_" + id]
+		
+					return resolve(res)
+				}
+			}, 10)
+		})
+	},
 	fileChunkToArrayBuffer: (chunk, callback) => {
 		let blob = new Blob([`
 			onmessage = (e) => {
