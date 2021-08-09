@@ -4,6 +4,7 @@ import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
 import { isPlatform, getPlatforms } from "@ionic/react"
 
+const workers = require("../utils/workers")
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 const CryptoJS = require("crypto-js")
@@ -359,23 +360,10 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveItemsCache = async () => {
-        if(typeof window.customVariables.lastItemsCacheLength !== "undefined"){
-            let length = JSON.stringify(window.customVariables.itemsCache)
-
-            length = length.length
-
-            if(length == window.customVariables.lastItemsCacheLength){
-                return false
-            }
-            else{
-                window.customVariables.lastItemsCacheLength = length
-            }
-        }
-
         try{
             await Plugins.Storage.set({
                 key: "itemsCache",
-                value: JSON.stringify(window.customVariables.itemsCache)
+                value: await workers.JSONStringifyWorker(window.customVariables.itemsCache)
             })
         }
         catch(e){
@@ -387,7 +375,7 @@ export function setupWindowFunctions(){
         try{
             await Plugins.Storage.set({
                 key: "offlineSavedFiles",
-                value: JSON.stringify(window.customVariables.offlineSavedFiles)
+                value: await workers.JSONStringifyWorker(window.customVariables.offlineSavedFiles)
             })
         }
         catch(e){
@@ -396,23 +384,10 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveGetThumbnailErrors = async () => {
-        if(typeof window.customVariables.lastGetThumbnailErrorsLength !== "undefined"){
-            let length = JSON.stringify(window.customVariables.getThumbnailErrors)
-
-            length = length.length
-
-            if(length == window.customVariables.lastGetThumbnailErrorsLength){
-                return false
-            }
-            else{
-                window.customVariables.lastGetThumbnailErrorsLength = length
-            }
-        }
-
         try{
             await Plugins.Storage.set({
                 key: "getThumbnailErrors",
-                value: JSON.stringify(window.customVariables.getThumbnailErrors)
+                value: await workers.JSONStringifyWorker(window.customVariables.getThumbnailErrors)
             })
         }
         catch(e){
@@ -421,23 +396,11 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveAPICache = async () => {
-        if(typeof window.customVariables.lastAPICacheLength !== "undefined"){
-            let length = JSON.stringify(window.customVariables.apiCache)
-
-            length = length.length
-
-            if(length == window.customVariables.lastAPICacheLength){
-                return false
-            }
-            else{
-                window.customVariables.lastAPICacheLength = length
-            }
-        }
 
         try{
             await Plugins.Storage.set({
                 key: "apiCache",
-                value: JSON.stringify(window.customVariables.apiCache)
+                value: await workers.JSONStringifyWorker(window.customVariables.apiCache)
             })
         }
         catch(e){
@@ -446,25 +409,10 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveThumbnailCache = async (skipLengthCheck = false) => {
-        if(!skipLengthCheck){
-            if(typeof window.customVariables.lastThumbnailCacheLength !== "undefined"){
-                let length = JSON.stringify(window.customVariables.thumbnailCache)
-    
-                length = length.length
-    
-                if(length == window.customVariables.lastThumbnailCacheLength){
-                    return false
-                }
-                else{
-                    window.customVariables.lastThumbnailCacheLength = length
-                }
-            }
-        }
-
         try{
             await Plugins.Storage.set({
                 key: "thumbnailCache",
-                value: JSON.stringify(window.customVariables.thumbnailCache)
+                value: await workers.JSONStringifyWorker(window.customVariables.thumbnailCache)
             })
         }
         catch(e){
@@ -477,33 +425,20 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveCachedItems = async () => {
-        /*if(typeof window.customVariables.lastCachedItemsLength !== "undefined"){
-            let length = JSON.stringify(window.customVariables.cachedFiles) + JSON.stringify(window.customVariables.cachedFolders)
-
-            length = length.length
-
-            if(length == window.customVariables.lastCachedItemsLength){
-                return false
-            }
-            else{
-                window.customVariables.lastCachedItemsLength = length
-            }
-        }*/
-
         try{
             await Plugins.Storage.set({
                 key: "cachedFiles",
-                value: JSON.stringify(window.customVariables.cachedFiles)
+                value: await workers.JSONStringifyWorker(window.customVariables.cachedFiles)
             })
 
             await Plugins.Storage.set({
                 key: "cachedFolders",
-                value: JSON.stringify(window.customVariables.cachedFolders)
+                value: await workers.JSONStringifyWorker(window.customVariables.cachedFolders)
             })
 
             await Plugins.Storage.set({
                 key: "cachedMetadata",
-                value: JSON.stringify(window.customVariables.cachedMetadata)
+                value: await workers.JSONStringifyWorker(window.customVariables.cachedMetadata)
             })
         }
         catch(e){
