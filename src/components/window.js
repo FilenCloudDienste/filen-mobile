@@ -163,6 +163,7 @@ export function setupWindowFunctions(){
     window.customVariables.stoppedDownloadsDone = {}
     window.customVariables.lastCachedItemsLength = undefined
     window.customVariables.lastAPICacheLength = undefined
+    window.customVariables.lastCachedMetadataLength = undefined
     window.customVariables.thumbnailCache = {}
     window.customVariables.thumbnailBlobCache = {}
     window.customVariables.currentThumbnailURL = undefined
@@ -204,9 +205,22 @@ export function setupWindowFunctions(){
 
     setInterval(() => {
         if(document.getElementById("main-virtual-list") !== null){
-            let diff = Math.floor(Math.floor(document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight) - Math.floor(document.getElementById("main-virtual-list").scrollTop))
+            let scrollTop = Math.floor(document.getElementById("main-virtual-list").scrollTop)
 
-            if(document.getElementById("main-virtual-list").scrollTop > 0 && diff <= 50){
+            if(scrollTop == 0){
+                this.setState({
+                    refresherEnabled: true
+                })
+            }
+            else{
+                this.setState({
+                    refresherEnabled: false
+                })
+            }
+
+            let diff = Math.floor(Math.floor(document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight) - Math.floor(scrollTop))
+
+            if(scrollTop > 0 && diff <= 50){
                 this.setState({
                     hideMainFab: true
                 })
@@ -222,7 +236,7 @@ export function setupWindowFunctions(){
                 hideMainFab: false
             })
         }
-    }, 1000)
+    }, 250)
 
     window.customVariables.mainSearchbarInterval = setInterval(() => {
         if(document.getElementById("main-searchbar") !== null){
@@ -463,7 +477,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveCachedItems = async () => {
-        if(typeof window.customVariables.lastCachedItemsLength !== "undefined"){
+        /*if(typeof window.customVariables.lastCachedItemsLength !== "undefined"){
             let length = JSON.stringify(window.customVariables.cachedFiles) + JSON.stringify(window.customVariables.cachedFolders)
 
             length = length.length
@@ -474,7 +488,7 @@ export function setupWindowFunctions(){
             else{
                 window.customVariables.lastCachedItemsLength = length
             }
-        }
+        }*/
 
         try{
             await Plugins.Storage.set({
@@ -485,6 +499,11 @@ export function setupWindowFunctions(){
             await Plugins.Storage.set({
                 key: "cachedFolders",
                 value: JSON.stringify(window.customVariables.cachedFolders)
+            })
+
+            await Plugins.Storage.set({
+                key: "cachedMetadata",
+                value: JSON.stringify(window.customVariables.cachedMetadata)
             })
         }
         catch(e){
@@ -2535,9 +2554,19 @@ export function setupWindowFunctions(){
                             return alert.dismiss()
                         }
 
-                        let dirObj = {
-                            path: "ThumbnailCache/",
-                            directory: FilesystemDirectory.External
+                        let dirObj = {}
+
+                        if(Capacitor.platform == "ios"){
+                            dirObj = {
+                                path: "FilenThumbnailCache/",
+                                directory: FilesystemDirectory.Documents
+                            }
+                        }
+                        else{
+                            dirObj = {
+                                path: "ThumbnailCache/",
+                                directory: FilesystemDirectory.External
+                            }
                         }
 
                         try{

@@ -3581,7 +3581,6 @@ export async function spawnItemActionSheet(item){
 					options['publicLink'],
 					options['color'],
 					options['favorite'],
-					options['trash'],
 					options['cancel']
 				]
 			}

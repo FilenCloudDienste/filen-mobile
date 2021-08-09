@@ -70,7 +70,8 @@ interface AppStates {
 	currentMetadataVersion: number,
 	hideMainFab: boolean,
 	showMainSkeletonPlaceholder: boolean,
-	mainSearchbarDisabled: boolean
+	mainSearchbarDisabled: boolean,
+	refresherEnabled: boolean
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -122,7 +123,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			currentMetadataVersion: 1,
 			hideMainFab: false,
 			showMainSkeletonPlaceholder: false,
-			mainSearchbarDisabled: false
+			mainSearchbarDisabled: false,
+			refresherEnabled: false
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)

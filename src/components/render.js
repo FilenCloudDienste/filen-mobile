@@ -665,7 +665,7 @@ export function render(){
                             border: "none"
                         }} fullscreen={true}>
                             {bottomFab}
-                            <IonRefresher slot="fixed" id="refresher" onIonRefresh={() => {
+                            <IonRefresher slot="fixed" id="refresher" disabled={this.state.refresherEnabled ? false : true} onIonRefresh={() => {
                                 return window.customFunctions.refresherPulled()
                             }}>
                                 <IonRefresherContent></IonRefresherContent>

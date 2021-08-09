@@ -256,7 +256,11 @@ export async function decryptFolderName(str, userMasterKeys, uuid = undefined){
     let cacheKey = "folder_" + uuid + "_" + str
 
     if(window.customVariables.cachedMetadata[cacheKey]){
-        return window.customVariables.cachedMetadata[cacheKey].name
+        if(typeof window.customVariables.cachedMetadata[cacheKey].name == "string"){
+			if(window.customVariables.cachedMetadata[cacheKey].name.length > 0){
+				return window.customVariables.cachedMetadata[cacheKey].name
+			}
+		}
     }
 
     let folderName = ""
@@ -282,11 +286,13 @@ export async function decryptFolderName(str, userMasterKeys, uuid = undefined){
         }
 	}
 
-    if(folderName.length > 0){
-        window.customVariables.cachedMetadata[cacheKey] = {
-            name: folderName
-        }
-    }
+    if(typeof folderName == "string"){
+		if(folderName.length > 0){
+			window.customVariables.cachedMetadata[cacheKey] = {
+				name: folderName
+			}
+		}
+	}
 
     return folderName
 }
@@ -330,12 +336,16 @@ export async function decryptFileMetadata(metadata, userMasterKeys, uuid = undef
     if(window.customVariables.cachedMetadata[cacheKey]){
         let file = window.customVariables.cachedMetadata[cacheKey]
 
-        return {
-            name: file.name,
-            size: file.size,
-            mime: file.mime,
-            key: file.key
-        }
+        if(typeof file.name == "string"){
+			if(file.name.length > 0){
+				return {
+					name: file.name,
+					size: file.size,
+					mime: file.mime,
+					key: file.key
+				}
+			}
+		}
     }
 
     let fileName = ""
@@ -372,9 +382,11 @@ export async function decryptFileMetadata(metadata, userMasterKeys, uuid = undef
         key: fileKey
     }
 
-    if(obj.name.length >= 1){
-        window.customVariables.cachedMetadata[cacheKey] = obj
-    }
+    if(typeof obj.name == "string"){
+		if(obj.name.length >= 1){
+			window.customVariables.cachedMetadata[cacheKey] = obj
+		}
+	}
 
     return obj
 }
