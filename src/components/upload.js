@@ -141,16 +141,6 @@ export async function queueFileUpload(file){
 		}
 	}
 
-	if(Capacitor.isNative){
-        if(this.state.settings.onlyWifi){
-            let networkStatus = await Plugins.Network.getStatus()
-
-            if(networkStatus.connectionType !== "wifi"){
-                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
-            }
-        }
-    }
-
     if(file.size <= 0){
         return this.spawnToast(language.get(this.state.lang, "uploadInvalidFileSize", true, ["__NAME__"], [file.name]))
 	}
@@ -210,7 +200,8 @@ export async function queueFileUpload(file){
 			name,
 			size,
 			mime,
-			key
+			key,
+			lastModified: Math.floor(file.lastModified / 1000) || Math.floor((+new Date()) / 1000)
 		}), this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
 
 		let firstDone = false

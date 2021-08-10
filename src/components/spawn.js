@@ -296,6 +296,16 @@ export async function mainFabAction(){
                         return false
                     }
 
+                    if(Capacitor.isNative){
+                        if(this.state.settings.onlyWifi){
+                            let networkStatus = await Plugins.Network.getStatus()
+                
+                            if(networkStatus.connectionType !== "wifi"){
+                                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                            }
+                        }
+                    }
+
                     if(utils.currentParentFolder() == "base"){
                         this.routeTo("/base/default")
                     }
@@ -339,6 +349,16 @@ export async function mainFabAction(){
                 text: language.get(this.state.lang, "fabUploadFiles"),
                 icon: Ionicons.cloudUpload,
                 handler: async () => {
+                    if(Capacitor.isNative){
+                        if(this.state.settings.onlyWifi){
+                            let networkStatus = await Plugins.Network.getStatus()
+                
+                            if(networkStatus.connectionType !== "wifi"){
+                                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                            }
+                        }
+                    }
+                    
                     if(utils.currentParentFolder() == "base"){
                         this.routeTo("/base/default")
                     }

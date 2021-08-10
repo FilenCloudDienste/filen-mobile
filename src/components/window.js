@@ -193,6 +193,7 @@ export function setupWindowFunctions(){
     window.customVariables.currentFileVersion = this.state.currentFileVersion
     window.customVariables.currentAuthVersion = this.state.currentAuthVersion
     window.customVariables.currentMetadataVersion = this.state.currentMetadataVersion
+    window.customFunctions.workers = workers
 
     window.addEventListener("load", () => {
         window.customVariables.isDocumentReady = true
