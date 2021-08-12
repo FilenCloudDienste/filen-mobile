@@ -162,6 +162,7 @@ export async function mainFabAction(){
                                 handler: async (inputs) => {
                                     let name = inputs['new-folder-name-input']
 
+                                    name = name.replace(/\s*$/, "")
                                     name = utils.removeIllegalCharsFromString(name)
 
                                     if(utils.checkIfNameIsBanned(name) || utils.folderNameRegex(name) || utils.fileNameValidationRegex(name)){
