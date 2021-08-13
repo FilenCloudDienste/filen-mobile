@@ -195,6 +195,12 @@ export function setupWindowFunctions(){
     window.customVariables.currentMetadataVersion = this.state.currentMetadataVersion
     window.customFunctions.workers = workers
 
+    Plugins.App.addListener("appStateChange", (appState) => {
+        if(appState.isActive){
+            //@todo: Biometric Auth logic
+        }
+    })
+
     window.addEventListener("load", () => {
         window.customVariables.isDocumentReady = true
 
