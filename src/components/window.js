@@ -141,12 +141,12 @@ export function setupWindowFunctions(){
     window.customVariables.downloadChunkSemaphore = new utils.Semaphore(16)
     window.customVariables.shareItemSemaphore = new utils.Semaphore(8)
     window.customVariables.decryptShareItemSemaphore = new utils.Semaphore(128)
-    window.customVariables.writeSemaphore = new utils.Semaphore(20)
+    window.customVariables.writeSemaphore = new utils.Semaphore(64)
     window.customVariables.currentUploadThreads = 0
     window.customVariables.maxUploadThreads = 6
     window.customVariables.maxDownloadThreads = 16
     window.customVariables.currentDownloadThreads = 0
-    window.customVariables.maxWriteThreads = 16
+    window.customVariables.maxWriteThreads = 64
     window.customVariables.currentWriteThreads = 0
     window.customVariables.uploads = {}
     window.customVariables.downloads = {}

@@ -678,28 +678,29 @@ export async function queueFileDownload(file, isOfflineRequest = false){
         await window.customVariables.downloadSemaphore.acquire()
         
         let downloadInterval = setInterval(() => {
-            currentIndex += 1
+            if(window.customVariables.currentDownloadThreads < window.customVariables.maxDownloadThreads && window.customVariables.currentWriteThreads < window.customVariables.maxWriteThreads){
+                window.customVariables.currentDownloadThreads += 1
+                window.customVariables.currentWriteThreads += 1
+                
+                currentIndex += 1
 
-            let thisIndex = currentIndex
+                let thisIndex = currentIndex
 
-            if(thisIndex < file.chunks && typeof window.customVariables.downloads[uuid] !== "undefined"){
-                //window.customVariables.currentWriteThreads < window.customVariables.maxWriteThreads
-                if(true){
-                    window.customVariables.currentWriteThreads += 1
-
-                    this.downloadFileChunk(file, thisIndex, 0, 32, async (err, downloadIndex, downloadData) => {
+                if(thisIndex < file.chunks && typeof window.customVariables.downloads[uuid] !== "undefined"){
+                    this.downloadFileChunk(file, thisIndex, 0, 128, async (err, downloadIndex, downloadData) => {
                         if(err){
                             console.log(err)
-    
+
                             window.customVariables.downloadSemaphore.release()
+                            window.customVariables.currentDownloadThreads -= 1
                             window.customVariables.currentWriteThreads -= 1
-    
+
                             removeFromState()
-    
+
                             if(err == "stopped"){
                                 if(typeof window.customVariables.stoppedDownloadsDone[uuid] == "undefined"){
                                     window.customVariables.stoppedDownloadsDone[uuid] = true
-    
+
                                     try{
                                         await Plugins.Filesystem.deleteFile({
                                             path: dirObj.path + "/" + file.name,
@@ -709,7 +710,7 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                     catch(e){
                                         console.log(e)
                                     }
-    
+
                                     return this.spawnToast(language.get(this.state.lang, "downloadStopped", true, ["__NAME__"], [file.name]))
                                 }
                                 else{
@@ -720,7 +721,7 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                 return this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [file.name]))
                             }
                         }
-    
+
                         if(typeof window.customVariables.downloads[uuid] !== "undefined"){
                             chunksDonePlus()
                             setLoaded(downloadData.length)
@@ -728,11 +729,12 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                             this.writeChunkToFile(file, dirObj, uuid, downloadIndex, downloadData, async (err) => {
                                 if(err){
                                     console.log(err)
-    
+
                                     window.customVariables.downloadSemaphore.release()
-    
+                                    window.customVariables.currentDownloadThreads -= 1
+
                                     removeFromState()
-    
+
                                     if(err == "stopped"){
                                         return false
                                     }
@@ -740,9 +742,9 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                         return this.spawnToast(language.get(this.state.lang, "fileWriteError", true, ["__NAME__"], [file.name]))
                                     }
                                 }
-    
+
                                 chunksWrittenPlus()
-    
+
                                 try{
                                     let progress = ((window.customVariables.downloads[uuid].loaded / window.customVariables.downloads[uuid].size) * 100).toFixed(2)
         
@@ -755,7 +757,7 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                 catch(e){
                                     console.log(e)
                                 }
-    
+
                                 try{
                                     if(window.customVariables.downloads[uuid].chunksWritten >= window.customVariables.downloads[uuid].chunks){
                                         if(window.customVariables.downloads[uuid].makeOffline){
@@ -793,6 +795,7 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                             window.customFunctions.saveOfflineSavedFiles()
         
                                             window.customVariables.downloadSemaphore.release()
+                                            window.customVariables.currentDownloadThreads -= 1
                                             
                                             return this.forceUpdate()
                                         }
@@ -800,6 +803,7 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                             this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [file.name]))
         
                                             window.customVariables.downloadSemaphore.release()
+                                            window.customVariables.currentDownloadThreads -= 1
         
                                             return removeFromState()
                                         }
@@ -812,11 +816,14 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                         }
                     })
                 }
+                else{
+                    window.customVariables.currentDownloadThreads -= 1
+                    window.customVariables.currentWriteThreads -= 1
+                    
+                    clearInterval(downloadInterval)
+                }
             }
-            else{
-                clearInterval(downloadInterval)
-            }
-        }, 100)
+        }, 10)
     })
 }
 
