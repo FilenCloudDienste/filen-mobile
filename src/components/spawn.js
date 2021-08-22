@@ -133,20 +133,33 @@ export async function spawnRenamePrompt(item, callback){
 }
 
 export async function mainFabAction(){
+    let parent = utils.currentParentFolder()
+    let folderCreateBtnText = language.get(this.state.lang, "fabCreateFolder")
+    let folderCreateNewFolderNameText = language.get(this.state.lang, "newFolderName")
+    let folderCreatePlaceholderText = language.get(this.state.lang, "newFolderNamePlaceholder")
+    let folderCreateInvalidNameText = language.get(this.state.lang, "invalidFolderName")
+
+    if(parent == "base"){
+        folderCreateBtnText = language.get(this.state.lang, "fabCreateDrive")
+        folderCreateNewFolderNameText = language.get(this.state.lang, "newDriveName")
+        folderCreatePlaceholderText = language.get(this.state.lang, "newDriveNamePlaceholder")
+        folderCreateInvalidNameText = language.get(this.state.lang, "invalidDriveName")
+    }
+
     let actionSheet = await actionSheetController.create({
         buttons: [
             {
-                text: language.get(this.state.lang, "fabCreateFolder"),
+                text: folderCreateBtnText,
                 icon: Ionicons.folderOpen,
                 handler: async () => {
                     let alert = await alertController.create({
-                        header: language.get(this.state.lang, "newFolderName"),
+                        header: folderCreateNewFolderNameText,
                         inputs: [
                             {
                                 type: "text",
                                 id: "new-folder-name-input",
                                 name: "new-folder-name-input",
-                                placeholder: language.get(this.state.lang, "newFolderNamePlaceholder")
+                                placeholder: folderCreatePlaceholderText
                             }
                         ],
                         buttons: [
@@ -166,7 +179,7 @@ export async function mainFabAction(){
                                     name = utils.removeIllegalCharsFromString(name)
 
                                     if(utils.checkIfNameIsBanned(name) || utils.folderNameRegex(name) || utils.fileNameValidationRegex(name)){
-                                        return this.spawnToast(language.get(this.state.lang, "invalidFolderName"))
+                                        return this.spawnToast(folderCreateInvalidNameText)
                                     }
 
                                     if(!name || typeof name !== "string"){
@@ -176,8 +189,7 @@ export async function mainFabAction(){
                                     if(name.length <= 0){
                                         return false
                                     }
-
-                                    let parent = utils.currentParentFolder()
+                                    
                                     let folderParent = null
                                     let folderUUID = utils.uuidv4()
 
@@ -264,7 +276,7 @@ export async function mainFabAction(){
                                         else{
                                             loading.dismiss()
 
-                                            this.spawnToast(language.get(this.state.lang, "folderCreated", true, ["__NAME__"], [name]))
+                                            this.spawnToast(language.get(this.state.lang, "driveCreated", true, ["__NAME__"], [name]))
 
                                             clearTimeout(window.customVariables.reloadAfterActionTimeout)
 

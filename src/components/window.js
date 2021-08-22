@@ -37,7 +37,7 @@ export function windowRouter(){
                         }
                         else{
                             this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "myCloud"),
+                                mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
                                 showMainToolbarBackButton: false
                             })
                         }
@@ -87,7 +87,7 @@ export function windowRouter(){
                         }
                         else{
                             this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "myCloud"),
+                                mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
                                 showMainToolbarBackButton: false
                             })
                         }
@@ -146,7 +146,7 @@ export function setupWindowFunctions(){
     window.customVariables.maxUploadThreads = 6
     window.customVariables.maxDownloadThreads = 16
     window.customVariables.currentDownloadThreads = 0
-    window.customVariables.maxWriteThreads = 64
+    window.customVariables.maxWriteThreads = 256
     window.customVariables.currentWriteThreads = 0
     window.customVariables.uploads = {}
     window.customVariables.downloads = {}

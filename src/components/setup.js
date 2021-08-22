@@ -223,7 +223,7 @@ export async function doSetup(){
     if(getLang.value){
         this.setState({
             lang: getLang.value,
-            mainToolbarTitle: language.get(getLang.value, "myCloud")
+            mainToolbarTitle: language.get(getLang.value, "cloudDrives")
         })
 
         window.customVariables.lang = getLang.value
@@ -238,7 +238,7 @@ export async function doSetup(){
 
         this.setState({
             lang: defaultLang,
-            mainToolbarTitle: language.get(defaultLang, "myCloud")
+            mainToolbarTitle: language.get(defaultLang, "cloudDrives")
         })
 
         window.customVariables.lang = defaultLang

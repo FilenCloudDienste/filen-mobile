@@ -208,7 +208,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			receiverEmail: "",
 			sharerId: 0,
 			sharerEmail: "",
-			color: null
+			color: null,
+			isBase: true
 		})
 
 		for(let i = 0; i < res.data.folders.length; i++){
@@ -229,7 +230,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				sharerId: 0,
 				sharerEmail: "",
 				color: folder.color || null,
-				favorited: folder.favorited
+				favorited: folder.favorited,
+				isBase: true
 			}
 
 			items.push(item)

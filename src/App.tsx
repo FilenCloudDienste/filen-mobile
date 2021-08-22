@@ -79,7 +79,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
     	super(props)
 
         this.state = {
-        	mainToolbarTitle: "My Cloud",
+        	mainToolbarTitle: language.get("en", "cloudDrives"),
         	itemList: [],
         	isLoggedIn: false,
         	userAPIKey: "",

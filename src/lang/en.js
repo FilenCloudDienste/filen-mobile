@@ -297,6 +297,12 @@ translations['en']['noFavorites'] = "No favorites found. You can mark files and 
 translations['en']['favorite'] = "Favorite"
 translations['en']['unfavorite'] = "Unfavorite"
 translations['en']['uploadStorageExceeded'] = "Could not upload __NAME__: Not enough storage."
+translations['en']['cloudDrives'] = "Cloud Drives"
+translations['en']['fabCreateDrive'] = "Create Drive"
+translations['en']['newDriveName'] = "New Drive name"
+translations['en']['newDriveNamePlaceholder'] = "Drive name"
+translations['en']['invalidDriveName'] = "Invalid Drive name"
+translations['en']['driveCreated'] = "Drive __NAME__ created"
 
 module.exports = {
     translations

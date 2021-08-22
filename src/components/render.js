@@ -18,6 +18,7 @@ import '../theme/variables.css';
 
 import * as Ionicons from 'ionicons/icons';
 import * as language from "../utils/language"
+import { FaHdd } from "react-icons/fa"
 
 import Hammer from "rc-hammerjs"
 import { routeTo } from './router';
@@ -55,13 +56,25 @@ export function render(){
                                 <img src="assets/images/folder.svg" style={{
                                     display: "none"
                                 }}></img>
-                                <IonIcon icon={Ionicons.folderSharp} style={{
-                                    fontSize: "30pt",
-                                    color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
-                                    position: "absolute",
-                                    marginTop: "6px",
-                                    marginLeft: "9px"
-                                }}></IonIcon>
+                                {
+                                    this.state.itemList[index].isBase ? (
+                                        <FaHdd style={{
+                                            fontSize: "30pt",
+                                            color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                            position: "absolute",
+                                            marginTop: "6px",
+                                            marginLeft: "9px"
+                                        }} />
+                                    ) : (
+                                        <IonIcon icon={Ionicons.folderSharp} style={{
+                                            fontSize: "30pt",
+                                            color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                            position: "absolute",
+                                            marginTop: "6px",
+                                            marginLeft: "9px"
+                                        }}></IonIcon>
+                                    )
+                                }
                             </div>
                         ) : (
                             <img src={typeof this.state.itemList[index].thumbnail !== "undefined" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
@@ -79,13 +92,25 @@ export function render(){
                                 <img src="assets/images/folder.svg" style={{
                                     display: "none"
                                 }}></img>
-                                <IonIcon icon={Ionicons.folderSharp} style={{
-                                    fontSize: "30pt",
-                                    color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
-                                    position: "absolute",
-                                    marginTop: "6px",
-                                    marginLeft: "9px"
-                                }}></IonIcon>
+                                {
+                                    this.state.itemList[index].isBase ? (
+                                        <FaHdd style={{
+                                            fontSize: "30pt",
+                                            color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                            position: "absolute",
+                                            marginTop: "6px",
+                                            marginLeft: "9px"
+                                        }} />
+                                    ) : (
+                                        <IonIcon icon={Ionicons.folderSharp} style={{
+                                            fontSize: "30pt",
+                                            color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                            position: "absolute",
+                                            marginTop: "6px",
+                                            marginLeft: "9px"
+                                        }}></IonIcon>
+                                    )
+                                }
                             </div>
                         ) : (
                             <img src={typeof this.state.itemList[index].thumbnail !== "undefined" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
