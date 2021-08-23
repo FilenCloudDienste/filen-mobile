@@ -303,6 +303,7 @@ translations['en']['newDriveName'] = "New Drive name"
 translations['en']['newDriveNamePlaceholder'] = "Drive name"
 translations['en']['invalidDriveName'] = "Invalid Drive name"
 translations['en']['driveCreated'] = "Drive __NAME__ created"
+translations['en']['defaultDrive'] = "Default Drive"
 
 module.exports = {
     translations

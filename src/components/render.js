@@ -526,8 +526,6 @@ export function render(){
                 {
                     this.state.uploads[key].progress < 100 && (
                         <IonBadge color="danger" slot="end" onClick={() => {
-                            delete window.customVariables.uploads[this.state.uploads[key].uuid]
-        
                             return window.customVariables.stoppedUploads[this.state.uploads[key].uuid] = true
                         }}>
                             {language.get(this.state.lang, "transferStop")}
@@ -550,9 +548,7 @@ export function render(){
                 </IonBadge>
                 {
                     this.state.downloads[key].progress < 100 && (
-                        <IonBadge color="danger" slot="end" onClick={() => {
-                            delete window.customVariables.downloads[this.state.downloads[key].uuid]
-        
+                        <IonBadge color="danger" slot="end" onClick={() => {        
                             return window.customVariables.stoppedDownloads[this.state.downloads[key].uuid] = true
                         }}>
                             {language.get(this.state.lang, "transferStop")}

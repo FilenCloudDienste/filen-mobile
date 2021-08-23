@@ -375,6 +375,10 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback, 
                             if(!isPreview){
                                 window.customVariables.downloadChunkSemaphore.release()
                             }
+
+                            if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
+                                return callback("stopped")
+                            }
     
                             return callback(null, index, decrypted)
                         })
@@ -438,19 +442,19 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
     if(!window.customVariables.downloads[uuid]){
         window.customVariables.currentWriteThreads -= 1
 
-        return callback(new Error("Download does not exist"))
+        return false
     }
 
     if(window.customVariables.downloads[uuid].nextWriteChunk !== index){
         return setTimeout(() => {
             this.writeChunkToFile(file, dirObj, uuid, index, data, callback)
-        }, 10)
+        }, 5)
     }
 
     if(typeof window.customVariables.stoppedDownloads[uuid] !== "undefined"){
         window.customVariables.currentWriteThreads -= 1
 
-        return callback("stopped")
+        return false
     }
 
     if(index == 0){
@@ -535,8 +539,8 @@ export async function queueFileDownload(file, isOfflineRequest = false){
     let makeOffline = false
     let fileName = file.name
 
-    window.customVariables.stoppedDownloads[uuid] = undefined
-    window.customVariables.stoppedDownloadsDone[uuid] = undefined
+    delete window.customVariables.stoppedDownloads[uuid]
+    delete window.customVariables.stoppedDownloadsDone[uuid]
 
 	if(isOfflineRequest){
         if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
@@ -554,7 +558,16 @@ export async function queueFileDownload(file, isOfflineRequest = false){
             return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
         }
 
+        let isRemovedFromState = false
+        let isAddedToState = false
+
         const addToState = () => {
+            if(isAddedToState){
+                return false
+            }
+
+            isAddedToState = true
+
 			let currentDownloads = this.state.downloads
 
 			currentDownloads[uuid] = {
@@ -588,19 +601,34 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 			return this.setState({
 				downloads: currentDownloads,
 				downloadsCount: (this.state.downloadsCount + 1)
-			})
+			}, () => {
+                this.forceUpdate()
+            })
 		}
 
 		const removeFromState = () => {
-			let currentDownloads = this.state.downloads
+            if(isRemovedFromState){
+                return false
+            }
 
-			delete currentDownloads[uuid]
-			delete window.customVariables.downloads[uuid]
+            isRemovedFromState = true
 
-			return this.setState({
-				downloads: currentDownloads,
-				downloadsCount: (this.state.downloadsCount - 1)
-			})
+            try{
+                let currentDownloads = this.state.downloads
+
+                delete currentDownloads[uuid]
+                delete window.customVariables.downloads[uuid]
+
+                return this.setState({
+                    downloads: currentDownloads,
+                    downloadsCount: (this.state.downloadsCount - 1)
+                }, () => {
+                    this.forceUpdate()
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
 		}
 
 		const setProgress = (progress) => {
@@ -630,7 +658,9 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 
 				return this.setState({
 					downloads: currentDownloads
-				})
+				}, () => {
+                    this.forceUpdate()
+                })
 			}
 			catch(e){
 				return console.log(e)
@@ -664,7 +694,9 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 
 				return this.setState({
 					downloads: currentDownloads
-				})
+				}, () => {
+                    this.forceUpdate()
+                })
 			}
 			catch(e){
 				return console.log(e)
@@ -688,11 +720,12 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 
                 if(thisIndex < file.chunks && typeof window.customVariables.downloads[uuid] !== "undefined"){
                     this.downloadFileChunk(file, thisIndex, 0, 128, async (err, downloadIndex, downloadData) => {
+                        window.customVariables.currentDownloadThreads -= 1
+                        
                         if(err){
                             console.log(err)
 
                             window.customVariables.downloadSemaphore.release()
-                            window.customVariables.currentDownloadThreads -= 1
                             window.customVariables.currentWriteThreads -= 1
 
                             removeFromState()
@@ -731,7 +764,6 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                     console.log(err)
 
                                     window.customVariables.downloadSemaphore.release()
-                                    window.customVariables.currentDownloadThreads -= 1
 
                                     removeFromState()
 
@@ -760,6 +792,8 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 
                                 try{
                                     if(window.customVariables.downloads[uuid].chunksWritten >= window.customVariables.downloads[uuid].chunks){
+                                        window.customVariables.downloadSemaphore.release()
+                                        
                                         if(window.customVariables.downloads[uuid].makeOffline){
                                             window.customVariables.offlineSavedFiles[file.uuid] = true
         
@@ -793,17 +827,11 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                             removeFromState()
         
                                             window.customFunctions.saveOfflineSavedFiles()
-        
-                                            window.customVariables.downloadSemaphore.release()
-                                            window.customVariables.currentDownloadThreads -= 1
                                             
                                             return this.forceUpdate()
                                         }
                                         else{
                                             this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [file.name]))
-        
-                                            window.customVariables.downloadSemaphore.release()
-                                            window.customVariables.currentDownloadThreads -= 1
         
                                             return removeFromState()
                                         }
@@ -1117,7 +1145,7 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
         else{
             return setTimeout(() => {
                 write(index, data, callback)
-            }, 25)
+            }, 5)
         }
     }
 

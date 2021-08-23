@@ -201,7 +201,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			type: "folder",
 			uuid: "default",
 			name: "Default",
-			date: language.get(this.state.lang, "defaultFolder"),
+			date: language.get(this.state.lang, "defaultDrive"),
 			timestamp: (((+new Date()) / 1000) - (86400 * 3650)),
 			parent: "base",
 			receiverId: 0,
