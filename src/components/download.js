@@ -613,6 +613,8 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 
             isRemovedFromState = true
 
+            window.customVariables.downloadSemaphore.release()
+
             try{
                 let currentDownloads = this.state.downloads
 
@@ -725,7 +727,6 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                         if(err){
                             console.log(err)
 
-                            window.customVariables.downloadSemaphore.release()
                             window.customVariables.currentWriteThreads -= 1
 
                             removeFromState()
@@ -763,8 +764,6 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                 if(err){
                                     console.log(err)
 
-                                    window.customVariables.downloadSemaphore.release()
-
                                     removeFromState()
 
                                     if(err == "stopped"){
@@ -792,8 +791,6 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 
                                 try{
                                     if(window.customVariables.downloads[uuid].chunksWritten >= window.customVariables.downloads[uuid].chunks){
-                                        window.customVariables.downloadSemaphore.release()
-                                        
                                         if(window.customVariables.downloads[uuid].makeOffline){
                                             window.customVariables.offlineSavedFiles[file.uuid] = true
         
