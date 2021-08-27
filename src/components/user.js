@@ -286,10 +286,6 @@ export async function updateUserUsage(){
         return false
     }
 
-    if(res.data.email !== this.state.userEmail){
-        return window.customFunctions.logoutUser()
-    }
-
     let storageUsedPercent = ((res.data.storage / res.data.max) * 100).toFixed(2)
 
     return this.setState({

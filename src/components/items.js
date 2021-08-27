@@ -197,21 +197,6 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			return alert.present()
 		}
 
-		items.push({
-			type: "folder",
-			uuid: "default",
-			name: "Default",
-			date: language.get(this.state.lang, "defaultDrive"),
-			timestamp: (((+new Date()) / 1000) - (86400 * 3650)),
-			parent: "base",
-			receiverId: 0,
-			receiverEmail: "",
-			sharerId: 0,
-			sharerEmail: "",
-			color: null,
-			isBase: true
-		})
-
 		for(let i = 0; i < res.data.folders.length; i++){
 			let folder = res.data.folders[i]
 
@@ -231,31 +216,15 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				sharerEmail: "",
 				color: folder.color || null,
 				favorited: folder.favorited,
-				isBase: true
+				isBase: true,
+				isSync: folder.is_sync,
+				isDefault: folder.is_default
 			}
 
 			items.push(item)
 
 			window.customVariables.cachedFolders[folder.uuid] = item
 		}
-
-		let iItems = []
-
-		iItems.push(items[0])
-
-		for(let i = 0; i < items.length; i++){
-			if(items[i].name.toLowerCase() == "filen sync" && items[i].uuid !== "default"){
-				iItems.push(items[i])
-			}
-		}
-
-		for(let i = 0; i < items.length; i++){
-			if(items[i].name.toLowerCase() !== "filen sync" && items[i].uuid !== "default"){
-				iItems.push(items[i])
-			}
-		}
-
-		items = iItems
 	}
 	else if(parent == "recent"){
 		try{
@@ -421,7 +390,9 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					receiverEmail: "",
 					sharerId: folder.sharerId,
 					sharerEmail: folder.sharerEmail,
-					color: folder.color || null
+					color: folder.color || null,
+					isSync: folder.is_sync,
+					isDefault: folder.is_default
 				}
 
 				items.push(item)
@@ -532,7 +503,9 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					sharerId: 0,
 					sharerEmail: "",
 					color: folder.color || null,
-					favorited: folder.favorited
+					favorited: folder.favorited,
+					isSync: folder.is_sync,
+					isDefault: folder.is_default
 				}
 
 				items.push(item)
@@ -639,7 +612,9 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					sharerId: 0,
 					sharerEmail: "",
 					color: folder.color || null,
-					favorited: folder.favorited
+					favorited: folder.favorited,
+					isSync: folder.is_sync,
+					isDefault: folder.is_default
 				}
 
 				items.push(item)
@@ -3426,13 +3401,23 @@ export async function spawnItemActionSheet(item){
 			]
 		}
 		else if(window.location.href.indexOf("shared-out") !== -1){
-			if(item.name.toLowerCase() == "filen sync"){
+			if(item.isSync){
 				buttons = [
 					options['share'],
 					options['publicLink'],
 					options['color'],
-					//options['favorite'],
-					options['trash'],
+					options['favorite'],
+					options['stopSharing'],
+					options['cancel']
+				]
+			}
+			else if(item.isDefault){
+				buttons = [
+					options['share'],
+					options['publicLink'],
+					options['rename'],
+					options['color'],
+					options['favorite'],
 					options['stopSharing'],
 					options['cancel']
 				]
@@ -3441,10 +3426,8 @@ export async function spawnItemActionSheet(item){
 				buttons = [
 					options['share'],
 					options['publicLink'],
-					//options['move'],
 					options['rename'],
 					options['color'],
-					//options['favorite'],
 					options['trash'],
 					options['stopSharing'],
 					options['cancel']
@@ -3458,19 +3441,7 @@ export async function spawnItemActionSheet(item){
 			]
 		}
 		else if(window.location.href.indexOf("links") !== -1){
-			buttons = [
-				options['share'],
-				options['publicLink'],
-				//options['move'],
-				options['rename'],
-				options['color'],
-				options['favorite'],
-				options['trash'],
-				options['cancel']
-			]
-		}
-		else if(utils.currentParentFolder() == "base"){
-			if(item.name.toLowerCase() == "filen sync"){
+			if(item.isSync){
 				buttons = [
 					options['share'],
 					options['publicLink'],
@@ -3479,8 +3450,46 @@ export async function spawnItemActionSheet(item){
 					options['cancel']
 				]
 			}
-			else if(item.uuid == "default" || item.uuid == null){
+			else if(item.isDefault){
 				buttons = [
+					options['share'],
+					options['publicLink'],
+					options['rename'],
+					options['color'],
+					options['favorite'],
+					options['cancel']
+				]
+			}
+			else{
+				buttons = [
+					options['share'],
+					options['publicLink'],
+					//options['move'],
+					options['rename'],
+					options['color'],
+					options['favorite'],
+					options['trash'],
+					options['cancel']
+				]
+			}
+		}
+		else if(utils.currentParentFolder() == "base"){
+			if(item.isSync){
+				buttons = [
+					options['share'],
+					options['publicLink'],
+					options['color'],
+					options['favorite'],
+					options['cancel']
+				]
+			}
+			else if(item.isDefault){
+				buttons = [
+					options['share'],
+					options['publicLink'],
+					options['rename'],
+					options['color'],
+					options['favorite'],
 					options['cancel']
 				]
 			}

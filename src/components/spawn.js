@@ -150,7 +150,7 @@ export async function mainFabAction(){
         buttons: [
             {
                 text: folderCreateBtnText,
-                icon: Ionicons.folderOpen,
+                icon: Ionicons.addCircle,
                 handler: async () => {
                     let alert = await alertController.create({
                         header: folderCreateNewFolderNameText,

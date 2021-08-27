@@ -253,6 +253,10 @@ export function unixTimestamp(){
 }
 
 export async function decryptFolderName(str, userMasterKeys, uuid = undefined){
+	if(str == "default"){
+		return "Default"
+	}
+
     let cacheKey = "folder_" + uuid + "_" + str
 
     if(window.customVariables.cachedMetadata[cacheKey]){
@@ -298,6 +302,10 @@ export async function decryptFolderName(str, userMasterKeys, uuid = undefined){
 }
 
 export async function decryptFolderNamePrivateKey(str, usrPrivKey, uuid = undefined){
+	if(str == "default"){
+		return "Default"
+	}
+	
     let cacheKey = "folder_" + uuid + "_" + str
 
     if(window.customVariables.cachedMetadata[cacheKey]){
