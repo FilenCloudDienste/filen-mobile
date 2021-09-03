@@ -305,6 +305,11 @@ translations['en']['invalidDriveName'] = "Invalid Drive name"
 translations['en']['driveCreated'] = "Drive __NAME__ created"
 translations['en']['defaultDrive'] = "Default Drive"
 translations['en']['toggleGridMode'] = "Toggle Grid Mode"
+translations['en']['updatingFile'] = "Updating __NAME__"
+translations['en']['itemVersions'] = "Version history"
+translations['en']['currentFileVersion'] = "Current"
+translations['en']['previewItem'] = "Preview"
+translations['en']['fileVersionRestored'] = "Older file version restored"
 
 module.exports = {
     translations

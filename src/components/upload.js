@@ -121,7 +121,7 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 	})
 }
 
-export async function queueFileUpload(file){
+export async function queueFileUpload(file, passedUpdateUUID = undefined){
 	//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
 
 	if(Capacitor.platform == "ios"){ //this is really bad for performance and memory, but WKWebview aka. mobile safari is a bitch and times out file blobs after 60 seconds, so we need to clone the file in case of slow chunk processing or uploads :/ thx apple
@@ -168,7 +168,30 @@ export async function queueFileUpload(file){
 		}
 
 		if(exists){
-			return this.spawnToast(language.get(this.state.lang, "fileUploadFileAlreadyExists", true, ["__NAME__"], [file.name]))
+			//return this.spawnToast(language.get(this.state.lang, "fileUploadFileAlreadyExists", true, ["__NAME__"], [file.name]))
+		
+			this.spawnToast(language.get(this.state.lang, "updatingFile", true, ["__NAME__"], [file.name]))
+
+			return setTimeout(async () => {
+				let updateUUID = utils.uuidv4()
+
+				try{
+					var res = await utils.apiRequest("POST", "/v1/file/archive", {
+						apiKey: this.state.userAPIKey,
+						uuid: existsUUID,
+						updateUUID: updateUUID
+					})
+				}
+				catch(e){
+					return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+				}
+			
+				if(!res.status){
+					return this.spawnToast(res.message)
+				}
+
+				return this.queueFileUpload(file, updateUUID)
+			})
 		}
 
 		let name = file.name
@@ -182,6 +205,10 @@ export async function queueFileUpload(file){
 		let chunkSizeToUse = ((1024 * 1024) * 1)
 		let dummyOffset = 0
 		let fileChunks = 0
+
+		if(typeof passedUpdateUUID !== "undefined"){
+			uuid = passedUpdateUUID
+		}
 
 		while(dummyOffset < file.size){
 			fileChunks++

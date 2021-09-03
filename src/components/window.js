@@ -3541,6 +3541,188 @@ export function setupWindowFunctions(){
         return true
     }
 
+    window.customFunctions.openVersionsItemPreview = (itemJSON) => {
+        let item = JSON.parse(window.atob(itemJSON))
+
+        return this.previewItem(item, undefined, true)
+    }
+
+    window.customFunctions.restoreVersionedItem = async (uuid, currentUUID) => {
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+    
+        try{
+            var res = await utils.apiRequest("POST", "/v1/file/archive/restore", {
+                apiKey: this.state.userAPIKey,
+                uuid: uuid,
+                currentUUID: currentUUID
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            loading.dismiss()
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            loading.dismiss()
+    
+            console.log(res.message)
+    
+            return this.spawnToast(res.message)
+        }
+    
+        loading.dismiss()
+
+        window.customFunctions.dismissModal()
+
+        this.spawnToast(language.get(this.state.lang, "fileVersionRestored"))
+
+        this.updateItemList(false)
+
+        return true
+    }
+
+    window.customFunctions.openVersionHistoryModal = async (item) => {
+        if(item.type !== "file"){
+            return false
+        }
+
+        var loading = await loadingController.create({
+            message: ""
+        })
+    
+        loading.present()
+    
+        try{
+            var res = await utils.apiRequest("POST", "/v1/file/versions", {
+                apiKey: this.state.userAPIKey,
+                uuid: item.uuid
+            })
+        }
+        catch(e){
+            console.log(e)
+    
+            loading.dismiss()
+    
+            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+        }
+    
+        if(!res.status){
+            loading.dismiss()
+    
+            console.log(res.message)
+    
+            return this.spawnToast(res.message)
+        }
+    
+        loading.dismiss()
+
+        let versionData = res.data.versions
+
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "versions-modal-" + utils.generateRandomClassName()
+
+        let versionsHTML = ""
+
+        for(let i = 0; i < versionData.length; i++){
+            let metadata = await utils.decryptFileMetadata(versionData[i].metadata, this.state.userMasterKeys, versionData[i].uuid)
+			let uploadDate = (new Date(versionData[i].timestamp * 1000)).toString().split(" ")
+            let dateString = uploadDate[1] + ` ` + uploadDate[2] + ` ` + uploadDate[3] + ` ` + uploadDate[4]
+            let nameEx = metadata.name.split(".")
+
+            versionsHTML += `
+                <ion-item>
+                    <ion-label>
+                        ` + dateString + `
+                    </ion-label>
+                    ` + (versionData[i].uuid !== item.uuid ? `
+                        ` + (utils.getFilePreviewType(nameEx[nameEx.length - 1], metadata.mime) !== "none" ? `
+                            <ion-button onClick="window.customFunctions.openVersionsItemPreview('` + 
+                                window.btoa(JSON.stringify({
+                                    uuid: versionData[i].uuid,
+                                    name: metadata.name,
+                                    type: "file",
+                                    key: metadata.key,
+                                    mime: metadata.mime,
+                                    size: parseInt(metadata.size),
+                                    timestamp: versionData[i].timestamp,
+                                    region: versionData[i].region,
+                                    bucket: versionData[i].bucket,
+                                    version: versionData[i].version,
+                                    chunks: versionData[i].chunks,
+                                    rm: versionData[i].rm
+                                }))
+                            + `')">
+                                ` + language.get(appLang, "previewItem") + `
+                            </ion-button>
+                        ` : ``) + `
+                        <ion-button onClick="window.customFunctions.restoreVersionedItem('` + versionData[i].uuid + `', '` + item.uuid + `')">
+                            ` + language.get(appLang, "restoreItem") + `
+                        </ion-button>
+                    ` : `
+                        ` + language.get(appLang, "currentFileVersion") + `
+                    `) + `
+                </ion-item>
+            `
+        }
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "itemVersions") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                        <ion-list style="margin-top: -7px;">
+                            ` + versionsHTML + `
+                        </ion-list>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        this.setupStatusbar("modal")
+
+        try{
+            let sModal = await modalController.getTop()
+
+            sModal.onDidDismiss().then(() => {
+                this.setupStatusbar()
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+
+        return true
+    }
+
     window.customFunctions.openInviteModal = async () => {
         var loading = await loadingController.create({
             message: ""

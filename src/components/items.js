@@ -981,7 +981,7 @@ export async function selectItemsAction(event){
     return popover.present()
 }
 
-export async function previewItem(item, lastModalPreviewType = undefined){
+export async function previewItem(item, lastModalPreviewType = undefined, isOuterPreview = false){
     if(item.type !== "file"){
 		return false
 	}
@@ -1318,6 +1318,10 @@ export async function previewItem(item, lastModalPreviewType = undefined){
 
 				slider.addEventListener("touchend", (e) => {
 					if(!xDown || !yDown){
+						return false
+					}
+
+					if(isOuterPreview){ //dont load new preview when item was not selected from main screen, remove when new swiper is enabled
 						return false
 					}
 
@@ -3353,6 +3357,16 @@ export async function spawnItemActionSheet(item){
 		}
 	}
 
+	options['versions'] = {
+		text: language.get(this.state.lang, "itemVersions"),
+		icon: Ionicons.timeOutline,
+		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
+			return window.customFunctions.openVersionHistoryModal(item)
+		}
+	}
+
 	options['download'] = {
 		text: language.get(this.state.lang, "downloadItem"),
 		icon: Ionicons.download,
@@ -3550,6 +3564,7 @@ export async function spawnItemActionSheet(item){
 				options['publicLink'],
 				options['download'],
 				options['offline'],
+				options['versions'],
 				//options['favorite'],
 				//options['move'],
 				options['rename'],
@@ -3571,6 +3586,7 @@ export async function spawnItemActionSheet(item){
 				options['publicLink'],
 				options['download'],
 				options['offline'],
+				options['versions'],
 				options['favorite'],
 				//options['move'],
 				options['rename'],
@@ -3584,6 +3600,7 @@ export async function spawnItemActionSheet(item){
 				options['publicLink'],
 				options['download'],
 				options['offline'],
+				options['versions'],
 				options['favorite'],
 				options['rename'],
 				options['trash'],
@@ -3596,6 +3613,7 @@ export async function spawnItemActionSheet(item){
 				options['publicLink'],
 				options['download'],
 				options['offline'],
+				options['versions'],
 				options['favorite'],
 				options['move'],
 				options['rename'],
