@@ -304,6 +304,7 @@ translations['en']['newDriveNamePlaceholder'] = "Drive name"
 translations['en']['invalidDriveName'] = "Invalid Drive name"
 translations['en']['driveCreated'] = "Drive __NAME__ created"
 translations['en']['defaultDrive'] = "Default Drive"
+translations['en']['toggleGridMode'] = "Toggle Grid Mode"
 
 module.exports = {
     translations

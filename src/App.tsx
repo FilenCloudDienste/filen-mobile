@@ -71,7 +71,9 @@ interface AppStates {
 	hideMainFab: boolean,
 	showMainSkeletonPlaceholder: boolean,
 	mainSearchbarDisabled: boolean,
-	refresherEnabled: boolean
+	refresherEnabled: boolean,
+	gridItemHeight: number,
+	gridItemWidth: number
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -109,7 +111,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			downloadsCount: 0,
 			settings: {
 				onlyWifi: false,
-				showThumbnails: true
+				showThumbnails: true,
+				gridModeEnabled: false
 			},
 			scrollToIndex: 0,
 			socketConnected: false,
@@ -124,7 +127,9 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			hideMainFab: false,
 			showMainSkeletonPlaceholder: false,
 			mainSearchbarDisabled: false,
-			refresherEnabled: false
+			refresherEnabled: false,
+			gridItemHeight: 180,
+			gridItemWidth: (window.innerWidth / 2) - 25
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)

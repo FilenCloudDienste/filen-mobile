@@ -43,23 +43,23 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>To take photos and videos for uploads</string>
+	<string>This app requires camera access to upload photos.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>To store downloaded files</string>
+	<string>This app would like to save images to your device.</string>
 	<key>NSDownloadsFolderUsageDescription</key>
-	<string>To store downloaded files</string>
+	<string>This app would like to save images to your device.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>For authentication</string>
+	<string>Filen requires FaceID access to allows you quick and secure access.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Always allow Geolocation?</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Allow Geolocation?</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>To record audio for videos</string>
+	<string>This app requires microphone access to upload audios and videos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Store downloaded images to camera</string>
+	<string>This app would like to save images to your device.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>To pick images from library to upload</string>
+	<string>This app requires library access to upload pictures.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { IonToast, IonSkeletonText, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText, IonTabBar, IonTabButton } from '@ionic/react'
+import { IonToast, IonSkeletonText, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText, IonTabBar, IonTabButton, IonCard, IonCardContent, IonCardSubtitle } from '@ionic/react'
 import { List } from 'react-virtualized';
 import { Plugins, StatusBarStyle, Capacitor } from "@capacitor/core"
 import { isPlatform, getPlatforms } from "@ionic/react"
@@ -22,6 +22,7 @@ import { FaHdd } from "react-icons/fa"
 
 import Hammer from "rc-hammerjs"
 import { routeTo } from './router';
+import { createNoSubstitutionTemplateLiteral } from 'typescript';
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
@@ -30,6 +31,210 @@ export function render(){
     let showShareLinks = (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0)
     
     let rowRenderer = ({ index, style }) => {
+        if(this.state.settings.gridModeEnabled){
+            let startFromIndex = 0
+            let gridItemsPerRow = 2
+            let indexesToLoop = []
+
+            if(this.state.itemList.length == 1){
+                indexesToLoop = [0]
+            }
+            else{
+                if(index > 0){
+                    startFromIndex = (index * gridItemsPerRow)
+                }
+    
+                for(let i = startFromIndex; i < (gridItemsPerRow + startFromIndex); i++){
+                    indexesToLoop.push(i)
+                }
+            }
+
+            return (
+                <IonItem key={index} style={style} className="background-transparent full-width">
+                    <div style={{
+                        width: "100%",
+                        height: this.state.gridItemHeight,
+                        display: "flex"
+                    }}>
+                        {
+                            indexesToLoop.filter((el) => {
+                                if(typeof this.state.itemList[el] == "undefined"){
+                                    return false
+                                }
+
+                                return true
+                            }).map((currentIndex) => {
+                                return (
+                                    <Hammer key={currentIndex} onPress={() => this.selectItem(true, currentIndex)} options={{
+                                        recognizers: {
+                                            press: {
+                                                time: 500,
+                                                threshold: 500
+                                            }
+                                        }
+                                    }} >
+                                        <div style={{
+                                            width: this.state.gridItemWidth,
+                                            marginRight: "10px",
+                                            marginBottom: "10px",
+                                            background: (this.state.darkMode ? "transparent" : "transparent"),
+                                            borderRadius: "5px",
+                                            border: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                        }}>
+                                            <div style={{
+                                                width: "100%",
+                                                height: this.state.gridItemHeight - 45 + "px",
+                                                padding: "0px",
+                                                backgroundClip: "content-box",
+                                                zIndex: "101"
+                                            }} onClick={() => {
+                                                if(this.state.itemList[currentIndex].selected){
+                                                    if(this.state.selectedItems > 0){
+                                                        this.selectItem(false, currentIndex)
+                                                    }
+                                                    else{
+                                                        this.selectItem(true, currentIndex)
+                                                    }
+                                                }
+                                                else{
+                                                    if(this.state.selectedItems > 0){
+                                                        this.selectItem(true, currentIndex)
+                                                    }
+                                                    else{
+                                                        this.state.itemList[currentIndex].type == "file" ? this.previewItem(this.state.itemList[currentIndex]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[currentIndex], currentIndex, window.location.href.split("/").slice(-1)[0])
+                                                    }
+                                                }
+                                            } }>
+                                                {
+                                                    this.state.itemList[currentIndex].type == "folder" ? (
+                                                        <div style={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                            backgroundColor: "transparent",
+                                                            lineHeight: this.state.gridItemHeight - 45 + "px",
+                                                            textAlign: "center",
+                                                            border: "none",
+                                                            borderRadius: "0px",
+                                                            outline: "none",
+                                                            zIndex: "101",
+                                                            borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                        }}>
+                                                            <div style={{
+                                                                display: "inline-block",
+                                                                verticalAlign: "middle",
+                                                                lineHeight: "initial",
+                                                                textAlign: "left"
+                                                            }}>
+                                                                {
+                                                                    this.state.itemList[currentIndex].isBase ? (
+                                                                        <FaHdd style={{
+                                                                            fontSize: "50pt",
+                                                                            color: utils.getFolderColorStyle(this.state.itemList[currentIndex].color, true)
+                                                                        }} />
+                                                                    ) : (
+                                                                        <IonIcon icon={Ionicons.folderSharp} style={{
+                                                                            fontSize: "50pt",
+                                                                            color: utils.getFolderColorStyle(this.state.itemList[currentIndex].color, true),
+                                                                        }}></IonIcon>
+                                                                    )
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                    : typeof this.state.itemList[currentIndex].thumbnail !== "undefined" ? (
+                                                        <div style={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                            backgroundColor: "black",
+                                                            display: "inline-block",
+                                                            backgroundSize: "cover",
+                                                            backgroundPosition: "center center",
+                                                            backgroundRepeat: "no-repeat",
+                                                            border: "none",
+                                                            borderTopRightRadius: "5px",
+                                                            borderTopLeftRadius: "5px",
+                                                            outline: "none",
+                                                            zIndex: "101",
+                                                            backgroundImage: "url(" + this.state.itemList[currentIndex].thumbnail + ")",
+                                                            borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                        }} id={"item-thumbnail-" + this.state.itemList[currentIndex].uuid}></div>
+                                                    ) : (
+                                                        <div style={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                            backgroundColor: "transparent",
+                                                            lineHeight: this.state.gridItemHeight - 45 + "px",
+                                                            textAlign: "center",
+                                                            border: "none",
+                                                            borderRadius: "0px",
+                                                            outline: "none",
+                                                            zIndex: "101",
+                                                            borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                        }}>
+                                                            <div style={{
+                                                                display: "inline-block",
+                                                                verticalAlign: "middle",
+                                                                lineHeight: "initial",
+                                                                textAlign: "left"
+                                                            }} id={"item-thumbnail-" + this.state.itemList[currentIndex].uuid}>
+                                                                <img src={utils.getFileIconFromName(this.state.itemList[currentIndex].name)} width="55"></img>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                }
+                                            </div>
+                                            <div style={{
+                                                width: "100%",
+                                                marginTop: "6px"
+                                            }} onClick={() => {
+                                                this.state.itemList[currentIndex].selected ? this.selectItem(false, currentIndex) : this.spawnItemActionSheet(this.state.itemList[currentIndex])
+                                            }}>
+                                                <div style={{
+                                                    width: "81%",
+                                                    float: "left",
+                                                    paddingLeft: "10px"
+                                                }} className="overflow-ellipsis">
+                                                    {this.state.itemList[currentIndex].name}
+                                                </div>
+                                                <div style={{
+                                                    width: "14%",
+                                                    float: "right"
+                                                }}>
+                                                    {
+                                                        this.state.itemList[currentIndex].selected ? (
+                                                            <IonButtons style={{
+                                                                marginTop: "-14px",
+                                                                marginLeft: "-16px"
+                                                            }}>
+                                                                <IonButton slot="end" onClick={() => this.selectItem(false, currentIndex)}>
+                                                                    <IonIcon slot="icon-only" icon={Ionicons.checkbox} />
+                                                                </IonButton>
+                                                            </IonButtons>
+                                                        ) : (
+                                                            <IonButtons style={{
+                                                                marginTop: "-14px",
+                                                                marginLeft: "-11px"
+                                                            }}>
+                                                                <IonButton slot="end" style={{
+                                                                    fontSize: "8pt"
+                                                                }}>
+                                                                    <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
+                                                                </IonButton>
+                                                            </IonButtons>
+                                                        )
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Hammer>
+                                )
+                            })
+                        }
+                    </div>
+                </IonItem>
+            )
+        }
+
         if(this.state.showMainSkeletonPlaceholder){
             return (
                 <IonItem key={index} type="button" button lines="none" style={style}>
@@ -846,23 +1051,43 @@ export function render(){
                                             }
                                         </div>
                                     ) : (
-                                        <>
-                                            <List 
-                                                id="main-virtual-list"
-                                                height={this.state.windowHeight - 56 - 57}
-                                                width={this.state.windowWidth}
-                                                rowCount={this.state.itemList.length}
-                                                rowHeight={72}
-                                                overscanRowCount={3}
-                                                rowRenderer={rowRenderer}
-                                                scrollToIndex={this.state.scrollToIndex}
-                                                scrollToAlignment="center"
-                                                style={{
-                                                    outline: "none",
-                                                    border: "none"
-                                                }}
-                                            ></List>
-                                        </>
+                                        this.state.settings.gridModeEnabled ? (
+                                            <>
+                                                <List 
+                                                    id="main-virtual-list"
+                                                    height={this.state.windowHeight - 56 - 57}
+                                                    width={this.state.windowWidth}
+                                                    rowCount={Math.round(this.state.itemList.length / 2)}
+                                                    rowHeight={this.state.gridItemHeight}
+                                                    overscanRowCount={3}
+                                                    rowRenderer={rowRenderer}
+                                                    scrollToIndex={this.state.scrollToIndex}
+                                                    scrollToAlignment="center"
+                                                    style={{
+                                                        outline: "none",
+                                                        border: "none"
+                                                    }}
+                                                ></List>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <List 
+                                                    id="main-virtual-list"
+                                                    height={this.state.windowHeight - 56 - 57}
+                                                    width={this.state.windowWidth}
+                                                    rowCount={this.state.itemList.length}
+                                                    rowHeight={72}
+                                                    overscanRowCount={3}
+                                                    rowRenderer={rowRenderer}
+                                                    scrollToIndex={this.state.scrollToIndex}
+                                                    scrollToAlignment="center"
+                                                    style={{
+                                                        outline: "none",
+                                                        border: "none"
+                                                    }}
+                                                ></List>
+                                            </>
+                                        )
                                     )
                                 )
                             }

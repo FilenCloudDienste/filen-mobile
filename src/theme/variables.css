@@ -266,3 +266,19 @@ body {
   --background: transparent !important;
   background-color: transparent !important;
 }
+
+.background-transparent {
+  --background: transparent !important;
+  background-color: transparent !important;
+}
+
+.full-width {
+  --width: 100vw;
+  width: 100vw;
+}
+
+.overflow-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

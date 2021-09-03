@@ -280,9 +280,12 @@ export function setupWindowFunctions(){
     }, 100)
 
     const updateHeightAndWidthState = () => {
-        this.setState({
+        return this.setState({
             windowHeight: window.innerHeight,
-            windowWidth: window.innerWidth
+            windowWidth: window.innerWidth,
+            gridItemWidth: (window.innerWidth / 2) - 25
+        }, () => {
+            this.forceUpdate()
         })
     }
 
@@ -333,6 +336,23 @@ export function setupWindowFunctions(){
                 })
             }
             catch(e){  }
+        })
+    }
+
+    window.customFunctions.toggleGridMode = () => {
+        window.customFunctions.dismissPopover()
+
+        let newSettings = this.state.settings
+        let newVal = !newSettings.gridModeEnabled
+
+        newSettings.gridModeEnabled = newVal
+
+        window.customFunctions.saveSettings(newSettings)
+
+        return this.setState({
+            settings: newSettings
+        }, () => {
+            this.forceUpdate()
         })
     }
 

@@ -989,7 +989,7 @@ export async function getThumbnail(file, thumbURL, ext){
 
                     try{
                         var compressedImage = await imageCompression(thumbnailData, {
-                            maxWidthOrHeight: 200,
+                            maxWidthOrHeight: 256,
                             useWebWorker: true
                         })
                     }

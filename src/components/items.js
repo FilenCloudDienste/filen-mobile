@@ -885,7 +885,9 @@ export function selectItem(type, index){
     return this.setState({
         itemList: items,
         selectedItems
-    })
+    }, () => {
+		this.forceUpdate()
+	})
 }
 
 export function clearSelectedItems(){
@@ -898,7 +900,9 @@ export function clearSelectedItems(){
     return this.setState({
         itemList: items,
         selectedItems: 0
-    })
+    }, () => {
+		this.forceUpdate()
+	})
 }
 
 export async function selectItemsAction(event){
