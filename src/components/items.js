@@ -2657,6 +2657,11 @@ export async function openPublicLinkModal(item){
 							<ion-title>
 								` + language.get(appLang, "publicLinkHeader", true, ["__NAME__"], [item.name]) + `
 							</ion-title>
+							<ion-buttons slot="end" id="public-link-enabled-share" ` + (!res.data.enabled && `style="display: none;"`) + `>
+								<ion-button onClick="window.customFunctions.sharePublicLink('` + item.name + `')">
+									<ion-icon slot="icon-only" icon="` + Ionicons.shareOutline + `"></ion-icon>
+								</ion-button>
+							</ion-buttons>
 						</ion-toolbar>
 					</ion-header>
 					<ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
@@ -2792,6 +2797,11 @@ export async function openPublicLinkModal(item){
 							<ion-title>
 								` + language.get(appLang, "publicLinkHeader", true, ["__NAME__"], [item.name]) + `
 							</ion-title>
+							<ion-buttons slot="end" id="public-link-enabled-share" ` + (!res.data.exists && `style="display: none;"`) + `>
+								<ion-button onClick="window.customFunctions.sharePublicLink('` + item.name + `')">
+									<ion-icon slot="icon-only" icon="` + Ionicons.shareOutline + `"></ion-icon>
+								</ion-button>
+							</ion-buttons>
 						</ion-toolbar>
 					</ion-header>
 					<ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
@@ -3394,7 +3404,7 @@ export async function spawnItemActionSheet(item){
 
 	options['favorite'] ={
 		text: item.favorited == 1 ? language.get(this.state.lang, "unfavorite") : language.get(this.state.lang, "favorite"),
-		icon: Ionicons.star,
+		icon: Ionicons.starOutline,
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 

@@ -2152,10 +2152,12 @@ export function setupWindowFunctions(){
             if(type == "enable"){
                 document.getElementById("enable-public-link-content").style.display = "none"
                 document.getElementById("public-link-enabled-content").style.display = "block"
+                document.getElementById("public-link-enabled-share").style.display = "block"
             }
             else{
                 document.getElementById("enable-public-link-content").style.display = "block"
                 document.getElementById("public-link-enabled-content").style.display = "none"
+                document.getElementById("public-link-enabled-share").style.display = "none"
 
                 try{
                     await this.updateItemList()
@@ -2419,6 +2421,7 @@ export function setupWindowFunctions(){
 
                         document.getElementById("enable-public-link-content").style.display = "none"
                         document.getElementById("public-link-enabled-content").style.display = "block"
+                        document.getElementById("public-link-enabled-share").style.display = "block"
                     })
                 }
             }
@@ -2430,6 +2433,7 @@ export function setupWindowFunctions(){
 
                     document.getElementById("enable-public-link-content").style.display = "block"
                     document.getElementById("public-link-enabled-content").style.display = "none"
+                    document.getElementById("public-link-enabled-share").style.display = "none"
 
                     this.updateItemList()
                 })
@@ -2437,6 +2441,30 @@ export function setupWindowFunctions(){
 
             return true
         }
+    }
+
+    window.customFunctions.sharePublicLink = async (name) => {
+        if(!Capacitor.isNative){
+            return false
+        }
+
+        try{
+            let link = document.getElementById("public-link-input").value
+
+            await Plugins.Share.share({
+                title: name,
+                text: name,
+                url: link,
+                dialogTitle: ""
+            })
+        }
+        catch(e){
+            console.log(e)
+
+            return false
+        }
+
+        return true
     }
 
     window.customFunctions.copyPublicLinkToClipboard = async () => {
