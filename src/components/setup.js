@@ -388,6 +388,8 @@ export async function doSetup(){
     }, 60000)
 
     this.initSocket()
+    
+    window.customFunctions.checkVersion()
 
     return this.routeTo("/base")
 }

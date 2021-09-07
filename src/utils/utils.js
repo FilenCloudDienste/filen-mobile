@@ -350,7 +350,8 @@ export async function decryptFileMetadata(metadata, userMasterKeys, uuid = undef
 					name: file.name,
 					size: file.size,
 					mime: file.mime,
-					key: file.key
+					key: file.key,
+					lastModified: file.lastModified
 				}
 			}
 		}
@@ -360,6 +361,7 @@ export async function decryptFileMetadata(metadata, userMasterKeys, uuid = undef
     let fileSize = 0
     let fileMime = ""
     let fileKey = ""
+	let fileLastModified = undefined
 
     if(userMasterKeys.length > 0){
 		userMasterKeys = userMasterKeys.reverse()
@@ -374,6 +376,7 @@ export async function decryptFileMetadata(metadata, userMasterKeys, uuid = undef
                 fileSize = parseInt(obj.size)
                 fileMime = obj.mime
                 fileKey = obj.key
+				fileLastModified = obj.lastModified
 
 				break
             }
@@ -387,7 +390,8 @@ export async function decryptFileMetadata(metadata, userMasterKeys, uuid = undef
         name: fileName,
         size: fileSize,
         mime: fileMime,
-        key: fileKey
+        key: fileKey,
+		lastModified: fileLastModified
     }
 
     if(typeof obj.name == "string"){
@@ -409,7 +413,8 @@ export async function decryptFileMetadataPrivateKey(str, usrPrivKey, uuid = unde
             name: file.name,
             size: file.size,
             mime: file.mime,
-            key: file.key
+            key: file.key,
+			lastModified: file.lastModified
         }
     }
 
@@ -417,6 +422,7 @@ export async function decryptFileMetadataPrivateKey(str, usrPrivKey, uuid = unde
     let fileSize = 0
     let fileMime = ""
     let fileKey = ""
+	let fileLastModified = undefined
 
     try{
         let decrypted = await window.crypto.subtle.decrypt({
@@ -430,6 +436,7 @@ export async function decryptFileMetadataPrivateKey(str, usrPrivKey, uuid = unde
             fileSize = parseInt(decrypted.size)
             fileMime = decrypted.mime
             fileKey = decrypted.key
+			fileLastModified = decrypted.lastModified
         }
     }
     catch(e){
@@ -437,7 +444,8 @@ export async function decryptFileMetadataPrivateKey(str, usrPrivKey, uuid = unde
             name: fileName,
             size: fileSize,
             mime: fileMime,
-            key: fileKey
+            key: fileKey,
+			lastModified: fileLastModified
         }
     }
 
@@ -445,7 +453,8 @@ export async function decryptFileMetadataPrivateKey(str, usrPrivKey, uuid = unde
         name: fileName,
         size: fileSize,
         mime: fileMime,
-        key: fileKey
+        key: fileKey,
+		lastModified: fileLastModified
     }
 
     if(obj.name.length >= 1){
@@ -945,7 +954,8 @@ export function checkIfItemIsBeingSharedForRename(type, uuid, metaData, optional
 	    				name: metaData.name,
 	    				size: parseInt(metaData.size),
 	    				mime: metaData.mime,
-	    				key: metaData.key
+	    				key: metaData.key,
+						lastModified: metaData.lastModified
 	    			})
 				}
 				else{
@@ -1012,7 +1022,8 @@ export function checkIfItemIsBeingSharedForRename(type, uuid, metaData, optional
     				name: metaData.name,
     				size: parseInt(metaData.size),
     				mime: metaData.mime,
-    				key: metaData.key
+    				key: metaData.key,
+					lastModified: metaData.lastModified
     			})
 			}
 			else{
@@ -1297,7 +1308,8 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 	    				name: metaData.name,
 	    				size: parseInt(metaData.size),
 	    				mime: metaData.mime,
-	    				key: metaData.key
+	    				key: metaData.key,
+						lastModified: metaData.lastModified
 	    			})
 
 					window.crypto.subtle.encrypt({
@@ -1352,6 +1364,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 					let fSize = decryptedData.size
 					let fMime = decryptedData.mime
 					let fKey = decryptedData.key
+					let fLastModified = decryptedData.lastModified
 
 					shareItems.push({
 						uuid: files[i].uuid,
@@ -1360,7 +1373,8 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 							name: fName,
 							size: fSize,
 							mime: fMime,
-							key: fKey
+							key: fKey,
+							lastModified: fLastModified
 						},
 						type: "file"
 					})
@@ -1408,7 +1422,8 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 				    				name: shareItems[i].metadata.name,
 				    				size: parseInt(shareItems[i].metadata.size),
 				    				mime: shareItems[i].metadata.mime,
-				    				key: shareItems[i].metadata.key
+				    				key: shareItems[i].metadata.key,
+									lastModified: shareItems[i].metadata.lastModified
 				    			})
 							}
 							else{
@@ -1476,7 +1491,8 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 					name: metaData.name,
 					size: parseInt(metaData.size),
 					mime: metaData.mime,
-					key: metaData.key
+					key: metaData.key,
+					lastModified: metaData.lastModified
 				})
 
 				mData = await encryptMetadata(mData, key)
@@ -1529,6 +1545,7 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 					let fSize = decryptedData.size
 					let fMime = decryptedData.mime
 					let fKey = decryptedData.key
+					let fLastModified = decryptedData.lastModified
 
 					shareItems.push({
 						uuid: files[i].uuid,
@@ -1537,7 +1554,8 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 							name: fName,
 							size: fSize,
 							mime: fMime,
-							key: fKey
+							key: fKey,
+							lastModified: fLastModified
 						},
 						type: "file"
 					})
@@ -1587,7 +1605,8 @@ export function checkIfItemParentIsBeingShared(parentUUID, type, metaData, optio
 			    				name: shareItems[i].metadata.name,
 			    				size: parseInt(shareItems[i].metadata.size),
 			    				mime: shareItems[i].metadata.mime,
-			    				key: shareItems[i].metadata.key
+			    				key: shareItems[i].metadata.key,
+								lastModified: shareItems[i].metadata.lastModified
 			    			})
 						}
 						else{
@@ -2513,4 +2532,46 @@ export async function decryptMetadata(data, key){
       return ""
     }
   }
+}
+
+export function compareVersions(current, got){
+	function compare(a, b) {
+		if (a === b) {
+		   return 0;
+		}
+	
+		var a_components = a.split(".");
+		var b_components = b.split(".");
+	
+		var len = Math.min(a_components.length, b_components.length);
+
+		for (var i = 0; i < len; i++) {
+			if (parseInt(a_components[i]) > parseInt(b_components[i])) {
+				return 1;
+			}
+	
+			if (parseInt(a_components[i]) < parseInt(b_components[i])) {
+				return -1;
+			}
+		}
+	
+		if (a_components.length > b_components.length) {
+			return 1;
+		}
+	
+		if (a_components.length < b_components.length) {
+			return -1;
+		}
+	
+		return 0;
+	}
+
+	let res = compare(current, got)
+
+	if(res == -1){
+		return "update"
+	}
+	else{
+		return "ok"
+	}
 }

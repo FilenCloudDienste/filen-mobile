@@ -285,6 +285,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				mime: utils.sanitizeHTML(metadata.mime),
 				size: parseInt(metadata.size),
 				key: utils.sanitizeHTML(metadata.key),
+				lastModified: (typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp),
 				bucket: file.bucket,
 				region: file.region,
 				parent: file.parent,
@@ -419,6 +420,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					mime: utils.sanitizeHTML(decryptedMetadata.mime),
 					size: parseInt(decryptedMetadata.size),
 					key: utils.sanitizeHTML(decryptedMetadata.key),
+					lastModified: (typeof decryptedMetadata.lastModified == "number" ? decryptedMetadata.lastModified : file.timestamp),
 					bucket: file.bucket,
 					region: file.region,
 					parent: file.parent,
@@ -532,6 +534,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					mime: utils.sanitizeHTML(metadata.mime),
 					size: parseInt(metadata.size),
 					key: utils.sanitizeHTML(metadata.key),
+					lastModified: (typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp),
 					bucket: file.bucket,
 					region: file.region,
 					parent: file.parent,
@@ -641,6 +644,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					mime: utils.sanitizeHTML(metadata.mime),
 					size: parseInt(metadata.size),
 					key: utils.sanitizeHTML(metadata.key),
+					lastModified: (typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp),
 					bucket: file.bucket,
 					region: file.region,
 					parent: file.parent,
@@ -1817,7 +1821,8 @@ export async function renameItem(item){
 							name: newName,
 							size: parseInt(item.size),
 							mime: item.mime,
-							key: item.key
+							key: item.key,
+							lastModified: item.lastModified
 						}), this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
 					})
 				}
@@ -2365,7 +2370,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		let files = res.data.files
 		let folders = res.data.folders
 
-		if((files.length + folders.length) > 1000000){
+		if((files.length + folders.length) > 10000){
 			loading.dismiss()
 
 			return callback(language.get(this.state.lang, "shareTooBigForApp"))
@@ -2382,7 +2387,8 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 						name: metadata.name,
 						size: parseInt(metadata.size),
 						mime: metadata.mime,
-						key: metadata.key
+						key: metadata.key,
+						lastModified: metadata.lastModified
 					},
 					type: "file"
 				})

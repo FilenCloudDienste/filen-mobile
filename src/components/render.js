@@ -1,7 +1,6 @@
 import React from 'react';
 import { IonToast, IonSkeletonText, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText, IonTabBar, IonTabButton, IonCard, IonCardContent, IonCardSubtitle } from '@ionic/react'
 import { List } from 'react-virtualized';
-import { Plugins, StatusBarStyle, Capacitor } from "@capacitor/core"
 import { isPlatform, getPlatforms } from "@ionic/react"
 
 import '@ionic/react/css/core.css';
@@ -22,7 +21,6 @@ import { FaHdd } from "react-icons/fa"
 
 import Hammer from "rc-hammerjs"
 import { routeTo } from './router';
-import { createNoSubstitutionTemplateLiteral } from 'typescript';
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')

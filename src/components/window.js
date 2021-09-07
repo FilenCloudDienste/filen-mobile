@@ -1,4 +1,4 @@
-import { Capacitor, Plugins, FilesystemDirectory } from "@capacitor/core"
+import { Capacitor, Plugins, FilesystemDirectory, App } from "@capacitor/core"
 import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
@@ -194,9 +194,12 @@ export function setupWindowFunctions(){
     window.customVariables.currentAuthVersion = this.state.currentAuthVersion
     window.customVariables.currentMetadataVersion = this.state.currentMetadataVersion
     window.customFunctions.workers = workers
+    window.customVariables.updateScreenShowing = false
 
     Plugins.App.addListener("appStateChange", (appState) => {
         if(appState.isActive){
+            window.customFunctions.checkVersion()
+
             //@todo: Biometric Auth logic
         }
     })
@@ -309,6 +312,100 @@ export function setupWindowFunctions(){
 
     window.customFunctions.isPlatform = isPlatform
     window.customFunctions.safeAreaInsets = safeAreaInsets
+
+    window.customFunctions.checkVersion = async () => {
+        if(window.customVariables.updateScreenShowing){
+            return false
+        }
+
+        try{
+            var deviceInfo = await Plugins.Device.getInfo()
+
+            var res = await utils.apiRequest("POST", "/v1/currentVersions", {
+                platform: "mobile"
+            })
+        }
+        catch(e){
+            return console.log(e)
+        }
+
+        if(utils.compareVersions(deviceInfo.appVersion, res.data.mobile) == "update"){
+            console.log("update")
+
+            window.customFunctions.showUpdateScreen()
+        }
+        else{
+            console.log("app version ok")
+        }
+
+        return true
+    }
+
+    window.customFunctions.showUpdateScreen = async () => {
+        if(window.customVariables.updateScreenShowing){
+            return false
+        }
+
+        window.customVariables.updateScreenShowing = true
+
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "update-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-header-no-shadow" style="--background: transparent;">
+                        <ion-toolbar style="--background: transparent;">
+                            <ion-title>
+                                ` + language.get(appLang, "updateAvailable") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content fullscreen>
+                        <div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
+                            <center>
+                                <ion-avatar>
+                                    <img src="assets/img/icon.png">
+                                </ion-avatar>
+                                <br>
+                                ` + language.get(appLang, "updateAvailableInfo") + `
+                                <br>
+                                <br>
+                                ` + (Capacitor.platform == "ios" ? `
+                                    <ion-button fill="solid" color="primary" onClick="window.open('itms-apps://itunes.apple.com/app/id1549224518')">
+                                        ` + language.get(appLang, "updateAvailableAppStore") + `
+                                    </ion-button>
+                                ` : `
+                                    <ion-button fill="solid" color="primary" onClick="window.open('market://details?id=io.filen.app')">
+                                        ` + language.get(appLang, "updateAvailableGooglePlay") + `
+                                    </ion-button>
+                                `) + `
+                            </center>
+                        </div>
+                    </ion-content>
+                `;
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: false,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        this.setupStatusbar("login/register")
+
+        modal.onDidDismiss().then(() => {
+            this.setupStatusbar()
+        })
+
+        return true
+    }
 
     window.customFunctions.setupErrorReporter = () => {
         window.addEventListener("error", async (e) => {
@@ -2332,7 +2429,8 @@ export function setupWindowFunctions(){
 							name: itemToAdd.name,
 							mime: itemToAdd.mime,
 							key: itemToAdd.key,
-							size: parseInt(itemToAdd.size)
+							size: parseInt(itemToAdd.size),
+                            lastModified: itemToAdd.lastModified
 						}), key)
 					}
 					else{

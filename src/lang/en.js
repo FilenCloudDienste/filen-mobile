@@ -310,6 +310,10 @@ translations['en']['itemVersions'] = "Version history"
 translations['en']['currentFileVersion'] = "Current"
 translations['en']['previewItem'] = "Preview"
 translations['en']['fileVersionRestored'] = "Older file version restored"
+translations['en']['updateAvailable'] = "Update available"
+translations['en']['updateAvailableInfo'] = "A new version is available to install.<br>Please update the App to continue using it."
+translations['en']['updateAvailableAppStore'] = "Go to App Store"
+translations['en']['updateAvailableGooglePlay'] = "Go to Google Play"
 
 module.exports = {
     translations
