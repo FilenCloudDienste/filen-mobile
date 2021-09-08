@@ -2,6 +2,7 @@ import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor, FilesystemDirectory, Plugins } from "@capacitor/core"
 import imageCompression from "browser-image-compression"
+import Compressor from 'compressorjs';
 
 const utils = require("../utils/utils")
 
@@ -966,10 +967,7 @@ export async function getThumbnail(file, thumbURL, ext){
                         return reject(err)
                     }
 
-                    downloadData = new File([new Blob([downloadData], {
-                        type: file.mime
-                    })], file.name, {
-                        lastModified: new Date(),
+                    downloadData = new Blob([downloadData], {
                         type: file.mime
                     })
     
@@ -982,15 +980,21 @@ export async function getThumbnail(file, thumbURL, ext){
                         return reject(e)
                     }
 
-                    thumbnailData = new File([thumbnailData], thumbnailFileName, {
-                        lastModified: new Date(),
-                        type: "image/jpeg"
-                    })
+                    console.log(thumbnailData)
 
                     try{
-                        var compressedImage = await imageCompression(thumbnailData, {
-                            maxWidthOrHeight: 256,
-                            useWebWorker: true
+                        var compressedImage = await new Promise((resolve, reject) => {
+                            new Compressor(thumbnailData, {
+                                quality: 0.6,
+                                maxWidth: 256,
+                                maxHeight: 256,
+                                success(result){
+                                    return resolve(result)
+                                },
+                                error(err){
+                                    return reject(err)
+                                }
+                            })
                         })
                     }
                     catch(e){
@@ -1014,7 +1018,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     }
     
                     fileReader.readAsArrayBuffer(compressedImage)
-                }, 10, true)
+                }, 16, true)
             }
             else{
                 this.downloadPreview(file, undefined, async (err, data) => {
@@ -1025,17 +1029,23 @@ export async function getThumbnail(file, thumbURL, ext){
                     }
     
                     if(utils.canCompressThumbnail(ext)){
-                        data = new File([new Blob([data], {
-                            type: file.mime
-                        })], thumbnailFileName, {
-                            lastModified: new Date(),
+                        data = new Blob([data], {
                             type: file.mime
                         })
         
                         try{
-                            var compressedImage = await imageCompression(data, {
-                                maxWidthOrHeight: 200,
-                                useWebWorker: true
+                            var compressedImage = await new Promise((resolve, reject) => {
+                                new Compressor(data, {
+                                    quality: 0.5,
+                                    maxWidth: 256,
+                                    maxHeight: 256,
+                                    success(result){
+                                        return resolve(result)
+                                    },
+                                    error(err){
+                                        return reject(err)
+                                    }
+                                })
                             })
                         }
                         catch(e){

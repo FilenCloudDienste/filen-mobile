@@ -703,6 +703,10 @@ export function Semaphore(max){
      counter--;
      take();
     }
+
+	this.count = function() {
+		return counter
+	}
     
     this.purge = function() {
       let unresolved = waiting.length;
@@ -2070,7 +2074,7 @@ export function getVideoCover(file, seekTo = 0.0) {
                         resolve(blob);
                     },
                     "image/jpeg",
-                    0.1 /* quality */
+                    1 /* quality */
                 );
             });
         });

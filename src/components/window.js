@@ -16,6 +16,8 @@ export function windowRouter(){
 
             this.setState({
                 currentHref: window.currentHref
+            }, () => {
+                this.forceUpdate()
             })
 
             let routeEx = window.location.hash.split("/")
@@ -33,12 +35,16 @@ export function windowRouter(){
                             this.setState({
                                 mainToolbarTitle: window.customVariables.cachedFolders[lastFolderInRoute].name,
                                 showMainToolbarBackButton: true
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                         else{
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                     }
@@ -47,48 +53,64 @@ export function windowRouter(){
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "sharedInTitle"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                         else if(routeEx[1] == "shared-out"){
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "sharedOutTitle"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                         else if(routeEx[1] == "trash"){
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "trashTitle"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                         else if(routeEx[1] == "links"){
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "linksTitle"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                         else if(routeEx[1] == "recent"){
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "recent"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                         else if(routeEx[1] == "events"){
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "events"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                         else if(routeEx[1] == "favorites"){
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "favorites"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                         else{
                             this.setState({
                                 mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
                                 showMainToolbarBackButton: false
+                            }, () => {
+                                this.forceUpdate()
                             })
                         }
                     }
@@ -2642,37 +2664,49 @@ export function setupWindowFunctions(){
                             return alert.dismiss()
                         }
 
-                        let dirObj = {}
+                        let dirObj = []
 
                         if(Capacitor.platform == "ios"){
-                            dirObj = {
+                            dirObj.push({
+                                path: "ThumbnailCache/",
+                                directory: FilesystemDirectory.Documents
+                            })
+
+                            dirObj.push({
                                 path: "FilenThumbnailCache/",
                                 directory: FilesystemDirectory.Documents
-                            }
+                            })
                         }
                         else{
-                            dirObj = {
+                            dirObj.push({
                                 path: "ThumbnailCache/",
                                 directory: FilesystemDirectory.External
-                            }
+                            })
+
+                            dirObj.push({
+                                path: "FilenThumbnailCache/",
+                                directory: FilesystemDirectory.External
+                            })
                         }
 
                         try{
-                            await Plugins.Filesystem.rmdir({
-                                path: dirObj.path,
-                                directory: dirObj.directory,
-                                recursive: true
-                            })
-
-                            window.customVariables.thumbnailCache = {}
-                            window.customVariables.thumbnailBlobCache = {}
-                            window.customVariables.lastThumbnailCacheLength = undefined
-
-                            await window.customFunctions.saveThumbnailCache(true)
+                            for(let i = 0; i < dirObj.length; i++){
+                                Plugins.Filesystem.rmdir({
+                                    path: dirObj[i].path,
+                                    directory: dirObj[i].directory,
+                                    recursive: true
+                                })
+                            }
                         }
                         catch(e){
                             console.log(e)
                         }
+
+                        window.customVariables.thumbnailCache = {}
+                        window.customVariables.thumbnailBlobCache = {}
+                        window.customVariables.lastThumbnailCacheLength = undefined
+
+                        await window.customFunctions.saveThumbnailCache(true)
 
                         alert.dismiss()
 

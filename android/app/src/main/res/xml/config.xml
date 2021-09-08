@@ -2,6 +2,11 @@
 <widget version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <access origin="*" />
   
+  <feature name="File">
+    <param name="android-package" value="org.apache.cordova.file.FileUtils"/>
+    <param name="onload" value="true"/>
+  </feature>
+
   <feature name="FileOpener2">
     <param name="android-package" value="io.github.pwlin.cordova.plugins.fileopener2.FileOpener2"/>
   </feature>
