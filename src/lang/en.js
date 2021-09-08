@@ -316,6 +316,7 @@ translations['en']['updateAvailableAppStore'] = "Go to App Store"
 translations['en']['updateAvailableGooglePlay'] = "Go to Google Play"
 translations['en']['biometricNotAvailable'] = "Biometric Authentication not available"
 translations['en']['biometricError'] = "Biometric Authentication error"
+translations['en']['biometricEnterPINCode'] = "Enter PIN Code"
 
 module.exports = {
     translations

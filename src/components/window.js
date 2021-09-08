@@ -354,7 +354,93 @@ export function setupWindowFunctions(){
                     <ion-content fullscreen>
                         <div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
                             <center>
-                                Auth
+                                <ion-icon slot="icon-only" icon="` + Ionicons.lockClosedOutline + `" style="font-size: 60pt;"></ion-icon>
+                                <br>
+                                <br>
+                                <br>
+                                ` + language.get(appLang, "biometricEnterPINCode") + `
+                                <br>
+                                <br>
+                                <br>
+                                <div id="pin-code-dots">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt;"></ion-icon>
+                                </div>
+                                <br>
+                                <br>
+                                <br>
+                                <div style="width: ` + (window.innerWidth - 50) + `px; height: 300px;">
+                                    <div style="width: 100%; height: 75px;">
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                1
+                                            </ion-button>
+                                        </div>
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                2
+                                            </ion-button>
+                                        </div>
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                3
+                                            </ion-button>
+                                        </div>
+                                    </div>
+                                    <div style="width: 100%; height: 75px;">
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                4
+                                            </ion-button>
+                                        </div>
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                5
+                                            </ion-button>
+                                        </div>
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                6
+                                            </ion-button>
+                                        </div>
+                                    </div>
+                                    <div style="width: 100%; height: 75px;">
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                7
+                                            </ion-button>
+                                        </div>
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                8
+                                            </ion-button>
+                                        </div>
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                9
+                                            </ion-button>
+                                        </div>
+                                    </div>
+                                    <div style="width: 100%; height: 75px;">
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 12px;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px;">
+                                                <ion-icon slot="icon-only" icon="` + Ionicons.logOutOutline + `" style="font-size: 24pt;"></ion-icon>
+                                            </ion-button>
+                                        </div>
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                                0
+                                            </ion-button>
+                                        </div>
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 7px;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px;">
+                                                <ion-icon slot="icon-only" icon="` + Ionicons.fingerPrintOutline + `" style="font-size: 24pt;"></ion-icon>
+                                            </ion-button>
+                                        </div>
+                                    </div>
+                                </div>
                             </center>
                         </div>
                     </ion-content>

@@ -390,6 +390,7 @@ export async function doSetup(){
     this.initSocket()
     
     window.customFunctions.checkVersion()
+    window.customFunctions.showBiometricAuthScreen()
 
     return this.routeTo("/base")
 }

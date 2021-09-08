@@ -282,3 +282,11 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.pin-code-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  float: left;
+  margin-right: 10px;
+}
