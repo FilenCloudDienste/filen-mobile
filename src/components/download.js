@@ -980,14 +980,13 @@ export async function getThumbnail(file, thumbURL, ext){
                         return reject(e)
                     }
 
-                    console.log(thumbnailData)
-
                     try{
                         var compressedImage = await new Promise((resolve, reject) => {
                             new Compressor(thumbnailData, {
                                 quality: 0.6,
                                 maxWidth: 256,
                                 maxHeight: 256,
+                                mimeType: "image/jpeg",
                                 success(result){
                                     return resolve(result)
                                 },
@@ -1039,6 +1038,7 @@ export async function getThumbnail(file, thumbURL, ext){
                                     quality: 0.5,
                                     maxWidth: 256,
                                     maxHeight: 256,
+                                    mimeType: file.mime,
                                     success(result){
                                         return resolve(result)
                                     },

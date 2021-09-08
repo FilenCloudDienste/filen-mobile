@@ -32,13 +32,13 @@ export async function showRegister(){
                                 <img src="assets/img/icon.png">
                             </ion-avatar>
                             <ion-item style="width: 90%; margin-top: 30px;">
-                                <ion-input type="email" id="register-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
+                                <ion-input type="email" autocapitalize="off" autocomplete="off" id="register-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
                             </ion-item>
                             <ion-item style="width: 90%;">
-                                <ion-input type="password" id="register-password" placeholder="` + language.get(appLang, "passwordPlaceholder") + `"></ion-input>
+                                <ion-input type="password" autocapitalize="off" autocomplete="new-password" id="register-password" placeholder="` + language.get(appLang, "passwordPlaceholder") + `"></ion-input>
                             </ion-item>
                             <ion-item style="width: 90%;">
-                                <ion-input type="password" id="register-password-repeat" placeholder="` + language.get(appLang, "passwordRepeatPlaceholder") + `"></ion-input>
+                                <ion-input type="password" autocapitalize="off" autocomplete="new-password" id="register-password-repeat" placeholder="` + language.get(appLang, "passwordRepeatPlaceholder") + `"></ion-input>
                             </ion-item>
                             <div style="width: 90%; margin-top: 25px;">
                                 <small>` + tosPrivacy + `</small>

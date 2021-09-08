@@ -314,6 +314,8 @@ translations['en']['updateAvailable'] = "Update available"
 translations['en']['updateAvailableInfo'] = "A new version is available to install.<br>Please update the App to continue using it."
 translations['en']['updateAvailableAppStore'] = "Go to App Store"
 translations['en']['updateAvailableGooglePlay'] = "Go to Google Play"
+translations['en']['biometricNotAvailable'] = "Biometric Authentication not available"
+translations['en']['biometricError'] = "Biometric Authentication error"
 
 module.exports = {
     translations

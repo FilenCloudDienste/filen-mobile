@@ -11,6 +11,10 @@
     <param name="android-package" value="io.github.pwlin.cordova.plugins.fileopener2.FileOpener2"/>
   </feature>
 
+  <feature name="Fingerprint">
+    <param name="android-package" value="de.niklasmerz.cordova.biometric.Fingerprint"/>
+  </feature>
+
   <feature name="NavigationBar">
     <param name="android-package" value="com.viniciusfagundes.cordova.plugin.navigationbar.NavigationBar"/>
     <param name="onload" value="true"/>

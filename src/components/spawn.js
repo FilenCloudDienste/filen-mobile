@@ -86,7 +86,11 @@ export async function spawnRenamePrompt(item, callback){
                 type: "text",
                 id: "rename-item-input",
                 name: "rename-item-input",
-                value: name
+                value: name,
+                attributes: {
+                    autoCapitalize: "off",
+                    autoComplete: "off"
+                }
             }
         ],
         buttons: [
@@ -159,7 +163,11 @@ export async function mainFabAction(){
                                 type: "text",
                                 id: "new-folder-name-input",
                                 name: "new-folder-name-input",
-                                placeholder: folderCreatePlaceholderText
+                                placeholder: folderCreatePlaceholderText,
+                                attributes: {
+                                    autoCapitalize: "off",
+                                    autoComplete: "off"
+                                }
                             }
                         ],
                         buttons: [
@@ -373,7 +381,17 @@ export async function mainFabAction(){
                     }
                     
                     if(utils.currentParentFolder() == "base"){
-                        this.routeTo("/base/default")
+                        let defaultFolderUUID = undefined
+
+                        for(let i = 0; i < this.state.itemList.length; i++){
+                            if(this.state.itemList[i].isDefault){
+                                defaultFolderUUID = this.state.itemList[i].uuid
+                            }
+                        }
+
+                        if(typeof defaultFolderUUID !== "undefined"){
+                            this.routeTo("/base/" + defaultFolderUUID)
+                        }
                     }
 
                     return document.getElementById("file-input-dummy").click()

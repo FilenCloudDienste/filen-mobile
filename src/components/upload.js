@@ -124,7 +124,7 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 export async function queueFileUpload(file, passedUpdateUUID = undefined){
 	//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
 
-	if(Capacitor.platform == "ios"){ //this is really bad for performance and memory, but WKWebview aka. mobile safari is a bitch and times out file blobs after 60 seconds, so we need to clone the file in case of slow chunk processing or uploads :/ thx apple
+	/*if(Capacitor.platform == "ios"){ //this is really bad for performance and memory, but WKWebview aka. mobile safari is a bitch and times out file blobs after 60 seconds, so we need to clone the file in case of slow chunk processing or uploads :/ thx apple
 		try{
 			file = new File([await file.arrayBuffer()], file.name, {
 				type: file.type,
@@ -135,17 +135,19 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 		catch(e){
 			console.log(e)
 
-			let fName = file.name
-
-			return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFileOrTooBig", true, ["__NAME__"], [fName]))
+			return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFileOrTooBig", true, ["__NAME__"], [file.name]))
 		}
-	}
+	}*/
 
     if(file.size <= 0){
         return this.spawnToast(language.get(this.state.lang, "uploadInvalidFileSize", true, ["__NAME__"], [file.name]))
 	}
 
 	let parent = utils.currentParentFolder()
+	
+	if(parent == "base" || parent == "default"){
+		return false
+	}
 	
 	if(file.name.indexOf(".") !== -1){
 		let fileNameEx = file.name.split(".")

@@ -3,6 +3,7 @@ import { modalController, popoverController, menuController, alertController, lo
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
 import { isPlatform, getPlatforms } from "@ionic/react"
+import { FingerprintAIO } from "@ionic-native/fingerprint-aio"
 
 const workers = require("../utils/workers")
 const utils = require("../utils/utils")
@@ -334,6 +335,85 @@ export function setupWindowFunctions(){
 
     window.customFunctions.isPlatform = isPlatform
     window.customFunctions.safeAreaInsets = safeAreaInsets
+
+    window.customFunctions.showBiometricAuthScreen = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "update-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-header-no-shadow" style="--background: transparent;">
+                        <ion-toolbar style="--background: transparent;">
+                            <ion-title>
+                                &nbsp;
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content fullscreen>
+                        <div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
+                            <center>
+                                Auth
+                            </center>
+                        </div>
+                    </ion-content>
+                `;
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: false,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        this.setupStatusbar("login/register")
+
+        modal.onDidDismiss().then(() => {
+            this.setupStatusbar()
+        })
+
+        return true
+    }
+
+    window.customFunctions.showBiometricAuth = async () => {
+        try{
+            var available = await FingerprintAIO.isAvailable()
+        }
+        catch(e){
+            this.spawnToast(language.get(this.state.lang, "biometricNotAvailable"))
+
+            return console.log(e)
+        }
+
+        if(!["finger", "face", "biometric"].includes(available)){
+            return this.spawnToast(language.get(this.state.lang, "biometricNotAvailable"))
+        }
+
+        try{
+            var result = await FingerprintAIO.show({
+                clientId: "filen",
+                clientSecret: "filen",
+                disableBackup: true
+            })
+        }
+        catch(e){
+            this.spawnToast(language.get(this.state.lang, "biometricError"))
+
+            return console.log(e)
+        }
+
+        if(result !== "Success"){
+            this.spawnToast(language.get(this.state.lang, "biometricError"))
+        }
+
+        console.log("authenticated")
+    }
 
     window.customFunctions.checkVersion = async () => {
         if(window.customVariables.updateScreenShowing){
@@ -1497,7 +1577,7 @@ export function setupWindowFunctions(){
                     <ion-content fullscreen>
                         <div style="padding: 5%; padding-top: 0px; padding-bottom: 0px;">
                             <ion-item style="width: 100%; margin-top: 30px;">
-                                <ion-input type="email" id="forgot-password-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
+                                <ion-input autocapitalize="off" autocomplete="off" type="email" id="forgot-password-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
                             </ion-item>
                             <div style="width: 100%; margin-top: 30px;">
                                 <ion-checkbox color="secondary" slot="start" id="forgot-password-check"></ion-checkbox>
@@ -1635,7 +1715,7 @@ export function setupWindowFunctions(){
                     <ion-content fullscreen>
                         <div style="padding: 5%; padding-top: 0px; padding-bottom: 0px;">
                             <ion-item style="width: 100%; margin-top: 30px;">
-                                <ion-input type="email" id="resend-confirmation-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
+                                <ion-input type="email" autocapitalize="off" autocomplete="off" id="resend-confirmation-email" placeholder="` + language.get(appLang, "emailPlaceholder") + `"></ion-input>
                             </ion-item>
                             <ion-button expand="block" style="width: 100%; margin-top: 25px;" onClick="window.customFunctions.resendConfirmationEmail()">` + language.get(appLang, "resend") + `</ion-button>
                         </div>
@@ -3235,7 +3315,7 @@ export function setupWindowFunctions(){
                                     <div id="qr-code-container" style="margin: 0px auto; padding: 20px;"></div>
                                 </ion-item>
                                 <ion-item lines="none" style="margin-top: 30px;">
-                                    <ion-input value="` + window.customVariables.lastSettingsRes.twoFactorKey + `" style="-webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;" disabled></ion-input>
+                                    <ion-input autocomplete="off" value="` + window.customVariables.lastSettingsRes.twoFactorKey + `" style="-webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;" disabled></ion-input>
                                     <ion-button slot="end" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.customFunctions.copyStringToClipboard('` + window.customVariables.lastSettingsRes.twoFactorKey + `')">
                                         ` + language.get(appLang, "copy") + `
                                     </ion-button>
@@ -3621,17 +3701,17 @@ export function setupWindowFunctions(){
                         <!--<ion-list>
                             <ion-item>
                                 <ion-label>
-                                    <ion-input placeholder="` + language.get(appLang, "changeEmailNewEmail") + `" type="email" id="change-email-email"></ion-input>
+                                    <ion-input autocapitalize="off" autocomplete="off" placeholder="` + language.get(appLang, "changeEmailNewEmail") + `" type="email" id="change-email-email"></ion-input>
                                 </ion-label>
                             </ion-item>
                             <ion-item>
                                 <ion-label>
-                                    <ion-input placeholder="` + language.get(appLang, "changeEmailNewEmailRepeat") + `" type="email" id="change-email-email-repeat"></ion-input>
+                                    <ion-input autocapitalize="off" autocomplete="off" placeholder="` + language.get(appLang, "changeEmailNewEmailRepeat") + `" type="email" id="change-email-email-repeat"></ion-input>
                                 </ion-label>
                             </ion-item>
                             <ion-item>
                                 <ion-label>
-                                    <ion-input placeholder="` + language.get(appLang, "yourCurrentPassword") + `" type="password" id="change-email-password"></ion-input>
+                                    <ion-input autocapitalize="off" autocomplete="off" placeholder="` + language.get(appLang, "yourCurrentPassword") + `" type="password" id="change-email-password"></ion-input>
                                 </ion-label>
                             </ion-item>
                             <ion-item lines="none">
@@ -3648,17 +3728,17 @@ export function setupWindowFunctions(){
                         <!--<ion-list style="margin-top: 30px;">
                             <ion-item>
                                 <ion-label>
-                                    <ion-input placeholder="` + language.get(appLang, "changePasswordNewPassword") + `" type="password" id="change-password-password"></ion-input>
+                                    <ion-input autocapitalize="off" autocomplete="new-password" placeholder="` + language.get(appLang, "changePasswordNewPassword") + `" type="password" id="change-password-password"></ion-input>
                                 </ion-label>
                             </ion-item>
                             <ion-item>
                                 <ion-label>
-                                    <ion-input placeholder="` + language.get(appLang, "changePasswordNewPasswordRepeat") + `" type="password" id="change-password-password-repeat"></ion-input>
+                                    <ion-input autocapitalize="off" autocomplete="new-password" placeholder="` + language.get(appLang, "changePasswordNewPasswordRepeat") + `" type="password" id="change-password-password-repeat"></ion-input>
                                 </ion-label>
                             </ion-item>
                             <ion-item>
                                 <ion-label>
-                                    <ion-input placeholder="` + language.get(appLang, "yourCurrentPassword") + `" type="password" id="change-password-current"></ion-input>
+                                    <ion-input autocapitalize="off" autocomplete="new-password" placeholder="` + language.get(appLang, "yourCurrentPassword") + `" type="password" id="change-password-current"></ion-input>
                                 </ion-label>
                             </ion-item>
                             <ion-item lines="none" style="font-size: small; padding: 10px;">

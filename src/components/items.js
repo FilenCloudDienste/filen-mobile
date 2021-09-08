@@ -2501,7 +2501,11 @@ export async function shareSelectedItems(){
                 type: "text",
                 id: "share-items-email-input",
 				name: "share-items-email-input",
-				placeholder: language.get(this.state.lang, "receiverEmail")
+				placeholder: language.get(this.state.lang, "receiverEmail"),
+				attributes: {
+					autoCapitalize: "off",
+					autoComplete: "off"
+				}
             }
         ],
         buttons: [
@@ -2569,7 +2573,11 @@ export async function shareItem(item){
                 type: "text",
                 id: "share-item-email-input",
 				name: "share-item-email-input",
-				placeholder: language.get(this.state.lang, "receiverEmail")
+				placeholder: language.get(this.state.lang, "receiverEmail"),
+				attributes: {
+					autoCapitalize: "off",
+					autoComplete: "off"
+				}
             }
         ],
         buttons: [
