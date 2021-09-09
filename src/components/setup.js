@@ -224,6 +224,8 @@ export async function doSetup(){
         this.setState({
             lang: getLang.value,
             mainToolbarTitle: language.get(getLang.value, "cloudDrives")
+        }, () => {
+            this.forceUpdate()
         })
 
         window.customVariables.lang = getLang.value
@@ -239,6 +241,8 @@ export async function doSetup(){
         this.setState({
             lang: defaultLang,
             mainToolbarTitle: language.get(defaultLang, "cloudDrives")
+        }, () => {
+            this.forceUpdate()
         })
 
         window.customVariables.lang = defaultLang
@@ -249,6 +253,8 @@ export async function doSetup(){
 
         this.setState({
             darkMode: true
+        }, () => {
+            this.forceUpdate()
         })
     }
     else{
@@ -257,6 +263,8 @@ export async function doSetup(){
 
             this.setState({
                 darkMode: true
+            }, () => {
+                this.forceUpdate()
             })
         }
         else{
@@ -264,6 +272,8 @@ export async function doSetup(){
 
             this.setState({
                 darkMode: false
+            }, () => {
+                this.forceUpdate()
             })
         }
     }
@@ -277,7 +287,9 @@ export async function doSetup(){
         if(getIsLoggedIn.value == "true"){
             let settings = {
                 onlyWifi: false,
-                showThumbnails: true
+                showThumbnails: true,
+                gridModeEnabled: false,
+                biometricPINCode: ""
             }
 
             if(typeof getSettings.value == "string"){
@@ -292,6 +304,8 @@ export async function doSetup(){
                 userPrivateKey: getUserPrivateKey.value,
                 isLoggedIn: true,
                 settings: settings
+            }, () => {
+                this.forceUpdate()
             })
 
             window.customVariables.userMasterKeys = JSON.parse(getUserMasterKeys.value)
@@ -390,7 +404,7 @@ export async function doSetup(){
     this.initSocket()
     
     window.customFunctions.checkVersion()
-    window.customFunctions.showBiometricAuthScreen()
+    window.customFunctions.triggerBiometricAuth()
 
     return this.routeTo("/base")
 }

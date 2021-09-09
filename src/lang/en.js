@@ -311,12 +311,15 @@ translations['en']['currentFileVersion'] = "Current"
 translations['en']['previewItem'] = "Preview"
 translations['en']['fileVersionRestored'] = "Older file version restored"
 translations['en']['updateAvailable'] = "Update available"
-translations['en']['updateAvailableInfo'] = "A new version is available to install.<br>Please update the App to continue using it."
+translations['en']['updateAvailableInfo'] = "A new version is available to install.<br />Please update the App to continue using it."
 translations['en']['updateAvailableAppStore'] = "Go to App Store"
 translations['en']['updateAvailableGooglePlay'] = "Go to Google Play"
 translations['en']['biometricNotAvailable'] = "Biometric Authentication not available"
 translations['en']['biometricError'] = "Biometric Authentication error"
 translations['en']['biometricEnterPINCode'] = "Enter PIN Code"
+translations['en']['biometricSetupPINCode'] = "Setup PIN Code"
+translations['en']['biometricSetupPINCodeConfirm'] = "Confirm PIN Code"
+translations['en']['settingsBiometricAuth'] = "Biometric/PIN Code Authentication"
 
 module.exports = {
     translations

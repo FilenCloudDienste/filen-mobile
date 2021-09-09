@@ -1,4 +1,4 @@
-import { Capacitor, Plugins, FilesystemDirectory, App } from "@capacitor/core"
+import { Capacitor, Plugins, FilesystemDirectory, App, HapticsImpactStyle } from "@capacitor/core"
 import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
@@ -218,12 +218,19 @@ export function setupWindowFunctions(){
     window.customVariables.currentMetadataVersion = this.state.currentMetadataVersion
     window.customFunctions.workers = workers
     window.customVariables.updateScreenShowing = false
+    window.customVariables.currentPINCode = ""
+    window.customVariables.confirmPINCode = ""
+    window.customFunctions.isPlatform = isPlatform
+    window.customFunctions.safeAreaInsets = safeAreaInsets
+    window.customVariables.currentBiometricModalType = "auth"
+    window.customVariables.nextBiometricAuth = 0
+    window.customVariables.biometricAuthShowing = false
+    window.customVariables.biometricAuthTimeout = 300
 
     Plugins.App.addListener("appStateChange", (appState) => {
         if(appState.isActive){
             window.customFunctions.checkVersion()
-
-            //@todo: Biometric Auth logic
+            window.customFunctions.triggerBiometricAuth()
         }
     })
 
@@ -333,13 +340,182 @@ export function setupWindowFunctions(){
         return window.customFunctions.togglePreviewHeader(e)
     }
 
-    window.customFunctions.isPlatform = isPlatform
-    window.customFunctions.safeAreaInsets = safeAreaInsets
+    window.customFunctions.triggerBiometricAuth = () => {
+        if(typeof this.state.settings.biometricPINCode == "undefined"){
+            return false
+        }
 
-    window.customFunctions.showBiometricAuthScreen = async () => {
+        if(this.state.settings.biometricPINCode.length !== 4){
+            return false
+        }
+
+        if(((+new Date() / 1000)) > window.customVariables.nextBiometricAuth){
+            window.customVariables.nextBiometricAuth = ((+new Date() / 1000) + window.customVariables.biometricAuthTimeout)
+            
+            window.customFunctions.showBiometricAuthScreen("auth")
+        }
+
+        return true
+    }
+
+    window.customFunctions.shakeDiv = async (div, interval = 100, distance = 10, times = 4) => {
+        window.$(div).css("position", "relative")
+
+        for(let iter = 0; iter < (times + 1); iter++){
+            window.$(div).animate({
+                left: ((iter % 2 == 0 ? distance : distance *- 1)
+            )}, interval)
+        }
+        
+        window.$(div).animate({
+            left: 0
+        }, interval)
+
+        return true
+    }
+
+    window.customFunctions.inputPINCode = async (number) => {
+        let dotChildren = window.$("#pin-code-dots").children()
+
+        const paintDots = (length) => {
+            if(length == 1){
+                dotChildren.first().attr("icon", Ionicons.ellipse)
+            }
+            else if(length == 2){
+                dotChildren.first().next().attr("icon", Ionicons.ellipse)
+            }
+            else if(length == 3){
+                dotChildren.first().next().next().attr("icon", Ionicons.ellipse)
+            }
+            else{
+                dotChildren.first().next().next().next().attr("icon", Ionicons.ellipse)
+            }
+
+            return true
+        }
+
+        if(window.customVariables.currentBiometricModalType == "auth" && typeof this.state.settings.biometricPINCode !== "undefined"){
+            window.customVariables.currentPINCode = window.customVariables.currentPINCode + "" + number
+
+            paintDots(window.customVariables.currentPINCode.length)
+
+            if(window.customVariables.currentPINCode.length >= 4){
+                if(window.customVariables.currentPINCode !== this.state.settings.biometricPINCode){
+                    Plugins.Haptics.impact(HapticsImpactStyle.Light)
+
+                    await window.customFunctions.shakeDiv(window.$("#pin-code-dots"), 100, 10, 6)
+
+                    dotChildren.each(function(){
+                        window.$(this).attr("icon", Ionicons.ellipseOutline)
+                    })
+
+                    window.customVariables.currentPINCode = ""
+                }
+                else{
+                    window.customVariables.currentPINCode = ""
+
+                    await new Promise((resolve) => {
+                        return setTimeout(resolve, 100)
+                    })
+
+                    window.customVariables.biometricAuthShowing = false
+
+                    window.customFunctions.dismissModal()
+                }
+            }
+        }
+        else if(window.customVariables.currentBiometricModalType == "setup"){
+            if(window.customVariables.currentPINCode.length >= 4){
+                window.customVariables.confirmPINCode = window.customVariables.confirmPINCode + "" + number
+
+                paintDots(window.customVariables.confirmPINCode.length)
+
+                if(window.customVariables.confirmPINCode.length >= 4){
+                    if(window.customVariables.confirmPINCode !== window.customVariables.currentPINCode){
+                        Plugins.Haptics.impact(HapticsImpactStyle.Light)
+
+                        await window.customFunctions.shakeDiv(window.$("#pin-code-dots"), 100, 10, 6)
+
+                        dotChildren.each(function(){
+                            window.$(this).attr("icon", Ionicons.ellipseOutline)
+                        })
+
+                        window.customVariables.currentPINCode = ""
+                        window.customVariables.confirmPINCode = ""
+    
+                        window.$("#pin-code-text").html(language.get(this.state.lang, "biometricSetupPINCode"))
+                    }
+                    else{
+                        let newSettings = this.state.settings
+
+                        newSettings.biometricPINCode = window.customVariables.confirmPINCode
+
+                        window.customFunctions.saveSettings(newSettings)
+
+                        this.setState({
+                            settings: newSettings
+                        }, () => {
+                            this.forceUpdate()
+                        })
+
+                        window.customVariables.currentPINCode = ""
+                        window.customVariables.confirmPINCode = ""
+
+                        await new Promise((resolve) => {
+                            return setTimeout(resolve, 100)
+                        })
+
+                        window.customVariables.biometricAuthShowing = false
+
+                        window.customFunctions.dismissModal()
+                    }
+                }
+            }
+            else{
+                window.customVariables.currentPINCode = window.customVariables.currentPINCode + "" + number
+
+                paintDots(window.customVariables.currentPINCode.length)
+
+                if(window.customVariables.currentPINCode.length >= 4){
+                    dotChildren.each(function(){
+                        window.$(this).attr("icon", Ionicons.ellipseOutline)
+                    })
+
+                    window.customVariables.confirmPINCode = ""
+
+                    window.$("#pin-code-text").html(language.get(this.state.lang, "biometricSetupPINCodeConfirm"))
+                }
+            }
+        }
+
+        return true
+    }
+
+    window.customFunctions.showBiometricAuthScreen = async (type = "auth") => {
+        if(type == "auth"){
+            if(window.customVariables.biometricAuthShowing){
+                return false
+            }
+    
+            window.customVariables.biometricAuthShowing = true
+        }
+
         let appLang = this.state.lang
         let appDarkMode = this.state.darkMode
         let modalId = "update-modal-" + utils.generateRandomClassName()
+
+        window.customVariables.currentPINCode = ""
+        window.customVariables.confirmPINCode = ""
+
+        if(type == "auth"){
+            window.customVariables.currentBiometricModalType = "auth"
+        }
+        else if(type == "setup"){
+            window.customVariables.currentBiometricModalType = "setup"
+        }
+        else{
+            window.customVariables.currentBiometricModalType = "auth"
+        }
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
             connectedCallback(){
@@ -358,7 +534,9 @@ export function setupWindowFunctions(){
                                 <br>
                                 <br>
                                 <br>
-                                ` + language.get(appLang, "biometricEnterPINCode") + `
+                                <text id="pin-code-text">
+                                    ` + language.get(appLang, (type == "auth" ? "biometricEnterPINCode" : "biometricSetupPINCode")) + `
+                                </text>
                                 <br>
                                 <br>
                                 <br>
@@ -374,68 +552,68 @@ export function setupWindowFunctions(){
                                 <div style="width: ` + (window.innerWidth - 50) + `px; height: 300px;">
                                     <div style="width: 100%; height: 75px;">
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('1')">
                                                 1
                                             </ion-button>
                                         </div>
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('2')">
                                                 2
                                             </ion-button>
                                         </div>
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('3')">
                                                 3
                                             </ion-button>
                                         </div>
                                     </div>
                                     <div style="width: 100%; height: 75px;">
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('4')">
                                                 4
                                             </ion-button>
                                         </div>
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('5')">
                                                 5
                                             </ion-button>
                                         </div>
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('6')">
                                                 6
                                             </ion-button>
                                         </div>
                                     </div>
                                     <div style="width: 100%; height: 75px;">
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('7')">
                                                 7
                                             </ion-button>
                                         </div>
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('8')">
                                                 8
                                             </ion-button>
                                         </div>
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('9')">
                                                 9
                                             </ion-button>
                                         </div>
                                     </div>
                                     <div style="width: 100%; height: 75px;">
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 12px;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px;">
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 12px; ` + (type == "setup" && `visibility: hidden;`) + `">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px;" onClick="window.customFunctions.doLogout()">
                                                 <ion-icon slot="icon-only" icon="` + Ionicons.logOutOutline + `" style="font-size: 24pt;"></ion-icon>
                                             </ion-button>
                                         </div>
                                         <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('0')">
                                                 0
                                             </ion-button>
                                         </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 7px;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px;">
+                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 7px; ` + (type == "setup" && `visibility: hidden;`) + `">
+                                            <ion-button fill="none" button style="width: 64px; height: 64px;" onClick="window.customFunctions.showBiometricAuth()">
                                                 <ion-icon slot="icon-only" icon="` + Ionicons.fingerPrintOutline + `" style="font-size: 24pt;"></ion-icon>
                                             </ion-button>
                                         </div>
@@ -463,6 +641,10 @@ export function setupWindowFunctions(){
         modal.onDidDismiss().then(() => {
             this.setupStatusbar()
         })
+
+        if(type == "auth"){
+            window.customFunctions.showBiometricAuth()
+        }
 
         return true
     }
@@ -498,7 +680,11 @@ export function setupWindowFunctions(){
             this.spawnToast(language.get(this.state.lang, "biometricError"))
         }
 
-        console.log("authenticated")
+        window.customVariables.biometricAuthShowing = false
+
+        window.customFunctions.dismissModal()
+
+        return true
     }
 
     window.customFunctions.checkVersion = async () => {
@@ -622,6 +808,10 @@ export function setupWindowFunctions(){
             }
             catch(e){  }
         })
+    }
+
+    window.customFunctions.toggleBiometricAuth = () => {
+        return window.customFunctions.showBiometricAuthScreen("setup")
     }
 
     window.customFunctions.toggleGridMode = () => {

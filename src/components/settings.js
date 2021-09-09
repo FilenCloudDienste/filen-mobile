@@ -15,6 +15,14 @@ export async function openSettingsModal(){
     let deviceInfo = await Plugins.Device.getInfo()
     let modalId = "settings-modal-" + utils.generateRandomClassName()
 
+    let biometricAuthEnabled = false
+
+    if(typeof this.state.settings.biometricPINCode !== "undefined"){
+        if(this.state.settings.biometricPINCode.length == 4){
+            biometricAuthEnabled = true
+        }
+    }
+
     var loading = await loadingController.create({
         message: ""
     })
@@ -222,6 +230,12 @@ export async function openSettingsModal(){
                                 ` + language.get(appLang, "settingsShowThumbnails") + `
                             </ion-label>
                             <ion-toggle slot="end" id="settings-show-thumbnails-toggle" onClick="window.customFunctions.toggleShowThumbnails()" ` + (appSettings.showThumbnails && "checked") + `></ion-toggle>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
+                                ` + language.get(appLang, "settingsBiometricAuth") + `
+                            </ion-label>
+                            <ion-toggle slot="end" id="settings-enable-biometric-toggle" onClick="window.customFunctions.toggleBiometricAuth()" ` + (biometricAuthEnabled && "checked") + `></ion-toggle>
                         </ion-item>
                         <ion-item lines="none" button>
                             <ion-label onClick="window.customFunctions.openLanguageModal()">` + language.get(appLang, "settingsLanguage") + `</ion-label>

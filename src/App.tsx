@@ -112,7 +112,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			settings: {
 				onlyWifi: false,
 				showThumbnails: true,
-				gridModeEnabled: false
+				gridModeEnabled: false,
+				biometricPINCode: ""
 			},
 			scrollToIndex: 0,
 			socketConnected: false,
