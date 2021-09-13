@@ -4648,10 +4648,6 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.closeTextEditor = async () => {
-        if(window.customVariables.currentTextEditorContent == ""){
-            return window.customFunctions.dismissModal()
-        }
-
         let value = document.getElementById("editor-textarea").value
 
         if(value == window.customVariables.currentTextEditorContent){
@@ -4676,11 +4672,19 @@ export function setupWindowFunctions(){
                 {
                     text: language.get(this.state.lang, "save"),
                     handler: () => {
-                        let file = new File([new TextEncoder().encode(value)], window.customVariables.currentTextEditorItem.name, {
-                            lastModified: new Date()
+                        let file = new Blob([new TextEncoder().encode(value)], {
+                            lastModified: new Date(),
+                            name: window.customVariables.currentTextEditorItem.name
                         })
-
+                
+                        file.name = window.customVariables.currentTextEditorItem.name
+                        file.lastModified = new Date()
                         file.editorParent = window.customVariables.currentTextEditorItem.parent
+
+                        Object.defineProperty(file, "type", {
+                            writable: true,
+                            value: ""
+                        })
 
                         this.queueFileUpload(file)
 
@@ -4704,11 +4708,19 @@ export function setupWindowFunctions(){
             return window.customFunctions.dismissModal()
         }
 
-        let file = new File([new TextEncoder().encode(value)], window.customVariables.currentTextEditorItem.name, {
-            lastModified: new Date()
+        let file = new Blob([new TextEncoder().encode(value)], {
+            lastModified: new Date(),
+            name: window.customVariables.currentTextEditorItem.name
         })
 
+        file.name = window.customVariables.currentTextEditorItem.name
+        file.lastModified = new Date()
         file.editorParent = window.customVariables.currentTextEditorItem.parent
+
+        Object.defineProperty(file, "type", {
+            writable: true,
+            value: ""
+        })
 
         this.queueFileUpload(file)
 

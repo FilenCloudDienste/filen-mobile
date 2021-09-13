@@ -514,11 +514,11 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 															mime,
 															key
 														}, () => {
-															if(utils.currentParentFolder() == parent){
+															if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
 																clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
 				
 																window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
-																	if(utils.currentParentFolder() == parent){
+																	if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
 																		this.updateItemList(false)
 																	}
 																}, 500)
