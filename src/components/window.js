@@ -504,7 +504,7 @@ export function setupWindowFunctions(){
 
         let appLang = this.state.lang
         let appDarkMode = this.state.darkMode
-        let modalId = "update-modal-" + utils.generateRandomClassName()
+        let modalId = "biometric-auth-modal-" + utils.generateRandomClassName()
 
         window.customVariables.currentPINCode = ""
         window.customVariables.confirmPINCode = ""
@@ -4739,7 +4739,7 @@ export function setupWindowFunctions(){
             connectedCallback(){
                 this.innerHTML = `
                     <ion-header class="ion-header-no-shadow" style="--background: transparent;">
-                        <ion-toolbar style="--background: transparent;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
                             <ion-buttons slot="start">
                                 <ion-button onClick="window.customFunctions.closeTextEditor()">
                                     <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
@@ -4756,7 +4756,7 @@ export function setupWindowFunctions(){
                         </ion-toolbar>
                     </ion-header>
                     <ion-content fullscreen>
-                        <textarea id="editor-textarea" style="width: 100vw; height: 100%; border: none; border-radius: 0px; background-color: transparent; color: ` + (appDarkMode ? `white` : `black`) + `; outline: none;">` + content + `</textarea>
+                        <textarea id="editor-textarea" style="width: 100vw; height: 100%; border: none; border-radius: 0px; background-color: transparent; color: ` + (appDarkMode ? `white` : `black`) + `; outline: none; padding-top: 5px;">` + content + `</textarea>
                     </ion-content>
                 `;
             }

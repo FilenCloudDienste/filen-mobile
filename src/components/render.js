@@ -692,6 +692,17 @@ export function render(){
         marginBottom: "0px"
     }
 
+    let showMainFab = false
+
+    if(window.location.href.indexOf("base") !== -1){
+        showMainFab = true
+    }
+    else{
+        if(window.location.href.indexOf("links") !== -1 && utils.currentParentFolder().length >= 32){
+            showMainFab = true
+        }
+    }
+
     if(!this.state.hideMainFab){
         if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
             bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
@@ -700,7 +711,7 @@ export function render(){
                             </IonFabButton>
                         </IonFab>
         }
-        else if(window.location.href.indexOf("base") !== -1){
+        else if(showMainFab){
             bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => {
                 this.hideMainSearchbar()
     
@@ -712,7 +723,9 @@ export function render(){
                         </IonFab>
         }
         else{
-            bottomFab = <div></div>
+            bottomFab = <div style={{
+                display: "none"
+            }}></div>
         }
     }
 
@@ -1114,7 +1127,7 @@ export function render(){
                     </div>
                     <IonToolbar style={{
                         "--background": (this.state.darkMode ? "" : "#F0F0F0"),
-                        paddingBottom: safeAreaInsets.bottom + "px"
+                        paddingBottom: (safeAreaInsets.bottom > 0 ? (safeAreaInsets.bottom + 10) : safeAreaInsets.bottom) + "px"
                     }}>
                         <IonButtons>
                             <IonButton onClick={() => {

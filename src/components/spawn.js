@@ -314,20 +314,6 @@ export async function mainFabAction(){
         text: language.get(this.state.lang, "fabCreateTextFile"),
         icon: Ionicons.createOutline,
         handler: async () => {
-            if(utils.currentParentFolder() == "base"){
-                let defaultFolderUUID = undefined
-
-                for(let i = 0; i < this.state.itemList.length; i++){
-                    if(this.state.itemList[i].isDefault){
-                        defaultFolderUUID = this.state.itemList[i].uuid
-                    }
-                }
-
-                if(typeof defaultFolderUUID !== "undefined"){
-                    this.routeTo("/base/" + defaultFolderUUID)
-                }
-            }
-
             let alert = await alertController.create({
                 header: language.get(this.state.lang, "fabCreateTextFile"),
                 inputs: [
@@ -369,6 +355,12 @@ export async function mainFabAction(){
 
                             if(name.length <= 0){
                                 return false
+                            }
+
+                            let fileType = utils.getFilePreviewType(name)
+
+                            if(!["code", "text"].includes(fileType)){
+                                return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
                             }
 
                             let uploadParent = ""
@@ -545,7 +537,7 @@ export async function mainMenuPopover(event){
                     <ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(window.customVariables.lang, "selectAll") + `</ion-item>
                     <ion-item lines="none" detail="false" button onClick="window.customFunctions.refreshItemList()">` + language.get(window.customVariables.lang, "refresh") + `</ion-item>
                     <ion-item lines="none" detail="false" button onClick="window.customFunctions.toggleGridMode()">` + language.get(window.customVariables.lang, "toggleGridMode") + `</ion-item>
-                    <ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(window.customVariables.lang, "close") + `</ion-item>
+                    <!--<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(window.customVariables.lang, "close") + `</ion-item>-->
                 </ion-list>
             `
         }
