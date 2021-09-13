@@ -3301,7 +3301,7 @@ export async function spawnItemActionSheet(item){
 
 	options['removeFromShared'] = {
 		text: language.get(this.state.lang, "removeFromShared"),
-		icon: Ionicons.stopCircle,
+		icon: Ionicons.stopCircleOutline,
 		handler: () => {
 			this.removeSharedInItem(item, false)
 		}
@@ -3309,7 +3309,7 @@ export async function spawnItemActionSheet(item){
 
 	options['cancel'] = {
 		text: language.get(this.state.lang, "cancel"),
-		icon: Ionicons.close,
+		icon: Ionicons.closeOutline,
 		handler: () => {
 			return actionSheet.dismiss()
 		}
@@ -3317,7 +3317,7 @@ export async function spawnItemActionSheet(item){
 
 	options['stopSharing'] = {
 		text: language.get(this.state.lang, "stopSharing"),
-		icon: Ionicons.stopCircle,
+		icon: Ionicons.stopCircleOutline,
 		handler: () => {
 			this.stopSharingItem(item, false)
 		}
@@ -3325,7 +3325,7 @@ export async function spawnItemActionSheet(item){
 
 	options['restore'] = {
 		text: language.get(this.state.lang, "restoreItem"),
-		icon: Ionicons.bagAdd,
+		icon: Ionicons.bagAddOutline,
 		handler: () => {
 			return this.restoreItem(item, false)
 		}
@@ -3333,7 +3333,7 @@ export async function spawnItemActionSheet(item){
 
 	options['publicLink'] = {
 		text: language.get(this.state.lang, "itemPublicLink"),
-		icon: Ionicons.link,
+		icon: Ionicons.linkOutline,
 		handler: () => {
 			window.customFunctions.dismissModal()
 
@@ -3343,7 +3343,7 @@ export async function spawnItemActionSheet(item){
 
 	options['share'] = {
 		text: language.get(this.state.lang, "shareItem"),
-		icon: Ionicons.shareSocial,
+		icon: Ionicons.shareSocialOutline,
 		handler: () => {
 			return this.shareItem(item)
 		}
@@ -3351,7 +3351,7 @@ export async function spawnItemActionSheet(item){
 
 	options['move'] = {
 		text: language.get(this.state.lang, "moveItem"),
-		icon: Ionicons.move,
+		icon: Ionicons.moveOutline,
 		handler: () => {
 			return this.moveItem(item)
 		}
@@ -3359,7 +3359,7 @@ export async function spawnItemActionSheet(item){
 
 	options['rename'] = {
 		text: language.get(this.state.lang, "renameItem"),
-		icon: Ionicons.text,
+		icon: Ionicons.textOutline,
 		handler: () => {
 			return this.renameItem(item)
 		}
@@ -3367,7 +3367,7 @@ export async function spawnItemActionSheet(item){
 
 	options['color'] = {
 		text: language.get(this.state.lang, "colorItem"),
-		icon: Ionicons.colorFill,
+		icon: Ionicons.colorFillOutline,
 		handler: () => {
 			return this.colorItem(item)
 		}
@@ -3375,7 +3375,7 @@ export async function spawnItemActionSheet(item){
 
 	options['trash'] = {
 		text: language.get(this.state.lang, "trashItem"),
-		icon: Ionicons.trash,
+		icon: Ionicons.trashOutline,
 		handler: () => {
 			return this.trashItem(item, false)
 		}
@@ -3393,7 +3393,7 @@ export async function spawnItemActionSheet(item){
 
 	options['download'] = {
 		text: language.get(this.state.lang, "downloadItem"),
-		icon: Ionicons.download,
+		icon: Ionicons.downloadOutline,
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
@@ -3403,7 +3403,7 @@ export async function spawnItemActionSheet(item){
 
 	options['offline'] = {
 		text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
-		icon: Ionicons.save,
+		icon: Ionicons.saveOutline,
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
@@ -3434,6 +3434,59 @@ export async function spawnItemActionSheet(item){
 			}
 		}
 	}
+
+	options['edit'] ={
+		text: language.get(this.state.lang, "edit"),
+		icon: Ionicons.createOutline,
+		handler: async () => {
+			window.customFunctions.dismissActionSheet()
+
+			let loading = await loadingController.create({
+				message: "", //language.get(this.state.lang, "loadingPreview")
+				backdropDismiss: true
+			})
+	
+			loading.present()
+	
+			try{
+				loading.onDidDismiss().then(() => {
+					window.customVariables.stopGettingPreviewData = true
+				})
+			}
+			catch(e){
+				console.log(e)
+			}
+	
+			window.customVariables.isGettingPreviewData = true
+			window.customVariables.stopGettingPreviewData = false
+	
+			this.downloadPreview(item, (chunksDone) => {
+				//console.log(chunksDone)
+			}, (err, dataArray) => {
+				window.customVariables.isGettingPreviewData = false
+	
+				loading.dismiss()
+	
+				if(err){
+					if(err !== "stopped"){
+						console.log(err)
+	
+						return this.spawnToast(language.get(this.state.lang, "fileNoPreviewAvailable", true, ["__NAME__"], [item.name]))
+					}
+					else{
+						return false
+					}
+				}
+	
+				return window.customFunctions.openTextEditor(item, new TextDecoder().decode(dataArray))
+			}, Infinity)
+		}
+	}
+
+	let ext = item.name.split(".")
+	ext = ext[ext.length - 1]
+
+	let previewType = utils.getFilePreviewType(ext)
 
 	if(item.type == "folder"){
 		if(window.location.href.indexOf("shared-in") !== -1){
@@ -3584,6 +3637,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else if(window.location.href.indexOf("shared-out") !== -1){
 			buttons = [
+				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
 				options['share'],
 				options['publicLink'],
 				options['download'],
@@ -3606,6 +3660,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else if(window.location.href.indexOf("links") !== -1){
 			buttons = [
+				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
 				options['share'],
 				options['publicLink'],
 				options['download'],
@@ -3620,6 +3675,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else if(window.location.href.indexOf("recent") !== -1){
 			buttons = [
+				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
 				options['share'],
 				options['publicLink'],
 				options['download'],
@@ -3633,6 +3689,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else{
 			buttons = [
+				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
 				options['share'],
 				options['publicLink'],
 				options['download'],
@@ -3647,6 +3704,14 @@ export async function spawnItemActionSheet(item){
 		}
 	}
 
+	let presentButtons = []
+
+	for(let i = 0; i < buttons.length; i++){
+		if(typeof buttons[i].text !== "undefined"){
+			presentButtons.push(buttons[i])
+		}
+	}
+
 	let headerName = item.name
 
 	if(headerName.length >= 32){
@@ -3655,7 +3720,7 @@ export async function spawnItemActionSheet(item){
 
     let actionSheet = await actionSheetController.create({
         header: headerName,
-        buttons
+        buttons: presentButtons
     })
 
 	await actionSheet.present()

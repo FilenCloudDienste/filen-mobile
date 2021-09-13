@@ -144,6 +144,10 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 	}
 
 	let parent = utils.currentParentFolder()
+
+	if(typeof file.editorParent !== "undefined"){
+		parent = file.editorParent
+	}
 	
 	if(parent == "base" || parent == "default"){
 		return false

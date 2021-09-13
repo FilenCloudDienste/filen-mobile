@@ -1810,9 +1810,9 @@ export function getFileIcon(ext){
       case "png":
         return `assets/img/types/png.svg`
       break
-      case "ico":
-        return `assets/img/types/ico.svg`
-      break
+      //case "ico":
+      //  return `assets/img/types/ico.svg`
+      //break
       case "txt":
         return `assets/img/types/txt.svg`
       break
@@ -2579,3 +2579,20 @@ export function compareVersions(current, got){
 		return "ok"
 	}
 }
+
+export function moveCursorToStart(id, querySelector = false) {
+	if(querySelector){
+		var el = document.querySelector(id) 
+	}
+	else{
+		var el = document.getElementById(id) 
+	}
+	el.focus()
+	if (typeof el.selectionStart == "number") {
+	  el.selectionStart = el.selectionEnd = 0;
+	} else if (typeof el.createTextRange != "undefined") {           
+	  var range = el.createTextRange();
+	  range.collapse(false);
+	  range.select();
+	}
+  }

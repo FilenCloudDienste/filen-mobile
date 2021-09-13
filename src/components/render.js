@@ -1121,10 +1121,10 @@ export function render(){
                                 return routeTo("/base")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
-                                "--ripple-color": "transparent",
+                                "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("base") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon icon={Ionicons.cloud} />
+                                <IonIcon slot="icon-only" icon={Ionicons.cloud} />
                             </IonButton>
                             {
                                 showShareLinks && (
@@ -1133,19 +1133,19 @@ export function render(){
                                             return routeTo("/shared-in")
                                         }} style={{
                                             width: (showShareLinks ? "16.66%" : "25%"),
-                                            "--ripple-color": "transparent",
+                                            "--ripple-color": "gray",
                                             color: (window.location.href.indexOf("shared-in") !== -1 ? "#3780FF" : "")
                                         }}>
-                                            <IonIcon icon={Ionicons.folderOpen} />
+                                            <IonIcon slot="icon-only" icon={Ionicons.folder} />
                                         </IonButton>
                                         <IonButton onClick={() => {
                                             return routeTo("/shared-out")
                                         }} style={{
                                             width: (showShareLinks ? "16.66%" : "25%"),
-                                            "--ripple-color": "transparent",
+                                            "--ripple-color": "gray",
                                             color: (window.location.href.indexOf("shared-out") !== -1 ? "#3780FF" : "")
                                         }}>
-                                            <IonIcon icon={Ionicons.folder} />
+                                            <IonIcon slot="icon-only" icon={Ionicons.folderOpen} />
                                         </IonButton>
                                     </>
                                 )
@@ -1154,28 +1154,28 @@ export function render(){
                                 return routeTo("/links")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
-                                "--ripple-color": "transparent",
+                                "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("links") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon icon={Ionicons.link} />
+                                <IonIcon slot="icon-only" icon={Ionicons.link} />
                             </IonButton>
                             <IonButton onClick={() => {
                                 return routeTo("/favorites")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
-                                "--ripple-color": "transparent",
+                                "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("favorites") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon icon={Ionicons.star} />
+                                <IonIcon slot="icon-only" icon={Ionicons.star} />
                             </IonButton>
                             <IonButton onClick={() => {
                                 return routeTo("/recent")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
-                                "--ripple-color": "transparent",
+                                "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("recent") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon icon={Ionicons.time} />
+                                <IonIcon slot="icon-only" icon={Ionicons.time} />
                             </IonButton>
                         </IonButtons>
                     </IonToolbar>

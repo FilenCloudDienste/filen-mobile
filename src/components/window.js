@@ -226,6 +226,8 @@ export function setupWindowFunctions(){
     window.customVariables.nextBiometricAuth = 0
     window.customVariables.biometricAuthShowing = false
     window.customVariables.biometricAuthTimeout = 300
+    window.customVariables.currentTextEditorContent = ""
+    window.customVariables.currentTextEditorItem = {}
 
     Plugins.App.addListener("appStateChange", (appState) => {
         if(appState.isActive){
@@ -654,20 +656,27 @@ export function setupWindowFunctions(){
             var available = await FingerprintAIO.isAvailable()
         }
         catch(e){
-            this.spawnToast(language.get(this.state.lang, "biometricNotAvailable"))
+            //this.spawnToast(language.get(this.state.lang, "biometricNotAvailable"))
 
             return console.log(e)
         }
 
         if(!["finger", "face", "biometric"].includes(available)){
-            return this.spawnToast(language.get(this.state.lang, "biometricNotAvailable"))
+            //return this.spawnToast(language.get(this.state.lang, "biometricNotAvailable"))
+
+            return false
         }
 
         try{
             var result = await FingerprintAIO.show({
                 clientId: "filen",
                 clientSecret: "filen",
-                disableBackup: true
+                disableBackup: true,
+                title: language.get(this.state.lang, "biometricTitle"),
+                description: language.get(this.state.lang, "biometricDescription"),
+                fallbackButtonTitle: language.get(this.state.lang, "biometricUsePIN"),
+                cancelButtonTitle: language.get(this.state.lang, "cancel"),
+                confirmationRequired: false
             })
         }
         catch(e){
@@ -676,8 +685,14 @@ export function setupWindowFunctions(){
             return console.log(e)
         }
 
+        if(typeof result.code !== "undefined"){
+            if(result.code == -108){
+                return this.spawnToast(language.get(this.state.lang, "biometricCanceled"))
+            }
+        }
+
         if(result !== "Success"){
-            this.spawnToast(language.get(this.state.lang, "biometricError"))
+            return this.spawnToast(language.get(this.state.lang, "biometricError"))
         }
 
         window.customVariables.biometricAuthShowing = false
@@ -811,6 +826,22 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleBiometricAuth = () => {
+        if(typeof this.state.settings.biometricPINCode !== "undefined"){
+            if(this.state.settings.biometricPINCode.length == 4){
+                let newSettings = this.state.settings
+
+                newSettings.biometricPINCode = ""
+
+                window.customFunctions.saveSettings(newSettings)
+
+                return this.setState({
+                    settings: newSettings
+                }, () => {
+                    this.forceUpdate()
+                })
+            }
+        }
+
         return window.customFunctions.showBiometricAuthScreen("setup")
     }
 
@@ -4614,5 +4645,131 @@ export function setupWindowFunctions(){
         window.customFunctions.dismissPopover()
 
         return alert.present()
+    }
+
+    window.customFunctions.closeTextEditor = async () => {
+        if(window.customVariables.currentTextEditorContent == ""){
+            return window.customFunctions.dismissModal()
+        }
+
+        let value = document.getElementById("editor-textarea").value
+
+        if(value == window.customVariables.currentTextEditorContent){
+            return window.customFunctions.dismissModal()
+        }
+
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "textEditorSaveChanges", true, ["__NAME__"], [window.customVariables.currentTextEditorItem.name]),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "close"),
+                    handler: () => {
+                        return alert.dismiss()
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "textEditorDontSave"),
+                    handler: () => {
+                        return window.customFunctions.dismissModal()
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "save"),
+                    handler: () => {
+                        let file = new File([new TextEncoder().encode(value)], window.customVariables.currentTextEditorItem.name, {
+                            lastModified: new Date()
+                        })
+
+                        file.editorParent = window.customVariables.currentTextEditorItem.parent
+
+                        this.queueFileUpload(file)
+
+                        return window.customFunctions.dismissModal()
+                    }
+                }
+            ]
+        })
+
+        return alert.present()
+    }
+
+    window.customFunctions.saveTextEditor = () => {
+        let value = document.getElementById("editor-textarea").value
+
+        if(value == ""){
+            return window.customFunctions.dismissModal()
+        }
+
+        if(value == window.customVariables.currentTextEditorContent){
+            return window.customFunctions.dismissModal()
+        }
+
+        let file = new File([new TextEncoder().encode(value)], window.customVariables.currentTextEditorItem.name, {
+            lastModified: new Date()
+        })
+
+        file.editorParent = window.customVariables.currentTextEditorItem.parent
+
+        this.queueFileUpload(file)
+
+        return window.customFunctions.dismissModal()
+    }
+
+    window.customFunctions.openTextEditor = async (item, content = "") => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "editor-modal-" + utils.generateRandomClassName()
+
+        window.customVariables.currentTextEditorContent = content
+        window.customVariables.currentTextEditorItem = item
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-header-no-shadow" style="--background: transparent;">
+                        <ion-toolbar style="--background: transparent;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.closeTextEditor()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + item.name + `
+                            </ion-title>
+                            <ion-buttons slot="end">
+                                <ion-button onClick="window.customFunctions.saveTextEditor()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.saveOutline + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content fullscreen>
+                        <textarea id="editor-textarea" style="width: 100vw; height: 100%; border: none; border-radius: 0px; background-color: transparent; color: ` + (appDarkMode ? `white` : `black`) + `; outline: none;">` + content + `</textarea>
+                    </ion-content>
+                `;
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: false,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        this.setupStatusbar("login/register")
+
+        modal.onDidDismiss().then(() => {
+            this.setupStatusbar()
+        })
+
+        utils.moveCursorToStart("editor-textarea")
+
+        document.getElementById("editor-textarea").focus()
+
+        return true
     }
 }

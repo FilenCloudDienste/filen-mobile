@@ -150,261 +150,383 @@ export async function mainFabAction(){
         folderCreateInvalidNameText = language.get(this.state.lang, "invalidDriveName")
     }
 
-    let actionSheet = await actionSheetController.create({
-        buttons: [
-            {
-                text: folderCreateBtnText,
-                icon: Ionicons.addCircle,
-                handler: async () => {
-                    let alert = await alertController.create({
-                        header: folderCreateNewFolderNameText,
-                        inputs: [
-                            {
-                                type: "text",
-                                id: "new-folder-name-input",
-                                name: "new-folder-name-input",
-                                placeholder: folderCreatePlaceholderText,
-                                attributes: {
-                                    autoCapitalize: "off",
-                                    autoComplete: "off"
-                                }
-                            }
-                        ],
-                        buttons: [
-                            {
-                                text: language.get(this.state.lang, "cancel"),
-                                role: "cancel",
-                                handler: () => {
-                                    return false
-                                }
-                            },
-                            {
-                                text: language.get(this.state.lang, "alertOkButton"),
-                                handler: async (inputs) => {
-                                    let name = inputs['new-folder-name-input']
+    let fabButtons = []
 
-                                    name = name.replace(/\s*$/, "")
-                                    name = utils.removeIllegalCharsFromString(name)
-
-                                    if(utils.checkIfNameIsBanned(name) || utils.folderNameRegex(name) || utils.fileNameValidationRegex(name)){
-                                        return this.spawnToast(folderCreateInvalidNameText)
-                                    }
-
-                                    if(!name || typeof name !== "string"){
-                                        return false
-                                    }
-
-                                    if(name.length <= 0){
-                                        return false
-                                    }
-                                    
-                                    let folderParent = null
-                                    let folderUUID = utils.uuidv4()
-
-                                    if(parent !== "base"){
-                                        folderParent = parent
-                                    }
-
-                                    let loading = await loadingController.create({
-                                        message: ""
-                                    })
-
-                                    loading.present()
-
-                                    this.dirExists(name, folderParent, async (err, exists, existsUUID) => {
-                                        if(err){
-                                            console.log(err)
-
-                                            loading.dismiss()
-                        
-                                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
-                                        }
-                        
-                                        if(exists){
-                                            loading.dismiss()
-                        
-                                            return this.spawnToast(language.get(this.state.lang, "folderNameAlreadyExistsCreate", true, ["__NAME__"], [name]))
-                                        }
-
-                                        try{
-                                            if(parent == "base"){
-                                                var res = await utils.apiRequest("POST", "/v1/dir/create", {
-                                                    apiKey: this.state.userAPIKey,
-                                                    uuid: folderUUID,
-                                                    name: await utils.encryptMetadata(JSON.stringify({
-                                                        name: name
-                                                    }), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
-                                                    nameHashed: utils.hashFn(name.toLowerCase())
-                                                })
-                                            }
-                                            else{
-                                                var res = await utils.apiRequest("POST", "/v1/dir/sub/create", {
-                                                    apiKey: this.state.userAPIKey,
-                                                    uuid: folderUUID,
-                                                    name: await utils.encryptMetadata(JSON.stringify({
-                                                        name: name
-                                                    }), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
-                                                    nameHashed: utils.hashFn(name.toLowerCase()),
-                                                    parent: folderParent
-                                                })
-                                            }
-                                        }
-                                        catch(e){
-                                            console.log(e)
-
-                                            loading.dismiss()
-                        
-                                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
-                                        }
-
-                                        if(!res.status){
-                                            console.log(res.message)
-
-                                            loading.dismiss()
-
-                                            return this.spawnToast(res.message)
-                                        }
-
-                                        if(parent !== "base"){
-                                            utils.checkIfItemParentIsBeingShared(folderParent, "folder", {
-                                                uuid: folderUUID,
-                                                name: name
-                                            }, () => {
-                                                loading.dismiss()
-
-                                                this.spawnToast(language.get(this.state.lang, "folderCreated", true, ["__NAME__"], [name]))
-
-                                                clearTimeout(window.customVariables.reloadAfterActionTimeout)
-
-                                                window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-                                                    this.updateItemList()
-                                                }, 500)
-                                            })
-                                        }
-                                        else{
-                                            loading.dismiss()
-
-                                            this.spawnToast(language.get(this.state.lang, "driveCreated", true, ["__NAME__"], [name]))
-
-                                            clearTimeout(window.customVariables.reloadAfterActionTimeout)
-
-                                            window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-                                                this.updateItemList()
-                                            }, 500)
-                                        }
-                                    })
-                                }
-                            }
-                        ]
-                    })
-                
-                    await alert.present()
-
-                    setTimeout(() => {
-                        try{
-                            document.querySelector("ion-alert input").focus()
-                        } catch(e){ }
-                    }, 500)
-
-                    return true
-                }
-            },
-            {
-                text: language.get(this.state.lang, "fabTakeImage"),
-                icon: Ionicons.camera,
-                handler: async () => {
-                    if(!Capacitor.isNative){
-                        return false
-                    }
-
-                    if(Capacitor.isNative){
-                        if(this.state.settings.onlyWifi){
-                            let networkStatus = await Plugins.Network.getStatus()
-                
-                            if(networkStatus.connectionType !== "wifi"){
-                                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
-                            }
+    fabButtons.push({
+        text: folderCreateBtnText,
+        icon: Ionicons.addCircle,
+        handler: async () => {
+            let alert = await alertController.create({
+                header: folderCreateNewFolderNameText,
+                inputs: [
+                    {
+                        type: "text",
+                        id: "new-folder-name-input",
+                        name: "new-folder-name-input",
+                        placeholder: folderCreatePlaceholderText,
+                        attributes: {
+                            autoCapitalize: "off",
+                            autoComplete: "off"
                         }
                     }
+                ],
+                buttons: [
+                    {
+                        text: language.get(this.state.lang, "cancel"),
+                        role: "cancel",
+                        handler: () => {
+                            return false
+                        }
+                    },
+                    {
+                        text: language.get(this.state.lang, "alertOkButton"),
+                        handler: async (inputs) => {
+                            let name = inputs['new-folder-name-input']
 
-                    if(utils.currentParentFolder() == "base"){
-                        this.routeTo("/base/default")
-                    }
+                            name = name.replace(/\s*$/, "")
+                            name = utils.removeIllegalCharsFromString(name)
 
-                    try{
-                        var image = await Plugins.Camera.getPhoto({
-                            quality: 100,
-                            allowEditing: false,
-                            resultType: CameraResultType.Base64,
-                            saveToGallery: false,
-                            source: CameraSource.Camera,
-                            direction: CameraDirection.Rear,
-                            presentationStyle: "fullscreen"
-                        })
-                    }
-                    catch(e){
-                        console.log(e)
+                            if(utils.checkIfNameIsBanned(name) || utils.folderNameRegex(name) || utils.fileNameValidationRegex(name)){
+                                return this.spawnToast(folderCreateInvalidNameText)
+                            }
 
-                        return false
-                    }
+                            if(!name || typeof name !== "string"){
+                                return false
+                            }
 
-                    workers.convertBase64ToArrayBuffer(image.base64String, (arrayBuffer) => {
-                        let name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpeg"
+                            if(name.length <= 0){
+                                return false
+                            }
+                            
+                            let folderParent = null
+                            let folderUUID = utils.uuidv4()
 
-                        try{
-                            var blob = new File([arrayBuffer], name, {
-                                type: "image/jpeg",
-                                size: arrayBuffer.byteLength,
-                                lastModified: new Date()
+                            if(parent !== "base"){
+                                folderParent = parent
+                            }
+
+                            let loading = await loadingController.create({
+                                message: ""
+                            })
+
+                            loading.present()
+
+                            this.dirExists(name, folderParent, async (err, exists, existsUUID) => {
+                                if(err){
+                                    console.log(err)
+
+                                    loading.dismiss()
+                
+                                    return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                                }
+                
+                                if(exists){
+                                    loading.dismiss()
+                
+                                    return this.spawnToast(language.get(this.state.lang, "folderNameAlreadyExistsCreate", true, ["__NAME__"], [name]))
+                                }
+
+                                try{
+                                    if(parent == "base"){
+                                        var res = await utils.apiRequest("POST", "/v1/dir/create", {
+                                            apiKey: this.state.userAPIKey,
+                                            uuid: folderUUID,
+                                            name: await utils.encryptMetadata(JSON.stringify({
+                                                name: name
+                                            }), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
+                                            nameHashed: utils.hashFn(name.toLowerCase())
+                                        })
+                                    }
+                                    else{
+                                        var res = await utils.apiRequest("POST", "/v1/dir/sub/create", {
+                                            apiKey: this.state.userAPIKey,
+                                            uuid: folderUUID,
+                                            name: await utils.encryptMetadata(JSON.stringify({
+                                                name: name
+                                            }), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
+                                            nameHashed: utils.hashFn(name.toLowerCase()),
+                                            parent: folderParent
+                                        })
+                                    }
+                                }
+                                catch(e){
+                                    console.log(e)
+
+                                    loading.dismiss()
+                
+                                    return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                                }
+
+                                if(!res.status){
+                                    console.log(res.message)
+
+                                    loading.dismiss()
+
+                                    return this.spawnToast(res.message)
+                                }
+
+                                if(parent !== "base"){
+                                    utils.checkIfItemParentIsBeingShared(folderParent, "folder", {
+                                        uuid: folderUUID,
+                                        name: name
+                                    }, () => {
+                                        loading.dismiss()
+
+                                        this.spawnToast(language.get(this.state.lang, "folderCreated", true, ["__NAME__"], [name]))
+
+                                        clearTimeout(window.customVariables.reloadAfterActionTimeout)
+
+                                        window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+                                            this.updateItemList()
+                                        }, 500)
+                                    })
+                                }
+                                else{
+                                    loading.dismiss()
+
+                                    this.spawnToast(language.get(this.state.lang, "driveCreated", true, ["__NAME__"], [name]))
+
+                                    clearTimeout(window.customVariables.reloadAfterActionTimeout)
+
+                                    window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
+                                        this.updateItemList()
+                                    }, 500)
+                                }
                             })
                         }
-                        catch(e){
-                            return console.log(e)
-                        }
-
-                        return this.queueFileUpload(blob)
-                    })
-                }
-            },
-            {
-                text: language.get(this.state.lang, "fabUploadFiles"),
-                icon: Ionicons.cloudUpload,
-                handler: async () => {
-                    if(Capacitor.isNative){
-                        if(this.state.settings.onlyWifi){
-                            let networkStatus = await Plugins.Network.getStatus()
-                
-                            if(networkStatus.connectionType !== "wifi"){
-                                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
-                            }
-                        }
                     }
-                    
-                    if(utils.currentParentFolder() == "base"){
-                        let defaultFolderUUID = undefined
+                ]
+            })
+        
+            await alert.present()
 
-                        for(let i = 0; i < this.state.itemList.length; i++){
-                            if(this.state.itemList[i].isDefault){
-                                defaultFolderUUID = this.state.itemList[i].uuid
-                            }
-                        }
+            setTimeout(() => {
+                try{
+                    document.querySelector("ion-alert input").focus()
+                } catch(e){ }
+            }, 500)
 
-                        if(typeof defaultFolderUUID !== "undefined"){
-                            this.routeTo("/base/" + defaultFolderUUID)
-                        }
+            return true
+        }
+    })
+
+    fabButtons.push({
+        text: language.get(this.state.lang, "fabCreateTextFile"),
+        icon: Ionicons.createOutline,
+        handler: async () => {
+            if(utils.currentParentFolder() == "base"){
+                let defaultFolderUUID = undefined
+
+                for(let i = 0; i < this.state.itemList.length; i++){
+                    if(this.state.itemList[i].isDefault){
+                        defaultFolderUUID = this.state.itemList[i].uuid
                     }
-
-                    return document.getElementById("file-input-dummy").click()
                 }
-            },
-            {
-                text: language.get(this.state.lang, "cancel"),
-                icon: Ionicons.close,
-                handler: () => {
-                    return actionSheet.dismiss()
+
+                if(typeof defaultFolderUUID !== "undefined"){
+                    this.routeTo("/base/" + defaultFolderUUID)
                 }
             }
-        ]
+
+            let alert = await alertController.create({
+                header: language.get(this.state.lang, "fabCreateTextFile"),
+                inputs: [
+                    {
+                        type: "text",
+                        id: "new-text-file-name-input",
+                        name: "new-text-file-name-input",
+                        value: ".txt",
+                        placeholder: language.get(this.state.lang, "fabCreateTextFilePlaceholder"),
+                        attributes: {
+                            autoCapitalize: "off",
+                            autoComplete: "off"
+                        }
+                    }
+                ],
+                buttons: [
+                    {
+                        text: language.get(this.state.lang, "cancel"),
+                        role: "cancel",
+                        handler: () => {
+                            return false
+                        }
+                    },
+                    {
+                        text: language.get(this.state.lang, "fabCreateBtn"),
+                        handler: async (inputs) => {
+                            let name = inputs['new-text-file-name-input']
+
+                            name = name.replace(/\s*$/, "")
+                            name = utils.removeIllegalCharsFromString(name)
+
+                            if(utils.checkIfNameIsBanned(name) || utils.fileNameValidationRegex(name)){
+                                return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
+                            }
+
+                            if(!name || typeof name !== "string"){
+                                return false
+                            }
+
+                            if(name.length <= 0){
+                                return false
+                            }
+
+                            let uploadParent = ""
+
+                            if(utils.currentParentFolder() == "base"){
+                                let defaultFolderUUID = undefined
+                
+                                for(let i = 0; i < this.state.itemList.length; i++){
+                                    if(this.state.itemList[i].isDefault){
+                                        defaultFolderUUID = this.state.itemList[i].uuid
+                                    }
+                                }
+                
+                                if(typeof defaultFolderUUID !== "undefined"){
+                                    this.routeTo("/base/" + defaultFolderUUID)
+                                }
+
+                                uploadParent = defaultFolderUUID
+                            }
+                            else{
+                                uploadParent = utils.currentParentFolder()
+                            }
+                            
+                            let item = {
+                                name: name,
+                                parent: uploadParent
+                            }
+
+                            return window.customFunctions.openTextEditor(item, "")
+                        }
+                    }
+                ]
+            })
+        
+            await alert.present()
+
+            setTimeout(() => {
+                try{
+                    utils.moveCursorToStart("ion-alert input", true)
+
+                    document.querySelector("ion-alert input").focus()
+                } catch(e){ }
+            }, 500)
+
+            return true
+        }
+    })
+
+    fabButtons.push({
+        text: language.get(this.state.lang, "fabTakeImage"),
+        icon: Ionicons.camera,
+        handler: async () => {
+            if(!Capacitor.isNative){
+                return false
+            }
+
+            if(Capacitor.isNative){
+                if(this.state.settings.onlyWifi){
+                    let networkStatus = await Plugins.Network.getStatus()
+        
+                    if(networkStatus.connectionType !== "wifi"){
+                        return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                    }
+                }
+            }
+
+            if(utils.currentParentFolder() == "base"){
+                let defaultFolderUUID = undefined
+
+                for(let i = 0; i < this.state.itemList.length; i++){
+                    if(this.state.itemList[i].isDefault){
+                        defaultFolderUUID = this.state.itemList[i].uuid
+                    }
+                }
+
+                if(typeof defaultFolderUUID !== "undefined"){
+                    this.routeTo("/base/" + defaultFolderUUID)
+                }
+            }
+
+            try{
+                var image = await Plugins.Camera.getPhoto({
+                    quality: 100,
+                    allowEditing: false,
+                    resultType: CameraResultType.Base64,
+                    saveToGallery: false,
+                    source: CameraSource.Camera,
+                    direction: CameraDirection.Rear,
+                    presentationStyle: "fullscreen"
+                })
+            }
+            catch(e){
+                console.log(e)
+
+                return false
+            }
+
+            workers.convertBase64ToArrayBuffer(image.base64String, (arrayBuffer) => {
+                let name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpeg"
+
+                try{
+                    var blob = new File([arrayBuffer], name, {
+                        type: "image/jpeg",
+                        size: arrayBuffer.byteLength,
+                        lastModified: new Date()
+                    })
+                }
+                catch(e){
+                    return console.log(e)
+                }
+
+                return this.queueFileUpload(blob)
+            })
+        }
+    })
+
+    fabButtons.push({
+        text: language.get(this.state.lang, "fabUploadFiles"),
+        icon: Ionicons.cloudUpload,
+        handler: async () => {
+            if(Capacitor.isNative){
+                if(this.state.settings.onlyWifi){
+                    let networkStatus = await Plugins.Network.getStatus()
+        
+                    if(networkStatus.connectionType !== "wifi"){
+                        return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                    }
+                }
+            }
+            
+            if(utils.currentParentFolder() == "base"){
+                let defaultFolderUUID = undefined
+
+                for(let i = 0; i < this.state.itemList.length; i++){
+                    if(this.state.itemList[i].isDefault){
+                        defaultFolderUUID = this.state.itemList[i].uuid
+                    }
+                }
+
+                if(typeof defaultFolderUUID !== "undefined"){
+                    this.routeTo("/base/" + defaultFolderUUID)
+                }
+            }
+
+            return document.getElementById("file-input-dummy").click()
+        }
+    })
+
+    fabButtons.push({
+        text: language.get(this.state.lang, "cancel"),
+        icon: Ionicons.close,
+        handler: () => {
+            return actionSheet.dismiss()
+        }
+    })
+
+    let actionSheet = await actionSheetController.create({
+        buttons: fabButtons
     })
 
     return actionSheet.present()

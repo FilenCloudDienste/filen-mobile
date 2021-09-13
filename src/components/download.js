@@ -968,7 +968,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     }
 
                     downloadData = new Blob([downloadData], {
-                        type: file.mime
+                        type: "image/png"
                     })
     
                     try{
@@ -986,7 +986,7 @@ export async function getThumbnail(file, thumbURL, ext){
                                 quality: 0.6,
                                 maxWidth: 256,
                                 maxHeight: 256,
-                                mimeType: "image/jpeg",
+                                mimeType: "image/png",
                                 success(result){
                                     return resolve(result)
                                 },
@@ -1029,7 +1029,7 @@ export async function getThumbnail(file, thumbURL, ext){
     
                     if(utils.canCompressThumbnail(ext)){
                         data = new Blob([data], {
-                            type: file.mime
+                            type: "image/png"
                         })
         
                         try{
@@ -1038,7 +1038,7 @@ export async function getThumbnail(file, thumbURL, ext){
                                     quality: 0.5,
                                     maxWidth: 256,
                                     maxHeight: 256,
-                                    mimeType: file.mime,
+                                    mimeType: "image/png",
                                     success(result){
                                         return resolve(result)
                                     },

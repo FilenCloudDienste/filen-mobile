@@ -290,3 +290,8 @@ body {
   float: left;
   margin-right: 10px;
 }
+
+.ripple-parent {
+  position: relative;
+  overflow: hidden;
+}
