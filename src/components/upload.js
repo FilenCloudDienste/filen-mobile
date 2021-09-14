@@ -161,7 +161,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 		
 		let fileNameWithLowerCaseEnding = fileNameEx.join(".") + "." + lowerCaseFileEnding
 
-		Object.defineProperty(file, "name", { writable: true, value: utils.removeIllegalCharsFromString(fileNameWithLowerCaseEnding) })
+		Object.defineProperty(file, "name", { writable: true, value: utils.escapeHTML(fileNameWithLowerCaseEnding) })
 	}
 
 	//if(utils.nameRegex(file.name) || utils.checkIfNameIsBanned(file.name) || utils.fileNameValidationRegex(file.name)){

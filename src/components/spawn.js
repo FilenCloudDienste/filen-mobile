@@ -77,6 +77,8 @@ export async function spawnRenamePrompt(item, callback){
 
     this.setState({
         mainSearchbarDisabled: true
+    }, () => {
+        this.forceUpdate()
     })
 
     let alert = await alertController.create({
@@ -115,6 +117,8 @@ export async function spawnRenamePrompt(item, callback){
     alert.onWillDismiss(() => {
         this.setState({
             mainSearchbarDisabled: false
+        }, () => {
+            this.forceUpdate()
         })
     })
 
@@ -184,18 +188,17 @@ export async function mainFabAction(){
                             let name = inputs['new-folder-name-input']
 
                             name = name.replace(/\s*$/, "")
-                            name = utils.removeIllegalCharsFromString(name)
 
-                            if(utils.checkIfNameIsBanned(name) || utils.folderNameRegex(name) || utils.fileNameValidationRegex(name)){
+                            if(utils.fileNameValidationRegex(name)){
                                 return this.spawnToast(folderCreateInvalidNameText)
                             }
 
                             if(!name || typeof name !== "string"){
-                                return false
+                                return this.spawnToast(folderCreateInvalidNameText)
                             }
 
                             if(name.length <= 0){
-                                return false
+                                return this.spawnToast(folderCreateInvalidNameText)
                             }
                             
                             let folderParent = null
@@ -343,21 +346,23 @@ export async function mainFabAction(){
                             let name = inputs['new-text-file-name-input']
 
                             name = name.replace(/\s*$/, "")
-                            name = utils.removeIllegalCharsFromString(name)
 
-                            if(utils.checkIfNameIsBanned(name) || utils.fileNameValidationRegex(name)){
+                            if(utils.fileNameValidationRegex(name)){
                                 return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
                             }
 
                             if(!name || typeof name !== "string"){
-                                return false
+                                return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
                             }
 
                             if(name.length <= 0){
-                                return false
+                                return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
                             }
 
-                            let fileType = utils.getFilePreviewType(name)
+                            let ext = name.split(".")
+                            ext = ext[ext.length - 1]
+
+                            let fileType = utils.getFilePreviewType(ext)
 
                             if(!["code", "text"].includes(fileType)){
                                 return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))

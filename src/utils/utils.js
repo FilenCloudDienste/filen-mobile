@@ -2596,3 +2596,13 @@ export function moveCursorToStart(id, querySelector = false) {
 	  range.select();
 	}
   }
+
+export function fileOrFolderNameValid(name){
+	let regex = /[<>:"\/\\|?*\x00-\x1F]|^(?:aux|con|clock\$|nul|prn|com[1-9]|lpt[1-9])$/i;
+  
+	if(regex.test(name)){
+	  return true
+	}
+  
+	return false
+}

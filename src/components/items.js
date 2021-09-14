@@ -1776,9 +1776,7 @@ export async function renameItem(item){
 		loading.present()
 
 		if(item.type == "file"){
-			newName = utils.removeIllegalCharsFromString(newName)
-
-			if(utils.nameRegex(newName) || utils.checkIfNameIsBanned(newName) || utils.fileNameValidationRegex(newName)){
+			if(utils.fileNameValidationRegex(newName)){
 				loading.dismiss()
 
 				return this.spawnToast(language.get(this.state.lang, "invalidFileName"))
@@ -1890,9 +1888,7 @@ export async function renameItem(item){
 			})
 		}
 		else{
-			newName = utils.removeIllegalCharsFromString(newName)
-
-			if(utils.checkIfNameIsBanned(newName) || utils.folderNameRegex(newName) || utils.fileNameValidationRegex(newName)){
+			if(utils.fileNameValidationRegex(newName)){
 				loading.dismiss()
 
 				return this.spawnToast(language.get(this.state.lang, "invalidFolderName"))
