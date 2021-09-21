@@ -2,6 +2,7 @@ import React from 'react';
 import { IonToast, IonSkeletonText, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText, IonTabBar, IonTabButton, IonCard, IonCardContent, IonCardSubtitle } from '@ionic/react'
 import { List } from 'react-virtualized';
 import { isPlatform, getPlatforms } from "@ionic/react"
+import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
@@ -790,11 +791,9 @@ export function render(){
                                 margin: "0px auto",
                                 marginTop: safeAreaInsets.top + "px"
                             }} onClick={() => {
-                                window.customFunctions.hideSidebarMenu()
-                                
-                                return window.customFunctions.openSettingsModal()
+                                return document.getElementById("avatar-input-dummy").click()
                             }}>
-                                <img src="assets/img/icon.png" />
+                                <img src={typeof this.state.cachedUserInfo.avatarURL == "undefined" ? "assets/img/icon.png" : this.state.cachedUserInfo.avatarURL} />
                             </IonAvatar>
                             <br />
                             <IonText style={{
@@ -1120,6 +1119,92 @@ export function render(){
                                 }
 
                                 document.getElementById("file-input-dummy").value = ""
+
+                                return true
+                            }} multiple />
+                            <input type="file" id="avatar-input-dummy" style={{
+                                display: "none"
+                            }} onChange={async (e) => {
+                                let files = document.getElementById("avatar-input-dummy").files
+
+                                if(!files){
+                                    return false
+                                }
+
+                                if(files.length <= 0){
+                                    return false
+                                }
+
+                                if(files.length >= 2){
+                                    return false
+                                }
+
+                                let file = files[0]
+
+                                if(file.size >= ((1024 * 1024) * 2.99)){
+                                    return this.spawnToast(language.get(this.state.lang, "avatarTooLarge"))
+                                }
+
+                                let loading = await loadingController.create({
+                                    message: ""
+                                })
+    
+                                loading.present()
+
+                                try{
+                                    await new Promise((resolve, reject) => {
+                                        let fileReader = new FileReader()
+            
+                                        fileReader.onload = async () => {
+                                            fetch(utils.getAPIServer() + "/v1/user/avatar/upload/" + window.customVariables.apiKey, {
+                                                method: "POST",
+                                                cache: "no-cache",
+                                                body: fileReader.result
+                                            }).then((response) => {
+                                                response.json().then((obj) => {
+                                                    let res = obj
+                                        
+                                                    if(!res){
+                                                        return reject("failed")
+                                                    }
+    
+                                                    if(!res.status){
+                                                        return reject(res.message)
+                                                    }
+
+                                                    return resolve(null)
+                                                }).catch((err) => {
+                                                    return reject(err)
+                                                })
+                                            }).catch((err) => {
+                                                return reject(err)
+                                            })
+                                        }
+    
+                                        fileReader.onerror = (err) => {
+                                            reject(err)
+    
+                                            return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
+                                        }
+    
+                                        fileReader.readAsBinaryString(file)
+                                    })
+                                }
+                                catch(e){
+                                    console.log(e)
+
+                                    loading.dismiss()
+
+                                    return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+                                }
+
+                                loading.dismiss()
+
+                                await window.customFunctions.fetchUserInfo()
+
+                                this.spawnToast(language.get(this.state.lang, "avatarUploaded"))
+
+                                document.getElementById("avatar-input-dummy").value = ""
 
                                 return true
                             }} multiple />

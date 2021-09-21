@@ -380,6 +380,8 @@ export async function doSetup(){
 
     window.customVariables.apiKey = getUserAPIKey.value
 
+    await window.customFunctions.fetchUserInfo()
+
     this.updateUserKeys()
     this.updateUserUsage()
 

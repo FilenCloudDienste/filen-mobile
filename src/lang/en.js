@@ -316,6 +316,7 @@ translations['en']['updateAvailableAppStore'] = "Go to App Store"
 translations['en']['updateAvailableGooglePlay'] = "Go to Google Play"
 translations['en']['biometricNotAvailable'] = "Biometric Authentication not available"
 translations['en']['biometricError'] = "Biometric Authentication error"
+translations['en']['biometricInvalid'] = "Biometric Authentication invalid"
 translations['en']['biometricCanceled'] = "Biometric Authentication canceled"
 translations['en']['biometricEnterPINCode'] = "Enter PIN Code"
 translations['en']['biometricSetupPINCode'] = "Setup PIN Code"
@@ -331,6 +332,8 @@ translations['en']['fabCreateTextFile'] = "Create Text File"
 translations['en']['fabCreateTextFilePlaceholder'] = "File name"
 translations['en']['fabCreateBtn'] = "Create"
 translations['en']['fabCreateTextFileInvalidName'] = "Invalid file name"
+translations['en']['avatarTooLarge'] = "Maximum avatar size is 3 MB"
+translations['en']['avatarUploaded'] = "Avatar uploaded"
 
 module.exports = {
     translations

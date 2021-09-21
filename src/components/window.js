@@ -228,6 +228,7 @@ export function setupWindowFunctions(){
     window.customVariables.biometricAuthTimeout = 300
     window.customVariables.currentTextEditorContent = ""
     window.customVariables.currentTextEditorItem = {}
+    window.customVariables.cachedUserInfo = undefined
 
     Plugins.App.addListener("appStateChange", (appState) => {
         if(appState.isActive){
@@ -340,6 +341,51 @@ export function setupWindowFunctions(){
 
     document.onclick = (e) => {
         return window.customFunctions.togglePreviewHeader(e)
+    }
+
+    window.customFunctions.fetchUserInfo = async () => {
+        let loading = await loadingController.create({
+            message: ""
+        })
+
+        loading.present()
+
+        try{
+            var res = await utils.apiRequest("POST", "/v1/user/info", {
+                apiKey: window.customVariables.apiKey
+            })
+        }
+        catch(e){
+            console.log(e)
+
+            loading.dismiss()
+
+            this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+
+            return false
+        }
+
+        if(!res.status){
+            console.log(res.message)
+
+            loading.dismiss()
+
+            this.spawnToast(res.message)
+
+            return false
+        }
+
+        loading.dismiss()
+
+        window.customVariables.cachedUserInfo = res.data
+
+        this.setState({
+            cachedUserInfo: res.data
+        }, () => {
+            this.forceUpdate()
+        })
+
+        return true
     }
 
     window.customFunctions.triggerBiometricAuth = () => {
@@ -680,7 +726,7 @@ export function setupWindowFunctions(){
             })
         }
         catch(e){
-            this.spawnToast(language.get(this.state.lang, "biometricError"))
+            this.spawnToast(language.get(this.state.lang, "biometricInvalid"))
 
             return console.log(e)
         }
@@ -691,8 +737,8 @@ export function setupWindowFunctions(){
             }
         }
 
-        if(result !== "Success"){
-            return this.spawnToast(language.get(this.state.lang, "biometricError"))
+        if(!["Success", "success", "biometric_success"].includes(result)){
+            return this.spawnToast(language.get(this.state.lang, "biometricInvalid"))
         }
 
         window.customVariables.biometricAuthShowing = false

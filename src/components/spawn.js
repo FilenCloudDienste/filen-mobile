@@ -467,10 +467,17 @@ export async function mainFabAction(){
                 let name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpeg"
 
                 try{
-                    var blob = new File([arrayBuffer], name, {
-                        type: "image/jpeg",
-                        size: arrayBuffer.byteLength,
+                    var blob = new Blob([arrayBuffer], {
+                        name: name,
                         lastModified: new Date()
+                    })
+
+                    blob.name = name
+                    blob.lastModified = new Date()
+
+                    Object.defineProperty(blob, "type", {
+                        writable: true,
+                        value: "image/jpeg"
                     })
                 }
                 catch(e){
