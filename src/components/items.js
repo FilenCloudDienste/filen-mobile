@@ -925,7 +925,7 @@ export async function selectItemsAction(event){
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(appLang, "selectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.unselectAllItems()">` + language.get(appLang, "unselectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.removeSelectedItemsFromSharedIn()">` + language.get(appLang, "removeFromShared") + `</ion-item>
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
+				<!--<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>-->
 			</ion-list>
 		`
 	}
@@ -940,7 +940,7 @@ export async function selectItemsAction(event){
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.moveSelectedItems()">` + language.get(appLang, "moveItem") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.stopSharingSelectedItems()">` + language.get(appLang, "stopSharing") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.trashSelectedItems()">` + language.get(appLang, "trashItem") + `</ion-item>
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
+				<!--<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>-->
 			</ion-list>
 		`
 	}
@@ -950,7 +950,8 @@ export async function selectItemsAction(event){
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(appLang, "selectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.unselectAllItems()">` + language.get(appLang, "unselectAll") + `</ion-item>
 				<ion-item lines="none" detail="false" button onClick="window.customFunctions.restoreSelectedItems()">` + language.get(appLang, "restoreItem") + `</ion-item>
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
+				<ion-item lines="none" detail="false" button onClick="window.customFunctions.deleteSelectedItemsPermanently()">` + language.get(appLang, "deletePermanently") + `</ion-item>
+				<!--<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>-->
 			</ion-list>
 		`
 	}
@@ -966,7 +967,7 @@ export async function selectItemsAction(event){
 					<ion-item lines="none" detail="false" button onClick="window.customFunctions.moveSelectedItems()">` + language.get(appLang, "moveItem") + `</ion-item>
 					<ion-item lines="none" detail="false" button onClick="window.customFunctions.trashSelectedItems()">` + language.get(appLang, "trashItem") + `</ion-item>
 				`) + `
-				<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>
+				<!--<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>-->
 			</ion-list>
 		`
 	}
@@ -1038,7 +1039,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 			return this.spawnItemActionSheet(item)
 		}
 
-		if(item.size > ((1024 * 1024) * 64)){
+		if(item.size > ((1024 * 1024) * 128)){
 			if(typeof lastModalPreviewType !== "undefined"){
 				window.customFunctions.dismissModal()
 			}
@@ -1372,9 +1373,9 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 						}
 					}
 					else{
-						if(xDiffAbs < yDiffAbs && Math.max(xDiffAbs, yDiffAbs) > offsetY){
+						/*if(xDiffAbs < yDiffAbs && Math.max(xDiffAbs, yDiffAbs) > offsetY){
 							window.customFunctions.dismissModal()
-						}
+						}*/
 					}
 
 					return false
@@ -3412,7 +3413,7 @@ export async function spawnItemActionSheet(item){
 		}
 	}
 
-	options['favorite'] ={
+	options['favorite'] = {
 		text: item.favorited == 1 ? language.get(this.state.lang, "unfavorite") : language.get(this.state.lang, "favorite"),
 		icon: Ionicons.starOutline,
 		handler: async () => {
@@ -3431,7 +3432,86 @@ export async function spawnItemActionSheet(item){
 		}
 	}
 
-	options['edit'] ={
+	options['deletePermanently'] ={
+		text: language.get(this.state.lang, "deletePermanently"),
+		icon: Ionicons.trashBinOutline,
+		handler: async () => {
+			let alert = await alertController.create({
+				header: language.get(this.state.lang, "deletePermanently"),
+				message: language.get(this.state.lang, "deletePermanentlyConfirmation", true, ["__NAME__"], [item.name]),
+				buttons: [
+					{
+						text: language.get(this.state.lang, "cancel"),
+						role: "cancel",
+						handler: () => {
+							return false
+						}
+					},
+					{
+						text: language.get(this.state.lang, "alertOkButton"),
+						handler: async () => {
+							let loading = await loadingController.create({
+								message: "",
+								backdropDismiss: false
+							})
+					
+							loading.present()
+				
+							try{
+								if(item.type == "file"){
+									var res = await utils.apiRequest("POST", "/v1/file/delete/permanent", {
+										apiKey: window.customVariables.apiKey,
+										uuid: item.uuid
+									})
+								}
+								else{
+									var res = await utils.apiRequest("POST", "/v1/dir/delete/permanent", {
+										apiKey: window.customVariables.apiKey,
+										uuid: item.uuid
+									})
+								}
+							}
+							catch(e){
+								console.log(e)
+				
+								loading.dismiss()
+				
+								return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+							}
+				
+							loading.dismiss()
+						
+							if(!res.status){
+								console.log(res.message)
+				
+								return this.spawnToast(res.message)
+							}
+
+							let itemList = []
+
+							for(let i = 0; i < this.state.itemList.length; i++){
+								if(this.state.itemList[i].uuid !== item.uuid){
+									itemList.push(this.state.itemList[i])
+								}
+							}
+
+							this.setState({
+								itemList: itemList
+							}, () => {
+								this.forceUpdate()
+							})
+				
+							return this.spawnToast(language.get(this.state.lang, "itemDeletedPermanently", true, ["__NAME__"], [item.name]))
+						}
+					}
+				]
+			})
+		
+			return alert.present()
+		}
+	}
+
+	options['edit'] = {
 		text: language.get(this.state.lang, "edit"),
 		icon: Ionicons.createOutline,
 		handler: async () => {
@@ -3528,6 +3608,7 @@ export async function spawnItemActionSheet(item){
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
 				options['restore'],
+				options['deletePermanently'],
 				options['cancel']
 			]
 		}
@@ -3651,6 +3732,7 @@ export async function spawnItemActionSheet(item){
 			buttons = [
 				options['download'],
 				options['restore'],
+				options['deletePermanently'],
 				options['cancel']
 			]
 		}

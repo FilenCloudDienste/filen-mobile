@@ -74,7 +74,8 @@ interface AppStates {
 	refresherEnabled: boolean,
 	gridItemHeight: number,
 	gridItemWidth: number,
-	cachedUserInfo: any
+	cachedUserInfo: any,
+	authShowing: boolean
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -132,7 +133,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			refresherEnabled: false,
 			gridItemHeight: 180,
 			gridItemWidth: (window.innerWidth / 2) - 25,
-			cachedUserInfo: {}
+			cachedUserInfo: {},
+			authShowing: false
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)

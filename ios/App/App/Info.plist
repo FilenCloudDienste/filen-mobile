@@ -38,7 +38,7 @@
 	<key>NSDownloadsFolderUsageDescription</key>
 	<string>This app would like to save images to your device.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Filen requires FaceID access to allows you quick and secure access.</string>
+	<string>This app requires Face ID access to allows you quick and secure access.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Always allow Geolocation?</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

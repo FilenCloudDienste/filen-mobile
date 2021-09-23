@@ -468,7 +468,7 @@ export function setupWindowFunctions(){
 
                     window.customVariables.biometricAuthShowing = false
 
-                    window.customFunctions.dismissModal()
+                    window.$("#biometric-auth-screen").remove()
                 }
             }
         }
@@ -515,7 +515,7 @@ export function setupWindowFunctions(){
 
                         window.customVariables.biometricAuthShowing = false
 
-                        window.customFunctions.dismissModal()
+                        window.$("#biometric-auth-screen").remove()
                     }
                 }
             }
@@ -565,134 +565,122 @@ export function setupWindowFunctions(){
             window.customVariables.currentBiometricModalType = "auth"
         }
 
-        customElements.define(modalId, class ModalContent extends HTMLElement {
-            connectedCallback(){
-                this.innerHTML = `
-                    <ion-header class="ion-header-no-shadow" style="--background: transparent;">
-                        <ion-toolbar style="--background: transparent;">
-                            <ion-title>
-                                &nbsp;
-                            </ion-title>
-                        </ion-toolbar>
-                    </ion-header>
-                    <ion-content fullscreen>
-                        <div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
-                            <center>
-                                <ion-icon slot="icon-only" icon="` + Ionicons.lockClosedOutline + `" style="font-size: 60pt;"></ion-icon>
-                                <br>
-                                <br>
-                                <br>
-                                <text id="pin-code-text">
-                                    ` + language.get(appLang, (type == "auth" ? "biometricEnterPINCode" : "biometricSetupPINCode")) + `
-                                </text>
-                                <br>
-                                <br>
-                                <br>
-                                <div id="pin-code-dots">
-                                    <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
-                                    <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
-                                    <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
-                                    <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt;"></ion-icon>
-                                </div>
-                                <br>
-                                <br>
-                                <br>
-                                <div style="width: ` + (window.innerWidth - 50) + `px; height: 300px;">
-                                    <div style="width: 100%; height: 75px;">
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('1')">
-                                                1
-                                            </ion-button>
-                                        </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('2')">
-                                                2
-                                            </ion-button>
-                                        </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('3')">
-                                                3
-                                            </ion-button>
-                                        </div>
+        window.$("body").prepend(`
+            <div id="biometric-auth-screen" style="position: absolute; height: 100vh; width: 100vw; overflow: hidden; z-index: 100000;">
+                <ion-header class="ion-header-no-shadow" style="--background: transparent;">
+                    <ion-toolbar style="--background: transparent;">
+                        <ion-title>
+                            &nbsp;
+                        </ion-title>
+                    </ion-toolbar>
+                </ion-header>
+                <ion-content fullscreen>
+                    <div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
+                        <center>
+                            <ion-icon slot="icon-only" icon="` + Ionicons.lockClosedOutline + `" style="font-size: 60pt;"></ion-icon>
+                            <br>
+                            <br>
+                            <br>
+                            <text id="pin-code-text">
+                                ` + language.get(appLang, (type == "auth" ? "biometricEnterPINCode" : "biometricSetupPINCode")) + `
+                            </text>
+                            <br>
+                            <br>
+                            <br>
+                            <div id="pin-code-dots">
+                                <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
+                                <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
+                                <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt; margin-right: 10px;"></ion-icon>
+                                <ion-icon slot="icon-only" icon="` + Ionicons.ellipseOutline + `" style="font-size: 16pt;"></ion-icon>
+                            </div>
+                            <br>
+                            <br>
+                            <br>
+                            <div style="width: ` + (window.innerWidth - 50) + `px; height: 300px;">
+                                <div style="width: 100%; height: 75px;">
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('1')">
+                                            1
+                                        </ion-button>
                                     </div>
-                                    <div style="width: 100%; height: 75px;">
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('4')">
-                                                4
-                                            </ion-button>
-                                        </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('5')">
-                                                5
-                                            </ion-button>
-                                        </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('6')">
-                                                6
-                                            </ion-button>
-                                        </div>
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('2')">
+                                            2
+                                        </ion-button>
                                     </div>
-                                    <div style="width: 100%; height: 75px;">
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('7')">
-                                                7
-                                            </ion-button>
-                                        </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('8')">
-                                                8
-                                            </ion-button>
-                                        </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('9')">
-                                                9
-                                            </ion-button>
-                                        </div>
-                                    </div>
-                                    <div style="width: 100%; height: 75px;">
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 12px; ` + (type == "setup" && `visibility: hidden;`) + `">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px;" onClick="window.customFunctions.doLogout()">
-                                                <ion-icon slot="icon-only" icon="` + Ionicons.logOutOutline + `" style="font-size: 24pt;"></ion-icon>
-                                            </ion-button>
-                                        </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('0')">
-                                                0
-                                            </ion-button>
-                                        </div>
-                                        <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 7px; ` + (type == "setup" && `visibility: hidden;`) + `">
-                                            <ion-button fill="none" button style="width: 64px; height: 64px;" onClick="window.customFunctions.showBiometricAuth()">
-                                                <ion-icon slot="icon-only" icon="` + Ionicons.fingerPrintOutline + `" style="font-size: 24pt;"></ion-icon>
-                                            </ion-button>
-                                        </div>
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('3')">
+                                            3
+                                        </ion-button>
                                     </div>
                                 </div>
-                            </center>
-                        </div>
-                    </ion-content>
-                `;
-            }
-        })
-
-        let modal = await modalController.create({
-            component: modalId,
-            swipeToClose: false,
-            showBackdrop: false,
-            backdropDismiss: false,
-            cssClass: "modal-fullscreen"
-        })
-
-        await modal.present()
-
-        this.setupStatusbar("login/register")
-
-        modal.onDidDismiss().then(() => {
-            this.setupStatusbar()
-        })
+                                <div style="width: 100%; height: 75px;">
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('4')">
+                                            4
+                                        </ion-button>
+                                    </div>
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('5')">
+                                            5
+                                        </ion-button>
+                                    </div>
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('6')">
+                                            6
+                                        </ion-button>
+                                    </div>
+                                </div>
+                                <div style="width: 100%; height: 75px;">
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('7')">
+                                            7
+                                        </ion-button>
+                                    </div>
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('8')">
+                                            8
+                                        </ion-button>
+                                    </div>
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('9')">
+                                            9
+                                        </ion-button>
+                                    </div>
+                                </div>
+                                <div style="width: 100%; height: 75px;">
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 12px; ` + (type == "setup" && `visibility: hidden;`) + `">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px;" onClick="window.customFunctions.doLogout()">
+                                            <ion-icon slot="icon-only" icon="` + Ionicons.logOutOutline + `" style="font-size: 24pt;"></ion-icon>
+                                        </ion-button>
+                                    </div>
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-size: 24pt; font-weight: bold;">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px; font-size: 24pt;" onClick="window.customFunctions.inputPINCode('0')">
+                                            0
+                                        </ion-button>
+                                    </div>
+                                    <div style="width: 33%; float: left; height: 100%; line-height: 75px; font-weight: bold; font-size: 24pt; padding-left: 7px; ` + (type == "setup" && `visibility: hidden;`) + `">
+                                        <ion-button fill="none" button style="width: 64px; height: 64px;" onClick="window.customFunctions.showBiometricAuth()">
+                                            <ion-icon slot="icon-only" icon="` + Ionicons.fingerPrintOutline + `" style="font-size: 24pt;"></ion-icon>
+                                        </ion-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </center>
+                    </div>
+                </ion-content>
+            </div>
+        `)
 
         if(type == "auth"){
             window.customFunctions.showBiometricAuth()
         }
+
+        //this.setupStatusbar("login/register")
+
+        //modal.onDidDismiss().then(() => {
+        //    this.setupStatusbar()
+        //})
 
         return true
     }
@@ -726,24 +714,28 @@ export function setupWindowFunctions(){
             })
         }
         catch(e){
-            this.spawnToast(language.get(this.state.lang, "biometricInvalid"))
+            //this.spawnToast(language.get(this.state.lang, "biometricInvalid"))
 
             return console.log(e)
         }
 
         if(typeof result.code !== "undefined"){
             if(result.code == -108){
-                return this.spawnToast(language.get(this.state.lang, "biometricCanceled"))
+                //this.spawnToast(language.get(this.state.lang, "biometricCanceled"))
+
+                return false
             }
         }
 
         if(!["Success", "success", "biometric_success"].includes(result)){
-            return this.spawnToast(language.get(this.state.lang, "biometricInvalid"))
+            //this.spawnToast(language.get(this.state.lang, "biometricInvalid"))
+
+            return false
         }
 
         window.customVariables.biometricAuthShowing = false
 
-        window.customFunctions.dismissModal()
+        window.$("#biometric-auth-screen").remove()
 
         return true
     }
@@ -4829,5 +4821,93 @@ export function setupWindowFunctions(){
         document.getElementById("editor-textarea").focus()
 
         return true
+    }
+
+    window.customFunctions.deleteSelectedItemsPermanently = async () => {
+        let items = await this.getSelectedItems()
+
+        window.customFunctions.dismissPopover()
+        window.customFunctions.unselectAllItems()
+
+        let alert = await alertController.create({
+            header: language.get(this.state.lang, "deletePermanently"),
+            message: language.get(this.state.lang, "deletePermanentlyConfirmationMultiple", true, ["__COUNT__"], [items.length]),
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "alertOkButton"),
+                    handler: async () => {
+                        let loading = await loadingController.create({
+                            message: "",
+                            backdropDismiss: false
+                        })
+
+                        let deletedUUIDs = []
+                
+                        loading.present()
+            
+                        for(let i = 0; i < items.length; i++){
+                            let errored = false
+
+                            try{
+                                if(items[i].type == "file"){
+                                    var res = await utils.apiRequest("POST", "/v1/file/delete/permanent", {
+                                        apiKey: window.customVariables.apiKey,
+                                        uuid: items[i].uuid
+                                    })
+                                }
+                                else{
+                                    var res = await utils.apiRequest("POST", "/v1/dir/delete/permanent", {
+                                        apiKey: window.customVariables.apiKey,
+                                        uuid: items[i].uuid
+                                    })
+                                }
+                            }
+                            catch(e){
+                                console.log(e)
+
+                                errored = true
+                            }
+                        
+                            if(!res.status){
+                                console.log(res.message)
+
+                                errored = true
+                            }
+
+                            if(!errored){
+                                deletedUUIDs.push(items[i].uuid)
+                            }
+                        }
+
+                        loading.dismiss()
+
+                        let itemList = []
+
+                        for(let i = 0; i < this.state.itemList.length; i++){
+                            if(!deletedUUIDs.includes(this.state.itemList[i].uuid)){
+                                itemList.push(this.state.itemList[i])
+                            }
+                        }
+
+                        this.setState({
+                            itemList: itemList
+                        }, () => {
+                            this.forceUpdate()
+                        })
+            
+                        return this.spawnToast(language.get(this.state.lang, "itemsDeletedPermanently", true, ["__COUNT__"], [deletedUUIDs.length]))
+                    }
+                }
+            ]
+        })
+    
+        return alert.present()
     }
 }

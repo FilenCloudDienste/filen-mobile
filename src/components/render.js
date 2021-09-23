@@ -1122,7 +1122,7 @@ export function render(){
 
                                 return true
                             }} multiple />
-                            <input type="file" id="avatar-input-dummy" style={{
+                            <input type="file" accept="image/png, image/jpg, image/jpeg" id="avatar-input-dummy" style={{
                                 display: "none"
                             }} onChange={async (e) => {
                                 let files = document.getElementById("avatar-input-dummy").files
@@ -1255,7 +1255,7 @@ export function render(){
                                 "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("links") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon slot="icon-only" icon={Ionicons.link} />
+                                <IonIcon slot="icon-only" icon={Ionicons.linkOutline} />
                             </IonButton>
                             <IonButton onClick={() => {
                                 return routeTo("/favorites")
@@ -1264,7 +1264,7 @@ export function render(){
                                 "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("favorites") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon slot="icon-only" icon={Ionicons.star} />
+                                <IonIcon slot="icon-only" icon={Ionicons.starOutline} />
                             </IonButton>
                             <IonButton onClick={() => {
                                 return routeTo("/recent")
@@ -1273,7 +1273,7 @@ export function render(){
                                 "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("recent") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon slot="icon-only" icon={Ionicons.time} />
+                                <IonIcon slot="icon-only" icon={Ionicons.timeOutline} />
                             </IonButton>
                         </IonButtons>
                     </IonToolbar>

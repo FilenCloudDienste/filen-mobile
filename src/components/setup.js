@@ -120,7 +120,7 @@ export async function setupStatusbar(type = "normal"){
                 })
 
                 if(Capacitor.platform == "android"){
-                    window.NavigationBar.backgroundColorByHexString("#ffffff", true)
+                    window.NavigationBar.backgroundColorByHexString("#F0F0F0", true)
                 }
             }
         }

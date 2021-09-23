@@ -879,7 +879,7 @@ export async function getThumbnail(file, thumbURL, ext){
     
         await window.customVariables.thumbnailSemaphore.acquire()
 
-        if(file.chunks > 16 && !videoExts.includes(ext)){
+        if(file.chunks > 32 && !videoExts.includes(ext)){
             window.customVariables.thumbnailSemaphore.release()
 
             return reject("too big")
@@ -1017,7 +1017,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     }
     
                     fileReader.readAsArrayBuffer(compressedImage)
-                }, 16, true)
+                }, 32, true)
             }
             else{
                 this.downloadPreview(file, undefined, async (err, data) => {

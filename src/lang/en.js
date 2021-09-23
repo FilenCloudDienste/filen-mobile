@@ -334,6 +334,11 @@ translations['en']['fabCreateBtn'] = "Create"
 translations['en']['fabCreateTextFileInvalidName'] = "Invalid file name"
 translations['en']['avatarTooLarge'] = "Maximum avatar size is 3 MB"
 translations['en']['avatarUploaded'] = "Avatar uploaded"
+translations['en']['deletePermanently'] = "Delete permanently"
+translations['en']['itemDeletedPermanently'] = "__NAME__ deleted permanently"
+translations['en']['deletePermanentlyConfirmation'] = "Are you sure you want to delete __NAME__ permanently? This cannot be undone!"
+translations['en']['deletePermanentlyConfirmationMultiple'] = "Are you sure you want to delete __COUNT__ items permanently? This cannot be undone!"
+translations['en']['itemsDeletedPermanently'] = "__COUNT__ items deleted permanently"
 
 module.exports = {
     translations
