@@ -4,9 +4,11 @@ import * as Ionicons from 'ionicons/icons'
 import { Capacitor, HapticsImpactStyle, Plugins } from "@capacitor/core"
 import { FileOpener } from "@ionic-native/file-opener"
 import { isPlatform, getPlatforms } from "@ionic/react"
+import { PhotoViewer } from '@ionic-native/photo-viewer'
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
+const Hammer = require("hammerjs")
 
 export async function updateItemList(showLoader = true, bypassItemsCache = false, isFollowUpRequest = false, windowLocationHref = undefined, callStack = 0){
 	if(!this.state.isLoggedIn){
@@ -1048,6 +1050,8 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 		}
 
 		const gotPreviewData = async (dataArray) => {
+			window.customVariables.imagePreviewZoomedIn = false
+
 			let blob = new Blob([dataArray], {
 				type: item.mime,
 				name: item.name
@@ -1330,6 +1334,10 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 						return false
 					}
 
+					if(window.customVariables.imagePreviewZoomedIn){
+						return false
+					}
+
 					let {
 						clientX: xUp,
 						clientY: yUp
@@ -1373,9 +1381,9 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 						}
 					}
 					else{
-						/*if(xDiffAbs < yDiffAbs && Math.max(xDiffAbs, yDiffAbs) > offsetY){
+						if(xDiffAbs < yDiffAbs && Math.max(xDiffAbs, yDiffAbs) > offsetY){
 							window.customFunctions.dismissModal()
-						}*/
+						}
 					}
 
 					return false
@@ -1384,6 +1392,98 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				const getTouch = (e) => {
 					return e.changedTouches[0]
 				}
+			}
+
+			const hammerSetup = () => {
+				let elm = document.getElementById("preview-img")
+
+				let hammertime = new Hammer(elm, {})
+
+				hammertime.get("pinch").set({
+					enable: true
+				})
+
+				let posX = 0
+				let posY = 0
+				let scale = 1
+				let last_scale = 1
+				let last_posX = 0
+				let last_posY = 0
+				let max_pos_x = 0
+				let max_pos_y = 0
+				let transform = ""
+				let el = elm
+
+				hammertime.on("doubletap pan pinch panend pinchend", (ev) => {
+					if(ev.type == "doubletap"){
+						transform = "translate3d(0, 0, 0) " + "scale3d(2, 2, 1)"
+						scale = 2
+						last_scale = 2
+
+						try{
+							if(window.getComputedStyle(el, null).getPropertyValue("-webkit-transform").toString() != "matrix(1, 0, 0, 1, 0, 0)"){
+								transform = "translate3d(0, 0, 0) " + "scale3d(1, 1, 1)"
+								scale = 1
+								last_scale = 1
+							}
+						}
+						catch(e){ }
+
+						el.style.webkitTransform = transform
+						transform = ""
+					}
+
+					if(scale == 1){
+						window.customVariables.imagePreviewZoomedIn = false
+					}
+					else{
+						window.customVariables.imagePreviewZoomedIn = true
+					}
+
+					if(scale != 1){
+						posX = last_posX + ev.deltaX
+						posY = last_posY + ev.deltaY
+						max_pos_x = Math.ceil((scale - 1) * el.clientWidth / 2)
+						max_pos_y = Math.ceil((scale - 1) * el.clientHeight / 2)
+
+						if(posX > max_pos_x){
+							posX = max_pos_x
+						}
+
+						if(posX < -max_pos_x){
+							posX = -max_pos_x
+						}
+
+						if(posY > max_pos_y){
+							posY = max_pos_y
+						}
+
+						if(posY < -max_pos_y){
+							posY = -max_pos_y;
+						}
+					}
+
+					if(ev.type == "pinch"){
+						scale = Math.max(.999, Math.min(last_scale * (ev.scale), 4))
+					}
+
+					if(ev.type == "pinchend"){
+						last_scale = scale
+					}
+
+					if(ev.type == "panend"){
+						last_posX = posX < max_pos_x ? posX : max_pos_x
+						last_posY = posY < max_pos_y ? posY : max_pos_y
+					}
+
+					if(scale != 1){
+						transform = "translate3d(" + posX + "px," + posY + "px, 0) " + "scale3d(" + scale + ", " + scale + ", 1)"
+					}
+
+					if(transform){
+						el.style.webkitTransform = transform
+					}
+				})
 			}
 
 			const loadPdf = async () => {
@@ -1459,6 +1559,10 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 					loadPdf()
 				}
 
+				if(previewType == "image"){
+					hammerSetup()
+				}
+
 				setupBars()
 				setupSlider(previewType)
 
@@ -1499,6 +1603,10 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				if(previewType == "pdf"){
 					loadPdf()
 				}
+
+				if(previewType == "image"){
+					hammerSetup()
+				}
 	
 				setupBars()
 				setupSlider(previewType)
@@ -1508,7 +1616,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 		}
 
 		let loading = await loadingController.create({
-			message: "", //language.get(this.state.lang, "loadingPreview")
+			message: "",
 			backdropDismiss: true
 		})
 

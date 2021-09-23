@@ -1212,7 +1212,7 @@ export function render(){
                     </div>
                     <IonToolbar style={{
                         "--background": (this.state.darkMode ? "" : "#F0F0F0"),
-                        paddingBottom: (safeAreaInsets.bottom > 0 ? (safeAreaInsets.bottom + 10) : safeAreaInsets.bottom) + "px"
+                        paddingBottom: safeAreaInsets.bottom + "px"
                     }}>
                         <IonButtons>
                             <IonButton onClick={() => {
@@ -1255,7 +1255,7 @@ export function render(){
                                 "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("links") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon slot="icon-only" icon={Ionicons.linkOutline} />
+                                <IonIcon slot="icon-only" icon={Ionicons.link} />
                             </IonButton>
                             <IonButton onClick={() => {
                                 return routeTo("/favorites")
@@ -1264,7 +1264,7 @@ export function render(){
                                 "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("favorites") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon slot="icon-only" icon={Ionicons.starOutline} />
+                                <IonIcon slot="icon-only" icon={Ionicons.star} />
                             </IonButton>
                             <IonButton onClick={() => {
                                 return routeTo("/recent")
@@ -1273,7 +1273,7 @@ export function render(){
                                 "--ripple-color": "gray",
                                 color: (window.location.href.indexOf("recent") !== -1 ? "#3780FF" : "")
                             }}>
-                                <IonIcon slot="icon-only" icon={Ionicons.timeOutline} />
+                                <IonIcon slot="icon-only" icon={Ionicons.time} />
                             </IonButton>
                         </IonButtons>
                     </IonToolbar>

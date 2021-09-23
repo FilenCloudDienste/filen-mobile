@@ -14,6 +14,7 @@ dependencies {
     implementation project(':capacitor-file-selector')
     implementation "com.android.support:support-v4:27.+"
 }
+apply from: "../../node_modules/com-sarriaroman-photoviewer/src/android/photoviewer.gradle"
 apply from: "../../node_modules/cordova-plugin-fingerprint-aio/src/android/build.gradle"
 
 if (hasProperty('postBuildExtras')) {

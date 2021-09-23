@@ -4,6 +4,7 @@ import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
 import { isPlatform, getPlatforms } from "@ionic/react"
 import { FingerprintAIO } from "@ionic-native/fingerprint-aio"
+import { PhotoLibrary } from '@ionic-native/photo-library';
 
 const workers = require("../utils/workers")
 const utils = require("../utils/utils")
@@ -145,6 +146,13 @@ export function setupWindowFunctions(){
 
     document.getElementsByTagName("head")[0].appendChild(qrCodeScript)
 
+    let hammerJSScript = document.createElement("script")
+
+    hammerJSScript.type = "text/javascript"
+    hammerJSScript.src = "assets/hammer.js"
+
+    document.getElementsByTagName("head")[0].appendChild(hammerJSScript)
+
     window.customFunctions = {}
     window.customVariables = {}
 
@@ -225,10 +233,62 @@ export function setupWindowFunctions(){
     window.customVariables.currentBiometricModalType = "auth"
     window.customVariables.nextBiometricAuth = 0
     window.customVariables.biometricAuthShowing = false
-    window.customVariables.biometricAuthTimeout = 300
+    window.customVariables.biometricAuthTimeout = 300 //secs
     window.customVariables.currentTextEditorContent = ""
     window.customVariables.currentTextEditorItem = {}
     window.customVariables.cachedUserInfo = undefined
+    window.customVariables.imagePreviewZoomedIn = false
+
+    /*setTimeout(() => {
+        PhotoLibrary.requestAuthorization().then(() => {
+            PhotoLibrary.getLibrary((res) => {
+                let lib = res.library
+
+                lib.forEach((item) => {
+                    console.log(item)
+
+                    if(item.mimeType.indexOf("image/") !== -1){
+                        PhotoLibrary.getPhoto(item.id).then((data) => {
+                            console.log(data)
+                        }).catch((err) => {
+                            console.error(err)
+                        })
+                    }
+                    else{
+                        PhotoLibrary.getVideo(item.id).then((data) => {
+                            console.log(data)
+                        }).catch((err) => {
+                            console.error(err)
+                        })
+                    }
+                })
+            }, (err) => {
+                console.error(err)
+            }, {
+                thumbnailWidth: 1,
+                thumbnailHeight: 1,
+                quality: 1,
+                useOriginalFileNames: true,
+                includeAlbumData: false,
+                includeVideos: true,
+                chunkTimeSec: 0.5,
+                maxItems: 99999999999,
+                itemsInChunk: 100
+            }).subscribe({
+                next: (res) => {
+                    
+                },
+                error: (err) => {
+                    console.error(err)
+                },
+                complete: () => {
+                    console.log("done")
+                }
+            })
+        }).catch((err) => {
+            console.error(err)
+        })
+    }, 1000)*/
 
     Plugins.App.addListener("appStateChange", (appState) => {
         if(appState.isActive){
@@ -426,6 +486,8 @@ export function setupWindowFunctions(){
         let dotChildren = window.$("#pin-code-dots").children()
 
         const paintDots = (length) => {
+            Plugins.Haptics.impact(HapticsImpactStyle.Light)
+
             if(length == 1){
                 dotChildren.first().attr("icon", Ionicons.ellipse)
             }
@@ -449,7 +511,7 @@ export function setupWindowFunctions(){
 
             if(window.customVariables.currentPINCode.length >= 4){
                 if(window.customVariables.currentPINCode !== this.state.settings.biometricPINCode){
-                    Plugins.Haptics.impact(HapticsImpactStyle.Light)
+                    Plugins.Haptics.impact(HapticsImpactStyle.Medium)
 
                     await window.customFunctions.shakeDiv(window.$("#pin-code-dots"), 100, 10, 6)
 
@@ -480,7 +542,7 @@ export function setupWindowFunctions(){
 
                 if(window.customVariables.confirmPINCode.length >= 4){
                     if(window.customVariables.confirmPINCode !== window.customVariables.currentPINCode){
-                        Plugins.Haptics.impact(HapticsImpactStyle.Light)
+                        Plugins.Haptics.impact(HapticsImpactStyle.Medium)
 
                         await window.customFunctions.shakeDiv(window.$("#pin-code-dots"), 100, 10, 6)
 

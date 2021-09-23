@@ -11,8 +11,5 @@
       "showSpinner": true
     }
   },
-  "cordova": {},
-  "server": {
-    "url": "http://localhost:8100"
-  }
+  "cordova": {}
 }
