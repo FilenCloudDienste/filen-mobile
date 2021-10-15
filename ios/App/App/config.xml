@@ -24,6 +24,10 @@
     <param name="ios-package" value="Fingerprint"/>
   </feature>
 
+  <feature name="MediaPicker">
+    <param name="ios-package" value="MediaPicker"/>
+  </feature>
+
   <feature name="PhotoLibrary">
     <param name="ios-package" value="PhotoLibrary"/>
     <param name="onload" value="true"/>

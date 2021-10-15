@@ -339,6 +339,7 @@ translations['en']['itemDeletedPermanently'] = "__NAME__ deleted permanently"
 translations['en']['deletePermanentlyConfirmation'] = "Are you sure you want to delete __NAME__ permanently? This cannot be undone!"
 translations['en']['deletePermanentlyConfirmationMultiple'] = "Are you sure you want to delete __COUNT__ items permanently? This cannot be undone!"
 translations['en']['itemsDeletedPermanently'] = "__COUNT__ items deleted permanently"
+translations['en']['fabUploadImages'] = "Upload images"
 
 module.exports = {
     translations

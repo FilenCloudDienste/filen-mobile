@@ -3,8 +3,10 @@ import { toastController, actionSheetController, popoverController, alertControl
 import * as Ionicons from 'ionicons/icons';
 import { Capacitor, Plugins, CameraResultType, CameraSource, CameraDirection } from "@capacitor/core";
 import * as workers from "../utils/workers"
+import { isPlatform, getPlatforms } from "@ionic/react"
 
 const utils = require("../utils/utils")
+const chooser = require("cordova-plugin-simple-file-chooser/www/chooser")
 
 export async function spawnToast(message, duration = 3000){
     if(Capacitor.isNative){
@@ -540,6 +542,54 @@ export async function mainFabAction(){
         }
     })
 
+    if(isPlatform("ios")){
+        fabButtons.push({
+            text: language.get(this.state.lang, "fabUploadImages"),
+            icon: Ionicons.cloudUpload,
+            handler: async () => {
+                if(Capacitor.isNative){
+                    if(this.state.settings.onlyWifi){
+                        let networkStatus = await Plugins.Network.getStatus()
+            
+                        if(networkStatus.connectionType !== "wifi"){
+                            return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                        }
+                    }
+                }
+                
+                if(utils.currentParentFolder() == "base"){
+                    let defaultFolderUUID = undefined
+    
+                    for(let i = 0; i < this.state.itemList.length; i++){
+                        if(this.state.itemList[i].isDefault){
+                            defaultFolderUUID = this.state.itemList[i].uuid
+                        }
+                    }
+    
+                    if(typeof defaultFolderUUID !== "undefined"){
+                        this.routeTo("/base/" + defaultFolderUUID)
+                    }
+                }
+    
+                window.MediaPicker.getMedias({
+                    selectMode: 101,
+                    maxSelectCount: 100,
+                    maxSelectSize: 99999999999999999
+                }, (files) => {
+                    files.forEach((file) => {
+                        window.MediaPicker.getFileInfo(file.uri, "uri", (fileInfo) => {
+                            console.log(fileInfo)
+                        }, (err) => {
+                            console.log(err)
+                        })
+                    })
+                }, (err) => {
+                    console.log(err)
+                })
+            }
+        })
+    }
+
     fabButtons.push({
         text: language.get(this.state.lang, "fabUploadFiles"),
         icon: Ionicons.cloudUpload,
@@ -568,7 +618,9 @@ export async function mainFabAction(){
                 }
             }
 
-            return document.getElementById("file-input-dummy").click()
+            let selectedFiles = await chooser.getFile()
+
+            return console.log(selectedFiles)
         }
     })
 

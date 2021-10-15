@@ -6,13 +6,11 @@ import { isPlatform, getPlatforms } from "@ionic/react"
 import { FingerprintAIO } from "@ionic-native/fingerprint-aio"
 import { PhotoLibrary } from '@ionic-native/photo-library'
 import { FileOpener } from "@ionic-native/file-opener"
-import BackgroundFetch from "cordova-plugin-background-fetch";
 
 const workers = require("../utils/workers")
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 const CryptoJS = require("crypto-js")
-const chooser = require("cordova-plugin-simple-file-chooser/www/chooser")
 
 export function windowRouter(){
     window.onhashchange = async () => {
@@ -236,15 +234,12 @@ export function setupWindowFunctions(){
     window.customVariables.currentBiometricModalType = "auth"
     window.customVariables.nextBiometricAuth = 0
     window.customVariables.biometricAuthShowing = false
-    window.customVariables.biometricAuthTimeout = 300 //secs
+    window.customVariables.biometricAuthTimeout = 900 //secs
     window.customVariables.currentTextEditorContent = ""
     window.customVariables.currentTextEditorItem = {}
     window.customVariables.cachedUserInfo = undefined
     window.customVariables.imagePreviewZoomedIn = false
-
-    window.customVariables.chooser = chooser
-    window.customVariables.BackgroundFetch = BackgroundFetch
-    console.log(chooser)
+    window.customVariables.galleryUploadEnabled = false
 
     /*setTimeout(() => {
         PhotoLibrary.requestAuthorization().then(() => {
@@ -301,6 +296,7 @@ export function setupWindowFunctions(){
         if(appState.isActive){
             window.customFunctions.checkVersion()
             window.customFunctions.triggerBiometricAuth()
+            window.customFunctions.isIndexEmpty()
         }
     })
 
@@ -309,6 +305,14 @@ export function setupWindowFunctions(){
     })
 
     clearInterval(window.customVariables.mainSearchbarInterval)
+
+    window.customFunctions.isIndexEmpty = () => {
+        setTimeout(async () => {
+            if(window.location.hash == "#!/base" && this.state.itemList.length == 0){
+                await this.updateItemList()
+            }
+        }, 100)
+    }
 
     window.customFunctions.itemListScrolling = () => {
         if(document.getElementById("main-virtual-list") !== null){

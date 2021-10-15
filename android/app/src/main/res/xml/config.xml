@@ -23,6 +23,10 @@
     <param name="android-package" value="de.niklasmerz.cordova.biometric.Fingerprint"/>
   </feature>
 
+  <feature name="MediaPicker">
+    <param name="android-package" value="com.dmc.mediaPickerPlugin.MediaPicker"/>
+  </feature>
+
   <feature name="NavigationBar">
     <param name="android-package" value="com.viniciusfagundes.cordova.plugin.navigationbar.NavigationBar"/>
     <param name="onload" value="true"/>

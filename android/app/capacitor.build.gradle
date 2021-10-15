@@ -13,6 +13,7 @@ dependencies {
     implementation project(':capacitor-blob-writer')
     implementation project(':capacitor-file-selector')
     implementation "com.android.support:support-v4:27.+"
+    implementation "com.dmcBig:mediapicker:+"
 }
 apply from: "../../node_modules/com-sarriaroman-photoviewer/src/android/photoviewer.gradle"
 apply from: "../../node_modules/cordova-plugin-background-fetch/src/android/build.gradle"

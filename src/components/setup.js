@@ -1,6 +1,7 @@
 import { Plugins, StatusBarStyle, Capacitor } from "@capacitor/core"
 import { modalController, popoverController, actionSheetController, loadingController, alertController } from "@ionic/core"
 import * as language from "../utils/language"
+import BackgroundFetch from "cordova-plugin-background-fetch";
 
 export function setupListeners(){
     if(Capacitor.isNative){
@@ -412,6 +413,8 @@ export async function doSetup(){
 
     clearInterval(window.customVariables.getNetworkInfoInterval)
 
+    window.customFunctions.getNetworkInfo()
+
     window.customVariables.getNetworkInfoInterval = setInterval(() => {
         window.customFunctions.getNetworkInfo()
     }, 60000)
@@ -420,6 +423,25 @@ export async function doSetup(){
     
     window.customFunctions.checkVersion()
     window.customFunctions.triggerBiometricAuth()
+    //window.customFunctions.isIndexEmpty()
+
+    try{
+        await BackgroundFetch.configure({
+            minimumFetchInterval: 15
+        }, (taskId) => {
+            console.log("[BackgroundFetch] taskId: ", taskId)
+    
+            BackgroundFetch.finish(taskId)
+          }, (taskId) => {
+    
+            console.log('[BackgroundFetch] TIMEOUT taskId: ', taskId)
+    
+            BackgroundFetch.finish(taskId)
+        })
+    }
+    catch(e){
+        console.log(e)
+    }
 
     setTimeout(() => {
         if(Capacitor.isNative){

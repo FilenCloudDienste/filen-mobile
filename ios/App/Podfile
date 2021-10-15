@@ -14,6 +14,7 @@ def capacitor_pods
   pod 'CapacitorBlobWriter', :path => '../../node_modules/capacitor-blob-writer'
   pod 'CapacitorFileSelector', :path => '../../node_modules/capacitor-file-selector'
   pod 'CordovaPlugins', :path => '../capacitor-cordova-ios-plugins'
+  pod 'CordovaPluginsResources', :path => '../capacitor-cordova-ios-plugins'
   # Do not delete
 end
 
