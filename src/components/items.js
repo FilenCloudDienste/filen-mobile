@@ -1012,26 +1012,26 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 	}
 
 	if(typeof window.customVariables.offlineSavedFiles[item.uuid] !== "undefined" && typeof lastModalPreviewType == "undefined"){
-		this.getDownloadDir(true, item.uuid, (err, dirObj) => {
-			if(err){
-				console.log(err)
-
-				return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
-			}
-
-			FileOpener.open(dirObj.uri.uri + "/" + item.name, item.mime).then(() => {
-				console.log(dirObj.uri.uri + "/" + item.name, item.mime)
-			}).catch((err) => {
-				console.log(err)
-				console.log(dirObj.uri.uri + "/" + item.name, item.mime)
-
-				return this.spawnToast(language.get(this.state.lang, "noAppFoundToOpenFile", true, ["__NAME__"], [item.name]))
-			})
-		})
+		return window.customFunctions.openOfflineFile(item)
 	}
 	else{
 		let nameEx = item.name.split(".")
 		let previewType = utils.getFilePreviewType(nameEx[nameEx.length - 1])
+
+		if(previewType == "pdf"){
+			let loading = await loadingController.create({
+				message: "",
+				backdropDismiss: false
+			})
+	
+			loading.present()
+
+			return this.queueFileDownload(item, true, () => {
+				loading.dismiss()
+
+				window.customFunctions.openOfflineFile(item)
+			}, true)
+		}
 
 		if(previewType == "none"){
 			if(typeof lastModalPreviewType !== "undefined"){

@@ -141,6 +141,35 @@ export async function spawnRenamePrompt(item, callback){
 }
 
 export async function mainFabAction(){
+    let hasInternet = false
+    let fabButtons = []
+
+    if(Capacitor.isNative){
+        let networkStatus = await Plugins.Network.getStatus()
+
+        if(networkStatus.connected){
+            hasInternet = true
+        }
+
+        window.customVariables.networkStatus = networkStatus
+    }
+
+    if(!hasInternet){
+        fabButtons.push({
+            text: language.get(this.state.lang, "cancel"),
+            icon: Ionicons.close,
+            handler: () => {
+                return actionSheet.dismiss()
+            }
+        })
+    
+        let actionSheet = await actionSheetController.create({
+            buttons: fabButtons
+        })
+    
+        return actionSheet.present()
+    }
+
     let parent = utils.currentParentFolder()
     let folderCreateBtnText = language.get(this.state.lang, "fabCreateFolder")
     let folderCreateNewFolderNameText = language.get(this.state.lang, "newFolderName")
@@ -153,8 +182,6 @@ export async function mainFabAction(){
         folderCreatePlaceholderText = language.get(this.state.lang, "newDriveNamePlaceholder")
         folderCreateInvalidNameText = language.get(this.state.lang, "invalidDriveName")
     }
-
-    let fabButtons = []
 
     fabButtons.push({
         text: folderCreateBtnText,
@@ -185,6 +212,14 @@ export async function mainFabAction(){
                     {
                         text: language.get(this.state.lang, "alertOkButton"),
                         handler: async (inputs) => {
+                            if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
+                                return this.spawnToast("No encryption keys found, try restarting the app")
+                            }
+                        
+                            if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
+                                return this.spawnToast("No encryption keys found, try restarting the app")
+                            }
+
                             let name = inputs['new-folder-name-input']
 
                             name = name.replace(/\s*$/, "")
@@ -343,6 +378,14 @@ export async function mainFabAction(){
                     {
                         text: language.get(this.state.lang, "fabCreateBtn"),
                         handler: async (inputs) => {
+                            if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
+                                return this.spawnToast("No encryption keys found, try restarting the app")
+                            }
+                        
+                            if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
+                                return this.spawnToast("No encryption keys found, try restarting the app")
+                            }
+
                             let name = inputs['new-text-file-name-input']
 
                             name = name.replace(/\s*$/, "")
@@ -420,6 +463,14 @@ export async function mainFabAction(){
         handler: async () => {
             if(!Capacitor.isNative){
                 return false
+            }
+
+            if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
+                return this.spawnToast("No encryption keys found, try restarting the app")
+            }
+        
+            if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
+                return this.spawnToast("No encryption keys found, try restarting the app")
             }
 
             if(Capacitor.isNative){

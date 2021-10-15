@@ -729,6 +729,11 @@ export function render(){
             }}></div>
         }
     }
+    else{
+        bottomFab = <div style={{
+            display: "none"
+        }}></div>
+    }
 
     let transfersUploads = Object.keys(this.state.uploads).map((key) => {
         return (
@@ -895,7 +900,7 @@ export function render(){
                         </IonHeader>
                         <IonContent style={{
                             width: this.state.windowWidth + "px",
-                            height: this.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 25 : 0) - safeAreaInsets.bottom + "px",
+                            height: this.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 40 : 0) - safeAreaInsets.bottom + "px",
                             "--background": this.state.darkMode ? "" : "white", //#1E1E1E darkmode
                             outline: "none",
                             border: "none"
@@ -1065,7 +1070,7 @@ export function render(){
                                             <>
                                                 <List 
                                                     id="main-virtual-list"
-                                                    height={this.state.windowHeight - 56 - 57}
+                                                    height={this.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 45 : 0) - safeAreaInsets.bottom}
                                                     width={this.state.windowWidth}
                                                     rowCount={Math.round(this.state.itemList.length / 2)}
                                                     rowHeight={this.state.gridItemHeight}
@@ -1073,6 +1078,7 @@ export function render(){
                                                     rowRenderer={rowRenderer}
                                                     scrollToIndex={this.state.scrollToIndex}
                                                     scrollToAlignment="center"
+                                                    onScroll={() => window.customFunctions.itemListScrolling()}
                                                     style={{
                                                         outline: "none",
                                                         border: "none"
@@ -1083,7 +1089,7 @@ export function render(){
                                             <>
                                                 <List 
                                                     id="main-virtual-list"
-                                                    height={this.state.windowHeight - 56 - 57}
+                                                    height={this.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 45 : 0) - safeAreaInsets.bottom}
                                                     width={this.state.windowWidth}
                                                     rowCount={this.state.itemList.length}
                                                     rowHeight={72}
@@ -1091,6 +1097,7 @@ export function render(){
                                                     rowRenderer={rowRenderer}
                                                     scrollToIndex={this.state.scrollToIndex}
                                                     scrollToAlignment="center"
+                                                    onScroll={() => window.customFunctions.itemListScrolling()}
                                                     style={{
                                                         outline: "none",
                                                         border: "none"

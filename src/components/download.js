@@ -511,12 +511,20 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
     })
 }
 
-export async function queueFileDownload(file, isOfflineRequest = false){
+export async function queueFileDownload(file, isOfflineRequest = false, optionalCallback = undefined, calledByPreview = false){
+    const callOptionalCallback = (...args) => {
+        if(typeof optionalCallback == "function"){
+            optionalCallback(...args)
+        }
+    }
+
     if(Capacitor.isNative){
         if(this.state.settings.onlyWifi){
             let networkStatus = await Plugins.Network.getStatus()
 
             if(networkStatus.connectionType !== "wifi"){
+                callOptionalCallback(null)
+
                 return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
             }
         }
@@ -524,6 +532,8 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 
     for(let prop in window.customVariables.downloads){
 		if(window.customVariables.downloads[prop].name == file.name){
+            callOptionalCallback(null)
+
 			return this.spawnToast(language.get(this.state.lang, "fileDownloadAlreadyDownloadingFile", true, ["__NAME__"], [file.name]))
 		}
     }
@@ -545,6 +555,8 @@ export async function queueFileDownload(file, isOfflineRequest = false){
 
 	if(isOfflineRequest){
         if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
+            callOptionalCallback(null)
+
             return this.spawnToast(language.get(this.state.lang, "fileAlreadyStoredOffline", true, ["__NAME__"], [file.name]))
         }
 
@@ -555,6 +567,8 @@ export async function queueFileDownload(file, isOfflineRequest = false){
     this.getDownloadDir(makeOffline, fileName, async (err, dirObj) => {
         if(err){
             console.log(err)
+
+            callOptionalCallback(null)
 
             return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
         }
@@ -615,6 +629,8 @@ export async function queueFileDownload(file, isOfflineRequest = false){
             isRemovedFromState = true
 
             window.customVariables.downloadSemaphore.release()
+
+            callOptionalCallback(null)
 
             try{
                 let currentDownloads = this.state.downloads
@@ -819,8 +835,10 @@ export async function queueFileDownload(file, isOfflineRequest = false){
                                             if(typeof window.customVariables.cachedFiles[uuid] !== "undefined"){
                                                 window.customVariables.cachedFiles[uuid].offline = true
                                             }
-                                
-                                            this.spawnToast(language.get(this.state.lang, "fileIsNowAvailableOffline", true, ["__NAME__"], [file.name]))
+
+                                            if(!calledByPreview){
+                                                this.spawnToast(language.get(this.state.lang, "fileIsNowAvailableOffline", true, ["__NAME__"], [file.name]))
+                                            }
         
                                             removeFromState()
         

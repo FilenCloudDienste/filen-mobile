@@ -124,6 +124,14 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 export async function queueFileUpload(file, passedUpdateUUID = undefined){
 	//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
 
+	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
+		return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+	}
+
+	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
+		return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+	}
+
 	if(Capacitor.platform == "ios"){ //this is really bad for performance and memory, but WKWebview aka. mobile safari is a bitch and times out file blobs after 60 seconds, so we need to clone the file in case of slow chunk processing or uploads :/ thx apple
 		try{
 			/*file = new File([await file.arrayBuffer()], file.name, {

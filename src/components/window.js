@@ -4,12 +4,15 @@ import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
 import { isPlatform, getPlatforms } from "@ionic/react"
 import { FingerprintAIO } from "@ionic-native/fingerprint-aio"
-import { PhotoLibrary } from '@ionic-native/photo-library';
+import { PhotoLibrary } from '@ionic-native/photo-library'
+import { FileOpener } from "@ionic-native/file-opener"
+import BackgroundFetch from "cordova-plugin-background-fetch";
 
 const workers = require("../utils/workers")
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 const CryptoJS = require("crypto-js")
+const chooser = require("cordova-plugin-simple-file-chooser/www/chooser")
 
 export function windowRouter(){
     window.onhashchange = async () => {
@@ -239,6 +242,10 @@ export function setupWindowFunctions(){
     window.customVariables.cachedUserInfo = undefined
     window.customVariables.imagePreviewZoomedIn = false
 
+    window.customVariables.chooser = chooser
+    window.customVariables.BackgroundFetch = BackgroundFetch
+    console.log(chooser)
+
     /*setTimeout(() => {
         PhotoLibrary.requestAuthorization().then(() => {
             PhotoLibrary.getLibrary((res) => {
@@ -299,19 +306,15 @@ export function setupWindowFunctions(){
 
     window.addEventListener("load", () => {
         window.customVariables.isDocumentReady = true
-
-        if(Capacitor.isNative && window.customVariables.isDocumentReady){
-            Plugins.SplashScreen.hide()
-        }
     })
 
     clearInterval(window.customVariables.mainSearchbarInterval)
 
-    setInterval(() => {
+    window.customFunctions.itemListScrolling = () => {
         if(document.getElementById("main-virtual-list") !== null){
             let scrollTop = Math.floor(document.getElementById("main-virtual-list").scrollTop)
 
-            if(scrollTop == 0){
+            /*if(scrollTop == 0){
                 this.setState({
                     refresherEnabled: true
                 })
@@ -320,7 +323,7 @@ export function setupWindowFunctions(){
                 this.setState({
                     refresherEnabled: false
                 })
-            }
+            }*/
 
             let diff = Math.floor(Math.floor(document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight) - Math.floor(scrollTop))
 
@@ -340,7 +343,7 @@ export function setupWindowFunctions(){
                 hideMainFab: false
             })
         }
-    }, 250)
+    }
 
     window.customVariables.mainSearchbarInterval = setInterval(() => {
         if(document.getElementById("main-searchbar") !== null){
@@ -734,6 +737,10 @@ export function setupWindowFunctions(){
             </div>
         `)
 
+        if(Capacitor.isNative){
+            Plugins.SplashScreen.hide()
+        }
+
         if(type == "auth"){
             window.customFunctions.showBiometricAuth()
         }
@@ -839,59 +846,40 @@ export function setupWindowFunctions(){
 
         let appLang = this.state.lang
         let appDarkMode = this.state.darkMode
-        let modalId = "update-modal-" + utils.generateRandomClassName()
 
-        customElements.define(modalId, class ModalContent extends HTMLElement {
-            connectedCallback(){
-                this.innerHTML = `
-                    <ion-header class="ion-header-no-shadow" style="--background: transparent;">
-                        <ion-toolbar style="--background: transparent;">
-                            <ion-title>
-                                ` + language.get(appLang, "updateAvailable") + `
-                            </ion-title>
-                        </ion-toolbar>
-                    </ion-header>
-                    <ion-content fullscreen>
-                        <div style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); width: 100%;">
-                            <center>
-                                <ion-avatar>
-                                    <img src="assets/img/icon.png">
-                                </ion-avatar>
-                                <br>
-                                ` + language.get(appLang, "updateAvailableInfo") + `
-                                <br>
-                                <br>
-                                ` + (Capacitor.platform == "ios" ? `
-                                    <ion-button fill="solid" color="primary" onClick="window.open('itms-apps://itunes.apple.com/app/id1549224518')">
-                                        ` + language.get(appLang, "updateAvailableAppStore") + `
-                                    </ion-button>
-                                ` : `
-                                    <ion-button fill="solid" color="primary" onClick="window.open('market://details?id=io.filen.app')">
-                                        ` + language.get(appLang, "updateAvailableGooglePlay") + `
-                                    </ion-button>
-                                `) + `
-                            </center>
-                        </div>
-                    </ion-content>
-                `;
-            }
-        })
-
-        let modal = await modalController.create({
-            component: modalId,
-            swipeToClose: false,
-            showBackdrop: false,
-            backdropDismiss: false,
-            cssClass: "modal-fullscreen"
-        })
-
-        await modal.present()
-
-        this.setupStatusbar("login/register")
-
-        modal.onDidDismiss().then(() => {
-            this.setupStatusbar()
-        })
+        window.$("body").prepend(`
+            <div id="update-screen" style="position: absolute; height: 100vh; width: 100vw; overflow: hidden; z-index: 100000;">
+                <ion-header class="ion-header-no-shadow" style="--background: transparent;">
+                    <ion-toolbar style="--background: transparent;">
+                        <ion-title>
+                            ` + language.get(appLang, "updateAvailable") + `
+                        </ion-title>
+                    </ion-toolbar>
+                </ion-header>
+                <ion-content fullscreen>
+                    <div style="position: absolute; left: 50%; top: 40%; -webkit-transform: translate(-50%, -40%); transform: translate(-50%, -50%); width: 100%;">
+                        <center>
+                            <ion-avatar>
+                                <img src="assets/img/icon.png">
+                            </ion-avatar>
+                            <br>
+                            ` + language.get(appLang, "updateAvailableInfo") + `
+                            <br>
+                            <br>
+                            ` + (Capacitor.platform == "ios" ? `
+                                <ion-button fill="solid" color="primary" onClick="window.open('itms-apps://itunes.apple.com/app/id1549224518')">
+                                    ` + language.get(appLang, "updateAvailableAppStore") + `
+                                </ion-button>
+                            ` : `
+                                <ion-button fill="solid" color="primary" onClick="window.open('market://details?id=io.filen.app')">
+                                    ` + language.get(appLang, "updateAvailableGooglePlay") + `
+                                </ion-button>
+                            `) + `
+                        </center>
+                    </div>
+                </ion-content>
+            </div>
+        `)
 
         return true
     }
@@ -1477,6 +1465,16 @@ export function setupWindowFunctions(){
                 return alert.present()
             }
         }
+
+        await Plugins.Storage.remove({ key: "userPublicKey" })
+        await Plugins.Storage.remove({ key: "userPrivateKey" })
+        await Plugins.Storage.remove({ key: "apiCache" })
+        await Plugins.Storage.remove({ key: "cachedFiles" })
+        await Plugins.Storage.remove({ key: "cachedFolders" })
+        await Plugins.Storage.remove({ key: "cachedMetadata" })
+        await Plugins.Storage.remove({ key: "getThumbnailErrors" })
+        await Plugins.Storage.remove({ key: "cachedAPIItemListRequests" })
+        await Plugins.Storage.remove({ key: "itemsCache" })
 
         await Plugins.Storage.set({ key: "isLoggedIn", value: "true" })
         await Plugins.Storage.set({ key: "userAPIKey", value: res.data.apiKey })
@@ -4971,5 +4969,24 @@ export function setupWindowFunctions(){
         })
     
         return alert.present()
+    }
+
+    window.customFunctions.openOfflineFile = async (item) => {
+        this.getDownloadDir(true, item.uuid, (err, dirObj) => {
+			if(err){
+				console.log(err)
+
+				return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
+			}
+
+			FileOpener.open(dirObj.uri.uri + "/" + item.name, item.mime).then(() => {
+				console.log(dirObj.uri.uri + "/" + item.name, item.mime)
+			}).catch((err) => {
+				console.log(err)
+				console.log(dirObj.uri.uri + "/" + item.name, item.mime)
+
+				return this.spawnToast(language.get(this.state.lang, "noAppFoundToOpenFile", true, ["__NAME__"], [item.name]))
+			})
+		})
     }
 }

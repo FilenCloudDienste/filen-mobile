@@ -6,6 +6,10 @@
     <param name="android-package" value="com.sarriaroman.PhotoViewer.PhotoViewer"/>
   </feature>
 
+  <feature name="BackgroundFetch">
+    <param name="android-package" value="com.transistorsoft.cordova.backgroundfetch.CDVBackgroundFetch"/>
+  </feature>
+
   <feature name="File">
     <param name="android-package" value="org.apache.cordova.file.FileUtils"/>
     <param name="onload" value="true"/>
@@ -27,6 +31,10 @@
   <feature name="PhotoLibrary">
     <param name="android-package" value="com.terikon.cordova.photolibrary.PhotoLibrary"/>
     <param name="onload" value="true"/>
+  </feature>
+
+  <feature name="Chooser">
+    <param name="android-package" value="in.foobars.cordova.Chooser"/>
   </feature>
 
   

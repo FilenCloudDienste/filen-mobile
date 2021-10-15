@@ -93,10 +93,18 @@ export async function updateUserKeys(cb){
             })
         }
         catch(e){
+            if(typeof cb == "function"){
+                cb(e)
+            }
+
             return console.log(e)
         }
 
         if(!res.status){
+            if(typeof cb == "function"){
+                cb("api key not found")
+            }
+
             if(res.message.toLowerCase().indexOf("api key not found") !== -1){
                 return window.customFunctions.logoutUser()
             }
@@ -140,6 +148,10 @@ export async function updateUserKeys(cb){
                 console.log("Public and private key updated.")
 
                 return updateUserKeypair(res.data.publicKey, privKey, (err) => {
+                    if(typeof cb == "function"){
+                        cb(null)
+                    }
+                    
                     if(err){
                         return console.log(err)
                     }
@@ -148,6 +160,10 @@ export async function updateUserKeys(cb){
                 })
             }
             else{
+                if(typeof cb == "function"){
+                    cb(null)
+                }
+
                 return console.log("Could not decrypt private key")
             }
         }
@@ -239,11 +255,13 @@ export async function updateUserKeys(cb){
 
         this.setState({
             userMasterKeys: newKeys.split("|")
+        }, () => {
+            window.customVariables.userMasterKeys = newKeys.split("|")
+
+            console.log("Master keys updated.")
+        
+            return updatePubAndPrivKey()
         })
-
-        window.customVariables.userMasterKeys = newKeys.split("|")
-
-        console.log("Master keys updated.")
     }
     else{
         console.log("Could not decrypt master keys.")
@@ -254,12 +272,6 @@ export async function updateUserKeys(cb){
 
         return false
     }
-
-    if(typeof cb == "function"){
-        cb(null)
-    }
-
-    return updatePubAndPrivKey()
 }
 
 export async function updateUserUsage(){

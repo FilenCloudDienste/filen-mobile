@@ -382,7 +382,20 @@ export async function doSetup(){
 
     await window.customFunctions.fetchUserInfo()
 
-    this.updateUserKeys()
+    await new Promise((resolve) => {
+        this.updateUserKeys(() => {
+            resolve()
+        })
+    })
+
+    if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
+		return window.customFunctions.logoutUser()
+	}
+
+	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
+		return window.customFunctions.logoutUser()
+	}
+
     this.updateUserUsage()
 
     /*clearInterval(window.customVariables.keyUpdateInterval)
@@ -407,6 +420,12 @@ export async function doSetup(){
     
     window.customFunctions.checkVersion()
     window.customFunctions.triggerBiometricAuth()
+
+    setTimeout(() => {
+        if(Capacitor.isNative){
+            Plugins.SplashScreen.hide()
+        }
+    }, 1000)
 
     return this.routeTo("/base")
 }
