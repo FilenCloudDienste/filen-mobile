@@ -241,28 +241,13 @@ export function setupWindowFunctions(){
     window.customVariables.imagePreviewZoomedIn = false
     window.customVariables.galleryUploadEnabled = false
 
-    /*setTimeout(() => {
+    setTimeout(() => {
         PhotoLibrary.requestAuthorization().then(() => {
             PhotoLibrary.getLibrary((res) => {
                 let lib = res.library
 
                 lib.forEach((item) => {
                     console.log(item)
-
-                    if(item.mimeType.indexOf("image/") !== -1){
-                        PhotoLibrary.getPhoto(item.id).then((data) => {
-                            console.log(data)
-                        }).catch((err) => {
-                            console.error(err)
-                        })
-                    }
-                    else{
-                        PhotoLibrary.getVideo(item.id).then((data) => {
-                            console.log(data)
-                        }).catch((err) => {
-                            console.error(err)
-                        })
-                    }
                 })
             }, (err) => {
                 console.error(err)
@@ -273,12 +258,12 @@ export function setupWindowFunctions(){
                 useOriginalFileNames: true,
                 includeAlbumData: false,
                 includeVideos: true,
-                chunkTimeSec: 0.5,
+                chunkTimeSec: 1,
                 maxItems: 99999999999,
                 itemsInChunk: 100
             }).subscribe({
                 next: (res) => {
-                    
+                    //
                 },
                 error: (err) => {
                     console.error(err)
@@ -290,7 +275,7 @@ export function setupWindowFunctions(){
         }).catch((err) => {
             console.error(err)
         })
-    }, 1000)*/
+    }, 1000)
 
     Plugins.App.addListener("appStateChange", (appState) => {
         if(appState.isActive){

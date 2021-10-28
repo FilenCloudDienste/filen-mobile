@@ -689,8 +689,8 @@ export function render(){
 
     let bottomFab = undefined
     let bottomFabStyle = {
-        //marginBottom: (isPlatform("ipad") || isPlatform("iphone") ? safeAreaInsets.bottom : 0) + "px"
-        marginBottom: "0px"
+        marginBottom: "0px",
+        visibility: (this.state.hideMainFab ? "hidden" : "visible")
     }
 
     let showMainFab = false
@@ -704,30 +704,23 @@ export function render(){
         }
     }
 
-    if(!this.state.hideMainFab){
-        if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
-            bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
-                            <IonFabButton color="danger">
-                                <IonIcon icon={Ionicons.trash} />
-                            </IonFabButton>
-                        </IonFab>
-        }
-        else if(showMainFab){
-            bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => {
-                this.hideMainSearchbar()
-    
-                this.mainFabAction()
-            }}>
-                            <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
-                                <IonIcon icon={Ionicons.add} />
-                            </IonFabButton>
-                        </IonFab>
-        }
-        else{
-            bottomFab = <div style={{
-                display: "none"
-            }}></div>
-        }
+    if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
+        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
+                        <IonFabButton color="danger">
+                            <IonIcon icon={Ionicons.trash} />
+                        </IonFabButton>
+                    </IonFab>
+    }
+    else if(showMainFab){
+        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => {
+            this.hideMainSearchbar()
+
+            this.mainFabAction()
+        }}>
+                        <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
+                            <IonIcon icon={Ionicons.add} />
+                        </IonFabButton>
+                    </IonFab>
     }
     else{
         bottomFab = <div style={{
