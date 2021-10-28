@@ -6,6 +6,102 @@ import Compressor from 'compressorjs';
 
 const utils = require("../utils/utils")
 
+export async function getTempDir(callback){
+    if(Capacitor.platform == "android"){
+        let path = "Temp"
+        let directory = FilesystemDirectory.External
+
+        try{
+            await Plugins.Filesystem.mkdir({
+                path,
+                directory,
+                recursive: true 
+            })
+
+            var uri = await Plugins.Filesystem.getUri({
+                path,
+                directory
+            })
+
+            return callback(null, {
+                path,
+                directory,
+                uri
+            })
+        }
+        catch(e){
+            if(e.message == "Directory exists"){
+                try{
+                    var uri = await Plugins.Filesystem.getUri({
+                        path,
+                        directory
+                    })
+
+                    return callback(null, {
+                        path,
+                        directory,
+                        uri
+                    })
+                }
+                catch(e){
+                    return callback(e)
+                }
+            }
+            else{
+                return callback(e)
+            }
+        }
+    }
+    else if(Capacitor.platform == "ios"){
+        let path = "Temp"
+        let directory = FilesystemDirectory.Documents
+
+        try{
+            await Plugins.Filesystem.mkdir({
+                path,
+                directory,
+                recursive: true 
+            })
+
+            var uri = await Plugins.Filesystem.getUri({
+                path,
+                directory
+            })
+
+            return callback(null, {
+                path,
+                directory,
+                uri
+            })
+        }
+        catch(e){
+            if(e.message == "Directory exists"){
+                try{
+                    var uri = await Plugins.Filesystem.getUri({
+                        path,
+                        directory
+                    })
+
+                    return callback(null, {
+                        path,
+                        directory,
+                        uri
+                    })
+                }
+                catch(e){
+                    return callback(e)
+                }
+            }
+            else{
+                return callback(e)
+            }
+        }
+    }
+    else{
+        return callback(new Error("Can only run getdir function on native ios or android device"))
+    }
+}
+
 export async function getThumbnailDir(uuid, callback){
     if(Capacitor.platform == "android"){
         let path = "ThumbnailCache/" + uuid

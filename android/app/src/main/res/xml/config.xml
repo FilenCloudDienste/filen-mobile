@@ -2,10 +2,6 @@
 <widget version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <access origin="*" />
   
-  <feature name="PhotoViewer">
-    <param name="android-package" value="com.sarriaroman.PhotoViewer.PhotoViewer"/>
-  </feature>
-
   <feature name="BackgroundFetch">
     <param name="android-package" value="com.transistorsoft.cordova.backgroundfetch.CDVBackgroundFetch"/>
   </feature>
@@ -17,6 +13,11 @@
 
   <feature name="FileOpener2">
     <param name="android-package" value="io.github.pwlin.cordova.plugins.fileopener2.FileOpener2"/>
+  </feature>
+
+  <feature name="FilePath">
+    <param name="android-package" value="com.hiddentao.cordova.filepath.FilePath"/>
+    <param name="onload" value="true"/>
   </feature>
 
   <feature name="Fingerprint">

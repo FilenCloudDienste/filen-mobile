@@ -124,47 +124,37 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 export async function queueFileUpload(file, passedUpdateUUID = undefined){
 	//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
 
+	const deleteTempFile = () => {
+		if(typeof file.tempFileEntry == "undefined"){
+			return false
+		}
+
+		if(typeof file.tempFileEntry.remove == "undefined"){
+			return false
+		}
+
+		file.tempFileEntry.remove(() => {
+			console.log(file.name + " temp file removed")
+		}, (err) => {
+			console.log(err)
+		})
+	}
+
 	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
+		deleteTempFile()
+
 		return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
 	}
 
 	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
+		deleteTempFile()
+
 		return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
 	}
 
-	if(Capacitor.platform == "ios"){ //this is really bad for performance and memory, but WKWebview aka. mobile safari is a bitch and times out file blobs after 60 seconds, so we need to clone the file in case of slow chunk processing or uploads :/ thx apple
-		try{
-			/*file = new File([await file.arrayBuffer()], file.name, {
-				type: file.type,
-				lastModified: file.lastModified,
-				size: file.size
-			})*/
-
-			let fileName = file.name
-			let fileType = file.type
-			let fileLastModified = file.lastModified
-
-			file = new Blob([await file.arrayBuffer()], {
-				lastModified: fileLastModified,
-				name: fileName
-			})
-	
-			file.name = fileName
-			file.lastModified = fileLastModified
-
-			Object.defineProperty(file, "type", {
-				writable: true,
-				value: fileType
-			})
-		}
-		catch(e){
-			console.log(e)
-
-			return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFileOrTooBig", true, ["__NAME__"], [file.name]))
-		}
-	}
-
     if(file.size <= 0){
+		deleteTempFile()
+
         return this.spawnToast(language.get(this.state.lang, "uploadInvalidFileSize", true, ["__NAME__"], [file.name]))
 	}
 
@@ -175,6 +165,8 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 	}
 	
 	if(parent == "base" || parent == "default"){
+		deleteTempFile()
+
 		return false
 	}
 	
@@ -195,6 +187,8 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 
 	this.fileExists(file.name, parent, async (err, exists, existsUUID) => {
 		if(err){
+			deleteTempFile()
+
 			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
 		}
 
@@ -214,10 +208,14 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 					})
 				}
 				catch(e){
+					deleteTempFile()
+
 					return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
 				}
 			
 				if(!res.status){
+					deleteTempFile()
+
 					return this.spawnToast(res.message)
 				}
 
@@ -382,6 +380,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 				window.customVariables.currentUploadThreads -= 1
 		
 				removeFromState()
+				deleteTempFile()
 
 				if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
 					window.customVariables.stoppedUploadsDone[uuid] = true
@@ -400,6 +399,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 					window.customVariables.currentUploadThreads -= 1
 		
 					removeFromState()
+					deleteTempFile()
 				
 					if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
 						window.customVariables.stoppedUploadsDone[uuid] = true
@@ -429,7 +429,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 		
 								let thisIndex = currentIndex
 		
-								let chunk = file.slice(offset, (offset + chunkSizeToUse))
+								let chunk = file.fileEntry.slice(offset, (offset + chunkSizeToUse))
 		
 								let fileReader = new FileReader()
 		
@@ -468,6 +468,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 												window.customVariables.currentUploadThreads -= 1
 		
 												removeFromState()
+												deleteTempFile()
 		
 												if(err == "stopped"){
 													if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
@@ -528,6 +529,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 															console.log(err)
 		
 															removeFromState()
+															deleteTempFile()
 		
 															return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
 														}
@@ -551,6 +553,8 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 				
 															this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [name]))
 		
+															deleteTempFile()
+
 															return removeFromState()
 														})
 													})
@@ -567,6 +571,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 									console.log(err)
 		
 									removeFromState()
+									deleteTempFile()
 		
 									window.customVariables.stoppedUploads[uuid] = true
 		

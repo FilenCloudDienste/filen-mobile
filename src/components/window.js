@@ -1135,7 +1135,9 @@ export function setupWindowFunctions(){
                 return true
             }
             catch(e){
-                return console.log(e)
+                console.log(e)
+
+                return false
             }
         }
 
@@ -1149,7 +1151,9 @@ export function setupWindowFunctions(){
             return true
         }
         catch(e){
-            return console.log(e)
+            console.log(e)
+
+            return false
         }
     }
 
@@ -3763,6 +3767,59 @@ export function setupWindowFunctions(){
         return true
     }
 
+    window.customFunctions.show2FARecoveryKeyModal = async (key) => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "two-factor-recovery-key-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "2faRecoveryKeys") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                        <ion-list>
+                            <ion-item lines="none">
+                                ` + language.get(appLang, "2faRecoveryKeysInfo") + `
+                            </ion-item>
+                            <ion-item lines="none" style="margin-top: 30px;">
+                                <ion-input autocomplete="off" value="` + key + `" style="-webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;" disabled></ion-input>
+                                <ion-button slot="end" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `" onClick="window.customFunctions.copyStringToClipboard('` + key + `')">
+                                    ` + language.get(appLang, "copy") + `
+                                </ion-button>
+                            </ion-item>
+                        </ion-list>
+                        <section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
+                            <ion-button expand="block" size="small" color="` + (appDarkMode ? `dark` : `light`) + `" fill="solid" onClick="window.customFunctions.dismissModal()">` + language.get(appLang, "close") + `</ion-button>
+                        </section>
+                    </ion-content>
+                `
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: true,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        return true
+    }
+
     window.customFunctions.toggle2FA = async (activate) => {
         if(activate){
             let alert = await alertController.create({
@@ -3823,8 +3880,14 @@ export function setupWindowFunctions(){
                                 twoFactorEnabled: true
                             })
 
-                            window.customFunctions.dismissModal(true)
-                            window.customFunctions.dismissModal(true)
+                            try{
+                                await window.customFunctions.dismissModal()
+                            }
+                            catch(e){
+                                console.log(e)
+                            }
+
+                            window.customFunctions.show2FARecoveryKeyModal(res.data.recoveryKeys)
     
                             return this.spawnToast(language.get(this.state.lang, "2faActivated"))
                         }
@@ -3893,8 +3956,7 @@ export function setupWindowFunctions(){
                                 twoFactorEnabled: false
                             })
 
-                            window.customFunctions.dismissModal(true)
-                            window.customFunctions.dismissModal(true)
+                            window.customFunctions.dismissModal()
     
                             return this.spawnToast(language.get(this.state.lang, "2faDisabled"))
                         }
@@ -4810,21 +4872,19 @@ export function setupWindowFunctions(){
             return window.customFunctions.dismissModal()
         }
 
-        let file = new Blob([new TextEncoder().encode(value)], {
+        let fileObject = {}
+
+        fileObject.fileEntry = new Blob([new TextEncoder().encode(value)], {
             lastModified: new Date(),
             name: window.customVariables.currentTextEditorItem.name
         })
 
-        file.name = window.customVariables.currentTextEditorItem.name
-        file.lastModified = new Date()
-        file.editorParent = window.customVariables.currentTextEditorItem.parent
+        fileObject.name = window.customVariables.currentTextEditorItem.name
+        fileObject.lastModified = new Date()
+        fileObject.editorParent = window.customVariables.currentTextEditorItem.parent
+        fileObject.type = "text/plain"
 
-        Object.defineProperty(file, "type", {
-            writable: true,
-            value: ""
-        })
-
-        this.queueFileUpload(file)
+        this.queueFileUpload(fileObject)
 
         return window.customFunctions.dismissModal()
     }

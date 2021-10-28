@@ -15,7 +15,6 @@ dependencies {
     implementation "com.android.support:support-v4:27.+"
     implementation "com.dmcBig:mediapicker:+"
 }
-apply from: "../../node_modules/com-sarriaroman-photoviewer/src/android/photoviewer.gradle"
 apply from: "../../node_modules/cordova-plugin-background-fetch/src/android/build.gradle"
 apply from: "../../node_modules/cordova-plugin-fingerprint-aio/src/android/build.gradle"
 

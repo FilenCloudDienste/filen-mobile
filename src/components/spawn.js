@@ -4,9 +4,11 @@ import * as Ionicons from 'ionicons/icons';
 import { Capacitor, Plugins, CameraResultType, CameraSource, CameraDirection } from "@capacitor/core";
 import * as workers from "../utils/workers"
 import { isPlatform, getPlatforms } from "@ionic/react"
+import { FilePath } from '@ionic-native/file-path'
 
 const utils = require("../utils/utils")
 const chooser = require("cordova-plugin-simple-file-chooser/www/chooser")
+const mime = require("mime-types")
 
 export async function spawnToast(message, duration = 3000){
     if(Capacitor.isNative){
@@ -517,15 +519,17 @@ export async function mainFabAction(){
             }
 
             workers.convertBase64ToArrayBuffer(image.base64String, (arrayBuffer) => {
-                let name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpeg"
+                let fileObject = {}
 
+                fileObject.name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpg"
+                
                 try{
                     var blob = new Blob([arrayBuffer], {
-                        name: name,
+                        name: fileObject.name,
                         lastModified: new Date()
                     })
 
-                    blob.name = name
+                    blob.name = fileObject.name
                     blob.lastModified = new Date()
 
                     Object.defineProperty(blob, "type", {
@@ -537,7 +541,11 @@ export async function mainFabAction(){
                     return console.log(e)
                 }
 
-                return this.queueFileUpload(blob)
+                fileObject.fileEntry = blob
+                fileObject.type = "image/jpeg"
+                fileObject.lastModified = new Date()
+
+                return this.queueFileUpload(fileObject)
             })
         }
     })
@@ -571,21 +579,83 @@ export async function mainFabAction(){
                     }
                 }
     
-                window.MediaPicker.getMedias({
-                    selectMode: 101,
-                    maxSelectCount: 100,
-                    maxSelectSize: 99999999999999999
-                }, (files) => {
-                    files.forEach((file) => {
-                        window.MediaPicker.getFileInfo(file.uri, "uri", (fileInfo) => {
-                            console.log(fileInfo)
+                actionSheet.dismiss()
+
+                try{
+                    var files = await new Promise((resolve, reject) => {
+                        window.MediaPicker.getMedias({
+                            selectMode: 101,
+                            maxSelectCount: 100,
+                            maxSelectSize: 99999999999999999
+                        }, (files) => {
+                            return resolve(files)
                         }, (err) => {
-                            console.log(err)
+                            return reject(err)
                         })
                     })
-                }, (err) => {
-                    console.log(err)
-                })
+                }
+                catch(e){
+                    return console.log(e)
+                }
+
+                for(let i = 0; i < files.length; i++){
+                    let sFile = files[i]
+
+                    try{
+                        let fileObj = await new Promise((resolve, reject) => {
+                            let tempName = "TEMP_UPLOAD_" + utils.uuidv4()
+                            let fileObject = {}
+
+                            fileObject.tempName = tempName
+
+                            window.resolveLocalFileSystemURL(sFile.uri, (resolved) => {
+                                if(resolved.isFile){
+                                    resolved.file((resolvedFile) => {
+                                        fileObject.name = (isPlatform("ios") ? resolvedFile.name.slice(59) : resolvedFile.name)
+                                        fileObject.lastModified = Math.floor(resolvedFile.lastModified)
+                                        fileObject.size = resolvedFile.size
+                                        fileObject.type = resolvedFile.type
+            
+                                        window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory, (dirEntry) => {
+                                            resolved.copyTo(dirEntry, tempName, () => {
+                                                window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory + "/" + tempName, (tempFile) => {
+                                                    tempFile.file((file) => {
+                                                        fileObject.fileEntry = file
+                                                        fileObject.tempFileEntry = tempFile
+            
+                                                        return resolve(fileObject)
+                                                    }, (err) => {
+                                                        return reject(err)
+                                                    })
+                                                }, (err) => {
+                                                    return reject(err)
+                                                })
+                                            }, (err) => {
+                                                return reject(err)
+                                            })
+                                        }, (err) => {
+                                            return reject(err)
+                                        })
+                                    }, (err) => {
+                                        return reject(err)
+                                    })
+                                }
+                                else{
+                                    return reject("selected path is not a file")
+                                }
+                            }, (err) => {
+                                return reject(err)
+                            })
+                        })
+
+                        window.customFunctions.queueFileUpload(fileObj)
+                    }
+                    catch(e){
+                        console.log(e)
+                    }
+                }
+
+                return true
             }
         })
     }
@@ -618,9 +688,82 @@ export async function mainFabAction(){
                 }
             }
 
-            let selectedFiles = await chooser.getFile()
+            actionSheet.dismiss()
 
-            return console.log(selectedFiles)
+            try{
+                var selectedFilesChooser = await chooser.getFile()
+            }
+            catch(e){
+                return console.log(e)
+            }
+
+            let selectedFiles = []
+
+            if(typeof selectedFilesChooser[0] == "object"){
+                for(let i = 0; i < selectedFilesChooser.length; i++){
+                    selectedFiles.push(selectedFilesChooser[i])
+                }
+            }
+            else{
+                selectedFiles.push(selectedFilesChooser)
+            }
+
+            for(let i = 0; i < selectedFiles.length; i++){
+                let sFile = selectedFiles[i]
+
+                try{
+                    let fileObj = await new Promise((resolve, reject) => {
+                        let tempName = "TEMP_UPLOAD_" + utils.uuidv4()
+                        let fileObject = {}
+
+                        fileObject.tempName = tempName
+
+                        window.resolveLocalFileSystemURL(sFile.uri, (resolved) => {
+                            if(resolved.isFile){
+                                resolved.file((resolvedFile) => {
+                                    fileObject.name = resolvedFile.name
+                                    fileObject.lastModified = Math.floor(resolvedFile.lastModified)
+                                    fileObject.size = resolvedFile.size
+                                    fileObject.type = resolvedFile.type
+
+                                    window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory, (dirEntry) => {
+                                        resolved.copyTo(dirEntry, tempName, () => {
+                                            window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory + "/" + tempName, (tempFile) => {
+                                                tempFile.file((file) => {
+                                                    fileObject.fileEntry = file
+                                                    fileObject.tempFileEntry = tempFile
+
+                                                    return resolve(fileObject)
+                                                }, (err) => {
+                                                    return reject(err)
+                                                })
+                                            }, (err) => {
+                                                return reject(err)
+                                            })
+                                        }, (err) => {
+                                            return reject(err)
+                                        })
+                                    }, (err) => {
+                                        return reject(err)
+                                    })
+                                }, (err) => {
+                                    return reject(err)
+                                })
+                            }
+                            else{
+                                return reject("selected path is not a file")
+                            }
+                        }, (err) => {
+                            return reject(err)
+                        })
+                    })
+
+                    window.customFunctions.queueFileUpload(fileObj)
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
         }
     })
 

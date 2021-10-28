@@ -1108,27 +1108,6 @@ export function render(){
                                     )
                                 )
                             }
-                            <input type="file" id="file-input-dummy" style={{
-                                display: "none"
-                            }} onChange={(e) => {
-                                let files = document.getElementById("file-input-dummy").files
-
-                                if(!files){
-                                    return false
-                                }
-
-                                if(files.length <= 0){
-                                    return false
-                                }
-
-                                for(let i = 0; i < files.length; i++){
-                                    this.queueFileUpload(files[i])
-                                }
-
-                                document.getElementById("file-input-dummy").value = ""
-
-                                return true
-                            }} multiple />
                             <input type="file" accept="image/png, image/jpg, image/jpeg" id="avatar-input-dummy" style={{
                                 display: "none"
                             }} onChange={async (e) => {

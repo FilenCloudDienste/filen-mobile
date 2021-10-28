@@ -225,6 +225,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	downloadPreview = downloadComponents.downloadPreview.bind(this)
 	getThumbnail = downloadComponents.getThumbnail.bind(this)
 	getThumbnailDir = downloadComponents.getThumbnailDir.bind(this)
+	getTempDir = downloadComponents.getTempDir.bind(this)
 
 	openSettingsModal = settingsComponents.openSettingsModal.bind(this)
 

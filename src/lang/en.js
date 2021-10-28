@@ -340,6 +340,8 @@ translations['en']['deletePermanentlyConfirmation'] = "Are you sure you want to 
 translations['en']['deletePermanentlyConfirmationMultiple'] = "Are you sure you want to delete __COUNT__ items permanently? This cannot be undone!"
 translations['en']['itemsDeletedPermanently'] = "__COUNT__ items deleted permanently"
 translations['en']['fabUploadImages'] = "Upload images"
+translations['en']['2faRecoveryKeys'] = "2FA recovery keys"
+translations['en']['2faRecoveryKeysInfo'] = "Please save your Two Factor Authentication recovery keys. Without them you will be unable to reset your 2FA if you ever lose access to your 2FA device."
 
 module.exports = {
     translations
