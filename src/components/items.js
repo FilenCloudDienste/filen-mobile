@@ -4,7 +4,6 @@ import * as Ionicons from 'ionicons/icons'
 import { Capacitor, HapticsImpactStyle, Plugins } from "@capacitor/core"
 import { FileOpener } from "@ionic-native/file-opener"
 import { isPlatform, getPlatforms } from "@ionic/react"
-import { PhotoViewer } from '@ionic-native/photo-viewer'
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')

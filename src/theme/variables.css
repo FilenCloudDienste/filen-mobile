@@ -295,3 +295,7 @@ body {
   position: relative;
   overflow: hidden;
 }
+
+.action-sheet-group.sc-ion-action-sheet-md:last-child {
+  padding-bottom: env(safe-area-inset-bottom);
+}

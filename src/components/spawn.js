@@ -4,7 +4,6 @@ import * as Ionicons from 'ionicons/icons';
 import { Capacitor, Plugins, CameraResultType, CameraSource, CameraDirection } from "@capacitor/core";
 import * as workers from "../utils/workers"
 import { isPlatform, getPlatforms } from "@ionic/react"
-import { FilePath } from '@ionic-native/file-path'
 
 const utils = require("../utils/utils")
 const chooser = require("cordova-plugin-simple-file-chooser/www/chooser")
@@ -601,6 +600,8 @@ export async function mainFabAction(){
                 for(let i = 0; i < files.length; i++){
                     let sFile = files[i]
 
+                    await window.customVariables.fsCopySemaphore.acquire()
+
                     try{
                         let fileObj = await new Promise((resolve, reject) => {
                             let tempName = "TEMP_UPLOAD_" + utils.uuidv4()
@@ -611,7 +612,17 @@ export async function mainFabAction(){
                             window.resolveLocalFileSystemURL(sFile.uri, (resolved) => {
                                 if(resolved.isFile){
                                     resolved.file((resolvedFile) => {
-                                        fileObject.name = (isPlatform("ios") ? resolvedFile.name.slice(59) : resolvedFile.name)
+                                        let strippedName = resolvedFile.name
+
+                                        if(isPlatform("ios")){
+                                            if(strippedName.indexOf("IMG_") !== -1 && strippedName.length >= 59){
+                                                let ex = strippedName.split("IMG_")
+
+                                                strippedName = "IMG_" + ex[1]
+                                            }
+                                        }
+
+                                        fileObject.name = strippedName
                                         fileObject.lastModified = Math.floor(resolvedFile.lastModified)
                                         fileObject.size = resolvedFile.size
                                         fileObject.type = resolvedFile.type
@@ -652,7 +663,11 @@ export async function mainFabAction(){
                     }
                     catch(e){
                         console.log(e)
+
+                        this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], ["file"]))
                     }
+
+                    window.customVariables.fsCopySemaphore.release()
                 }
 
                 return true
@@ -711,6 +726,8 @@ export async function mainFabAction(){
             for(let i = 0; i < selectedFiles.length; i++){
                 let sFile = selectedFiles[i]
 
+                await window.customVariables.fsCopySemaphore.acquire()
+
                 try{
                     let fileObj = await new Promise((resolve, reject) => {
                         let tempName = "TEMP_UPLOAD_" + utils.uuidv4()
@@ -762,7 +779,11 @@ export async function mainFabAction(){
                 }
                 catch(e){
                     console.log(e)
+
+                    this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], ["file"]))
                 }
+
+                window.customVariables.fsCopySemaphore.release()
             }
         }
     })

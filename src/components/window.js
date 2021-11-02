@@ -126,19 +126,19 @@ export function windowRouter(){
 export function setupWindowFunctions(){
     window.$ = undefined
 
+    let hacktimerScript = document.createElement("script")
+
+    hacktimerScript.type = "text/javascript"
+    hacktimerScript.src = "assets/hacktimer/HackTimer.js"
+
+    document.getElementsByTagName("head")[0].appendChild(hacktimerScript)
+
     let jQueryScript = document.createElement("script")
 
     jQueryScript.type = "text/javascript"
     jQueryScript.src = "assets/jquery.js"
 
     document.getElementsByTagName("head")[0].appendChild(jQueryScript)
-
-    let pdfJsScript = document.createElement("script")
-
-    pdfJsScript.type = "text/javascript"
-    pdfJsScript.src = "assets/pdf/build/pdf.js"
-
-    document.getElementsByTagName("head")[0].appendChild(pdfJsScript)
 
     let qrCodeScript = document.createElement("script")
 
@@ -203,6 +203,7 @@ export function setupWindowFunctions(){
     window.customVariables.lastThumbnailCacheLength = undefined
     window.customVariables.thumbnailSemaphore = new utils.Semaphore(4)
     window.customVariables.updateItemsSemaphore = new utils.Semaphore(1)
+    window.customVariables.fsCopySemaphore = new utils.Semaphore(1)
     window.customVariables.getNetworkInfoInterval = undefined
     window.customVariables.networkStatus = undefined
     window.customVariables.orderBy = "nameAsc"
@@ -281,7 +282,7 @@ export function setupWindowFunctions(){
         if(appState.isActive){
             window.customFunctions.checkVersion()
             window.customFunctions.triggerBiometricAuth()
-            window.customFunctions.isIndexEmpty()
+            //window.customFunctions.isIndexEmpty()
         }
     })
 
