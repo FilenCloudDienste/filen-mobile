@@ -340,6 +340,8 @@ translations['ru']['deletePermanentlyConfirmation'] = "Вы уверены, чт
 translations['ru']['deletePermanentlyConfirmationMultiple'] = "Вы уверены, что хотите удалить __COUNT__ объектов навсегда? Это нельзя отменить!"
 translations['ru']['itemsDeletedPermanently'] = "__COUNT__ объектов удалено навсегда"
 translations['ru']['fabUploadImages'] = "Загрузить изображения"
+translations['ru']['2faRecoveryKeys'] = "Ключи восстановления 2FA"
+translations['ru']['2faRecoveryKeysInfo'] = "Пожалуйста, сохраните ключи восстановления двухфакторной аутентификации. Без них вы не сможете сбросить настройки 2FA, если потеряете доступ к устройству 2FA."
 
 module.exports = {
     translations
