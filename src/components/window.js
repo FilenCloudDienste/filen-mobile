@@ -4285,6 +4285,102 @@ export function setupWindowFunctions(){
         return true
     }
 
+    window.customFunctions.openVersionActionSheet = async (item) => {
+        try{
+            item = JSON.parse(window.atob(item))
+        }
+        catch(e){
+            return console.log(e)
+        }
+
+        if(item.uuid == item.itemUUID){
+            return false
+        }
+
+        let headerName = item.name
+
+        if(headerName.length >= 32){
+            headerName = headerName.substring(0, 32) + "..."
+        }
+
+        let metadata = item.metadata
+        let nameEx = metadata.name.split(".")
+
+        let buttons = []
+
+        if(utils.getFilePreviewType(nameEx[nameEx.length - 1], metadata.mime) !== "none"){
+            buttons.push({
+                text: language.get(this.state.lang, "previewItem"),
+                icon: Ionicons.imageOutline,
+                handler: () => {
+                    return window.customFunctions.openVersionsItemPreview(window.btoa(JSON.stringify(item)))
+                }
+            })
+        }
+
+        buttons.push({
+            text: language.get(this.state.lang, "restoreItem"),
+            icon: Ionicons.bagAddOutline,
+            handler: () => {
+                return window.customFunctions.restoreVersionedItem(item.uuid, item.itemUUID)
+            }
+        })
+
+        buttons.push({
+            text: language.get(this.state.lang, "deletePermanently"),
+            icon: Ionicons.trashBinOutline,
+            handler: async () => {
+                let loading = await loadingController.create({
+                    message: "",
+                    backdropDismiss: false
+                })
+        
+                loading.present()
+    
+                try{
+                    var res = await utils.apiRequest("POST", "/v1/file/delete/permanent", {
+                        apiKey: window.customVariables.apiKey,
+                        uuid: item.uuid
+                    })
+                }
+                catch(e){
+                    console.log(e)
+    
+                    loading.dismiss()
+    
+                    return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                }
+    
+                loading.dismiss()
+            
+                if(!res.status){
+                    console.log(res.message)
+    
+                    return this.spawnToast(res.message)
+                }
+
+                window.$("#version-item-" + item.uuid).remove()
+    
+                return this.spawnToast(language.get(this.state.lang, "itemDeletedPermanently", true, ["__NAME__"], [item.name]))
+            }
+        })
+
+        let actionSheet = await actionSheetController.create({
+            header: headerName,
+            buttons: buttons
+        })
+
+        await actionSheet.present()
+        
+        if(Capacitor.isNative){
+            setTimeout(() => {
+                Capacitor.Plugins.Keyboard.hide()
+            }, 500)
+        }
+
+        return true
+    }
+
     window.customFunctions.openVersionHistoryModal = async (item) => {
         if(item.type !== "file"){
             return false
@@ -4332,36 +4428,32 @@ export function setupWindowFunctions(){
             let metadata = await utils.decryptFileMetadata(versionData[i].metadata, this.state.userMasterKeys, versionData[i].uuid)
 			let uploadDate = (new Date(versionData[i].timestamp * 1000)).toString().split(" ")
             let dateString = uploadDate[1] + ` ` + uploadDate[2] + ` ` + uploadDate[3] + ` ` + uploadDate[4]
-            let nameEx = metadata.name.split(".")
 
             versionsHTML += `
-                <ion-item>
+                <ion-item id="version-item-` + versionData[i].uuid + `" onClick="window.customFunctions.openVersionActionSheet('` + 
+                    window.btoa(JSON.stringify({
+                        uuid: versionData[i].uuid,
+                        name: metadata.name,
+                        type: "file",
+                        key: metadata.key,
+                        mime: metadata.mime,
+                        size: parseInt(metadata.size),
+                        timestamp: versionData[i].timestamp,
+                        region: versionData[i].region,
+                        bucket: versionData[i].bucket,
+                        version: versionData[i].version,
+                        chunks: versionData[i].chunks,
+                        rm: versionData[i].rm,
+                        itemUUID: item.uuid,
+                        metadata: metadata
+                    }))
+                + `')">
                     <ion-label>
                         ` + dateString + `
                     </ion-label>
                     ` + (versionData[i].uuid !== item.uuid ? `
-                        ` + (utils.getFilePreviewType(nameEx[nameEx.length - 1], metadata.mime) !== "none" ? `
-                            <ion-button onClick="window.customFunctions.openVersionsItemPreview('` + 
-                                window.btoa(JSON.stringify({
-                                    uuid: versionData[i].uuid,
-                                    name: metadata.name,
-                                    type: "file",
-                                    key: metadata.key,
-                                    mime: metadata.mime,
-                                    size: parseInt(metadata.size),
-                                    timestamp: versionData[i].timestamp,
-                                    region: versionData[i].region,
-                                    bucket: versionData[i].bucket,
-                                    version: versionData[i].version,
-                                    chunks: versionData[i].chunks,
-                                    rm: versionData[i].rm
-                                }))
-                            + `')">
-                                ` + language.get(appLang, "previewItem") + `
-                            </ion-button>
-                        ` : ``) + `
-                        <ion-button onClick="window.customFunctions.restoreVersionedItem('` + versionData[i].uuid + `', '` + item.uuid + `')">
-                            ` + language.get(appLang, "restoreItem") + `
+                        <ion-button slot="end" fill="none">
+                            <ion-icon slot="icon-only" icon="` + Ionicons.ellipsisVertical + `" />
                         </ion-button>
                     ` : `
                         ` + language.get(appLang, "currentFileVersion") + `
