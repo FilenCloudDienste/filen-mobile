@@ -4,10 +4,13 @@ import * as Ionicons from 'ionicons/icons'
 import { Capacitor, HapticsImpactStyle, Plugins } from "@capacitor/core"
 import { FileOpener } from "@ionic-native/file-opener"
 import { isPlatform, getPlatforms } from "@ionic/react"
+import { Media } from '@capacitor-community/media'
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 const Hammer = require("hammerjs")
+
+const media = new Media()
 
 export async function updateItemList(showLoader = true, bypassItemsCache = false, isFollowUpRequest = false, windowLocationHref = undefined, callStack = 0){
 	if(!this.state.isLoggedIn){
@@ -1017,7 +1020,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 		let nameEx = item.name.split(".")
 		let previewType = utils.getFilePreviewType(nameEx[nameEx.length - 1])
 
-		if(previewType == "pdf"){
+		if(["pdf", "doc"].includes(previewType)){
 			let loading = await loadingController.create({
 				message: "",
 				backdropDismiss: false
@@ -1177,30 +1180,6 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 					</ion-header>
 					<ion-content fullscreen style="-webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;">
 						<pre style="width: 100vw; height: 100%; margin-top: 0px; padding: 10px; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text;">` + text + `</pre>
-					</ion-content>
-				`
-			}
-			else if(previewType == "pdf"){
-				previewModalContent = `
-					<ion-header class="ion-no-border" style="margin-top: ` + (isPlatform("ipad") ? safeAreaInsets.top : 0) + `px;">
-						<ion-toolbar>
-							<ion-buttons slot="start">
-								<ion-button onclick="window.customFunctions.dismissModal()">
-									<ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
-								</ion-button>
-							</ion-buttons>
-							<ion-title>
-								` + item.name + `
-							</ion-title>
-							<ion-buttons slot="end">
-								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + window.btoa(JSON.stringify(item)) + `')">
-									<ion-icon slot="icon-only" icon="` + Ionicons.ellipsisVertical + `"></ion-icon>
-								</ion-button>
-							</ion-buttons>
-						</ion-toolbar>
-					</ion-header>
-					<ion-content fullscreen>
-						<div id="pdf-viewer" style="width: 100%; height: 100%; overflow: scroll;"></div>
 					</ion-content>
 				`
 			}
@@ -1432,7 +1411,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 						transform = ""
 					}
 
-					if(scale == 1){
+					if(scale <= 1){
 						window.customVariables.imagePreviewZoomedIn = false
 					}
 					else{
@@ -1485,63 +1464,6 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				})
 			}
 
-			const loadPdf = async () => {
-				let canvasContainer = document.getElementById("pdf-viewer")
-
-				if(typeof window.pdfjsLib == "undefined"){
-					return window.customFunctions.dismissModal()
-				}
-
-				window.pdfjsLib.GlobalWorkerOptions.workerSrc = "assets/pdf/build/pdf.worker.js"
-
-				let loader = await loadingController.create({
-					message: ""
-				})
-
-				loader.present()
-        
-				function renderPage(page){
-					let viewport = page.getViewport({
-						scale: 1
-					})
-
-					let canvas = document.createElement('canvas')
-					let ctx = canvas.getContext('2d')
-
-					let renderContext = {
-						canvasContext: ctx,
-						viewport: viewport
-					}
-
-					canvas.height = viewport.height
-					canvas.width = viewport.width
-
-					canvasContainer.appendChild(canvas)
-					
-					page.render(renderContext)
-				}
-				
-				function renderPages(pdfDoc){
-					if(typeof loader !== "undefined"){
-						loader.dismiss()
-					}
-
-					for(let i = 1; i <= pdfDoc.numPages; i++){
-						pdfDoc.getPage(i).then(renderPage)
-					}
-				}
-
-				let loadingTask = window.pdfjsLib.getDocument({
-					data: dataArray
-				})
-
-				loadingTask.promise.then(renderPages).catch((err) => {
-					console.log(err)
-
-					return window.customFunctions.dismissModal()
-				})
-			}
-
 			if(typeof lastModalPreviewType !== "undefined"){
 				try{
 					var currentModal = document.querySelectorAll(".modal-fullscreen > .modal-wrapper")[0].childNodes[0]
@@ -1553,10 +1475,6 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				}
 
 				currentModal.innerHTML = previewModalContent
-
-				if(previewType == "pdf"){
-					loadPdf()
-				}
 
 				if(previewType == "image"){
 					hammerSetup()
@@ -1597,10 +1515,6 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 					catch(e){
 						console.log(e)
 					}
-				}
-
-				if(previewType == "pdf"){
-					loadPdf()
 				}
 
 				if(previewType == "image"){
@@ -3012,7 +2926,7 @@ export async function openPublicLinkModal(item){
 	}
 }
 
-export function makeItemAvailableOffline(offline, item){
+export function makeItemAvailableOffline(offline, item, openAfterDownload = false){
 	if(!offline){
 		this.getDownloadDir(true, item.uuid, async (err, dirObj) => {
 			if(err){
@@ -3071,7 +2985,11 @@ export function makeItemAvailableOffline(offline, item){
 	else{
 		let nItem = item
 
-		return this.queueFileDownload(nItem, true)
+		return this.queueFileDownload(nItem, true, () => {
+			if(openAfterDownload){
+				window.customFunctions.openOfflineFile(nItem)
+			}
+		})
 	}
 }
 
@@ -3396,6 +3314,24 @@ export async function favoriteItem(item, value, showLoader = true){
 export async function spawnItemActionSheet(item){
 	window.$("#main-searchbar").find("input").blur()
 
+	let ext = item.name.split(".")
+	ext = ext[ext.length - 1]
+
+	let previewType = utils.getFilePreviewType(ext)
+
+	let canSaveToGallery = false
+
+	if(isPlatform("ios")){
+		if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mp4", "mov", "hevc"].includes(ext)){
+			canSaveToGallery = true
+		}
+	}
+	else{
+		if(["jpg", "jpeg", "png", "gif", "mp4", "mov"].includes(ext)){
+			canSaveToGallery = true
+		}
+	}
+
 	if(Capacitor.isNative){
 		Capacitor.Plugins.Keyboard.hide()
 	}
@@ -3501,7 +3437,94 @@ export async function spawnItemActionSheet(item){
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
-			return this.queueFileDownload(item)
+			//return this.queueFileDownload(item)
+
+			if(item.offline){
+				return window.customFunctions.openOfflineFile(item)
+			}
+			else{
+				return this.makeItemAvailableOffline(true, item, true)
+			}
+		}
+	}
+
+	options['saveToGallery'] = {
+		text: language.get(this.state.lang, "saveToGallery"),
+		icon: Ionicons.imageOutline,
+		handler: async () => {
+			await window.customFunctions.dismissActionSheet()
+
+			this.queueFileDownload(item, false, undefined, false, (err, downloadedPath) => {
+				if(err){
+					return console.log(err)
+				}
+
+				window.resolveLocalFileSystemURL(downloadedPath.uri, (resolved) => {
+					if(previewType == "video"){
+						media.saveVideo({
+							path: downloadedPath.uri
+						}).then(() => {
+							this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
+
+							resolved.remove(() => {
+								console.log(item.name + " saved to gallery")
+							}, (err) => {
+								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+
+								return console.log(err)
+							})
+						}).catch((err) => {
+							this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+
+							return console.log(err)
+						})
+					}
+					else{
+						if(ext == "gif"){
+							media.saveGif({
+								path: downloadedPath.uri
+							}).then(() => {
+								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
+
+								resolved.remove(() => {
+									console.log(item.name + " saved to gallery")
+								}, (err) => {
+									this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+								
+									return console.log(err)
+								})
+							}).catch((err) => {
+								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+								
+								return console.log(err)
+							})
+						}
+						else{
+							media.savePhoto({
+								path: downloadedPath.uri
+							}).then(() => {
+								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
+
+								resolved.remove(() => {
+									console.log(item.name + " saved to gallery")
+								}, (err) => {
+									this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+								
+									return console.log(err)
+								})
+							}).catch((err) => {
+								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+								
+								return console.log(err)
+							})
+						}
+					}
+				}, (err) => {
+					this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+								
+					return console.log(err)
+				})
+			})
 		}
 	}
 
@@ -3512,10 +3535,10 @@ export async function spawnItemActionSheet(item){
 			await window.customFunctions.dismissActionSheet()
 
 			if(item.offline){
-				return this.makeItemAvailableOffline(false, item)
+				return this.makeItemAvailableOffline(false, item, false)
 			}
 			else{
-				return this.makeItemAvailableOffline(true, item)
+				return this.makeItemAvailableOffline(true, item, false)
 			}
 		}
 	}
@@ -3666,11 +3689,6 @@ export async function spawnItemActionSheet(item){
 		}
 	}
 
-	let ext = item.name.split(".")
-	ext = ext[ext.length - 1]
-
-	let previewType = utils.getFilePreviewType(ext)
-
 	if(item.type == "folder"){
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
@@ -3813,6 +3831,7 @@ export async function spawnItemActionSheet(item){
 	else{
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
+				...[(canSaveToGallery ? options['saveToGallery'] : [])],
 				options['download'],
 				options['offline'],
 				options['removeFromShared'],
@@ -3824,6 +3843,7 @@ export async function spawnItemActionSheet(item){
 				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
 				options['share'],
 				options['publicLink'],
+				...[(canSaveToGallery ? options['saveToGallery'] : [])],
 				options['download'],
 				options['offline'],
 				options['versions'],
@@ -3837,6 +3857,7 @@ export async function spawnItemActionSheet(item){
 		}
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
+				...[(canSaveToGallery ? options['saveToGallery'] : [])],
 				options['download'],
 				options['restore'],
 				options['deletePermanently'],
@@ -3848,6 +3869,7 @@ export async function spawnItemActionSheet(item){
 				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
 				options['share'],
 				options['publicLink'],
+				...[(canSaveToGallery ? options['saveToGallery'] : [])],
 				options['download'],
 				options['offline'],
 				options['versions'],
@@ -3863,6 +3885,7 @@ export async function spawnItemActionSheet(item){
 				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
 				options['share'],
 				options['publicLink'],
+				...[(canSaveToGallery ? options['saveToGallery'] : [])],
 				options['download'],
 				options['offline'],
 				options['versions'],
@@ -3877,6 +3900,7 @@ export async function spawnItemActionSheet(item){
 				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
 				options['share'],
 				options['publicLink'],
+				...[(canSaveToGallery ? options['saveToGallery'] : [])],
 				options['download'],
 				options['offline'],
 				options['versions'],

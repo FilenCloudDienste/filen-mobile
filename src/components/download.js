@@ -607,10 +607,38 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
     })
 }
 
-export async function queueFileDownload(file, isOfflineRequest = false, optionalCallback = undefined, calledByPreview = false){
+export async function queueFileDownload(file, isOfflineRequest = false, optionalCallback = undefined, calledByPreview = false, saveToGalleryCallback = undefined){
     const callOptionalCallback = (...args) => {
         if(typeof optionalCallback == "function"){
             optionalCallback(...args)
+        }
+    }
+
+    const returnDownloadPath = async () => {
+        try{
+            let filePath = await new Promise((resolve, reject) => {
+                this.getDownloadDir(makeOffline, fileName, (err, dirObj) => {
+                    if(err){
+                        return reject(err)
+                    }
+
+                    Plugins.Filesystem.getUri({
+                        path: dirObj.path + "/" + file.name,
+                        directory: dirObj.directory
+                    }).then((path) => {
+                        return resolve(path)
+                    }).catch((err) => {
+                        return reject(err)
+                    })
+                })
+            })
+
+            return saveToGalleryCallback(null, filePath)
+        }
+        catch(e){
+            console.log(e)
+
+            return saveToGalleryCallback(e)
         }
     }
 
@@ -621,6 +649,10 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
             if(networkStatus.connectionType !== "wifi"){
                 callOptionalCallback(null)
 
+                if(typeof saveToGalleryCallback == "function"){
+                    saveToGalleryCallback("no wifi")
+                }
+
                 return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
             }
         }
@@ -629,6 +661,10 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
     for(let prop in window.customVariables.downloads){
 		if(window.customVariables.downloads[prop].name == file.name){
             callOptionalCallback(null)
+
+            if(typeof saveToGalleryCallback == "function"){
+                saveToGalleryCallback("already downloading")
+            }
 
 			return this.spawnToast(language.get(this.state.lang, "fileDownloadAlreadyDownloadingFile", true, ["__NAME__"], [file.name]))
 		}
@@ -665,6 +701,10 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
             console.log(err)
 
             callOptionalCallback(null)
+
+            if(typeof saveToGalleryCallback == "function"){
+                saveToGalleryCallback("could not get download dir")
+            }
 
             return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
         }
@@ -845,6 +885,10 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                             removeFromState()
 
                             if(err == "stopped"){
+                                if(typeof saveToGalleryCallback == "function"){
+                                    saveToGalleryCallback("stopped")
+                                }
+
                                 if(typeof window.customVariables.stoppedDownloadsDone[uuid] == "undefined"){
                                     window.customVariables.stoppedDownloadsDone[uuid] = true
 
@@ -865,6 +909,10 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                 }
                             }
                             else{
+                                if(typeof saveToGalleryCallback == "function"){
+                                    saveToGalleryCallback("err")
+                                }
+
                                 return this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [file.name]))
                             }
                         }
@@ -880,9 +928,17 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                     removeFromState()
 
                                     if(err == "stopped"){
+                                        if(typeof saveToGalleryCallback == "function"){
+                                            saveToGalleryCallback("stopped")
+                                        }
+
                                         return false
                                     }
                                     else{
+                                        if(typeof saveToGalleryCallback == "function"){
+                                            saveToGalleryCallback("err")
+                                        }
+
                                         return this.spawnToast(language.get(this.state.lang, "fileWriteError", true, ["__NAME__"], [file.name]))
                                     }
                                 }
@@ -943,8 +999,13 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                             return this.forceUpdate()
                                         }
                                         else{
-                                            this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [file.name]))
-        
+                                            if(typeof saveToGalleryCallback == "function"){
+                                                returnDownloadPath()
+                                            }
+                                            else{
+                                                this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [file.name]))
+                                            }
+
                                             return removeFromState()
                                         }
                                     }  
@@ -1098,8 +1159,8 @@ export async function getThumbnail(file, thumbURL, ext){
                         var compressedImage = await new Promise((resolve, reject) => {
                             new Compressor(thumbnailData, {
                                 quality: 0.6,
-                                maxWidth: 256,
-                                maxHeight: 256,
+                                maxWidth: 512,
+                                maxHeight: 512,
                                 mimeType: "image/png",
                                 success(result){
                                     return resolve(result)
@@ -1150,8 +1211,8 @@ export async function getThumbnail(file, thumbURL, ext){
                             var compressedImage = await new Promise((resolve, reject) => {
                                 new Compressor(data, {
                                     quality: 0.5,
-                                    maxWidth: 256,
-                                    maxHeight: 256,
+                                    maxWidth: 512,
+                                    maxHeight: 512,
                                     mimeType: "image/png",
                                     success(result){
                                         return resolve(result)

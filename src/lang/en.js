@@ -342,6 +342,9 @@ translations['en']['itemsDeletedPermanently'] = "__COUNT__ items deleted permane
 translations['en']['fabUploadImages'] = "Upload images"
 translations['en']['2faRecoveryKeys'] = "2FA recovery keys"
 translations['en']['2faRecoveryKeysInfo'] = "Please save your Two Factor Authentication recovery keys. Without them you will be unable to reset your 2FA if you ever lose access to your 2FA device."
+translations['en']['saveToGallery'] = "Save to Gallery"
+translations['en']['fileSavedToGallery'] = "__NAME__ saved to gallery"
+translations['en']['fileSavedToGalleryError'] = "Could not save __NAME__ to gallery, error"
 
 module.exports = {
     translations

@@ -1765,6 +1765,16 @@ export function getFilePreviewType(ext, mime = undefined){
       case "pdf":
         return "pdf"
       break
+	  case "docx":
+	  case "doc":
+	  case "odt":
+	  case "xls":
+	  case "xlsx":
+	  case "ods":
+	  case "ppt":
+	  case "pptx":
+		return "doc"
+	  break
       default:
         return "none"
       break

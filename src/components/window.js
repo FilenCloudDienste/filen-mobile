@@ -242,7 +242,7 @@ export function setupWindowFunctions(){
     window.customVariables.imagePreviewZoomedIn = false
     window.customVariables.galleryUploadEnabled = false
 
-    setTimeout(() => {
+    /*setTimeout(() => {
         PhotoLibrary.requestAuthorization().then(() => {
             PhotoLibrary.getLibrary((res) => {
                 let lib = res.library
@@ -276,7 +276,7 @@ export function setupWindowFunctions(){
         }).catch((err) => {
             console.error(err)
         })
-    }, 1000)
+    }, 1000)*/
 
     Plugins.App.addListener("appStateChange", (appState) => {
         if(appState.isActive){
