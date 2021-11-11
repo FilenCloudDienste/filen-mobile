@@ -342,6 +342,9 @@ translations['ru']['itemsDeletedPermanently'] = "__COUNT__ объектов уд
 translations['ru']['fabUploadImages'] = "Загрузить изображения"
 translations['ru']['2faRecoveryKeys'] = "Ключи восстановления 2FA"
 translations['ru']['2faRecoveryKeysInfo'] = "Пожалуйста, сохраните ключи восстановления двухфакторной аутентификации. Без них вы не сможете сбросить настройки 2FA, если потеряете доступ к устройству 2FA."
+translations['ru']['saveToGallery'] = "Сохранить в галерею"
+translations['ru']['fileSavedToGallery'] = "__NAME__ сохранено в галерею"
+translations['ru']['fileSavedToGalleryError'] = "Не удалось сохранить __NAME__ в галерею, ошибка"
 
 module.exports = {
     translations
