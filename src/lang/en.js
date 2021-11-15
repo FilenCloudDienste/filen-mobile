@@ -345,6 +345,7 @@ translations['en']['2faRecoveryKeysInfo'] = "Please save your Two Factor Authent
 translations['en']['saveToGallery'] = "Save to Gallery"
 translations['en']['fileSavedToGallery'] = "__NAME__ saved to gallery"
 translations['en']['fileSavedToGalleryError'] = "Could not save __NAME__ to gallery, error"
+translations['en']['fabUploadFromGallery'] = "Upload from gallery"
 
 module.exports = {
     translations

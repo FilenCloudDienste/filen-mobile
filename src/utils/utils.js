@@ -2047,10 +2047,16 @@ export function orderItemsByType(items, type){
 export function getVideoCover(file, seekTo = 0.0) {
     return new Promise((resolve, reject) => {
         // load the file to a video player
-        const videoPlayer = document.createElement('video');
-        videoPlayer.setAttribute('src', URL.createObjectURL(file));
+		
+		let urlCreator = window.URL || window.webkitURL
+        let videoPlayer = document.createElement('video');
+		let objectURL = urlCreator.createObjectURL(file)
+
+        videoPlayer.setAttribute('src', objectURL);
         videoPlayer.load();
         videoPlayer.addEventListener('error', (ex) => {
+			console.log(ex)
+
             reject("error when loading video file", ex);
         });
         // load metadata of the video to get video duration and dimensions
@@ -2081,7 +2087,9 @@ export function getVideoCover(file, seekTo = 0.0) {
                 // return the canvas image as a blob
                 ctx.canvas.toBlob(
                     blob => {
-                        resolve(blob);
+						urlCreator.revokeObjectURL(objectURL)
+
+                        return resolve(blob);
                     },
                     "image/jpeg",
                     1 /* quality */

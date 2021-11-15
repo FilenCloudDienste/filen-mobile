@@ -525,11 +525,11 @@ export async function mainFabAction(){
                 try{
                     var blob = new Blob([arrayBuffer], {
                         name: fileObject.name,
-                        lastModified: new Date()
+                        lastModified: (+new Date())
                     })
 
                     blob.name = fileObject.name
-                    blob.lastModified = new Date()
+                    blob.lastModified = (+new Date())
 
                     Object.defineProperty(blob, "type", {
                         writable: true,
@@ -540,6 +540,7 @@ export async function mainFabAction(){
                     return console.log(e)
                 }
 
+                fileObject.size = blob.size
                 fileObject.fileEntry = blob
                 fileObject.type = "image/jpeg"
                 fileObject.lastModified = new Date()
@@ -551,7 +552,7 @@ export async function mainFabAction(){
 
     if(isPlatform("ios")){
         fabButtons.push({
-            text: language.get(this.state.lang, "fabUploadImages"),
+            text: language.get(this.state.lang, "fabUploadFromGallery"),
             icon: Ionicons.cloudUpload,
             handler: async () => {
                 if(Capacitor.isNative){

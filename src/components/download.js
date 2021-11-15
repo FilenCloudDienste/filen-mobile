@@ -1142,9 +1142,7 @@ export async function getThumbnail(file, thumbURL, ext){
                         return reject(err)
                     }
 
-                    downloadData = new Blob([downloadData], {
-                        type: "image/png"
-                    })
+                    downloadData = new Blob([downloadData])
     
                     try{
                         var thumbnailData = await utils.getVideoCover(downloadData)

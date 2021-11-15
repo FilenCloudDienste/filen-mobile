@@ -4950,15 +4950,38 @@ export function setupWindowFunctions(){
             return window.customFunctions.dismissModal()
         }
 
+        if(typeof window.customVariables.currentTextEditorItem.parent == "undefined"){
+            return window.customFunctions.dismissModal()
+        }
+
+        if(window.customVariables.currentTextEditorItem.parent == "undefined"){
+            return window.customFunctions.dismissModal()
+        }
+
         let fileObject = {}
 
-        fileObject.fileEntry = new Blob([new TextEncoder().encode(value)], {
-            lastModified: new Date(),
-            name: window.customVariables.currentTextEditorItem.name
-        })
+        try{
+            var blob = new Blob([new TextEncoder().encode(value)], {
+                lastModified: (+new Date()),
+                name: window.customVariables.currentTextEditorItem.name
+            })
 
+            blob.name = window.customVariables.currentTextEditorItem.name
+            blob.lastModified = (+new Date())
+
+            Object.defineProperty(blob, "type", {
+                writable: true,
+                value: "text/plain"
+            })
+        }
+        catch(e){
+            return console.log(e)
+        }
+
+        fileObject.fileEntry = blob
+        fileObject.size = blob.size
         fileObject.name = window.customVariables.currentTextEditorItem.name
-        fileObject.lastModified = new Date()
+        fileObject.lastModified = (+new Date())
         fileObject.editorParent = window.customVariables.currentTextEditorItem.parent
         fileObject.type = "text/plain"
 

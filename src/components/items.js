@@ -21,6 +21,15 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		return this.showLogin()
 	}
 
+	if(showLoader){
+		var loading = await loadingController.create({
+			message: "",
+			backdropDismiss: false
+		})
+	
+		loading.present()
+	}
+
 	if(Capacitor.isNative){
 		Capacitor.Plugins.Keyboard.hide()
 	}
@@ -110,6 +119,12 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			}
 
 			setTimeout(window.customFunctions.saveCachedItems, 1000)
+
+			if(showLoader){
+				setTimeout(() => {
+					loading.dismiss()
+				}, 1)
+			}
 		})
 	}
 
@@ -124,37 +139,6 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		})
 
 		return alert.present()
-	}
-
-    if(showLoader){
-		var loading = await loadingController.create({
-			message: ""
-		})
-	
-		loading.present()
-
-		/*let skeletonItems = []
-
-		for(let i = 0; i < 10; i++){
-			skeletonItems.push({
-				type: "folder",
-				uuid: "default" + i,
-				name: "Default" + i,
-				date: language.get(this.state.lang, "defaultFolder"),
-				timestamp: (((+new Date()) / 1000) - (86400 * 3650)),
-				parent: "base",
-				receiverId: 0,
-				receiverEmail: "",
-				sharerId: 0,
-				sharerEmail: "",
-				color: null
-			})
-		}
-
-		this.setState({
-			showMainSkeletonPlaceholder: true,
-			items: skeletonItems
-		})*/
 	}
 
 	window.customVariables.currentThumbnailURL = window.location.href
@@ -752,7 +736,7 @@ export function getFileThumbnail(file, thumbURL, index){
 	}
 
 	if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
-		if(window.customVariables.getThumbnailErrors[file.uuid] >= 16){
+		if(window.customVariables.getThumbnailErrors[file.uuid] >= 32){
 			return false
 		}
 	}
@@ -3454,16 +3438,49 @@ export async function spawnItemActionSheet(item){
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
-			this.queueFileDownload(item, false, undefined, false, (err, downloadedPath) => {
+			this.queueFileDownload(item, false, undefined, false, async (err, downloadedPath) => {
 				if(err){
 					return console.log(err)
 				}
 
+				let savePayload = {
+					path: downloadedPath.uri
+				}
+	
+				if(!isPlatform("ios")){
+					try{
+						var albums = await media.getAlbums()
+					}
+					catch(e){
+						return console.log(e)
+					}
+
+					let album = ""
+	
+					if(previewType == "video"){
+						for(let i = 0; i < albums.albums.length; i++){
+							if(albums.albums[i].name.toLowerCase() == "videos"){
+								album = albums.albums[i].name
+							}
+						}
+					}
+					else{
+						for(let i = 0; i < albums.albums.length; i++){
+							if(albums.albums[i].name.toLowerCase() == "recents"){
+								album = albums.albums[i].name
+							}
+						}
+					}
+
+					savePayload = {
+						path: downloadedPath.uri,
+						album: album
+					}
+				}
+
 				window.resolveLocalFileSystemURL(downloadedPath.uri, (resolved) => {
 					if(previewType == "video"){
-						media.saveVideo({
-							path: downloadedPath.uri
-						}).then(() => {
+						media.saveVideo(savePayload).then(() => {
 							this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 							resolved.remove(() => {
@@ -3481,9 +3498,7 @@ export async function spawnItemActionSheet(item){
 					}
 					else{
 						if(ext == "gif"){
-							media.saveGif({
-								path: downloadedPath.uri
-							}).then(() => {
+							media.saveGif(savePayload).then(() => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 								resolved.remove(() => {
@@ -3500,9 +3515,7 @@ export async function spawnItemActionSheet(item){
 							})
 						}
 						else{
-							media.savePhoto({
-								path: downloadedPath.uri
-							}).then(() => {
+							media.savePhoto(savePayload).then(() => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 								resolved.remove(() => {
@@ -3832,7 +3845,7 @@ export async function spawnItemActionSheet(item){
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
 				...[(canSaveToGallery ? options['saveToGallery'] : [])],
-				options['download'],
+				//options['download'],
 				options['offline'],
 				options['removeFromShared'],
 				options['cancel']
@@ -3844,7 +3857,7 @@ export async function spawnItemActionSheet(item){
 				options['share'],
 				options['publicLink'],
 				...[(canSaveToGallery ? options['saveToGallery'] : [])],
-				options['download'],
+				//options['download'],
 				options['offline'],
 				options['versions'],
 				//options['favorite'],
@@ -3858,7 +3871,7 @@ export async function spawnItemActionSheet(item){
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
 				...[(canSaveToGallery ? options['saveToGallery'] : [])],
-				options['download'],
+				//options['download'],
 				options['restore'],
 				options['deletePermanently'],
 				options['cancel']
@@ -3870,7 +3883,7 @@ export async function spawnItemActionSheet(item){
 				options['share'],
 				options['publicLink'],
 				...[(canSaveToGallery ? options['saveToGallery'] : [])],
-				options['download'],
+				//options['download'],
 				options['offline'],
 				options['versions'],
 				options['favorite'],
@@ -3886,7 +3899,7 @@ export async function spawnItemActionSheet(item){
 				options['share'],
 				options['publicLink'],
 				...[(canSaveToGallery ? options['saveToGallery'] : [])],
-				options['download'],
+				//options['download'],
 				options['offline'],
 				options['versions'],
 				options['favorite'],
@@ -3901,7 +3914,7 @@ export async function spawnItemActionSheet(item){
 				options['share'],
 				options['publicLink'],
 				...[(canSaveToGallery ? options['saveToGallery'] : [])],
-				options['download'],
+				//options['download'],
 				options['offline'],
 				options['versions'],
 				options['favorite'],
