@@ -346,6 +346,7 @@ translations['en']['saveToGallery'] = "Save to Gallery"
 translations['en']['fileSavedToGallery'] = "__NAME__ saved to gallery"
 translations['en']['fileSavedToGalleryError'] = "Could not save __NAME__ to gallery, error"
 translations['en']['fabUploadFromGallery'] = "Upload from gallery"
+translations['en']['closeAppPress'] = "Press back button once more to close the app"
 
 module.exports = {
     translations

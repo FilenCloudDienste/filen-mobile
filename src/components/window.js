@@ -23,6 +23,8 @@ export function windowRouter(){
                 this.forceUpdate()
             })
 
+            window.customVariables.backButtonPresses = 0
+
             let routeEx = window.location.hash.split("/")
 
             if(this.state.isLoggedIn){
@@ -241,6 +243,35 @@ export function setupWindowFunctions(){
     window.customVariables.cachedUserInfo = undefined
     window.customVariables.imagePreviewZoomedIn = false
     window.customVariables.galleryUploadEnabled = false
+    window.customVariables.backButtonPresses = 0
+
+    document.addEventListener("ionBackButton", async (e) => {
+        if(isPlatform("ios")){
+            return false
+        }
+
+        let modalOpen = await window.customFunctions.isAModalOpen()
+
+        if(["#!/base", "#!/shared-in", "#!/shared-out", "#!/favorites", "#!/links"].includes(window.location.hash)){
+            if(!modalOpen){
+                if(window.customVariables.backButtonPresses >= 2){
+                    window.customVariables.backButtonPresses = 0
+
+                    try{
+                        App.exitApp()
+                    }
+                    catch(e){
+                        return console.log(e)
+                    }
+                }
+                else{
+                    window.customVariables.backButtonPresses += 1
+
+                    this.spawnToast(language.get(this.state.lang, "closeAppPress"))
+                }
+            }
+        }
+    })
 
     /*setTimeout(() => {
         PhotoLibrary.requestAuthorization().then(() => {
@@ -298,6 +329,45 @@ export function setupWindowFunctions(){
                 await this.updateItemList()
             }
         }, 100)
+    }
+
+    window.customFunctions.isAModalOpen = async () => {
+        let modalOpen = false
+        
+        try{
+            let topModal = await modalController.getTop()
+
+            if(typeof topModal !== "undefined"){
+                modalOpen = true
+            }
+        }
+        catch(e){
+            modalOpen = false
+        }
+
+        try{
+            let topModal = await popoverController.getTop()
+
+            if(typeof topModal !== "undefined"){
+                modalOpen = true
+            }
+        }
+        catch(e){
+            modalOpen = false
+        }
+
+        try{
+            let topModal = await actionSheetController.getTop()
+
+            if(typeof topModal !== "undefined"){
+                modalOpen = true
+            }
+        }
+        catch(e){
+            modalOpen = false
+        }
+
+        return modalOpen
     }
 
     window.customFunctions.itemListScrolling = () => {
