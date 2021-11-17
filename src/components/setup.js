@@ -379,12 +379,12 @@ export async function doSetup(){
                 window.customVariables.cachedAPIItemListRequests = JSON.parse(getCachedAPIItemListRequests.value)
             }*/
 
-            /*if(getItemsCache.value == null){
+            if(getItemsCache.value == null){
                 window.customVariables.itemsCache = {}
             }
             else{
                 window.customVariables.itemsCache = JSON.parse(getItemsCache.value)
-            }*/
+            }
         }
         else{
             return this.showLogin()

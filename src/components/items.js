@@ -115,8 +115,20 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	if(!isDeviceOnline){
 		window.customFunctions.dismissLoader()
 
-		if(!bypassItemsCache){
-			return false
+		return this.setState({
+			itemList: [],
+			showMainSkeletonPlaceholder: false
+		}, () => {
+			this.forceUpdate()
+		})
+
+		/*if(!bypassItemsCache){
+			return this.setState({
+				itemList: [],
+				showMainSkeletonPlaceholder: false
+			}, () => {
+				this.forceUpdate()
+			})
 		}
 	
 		let alert = await alertController.create({
@@ -126,7 +138,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
 		})
 
-		return alert.present()
+		return alert.present()*/
 	}
 
 	window.customVariables.currentThumbnailURL = window.location.href
