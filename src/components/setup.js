@@ -202,24 +202,36 @@ export async function setupStatusbar(type = "normal"){
 }
 
 export async function doSetup(){
-    let getLang = await Plugins.Storage.get({ key: "lang" })
-    let getDarkMode = await Plugins.Storage.get({ key: "darkMode" })
-    let getIsLoggedIn = await Plugins.Storage.get({ key: "isLoggedIn" })
-    let getUserAPIKey = await Plugins.Storage.get({ key: "userAPIKey" })
-    let getUserEmail = await Plugins.Storage.get({ key: "userEmail" })
-    let getUserMasterKeys = await Plugins.Storage.get({ key: "userMasterKeys" })
-    let getUserPublicKey = await Plugins.Storage.get({ key: "userPublicKey" })
-    let getUserPrivateKey = await Plugins.Storage.get({ key: "userPrivateKey" })
-    let getOfflineSavedFiles = await Plugins.Storage.get({ key: "offlineSavedFiles" })
-    let getAPICache = await Plugins.Storage.get({ key: "apiCache" })
-    let getSettings = await Plugins.Storage.get({ key: "settings" })
-    let getCachedFiles = await Plugins.Storage.get({ key: "cachedFiles" })
-    let getCachedFolders = await Plugins.Storage.get({ key: "cachedFolders" })
-    let getCachedMetadata = await Plugins.Storage.get({ key: "cachedMetadata" })
-    let getThumbnailCache = await Plugins.Storage.get({ key: "thumbnailCache" })
-    let getGetThumbnailErrors = await Plugins.Storage.get({ key: "getThumbnailErrors" })
-    let getCachedAPIItemListRequests = await Plugins.Storage.get({ key: "cachedAPIItemListRequests" })
-    let getItemsCache = await Plugins.Storage.get({ key: "itemsCache" })
+    try{
+        var networkStatus = await Plugins.Network.getStatus()
+    }
+    catch(e){
+        return console.log(e)
+    }
+
+    try{
+        var getLang = await Plugins.Storage.get({ key: "lang" })
+        var getDarkMode = await Plugins.Storage.get({ key: "darkMode" })
+        var getIsLoggedIn = await Plugins.Storage.get({ key: "isLoggedIn" })
+        var getUserAPIKey = await Plugins.Storage.get({ key: "userAPIKey" })
+        var getUserEmail = await Plugins.Storage.get({ key: "userEmail" })
+        var getUserMasterKeys = await Plugins.Storage.get({ key: "userMasterKeys" })
+        var getUserPublicKey = await Plugins.Storage.get({ key: "userPublicKey" })
+        var getUserPrivateKey = await Plugins.Storage.get({ key: "userPrivateKey" })
+        var getOfflineSavedFiles = await Plugins.Storage.get({ key: "offlineSavedFiles" })
+        var getAPICache = await Plugins.Storage.get({ key: "apiCache" })
+        var getSettings = await Plugins.Storage.get({ key: "settings" })
+        var getCachedFiles = await Plugins.Storage.get({ key: "cachedFiles" })
+        var getCachedFolders = await Plugins.Storage.get({ key: "cachedFolders" })
+        var getCachedMetadata = await Plugins.Storage.get({ key: "cachedMetadata" })
+        var getThumbnailCache = await Plugins.Storage.get({ key: "thumbnailCache" })
+        var getGetThumbnailErrors = await Plugins.Storage.get({ key: "getThumbnailErrors" })
+        var getCachedAPIItemListRequests = await Plugins.Storage.get({ key: "cachedAPIItemListRequests" })
+        var getItemsCache = await Plugins.Storage.get({ key: "itemsCache" })
+    }
+    catch(e){
+        return console.log(e)
+    }
 
     if(getLang.value){
         this.setState({
@@ -381,13 +393,15 @@ export async function doSetup(){
 
     window.customVariables.apiKey = getUserAPIKey.value
 
-    await window.customFunctions.fetchUserInfo()
+    if(networkStatus.connected){
+        await window.customFunctions.fetchUserInfo()
 
-    await new Promise((resolve) => {
-        this.updateUserKeys(() => {
-            resolve()
+        await new Promise((resolve) => {
+            this.updateUserKeys(() => {
+                resolve()
+            })
         })
-    })
+    }
 
     if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
 		return window.customFunctions.logoutUser()
@@ -419,9 +433,27 @@ export async function doSetup(){
         window.customFunctions.getNetworkInfo()
     }, 60000)
 
-    this.initSocket()
+    Plugins.Network.addListener("networkStatusChange", (status) => {
+        let old = window.customVariables.networkStatus
+
+        window.customVariables.networkStatus = status
+
+        if(old.connected !== window.customVariables.networkStatus.connected){
+            this.setState({
+                networkStatus: window.customVariables.networkStatus,
+                isDeviceOnline: window.customVariables.networkStatus.connected
+            }, () => {
+                this.forceUpdate()
+            })
+        }
+    })
+
+    if(networkStatus.connected){
+        this.initSocket()
     
-    window.customFunctions.checkVersion()
+        window.customFunctions.checkVersion()
+    }
+
     window.customFunctions.triggerBiometricAuth()
     //window.customFunctions.isIndexEmpty()
 

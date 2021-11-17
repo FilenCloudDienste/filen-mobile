@@ -11,7 +11,7 @@ const sha1 = require("js-sha1")
 const sha512 = require("js-sha512")
 const sha384 = require("js-sha512").sha384
 
-export function hashPassword(password){
+export function hashPassword(password){ //deprecated
 	return sha512(sha384(sha256(sha1(password)))) + sha512(md5(md4(md2(password))))
 }
 
@@ -69,11 +69,13 @@ export function generateRandomClassName(length = 16){
 export function getAPIServer(){
     let servers = [
         "https://api.filen.io",
-        "https://api.filen-1.xyz",
-        "https://api.filen-2.xyz",
-        "https://api.filen-3.xyz",
-        "https://api.filen-4.xyz",
-        "https://api.filen-5.xyz"
+		"https://api.filen.net",
+        "https://api.filen-1.net",
+        "https://api.filen-2.net",
+        "https://api.filen-3.net",
+        "https://api.filen-4.net",
+        "https://api.filen-5.net",
+		"https://api.filen-6.net"
     ]
 
     return servers[getRandomArbitrary(0, (servers.length - 1))]
@@ -222,11 +224,13 @@ export function apiRequest(method, endpoint, data = {}){
 
 export function getDownloadServer(){
     let servers = [
-        "https://down.filen-1.xyz",
-        "https://down.filen-2.xyz",
-        "https://down.filen-3.xyz",
-        "https://down.filen-4.xyz",
-        "https://down.filen-5.xyz"
+		"https://down.filen.io",
+		"https://down.filen.net",
+        "https://down.filen-1.net",
+        "https://down.filen-2.net",
+        "https://down.filen-3.net",
+        "https://down.filen-4.net",
+        "https://down.filen-5.net"
     ]
 
     return servers[getRandomArbitrary(0, (servers.length - 1))]
@@ -234,11 +238,14 @@ export function getDownloadServer(){
 
 export function getUploadServer(){
     let servers = [
-        "https://up.filen-1.xyz",
-        "https://up.filen-2.xyz",
-        "https://up.filen-3.xyz",
-        "https://up.filen-4.xyz",
-        "https://up.filen-5.xyz"
+		"https://up.filen.io",
+		"https://up.filen.net",
+        "https://up.filen-1.net",
+        "https://up.filen-2.net",
+        "https://up.filen-3.net",
+        "https://up.filen-4.net",
+        "https://up.filen-5.net",
+		"https://up.filen-6.net"
     ]
 
     return servers[getRandomArbitrary(0, (servers.length - 1))]

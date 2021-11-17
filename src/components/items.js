@@ -38,23 +38,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
         Plugins.SplashScreen.hide()
     }
 
-	let isDeviceOnline = false
-
-	if(Capacitor.isNative){
-        try{
-			let networkStatus = await Plugins.Network.getStatus()
-
-			isDeviceOnline = (networkStatus.connected ? true : false)
-		}
-		catch(e){
-			console.log(e)
-
-			isDeviceOnline = true
-		}
-    }
-	else{
-		isDeviceOnline = (window.navigator.onLine ? true : false)
-	}
+	let isDeviceOnline = window.customFunctions.isDeviceOnline()
 
 	this.setState({
         searchbarOpen: false,
@@ -130,6 +114,10 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 	if(!isDeviceOnline){
 		window.customFunctions.dismissLoader()
+
+		if(!bypassItemsCache){
+			return false
+		}
 	
 		let alert = await alertController.create({
 			header: "",
@@ -905,6 +893,8 @@ export async function selectItemsAction(event){
 	let selectedItemsDoesNotContainFolder = utils.selectedItemsDoesNotContainFolder(this.state.itemList)
 	let selectedItemsContainsDefaultFolder = utils.selectedItemsContainsDefaultFolder(this.state.itemList)
 
+	let isDeviceOnline = window.customFunctions.isDeviceOnline()
+
 	let inner = ""
 
 	if(window.location.href.indexOf("shared-in") !== -1){
@@ -960,6 +950,16 @@ export async function selectItemsAction(event){
 		`
 	}
 
+	if(!isDeviceOnline){
+		inner = `
+			<ion-list>
+				<ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(appLang, "selectAll") + `</ion-item>
+				<ion-item lines="none" detail="false" button onClick="window.customFunctions.unselectAllItems()">` + language.get(appLang, "unselectAll") + `</ion-item>
+				<!--<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(appLang, "close") + `</ion-item>-->
+			</ion-list>
+		`
+	}
+
     window.customElements.define(customElementId, class ModalContent extends HTMLElement {
         connectedCallback(){
             this.innerHTML = inner
@@ -975,13 +975,22 @@ export async function selectItemsAction(event){
 }
 
 export async function previewItem(item, lastModalPreviewType = undefined, isOuterPreview = false){
+	if(!window.customFunctions.isDeviceOnline()){
+		if(typeof window.customVariables.offlineSavedFiles[item.uuid] !== "undefined" && typeof lastModalPreviewType == "undefined"){
+			return window.customFunctions.openOfflineFile(item)
+		}
+		else{
+			return false
+		}
+	}
+
     if(item.type !== "file"){
 		return false
 	}
 
 	if(Capacitor.isNative && typeof lastModalPreviewType == "undefined"){
         if(this.state.settings.onlyWifi){
-            let networkStatus = await Plugins.Network.getStatus()
+            let networkStatus = this.state.networkStatus
 
             if(networkStatus.connectionType !== "wifi"){
                 return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
@@ -1344,7 +1353,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 					}
 					else{
 						if(xDiffAbs < yDiffAbs && Math.max(xDiffAbs, yDiffAbs) > offsetY){
-							window.customFunctions.dismissModal()
+							//window.customFunctions.dismissModal()
 						}
 					}
 
@@ -3298,6 +3307,8 @@ export async function favoriteItem(item, value, showLoader = true){
 export async function spawnItemActionSheet(item){
 	window.$("#main-searchbar").find("input").blur()
 
+	let isDeviceOnline = window.customFunctions.isDeviceOnline()
+
 	let ext = item.name.split(".")
 	ext = ext[ext.length - 1]
 
@@ -3702,83 +3713,99 @@ export async function spawnItemActionSheet(item){
 		}
 	}
 
+	options['deviceOffline'] = {
+		text: language.get(this.state.lang, "deviceOfflineAS"),
+		icon: Ionicons.cloudOfflineOutline,
+		handler: () => {
+			return window.customFunctions.dismissActionSheet()
+		}
+	}
+
 	if(item.type == "folder"){
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
-				options['removeFromShared'],
+				...[(isDeviceOnline ? options['removeFromShared'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("shared-out") !== -1){
 			if(item.isSync){
 				buttons = [
-					options['share'],
-					options['publicLink'],
-					options['color'],
-					options['favorite'],
-					options['stopSharing'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['favorite'] : [])],
+					...[(isDeviceOnline ? options['stopSharing'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
 			else if(item.isDefault){
 				buttons = [
-					options['share'],
-					options['publicLink'],
-					options['rename'],
-					options['color'],
-					options['favorite'],
-					options['stopSharing'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
+					...[(isDeviceOnline ? options['rename'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['favorite'] : [])],
+					...[(isDeviceOnline ? options['stopSharing'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
 			else{
 				buttons = [
-					options['share'],
-					options['publicLink'],
-					options['rename'],
-					options['color'],
-					options['trash'],
-					options['stopSharing'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
+					...[(isDeviceOnline ? options['rename'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['trash'] : [])],
+					...[(isDeviceOnline ? options['stopSharing'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
 		}
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
-				options['restore'],
-				options['deletePermanently'],
+				...[(isDeviceOnline ? options['restore'] : [])],
+				...[(isDeviceOnline ? options['deletePermanently'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("links") !== -1){
 			if(item.isSync){
 				buttons = [
-					options['share'],
-					options['publicLink'],
-					options['color'],
-					options['favorite'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['favorite'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
 			else if(item.isDefault){
 				buttons = [
-					options['share'],
-					options['publicLink'],
-					options['rename'],
-					options['color'],
-					options['favorite'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
+					...[(isDeviceOnline ? options['rename'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['favorite'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
 			else{
 				buttons = [
-					options['share'],
-					options['publicLink'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
 					//options['move'],
-					options['rename'],
-					options['color'],
-					options['favorite'],
-					options['trash'],
+					...[(isDeviceOnline ? options['rename'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['favorite'] : [])],
+					...[(isDeviceOnline ? options['trash'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
@@ -3786,45 +3813,49 @@ export async function spawnItemActionSheet(item){
 		else if(utils.currentParentFolder() == "base"){
 			if(item.isSync){
 				buttons = [
-					options['share'],
-					options['publicLink'],
-					options['color'],
-					options['favorite'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['favorite'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
 			else if(item.isDefault){
 				buttons = [
-					options['share'],
-					options['publicLink'],
-					options['rename'],
-					options['color'],
-					options['favorite'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
+					...[(isDeviceOnline ? options['rename'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['favorite'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
 			else{
 				buttons = [
-					options['share'],
-					options['publicLink'],
-					options['move'],
-					options['rename'],
-					options['color'],
-					options['favorite'],
-					options['trash'],
+					...[(isDeviceOnline ? options['share'] : [])],
+					...[(isDeviceOnline ? options['publicLink'] : [])],
+					...[(isDeviceOnline ? options['move'] : [])],
+					...[(isDeviceOnline ? options['rename'] : [])],
+					...[(isDeviceOnline ? options['color'] : [])],
+					...[(isDeviceOnline ? options['favorite'] : [])],
+					...[(isDeviceOnline ? options['trash'] : [])],
+					...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 					options['cancel']
 				]
 			}
 		}
 		else{
 			buttons = [
-				options['share'],
-				options['publicLink'],
-				options['move'],
-				options['rename'],
-				options['color'],
-				options['favorite'],
-				options['trash'],
+				...[(isDeviceOnline ? options['share'] : [])],
+				...[(isDeviceOnline ? options['publicLink'] : [])],
+				...[(isDeviceOnline ? options['move'] : [])],
+				...[(isDeviceOnline ? options['rename'] : [])],
+				...[(isDeviceOnline ? options['color'] : [])],
+				...[(isDeviceOnline ? options['favorite'] : [])],
+				...[(isDeviceOnline ? options['trash'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}
@@ -3846,81 +3877,87 @@ export async function spawnItemActionSheet(item){
 			buttons = [
 				...[(canSaveToGallery ? options['saveToGallery'] : [])],
 				//options['download'],
-				options['offline'],
-				options['removeFromShared'],
+				...[(isDeviceOnline ? options['offline'] : [])],
+				...[(isDeviceOnline ? options['removeFromShared'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("shared-out") !== -1){
 			buttons = [
-				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
-				options['share'],
-				options['publicLink'],
-				...[(canSaveToGallery ? options['saveToGallery'] : [])],
+				...[(["code", "text"].includes(previewType) && isDeviceOnline ? options['edit'] : [])],
+				...[(isDeviceOnline ? options['share'] : [])],
+				...[(isDeviceOnline ? options['publicLink'] : [])],
+				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
 				//options['download'],
-				options['offline'],
-				options['versions'],
+				...[(isDeviceOnline ? options['offline'] : [])],
+				...[(isDeviceOnline ? options['versions'] : [])],
 				//options['favorite'],
 				//options['move'],
-				options['rename'],
-				options['trash'],
-				options['stopSharing'],
+				...[(isDeviceOnline ? options['rename'] : [])],
+				...[(isDeviceOnline ? options['trash'] : [])],
+				...[(isDeviceOnline ? options['stopSharing'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
-				...[(canSaveToGallery ? options['saveToGallery'] : [])],
+				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
 				//options['download'],
-				options['restore'],
-				options['deletePermanently'],
+				...[(isDeviceOnline ? options['restore'] : [])],
+				...[(isDeviceOnline ? options['deletePermanently'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("links") !== -1){
 			buttons = [
-				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
-				options['share'],
-				options['publicLink'],
-				...[(canSaveToGallery ? options['saveToGallery'] : [])],
+				...[(["code", "text"].includes(previewType) && isDeviceOnline ? options['edit'] : [])],
+				...[(isDeviceOnline ? options['share'] : [])],
+				...[(isDeviceOnline ? options['publicLink'] : [])],
+				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
 				//options['download'],
-				options['offline'],
-				options['versions'],
-				options['favorite'],
+				...[(isDeviceOnline ? options['offline'] : [])],
+				...[(isDeviceOnline ? options['versions'] : [])],
+				...[(isDeviceOnline ? options['favorite'] : [])],
 				//options['move'],
-				options['rename'],
-				options['trash'],
+				...[(isDeviceOnline ? options['rename'] : [])],
+				...[(isDeviceOnline ? options['trash'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}
 		else if(window.location.href.indexOf("recent") !== -1){
 			buttons = [
-				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
-				options['share'],
-				options['publicLink'],
-				...[(canSaveToGallery ? options['saveToGallery'] : [])],
+				...[(["code", "text"].includes(previewType) && isDeviceOnline ? options['edit'] : [])],
+				...[(isDeviceOnline ? options['share'] : [])],
+				...[(isDeviceOnline ? options['publicLink'] : [])],
+				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
 				//options['download'],
-				options['offline'],
-				options['versions'],
-				options['favorite'],
-				options['rename'],
-				options['trash'],
+				...[(isDeviceOnline ? options['offline'] : [])],
+				...[(isDeviceOnline ? options['versions'] : [])],
+				...[(isDeviceOnline ? options['favorite'] : [])],
+				...[(isDeviceOnline ? options['rename'] : [])],
+				...[(isDeviceOnline ? options['trash'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}
 		else{
 			buttons = [
-				...[(["code", "text"].includes(previewType) ? options['edit'] : [])],
-				options['share'],
-				options['publicLink'],
-				...[(canSaveToGallery ? options['saveToGallery'] : [])],
+				...[(["code", "text"].includes(previewType) && isDeviceOnline ? options['edit'] : [])],
+				...[(isDeviceOnline ? options['share'] : [])],
+				...[(isDeviceOnline ? options['publicLink'] : [])],
+				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
 				//options['download'],
-				options['offline'],
-				options['versions'],
-				options['favorite'],
-				options['move'],
-				options['rename'],
-				options['trash'],
+				...[(isDeviceOnline ? options['offline'] : [])],
+				...[(isDeviceOnline ? options['versions'] : [])],
+				...[(isDeviceOnline ? options['favorite'] : [])],
+				...[(isDeviceOnline ? options['move'] : [])],
+				...[(isDeviceOnline ? options['rename'] : [])],
+				...[(isDeviceOnline ? options['trash'] : [])],
+				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
 				options['cancel']
 			]
 		}

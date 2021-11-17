@@ -148,7 +148,7 @@ export async function mainFabAction(){
     let fabButtons = []
 
     if(Capacitor.isNative){
-        let networkStatus = await Plugins.Network.getStatus()
+        let networkStatus = window.customVariables.networkStatus
 
         if(networkStatus.connected){
             hasInternet = true
@@ -478,7 +478,7 @@ export async function mainFabAction(){
 
             if(Capacitor.isNative){
                 if(this.state.settings.onlyWifi){
-                    let networkStatus = await Plugins.Network.getStatus()
+                    let networkStatus = this.state.networkStatus
         
                     if(networkStatus.connectionType !== "wifi"){
                         return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
@@ -557,7 +557,7 @@ export async function mainFabAction(){
             handler: async () => {
                 if(Capacitor.isNative){
                     if(this.state.settings.onlyWifi){
-                        let networkStatus = await Plugins.Network.getStatus()
+                        let networkStatus = this.state.networkStatus
             
                         if(networkStatus.connectionType !== "wifi"){
                             return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
@@ -682,7 +682,7 @@ export async function mainFabAction(){
         handler: async () => {
             if(Capacitor.isNative){
                 if(this.state.settings.onlyWifi){
-                    let networkStatus = await Plugins.Network.getStatus()
+                    let networkStatus = this.state.networkStatus
         
                     if(networkStatus.connectionType !== "wifi"){
                         return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
@@ -807,6 +807,7 @@ export async function mainFabAction(){
 export async function mainMenuPopover(event){
     event.persist()
 
+    let isDeviceOnline = window.customFunctions.isDeviceOnline()
     let customElementId = utils.generateRandomClassName()
 
     window.customElements.define(customElementId, class ModalContent extends HTMLElement {
@@ -815,7 +816,7 @@ export async function mainMenuPopover(event){
                 <ion-list>
                     ` + (window.location.href.indexOf("recent") !== -1 ? `` : `<ion-item lines="none" detail="false" button onClick="window.customFunctions.openOrderBy()">` + language.get(window.customVariables.lang, "orderBy") + `</ion-item>`) + `
                     <ion-item lines="none" detail="false" button onClick="window.customFunctions.selectAllItems()">` + language.get(window.customVariables.lang, "selectAll") + `</ion-item>
-                    <ion-item lines="none" detail="false" button onClick="window.customFunctions.refreshItemList()">` + language.get(window.customVariables.lang, "refresh") + `</ion-item>
+                    ` + (isDeviceOnline ? `<ion-item lines="none" detail="false" button onClick="window.customFunctions.refreshItemList()">` + language.get(window.customVariables.lang, "refresh") + `</ion-item>` : ``) + `
                     <ion-item lines="none" detail="false" button onClick="window.customFunctions.toggleGridMode()">` + language.get(window.customVariables.lang, "toggleGridMode") + `</ion-item>
                     <!--<ion-item lines="none" detail="false" button onClick="window.customFunctions.dismissPopover()">` + language.get(window.customVariables.lang, "close") + `</ion-item>-->
                 </ion-list>

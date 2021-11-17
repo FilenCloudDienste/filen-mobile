@@ -8,6 +8,10 @@ export async function updateUserKeys(cb){
         return false
     }
 
+    if(!window.customFunctions.isDeviceOnline()){
+        return false
+    }
+
     const updateUserKeypair = async (pub, priv, callback) => {
         try{
             var res = await utils.apiRequest("POST", "/v1/user/keyPair/update", {
@@ -276,6 +280,10 @@ export async function updateUserKeys(cb){
 
 export async function updateUserUsage(){
     if(!this.state.isLoggedIn){
+        return false
+    }
+
+    if(!window.customFunctions.isDeviceOnline()){
         return false
     }
 

@@ -28,7 +28,7 @@ const safeAreaInsets = require('safe-area-insets')
 
 export function render(){
     let showShareLinks = (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0)
-    
+
     let rowRenderer = ({ index, style }) => {
         if(this.state.settings.gridModeEnabled){
             let startFromIndex = 0
@@ -610,14 +610,14 @@ export function render(){
             <IonTitle>{this.state.selectedItems} item{this.state.selectedItems == 1 ? "" : "s"}</IonTitle>
             <IonButtons slot="end">
                 {
-                    window.location.href.indexOf("base") !== -1 && !utils.selectedItemsContainsDefaultFolder(this.state.itemList) && (
+                    window.location.href.indexOf("base") !== -1 && !utils.selectedItemsContainsDefaultFolder(this.state.itemList) && this.state.isDeviceOnline && (
                         <IonButton onClick={() => window.customFunctions.shareSelectedItems()}>
                             <IonIcon slot="icon-only" icon={Ionicons.shareSocial} />
                         </IonButton>
                     )
                 }
                 {
-                    window.location.href.indexOf("base") !== -1 && utils.selectedItemsDoesNotContainFolder(this.state.itemList) && (
+                    window.location.href.indexOf("base") !== -1 && utils.selectedItemsDoesNotContainFolder(this.state.itemList) && this.state.isDeviceOnline && (
                         <IonButton onClick={() => window.customFunctions.downloadSelectedItems()}>
                             <IonIcon slot="icon-only" icon={Ionicons.cloudDownload} />
                         </IonButton>
@@ -662,23 +662,27 @@ export function render(){
                     <IonButton onClick={() => this.setState({ searchbarOpen: true })}>
                         <IonIcon slot="icon-only" icon={Ionicons.search} />
                     </IonButton>
-                    <IonMenuButton menu="transfersMenu">
-                        {
-                            (this.state.uploadsCount + this.state.downloadsCount) > 0 && (
-                                <IonBadge color="danger" style={{
-                                    position: "absolute",
-                                    borderRadius: "50%",
-                                    marginTop: "-8px",
-                                    marginLeft: "10px",
-                                    zIndex: "1001",
-                                    fontSize: "7pt"
-                                }}>
-                                    {(this.state.uploadsCount + this.state.downloadsCount)}
-                                </IonBadge>
-                            )
-                        }
-                        <IonIcon icon={Ionicons.repeatOutline} />
-                    </IonMenuButton>
+                    {
+                        this.state.isDeviceOnline && (
+                            <IonMenuButton menu="transfersMenu">
+                                {
+                                    (this.state.uploadsCount + this.state.downloadsCount) > 0 && (
+                                        <IonBadge color="danger" style={{
+                                            position: "absolute",
+                                            borderRadius: "50%",
+                                            marginTop: "-8px",
+                                            marginLeft: "10px",
+                                            zIndex: "1001",
+                                            fontSize: "7pt"
+                                        }}>
+                                            {(this.state.uploadsCount + this.state.downloadsCount)}
+                                        </IonBadge>
+                                    )
+                                }
+                                <IonIcon icon={Ionicons.repeatOutline} />
+                            </IonMenuButton>
+                        )
+                    }
                     <IonButton onClick={this.mainMenuPopover}>
                         <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
                     </IonButton>
@@ -702,6 +706,10 @@ export function render(){
         if(window.location.href.indexOf("links") !== -1 && utils.currentParentFolder().length >= 32){
             showMainFab = true
         }
+    }
+
+    if(!this.state.isDeviceOnline){
+        showMainFab = false
     }
 
     if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
@@ -789,6 +797,10 @@ export function render(){
                                 margin: "0px auto",
                                 marginTop: safeAreaInsets.top + "px"
                             }} onClick={() => {
+                                if(!this.state.isDeviceOnline){
+                                    return false
+                                }
+
                                 return document.getElementById("avatar-input-dummy").click()
                             }}>
                                 <img src={typeof this.state.cachedUserInfo.avatarURL == "undefined" ? "assets/img/icon.png" : this.state.cachedUserInfo.avatarURL} />
@@ -819,14 +831,18 @@ export function render(){
                             "--background": this.state.darkMode ? "#1E1E1E" : "white"
                         }} fullscreen={true}>
                             <IonList>
-                                <IonItem button lines="none" onClick={() => {
-                                    window.customFunctions.hideSidebarMenu()
-                                    
-                                    return window.customFunctions.openEventsModal()
-                                }}>
-                                    <IonIcon slot="start" icon={Ionicons.informationCircleOutline}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "events")}</IonLabel>
-                                </IonItem>
+                                {
+                                    this.state.isDeviceOnline && (
+                                        <IonItem button lines="none" onClick={() => {
+                                            window.customFunctions.hideSidebarMenu()
+                                            
+                                            return window.customFunctions.openEventsModal()
+                                        }}>
+                                            <IonIcon slot="start" icon={Ionicons.informationCircleOutline}></IonIcon>
+                                            <IonLabel>{language.get(this.state.lang, "events")}</IonLabel>
+                                        </IonItem>
+                                    )
+                                }
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     

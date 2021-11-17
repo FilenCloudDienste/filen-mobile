@@ -644,7 +644,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
 
     if(Capacitor.isNative){
         if(this.state.settings.onlyWifi){
-            let networkStatus = await Plugins.Network.getStatus()
+            let networkStatus = this.state.networkStatus
 
             if(networkStatus.connectionType !== "wifi"){
                 callOptionalCallback(null)
@@ -1032,7 +1032,7 @@ export async function getThumbnail(file, thumbURL, ext){
     return new Promise(async (resolve, reject) => {
         if(Capacitor.isNative){
             if(this.state.settings.onlyWifi){
-                let networkStatus = await Plugins.Network.getStatus()
+                let networkStatus = this.state.networkStatus
     
                 if(networkStatus.connectionType !== "wifi"){
                     reject("only wifi")

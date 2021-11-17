@@ -75,7 +75,9 @@ interface AppStates {
 	gridItemHeight: number,
 	gridItemWidth: number,
 	cachedUserInfo: any,
-	authShowing: boolean
+	authShowing: boolean,
+	networkStatus: any,
+	isDeviceOnline: boolean
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -134,7 +136,12 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			gridItemHeight: 180,
 			gridItemWidth: (window.innerWidth / 2) - 25,
 			cachedUserInfo: {},
-			authShowing: false
+			authShowing: false,
+			networkStatus: {
+				connected: true,
+				connectionType: "wifi"
+			},
+			isDeviceOnline: true
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)

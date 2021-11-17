@@ -207,7 +207,10 @@ export function setupWindowFunctions(){
     window.customVariables.updateItemsSemaphore = new utils.Semaphore(1)
     window.customVariables.fsCopySemaphore = new utils.Semaphore(1)
     window.customVariables.getNetworkInfoInterval = undefined
-    window.customVariables.networkStatus = undefined
+    window.customVariables.networkStatus = {
+        connected: true,
+        connectionType: "wifi"
+    }
     window.customVariables.orderBy = "nameAsc"
     window.customVariables.getThumbnailErrors = {}
     window.customVariables.lastGetThumbnailErrorsLength = undefined
@@ -245,7 +248,7 @@ export function setupWindowFunctions(){
     window.customVariables.galleryUploadEnabled = false
     window.customVariables.backButtonPresses = 0
 
-    document.addEventListener("ionBackButton", async (e) => {
+    App.addListener("backButton", async (e) => {
         if(isPlatform("ios")){
             return false
         }
@@ -1031,9 +1034,24 @@ export function setupWindowFunctions(){
         }
     }
 
+    window.customFunctions.isDeviceOnline = () => {
+        return this.state.isDeviceOnline
+    }
+
     window.customFunctions.getNetworkInfo = async () => {
         try{
+            let old = window.customVariables.networkStatus
+
             window.customVariables.networkStatus = await Plugins.Network.getStatus()
+
+            if(old.connected !== window.customVariables.networkStatus.connected){
+                this.setState({
+                    networkStatus: window.customVariables.networkStatus,
+                    isDeviceOnline: window.customVariables.networkStatus.connected
+                }, () => {
+                    this.forceUpdate()
+                })
+            }
         }
         catch(e){
             console.log(e)
@@ -4172,7 +4190,7 @@ export function setupWindowFunctions(){
                         <ion-list style="margin-top: -7px;">
                             <ion-item lines="none">
                                 <ion-label>
-                                    ` + res.data.info.ip + `
+                                    ` + utils.sanitizeHTML(res.data.info.ip) + `
                                 </ion-label>
                             </ion-item>
                             <ion-item lines="none">
@@ -4182,7 +4200,7 @@ export function setupWindowFunctions(){
                             </ion-item>
                             <ion-item lines="none">
                                 <ion-label>
-                                    ` + res.data.info.userAgent + `
+                                    ` + utils.sanitizeHTML(res.data.info.userAgent) + `
                                 </ion-label>
                             </ion-item>
                         </ion-list>
