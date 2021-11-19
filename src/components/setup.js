@@ -225,13 +225,7 @@ export async function setupStatusbar(type = "normal"){
 
 export async function doSetup(){
     try{
-        let getDidMigrateStorageToCapacitor3 = await Storage.get({ key: "didMigrateStorageToCapacitor3" })
-
-        if(getDidMigrateStorageToCapacitor3 !== "true"){
-            await Storage.migrate()
-
-            await Storage.set({ key: "didMigrateStorageToCapacitor3", value: "true" })
-        }
+        await Storage.migrate()
     }
     catch(e){
         return console.log(e)

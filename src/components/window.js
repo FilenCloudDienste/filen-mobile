@@ -259,110 +259,145 @@ export function setupWindowFunctions(){
     window.customVariables.backButtonPresses = 0
     window.customVariables.navigateBackTimeout = 0
     window.customVariables.appUrlOpenReceivedURLs = {}
-
-    App.addListener("appUrlOpen", async (data) => {
-        if(!this.state.isLoggedIn){
-            return false
-        }
-
-        await new Promise((resolve) => {
-            let wait = setInterval(() => {
-                if(window.customVariables.isDocumentReady){
-                    clearInterval(wait)
-
-                    return resolve()
-                }
-            }, 10)
-        })
-
-        if(typeof window.customVariables.appUrlOpenReceivedURLs[data.url] !== "undefined"){
-            if(window.customVariables.appUrlOpenReceivedURLs[data.url] > (+new Date())){
-                return false
-            }
-        }
-
-        window.customVariables.appUrlOpenReceivedURLs[data.url] = ((+new Date()) + 3000)
-
-        return setTimeout(() => {
-            window.customFunctions.fileSendIntentReceived(data.url)
-        }, 250)
-    })
-
-    App.addListener("backButton", async (e) => {
-        if(isPlatform("ios")){
-            return false
-        }
-
-        let modalOpen = await window.customFunctions.isAModalOpen()
-
-        if(["#!/base", "#!/shared-in", "#!/shared-out", "#!/favorites", "#!/links"].includes(window.location.hash)){
-            if(!modalOpen){
-                if(window.customVariables.backButtonPresses >= 2){
-                    window.customVariables.backButtonPresses = 0
-
-                    try{
-                        App.exitApp()
-                    }
-                    catch(e){
-                        return console.log(e)
-                    }
-                }
-                else{
-                    window.customVariables.backButtonPresses += 1
-
-                    this.spawnToast(language.get(this.state.lang, "closeAppPress"))
-                }
-            }
-        }
-    })
+    window.customVariables.listenersAdded = false
 
     /*setTimeout(() => {
-        PhotoLibrary.requestAuthorization().then(() => {
-            PhotoLibrary.getLibrary((res) => {
-                let lib = res.library
-
-                lib.forEach((item) => {
-                    console.log(item)
-                })
-            }, (err) => {
-                console.error(err)
-            }, {
-                thumbnailWidth: 1,
-                thumbnailHeight: 1,
-                quality: 1,
-                useOriginalFileNames: true,
-                includeAlbumData: false,
-                includeVideos: true,
-                chunkTimeSec: 1,
-                maxItems: 99999999999,
-                itemsInChunk: 100
-            }).subscribe({
-                next: (res) => {
-                    //
-                },
-                error: (err) => {
+            PhotoLibrary.requestAuthorization().then(() => {
+                PhotoLibrary.getLibrary((res) => {
+                    let lib = res.library
+    
+                    lib.forEach((item) => {
+                        console.log(item)
+                    })
+                }, (err) => {
                     console.error(err)
-                },
-                complete: () => {
-                    console.log("done")
-                }
+                }, {
+                    thumbnailWidth: 1,
+                    thumbnailHeight: 1,
+                    quality: 1,
+                    useOriginalFileNames: true,
+                    includeAlbumData: false,
+                    includeVideos: true,
+                    chunkTimeSec: 1,
+                    maxItems: 99999999999,
+                    itemsInChunk: 100
+                }).subscribe({
+                    next: (res) => {
+                        //
+                    },
+                    error: (err) => {
+                        console.error(err)
+                    },
+                    complete: () => {
+                        console.log("done")
+                    }
+                })
+            }).catch((err) => {
+                console.error(err)
             })
-        }).catch((err) => {
-            console.error(err)
+        }, 1000)*/
+
+    if(!window.customVariables.listenersAdded){
+        window.customVariables.listenersAdded = true
+
+        App.addListener("appUrlOpen", async (data) => {
+            if(!isPlatform("ios")){
+                return false
+            }
+    
+            if(!this.state.isLoggedIn){
+                return false
+            }
+
+            if(typeof data == "undefined"){
+                return false
+            }
+
+            if(typeof data.url !== "string"){
+                return false
+            }
+
+            if(data.url.indexOf("url=") == -1){
+                return false
+            }
+    
+            await new Promise((resolve) => {
+                let wait = setInterval(() => {
+                    if(window.customVariables.isDocumentReady){
+                        clearInterval(wait)
+    
+                        return resolve()
+                    }
+                }, 10)
+            })
+    
+            if(typeof window.customVariables.appUrlOpenReceivedURLs[data.url] !== "undefined"){
+                if(window.customVariables.appUrlOpenReceivedURLs[data.url] > (+new Date())){
+                    return false
+                }
+            }
+    
+            window.customVariables.appUrlOpenReceivedURLs[data.url] = ((+new Date()) + 3000)
+    
+            return setTimeout(() => {
+                window.customFunctions.fileSendIntentReceived(data.url)
+            }, 250)
         })
-    }, 1000)*/
-
-    App.addListener("appStateChange", (appState) => {
-        if(appState.isActive){
-            window.customFunctions.checkVersion()
-            window.customFunctions.triggerBiometricAuth()
-            //window.customFunctions.isIndexEmpty()
-        }
-    })
-
-    window.addEventListener("load", () => {
-        window.customVariables.isDocumentReady = true
-    })
+    
+        App.addListener("backButton", async (e) => {
+            if(isPlatform("ios")){
+                return false
+            }
+    
+            let modalOpen = await window.customFunctions.isAModalOpen()
+    
+            if(["#!/base", "#!/shared-in", "#!/shared-out", "#!/favorites", "#!/links"].includes(window.location.hash)){
+                if(!modalOpen){
+                    if(window.customVariables.backButtonPresses >= 1){
+                        window.customVariables.backButtonPresses = 0
+    
+                        try{
+                            App.exitApp()
+                        }
+                        catch(e){
+                            return console.log(e)
+                        }
+                    }
+                    else{
+                        window.customVariables.backButtonPresses += 1
+    
+                        this.spawnToast(language.get(this.state.lang, "closeAppPress"))
+                    }
+                }
+            }
+        })
+    
+        App.addListener("appStateChange", (appState) => {
+            if(appState.isActive){
+                window.customFunctions.checkVersion()
+                window.customFunctions.triggerBiometricAuth()
+                //window.customFunctions.isIndexEmpty()
+            }
+    
+            const checkForIntent = () => {
+                if(!isPlatform("android")){
+                    return false
+                }
+        
+                SendIntent.checkSendIntentReceived().then((result) => {
+                    if(result){
+                        alert(JSON.stringify(result))
+                    }
+                })
+            }
+    
+            checkForIntent()
+        })
+    
+        window.addEventListener("load", () => {
+            window.customVariables.isDocumentReady = true
+        })
+    }
 
     clearInterval(window.customVariables.mainSearchbarInterval)
 
@@ -407,27 +442,10 @@ export function setupWindowFunctions(){
                                 fileObject.lastModified = Math.floor(resolvedFile.lastModified)
                                 fileObject.size = resolvedFile.size
                                 fileObject.type = resolvedFile.type
+                                fileObject.fileEntry = resolvedFile
+                                fileObject.tempFileEntry = undefined
 
-                                window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory, (dirEntry) => {
-                                    resolved.copyTo(dirEntry, tempName, () => {
-                                        window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory + "/" + tempName, (tempFile) => {
-                                            tempFile.file((file) => {
-                                                fileObject.fileEntry = file
-                                                fileObject.tempFileEntry = tempFile
-
-                                                return resolve(fileObject)
-                                            }, (err) => {
-                                                return reject(err)
-                                            })
-                                        }, (err) => {
-                                            return reject(err)
-                                        })
-                                    }, (err) => {
-                                        return reject(err)
-                                    })
-                                }, (err) => {
-                                    return reject(err)
-                                })
+                                return resolve(fileObject)
                             }, (err) => {
                                 return reject(err)
                             })

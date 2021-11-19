@@ -689,7 +689,12 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
         if(typeof window.customVariables.offlineSavedFiles[file.uuid] !== "undefined"){
             callOptionalCallback(null)
 
-            return this.spawnToast(language.get(this.state.lang, "fileAlreadyStoredOffline", true, ["__NAME__"], [file.name]))
+            if(typeof saveToGalleryCallback == "function"){
+                return returnDownloadPath()
+            }
+            else{
+                return this.spawnToast(language.get(this.state.lang, "fileAlreadyStoredOffline", true, ["__NAME__"], [file.name]))
+            }
         }
 
         makeOffline = true
@@ -961,42 +966,49 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                 try{
                                     if(window.customVariables.downloads[uuid].chunksWritten >= window.customVariables.downloads[uuid].chunks){
                                         if(window.customVariables.downloads[uuid].makeOffline){
-                                            window.customVariables.offlineSavedFiles[file.uuid] = true
-        
-                                            let items = this.state.itemList
-                                            let windowItems = window.customVariables.itemList
-        
-                                            for(let i = 0; i < items.length; i++){
-                                                if(items[i].uuid == file.uuid){
-                                                    items[i].offline = true
-                                                }
-                                            }
-        
-                                            for(let i = 0; i < windowItems.length; i++){
-                                                if(windowItems[i].uuid == file.uuid){
-                                                    windowItems[i].offline = true
-                                                }
-                                            }
-        
-                                            this.setState({
-                                                itemList: items
-                                            })
-        
-                                            window.customVariables.itemList = windowItems
-                                            
-                                            if(typeof window.customVariables.cachedFiles[uuid] !== "undefined"){
-                                                window.customVariables.cachedFiles[uuid].offline = true
-                                            }
+                                            if(typeof saveToGalleryCallback == "function"){
+                                                returnDownloadPath()
 
-                                            if(!calledByPreview){
-                                                this.spawnToast(language.get(this.state.lang, "fileIsNowAvailableOffline", true, ["__NAME__"], [file.name]))
+                                                return removeFromState()
                                             }
+                                            else{
+                                                window.customVariables.offlineSavedFiles[file.uuid] = true
         
-                                            removeFromState()
-        
-                                            window.customFunctions.saveOfflineSavedFiles()
-                                            
-                                            return this.forceUpdate()
+                                                let items = this.state.itemList
+                                                let windowItems = window.customVariables.itemList
+            
+                                                for(let i = 0; i < items.length; i++){
+                                                    if(items[i].uuid == file.uuid){
+                                                        items[i].offline = true
+                                                    }
+                                                }
+            
+                                                for(let i = 0; i < windowItems.length; i++){
+                                                    if(windowItems[i].uuid == file.uuid){
+                                                        windowItems[i].offline = true
+                                                    }
+                                                }
+            
+                                                this.setState({
+                                                    itemList: items
+                                                })
+            
+                                                window.customVariables.itemList = windowItems
+                                                
+                                                if(typeof window.customVariables.cachedFiles[uuid] !== "undefined"){
+                                                    window.customVariables.cachedFiles[uuid].offline = true
+                                                }
+
+                                                if(!calledByPreview){
+                                                    this.spawnToast(language.get(this.state.lang, "fileIsNowAvailableOffline", true, ["__NAME__"], [file.name]))
+                                                }
+            
+                                                removeFromState()
+            
+                                                window.customFunctions.saveOfflineSavedFiles()
+                                                
+                                                return this.forceUpdate()
+                                            }
                                         }
                                         else{
                                             if(typeof saveToGalleryCallback == "function"){

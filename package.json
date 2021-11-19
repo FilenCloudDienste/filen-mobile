@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@capacitor-community/media": "github:dragermrb/media",
-    "@capacitor/android": "^2.4.2",
+    "@capacitor/android": "^3.3.2",
     "@capacitor/app": "^1.0.6",
     "@capacitor/camera": "^1.2.1",
     "@capacitor/clipboard": "^1.0.6",

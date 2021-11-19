@@ -5,12 +5,12 @@ import { Capacitor } from "@capacitor/core"
 import { isPlatform } from "@ionic/react"
 import { SplashScreen } from "@capacitor/splash-screen"
 import { Keyboard } from "@capacitor/keyboard"
-import { Filesystem } from "@capacitor/filesystem"
+import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
 import { Haptics, HapticsImpactStyle } from "@capacitor/haptics"
 import { Media } from "@capacitor-community/media"
 
 const utils = require("../utils/utils")
-const safeAreaInsets = require('safe-area-insets')
+const safeAreaInsets = require("safe-area-insets")
 const Hammer = require("hammerjs")
 
 export async function updateItemList(showLoader = true, bypassItemsCache = false, isFollowUpRequest = false, windowLocationHref = undefined, callStack = 0){
@@ -3351,6 +3351,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "removeFromShared"),
 		icon: Ionicons.stopCircleOutline,
 		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
 			this.removeSharedInItem(item, false)
 		}
 	}
@@ -3367,6 +3369,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "stopSharing"),
 		icon: Ionicons.stopCircleOutline,
 		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
 			this.stopSharingItem(item, false)
 		}
 	}
@@ -3375,6 +3379,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "restoreItem"),
 		icon: Ionicons.bagAddOutline,
 		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
 			return this.restoreItem(item, false)
 		}
 	}
@@ -3384,6 +3390,7 @@ export async function spawnItemActionSheet(item){
 		icon: Ionicons.linkOutline,
 		handler: () => {
 			window.customFunctions.dismissModal()
+			window.customFunctions.dismissActionSheet()
 
 			return this.openPublicLinkModal(item)
 		}
@@ -3393,6 +3400,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "shareItem"),
 		icon: Ionicons.shareSocialOutline,
 		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
 			return this.shareItem(item)
 		}
 	}
@@ -3401,6 +3410,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "moveItem"),
 		icon: Ionicons.moveOutline,
 		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
 			return this.moveItem(item)
 		}
 	}
@@ -3409,6 +3420,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "renameItem"),
 		icon: Ionicons.textOutline,
 		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
 			return this.renameItem(item)
 		}
 	}
@@ -3417,6 +3430,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "colorItem"),
 		icon: Ionicons.colorFillOutline,
 		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
 			return this.colorItem(item)
 		}
 	}
@@ -3425,6 +3440,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "trashItem"),
 		icon: Ionicons.trashOutline,
 		handler: () => {
+			window.customFunctions.dismissActionSheet()
+
 			return this.trashItem(item, false)
 		}
 	}
@@ -3462,7 +3479,7 @@ export async function spawnItemActionSheet(item){
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
-			this.queueFileDownload(item, false, undefined, false, async (err, downloadedPath) => {
+			this.queueFileDownload(item, true, undefined, false, async (err, downloadedPath) => {
 				if(err){
 					return console.log(err)
 				}
@@ -3472,8 +3489,10 @@ export async function spawnItemActionSheet(item){
 					album: ""
 				}
 
+				let albums = undefined
+
 				try{
-					var albums = await Media.getAlbums()
+					albums = await Media.getAlbums()
 				}
 				catch(e){
 					this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
@@ -3486,19 +3505,20 @@ export async function spawnItemActionSheet(item){
 				let albumName = "Filen"
 
 				for(let i = 0; i < albums.albums.length; i++){
-					if(albums.albums[i].name == albumName){
+					if(albums.albums[i].name.toLowerCase() == "filen"){
 						albumFound = true
 						albumId = albums.albums[i].identifier || ""
+						albumName = albums.albums[i].name
 					}
 				}
 
 				if(!albumFound){
 					try{
 						await Media.createAlbum({
-							name: albumName
+							name: "Filen"
 						})
 
-						var albums = await Media.getAlbums()
+						albums = await Media.getAlbums()
 					}
 					catch(e){
 						this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
@@ -3508,9 +3528,10 @@ export async function spawnItemActionSheet(item){
 				}
 
 				for(let i = 0; i < albums.albums.length; i++){
-					if(albums.albums[i].name == albumName){
+					if(albums.albums[i].name.toLowerCase() == "filen"){
 						albumFound = true
 						albumId = albums.albums[i].identifier || ""
+						albumName = albums.albums[i].name
 					}
 				}
 
@@ -3643,6 +3664,8 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "deletePermanently"),
 		icon: Ionicons.trashBinOutline,
 		handler: async () => {
+			window.customFunctions.dismissActionSheet()
+			
 			let alert = await alertController.create({
 				header: language.get(this.state.lang, "deletePermanently"),
 				message: language.get(this.state.lang, "deletePermanentlyConfirmation", true, ["__NAME__"], [item.name]),
