@@ -23,10 +23,10 @@ dependencies {
     implementation project(':capacitor-status-bar')
     implementation project(':capacitor-storage')
     implementation project(':capacitor-toast')
+    implementation project(':send-intent')
     implementation "com.android.support:support-v4:27.+"
     implementation "com.dmcBig:mediapicker:+"
 }
-apply from: "../../node_modules/cordova-plugin-background-fetch/src/android/build.gradle"
 apply from: "../../node_modules/cordova-plugin-fingerprint-aio/src/android/build.gradle"
 
 if (hasProperty('postBuildExtras')) {

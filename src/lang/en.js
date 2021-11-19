@@ -348,6 +348,7 @@ translations['en']['fileSavedToGalleryError'] = "Could not save __NAME__ to gall
 translations['en']['fabUploadFromGallery'] = "Upload from gallery"
 translations['en']['closeAppPress'] = "Press back button once more to close the app"
 translations['en']['deviceOfflineAS'] = "Device is offline"
+translations['en']['uploadHere'] = "Upload here"
 
 module.exports = {
     translations

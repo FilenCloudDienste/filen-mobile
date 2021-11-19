@@ -54,5 +54,9 @@
 	{
 		"pkg": "@capacitor/toast",
 		"classpath": "com.capacitorjs.plugins.toast.ToastPlugin"
+	},
+	{
+		"pkg": "send-intent",
+		"classpath": "de.mindlib.sendIntent.SendIntent"
 	}
 ]

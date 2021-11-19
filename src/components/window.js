@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core"
-import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
+import { modalController, popoverController, toastController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
 import { isPlatform } from "@ionic/react"
@@ -15,6 +15,7 @@ import { App } from "@capacitor/app"
 import { Share } from "@capacitor/share"
 import { SplashScreen } from "@capacitor/splash-screen"
 import { Storage } from "@capacitor/storage"
+import { SendIntent } from "send-intent"
 
 const workers = require("../utils/workers")
 const utils = require("../utils/utils")
@@ -257,13 +258,34 @@ export function setupWindowFunctions(){
     window.customVariables.galleryUploadEnabled = false
     window.customVariables.backButtonPresses = 0
     window.customVariables.navigateBackTimeout = 0
+    window.customVariables.appUrlOpenReceivedURLs = {}
 
-    window.handleOpenURL = (url) => {
-        alert(url)
-    }
+    App.addListener("appUrlOpen", async (data) => {
+        if(!this.state.isLoggedIn){
+            return false
+        }
 
-    App.addListener("appUrlOpen", (e) => {
-        alert("app " + e.url)
+        await new Promise((resolve) => {
+            let wait = setInterval(() => {
+                if(window.customVariables.isDocumentReady){
+                    clearInterval(wait)
+
+                    return resolve()
+                }
+            }, 10)
+        })
+
+        if(typeof window.customVariables.appUrlOpenReceivedURLs[data.url] !== "undefined"){
+            if(window.customVariables.appUrlOpenReceivedURLs[data.url] > (+new Date())){
+                return false
+            }
+        }
+
+        window.customVariables.appUrlOpenReceivedURLs[data.url] = ((+new Date()) + 3000)
+
+        return setTimeout(() => {
+            window.customFunctions.fileSendIntentReceived(data.url)
+        }, 250)
     })
 
     App.addListener("backButton", async (e) => {
@@ -350,6 +372,112 @@ export function setupWindowFunctions(){
                 await this.updateItemList()
             }
         }, 100)
+    }
+
+    window.customFunctions.fileSendIntentReceived = async (url) => {
+        let urlEx = url.split("?")
+        let parts = urlEx[1].split("&")
+
+        let params = {
+            urls: []
+        }
+
+        for(let i = 0; i < parts.length; i++){
+            let ex = parts[i].split("=")
+            
+            if(ex[0] == "url"){
+                params.urls.push(decodeURIComponent(ex[1]))
+            }
+        }
+
+        let fileObjects = []
+
+        for(let i = 0; i < params.urls.length; i++){
+            try{
+                let fileObj = await new Promise((resolve, reject) => {
+                    let tempName = "TEMP_UPLOAD_" + utils.uuidv4()
+                    let fileObject = {}
+
+                    fileObject.tempName = tempName
+
+                    window.resolveLocalFileSystemURL(params.urls[i], (resolved) => {
+                        if(resolved.isFile){
+                            resolved.file((resolvedFile) => {
+                                fileObject.name = resolvedFile.name
+                                fileObject.lastModified = Math.floor(resolvedFile.lastModified)
+                                fileObject.size = resolvedFile.size
+                                fileObject.type = resolvedFile.type
+
+                                window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory, (dirEntry) => {
+                                    resolved.copyTo(dirEntry, tempName, () => {
+                                        window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory + "/" + tempName, (tempFile) => {
+                                            tempFile.file((file) => {
+                                                fileObject.fileEntry = file
+                                                fileObject.tempFileEntry = tempFile
+
+                                                return resolve(fileObject)
+                                            }, (err) => {
+                                                return reject(err)
+                                            })
+                                        }, (err) => {
+                                            return reject(err)
+                                        })
+                                    }, (err) => {
+                                        return reject(err)
+                                    })
+                                }, (err) => {
+                                    return reject(err)
+                                })
+                            }, (err) => {
+                                return reject(err)
+                            })
+                        }
+                        else{
+                            return reject(params.urls[i] + " path is not a file")
+                        }
+                    }, (err) => {
+                        return reject(err)
+                    })
+                })
+
+                fileObjects.push(fileObj)
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        let toast = await toastController.create({
+            message: language.get(this.state.lang, "selectDestination"),
+            animated: false,
+            buttons: [
+                {
+                    text: language.get(this.state.lang, "cancel"),
+                    role: "cancel",
+                    handler: () => {
+                        return false
+                    }
+                },
+                {
+                    text: language.get(this.state.lang, "uploadHere"),
+                    handler: async () => {
+                        let fileParent = utils.currentParentFolder()
+
+                        if(fileParent.length <= 32){
+                            return false
+                        }
+
+                        for(let i = 0; i < fileObjects.length; i++){
+                            window.customFunctions.queueFileUpload(fileObjects[i])
+                        }
+
+                        return true
+                    }
+                }
+            ]
+        })
+    
+        return toast.present()
     }
 
     window.customFunctions.isAModalOpen = async () => {
