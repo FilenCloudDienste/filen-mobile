@@ -1,11 +1,17 @@
-import { Plugins, StatusBarStyle, Capacitor } from "@capacitor/core"
+import { Capacitor } from "@capacitor/core"
+import { Storage } from "@capacitor/storage"
+import { App } from "@capacitor/app"
+import { SplashScreen } from "@capacitor/splash-screen"
+import { Network } from "@capacitor/network"
+import { Device } from "@capacitor/device"
+import { StatusBar, StatusBarStyle } from "@capacitor/status-bar"
+import { isPlatform } from "@ionic/core"
 import { modalController, popoverController, actionSheetController, loadingController, alertController } from "@ionic/core"
 import * as language from "../utils/language"
-import BackgroundFetch from "cordova-plugin-background-fetch";
 
 export function setupListeners(){
     if(Capacitor.isNative){
-        Plugins.App.addListener("backButton", async (e) => {
+        App.addListener("backButton", async (e) => {
             let goBackHistory = true
 
             if(this.state.searchbarOpen){
@@ -99,11 +105,13 @@ export async function setupStatusbar(type = "normal"){
     if(Capacitor.isNative){
         if(type == "normal"){
             if(this.state.darkMode){
-                Plugins.StatusBar.setBackgroundColor({
-                    color: "#121212"
-                })
+                if(!isPlatform("ios")){
+                    StatusBar.setBackgroundColor({
+                        color: "#121212"
+                    })
+                }
                 
-                Plugins.StatusBar.setStyle({
+                StatusBar.setStyle({
                     style: StatusBarStyle.Dark
                 })
 
@@ -112,11 +120,13 @@ export async function setupStatusbar(type = "normal"){
                 }
             }
             else{
-                Plugins.StatusBar.setBackgroundColor({
-                    color: "#ffffff"
-                })
+                if(!isPlatform("ios")){
+                    StatusBar.setBackgroundColor({
+                        color: "#ffffff"
+                    })
+                }
                 
-                Plugins.StatusBar.setStyle({
+                StatusBar.setStyle({
                     style: StatusBarStyle.Light
                 })
 
@@ -127,11 +137,13 @@ export async function setupStatusbar(type = "normal"){
         }
         else if(type == "modal"){
             if(this.state.darkMode){
-                Plugins.StatusBar.setBackgroundColor({
-                    color: "#1E1E1E"
-                })
+                if(!isPlatform("ios")){
+                    StatusBar.setBackgroundColor({
+                        color: "#1E1E1E"
+                    })
+                }
                 
-                Plugins.StatusBar.setStyle({
+                StatusBar.setStyle({
                     style: StatusBarStyle.Dark
                 })
     
@@ -140,11 +152,13 @@ export async function setupStatusbar(type = "normal"){
                 }
             }
             else{
-                Plugins.StatusBar.setBackgroundColor({
-                    color: "#ffffff"
-                })
+                if(!isPlatform("ios")){
+                    StatusBar.setBackgroundColor({
+                        color: "#ffffff"
+                    })
+                }
                 
-                Plugins.StatusBar.setStyle({
+                StatusBar.setStyle({
                     style: StatusBarStyle.Light
                 })
 
@@ -154,11 +168,13 @@ export async function setupStatusbar(type = "normal"){
             }
         }
         else if(type == "image/video"){
-            Plugins.StatusBar.setBackgroundColor({
-                color: "#000000"
-            })
+            if(!isPlatform("ios")){
+                StatusBar.setBackgroundColor({
+                    color: "#000000"
+                })
+            }
             
-            Plugins.StatusBar.setStyle({
+            StatusBar.setStyle({
                 style: StatusBarStyle.Dark
             })
 
@@ -168,11 +184,13 @@ export async function setupStatusbar(type = "normal"){
         }
         else if(type == "login/register"){
             if(this.state.darkMode){
-                Plugins.StatusBar.setBackgroundColor({
-                    color: "#121212"
-                })
+                if(!isPlatform("ios")){
+                    StatusBar.setBackgroundColor({
+                        color: "#121212"
+                    })
+                }
                 
-                Plugins.StatusBar.setStyle({
+                StatusBar.setStyle({
                     style: StatusBarStyle.Dark
                 })
 
@@ -181,11 +199,13 @@ export async function setupStatusbar(type = "normal"){
                 }
             }
             else{
-                Plugins.StatusBar.setBackgroundColor({
-                    color: "#ffffff"
-                })
+                if(!isPlatform("ios")){
+                    StatusBar.setBackgroundColor({
+                        color: "#ffffff"
+                    })
+                }
                 
-                Plugins.StatusBar.setStyle({
+                StatusBar.setStyle({
                     style: StatusBarStyle.Light
                 })
 
@@ -195,39 +215,54 @@ export async function setupStatusbar(type = "normal"){
             }
         }
 
-        Plugins.StatusBar.setOverlaysWebView({
-            overlay: false
-        })
+        if(!isPlatform("ios")){
+            StatusBar.setOverlaysWebView({
+                overlay: false
+            })
+        }
     }
 }
 
 export async function doSetup(){
     try{
-        var networkStatus = await Plugins.Network.getStatus()
+        let getDidMigrateStorageToCapacitor3 = await Storage.get({ key: "didMigrateStorageToCapacitor3" })
+
+        if(getDidMigrateStorageToCapacitor3 !== "true"){
+            await Storage.migrate()
+
+            await Storage.set({ key: "didMigrateStorageToCapacitor3", value: "true" })
+        }
     }
     catch(e){
         return console.log(e)
     }
 
     try{
-        var getLang = await Plugins.Storage.get({ key: "lang" })
-        var getDarkMode = await Plugins.Storage.get({ key: "darkMode" })
-        var getIsLoggedIn = await Plugins.Storage.get({ key: "isLoggedIn" })
-        var getUserAPIKey = await Plugins.Storage.get({ key: "userAPIKey" })
-        var getUserEmail = await Plugins.Storage.get({ key: "userEmail" })
-        var getUserMasterKeys = await Plugins.Storage.get({ key: "userMasterKeys" })
-        var getUserPublicKey = await Plugins.Storage.get({ key: "userPublicKey" })
-        var getUserPrivateKey = await Plugins.Storage.get({ key: "userPrivateKey" })
-        var getOfflineSavedFiles = await Plugins.Storage.get({ key: "offlineSavedFiles" })
-        var getAPICache = await Plugins.Storage.get({ key: "apiCache" })
-        var getSettings = await Plugins.Storage.get({ key: "settings" })
-        var getCachedFiles = await Plugins.Storage.get({ key: "cachedFiles" })
-        var getCachedFolders = await Plugins.Storage.get({ key: "cachedFolders" })
-        var getCachedMetadata = await Plugins.Storage.get({ key: "cachedMetadata" })
-        var getThumbnailCache = await Plugins.Storage.get({ key: "thumbnailCache" })
-        var getGetThumbnailErrors = await Plugins.Storage.get({ key: "getThumbnailErrors" })
-        var getCachedAPIItemListRequests = await Plugins.Storage.get({ key: "cachedAPIItemListRequests" })
-        var getItemsCache = await Plugins.Storage.get({ key: "itemsCache" })
+        var networkStatus = await Network.getStatus()
+    }
+    catch(e){
+        return console.log(e)
+    }
+
+    try{
+        var getLang = await Storage.get({ key: "lang" })
+        var getDarkMode = await Storage.get({ key: "darkMode" })
+        var getIsLoggedIn = await Storage.get({ key: "isLoggedIn" })
+        var getUserAPIKey = await Storage.get({ key: "userAPIKey" })
+        var getUserEmail = await Storage.get({ key: "userEmail" })
+        var getUserMasterKeys = await Storage.get({ key: "userMasterKeys" })
+        var getUserPublicKey = await Storage.get({ key: "userPublicKey" })
+        var getUserPrivateKey = await Storage.get({ key: "userPrivateKey" })
+        var getOfflineSavedFiles = await Storage.get({ key: "offlineSavedFiles" })
+        var getAPICache = await Storage.get({ key: "apiCache" })
+        var getSettings = await Storage.get({ key: "settings" })
+        var getCachedFiles = await Storage.get({ key: "cachedFiles" })
+        var getCachedFolders = await Storage.get({ key: "cachedFolders" })
+        var getCachedMetadata = await Storage.get({ key: "cachedMetadata" })
+        var getThumbnailCache = await Storage.get({ key: "thumbnailCache" })
+        var getGetThumbnailErrors = await Storage.get({ key: "getThumbnailErrors" })
+        var getCachedAPIItemListRequests = await Storage.get({ key: "cachedAPIItemListRequests" })
+        var getItemsCache = await Storage.get({ key: "itemsCache" })
     }
     catch(e){
         return console.log(e)
@@ -244,7 +279,7 @@ export async function doSetup(){
         window.customVariables.lang = getLang.value
     }
     else{
-        let deviceLang = await Plugins.Device.getLanguageCode()
+        let deviceLang = await Device.getLanguageCode()
         let defaultLang = "en"
 
         if(language.isAvailable(deviceLang.value)){
@@ -433,7 +468,7 @@ export async function doSetup(){
         window.customFunctions.getNetworkInfo()
     }, 60000)
 
-    Plugins.Network.addListener("networkStatusChange", (status) => {
+    Network.addListener("networkStatusChange", (status) => {
         let old = window.customVariables.networkStatus
 
         window.customVariables.networkStatus = status
@@ -457,7 +492,7 @@ export async function doSetup(){
     window.customFunctions.triggerBiometricAuth()
     //window.customFunctions.isIndexEmpty()
 
-    try{
+    /*try{
         await BackgroundFetch.configure({
             minimumFetchInterval: 15
         }, (taskId) => {
@@ -473,11 +508,11 @@ export async function doSetup(){
     }
     catch(e){
         console.log(e)
-    }
+    }*/
 
     setTimeout(() => {
         if(Capacitor.isNative){
-            Plugins.SplashScreen.hide()
+            SplashScreen.hide()
         }
     }, 1000)
 

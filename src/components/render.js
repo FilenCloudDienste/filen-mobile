@@ -1,8 +1,8 @@
-import React from 'react';
-import { IonToast, IonSkeletonText, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonBackButton, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonFabList, IonCheckbox, IonRippleEffect, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonImg, IonApp, IonModal, IonButton, IonMenu, IonMenuButton, IonButtons, IonText, IonTabBar, IonTabButton, IonCard, IonCardContent, IonCardSubtitle } from '@ionic/react'
-import { List } from 'react-virtualized';
-import { isPlatform, getPlatforms } from "@ionic/react"
-import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
+import React from 'react'
+import { IonSkeletonText, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonApp, IonButton, IonMenu, IonMenuButton, IonButtons, IonText } from '@ionic/react'
+import { List } from 'react-virtualized'
+import { isPlatform } from "@ionic/react"
+import { loadingController } from "@ionic/core"
 
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
@@ -935,7 +935,29 @@ export function render(){
                                     this.state.itemList.length == 0 && !this.state.searchbarOpen ? (
                                         <div>
                                             {
-                                                this.state.currentHref.indexOf("base") !== -1 ? (
+                                                !this.state.isDeviceOnline ? (
+                                                    <div style={{
+                                                        position: "absolute",
+                                                        left: "50%",
+                                                        top: "32%",
+                                                        transform: "translate(-50%, -50%)",
+                                                        width: "100%"
+                                                    }}> 
+                                                        <center>
+                                                            <IonIcon icon={Ionicons.cloudOfflineOutline} style={{
+                                                                fontSize: "65pt",
+                                                                color: this.state.darkMode ? "white" : "gray"
+                                                            }}></IonIcon>
+                                                            <br />
+                                                            <br />
+                                                            <div style={{
+                                                                width: "75%"
+                                                            }}>
+                                                                {language.get(this.state.lang, "deviceOfflineAS")}
+                                                            </div>
+                                                        </center>
+                                                    </div>
+                                                ) : this.state.currentHref.indexOf("base") !== -1 ? (
                                                     <div style={{
                                                         position: "absolute",
                                                         left: "50%",

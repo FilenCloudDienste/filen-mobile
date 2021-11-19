@@ -7,7 +7,6 @@ import com.getcapacitor.Plugin;
 
 import java.util.ArrayList;
 
-import com.getcapacitor.plugin.privacyscreen.PrivacyScreen;
 import com.getcapacitor.community.media.MediaPlugin;
 
 public class MainActivity extends BridgeActivity {
@@ -20,7 +19,6 @@ public class MainActivity extends BridgeActivity {
       // Additional plugins you've installed go here
       // Ex: add(TotallyAwesomePlugin.class);
 
-      add(PrivacyScreen.class);
       add(MediaPlugin.class);
     }});
   }

@@ -1,16 +1,17 @@
 import * as language from "../utils/language"
 import { loadingController, modalController, popoverController, alertController, actionSheetController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons'
-import { Capacitor, HapticsImpactStyle, Plugins } from "@capacitor/core"
-import { FileOpener } from "@ionic-native/file-opener"
-import { isPlatform, getPlatforms } from "@ionic/react"
-import { Media } from '@capacitor-community/media'
+import { Capacitor } from "@capacitor/core"
+import { isPlatform } from "@ionic/react"
+import { SplashScreen } from "@capacitor/splash-screen"
+import { Keyboard } from "@capacitor/keyboard"
+import { Filesystem } from "@capacitor/filesystem"
+import { Haptics, HapticsImpactStyle } from "@capacitor/haptics"
+import { Media } from "@capacitor-community/media"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 const Hammer = require("hammerjs")
-
-const media = new Media()
 
 export async function updateItemList(showLoader = true, bypassItemsCache = false, isFollowUpRequest = false, windowLocationHref = undefined, callStack = 0){
 	if(!this.state.isLoggedIn){
@@ -31,11 +32,11 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	}
 
 	if(Capacitor.isNative){
-		Capacitor.Plugins.Keyboard.hide()
+		Keyboard.hide()
 	}
 
 	if(Capacitor.isNative && window.customVariables.isDocumentReady){
-        Plugins.SplashScreen.hide()
+        SplashScreen.hide()
     }
 
 	let isDeviceOnline = window.customFunctions.isDeviceOnline()
@@ -864,7 +865,7 @@ export function selectItem(type, index){
 		}
 		
 		if(selectedItems == 1 && Capacitor.isNative){
-			Plugins.Haptics.impact(HapticsImpactStyle.Light)
+			Haptics.impact(HapticsImpactStyle.Light)
 		}
     }
     else{
@@ -1015,7 +1016,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 	}
 	
 	if(Capacitor.isNative){
-		Capacitor.Plugins.Keyboard.hide()
+		Keyboard.hide()
 	}
 
 	if(typeof window.customVariables.offlineSavedFiles[item.uuid] !== "undefined" && typeof lastModalPreviewType == "undefined"){
@@ -1510,7 +1511,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				await modal.present()
 
 				if(Capacitor.isNative){
-					Capacitor.Plugins.Keyboard.hide()
+					Keyboard.hide()
 				}
 
 				if(previewType == "image" || previewType == "video" || previewType == "audio"){
@@ -1894,7 +1895,7 @@ export async function renameItem(item){
 							}
 
 							try{
-								await Plugins.Filesystem.rename({
+								await Filesystem.rename({
 									from: dirObj + "/" + item.name,
 									to: dirObj + "/" +  newName,
 									directory: dirObj.directory
@@ -2941,7 +2942,7 @@ export function makeItemAvailableOffline(offline, item, openAfterDownload = fals
 			}
 
 			try{
-				await Plugins.Filesystem.rmdir({
+				await Filesystem.rmdir({
 					path: dirObj.path,
 					directory: dirObj.directory,
 					recursive: true
@@ -3340,7 +3341,7 @@ export async function spawnItemActionSheet(item){
 	}
 
 	if(Capacitor.isNative){
-		Capacitor.Plugins.Keyboard.hide()
+		Keyboard.hide()
 	}
 
 	let buttons = []
@@ -3467,43 +3468,77 @@ export async function spawnItemActionSheet(item){
 				}
 
 				let savePayload = {
-					path: downloadedPath.uri
+					path: downloadedPath.uri,
+					album: ""
 				}
-	
-				if(!isPlatform("ios")){
+
+				try{
+					var albums = await Media.getAlbums()
+				}
+				catch(e){
+					this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+
+					return console.log(e)
+				}
+
+				let albumFound = false
+				let albumId = ""
+				let albumName = "Filen"
+
+				for(let i = 0; i < albums.albums.length; i++){
+					if(albums.albums[i].name == albumName){
+						albumFound = true
+						albumId = albums.albums[i].identifier || ""
+					}
+				}
+
+				if(!albumFound){
 					try{
-						var albums = await media.getAlbums()
+						await Media.createAlbum({
+							name: albumName
+						})
+
+						var albums = await Media.getAlbums()
 					}
 					catch(e){
+						this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+	
 						return console.log(e)
 					}
+				}
 
-					let album = ""
+				for(let i = 0; i < albums.albums.length; i++){
+					if(albums.albums[i].name == albumName){
+						albumFound = true
+						albumId = albums.albums[i].identifier || ""
+					}
+				}
+
+				if(!albumFound){
+					this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 	
-					if(previewType == "video"){
-						for(let i = 0; i < albums.albums.length; i++){
-							if(albums.albums[i].name.toLowerCase() == "videos"){
-								album = albums.albums[i].name
-							}
-						}
-					}
-					else{
-						for(let i = 0; i < albums.albums.length; i++){
-							if(albums.albums[i].name.toLowerCase() == "recents"){
-								album = albums.albums[i].name
-							}
-						}
-					}
+					return console.log("Filen album not found")
+				}
 
+				if(!isPlatform("ios")){
 					savePayload = {
 						path: downloadedPath.uri,
-						album: album
+						album: albumName
+					}
+				}
+				else{
+					savePayload = {
+						path: downloadedPath.uri,
+						album: albumId
 					}
 				}
 
 				window.resolveLocalFileSystemURL(downloadedPath.uri, (resolved) => {
 					if(previewType == "video"){
-						media.saveVideo(savePayload).then(() => {
+						Media.saveVideo({
+							path: savePayload.path,
+							album: savePayload.album
+						}).then(() => {
 							this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 							resolved.remove(() => {
@@ -3521,7 +3556,10 @@ export async function spawnItemActionSheet(item){
 					}
 					else{
 						if(ext == "gif"){
-							media.saveGif(savePayload).then(() => {
+							Media.saveGif({
+								path: savePayload.path,
+								album: savePayload.album
+							}).then(() => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 								resolved.remove(() => {
@@ -3538,7 +3576,10 @@ export async function spawnItemActionSheet(item){
 							})
 						}
 						else{
-							media.savePhoto(savePayload).then(() => {
+							Media.savePhoto({
+								path: savePayload.path,
+								album: savePayload.album
+							}).then(() => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 								resolved.remove(() => {
@@ -3998,7 +4039,7 @@ export async function spawnItemActionSheet(item){
 	
 	if(Capacitor.isNative){
 		setTimeout(() => {
-			Capacitor.Plugins.Keyboard.hide()
+			Keyboard.hide()
 		}, 500)
 	}
 

@@ -1,8 +1,6 @@
 import * as language from "../utils/language"
-import { Plugins, Capacitor } from "@capacitor/core"
 import { modalController } from "@ionic/core"
-import * as Ionicons from 'ionicons/icons';
-import { isPlatform, getPlatforms } from "@ionic/react"
+import * as Ionicons from "ionicons/icons"
 
 const utils = require("../utils/utils")
 

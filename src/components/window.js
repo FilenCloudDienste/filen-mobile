@@ -1,15 +1,24 @@
-import { Capacitor, Plugins, FilesystemDirectory, App, HapticsImpactStyle } from "@capacitor/core"
+import { Capacitor } from "@capacitor/core"
 import { modalController, popoverController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
 import * as Ionicons from 'ionicons/icons'
-import { isPlatform, getPlatforms } from "@ionic/react"
+import { isPlatform } from "@ionic/react"
 import { FingerprintAIO } from "@ionic-native/fingerprint-aio"
 import { PhotoLibrary } from '@ionic-native/photo-library'
 import { FileOpener } from "@ionic-native/file-opener"
+import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
+import { Network } from "@capacitor/network"
+import { Keyboard } from "@capacitor/keyboard"
+import { Haptics, HapticsImpactStyle } from "@capacitor/haptics"
+import { Clipboard } from "@capacitor/clipboard"
+import { App } from "@capacitor/app"
+import { Share } from "@capacitor/share"
+import { SplashScreen } from "@capacitor/splash-screen"
+import { Storage } from "@capacitor/storage"
 
 const workers = require("../utils/workers")
 const utils = require("../utils/utils")
-const safeAreaInsets = require('safe-area-insets')
+const safeAreaInsets = require("safe-area-insets")
 const CryptoJS = require("crypto-js")
 
 export function windowRouter(){
@@ -247,6 +256,15 @@ export function setupWindowFunctions(){
     window.customVariables.imagePreviewZoomedIn = false
     window.customVariables.galleryUploadEnabled = false
     window.customVariables.backButtonPresses = 0
+    window.customVariables.navigateBackTimeout = 0
+
+    window.handleOpenURL = (url) => {
+        alert(url)
+    }
+
+    App.addListener("appUrlOpen", (e) => {
+        alert("app " + e.url)
+    })
 
     App.addListener("backButton", async (e) => {
         if(isPlatform("ios")){
@@ -312,7 +330,7 @@ export function setupWindowFunctions(){
         })
     }, 1000)*/
 
-    Plugins.App.addListener("appStateChange", (appState) => {
+    App.addListener("appStateChange", (appState) => {
         if(appState.isActive){
             window.customFunctions.checkVersion()
             window.customFunctions.triggerBiometricAuth()
@@ -552,7 +570,7 @@ export function setupWindowFunctions(){
         let dotChildren = window.$("#pin-code-dots").children()
 
         const paintDots = (length) => {
-            Plugins.Haptics.impact(HapticsImpactStyle.Light)
+            Haptics.impact(HapticsImpactStyle.Light)
 
             if(length == 1){
                 dotChildren.first().attr("icon", Ionicons.ellipse)
@@ -577,7 +595,7 @@ export function setupWindowFunctions(){
 
             if(window.customVariables.currentPINCode.length >= 4){
                 if(window.customVariables.currentPINCode !== this.state.settings.biometricPINCode){
-                    Plugins.Haptics.impact(HapticsImpactStyle.Medium)
+                    Haptics.impact(HapticsImpactStyle.Medium)
 
                     await window.customFunctions.shakeDiv(window.$("#pin-code-dots"), 100, 10, 6)
 
@@ -608,7 +626,7 @@ export function setupWindowFunctions(){
 
                 if(window.customVariables.confirmPINCode.length >= 4){
                     if(window.customVariables.confirmPINCode !== window.customVariables.currentPINCode){
-                        Plugins.Haptics.impact(HapticsImpactStyle.Medium)
+                        Haptics.impact(HapticsImpactStyle.Medium)
 
                         await window.customFunctions.shakeDiv(window.$("#pin-code-dots"), 100, 10, 6)
 
@@ -801,7 +819,7 @@ export function setupWindowFunctions(){
         `)
 
         if(Capacitor.isNative){
-            Plugins.SplashScreen.hide()
+            SplashScreen.hide()
         }
 
         if(type == "auth"){
@@ -878,7 +896,7 @@ export function setupWindowFunctions(){
         }
 
         try{
-            var deviceInfo = await Plugins.Device.getInfo()
+            var deviceInfo = await App.getInfo()
 
             var res = await utils.apiRequest("POST", "/v1/currentVersions", {
                 platform: "mobile"
@@ -888,7 +906,7 @@ export function setupWindowFunctions(){
             return console.log(e)
         }
 
-        if(utils.compareVersions(deviceInfo.appVersion, res.data.mobile) == "update"){
+        if(utils.compareVersions(deviceInfo.version, res.data.mobile) == "update"){
             console.log("update")
 
             window.customFunctions.showUpdateScreen()
@@ -1042,7 +1060,7 @@ export function setupWindowFunctions(){
         try{
             let old = window.customVariables.networkStatus
 
-            window.customVariables.networkStatus = await Plugins.Network.getStatus()
+            window.customVariables.networkStatus = await Network.getStatus()
 
             if(old.connected !== window.customVariables.networkStatus.connected){
                 this.setState({
@@ -1060,7 +1078,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveItemsCache = async () => {
         try{
-            await Plugins.Storage.set({
+            await Storage.set({
                 key: "itemsCache",
                 value: await workers.JSONStringifyWorker(window.customVariables.itemsCache)
             })
@@ -1072,7 +1090,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveOfflineSavedFiles = async () => {
         try{
-            await Plugins.Storage.set({
+            await Storage.set({
                 key: "offlineSavedFiles",
                 value: await workers.JSONStringifyWorker(window.customVariables.offlineSavedFiles)
             })
@@ -1084,7 +1102,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveGetThumbnailErrors = async () => {
         try{
-            await Plugins.Storage.set({
+            await Storage.set({
                 key: "getThumbnailErrors",
                 value: await workers.JSONStringifyWorker(window.customVariables.getThumbnailErrors)
             })
@@ -1097,7 +1115,7 @@ export function setupWindowFunctions(){
     window.customFunctions.saveAPICache = async () => {
 
         try{
-            await Plugins.Storage.set({
+            await Storage.set({
                 key: "apiCache",
                 value: await workers.JSONStringifyWorker(window.customVariables.apiCache)
             })
@@ -1109,7 +1127,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveThumbnailCache = async (skipLengthCheck = false) => {
         try{
-            await Plugins.Storage.set({
+            await Storage.set({
                 key: "thumbnailCache",
                 value: await workers.JSONStringifyWorker(window.customVariables.thumbnailCache)
             })
@@ -1125,17 +1143,17 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveCachedItems = async () => {
         try{
-            await Plugins.Storage.set({
+            await Storage.set({
                 key: "cachedFiles",
                 value: await workers.JSONStringifyWorker(window.customVariables.cachedFiles)
             })
 
-            await Plugins.Storage.set({
+            await Storage.set({
                 key: "cachedFolders",
                 value: await workers.JSONStringifyWorker(window.customVariables.cachedFolders)
             })
 
-            await Plugins.Storage.set({
+            await Storage.set({
                 key: "cachedMetadata",
                 value: await workers.JSONStringifyWorker(window.customVariables.cachedMetadata)
             })
@@ -1356,12 +1374,12 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.doLogout = async () => {
-        await Plugins.Storage.set({ key: "isLoggedIn", value: "false" })
-        await Plugins.Storage.set({ key: "userAPIKey", value: "" })
-        await Plugins.Storage.set({ key: "userEmail", value: "" })
-        await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify([]) })
-        await Plugins.Storage.set({ key: "userPublicKey", value: "" })
-        await Plugins.Storage.set({ key: "userPrivateKey", value: "" })
+        await Storage.set({ key: "isLoggedIn", value: "false" })
+        await Storage.set({ key: "userAPIKey", value: "" })
+        await Storage.set({ key: "userEmail", value: "" })
+        await Storage.set({ key: "userMasterKeys", value: JSON.stringify([]) })
+        await Storage.set({ key: "userPublicKey", value: "" })
+        await Storage.set({ key: "userPrivateKey", value: "" })
 
         this.setState({ isLoggedIn: false })
 
@@ -1548,21 +1566,21 @@ export function setupWindowFunctions(){
             }
         }
 
-        await Plugins.Storage.remove({ key: "userPublicKey" })
-        await Plugins.Storage.remove({ key: "userPrivateKey" })
-        await Plugins.Storage.remove({ key: "apiCache" })
-        await Plugins.Storage.remove({ key: "cachedFiles" })
-        await Plugins.Storage.remove({ key: "cachedFolders" })
-        await Plugins.Storage.remove({ key: "cachedMetadata" })
-        await Plugins.Storage.remove({ key: "getThumbnailErrors" })
-        await Plugins.Storage.remove({ key: "cachedAPIItemListRequests" })
-        await Plugins.Storage.remove({ key: "itemsCache" })
+        await Storage.remove({ key: "userPublicKey" })
+        await Storage.remove({ key: "userPrivateKey" })
+        await Storage.remove({ key: "apiCache" })
+        await Storage.remove({ key: "cachedFiles" })
+        await Storage.remove({ key: "cachedFolders" })
+        await Storage.remove({ key: "cachedMetadata" })
+        await Storage.remove({ key: "getThumbnailErrors" })
+        await Storage.remove({ key: "cachedAPIItemListRequests" })
+        await Storage.remove({ key: "itemsCache" })
 
-        await Plugins.Storage.set({ key: "isLoggedIn", value: "true" })
-        await Plugins.Storage.set({ key: "userAPIKey", value: res.data.apiKey })
-        await Plugins.Storage.set({ key: "userEmail", value: email })
-        await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify([mKey]) })
-        await Plugins.Storage.set({ key: "userAuthVersion", value: authVersion })
+        await Storage.set({ key: "isLoggedIn", value: "true" })
+        await Storage.set({ key: "userAPIKey", value: res.data.apiKey })
+        await Storage.set({ key: "userEmail", value: email })
+        await Storage.set({ key: "userMasterKeys", value: JSON.stringify([mKey]) })
+        await Storage.set({ key: "userAuthVersion", value: authVersion })
 
         /*window.customFunctions.dismissLoader(true)
         window.customFunctions.dismissModal(true)
@@ -2240,7 +2258,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.setLang = async (lang = "en") => {
-        await Plugins.Storage.set({ key: "lang", value: lang })
+        await Storage.set({ key: "lang", value: lang })
 
         return document.location.href = "index.html"
     }
@@ -2526,7 +2544,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.settingsToggleDarkMode = async () => {
         if(this.state.darkMode){
-            await Plugins.Storage.set({ key: "darkMode", value: "false" })
+            await Storage.set({ key: "darkMode", value: "false" })
 
             document.getElementById("settings-dark-mode-toggle").checked = false
 
@@ -2537,7 +2555,7 @@ export function setupWindowFunctions(){
             })
         }
         else{
-            await Plugins.Storage.set({ key: "darkMode", value: "true" })
+            await Storage.set({ key: "darkMode", value: "true" })
 
             document.getElementById("settings-dark-mode-toggle").checked = true
 
@@ -2551,7 +2569,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.loginToggleDarkMode = async () => {
         if(this.state.darkMode){
-            await Plugins.Storage.set({ key: "darkMode", value: "false" })
+            await Storage.set({ key: "darkMode", value: "false" })
 
             return this.setState({
                 darkMode: false
@@ -2560,7 +2578,7 @@ export function setupWindowFunctions(){
             })
         }
         else{
-            await Plugins.Storage.set({ key: "darkMode", value: "true" })
+            await Storage.set({ key: "darkMode", value: "true" })
 
             return this.setState({
                 darkMode: true
@@ -2571,7 +2589,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveSettings = async (newSettings) => {
-        await Plugins.Storage.set({ key: "settings", value: JSON.stringify(newSettings) })
+        await Storage.set({ key: "settings", value: JSON.stringify(newSettings) })
 
         return this.setState({
             settings: newSettings
@@ -2602,21 +2620,21 @@ export function setupWindowFunctions(){
 
     window.customFunctions.logoutUser = async () => {
         try{
-            await Plugins.Storage.remove({ key: "isLoggedIn" })
-            await Plugins.Storage.remove({ key: "userAPIKey" })
-            await Plugins.Storage.remove({ key: "userEmail" })
-            await Plugins.Storage.remove({ key: "userMasterKeys" })
-            await Plugins.Storage.remove({ key: "userPublicKey" })
-            await Plugins.Storage.remove({ key: "userPrivateKey" })
-            await Plugins.Storage.remove({ key: "offlineSavedFiles" })
-            await Plugins.Storage.remove({ key: "apiCache" })
-            await Plugins.Storage.remove({ key: "cachedFiles" })
-            await Plugins.Storage.remove({ key: "cachedFolders" })
-            await Plugins.Storage.remove({ key: "cachedMetadata" })
-            await Plugins.Storage.remove({ key: "thumbnailCache" })
-            await Plugins.Storage.remove({ key: "getThumbnailErrors" })
-            await Plugins.Storage.remove({ key: "cachedAPIItemListRequests" })
-            await Plugins.Storage.remove({ key: "itemsCache" })
+            await Storage.remove({ key: "isLoggedIn" })
+            await Storage.remove({ key: "userAPIKey" })
+            await Storage.remove({ key: "userEmail" })
+            await Storage.remove({ key: "userMasterKeys" })
+            await Storage.remove({ key: "userPublicKey" })
+            await Storage.remove({ key: "userPrivateKey" })
+            await Storage.remove({ key: "offlineSavedFiles" })
+            await Storage.remove({ key: "apiCache" })
+            await Storage.remove({ key: "cachedFiles" })
+            await Storage.remove({ key: "cachedFolders" })
+            await Storage.remove({ key: "cachedMetadata" })
+            await Storage.remove({ key: "thumbnailCache" })
+            await Storage.remove({ key: "getThumbnailErrors" })
+            await Storage.remove({ key: "cachedAPIItemListRequests" })
+            await Storage.remove({ key: "itemsCache" })
         }
         catch(e){
             console.log(e)
@@ -3138,7 +3156,7 @@ export function setupWindowFunctions(){
         try{
             let link = document.getElementById("public-link-input").value
 
-            await Plugins.Share.share({
+            await Share.share({
                 title: name,
                 text: name,
                 url: link,
@@ -3171,7 +3189,7 @@ export function setupWindowFunctions(){
         try{
             let link = document.getElementById("public-link-input").value
 
-            await Plugins.Clipboard.write({
+            await Clipboard.write({
                 url: link
             })
         }
@@ -3199,7 +3217,7 @@ export function setupWindowFunctions(){
         }
 
         try{
-            await Plugins.Clipboard.write({
+            await Clipboard.write({
                 url: string
             })
         }
@@ -3258,7 +3276,7 @@ export function setupWindowFunctions(){
 
                         try{
                             for(let i = 0; i < dirObj.length; i++){
-                                Plugins.Filesystem.rmdir({
+                                Filesystem.rmdir({
                                     path: dirObj[i].path,
                                     directory: dirObj[i].directory,
                                     recursive: true
@@ -4462,7 +4480,7 @@ export function setupWindowFunctions(){
         
         if(Capacitor.isNative){
             setTimeout(() => {
-                Capacitor.Plugins.Keyboard.hide()
+                Keyboard.hide()
             }, 500)
         }
 
@@ -4840,7 +4858,7 @@ export function setupWindowFunctions(){
 
         let newKeys = this.state.userMasterKeys.join("|") + "|" + utils.hashFn(newPassword)
 
-        await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify(newKeys.split("|")) })
+        await Storage.set({ key: "userMasterKeys", value: JSON.stringify(newKeys.split("|")) })
 
         this.setState({
             userMasterKeys: newKeys.split("|")

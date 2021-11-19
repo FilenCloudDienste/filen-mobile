@@ -1,8 +1,9 @@
 import * as language from "../utils/language"
-import { Plugins, Capacitor } from "@capacitor/core"
+import { Capacitor } from "@capacitor/core"
 import { modalController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons'
-import { isPlatform, getPlatforms } from "@ionic/react"
+import { isPlatform } from "@ionic/react"
+import { SplashScreen } from "@capacitor/splash-screen"
 
 const utils = require("../utils/utils")
 
@@ -77,6 +78,6 @@ export async function showLogin(){
     })
 
     if(Capacitor.isNative && window.customVariables.isDocumentReady){
-        Plugins.SplashScreen.hide()
+        SplashScreen.hide()
     }
 }

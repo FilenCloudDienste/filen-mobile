@@ -1,8 +1,8 @@
 import * as language from "../utils/language"
-import { loadingController, modalController, popoverController, alertController, actionSheetController } from "@ionic/core"
+import { loadingController, modalController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons'
-import { Capacitor, Plugins } from "@capacitor/core"
-import { isPlatform, getPlatforms } from "@ionic/react"
+import { isPlatform } from "@ionic/react"
+import { App } from "@capacitor/app"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
@@ -13,7 +13,7 @@ export async function openSettingsModal(){
     let appDarkMode = this.state.darkMode
     let appSettings = this.state.settings
     let appState = this.state
-    let deviceInfo = await Plugins.Device.getInfo()
+    let deviceInfo = await App.getInfo()
     let modalId = "settings-modal-" + utils.generateRandomClassName()
 
     let biometricAuthEnabled = false
@@ -262,7 +262,7 @@ export async function openSettingsModal(){
                             </ion-label>
                             <ion-buttons slot="end">
                                 <ion-button fill="none">
-                                    ` + deviceInfo.appVersion + `
+                                    ` + deviceInfo.version + `
                                 </ion-button>
                             </ion-buttons>
                         </ion-item>

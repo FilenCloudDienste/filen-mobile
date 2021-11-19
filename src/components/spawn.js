@@ -1,9 +1,11 @@
 import * as language from "../utils/language"
 import { toastController, actionSheetController, popoverController, alertController, loadingController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons';
-import { Capacitor, Plugins, CameraResultType, CameraSource, CameraDirection } from "@capacitor/core";
+import { Capacitor } from "@capacitor/core";
 import * as workers from "../utils/workers"
-import { isPlatform, getPlatforms } from "@ionic/react"
+import { isPlatform } from "@ionic/react"
+import { Toast } from "@capacitor/toast"
+import { Camera, CameraResultType, CameraSource, CameraDirection } from "@capacitor/camera"
 
 const utils = require("../utils/utils")
 const chooser = require("cordova-plugin-simple-file-chooser/www/chooser")
@@ -15,7 +17,7 @@ export async function spawnToast(message, duration = 3000){
             window.customVariables.nextNativeToastAllowed = (Math.floor((+new Date()) / 1000) + 2)
 
             try{
-                await Plugins.Toast.show({
+                await Toast.show({
                     text: message,
                     duration: "short",
                     position: "bottom"
@@ -501,7 +503,7 @@ export async function mainFabAction(){
             }
 
             try{
-                var image = await Plugins.Camera.getPhoto({
+                var image = await Camera.getPhoto({
                     quality: 100,
                     allowEditing: false,
                     resultType: CameraResultType.Base64,

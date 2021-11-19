@@ -1,8 +1,20 @@
 export function routeTo(route){
+    if(window.customVariables.navigateBackTimeout > (+new Date())){
+        return false
+    }
+
+    window.customVariables.navigateBackTimeout = ((+new Date()) + 500)
+    
     return window.location.hash = "#!" + route
 }
 
 export function routeToFolder(folder, index = 0, lastFolderUUID = undefined){
+    if(window.customVariables.navigateBackTimeout > (+new Date())){
+        return false
+    }
+
+    window.customVariables.navigateBackTimeout = ((+new Date()) + 500)
+    
     /*if(window.location.href.indexOf("links") !== -1){
         this.openPublicLinkModal(folder)
         
@@ -28,6 +40,12 @@ export function routeToFolder(folder, index = 0, lastFolderUUID = undefined){
 }
 
 export function goToFolder(uuid){
+    if(window.customVariables.navigateBackTimeout > (+new Date())){
+        return false
+    }
+
+    window.customVariables.navigateBackTimeout = ((+new Date()) + 500)
+    
     let ex = window.location.hash.split("/").slice(1)
     let nextURL = "/" + window.location.hash.split("/")[1]
 
@@ -48,5 +66,11 @@ export function goToFolder(uuid){
 }
 
 export function goBack(){
+    if(window.customVariables.navigateBackTimeout > (+new Date())){
+        return false
+    }
+
+    window.customVariables.navigateBackTimeout = ((+new Date()) + 500)
+
     return window.history.back()
 }

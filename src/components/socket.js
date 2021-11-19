@@ -1,4 +1,3 @@
-const utils = require("../utils/utils")
 const socketIO = require("socket.io-client")
 
 export function initSocket(){

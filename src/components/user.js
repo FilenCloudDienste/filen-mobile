@@ -1,5 +1,5 @@
 import * as language from "../utils/language"
-import { Plugins } from "@capacitor/core"
+import { Storage } from "@capacitor/storage"
 
 const utils = require("../utils/utils")
 
@@ -141,8 +141,8 @@ export async function updateUserKeys(cb){
             }
 
             if(privKey.length > 16){
-                await Plugins.Storage.set({ key: "userPublicKey", value: res.data.publicKey })
-                await Plugins.Storage.set({ key: "userPrivateKey", value: privKey })
+                await Storage.set({ key: "userPublicKey", value: res.data.publicKey })
+                await Storage.set({ key: "userPrivateKey", value: privKey })
 
                 this.setState({
                     userPublicKey: res.data.publicKey,
@@ -255,7 +255,7 @@ export async function updateUserKeys(cb){
     }
 
     if(newKeys.length > 16){
-        await Plugins.Storage.set({ key: "userMasterKeys", value: JSON.stringify(newKeys.split("|")) })
+        await Storage.set({ key: "userMasterKeys", value: JSON.stringify(newKeys.split("|")) })
 
         this.setState({
             userMasterKeys: newKeys.split("|")

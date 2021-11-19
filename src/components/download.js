@@ -1,8 +1,8 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
-import { Capacitor, FilesystemDirectory, Plugins } from "@capacitor/core"
-import imageCompression from "browser-image-compression"
-import Compressor from 'compressorjs';
+import { Capacitor } from "@capacitor/core"
+import Compressor from 'compressorjs'
+import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
 
 const utils = require("../utils/utils")
 
@@ -12,13 +12,13 @@ export async function getTempDir(callback){
         let directory = FilesystemDirectory.External
 
         try{
-            await Plugins.Filesystem.mkdir({
+            await Filesystem.mkdir({
                 path,
                 directory,
                 recursive: true 
             })
 
-            var uri = await Plugins.Filesystem.getUri({
+            var uri = await Filesystem.getUri({
                 path,
                 directory
             })
@@ -32,7 +32,7 @@ export async function getTempDir(callback){
         catch(e){
             if(e.message == "Directory exists"){
                 try{
-                    var uri = await Plugins.Filesystem.getUri({
+                    var uri = await Filesystem.getUri({
                         path,
                         directory
                     })
@@ -57,13 +57,13 @@ export async function getTempDir(callback){
         let directory = FilesystemDirectory.Documents
 
         try{
-            await Plugins.Filesystem.mkdir({
+            await Filesystem.mkdir({
                 path,
                 directory,
                 recursive: true 
             })
 
-            var uri = await Plugins.Filesystem.getUri({
+            var uri = await Filesystem.getUri({
                 path,
                 directory
             })
@@ -77,7 +77,7 @@ export async function getTempDir(callback){
         catch(e){
             if(e.message == "Directory exists"){
                 try{
-                    var uri = await Plugins.Filesystem.getUri({
+                    var uri = await Filesystem.getUri({
                         path,
                         directory
                     })
@@ -108,13 +108,13 @@ export async function getThumbnailDir(uuid, callback){
         let directory = FilesystemDirectory.External
 
         try{
-            await Plugins.Filesystem.mkdir({
+            await Filesystem.mkdir({
                 path,
                 directory,
                 recursive: true 
             })
 
-            var uri = await Plugins.Filesystem.getUri({
+            var uri = await Filesystem.getUri({
                 path,
                 directory
             })
@@ -128,7 +128,7 @@ export async function getThumbnailDir(uuid, callback){
         catch(e){
             if(e.message == "Directory exists"){
                 try{
-                    var uri = await Plugins.Filesystem.getUri({
+                    var uri = await Filesystem.getUri({
                         path,
                         directory
                     })
@@ -153,13 +153,13 @@ export async function getThumbnailDir(uuid, callback){
         let directory = FilesystemDirectory.Documents
 
         try{
-            await Plugins.Filesystem.mkdir({
+            await Filesystem.mkdir({
                 path,
                 directory,
                 recursive: true 
             })
 
-            var uri = await Plugins.Filesystem.getUri({
+            var uri = await Filesystem.getUri({
                 path,
                 directory
             })
@@ -173,7 +173,7 @@ export async function getThumbnailDir(uuid, callback){
         catch(e){
             if(e.message == "Directory exists"){
                 try{
-                    var uri = await Plugins.Filesystem.getUri({
+                    var uri = await Filesystem.getUri({
                         path,
                         directory
                     })
@@ -205,13 +205,13 @@ export async function getDownloadDir(makeOffline, fileName, callback){
             let directory = FilesystemDirectory.External
 
             try{
-                await Plugins.Filesystem.mkdir({
+                await Filesystem.mkdir({
                     path,
                     directory,
                     recursive: true 
                 })
 
-                var uri = await Plugins.Filesystem.getUri({
+                var uri = await Filesystem.getUri({
                     path,
                     directory
                 })
@@ -225,7 +225,7 @@ export async function getDownloadDir(makeOffline, fileName, callback){
             catch(e){
                 if(e.message == "Directory exists"){
                     try{
-                        var uri = await Plugins.Filesystem.getUri({
+                        var uri = await Filesystem.getUri({
                             path,
                             directory
                         })
@@ -250,13 +250,13 @@ export async function getDownloadDir(makeOffline, fileName, callback){
             let directory = FilesystemDirectory.ExternalStorage
 
             try{
-                await Plugins.Filesystem.mkdir({
+                await Filesystem.mkdir({
                     path,
                     directory,
                     recursive: true 
                 })
 
-                var uri = await Plugins.Filesystem.getUri({
+                var uri = await Filesystem.getUri({
                     path,
                     directory
                 })
@@ -270,7 +270,7 @@ export async function getDownloadDir(makeOffline, fileName, callback){
             catch(e){
                 if(e.message == "Directory exists"){
                     try{
-                        var uri = await Plugins.Filesystem.getUri({
+                        var uri = await Filesystem.getUri({
                             path,
                             directory
                         })
@@ -290,13 +290,13 @@ export async function getDownloadDir(makeOffline, fileName, callback){
                     directory = FilesystemDirectory.External
                     
                     try{
-                        await Plugins.Filesystem.mkdir({
+                        await Filesystem.mkdir({
                             path,
                             directory,
                             recursive: true 
                         })
 
-                        var uri = await Plugins.Filesystem.getUri({
+                        var uri = await Filesystem.getUri({
                             path,
                             directory
                         })
@@ -310,7 +310,7 @@ export async function getDownloadDir(makeOffline, fileName, callback){
                     catch(e){
                         if(e.message == "Directory exists"){
                             try{
-                                var uri = await Plugins.Filesystem.getUri({
+                                var uri = await Filesystem.getUri({
                                     path,
                                     directory
                                 })
@@ -339,13 +339,13 @@ export async function getDownloadDir(makeOffline, fileName, callback){
             let directory = FilesystemDirectory.Documents
 
             try{
-                await Plugins.Filesystem.mkdir({
+                await Filesystem.mkdir({
                     path,
                     directory,
                     recursive: true 
                 })
 
-                var uri = await Plugins.Filesystem.getUri({
+                var uri = await Filesystem.getUri({
                     path,
                     directory
                 })
@@ -359,7 +359,7 @@ export async function getDownloadDir(makeOffline, fileName, callback){
             catch(e){
                 if(e.message == "Directory exists"){
                     try{
-                        var uri = await Plugins.Filesystem.getUri({
+                        var uri = await Filesystem.getUri({
                             path,
                             directory
                         })
@@ -384,13 +384,13 @@ export async function getDownloadDir(makeOffline, fileName, callback){
             let directory = FilesystemDirectory.ExternalStorage
 
             try{
-                await Plugins.Filesystem.mkdir({
+                await Filesystem.mkdir({
                     path,
                     directory,
                     recursive: true 
                 })
 
-                var uri = await Plugins.Filesystem.getUri({
+                var uri = await Filesystem.getUri({
                     path,
                     directory
                 })
@@ -404,7 +404,7 @@ export async function getDownloadDir(makeOffline, fileName, callback){
             catch(e){
                 if(e.message == "Directory exists"){
                     try{
-                        var uri = await Plugins.Filesystem.getUri({
+                        var uri = await Filesystem.getUri({
                             path,
                             directory
                         })
@@ -556,7 +556,7 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
 
     if(index == 0){
         try{
-            await Plugins.Filesystem.deleteFile({
+            await Filesystem.deleteFile({
                 path: dirObj.path + "/" + file.name,
                 directory: dirObj.directory
             })
@@ -569,7 +569,7 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
     workers.convertArrayBufferToBase64(data, async (b64Data) => {
         if(index == 0){
             try{
-                await Plugins.Filesystem.writeFile({
+                await Filesystem.writeFile({
                     path: dirObj.path + "/" + file.name,
                     directory: dirObj.directory,
                     data: b64Data,
@@ -588,7 +588,7 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
         }
         else{
             try{
-                await Plugins.Filesystem.appendFile({
+                await Filesystem.appendFile({
                     path: dirObj.path + "/" + file.name,
                     directory: dirObj.directory,
                     data: b64Data
@@ -622,7 +622,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                         return reject(err)
                     }
 
-                    Plugins.Filesystem.getUri({
+                    Filesystem.getUri({
                         path: dirObj.path + "/" + file.name,
                         directory: dirObj.directory
                     }).then((path) => {
@@ -893,7 +893,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                     window.customVariables.stoppedDownloadsDone[uuid] = true
 
                                     try{
-                                        await Plugins.Filesystem.deleteFile({
+                                        await Filesystem.deleteFile({
                                             path: dirObj.path + "/" + file.name,
                                             directory: dirObj.directory
                                         })
@@ -1099,14 +1099,14 @@ export async function getThumbnail(file, thumbURL, ext){
 
                 workers.convertArrayBufferToBase64(arrayBuffer, async (b64Data) => {
                     try{
-                        await Plugins.Filesystem.writeFile({
+                        await Filesystem.writeFile({
                             path: dirObj.path + "/" + thumbnailFileName,
                             directory: dirObj.directory,
                             data: b64Data,
                             recursive: true
                         })
 
-                        var uri = await Plugins.Filesystem.getUri({
+                        var uri = await Filesystem.getUri({
                             path: dirObj.path + "/" + thumbnailFileName,
                             directory: dirObj.directory
                         })
@@ -1251,7 +1251,7 @@ export async function getThumbnail(file, thumbURL, ext){
         }
         else{
             try{
-                var stat = await Plugins.Filesystem.stat({
+                var stat = await Filesystem.stat({
                     path: dirObj.path + "/" + thumbnailFileName,
                     directory: dirObj.directory
                 })

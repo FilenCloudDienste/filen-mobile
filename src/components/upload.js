@@ -1,7 +1,5 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
-import { Capacitor, Plugins } from "@capacitor/core"
-import { isPlatform } from "@ionic/react"
 
 const utils = require("../utils/utils")
 
