@@ -8,6 +8,7 @@ import { Keyboard } from "@capacitor/keyboard"
 import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
 import { Haptics, HapticsImpactStyle } from "@capacitor/haptics"
 import { Media } from "@capacitor-community/media"
+import { Mediastore } from "@agorapulse/capacitor-mediastore"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require("safe-area-insets")
@@ -3462,14 +3463,38 @@ export async function spawnItemActionSheet(item){
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
-			//return this.queueFileDownload(item)
+			if(isPlatform("ios")){
+				return this.queueFileDownload(item)
+			}
 
-			if(item.offline){
-				return window.customFunctions.openOfflineFile(item)
-			}
-			else{
-				return this.makeItemAvailableOffline(true, item, true)
-			}
+			this.queueFileDownload(item, true, undefined, false, async (err, downloadedPath) => {
+				if(err){
+					return console.log(err)
+				}
+
+				window.resolveLocalFileSystemURL(downloadedPath.uri, (resolved) => {
+					Mediastore.saveToDownloads({
+						path: downloadedPath.uri,
+						filename: item.name
+					}).then(() => {
+						this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [item.name]))
+					
+						resolved.remove(() => {
+							console.log(item.name + " downloaded")
+						}, (err) => {
+							return console.log(err)
+						})
+					}).catch((err) => {
+						console.log(err)
+
+						return this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [item.name]))
+					})
+				}, (err) => {
+					this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [item.name]))
+								
+					return console.log(err)
+				})
+			})
 		}
 	}
 
@@ -3565,8 +3590,6 @@ export async function spawnItemActionSheet(item){
 							resolved.remove(() => {
 								console.log(item.name + " saved to gallery")
 							}, (err) => {
-								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
-
 								return console.log(err)
 							})
 						}).catch((err) => {
@@ -3586,8 +3609,6 @@ export async function spawnItemActionSheet(item){
 								resolved.remove(() => {
 									console.log(item.name + " saved to gallery")
 								}, (err) => {
-									this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
-								
 									return console.log(err)
 								})
 							}).catch((err) => {
@@ -3606,8 +3627,6 @@ export async function spawnItemActionSheet(item){
 								resolved.remove(() => {
 									console.log(item.name + " saved to gallery")
 								}, (err) => {
-									this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
-								
 									return console.log(err)
 								})
 							}).catch((err) => {
@@ -3952,7 +3971,7 @@ export async function spawnItemActionSheet(item){
 		if(window.location.href.indexOf("shared-in") !== -1){
 			buttons = [
 				...[(canSaveToGallery ? options['saveToGallery'] : [])],
-				//options['download'],
+				...[(isDeviceOnline ? options['download'] : [])],
 				...[(isDeviceOnline ? options['offline'] : [])],
 				...[(isDeviceOnline ? options['removeFromShared'] : [])],
 				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
@@ -3965,7 +3984,7 @@ export async function spawnItemActionSheet(item){
 				...[(isDeviceOnline ? options['share'] : [])],
 				...[(isDeviceOnline ? options['publicLink'] : [])],
 				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
-				//options['download'],
+				...[(isDeviceOnline ? options['download'] : [])],
 				...[(isDeviceOnline ? options['offline'] : [])],
 				...[(isDeviceOnline ? options['versions'] : [])],
 				//options['favorite'],
@@ -3980,7 +3999,7 @@ export async function spawnItemActionSheet(item){
 		else if(window.location.href.indexOf("trash") !== -1){
 			buttons = [
 				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
-				//options['download'],
+				...[(isDeviceOnline ? options['download'] : [])],
 				...[(isDeviceOnline ? options['restore'] : [])],
 				...[(isDeviceOnline ? options['deletePermanently'] : [])],
 				...[(!isDeviceOnline ? options['deviceOffline'] : [])],
@@ -3993,7 +4012,7 @@ export async function spawnItemActionSheet(item){
 				...[(isDeviceOnline ? options['share'] : [])],
 				...[(isDeviceOnline ? options['publicLink'] : [])],
 				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
-				//options['download'],
+				...[(isDeviceOnline ? options['download'] : [])],
 				...[(isDeviceOnline ? options['offline'] : [])],
 				...[(isDeviceOnline ? options['versions'] : [])],
 				...[(isDeviceOnline ? options['favorite'] : [])],
@@ -4010,7 +4029,7 @@ export async function spawnItemActionSheet(item){
 				...[(isDeviceOnline ? options['share'] : [])],
 				...[(isDeviceOnline ? options['publicLink'] : [])],
 				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
-				//options['download'],
+				...[(isDeviceOnline ? options['download'] : [])],
 				...[(isDeviceOnline ? options['offline'] : [])],
 				...[(isDeviceOnline ? options['versions'] : [])],
 				...[(isDeviceOnline ? options['favorite'] : [])],
@@ -4026,7 +4045,7 @@ export async function spawnItemActionSheet(item){
 				...[(isDeviceOnline ? options['share'] : [])],
 				...[(isDeviceOnline ? options['publicLink'] : [])],
 				...[(canSaveToGallery && isDeviceOnline ? options['saveToGallery'] : [])],
-				//options['download'],
+				...[(isDeviceOnline ? options['download'] : [])],
 				...[(isDeviceOnline ? options['offline'] : [])],
 				...[(isDeviceOnline ? options['versions'] : [])],
 				...[(isDeviceOnline ? options['favorite'] : [])],
