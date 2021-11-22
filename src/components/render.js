@@ -1139,6 +1139,38 @@ export function render(){
                                     )
                                 )
                             }
+                            <input type="file" id="file-input-dummy" style={{
+                                display: "none"
+                            }} onChange={(e) => {
+                                let files = document.getElementById("file-input-dummy").files
+
+                                if(!files){
+                                    return false
+                                }
+
+                                if(files.length <= 0){
+                                    return false
+                                }
+
+                                for(let i = 0; i < files.length; i++){
+                                    let tempName = "UPLOAD_" + utils.uuidv4()
+                                    let fileObject = {}
+
+                                    fileObject.tempName = tempName
+                                    fileObject.name = files[i].name
+                                    fileObject.lastModified = Math.floor(files[i].lastModified)
+                                    fileObject.size = files[i].size
+                                    fileObject.type = files[i].type
+                                    fileObject.fileEntry = files[i]
+                                    fileObject.tempFileEntry = undefined
+
+                                    this.queueFileUpload(files[i])
+                                }
+
+                                document.getElementById("file-input-dummy").value = ""
+
+                                return true
+                            }} multiple />
                             <input type="file" accept="image/png, image/jpg, image/jpeg" id="avatar-input-dummy" style={{
                                 display: "none"
                             }} onChange={async (e) => {

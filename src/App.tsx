@@ -147,18 +147,10 @@ export default class App extends React.PureComponent<{}, AppStates> {
 		this.componentDidMount = this.componentDidMount.bind(this)
 	}
 
-	componentDidMount(){
-		this.setupWindowFunctions()
-		
-		this.setupListeners()
-		this.windowRouter()
-
-		this.doSetup()
-	}
-
 	initSocket = socketCompontents.initSocket.bind(this)
 	sendSocket = socketCompontents.sendSocket.bind(this)
 
+	routing = windowComponents.routing.bind(this)
 	windowRouter = windowComponents.windowRouter.bind(this)
 	setupWindowFunctions = windowComponents.setupWindowFunctions.bind(this)
 
@@ -237,4 +229,13 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	openSettingsModal = settingsComponents.openSettingsModal.bind(this)
 
     render = renderComponents.render.bind(this)
+
+	componentDidMount(){
+		this.setupWindowFunctions()
+		
+		this.setupListeners()
+		this.windowRouter()
+
+		this.doSetup()
+	}
 }

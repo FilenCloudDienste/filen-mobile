@@ -383,6 +383,8 @@ export async function mainFabAction(){
                     {
                         text: language.get(this.state.lang, "fabCreateBtn"),
                         handler: async (inputs) => {
+                            window.customFunctions.isIndexEmpty()
+                            
                             if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
                                 return this.spawnToast("No encryption keys found, try restarting the app")
                             }
@@ -466,6 +468,8 @@ export async function mainFabAction(){
         text: language.get(this.state.lang, "fabTakeImage"),
         icon: Ionicons.camera,
         handler: async () => {
+            window.customFunctions.isIndexEmpty()
+
             if(!Capacitor.isNative){
                 return false
             }
@@ -557,6 +561,8 @@ export async function mainFabAction(){
             text: language.get(this.state.lang, "fabUploadFromGallery"),
             icon: Ionicons.cloudUpload,
             handler: async () => {
+                window.customFunctions.isIndexEmpty()
+
                 if(Capacitor.isNative){
                     if(this.state.settings.onlyWifi){
                         let networkStatus = this.state.networkStatus
@@ -682,6 +688,8 @@ export async function mainFabAction(){
         text: language.get(this.state.lang, "fabUploadFiles"),
         icon: Ionicons.cloudUpload,
         handler: async () => {
+            window.customFunctions.isIndexEmpty()
+
             if(Capacitor.isNative){
                 if(this.state.settings.onlyWifi){
                     let networkStatus = this.state.networkStatus
@@ -707,6 +715,10 @@ export async function mainFabAction(){
             }
 
             actionSheet.dismiss()
+
+            if(isPlatform("android")){
+                return window.$("#file-input-dummy").click()
+            }
 
             try{
                 var selectedFilesChooser = await chooser.getFile()

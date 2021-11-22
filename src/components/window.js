@@ -22,116 +22,138 @@ const utils = require("../utils/utils")
 const safeAreaInsets = require("safe-area-insets")
 const CryptoJS = require("crypto-js")
 
-export function windowRouter(){
-    window.onhashchange = async () => {
-        if(window.currentHref !== window.location.href){
-            window.currentHref = window.location.href
+export async function routing(){
+    if(window.customVariables.isCurrentlyRouting){
+        return false
+    }
 
-            this.setState({
-                currentHref: window.currentHref
-            }, () => {
-                this.forceUpdate()
-            })
+    window.customVariables.isCurrentlyRouting = true
 
-            window.customVariables.backButtonPresses = 0
+    let doRouting = false
 
-            let routeEx = window.location.hash.split("/")
+    if(window.currentHref !== window.location.href){
+        doRouting = true
+    }
 
-            if(this.state.isLoggedIn){
-                if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash" || routeEx[1] == "links" || routeEx[1] == "recent" || routeEx[1] == "favorites"){
-                    await this.updateItemList()
-    
-                    let foldersInRoute = routeEx.slice(2)
-    
-                    if(foldersInRoute.length > 0){
-                        let lastFolderInRoute = foldersInRoute[foldersInRoute.length - 1]
-    
-                        if(window.customVariables.cachedFolders[lastFolderInRoute]){
-                            this.setState({
-                                mainToolbarTitle: window.customVariables.cachedFolders[lastFolderInRoute].name,
-                                showMainToolbarBackButton: true
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
-                        else{
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
+    if(!window.customVariables.didFirstLoad){
+        window.customVariables.didFirstLoad = true
+
+        doRouting = true
+    }
+
+    if(doRouting){
+        window.currentHref = window.location.href
+
+        this.setState({
+            currentHref: window.currentHref
+        })
+
+        window.customVariables.backButtonPresses = 0
+
+        let routeEx = window.location.hash.split("/")
+
+        if(this.state.isLoggedIn){
+            if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash" || routeEx[1] == "links" || routeEx[1] == "recent" || routeEx[1] == "favorites"){
+                await this.updateItemList()
+
+                let foldersInRoute = routeEx.slice(2)
+
+                if(foldersInRoute.length > 0){
+                    let lastFolderInRoute = foldersInRoute[foldersInRoute.length - 1]
+
+                    if(window.customVariables.cachedFolders[lastFolderInRoute]){
+                        this.setState({
+                            mainToolbarTitle: window.customVariables.cachedFolders[lastFolderInRoute].name,
+                            showMainToolbarBackButton: true
+                        }, () => {
+                            this.forceUpdate()
+                        })
                     }
                     else{
-                        if(routeEx[1] == "shared-in"){
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "sharedInTitle"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
-                        else if(routeEx[1] == "shared-out"){
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "sharedOutTitle"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
-                        else if(routeEx[1] == "trash"){
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "trashTitle"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
-                        else if(routeEx[1] == "links"){
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "linksTitle"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
-                        else if(routeEx[1] == "recent"){
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "recent"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
-                        else if(routeEx[1] == "events"){
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "events"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
-                        else if(routeEx[1] == "favorites"){
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "favorites"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
-                        else{
-                            this.setState({
-                                mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
-                                showMainToolbarBackButton: false
-                            }, () => {
-                                this.forceUpdate()
-                            })
-                        }
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                }
+                else{
+                    if(routeEx[1] == "shared-in"){
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "sharedInTitle"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                    else if(routeEx[1] == "shared-out"){
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "sharedOutTitle"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                    else if(routeEx[1] == "trash"){
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "trashTitle"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                    else if(routeEx[1] == "links"){
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "linksTitle"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                    else if(routeEx[1] == "recent"){
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "recent"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                    else if(routeEx[1] == "events"){
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "events"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                    else if(routeEx[1] == "favorites"){
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "favorites"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
+                    }
+                    else{
+                        this.setState({
+                            mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
+                            showMainToolbarBackButton: false
+                        }, () => {
+                            this.forceUpdate()
+                        })
                     }
                 }
             }
         }
+    }
+
+    window.customVariables.isCurrentlyRouting = false
+}
+
+export function windowRouter(){
+    window.onhashchange = () => {
+        return this.routing()
     }
 }
 
@@ -260,6 +282,8 @@ export function setupWindowFunctions(){
     window.customVariables.navigateBackTimeout = 0
     window.customVariables.appUrlOpenReceivedURLs = {}
     window.customVariables.listenersAdded = false
+    window.customVariables.didFirstLoad = false
+    window.customVariables.isCurrentlyRouting = false
 
     /*setTimeout(() => {
             PhotoLibrary.requestAuthorization().then(() => {
@@ -299,6 +323,21 @@ export function setupWindowFunctions(){
 
     if(!window.customVariables.listenersAdded){
         window.customVariables.listenersAdded = true
+
+        Network.addListener("networkStatusChange", (status) => {
+            let old = window.customVariables.networkStatus
+    
+            window.customVariables.networkStatus = status
+    
+            if(old.connected !== window.customVariables.networkStatus.connected){
+                this.setState({
+                    networkStatus: window.customVariables.networkStatus,
+                    isDeviceOnline: window.customVariables.networkStatus.connected
+                }, () => {
+                    this.forceUpdate()
+                })
+            }
+        })
 
         App.addListener("appUrlOpen", async (data) => {
             if(!isPlatform("ios")){
@@ -376,7 +415,7 @@ export function setupWindowFunctions(){
             if(appState.isActive){
                 window.customFunctions.checkVersion()
                 window.customFunctions.triggerBiometricAuth()
-                //window.customFunctions.isIndexEmpty()
+                window.customFunctions.isIndexEmpty()
             }
     
             const checkForIntent = () => {
@@ -403,10 +442,12 @@ export function setupWindowFunctions(){
 
     window.customFunctions.isIndexEmpty = () => {
         setTimeout(async () => {
-            if(window.location.hash == "#!/base" && this.state.itemList.length == 0){
-                await this.updateItemList()
+            if(["#!/base", "#!/shared-in", "#!/shared-out", "#!/favorites", "#!/links"].includes(window.location.hash)){
+                if(this.state.itemList.length == 0){
+                    await this.updateItemList()
+                }
             }
-        }, 100)
+        }, 500)
     }
 
     window.customFunctions.fileSendIntentReceived = async (url) => {

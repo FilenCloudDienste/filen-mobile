@@ -381,7 +381,7 @@ export async function getDownloadDir(makeOffline, fileName, callback){
         }
         else{
             let path = "Filen Downloads"
-            let directory = FilesystemDirectory.ExternalStorage
+            let directory = FilesystemDirectory.Documents
 
             try{
                 await Filesystem.mkdir({

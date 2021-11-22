@@ -462,21 +462,6 @@ export async function doSetup(){
         window.customFunctions.getNetworkInfo()
     }, 60000)
 
-    Network.addListener("networkStatusChange", (status) => {
-        let old = window.customVariables.networkStatus
-
-        window.customVariables.networkStatus = status
-
-        if(old.connected !== window.customVariables.networkStatus.connected){
-            this.setState({
-                networkStatus: window.customVariables.networkStatus,
-                isDeviceOnline: window.customVariables.networkStatus.connected
-            }, () => {
-                this.forceUpdate()
-            })
-        }
-    })
-
     if(networkStatus.connected){
         this.initSocket()
     
