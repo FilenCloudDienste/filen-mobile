@@ -321,6 +321,24 @@ export function setupWindowFunctions(){
             })
         }, 1000)*/
 
+    window.customFunctions.checkForSendIntent = () => {
+        if(!isPlatform("android")){
+            return false
+        }
+
+        SendIntent.checkSendIntentReceived().then((result) => {
+            if(result){
+                setTimeout(() => {
+                    window.customFunctions.fileSendIntentReceived(result, "android")
+                }, 250)
+            }
+
+            return true
+        }).catch((err) => {
+            return console.log(err)
+        })
+    }
+
     if(!window.customVariables.listenersAdded){
         window.customVariables.listenersAdded = true
 
@@ -379,7 +397,7 @@ export function setupWindowFunctions(){
             window.customVariables.appUrlOpenReceivedURLs[data.url] = ((+new Date()) + 3000)
     
             return setTimeout(() => {
-                window.customFunctions.fileSendIntentReceived(data.url)
+                window.customFunctions.fileSendIntentReceived(data.url, "ios")
             }, 250)
         })
     
@@ -417,25 +435,17 @@ export function setupWindowFunctions(){
                 window.customFunctions.triggerBiometricAuth()
                 window.customFunctions.isIndexEmpty()
             }
-    
-            const checkForIntent = () => {
-                if(!isPlatform("android")){
-                    return false
-                }
-        
-                SendIntent.checkSendIntentReceived().then((result) => {
-                    if(result){
-                        alert(JSON.stringify(result))
-                    }
-                })
-            }
-    
-            checkForIntent()
         })
     
         window.addEventListener("load", () => {
             window.customVariables.isDocumentReady = true
         })
+
+        window.addEventListener("sendIntentReceived", () => {
+            window.customFunctions.checkForSendIntent()
+        })
+
+        window.customFunctions.checkForSendIntent()
     }
 
     clearInterval(window.customVariables.mainSearchbarInterval)
@@ -450,59 +460,116 @@ export function setupWindowFunctions(){
         }, 500)
     }
 
-    window.customFunctions.fileSendIntentReceived = async (url) => {
-        let urlEx = url.split("?")
-        let parts = urlEx[1].split("&")
-
-        let params = {
-            urls: []
-        }
-
-        for(let i = 0; i < parts.length; i++){
-            let ex = parts[i].split("=")
-            
-            if(ex[0] == "url"){
-                params.urls.push(decodeURIComponent(ex[1]))
-            }
-        }
-
+    window.customFunctions.fileSendIntentReceived = async (url, type) => {
         let fileObjects = []
 
-        for(let i = 0; i < params.urls.length; i++){
-            try{
-                let fileObj = await new Promise((resolve, reject) => {
-                    let tempName = "TEMP_UPLOAD_" + utils.uuidv4()
-                    let fileObject = {}
+        if(type == "ios"){
+            let urlEx = url.split("?")
+            let parts = urlEx[1].split("&")
 
-                    fileObject.tempName = tempName
-
-                    window.resolveLocalFileSystemURL(params.urls[i], (resolved) => {
-                        if(resolved.isFile){
-                            resolved.file((resolvedFile) => {
-                                fileObject.name = resolvedFile.name
-                                fileObject.lastModified = Math.floor(resolvedFile.lastModified)
-                                fileObject.size = resolvedFile.size
-                                fileObject.type = resolvedFile.type
-                                fileObject.fileEntry = resolvedFile
-                                fileObject.tempFileEntry = undefined
-
-                                return resolve(fileObject)
-                            }, (err) => {
-                                return reject(err)
-                            })
-                        }
-                        else{
-                            return reject(params.urls[i] + " path is not a file")
-                        }
-                    }, (err) => {
-                        return reject(err)
-                    })
-                })
-
-                fileObjects.push(fileObj)
+            let params = {
+                urls: []
             }
-            catch(e){
-                console.log(e)
+
+            for(let i = 0; i < parts.length; i++){
+                let ex = parts[i].split("=")
+                
+                if(ex[0] == "url"){
+                    params.urls.push(decodeURIComponent(ex[1]))
+                }
+            }
+
+            for(let i = 0; i < params.urls.length; i++){
+                try{
+                    let fileObj = await new Promise((resolve, reject) => {
+                        let tempName = "UPLOAD_" + utils.uuidv4()
+                        let fileObject = {}
+
+                        fileObject.tempName = tempName
+
+                        window.resolveLocalFileSystemURL(params.urls[i], (resolved) => {
+                            if(resolved.isFile){
+                                resolved.file((resolvedFile) => {
+                                    fileObject.name = resolvedFile.name
+                                    fileObject.lastModified = Math.floor(resolvedFile.lastModified)
+                                    fileObject.size = resolvedFile.size
+                                    fileObject.type = resolvedFile.type
+                                    fileObject.fileEntry = resolvedFile
+                                    fileObject.tempFileEntry = undefined
+
+                                    return resolve(fileObject)
+                                }, (err) => {
+                                    return reject(err)
+                                })
+                            }
+                            else{
+                                return reject(params.urls[i] + " path is not a file")
+                            }
+                        }, (err) => {
+                            return reject(err)
+                        })
+                    })
+
+                    fileObjects.push(fileObj)
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+        }
+        else{
+            let items = []
+
+            items.push({
+                title: decodeURIComponent(url.title) || utils.uuidv4(),
+                url: url.url
+            })
+
+            if(typeof url.additionalItems == "object"){
+                for(let i = 0; i < url.additionalItems.length; i++){
+                    items.push({
+                        title: decodeURIComponent(url.additionalItems[i].title) || utils.uuidv4(),
+                        url: url.additionalItems[i].url
+                    })
+                }
+            }
+
+            for(let i = 0; i < items.length; i++){
+                try{
+                    let fileObj = await new Promise((resolve, reject) => {
+                        let tempName = "UPLOAD_" + utils.uuidv4()
+                        let fileObject = {}
+
+                        fileObject.tempName = tempName
+
+                        window.resolveLocalFileSystemURL(items[i].url, (resolved) => {
+                            if(resolved.isFile){
+                                resolved.file((resolvedFile) => {
+                                    fileObject.name = items[i].title
+                                    fileObject.lastModified = Math.floor((+new Date()))
+                                    fileObject.size = resolvedFile.size
+                                    fileObject.type = resolvedFile.type
+                                    fileObject.fileEntry = resolvedFile
+                                    fileObject.tempFileEntry = undefined
+
+                                    return resolve(fileObject)
+                                }, (err) => {
+                                    return reject(err)
+                                })
+                            }
+                            else{
+                                return reject(items[i].url + " path is not a file")
+                            }
+                        }, (err) => {
+                            return reject(err)
+                        })
+                    })
+
+                    fileObjects.push(fileObj)
+                }
+                catch(e){
+                    console.log(e)
+                }
             }
         }
 

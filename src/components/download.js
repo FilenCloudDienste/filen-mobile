@@ -1,7 +1,7 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor } from "@capacitor/core"
-import Compressor from 'compressorjs'
+import Compressor from "compressorjs"
 import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
 
 const utils = require("../utils/utils")

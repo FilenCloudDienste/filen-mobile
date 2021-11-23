@@ -1164,7 +1164,7 @@ export function render(){
                                     fileObject.fileEntry = files[i]
                                     fileObject.tempFileEntry = undefined
 
-                                    this.queueFileUpload(files[i])
+                                    this.queueFileUpload(fileObject)
                                 }
 
                                 document.getElementById("file-input-dummy").value = ""
