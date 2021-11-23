@@ -342,6 +342,13 @@ translations['uk']['itemsDeletedPermanently'] = "__COUNT__ об'єктів ви�
 translations['uk']['fabUploadImages'] = "Завантажити зображення"
 translations['uk']['2faRecoveryKeys'] = "Ключі відновлення 2FA"
 translations['uk']['2faRecoveryKeysInfo'] = "Збережіть ключі відновлення двофакторної автентифікації. Без них ви не зможете скинути налаштування 2FA, якщо коли-небудь втратите доступ до свого пристрою 2FA."
+translations['uk']['saveToGallery'] = "Зберегти в галерею"
+translations['uk']['fileSavedToGallery'] = "__NAME__ збережено в галерею"
+translations['uk']['fileSavedToGalleryError'] = "Не вдалося зберегти __NAME__ в галерею, помилка"
+translations['uk']['fabUploadFromGallery'] = "Завантажити з галереї"
+translations['uk']['closeAppPress'] = "Перейдіть назад ще раз щоб закрити додаток"
+translations['uk']['deviceOfflineAS'] = "Пристрій в автономному режимі"
+translations['uk']['uploadHere'] = "Завантажити сюди"
 
 module.exports = {
     translations
