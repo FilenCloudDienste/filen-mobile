@@ -19,11 +19,6 @@
     <param name="ios-package" value="MediaPicker"/>
   </feature>
 
-  <feature name="PhotoLibrary">
-    <param name="ios-package" value="PhotoLibrary"/>
-    <param name="onload" value="true"/>
-  </feature>
-
   <feature name="Chooser">
     <param name="ios-package" value="Chooser"/>
   </feature>

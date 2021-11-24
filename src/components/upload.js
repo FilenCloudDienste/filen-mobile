@@ -119,7 +119,7 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 	})
 }
 
-export async function queueFileUpload(file, passedUpdateUUID = undefined){
+export async function queueFileUpload(file, passedUpdateUUID = undefined, cameraUploadCallback = undefined){
 	//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
 
 	const deleteTempFile = () => {
@@ -141,19 +141,34 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
 		deleteTempFile()
 
-		return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+		if(typeof cameraUploadCallback == "function"){
+			return cameraUploadCallback("failed")
+		}
+		else{
+			return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+		}
 	}
 
 	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
 		deleteTempFile()
 
-		return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+		if(typeof cameraUploadCallback == "function"){
+			return cameraUploadCallback("failed")
+		}
+		else{
+			return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+		}
 	}
 
     if(file.size <= 0){
 		deleteTempFile()
 
-        return this.spawnToast(language.get(this.state.lang, "uploadInvalidFileSize", true, ["__NAME__"], [file.name]))
+        if(typeof cameraUploadCallback == "function"){
+			return cameraUploadCallback("invalid size")
+		}
+		else{
+			return this.spawnToast(language.get(this.state.lang, "uploadInvalidFileSize", true, ["__NAME__"], [file.name]))
+		}
 	}
 
 	let parent = utils.currentParentFolder()
@@ -165,7 +180,12 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 	if(parent == "base" || parent == "default"){
 		deleteTempFile()
 
-		return false
+		if(typeof cameraUploadCallback == "function"){
+			return cameraUploadCallback("invalid parent")
+		}
+		else{
+			return false
+		}
 	}
 	
 	if(file.name.indexOf(".") !== -1){
@@ -187,13 +207,20 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 		if(err){
 			deleteTempFile()
 
-			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+			if(typeof cameraUploadCallback == "function"){
+				return cameraUploadCallback("api error")
+			}
+			else{
+				return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+			}
 		}
 
 		if(exists){
 			//return this.spawnToast(language.get(this.state.lang, "fileUploadFileAlreadyExists", true, ["__NAME__"], [file.name]))
 		
-			this.spawnToast(language.get(this.state.lang, "updatingFile", true, ["__NAME__"], [file.name]))
+			if(typeof cameraUploadCallback !== "function"){
+				this.spawnToast(language.get(this.state.lang, "updatingFile", true, ["__NAME__"], [file.name]))
+			}
 
 			return setTimeout(async () => {
 				let updateUUID = utils.uuidv4()
@@ -208,16 +235,26 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 				catch(e){
 					deleteTempFile()
 
-					return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+					if(typeof cameraUploadCallback == "function"){
+						return cameraUploadCallback("api error")
+					}
+					else{
+						return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+					}
 				}
 			
 				if(!res.status){
 					deleteTempFile()
 
-					return this.spawnToast(res.message)
+					if(typeof cameraUploadCallback == "function"){
+						return cameraUploadCallback(res.message)
+					}
+					else{
+						return this.spawnToast(res.message)
+					}
 				}
 
-				return this.queueFileUpload(file, updateUUID)
+				return this.queueFileUpload(file, updateUUID, cameraUploadCallback)
 			})
 		}
 
@@ -383,10 +420,20 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 				if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
 					window.customVariables.stoppedUploadsDone[uuid] = true
 
-					return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+					if(typeof cameraUploadCallback == "function"){
+						return cameraUploadCallback("stopped")
+					}
+					else{
+						return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+					}
 				}
 				else{
-					return false
+					if(typeof cameraUploadCallback == "function"){
+						return cameraUploadCallback("stopped")
+					}
+					else{
+						return false
+					}
 				}
 			}
 			else{
@@ -402,10 +449,20 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 					if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
 						window.customVariables.stoppedUploadsDone[uuid] = true
 
-						return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+						if(typeof cameraUploadCallback == "function"){
+							return cameraUploadCallback("stopped")
+						}
+						else{
+							return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+						}
 					}
 					else{
-						return false
+						if(typeof cameraUploadCallback == "function"){
+							return cameraUploadCallback("stopped")
+						}
+						else{
+							return false
+						}
 					}
 				}
 				else{
@@ -472,10 +529,20 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 													if(typeof window.customVariables.stoppedUploadsDone[uuid] == "undefined"){
 														window.customVariables.stoppedUploadsDone[uuid] = true
 		
-														return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+														if(typeof cameraUploadCallback == "function"){
+															return cameraUploadCallback("stopped")
+														}
+														else{
+															return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+														}
 													}
 													else{
-														return false
+														if(typeof cameraUploadCallback == "function"){
+															return cameraUploadCallback("stopped")
+														}
+														else{
+															return false
+														}
 													}
 												}
 												else if(err == "blacklisted"){
@@ -485,10 +552,20 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 														window.customVariables.stoppedUploadsDone[uuid] = true
 													}
 													
-													return this.spawnToast(language.get(this.state.lang, "uploadStorageExceeded", true, ["__NAME__"], [name]))
+													if(typeof cameraUploadCallback == "function"){
+														return cameraUploadCallback("quota exceeded")
+													}
+													else{
+														return this.spawnToast(language.get(this.state.lang, "uploadStorageExceeded", true, ["__NAME__"], [name]))
+													}
 												}
 												else{
-													return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+													if(typeof cameraUploadCallback == "function"){
+														return cameraUploadCallback("failed")
+													}
+													else{
+														return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+													}
 												}
 											}
 		
@@ -529,7 +606,12 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 															removeFromState()
 															deleteTempFile()
 		
-															return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+															if(typeof cameraUploadCallback == "function"){
+																return cameraUploadCallback("failed")
+															}
+															else{
+																return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+															}
 														}
 		
 														utils.checkIfItemParentIsBeingShared(parent, "file", {
@@ -549,7 +631,12 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 																}, 500)
 															}
 				
-															this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [name]))
+															if(typeof cameraUploadCallback == "function"){
+																cameraUploadCallback(null)
+															}
+															else{
+																this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [name]))
+															}
 		
 															deleteTempFile()
 
@@ -573,7 +660,12 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined){
 		
 									window.customVariables.stoppedUploads[uuid] = true
 		
-									return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
+									if(typeof cameraUploadCallback == "function"){
+										return cameraUploadCallback("could not read")
+									}
+									else{
+										return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
+									}
 								}
 		
 								fileReader.readAsArrayBuffer(chunk)

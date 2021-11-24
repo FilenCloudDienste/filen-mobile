@@ -1759,6 +1759,8 @@ export function getFilePreviewType(ext, mime = undefined){
         return "video"
       break
       case "json":
+	  case "swift":
+	  case "m":
       case "js":
       case "md":
       case "php":
@@ -1808,7 +1810,17 @@ export function getFilePreviewType(ext, mime = undefined){
 	  case "ods":
 	  case "ppt":
 	  case "pptx":
+	  case "csv":
 		return "doc"
+	  break
+	  case "heic":
+		return "heic"
+	  break
+	  case "heif":
+		return "heif"
+	  break
+	  case "hevc":
+		return "hevc"
 	  break
       default:
         return "none"

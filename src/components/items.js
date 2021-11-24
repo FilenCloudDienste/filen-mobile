@@ -1027,7 +1027,20 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 		let nameEx = item.name.split(".")
 		let previewType = utils.getFilePreviewType(nameEx[nameEx.length - 1])
 
-		if(["pdf", "doc"].includes(previewType)){
+		let previewLocally = false
+
+		if(isPlatform("ios")){
+			if(["pdf", "doc", "heic", "heif", "hevc"].includes(previewType)){
+				previewLocally = true
+			}
+		}
+		else{
+			if(["pdf", "doc"].includes(previewType)){
+				previewLocally = true
+			}
+		}
+
+		if(previewLocally){
 			let loading = await loadingController.create({
 				message: "",
 				backdropDismiss: false
@@ -1829,9 +1842,11 @@ export async function renameItem(item){
 				}
 
 				if(exists){
-					loading.dismiss()
+					if(item.uuid !== existsUUID){
+						loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "fileRenameAlreadyExists", true, ["__NAME__"], [item.name]))
+						return this.spawnToast(language.get(this.state.lang, "fileRenameAlreadyExists", true, ["__NAME__"], [newName]))
+					}
 				}
 
 				if(renameWithDot){
@@ -1931,9 +1946,11 @@ export async function renameItem(item){
 				}
 
 				if(exists){
-					loading.dismiss()
+					if(item.uuid !== existsUUID){
+						loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "folderRenameAlreadyExists", true, ["__NAME__"], [item.name]))
+						return this.spawnToast(language.get(this.state.lang, "folderRenameAlreadyExists", true, ["__NAME__"], [newName]))
+					}
 				}
 
 				try{
@@ -3504,94 +3521,57 @@ export async function spawnItemActionSheet(item){
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
-			this.queueFileDownload(item, true, undefined, false, async (err, downloadedPath) => {
+			this.queueFileDownload(item, true, undefined, false, async (err, downloadedPath, doDelete) => {
 				if(err){
 					return console.log(err)
 				}
 
-				let savePayload = {
-					path: downloadedPath.uri,
-					album: ""
-				}
+				console.log(downloadedPath, doDelete)
 
-				let albums = undefined
-
-				try{
-					albums = await Media.getAlbums()
-				}
-				catch(e){
-					this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
-
-					return console.log(e)
-				}
-
-				let albumFound = false
 				let albumId = ""
 				let albumName = "Filen"
 
-				for(let i = 0; i < albums.albums.length; i++){
-					if(albums.albums[i].name.toLowerCase() == "filen"){
-						albumFound = true
-						albumId = albums.albums[i].identifier || ""
-						albumName = albums.albums[i].name
-					}
-				}
+				try{
+					var albums  = await Media.getAlbums()
 
-				if(!albumFound){
-					try{
-						await Media.createAlbum({
-							name: "Filen"
+					albumId = albums.albums.find((a) => a.name === albumName)?.identifier || null
+			
+					if(!albumId){
+					  	await Media.createAlbum({
+							name: albumName
 						})
+						
+					  	albums = await Media.getAlbums()
 
-						albums = await Media.getAlbums()
-					}
-					catch(e){
-						this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
-	
-						return console.log(e)
+					  	albumId = albums.albums.find((a) => a.name === albumName)?.identifier || ""
 					}
 				}
+				catch(e){
+					console.log(e)
 
-				for(let i = 0; i < albums.albums.length; i++){
-					if(albums.albums[i].name.toLowerCase() == "filen"){
-						albumFound = true
-						albumId = albums.albums[i].identifier || ""
-						albumName = albums.albums[i].name
-					}
+					return this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 				}
 
-				if(!albumFound){
-					this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
-	
-					return console.log("Filen album not found")
-				}
-
-				if(!isPlatform("ios")){
-					savePayload = {
-						path: downloadedPath.uri,
-						album: albumName
-					}
-				}
-				else{
-					savePayload = {
-						path: downloadedPath.uri,
-						album: albumId
+				let savePayload = {
+					path: downloadedPath.uri,
+					album: {
+						id: albumId,
+						name: albumName
 					}
 				}
 
 				window.resolveLocalFileSystemURL(downloadedPath.uri, (resolved) => {
 					if(previewType == "video"){
-						Media.saveVideo({
-							path: savePayload.path,
-							album: savePayload.album
-						}).then(() => {
+						Media.saveVideo(savePayload).then(() => {
 							this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
-							resolved.remove(() => {
-								console.log(item.name + " saved to gallery")
-							}, (err) => {
-								return console.log(err)
-							})
+							if(doDelete){
+								resolved.remove(() => {
+									console.log(item.name + " saved to gallery")
+								}, (err) => {
+									return console.log(err)
+								})
+							}
 						}).catch((err) => {
 							this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 
@@ -3600,17 +3580,16 @@ export async function spawnItemActionSheet(item){
 					}
 					else{
 						if(ext == "gif"){
-							Media.saveGif({
-								path: savePayload.path,
-								album: savePayload.album
-							}).then(() => {
+							Media.saveGif(savePayload).then(() => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
-								resolved.remove(() => {
-									console.log(item.name + " saved to gallery")
-								}, (err) => {
-									return console.log(err)
-								})
+								if(doDelete){
+									resolved.remove(() => {
+										console.log(item.name + " saved to gallery")
+									}, (err) => {
+										return console.log(err)
+									})
+								}
 							}).catch((err) => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 								
@@ -3618,17 +3597,16 @@ export async function spawnItemActionSheet(item){
 							})
 						}
 						else{
-							Media.savePhoto({
-								path: savePayload.path,
-								album: savePayload.album
-							}).then(() => {
+							Media.savePhoto(savePayload).then(() => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
-								resolved.remove(() => {
-									console.log(item.name + " saved to gallery")
-								}, (err) => {
-									return console.log(err)
-								})
+								if(doDelete){
+									resolved.remove(() => {
+										console.log(item.name + " saved to gallery")
+									}, (err) => {
+										return console.log(err)
+									})
+								}
 							}).catch((err) => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 								

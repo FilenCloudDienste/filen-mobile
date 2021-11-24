@@ -331,11 +331,65 @@ export async function doSetup(){
                 onlyWifi: false,
                 showThumbnails: true,
                 gridModeEnabled: false,
-                biometricPINCode: ""
+                biometricPINCode: "",
+                cameraUpload: {
+                    enabled: false,
+                    parent: "",
+                    parentName: "",
+                    photos: true,
+                    videos: true
+                }
             }
 
             if(typeof getSettings.value == "string"){
                 settings = JSON.parse(getSettings.value)
+            }
+
+            if(typeof settings.onlyWifi == "undefined"){
+                settings.onlyWifi = false
+            }
+
+            if(typeof settings.showThumbnails == "undefined"){
+                settings.showThumbnails = true
+            }
+
+            if(typeof settings.gridModeEnabled == "undefined"){
+                settings.gridModeEnabled = false
+            }
+
+            if(typeof settings.biometricPINCode == "undefined"){
+                settings.biometricPINCode = ""
+            }
+
+            if(typeof settings.cameraUpload == "undefined"){
+                settings.cameraUpload = {
+                    enabled: false,
+                    parent: "",
+                    parentName: "",
+                    photos: true,
+                    videos: true
+                }
+            }
+            else{
+                if(typeof settings.cameraUpload.enabled == "undefined"){
+                    settings.cameraUpload.enabled = false
+                }
+
+                if(typeof settings.cameraUpload.parent == "undefined"){
+                    settings.cameraUpload.parent = ""
+                }
+
+                if(typeof settings.cameraUpload.parentName == "undefined"){
+                    settings.cameraUpload.parentName = ""
+                }
+
+                if(typeof settings.cameraUpload.photos == "undefined"){
+                    settings.cameraUpload.photos = true
+                }
+
+                if(typeof settings.cameraUpload.videos == "undefined"){
+                    settings.cameraUpload.videos = true
+                }
             }
 
             this.setState({

@@ -1,3 +1,0 @@
-cordova.define("cordova-plugin-photo-library-sism.async_map", function(require, exports, module) { 
-
-});

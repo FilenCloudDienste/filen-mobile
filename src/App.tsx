@@ -117,7 +117,14 @@ export default class App extends React.PureComponent<{}, AppStates> {
 				onlyWifi: false,
 				showThumbnails: true,
 				gridModeEnabled: false,
-				biometricPINCode: ""
+				biometricPINCode: "",
+				cameraUpload: {
+					enabled: false,
+					parent: "",
+					parentName: "",
+					photos: true,
+					videos: true
+				}
 			},
 			scrollToIndex: 0,
 			socketConnected: false,
@@ -147,12 +154,12 @@ export default class App extends React.PureComponent<{}, AppStates> {
 		this.componentDidMount = this.componentDidMount.bind(this)
 	}
 
-	initSocket = socketCompontents.initSocket.bind(this)
-	sendSocket = socketCompontents.sendSocket.bind(this)
-
-	routing = windowComponents.routing.bind(this)
+	doRouting = windowComponents.doRouting.bind(this)
 	windowRouter = windowComponents.windowRouter.bind(this)
 	setupWindowFunctions = windowComponents.setupWindowFunctions.bind(this)
+
+	initSocket = socketCompontents.initSocket.bind(this)
+	sendSocket = socketCompontents.sendSocket.bind(this)
 
 	setupListeners = setupComponents.setupListeners.bind(this)
 	setupStatusbar = setupComponents.setupStatusbar.bind(this)

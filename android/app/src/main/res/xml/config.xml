@@ -24,11 +24,6 @@
     <param name="onload" value="true"/>
   </feature>
 
-  <feature name="PhotoLibrary">
-    <param name="android-package" value="com.terikon.cordova.photolibrary.PhotoLibrary"/>
-    <param name="onload" value="true"/>
-  </feature>
-
   <feature name="Chooser">
     <param name="android-package" value="in.foobars.cordova.Chooser"/>
   </feature>

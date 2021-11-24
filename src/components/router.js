@@ -7,7 +7,11 @@ export function routeTo(route){
 
     window.location.hash = "#!" + route
 
-    return this.routing()
+    if(typeof this !== "object"){
+        return false
+    }
+
+    return this.doRouting()
 }
 
 export function routeToFolder(folder, index = 0, lastFolderUUID = undefined){
@@ -40,7 +44,11 @@ export function routeToFolder(folder, index = 0, lastFolderUUID = undefined){
 
     window.location.hash = window.location.hash + "/" + folder.uuid
 
-    return this.routing()
+    if(typeof this !== "object"){
+        return false
+    }
+
+    return this.doRouting()
 }
 
 export function goToFolder(uuid){
@@ -78,5 +86,9 @@ export function goBack(){
 
     window.history.back()
 
-    return this.routing()
+    if(typeof this !== "object"){
+        return false
+    }
+
+    return this.doRouting()
 }

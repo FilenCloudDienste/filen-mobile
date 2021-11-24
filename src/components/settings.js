@@ -188,7 +188,7 @@ export async function openSettingsModal(){
                                 </ion-buttons>
                             </ion-item>
                             <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
-                            <ion-label>
+                                <ion-label>
                                     ` + language.get(appLang, "settingsFileManagementHeader") + `
                                 </ion-label>
                             </ion-item-divider>
@@ -211,6 +211,16 @@ export async function openSettingsModal(){
                                         ` + language.get(appLang, "settingsDeleteAllButton") + `
                                     </ion-button>
                                 </ion-buttons>
+                            </ion-item>
+                            <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
+                                <ion-label>
+                                    ` + language.get(appLang, "settingsAutoUploadAndSyncHeader") + `
+                                </ion-label>
+                            </ion-item-divider>
+                            <ion-item lines="none" button onClick="window.customFunctions.openCameraUploadModal()">
+                                <ion-label>
+                                    ` + language.get(appLang, "cameraUpload") + `
+                                </ion-label>
                             </ion-item>
                         ` : ``) + `
                         <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">

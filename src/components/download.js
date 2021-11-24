@@ -614,10 +614,16 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
         }
     }
 
-    const returnDownloadPath = async () => {
+    const returnDownloadPath = async (doDelete = true) => {
+        let makeOffline = false
+
+        if(isOfflineRequest){
+            makeOffline = true
+        }
+
         try{
             let filePath = await new Promise((resolve, reject) => {
-                this.getDownloadDir(makeOffline, fileName, (err, dirObj) => {
+                this.getDownloadDir(makeOffline, file.uuid, (err, dirObj) => {
                     if(err){
                         return reject(err)
                     }
@@ -633,7 +639,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                 })
             })
 
-            return saveToGalleryCallback(null, filePath)
+            return saveToGalleryCallback(null, filePath, doDelete)
         }
         catch(e){
             console.log(e)
@@ -690,7 +696,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
             callOptionalCallback(null)
 
             if(typeof saveToGalleryCallback == "function"){
-                return returnDownloadPath()
+                return returnDownloadPath(false)
             }
             else{
                 return this.spawnToast(language.get(this.state.lang, "fileAlreadyStoredOffline", true, ["__NAME__"], [file.name]))

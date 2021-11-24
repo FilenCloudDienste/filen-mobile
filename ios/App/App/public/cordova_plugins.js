@@ -18,14 +18,6 @@
         ]
         },
       {
-          "id": "cordova-plugin-photo-library-sism.PhotoLibrary",
-          "file": "plugins/cordova-plugin-photo-library-sism/www/PhotoLibrary.js",
-          "pluginId": "cordova-plugin-photo-library-sism",
-        "clobbers": [
-          "cordova.plugins.photoLibrary"
-        ]
-        },
-      {
           "id": "cordova-plugin-fingerprint-aio.Fingerprint",
           "file": "plugins/cordova-plugin-fingerprint-aio/www/Fingerprint.js",
           "pluginId": "cordova-plugin-fingerprint-aio",
@@ -190,16 +182,6 @@
         "runs": true
         },
       {
-          "id": "cordova-plugin-photo-library-sism.async",
-          "file": "plugins/cordova-plugin-photo-library-sism/www/async/dist/async.min.js",
-          "pluginId": "cordova-plugin-photo-library-sism"
-        },
-      {
-          "id": "cordova-plugin-photo-library-sism.async_map",
-          "file": "plugins/cordova-plugin-photo-library-sism/www/async/dist/async.min.map",
-          "pluginId": "cordova-plugin-photo-library-sism"
-        },
-      {
           "id": "cordova-plugin-file.fileSystemPaths",
           "file": "plugins/cordova-plugin-file/www/fileSystemPaths.js",
           "pluginId": "cordova-plugin-file",
@@ -232,7 +214,6 @@
       "cordova-plugin-file-opener2": "3.0.5",
       "cordova-plugin-fingerprint-aio": "4.0.2",
       "cordova-plugin-mediapicker-dmcsdk": "2.4.7",
-      "cordova-plugin-photo-library-sism": "2.2.97",
       "cordova-plugin-simple-file-chooser": "2.2.1"
     };
     // BOTTOM OF METADATA

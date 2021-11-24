@@ -638,7 +638,33 @@ export function render(){
                         <IonIcon slot="icon-only" icon={Ionicons.arrowBack} />
                     </IonButton>
                 </IonButtons>
-                <IonSearchbar id="main-searchbar" ref={(el) => el !== null && setTimeout(() => /* el.setFocus() */ {}, 100)} type="search" inputmode="search" value={this.state.mainSearchTerm}></IonSearchbar>
+                <IonSearchbar id="main-searchbar" ref={(el) => el !== null && setTimeout(() => /* el.setFocus() */ {}, 100)} type="search" inputmode="search" value={this.state.mainSearchTerm} onInput={() => {
+                    let term = document.getElementById("main-searchbar").value
+
+                    if(typeof term == "string"){
+                        if(term.length > 0){
+                            if(term !== window.customVariables.lastMainSearchbarTerm){
+                                window.customVariables.lastMainSearchbarTerm = term
+        
+                                clearTimeout(window.customVariables.mainSearchbarTimeout)
+            
+                                window.customVariables.mainSearchbarTimeout = setTimeout(() => {
+                                    this.setMainSearchTerm(term)
+                                }, 500)
+                            }
+                        }
+                        else{
+                            clearTimeout(window.customVariables.mainSearchbarTimeout)
+        
+                            this.setMainSearchTerm("")
+                        }
+                    }
+                    else{
+                        clearTimeout(window.customVariables.mainSearchbarTimeout)
+        
+                        this.setMainSearchTerm("")
+                    }
+                }}></IonSearchbar>
             </IonToolbar>
         ) : (
             <IonToolbar style={{
@@ -922,15 +948,27 @@ export function render(){
                             </IonRefresher>
                             {
                                 this.state.itemList.length == 0 && this.state.mainSearchTerm.trim().length > 0 ? (
-                                    <IonList>
-                                        <IonItem lines="none">
+                                    <div style={{
+                                        position: "absolute",
+                                        left: "50%",
+                                        top: "32%",
+                                        transform: "translate(-50%, -50%)",
+                                        width: "100%"
+                                    }}> 
+                                        <center>
+                                            <IonIcon icon={Ionicons.searchSharp} style={{
+                                                fontSize: "65pt",
+                                                color: this.state.darkMode ? "white" : "gray"
+                                            }}></IonIcon>
+                                            <br />
+                                            <br />
                                             <div style={{
-                                                margin: "0px auto"
+                                                width: "75%"
                                             }}>
-                                                Nothing found matching "{this.state.mainSearchTerm}"
+                                                {language.get(this.state.lang, "nothingFoundSearch", true, ["__TERM__"], [this.state.mainSearchTerm])}
                                             </div>
-                                        </IonItem>
-                                    </IonList>
+                                        </center>
+                                    </div>
                                 ) : (
                                     this.state.itemList.length == 0 && !this.state.searchbarOpen ? (
                                         <div>

@@ -349,6 +349,18 @@ translations['en']['fabUploadFromGallery'] = "Upload from gallery"
 translations['en']['closeAppPress'] = "Press back button once more to close the app"
 translations['en']['deviceOfflineAS'] = "Device is offline"
 translations['en']['uploadHere'] = "Upload here"
+translations['en']['nothingFoundSearch'] = "Nothing found matching \"__TERM__\""
+translations['en']['settingsAutoUploadAndSyncHeader'] = "Auto upload and sync"
+translations['en']['cameraUpload'] = "Camera upload"
+translations['en']['enabled'] = "Enabled"
+translations['en']['photos'] = "Photos"
+translations['en']['videos'] = "Videos"
+translations['en']['folder'] = "Folder"
+translations['en']['selectAFolder'] = "Select a folder"
+translations['en']['select'] = "Select"
+translations['en']['cameraUploadInfo'] = "Info"
+translations['en']['cameraUploadInfoTotal'] = "Total files"
+translations['en']['cameraUploadInfoUploaded'] = "Files uploaded"
 
 module.exports = {
     translations

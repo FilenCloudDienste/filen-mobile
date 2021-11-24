@@ -10,6 +10,7 @@ android {
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
     implementation project(':agorapulse-capacitor-mediastore')
+    implementation project(':capacitor-community-background-geolocation')
     implementation project(':capacitor-community-media')
     implementation project(':capacitor-app')
     implementation project(':capacitor-camera')

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@agorapulse/capacitor-mediastore": "^0.0.2",
+    "@capacitor-community/background-geolocation": "^1.0.4",
     "@capacitor-community/media": "github:dragermrb/media",
     "@capacitor/android": "^3.3.2",
     "@capacitor/app": "^1.0.6",
@@ -24,7 +25,6 @@
     "@ionic-native/core": "^5.29.0",
     "@ionic-native/file-opener": "^5.29.0",
     "@ionic-native/fingerprint-aio": "^5.36.0",
-    "@ionic-native/photo-library": "^5.36.0",
     "@ionic-native/status-bar": "^5.29.0",
     "@ionic/cli": "^6.17.1",
     "@ionic/react": "^5.0.7",
@@ -48,7 +48,6 @@
     "cordova-plugin-fingerprint-aio": "^4.0.2",
     "cordova-plugin-mediapicker-dmcsdk": "github:DmcSDK/cordova-plugin-mediaPicker",
     "cordova-plugin-navigationbar-color": "^0.1.0",
-    "cordova-plugin-photo-library-sism": "^2.2.99",
     "cordova-plugin-simple-file-chooser": "git+https://github.com/FilenCloudDienste/cordova-plugin-simple-file-chooser.git",
     "crypto": "^1.0.1",
     "crypto-js": "^4.0.0",
