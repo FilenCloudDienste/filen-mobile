@@ -78,6 +78,9 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		if(parent == "recent"){
 			items = utils.orderItemsByType(items, "dateDesc")
 		}
+		else if(parent == this.state.settings.cameraUpload.parent){
+			items = utils.orderItemsByType(items, "dateAsc")
+		}
 		else{
 			items = utils.orderItemsByType(items, window.customVariables.orderBy)
 		}
@@ -675,6 +678,9 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 	if(parent == "recent"){
 		items = utils.orderItemsByType(items, "dateDesc")
+	}
+	else if(parent == this.state.settings.cameraUpload.parent){
+		items = utils.orderItemsByType(items, "dateAsc")
 	}
 	else{
 		items = utils.orderItemsByType(items, window.customVariables.orderBy)

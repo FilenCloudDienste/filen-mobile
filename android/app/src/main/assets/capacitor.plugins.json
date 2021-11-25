@@ -4,10 +4,6 @@
 		"classpath": "com.agorapulse.capacitor.mediastore.MediastorePlugin"
 	},
 	{
-		"pkg": "@capacitor-community/background-geolocation",
-		"classpath": "com.equimaps.capacitor_background_geolocation.BackgroundGeolocation"
-	},
-	{
 		"pkg": "@capacitor-community/media",
 		"classpath": "com.getcapacitor.community.media.MediaPlugin"
 	},

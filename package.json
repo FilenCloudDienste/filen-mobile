@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@agorapulse/capacitor-mediastore": "^0.0.2",
-    "@capacitor-community/background-geolocation": "^1.0.4",
     "@capacitor-community/media": "github:dragermrb/media",
     "@capacitor/android": "^3.3.2",
     "@capacitor/app": "^1.0.6",

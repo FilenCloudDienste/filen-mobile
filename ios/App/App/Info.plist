@@ -66,14 +66,6 @@
 	<string>This app would like to save images to your device.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires library access to upload pictures.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-  	<string>This app requires your location info to upload pictures if the location changes</string>
-  	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-  	<string>This app requires your location info to upload pictures if the location changes while your device is locked</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
-	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
