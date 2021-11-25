@@ -1,4 +1,4 @@
-﻿let translations = {}
+let translations = {}
 
 
 translations['pl'] = {}
@@ -351,6 +351,25 @@ translations['pl']['fabUploadFromGallery'] = "Prześlij z galerii"
 translations['pl']['closeAppPress'] = "Naciśnij przycisk Wstecz jeszcze raz, aby zamknąć aplikację"
 translations['pl']['deviceOfflineAS'] = "Urządzenie jest offline"
 translations['pl']['uploadHere'] = "Prześlij tutaj"
+translations['pl']['nothingFoundSearch'] = "Nie znaleziono nic zgodnego z \"__TERM__\""
+translations['pl']['settingsAutoUploadAndSyncHeader'] = "Automatyczne przesyłanie i synchronizacja"
+translations['pl']['cameraUpload'] = "Przesyłanie z aparatu"
+translations['pl']['enabled'] = "Włączone"
+translations['pl']['photos'] = "Zdjęcia"
+translations['pl']['videos'] = "Filmy"
+translations['pl']['folder'] = "Folder"
+translations['pl']['selectAFolder'] = "Wybierz folder"
+translations['pl']['select'] = "Wybierz"
+translations['pl']['cameraUploadInfo'] = "Informacje"
+translations['pl']['cameraUploadInfoTotal'] = "Łączna liczba plików"
+translations['pl']['cameraUploadInfoUploaded'] = "Przesłane pliki"
+translations['pl']['includeHidden'] = "Dołącz ukryte"
+translations['pl']['includeBurst'] = "Dołącz seryjne"
+translations['pl']['includeICloud'] = "Dołącz pliki zsynchronizowane z iCloud"
+translations['pl']['includeCloudShared'] = "Dołącz pliki udostępnione z iCloud"
+translations['pl']['convertHEICToJPG'] = "Konwertuj HEIC na JPG"
+translations['pl']['progress'] = "Postęp"
+
 
 
 module.exports = {
