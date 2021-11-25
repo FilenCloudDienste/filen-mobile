@@ -3526,7 +3526,11 @@ export async function spawnItemActionSheet(item){
 					return console.log(err)
 				}
 
-				console.log(downloadedPath, doDelete)
+				let loading = await loadingController.create({
+					message: ""
+				})
+		
+				loading.present()
 
 				let albumId = ""
 				let albumName = "Filen"
@@ -3549,6 +3553,8 @@ export async function spawnItemActionSheet(item){
 				catch(e){
 					console.log(e)
 
+					loading.dismiss()
+
 					return this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 				}
 
@@ -3567,13 +3573,17 @@ export async function spawnItemActionSheet(item){
 
 							if(doDelete){
 								resolved.remove(() => {
-									console.log(item.name + " saved to gallery")
+									loading.dismiss()
 								}, (err) => {
+									loading.dismiss()
+
 									return console.log(err)
 								})
 							}
 						}).catch((err) => {
 							this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+
+							loading.dismiss()
 
 							return console.log(err)
 						})
@@ -3585,8 +3595,10 @@ export async function spawnItemActionSheet(item){
 
 								if(doDelete){
 									resolved.remove(() => {
-										console.log(item.name + " saved to gallery")
+										loading.dismiss()
 									}, (err) => {
+										loading.dismiss()
+
 										return console.log(err)
 									})
 								}
@@ -3602,21 +3614,27 @@ export async function spawnItemActionSheet(item){
 
 								if(doDelete){
 									resolved.remove(() => {
-										console.log(item.name + " saved to gallery")
+										loading.dismiss()
 									}, (err) => {
+										loading.dismiss()
+
 										return console.log(err)
 									})
 								}
 							}).catch((err) => {
 								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
-								
+
+								loading.dismiss()
+
 								return console.log(err)
 							})
 						}
 					}
 				}, (err) => {
 					this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
-								
+							
+					loading.dismiss()
+
 					return console.log(err)
 				})
 			})

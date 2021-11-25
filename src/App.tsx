@@ -118,12 +118,18 @@ export default class App extends React.PureComponent<{}, AppStates> {
 				showThumbnails: true,
 				gridModeEnabled: false,
 				biometricPINCode: "",
+				convertHeic: true,
 				cameraUpload: {
 					enabled: false,
 					parent: "",
 					parentName: "",
 					photos: true,
-					videos: true
+					videos: true,
+					hidden: true,
+					burst: false,
+					icloud: true,
+					shared: false,
+					convertHeic: true
 				}
 			},
 			scrollToIndex: 0,

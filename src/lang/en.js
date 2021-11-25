@@ -361,6 +361,12 @@ translations['en']['select'] = "Select"
 translations['en']['cameraUploadInfo'] = "Info"
 translations['en']['cameraUploadInfoTotal'] = "Total files"
 translations['en']['cameraUploadInfoUploaded'] = "Files uploaded"
+translations['en']['includeHidden'] = "Include hidden media"
+translations['en']['includeBurst'] = "Include burst series"
+translations['en']['includeICloud'] = "Include iCloud synced media"
+translations['en']['includeCloudShared'] = "Include iCloud shared media"
+translations['en']['convertHEICToJPG'] = "Convert HEIC to JPG"
+translations['en']['progress'] = "Progress"
 
 module.exports = {
     translations

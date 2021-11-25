@@ -332,12 +332,18 @@ export async function doSetup(){
                 showThumbnails: true,
                 gridModeEnabled: false,
                 biometricPINCode: "",
+                convertHeic: true,
                 cameraUpload: {
                     enabled: false,
                     parent: "",
                     parentName: "",
                     photos: true,
-                    videos: true
+                    videos: true,
+                    hidden: true,
+					burst: false,
+					icloud: true,
+					shared: false,
+					convertHeic: true
                 }
             }
 
@@ -361,13 +367,22 @@ export async function doSetup(){
                 settings.biometricPINCode = ""
             }
 
+            if(typeof settings.convertHeic == "undefined"){
+                settings.convertHeic = true
+            }
+
             if(typeof settings.cameraUpload == "undefined"){
                 settings.cameraUpload = {
                     enabled: false,
                     parent: "",
                     parentName: "",
                     photos: true,
-                    videos: true
+                    videos: true,
+                    hidden: true,
+					burst: false,
+					icloud: true,
+					shared: false,
+					convertHeic: true
                 }
             }
             else{
@@ -389,6 +404,26 @@ export async function doSetup(){
 
                 if(typeof settings.cameraUpload.videos == "undefined"){
                     settings.cameraUpload.videos = true
+                }
+
+                if(typeof settings.cameraUpload.hidden == "undefined"){
+                    settings.cameraUpload.hidden = true
+                }
+
+                if(typeof settings.cameraUpload.burst == "undefined"){
+                    settings.cameraUpload.burst = false
+                }
+
+                if(typeof settings.cameraUpload.icloud == "undefined"){
+                    settings.cameraUpload.icloud = true
+                }
+
+                if(typeof settings.cameraUpload.shared == "undefined"){
+                    settings.cameraUpload.shared = false
+                }
+
+                if(typeof settings.cameraUpload.convertHeic == "undefined"){
+                    settings.cameraUpload.convertHeic = true
                 }
             }
 

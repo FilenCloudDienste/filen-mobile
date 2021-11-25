@@ -384,7 +384,7 @@ export async function mainFabAction(){
                         text: language.get(this.state.lang, "fabCreateBtn"),
                         handler: async (inputs) => {
                             window.customFunctions.isIndexEmpty()
-                            
+
                             if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
                                 return this.spawnToast("No encryption keys found, try restarting the app")
                             }
@@ -594,7 +594,8 @@ export async function mainFabAction(){
                         window.MediaPicker.getMedias({
                             selectMode: 101,
                             maxSelectCount: 100,
-                            maxSelectSize: 99999999999999999
+                            maxSelectSize: 99999999999999999,
+                            convertHeic: (this.state.settings.convertHeic ? 1 : 0)
                         }, (files) => {
                             return resolve(files)
                         }, (err) => {

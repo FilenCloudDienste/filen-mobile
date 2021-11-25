@@ -622,13 +622,15 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 															key
 														}, () => {
 															if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
-																clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
+																if(this.state.settings.cameraUpload.parent !== utils.currentParentFolder()){
+																	clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
 				
-																window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
-																	if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
-																		this.updateItemList(false)
-																	}
-																}, 500)
+																	window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
+																		if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
+																			this.updateItemList(false)
+																		}
+																	}, 500)
+																}
 															}
 				
 															if(typeof cameraUploadCallback == "function"){
@@ -677,6 +679,6 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 					}
 				}
 			}
-		}, 100)
+		}, 10)
 	})
 }

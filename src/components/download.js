@@ -1095,6 +1095,24 @@ export async function getThumbnail(file, thumbURL, ext){
                 return reject("url changed")
             }
 
+            if((this.state.uploadsCount + this.state.downloadsCount) !== 0){
+                await new Promise((resolve) => {
+                    let wait = setInterval(() => {
+                        if((this.state.uploadsCount + this.state.downloadsCount) <= 0){
+                            clearInterval(wait)
+                            
+                            return resolve()
+                        }
+                    }, 100)
+                })
+            }
+
+            if(thumbURL !== window.location.href){
+                window.customVariables.thumbnailSemaphore.release()
+
+                return reject("url changed")
+            }
+
             const writeThumbnail = async (arrayBuffer) => {
                 if(typeof arrayBuffer !== "object"){
                     window.customVariables.thumbnailSemaphore.release()
