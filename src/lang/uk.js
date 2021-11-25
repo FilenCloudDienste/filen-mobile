@@ -349,6 +349,18 @@ translations['uk']['fabUploadFromGallery'] = "Завантажити з гале
 translations['uk']['closeAppPress'] = "Перейдіть назад ще раз щоб закрити додаток"
 translations['uk']['deviceOfflineAS'] = "Пристрій в автономному режимі"
 translations['uk']['uploadHere'] = "Завантажити сюди"
+translations['uk']['nothingFoundSearch'] = "Не знайдено збігів з \"__TERM__\""
+translations['uk']['settingsAutoUploadAndSyncHeader'] = "Автоматичне завантаження та синхронізація"
+translations['uk']['cameraUpload'] = "Завантаження з камери"
+translations['uk']['enabled'] = "Увімкнено"
+translations['uk']['photos'] = "Фото"
+translations['uk']['videos'] = "Відео"
+translations['uk']['folder'] = "Папка"
+translations['uk']['selectAFolder'] = "Вибрати папку"
+translations['uk']['select'] = "Вибрати"
+translations['uk']['cameraUploadInfo'] = "Інформація"
+translations['uk']['cameraUploadInfoTotal'] = "Всього файлів"
+translations['uk']['cameraUploadInfoUploaded'] = "Завантажено файлів"
 
 module.exports = {
     translations

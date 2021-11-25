@@ -349,6 +349,18 @@ translations['ru']['fabUploadFromGallery'] = "Загрузить из галер
 translations['ru']['closeAppPress'] = "Перейдите назад еще раз чтобы закрыть приложение"
 translations['ru']['deviceOfflineAS'] = "Устройство находится в автономном режиме"
 translations['ru']['uploadHere'] = "Загрузить сюда"
+translations['ru']['nothingFoundSearch'] = "Не найдено совпадений с \"__TERM__\""
+translations['ru']['settingsAutoUploadAndSyncHeader'] = "Автоматическая загрузка и синхронизация"
+translations['ru']['cameraUpload'] = "Загрузка из камеры"
+translations['ru']['enabled'] = "Включено"
+translations['ru']['photos'] = "Фото"
+translations['ru']['videos'] = "Видео"
+translations['ru']['folder'] = "Папка"
+translations['ru']['selectAFolder'] = "Выбрать папку"
+translations['ru']['select'] = "Выбрать"
+translations['ru']['cameraUploadInfo'] = "Информация"
+translations['ru']['cameraUploadInfoTotal'] = "Всего файлов"
+translations['ru']['cameraUploadInfoUploaded'] = "Загружено файлов"
 
 module.exports = {
     translations
