@@ -296,12 +296,9 @@ export function setupWindowFunctions(){
     window.customVariables.saveSettingsDebounce = undefined
     window.customVariables.cameraUpload = {
         uploadedIds: {},
-        total: 0,
-        uploaded: 0,
-        currentIndex: 0,
-        lastIndex: 0,
-        nextIndex: 0,
-        lastCheck: 0
+        cachedIds: [],
+        blockedIds: {},
+        lastCheck: 0,
     }
     window.customVariables.cameraUploadRunning = false
     window.customVariables.cameraUploadEnabled = false
@@ -360,12 +357,9 @@ export function setupWindowFunctions(){
                 else{
                     window.customVariables.cameraUpload = {
                         uploadedIds: {},
-                        total: 0,
-                        uploaded: 0,
-                        currentIndex: 0,
-                        nextIndex: 0,
+                        cachedIds: [],
+                        blockedIds: {},
                         lastCheck: 0,
-                        lastIndex: 0
                     }
                 }
             }
@@ -374,12 +368,9 @@ export function setupWindowFunctions(){
 
                 window.customVariables.cameraUpload = {
                     uploadedIds: {},
-                    total: 0,
-                    uploaded: 0,
-                    currentIndex: 0,
-                    nextIndex: 0,
+                    cachedIds: [],
+                    blockedIds: {},
                     lastCheck: 0,
-                    lastIndex: 0
                 }
             }
 
@@ -464,14 +455,9 @@ export function setupWindowFunctions(){
 
         let parent = this.state.settings.cameraUpload.parent
 
-        if(window.customVariables.cameraUpload.nextIndex > window.customVariables.cameraUpload.total){
-            window.customVariables.cameraUpload.nextIndex = 0
-        }
-
         try{
-            var data = await Media.getMedias({
-                quantity: 5,
-                start: window.customVariables.cameraUpload.nextIndex,
+            var dataTotal = await Media.getMedias({
+                type: "total",
                 includeHidden: (this.state.settings.cameraUpload.hidden ? 1 : 0),
                 includeBurst: (this.state.settings.cameraUpload.burst ? 1 : 0),
                 iTunesSynced: (this.state.settings.cameraUpload.icloud ? 1 : 0),
@@ -489,18 +475,70 @@ export function setupWindowFunctions(){
             }, 1000)
         }
 
-        window.customVariables.cameraUpload.total = data.total
+        if(dataTotal.total > window.customVariables.cameraUpload.cachedIds.length){
+            try{
+                var dataAll = await Media.getMedias({
+                    type: "all",
+                    includeHidden: (this.state.settings.cameraUpload.hidden ? 1 : 0),
+                    includeBurst: (this.state.settings.cameraUpload.burst ? 1 : 0),
+                    iTunesSynced: (this.state.settings.cameraUpload.icloud ? 1 : 0),
+                    cloudShared: (this.state.settings.cameraUpload.shared ? 1 : 0),
+                    convertHeic: (this.state.settings.cameraUpload.convertHeic ? 1 : 0)
+                })
+            }
+            catch(e){
+                console.log(e)
+    
+                window.customVariables.cameraUploadSemaphore.release()
+    
+                return setTimeout(() => {
+                    window.customFunctions.doCameraUpload()
+                }, 1000)
+            }
 
-        if(data.medias.length > 0){
-            let fileObjects = []
+            window.customVariables.cameraUpload.cachedIds = []
 
-            for(let i = 0; i < data.medias.length; i++){
-                let id = data.medias[i].id
-                let index = data.medias[i].index
-                let url = data.medias[i].url
-                let heicURL = data.medias[i].heicURL || undefined
+            for(let i = 0; i < dataAll.medias.length; i++){
+                window.customVariables.cameraUpload.cachedIds.push(dataAll.medias[i].id)
+            }
+        }
+
+        let max = 10
+        let current = 0
+        let fileObjects = []
+
+        for(let i = 0; i < window.customVariables.cameraUpload.cachedIds.length; i++){
+            let id = window.customVariables.cameraUpload.cachedIds[i]
+
+            if(typeof id == "string" && typeof window.customVariables.cameraUpload.uploadedIds[id] == "undefined" && typeof window.customVariables.cameraUpload.blockedIds[id] == "undefined" && max > current){
+                current += 1
                 
-                if(typeof window.customVariables.cameraUpload.uploadedIds[id] == "undefined"){
+                try{
+                    var data = await Media.getMedias({
+                        type: "id",
+                        id: id,
+                        includeHidden: (this.state.settings.cameraUpload.hidden ? 1 : 0),
+                        includeBurst: (this.state.settings.cameraUpload.burst ? 1 : 0),
+                        iTunesSynced: (this.state.settings.cameraUpload.icloud ? 1 : 0),
+                        cloudShared: (this.state.settings.cameraUpload.shared ? 1 : 0),
+                        convertHeic: (this.state.settings.cameraUpload.convertHeic ? 1 : 0)
+                    })
+                }
+                catch(e){
+                    console.log(e)
+        
+                    window.customVariables.cameraUploadSemaphore.release()
+        
+                    return setTimeout(() => {
+                        window.customFunctions.doCameraUpload()
+                    }, 1000)
+                }
+
+                if(data.medias.length > 0){
+                    let index = data.medias[0].index
+                    let url = data.medias[0].url
+                    let heicURL = data.medias[0].heicURL || undefined
+
                     if(url.indexOf("file://") == -1){
                         url = "file://" + url
                     }
@@ -584,91 +622,71 @@ export function setupWindowFunctions(){
                         }
                         catch(e){
                             console.log(e)
-
-                            fileObjects.push({
-                                file: undefined,
-                                id,
-                                index,
-                                url,
-                                heicURL
-                            })
                         }
                     }
                     else{
-                        fileObjects.push({
-                            file: undefined,
-                            id,
-                            index,
-                            url,
-                            heicURL
-                        })
+                        window.customVariables.cameraUpload.blockedIds[id] = true
+                        current -= 1
                     }
                 }
-                else{
-                    fileObjects.push({
-                        file: undefined,
-                        id,
-                        index,
-                        url,
-                        heicURL
-                    })
-                }
             }
+        }
 
-            if(fileObjects.length > 0){
-                for(let i = 0; i < fileObjects.length; i++){
-                    if(typeof fileObjects[i].file !== "undefined"){
-                        try{
-                            await new Promise((resolve, reject) => {
-                                this.queueFileUpload(fileObjects[i].file, undefined, async (err) => {
-                                    if(err){
-                                        return reject(err)
-                                    }
+        for(let i = 0; i < fileObjects.length; i++){
+            if(typeof fileObjects[i].file !== "undefined"){
+                try{
+                    await new Promise((resolve, reject) => {
+                        if(!this.state.settings.cameraUpload.enabled || !window.customVariables.cameraUploadEnabled){
+                            return reject("stopped")
+                        }
 
-                                    await window.customVariables.cameraUploadUploadSemaphore.acquire()
+                        this.queueFileUpload(fileObjects[i].file, undefined, async (err) => {
+                            if(err){
+                                return reject(err)
+                            }
 
-                                    window.customVariables.cameraUpload.uploadedIds[fileObjects[i].id] = true
-                                    window.customVariables.cameraUpload.uploaded = window.customVariables.cameraUpload.uploaded + 1
-                                    window.customVariables.cameraUpload.lastIndex = fileObjects[i].index
-                                    window.customVariables.cameraUpload.nextIndex = fileObjects[i].index + 1
+                            await window.customVariables.cameraUploadUploadSemaphore.acquire()
 
-                                    window.customVariables.cameraUploadUploadSemaphore.release()
+                            window.customVariables.cameraUpload.uploadedIds[fileObjects[i].id] = true
 
-                                    if(typeof fileObjects[i].heicURL !== "undefined"){
-                                        window.resolveLocalFileSystemURL(fileObjects[i].url, (resolved) => {
-                                            if(resolved.isFile){
-                                                resolved.getParent((parent) => {
-                                                    if(parent.isDirectory){
-                                                        if(typeof parent.removeRecursively == "function"){
-                                                            parent.removeRecursively(() => {
-                                                                return resolve()
-                                                            }, (err) => {
-                                                                console.log(err)
-        
-                                                                return resolve()
-                                                            })
-                                                        }
-                                                        else if(typeof parent.remove == "function"){
-                                                            parent.remove(() => {
-                                                                return resolve()
-                                                            }, (err) => {
-                                                                console.log(err)
-        
-                                                                return resolve()
-                                                            })
-                                                        }
-                                                        else{
-                                                            return resolve()
-                                                        }
-                                                    }
-                                                    else{
+                            try{
+                                await Storage.set({
+                                    key: "cameraUpload",
+                                    value: await workers.JSONStringifyWorker(window.customVariables.cameraUpload)
+                                })
+                            }
+                            catch(e){
+                                console.log(e)
+                            }
+
+                            window.customVariables.cameraUploadUploadSemaphore.release()
+
+                            if(typeof fileObjects[i].heicURL !== "undefined"){
+                                window.resolveLocalFileSystemURL(fileObjects[i].url, (resolved) => {
+                                    if(resolved.isFile){
+                                        resolved.getParent((parent) => {
+                                            if(parent.isDirectory){
+                                                if(typeof parent.removeRecursively == "function"){
+                                                    parent.removeRecursively(() => {
                                                         return resolve()
-                                                    }
-                                                }, (err) => {
-                                                    console.log(err)
+                                                    }, (err) => {
+                                                        console.log(err)
 
+                                                        return resolve()
+                                                    })
+                                                }
+                                                else if(typeof parent.remove == "function"){
+                                                    parent.remove(() => {
+                                                        return resolve()
+                                                    }, (err) => {
+                                                        console.log(err)
+
+                                                        return resolve()
+                                                    })
+                                                }
+                                                else{
                                                     return resolve()
-                                                })
+                                                }
                                             }
                                             else{
                                                 return resolve()
@@ -682,32 +700,32 @@ export function setupWindowFunctions(){
                                     else{
                                         return resolve()
                                     }
+                                }, (err) => {
+                                    console.log(err)
+
+                                    return resolve()
                                 })
-                            })
-                        }
-                        catch(e){
-                            console.log(e)
-
-                            window.customVariables.cameraUpload.lastIndex = fileObjects[i].index
-                            window.customVariables.cameraUpload.nextIndex = fileObjects[i].index + 1
-                        }
-                    }
-                    else{
-                        window.customVariables.cameraUpload.lastIndex = fileObjects[i].index
-                        window.customVariables.cameraUpload.nextIndex = fileObjects[i].index + 1
-                    }
-                }
-
-                try{
-                    await Storage.set({
-                        key: "cameraUpload",
-                        value: await workers.JSONStringifyWorker(window.customVariables.cameraUpload)
+                            }
+                            else{
+                                return resolve()
+                            }
+                        })
                     })
                 }
                 catch(e){
                     console.log(e)
                 }
             }
+        }
+
+        try{
+            await Storage.set({
+                key: "cameraUpload",
+                value: await workers.JSONStringifyWorker(window.customVariables.cameraUpload)
+            })
+        }
+        catch(e){
+            console.log(e)
         }
 
         window.customVariables.cameraUploadSemaphore.release()
@@ -5971,9 +5989,8 @@ export function setupWindowFunctions(){
 
         await window.customVariables.cameraUploadSemaphore.acquire()
 
-        window.customVariables.cameraUpload.currentIndex = 0
-        window.customVariables.cameraUpload.nextIndex = 0
-        window.customVariables.cameraUpload.lastIndex = 0
+        window.customVariables.cameraUpload.blockedIds = {}
+        window.customVariables.cameraUpload.cachedIds = []
 
         try{
             await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
@@ -6007,9 +6024,8 @@ export function setupWindowFunctions(){
 
         await window.customVariables.cameraUploadSemaphore.acquire()
 
-        window.customVariables.cameraUpload.currentIndex = 0
-        window.customVariables.cameraUpload.nextIndex = 0
-        window.customVariables.cameraUpload.lastIndex = 0
+        window.customVariables.cameraUpload.blockedIds = {}
+        window.customVariables.cameraUpload.cachedIds = []
 
         try{
             await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
@@ -6035,9 +6051,7 @@ export function setupWindowFunctions(){
 
         await window.customVariables.cameraUploadSemaphore.acquire()
 
-        window.customVariables.cameraUpload.currentIndex = 0
-        window.customVariables.cameraUpload.nextIndex = 0
-        window.customVariables.cameraUpload.lastIndex = 0
+        window.customVariables.cameraUpload.cachedIds = []
 
         try{
             await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
@@ -6063,9 +6077,7 @@ export function setupWindowFunctions(){
 
         await window.customVariables.cameraUploadSemaphore.acquire()
 
-        window.customVariables.cameraUpload.currentIndex = 0
-        window.customVariables.cameraUpload.nextIndex = 0
-        window.customVariables.cameraUpload.lastIndex = 0
+        window.customVariables.cameraUpload.cachedIds = []
 
         try{
             await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
@@ -6091,9 +6103,7 @@ export function setupWindowFunctions(){
 
         await window.customVariables.cameraUploadSemaphore.acquire()
 
-        window.customVariables.cameraUpload.currentIndex = 0
-        window.customVariables.cameraUpload.nextIndex = 0
-        window.customVariables.cameraUpload.lastIndex = 0
+        window.customVariables.cameraUpload.cachedIds = []
 
         try{
             await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
@@ -6119,9 +6129,7 @@ export function setupWindowFunctions(){
 
         await window.customVariables.cameraUploadSemaphore.acquire()
 
-        window.customVariables.cameraUpload.currentIndex = 0
-        window.customVariables.cameraUpload.nextIndex = 0
-        window.customVariables.cameraUpload.lastIndex = 0
+        window.customVariables.cameraUpload.cachedIds = []
 
         try{
             await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
@@ -6202,12 +6210,9 @@ export function setupWindowFunctions(){
 
                         window.customVariables.cameraUpload = {
                             uploadedIds: {},
-                            total: window.customVariables.cameraUpload.total || 0,
-                            uploaded: 0,
-                            currentIndex: 0,
-                            nextIndex: 0,
+                            cachedIds: [],
+                            blockedIds: {},
                             lastCheck: 0,
-                            lastIndex: 0
                         }
 
                         try{
@@ -6243,12 +6248,9 @@ export function setupWindowFunctions(){
             else{
                 window.customVariables.cameraUpload = {
                     uploadedIds: {},
-                    total: 0,
-                    uploaded: 0,
-                    currentIndex: 0,
-                    nextIndex: 0,
+                    cachedIds: [],
+                    blockedIds: {},
                     lastCheck: 0,
-                    lastIndex: 0
                 }
             }
         }
@@ -6257,19 +6259,20 @@ export function setupWindowFunctions(){
 
             window.customVariables.cameraUpload = {
                 uploadedIds: {},
-                total: 0,
-                uploaded: 0,
-                currentIndex: 0,
-                nextIndex: 0,
+                cachedIds: [],
+                blockedIds: {},
                 lastCheck: 0,
-                lastIndex: 0
             }
         }
 
-        let progress = ((Object.keys(window.customVariables.cameraUpload.uploadedIds).length / window.customVariables.cameraUpload.total) * 100)
+        let progress = ((Object.keys(window.customVariables.cameraUpload.uploadedIds).length / window.customVariables.cameraUpload.cachedIds.length) * 100)
 
         if(progress >= 100){
             progress = 100
+        }
+
+        if(isNaN(progress)){
+            progress = 0
         }
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -6379,7 +6382,7 @@ export function setupWindowFunctions(){
                                 </ion-label>
                                 <ion-buttons slot="end">
                                     <ion-button fill="none">
-                                        <text id="camera-upload-total-text">` + window.customVariables.cameraUpload.total + `</text>
+                                        <text id="camera-upload-total-text">` + window.customVariables.cameraUpload.cachedIds.length + `</text>
                                     </ion-button>
                                 </ion-buttons>
                             </ion-item>
@@ -6440,13 +6443,17 @@ export function setupWindowFunctions(){
         clearInterval(window.customVariables.updateCameraUploadModalInterval)
 
         window.customVariables.updateCameraUploadModalInterval = setInterval(() => {
-            document.getElementById("camera-upload-total-text").innerHTML = window.customVariables.cameraUpload.total
+            document.getElementById("camera-upload-total-text").innerHTML = window.customVariables.cameraUpload.cachedIds.length
             document.getElementById("camera-upload-uploaded-text").innerHTML = Object.keys(window.customVariables.cameraUpload.uploadedIds).length
 
-            let progress = ((Object.keys(window.customVariables.cameraUpload.uploadedIds).length / window.customVariables.cameraUpload.total) * 100)
+            let progress = ((Object.keys(window.customVariables.cameraUpload.uploadedIds).length / window.customVariables.cameraUpload.cachedIds.length) * 100)
 
             if(progress >= 100){
                 progress = 100
+            }
+
+            if(isNaN(progress)){
+                progress = 0
             }
 
             document.getElementById("camera-upload-progress-text").innerHTML = progress.toFixed(2) + "%"
