@@ -361,6 +361,12 @@ translations['ru']['select'] = "Выбрать"
 translations['ru']['cameraUploadInfo'] = "Информация"
 translations['ru']['cameraUploadInfoTotal'] = "Всего файлов"
 translations['ru']['cameraUploadInfoUploaded'] = "Загружено файлов"
+translations['ru']['includeHidden'] = "Включить скрытые медиафайлы"
+translations['ru']['includeBurst'] = "Включить сериийную съёмку"
+translations['ru']['includeICloud'] = "Включить синхронизированные медиафайлы iCloud"
+translations['ru']['includeCloudShared'] = "Включить общие медиафайлы iCloud"
+translations['ru']['convertHEICToJPG'] = "Конвертировать HEIC в JPG"
+translations['ru']['progress'] = "Прогресс"
 
 module.exports = {
     translations
