@@ -367,6 +367,8 @@ translations['en']['includeICloud'] = "Include iCloud synced media"
 translations['en']['includeCloudShared'] = "Include iCloud shared media"
 translations['en']['convertHEICToJPG'] = "Convert HEIC to JPG"
 translations['en']['progress'] = "Progress"
+translations['en']['advanced'] = "Advanced"
+translations['en']['transfersMore'] = "And __COUNT__ more.."
 
 module.exports = {
     translations

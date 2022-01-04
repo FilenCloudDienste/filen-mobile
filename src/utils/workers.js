@@ -6483,6 +6483,24 @@ utilWorker.onmessage = (e) => {
 	utilWorkerResults[e.data.type + "_" + e.data.id] = e.data.data
 }
 
+const createUploadWorker = () => {
+	let blob = new Blob([`
+		onmessage = (e) => {
+			console.log(new FileReader())
+		}
+  	`], {
+  		type: "text/javascript"
+  	})
+  
+  	return new Worker((window.URL || window.webkitURL).createObjectURL(blob))
+}
+
+let uploadWorker = createUploadWorker()
+
+uploadWorker.postMessage({
+	do: "it"
+})
+
 const getRandomArbitrary = (min, max) => {
 	return Math.floor(Math.random() * (max - min) + min)
 }

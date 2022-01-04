@@ -209,12 +209,13 @@ export function setupWindowFunctions(){
     window.customVariables.usageUpdateInterval = undefined
     window.customVariables.apiKey = ""
     window.customVariables.uploadSemaphore = new utils.Semaphore(1)
-    window.customVariables.uploadChunkSemaphore = new utils.Semaphore(8)
+    window.customVariables.uploadChunkSemaphore = new utils.Semaphore(10)
     window.customVariables.downloadSemaphore = new utils.Semaphore(1)
-    window.customVariables.downloadChunkSemaphore = new utils.Semaphore(16)
+    window.customVariables.downloadChunkSemaphore = new utils.Semaphore(20)
     window.customVariables.shareItemSemaphore = new utils.Semaphore(8)
     window.customVariables.decryptShareItemSemaphore = new utils.Semaphore(128)
     window.customVariables.writeSemaphore = new utils.Semaphore(64)
+    window.customVariables.transfersSemaphore = new utils.Semaphore(1)
     window.customVariables.currentUploadThreads = 0
     window.customVariables.maxUploadThreads = 6
     window.customVariables.maxDownloadThreads = 16
@@ -303,6 +304,7 @@ export function setupWindowFunctions(){
     window.customVariables.cameraUploadRunning = false
     window.customVariables.cameraUploadEnabled = false
     window.customVariables.updateCameraUploadModalInterval = undefined
+    window.customVariables.isAppActive = true
 
     window.Media = Media
 
@@ -353,6 +355,18 @@ export function setupWindowFunctions(){
 
                 if(typeof getCameraUpload.value == "string"){
                     window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload.value)
+
+                    if(typeof window.customVariables.cameraUpload.uploadedIds == "undefined" 
+                    || typeof window.customVariables.cameraUpload.cachedIds == "undefined"
+                    || typeof window.customVariables.cameraUpload.blockedIds == "undefined"
+                    || typeof window.customVariables.cameraUpload.lastCheck == "undefined"){
+                        window.customVariables.cameraUpload = {
+                            uploadedIds: {},
+                            cachedIds: [],
+                            blockedIds: {},
+                            lastCheck: 0,
+                        }
+                    }
                 }
                 else{
                     window.customVariables.cameraUpload = {
@@ -503,7 +517,7 @@ export function setupWindowFunctions(){
             }
         }
 
-        let max = 10
+        let max = 1
         let current = 0
         let fileObjects = []
 
@@ -732,7 +746,7 @@ export function setupWindowFunctions(){
 
         return setTimeout(() => {
             window.customFunctions.doCameraUpload()
-        }, 1000)
+        }, 100)
     }
 
     if(!window.customVariables.listenersAdded){
@@ -856,6 +870,11 @@ export function setupWindowFunctions(){
                 window.customFunctions.checkVersion()
                 window.customFunctions.triggerBiometricAuth()
                 window.customFunctions.isIndexEmpty()
+
+                window.customVariables.isAppActive = true
+            }
+            else{
+                window.customVariables.isAppActive = false
             }
 
             window.customFunctions.setupCameraUpload(true)
@@ -876,6 +895,8 @@ export function setupWindowFunctions(){
     clearInterval(window.customVariables.mainSearchbarInterval)
 
     window.customFunctions.isIndexEmpty = () => {
+        return false
+
         setTimeout(async () => {
             if(["#!/base", "#!/shared-in", "#!/shared-out", "#!/favorites", "#!/links"].includes(window.location.hash)){
                 if(this.state.itemList.length == 0){
@@ -6244,6 +6265,18 @@ export function setupWindowFunctions(){
 
             if(typeof getCameraUpload.value == "string"){
                 window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload.value)
+
+                if(typeof window.customVariables.cameraUpload.uploadedIds == "undefined" 
+                || typeof window.customVariables.cameraUpload.cachedIds == "undefined"
+                || typeof window.customVariables.cameraUpload.blockedIds == "undefined"
+                || typeof window.customVariables.cameraUpload.lastCheck == "undefined"){
+                    window.customVariables.cameraUpload = {
+                        uploadedIds: {},
+                        cachedIds: [],
+                        blockedIds: {},
+                        lastCheck: 0,
+                    }
+                }
             }
             else{
                 window.customVariables.cameraUpload = {
@@ -6458,6 +6491,85 @@ export function setupWindowFunctions(){
 
             document.getElementById("camera-upload-progress-text").innerHTML = progress.toFixed(2) + "%"
         }, 1000)
+
+        return true
+    }
+
+    window.customFunctions.openAdvancedModal = async () => {
+        let appLang = this.state.lang
+        let appDarkMode = this.state.darkMode
+        let modalId = "advanced-modal-" + utils.generateRandomClassName()
+
+        customElements.define(modalId, class ModalContent extends HTMLElement {
+            connectedCallback(){
+                this.innerHTML = `
+                    <ion-header class="ion-header-no-shadow" style="--background: transparent;">
+                        <ion-toolbar style="--background: ` + (appDarkMode ? `#1e1e1e` : `white`) + `;">
+                            <ion-buttons slot="start">
+                                <ion-button onClick="window.customFunctions.dismissModal()">
+                                    <ion-icon slot="icon-only" icon="` + Ionicons.arrowBack + `"></ion-icon>
+                                </ion-button>
+                            </ion-buttons>
+                            <ion-title>
+                                ` + language.get(appLang, "advanced") + `
+                            </ion-title>
+                        </ion-toolbar>
+                    </ion-header>
+                    <ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
+                        <ion-list>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + language.get(appLang, "settingsDeleteAccount") + `
+                                </ion-label>
+                                <ion-buttons slot="end">
+                                    <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteAccount()">
+                                        ` + language.get(appLang, "settingsDeleteButton") + `
+                                    </ion-button>
+                                </ion-buttons>
+                            </ion-item>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + language.get(appLang, "settingsDeleteVersioned") + `
+                                </ion-label>
+                                <ion-buttons slot="end">
+                                    <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteVersioned()">
+                                        ` + language.get(appLang, "settingsDeleteAllButton") + `
+                                    </ion-button>
+                                </ion-buttons>
+                            </ion-item>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + language.get(appLang, "settingsDeleteAll") + `
+                                </ion-label>
+                                <ion-buttons slot="end">
+                                    <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteEverything()">
+                                        ` + language.get(appLang, "settingsDeleteAllButton") + `
+                                    </ion-button>
+                                </ion-buttons>
+                            </ion-item>
+                            <ion-item lines="none" button onClick="window.customFunctions.showGDPR()">
+                                <ion-label>
+                                    ` + language.get(appLang, "settingsShowGDPR") + `
+                                </ion-label>
+                            </ion-item>
+                        </ion-list>
+                    </ion-content>
+                    <br><br><br><br><br><br><br>
+                `;
+            }
+        })
+
+        let modal = await modalController.create({
+            component: modalId,
+            swipeToClose: false,
+            showBackdrop: false,
+            backdropDismiss: false,
+            cssClass: "modal-fullscreen"
+        })
+
+        await modal.present()
+
+        this.setupStatusbar("modal")
 
         return true
     }

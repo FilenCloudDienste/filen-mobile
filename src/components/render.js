@@ -762,50 +762,84 @@ export function render(){
         }}></div>
     }
 
+    let maxShowingTransfers = 25
+    let currentShowingTransfers = 0
+    let isShowingMoreInfo = false
+
     let transfersUploads = Object.keys(this.state.uploads).map((key) => {
-        return (
-            <IonItem lines="none" key={key}>
-                <IonIcon slot="start" icon={Ionicons.arrowUp}></IonIcon>
-                <IonLabel>{this.state.uploads[key].name}</IonLabel>
-                <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
+        if(maxShowingTransfers > currentShowingTransfers){
+            currentShowingTransfers += 1
+
+            return (
+                <IonItem lines="none" key={key}>
+                    <IonIcon slot="start" icon={Ionicons.arrowUp}></IonIcon>
+                    <IonLabel>{this.state.uploads[key].name}</IonLabel>
+                    <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
+                        {
+                            this.state.uploads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.uploads[key].progress == 0 ? language.get(this.state.lang, "transfersQueued") : this.state.uploads[key].progress + "%"
+                        }
+                    </IonBadge>
                     {
-                        this.state.uploads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.uploads[key].progress == 0 ? language.get(this.state.lang, "transfersQueued") : this.state.uploads[key].progress + "%"
+                        this.state.uploads[key].progress < 100 && (
+                            <IonBadge color="danger" slot="end" onClick={() => {
+                                return window.customVariables.stoppedUploads[this.state.uploads[key].uuid] = true
+                            }}>
+                                {language.get(this.state.lang, "transferStop")}
+                            </IonBadge>
+                        )
                     }
-                </IonBadge>
-                {
-                    this.state.uploads[key].progress < 100 && (
-                        <IonBadge color="danger" slot="end" onClick={() => {
-                            return window.customVariables.stoppedUploads[this.state.uploads[key].uuid] = true
-                        }}>
-                            {language.get(this.state.lang, "transferStop")}
-                        </IonBadge>
-                    )
-                }
-            </IonItem>
-        )
+                </IonItem>
+            )
+        }
+        else{
+            if(!isShowingMoreInfo){
+                isShowingMoreInfo = true
+
+                return (
+                    <IonItem lines="none" key={key}>
+                        {language.get(this.state.lang, "transfersMore", true, ["__COUNT__"], [((Object.keys(this.state.uploads).length + Object.keys(this.state.downloads).length) - maxShowingTransfers)])}
+                    </IonItem>
+                )
+            }
+        }
     })
 
     let transfersDownloads = Object.keys(this.state.downloads).map((key) => {
-        return (
-            <IonItem lines="none" key={key}>
-                <IonIcon slot="start" icon={Ionicons.arrowDown}></IonIcon>
-                <IonLabel>{this.state.downloads[key].name}</IonLabel>
-                <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
+        if(maxShowingTransfers > currentShowingTransfers){
+            currentShowingTransfers += 1
+
+            return (
+                <IonItem lines="none" key={key}>
+                    <IonIcon slot="start" icon={Ionicons.arrowDown}></IonIcon>
+                    <IonLabel>{this.state.downloads[key].name}</IonLabel>
+                    <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
+                        {
+                            this.state.downloads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") + " " + this.state.downloads[key].chunksWritten + "/" + this.state.downloads[key].chunks : this.state.downloads[key].progress == 0 ? language.get(this.state.lang, "transfersQueued") : this.state.downloads[key].progress + "%"
+                        }
+                    </IonBadge>
                     {
-                        this.state.downloads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") + " " + this.state.downloads[key].chunksWritten + "/" + this.state.downloads[key].chunks : this.state.downloads[key].progress == 0 ? language.get(this.state.lang, "transfersQueued") : this.state.downloads[key].progress + "%"
+                        this.state.downloads[key].progress < 100 && (
+                            <IonBadge color="danger" slot="end" onClick={() => {        
+                                return window.customVariables.stoppedDownloads[this.state.downloads[key].uuid] = true
+                            }}>
+                                {language.get(this.state.lang, "transferStop")}
+                            </IonBadge>
+                        )
                     }
-                </IonBadge>
-                {
-                    this.state.downloads[key].progress < 100 && (
-                        <IonBadge color="danger" slot="end" onClick={() => {        
-                            return window.customVariables.stoppedDownloads[this.state.downloads[key].uuid] = true
-                        }}>
-                            {language.get(this.state.lang, "transferStop")}
-                        </IonBadge>
-                    )
-                }
-            </IonItem>
-        )
+                </IonItem>
+            )
+        }
+        else{
+            if(!isShowingMoreInfo){
+                isShowingMoreInfo = true
+
+                return (
+                    <IonItem lines="none" key={key}>
+                        {language.get(this.state.lang, "transfersMore", true, ["__COUNT__"], [((Object.keys(this.state.uploads).length + Object.keys(this.state.downloads).length) - maxShowingTransfers)])}
+                    </IonItem>
+                )
+            }
+        }
     })
 
     if(this.state.isLoggedIn){

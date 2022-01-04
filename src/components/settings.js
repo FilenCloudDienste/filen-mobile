@@ -172,45 +172,10 @@ export async function openSettingsModal(){
                                     ` + language.get(appLang, "settingsInvite") + `
                                 </ion-label>
                             </ion-item>
-                            <ion-item lines="none" button onClick="window.customFunctions.showGDPR()">
+                            <ion-item lines="none" button onClick="window.customFunctions.openAdvancedModal()">
                                 <ion-label>
-                                    ` + language.get(appLang, "settingsShowGDPR") + `
+                                    ` + language.get(appLang, "advanced") + `
                                 </ion-label>
-                            </ion-item>
-                            <ion-item lines="none">
-                                <ion-label>
-                                    ` + language.get(appLang, "settingsDeleteAccount") + `
-                                </ion-label>
-                                <ion-buttons slot="end">
-                                    <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteAccount()">
-                                        ` + language.get(appLang, "settingsDeleteButton") + `
-                                    </ion-button>
-                                </ion-buttons>
-                            </ion-item>
-                            <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
-                                <ion-label>
-                                    ` + language.get(appLang, "settingsFileManagementHeader") + `
-                                </ion-label>
-                            </ion-item-divider>
-                            <ion-item lines="none">
-                                <ion-label>
-                                    ` + language.get(appLang, "settingsDeleteVersioned") + `
-                                </ion-label>
-                                <ion-buttons slot="end">
-                                    <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteVersioned()">
-                                        ` + language.get(appLang, "settingsDeleteAllButton") + `
-                                    </ion-button>
-                                </ion-buttons>
-                            </ion-item>
-                            <ion-item lines="none">
-                                <ion-label>
-                                    ` + language.get(appLang, "settingsDeleteAll") + `
-                                </ion-label>
-                                <ion-buttons slot="end">
-                                    <ion-button fill="solid" color="danger" onClick="window.customFunctions.deleteEverything()">
-                                        ` + language.get(appLang, "settingsDeleteAllButton") + `
-                                    </ion-button>
-                                </ion-buttons>
                             </ion-item>
                             <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
                                 <ion-label>
