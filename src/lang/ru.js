@@ -367,6 +367,8 @@ translations['ru']['includeICloud'] = "Включить синхронизиро
 translations['ru']['includeCloudShared'] = "Включить общие медиафайлы iCloud"
 translations['ru']['convertHEICToJPG'] = "Конвертировать HEIC в JPG"
 translations['ru']['progress'] = "Прогресс"
+translations['ru']['advanced'] = "Расширенные"
+translations['ru']['transfersMore'] = "И ещё __COUNT__ .."
 
 module.exports = {
     translations
