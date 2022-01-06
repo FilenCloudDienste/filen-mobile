@@ -1069,6 +1069,18 @@ export async function getThumbnail(file, thumbURL, ext){
         }
 
         let videoExts = ["mp4", "webm", "mov", "avi", "wmv"]
+
+        if(videoExts.includes(ext)){
+            if(Capacitor.platform == "ios"){
+                return reject("ios video thumbs not supported yet") //fix this
+            }
+        }
+
+        let compression = {
+            width: 250,
+            height: 250,
+            quality: 0.1
+        }
     
         await window.customVariables.thumbnailSemaphore.acquire()
 
@@ -1192,9 +1204,9 @@ export async function getThumbnail(file, thumbURL, ext){
                     try{
                         var compressedImage = await new Promise((resolve, reject) => {
                             new Compressor(thumbnailData, {
-                                quality: 0.6,
-                                maxWidth: 512,
-                                maxHeight: 512,
+                                quality: compression.quality,
+                                maxWidth: compression.width,
+                                maxHeight: compression.height,
                                 mimeType: "image/png",
                                 success(result){
                                     return resolve(result)
@@ -1244,9 +1256,9 @@ export async function getThumbnail(file, thumbURL, ext){
                         try{
                             var compressedImage = await new Promise((resolve, reject) => {
                                 new Compressor(data, {
-                                    quality: 0.5,
-                                    maxWidth: 512,
-                                    maxHeight: 512,
+                                    quality: compression.quality,
+                                    maxWidth: compression.width,
+                                    maxHeight: compression.height,
                                     mimeType: "image/png",
                                     success(result){
                                         return resolve(result)

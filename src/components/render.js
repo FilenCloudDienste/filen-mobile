@@ -48,6 +48,16 @@ export function render(){
                 }
             }
 
+            window.customVariables.currentThumbnailURL = window.location.href
+
+            if(typeof this.state.itemList[index] !== "undefined"){
+                if(typeof this.state.itemList[index].thumbnail !== "string" && typeof window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] == "undefined"){
+                    window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] = true
+
+                    this.getFileThumbnail(this.state.itemList[index], window.customVariables.currentThumbnailURL, 1)
+                }
+            }
+
             return (
                 <IonItem key={index} style={style} className="background-transparent full-width">
                     <div style={{
@@ -140,7 +150,7 @@ export function render(){
                                                             </div>
                                                         </div>
                                                     )
-                                                    : typeof this.state.itemList[currentIndex].thumbnail !== "undefined" ? (
+                                                    : typeof this.state.itemList[currentIndex].thumbnail == "string" ? (
                                                         <div style={{
                                                             width: "100%",
                                                             height: "100%",
@@ -281,7 +291,7 @@ export function render(){
                                 }
                             </div>
                         ) : (
-                            <img src={typeof this.state.itemList[index].thumbnail !== "undefined" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
+                            <img src={typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
                                 padding: "10px",
                                 marginTop: "-1px"
                             }}></img>
@@ -317,7 +327,7 @@ export function render(){
                                 }
                             </div>
                         ) : (
-                            <img src={typeof this.state.itemList[index].thumbnail !== "undefined" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
+                            <img src={typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
                                 padding: "10px",
                                 marginTop: "-1px"
                             }}></img>
@@ -578,6 +588,18 @@ export function render(){
                     </IonButton>
                 </IonButtons>
             )
+
+            window.customVariables.currentThumbnailURL = window.location.href
+
+            if(typeof this.state.itemList[index] !== "undefined"){
+                if(typeof this.state.itemList[index].thumbnail !== "string" && typeof window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] == "undefined"){
+                    console.log(this.state.itemList[index].name, index)
+
+                    window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] = true
+
+                    this.getFileThumbnail(this.state.itemList[index], window.customVariables.currentThumbnailURL, 1)
+                }
+            }
 
             return (
                 <Hammer key={index} onPress={() => this.selectItem(true, index)} options={{

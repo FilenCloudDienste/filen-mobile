@@ -22,8 +22,8 @@ const workers = require("../utils/workers")
 const utils = require("../utils/utils")
 const safeAreaInsets = require("safe-area-insets")
 const CryptoJS = require("crypto-js")
-const BackgroundGeolocation = registerPlugin("BackgroundGeolocation")
 const mime = require("mime-types")
+const localforage = require("localforage")
 
 export async function doRouting(){
     if(window.customVariables.isCurrentlyRouting){
@@ -52,6 +52,7 @@ export async function doRouting(){
         })
 
         window.customVariables.backButtonPresses = 0
+        window.customVariables.gettingThumbnails = {}
 
         let routeEx = window.location.hash.split("/")
 
@@ -243,7 +244,8 @@ export function setupWindowFunctions(){
     window.customVariables.thumbnailBlobCache = {}
     window.customVariables.currentThumbnailURL = undefined
     window.customVariables.lastThumbnailCacheLength = undefined
-    window.customVariables.thumbnailSemaphore = new utils.Semaphore(4)
+    window.customVariables.thumbnailSemaphore = new utils.Semaphore(3)
+    window.customVariables.getFileThumbnailSemaphore = new utils.Semaphore(3)
     window.customVariables.updateItemsSemaphore = new utils.Semaphore(1)
     window.customVariables.fsCopySemaphore = new utils.Semaphore(1)
     window.customVariables.cameraUploadSemaphore = new utils.Semaphore(1)
@@ -305,8 +307,10 @@ export function setupWindowFunctions(){
     window.customVariables.cameraUploadEnabled = false
     window.customVariables.updateCameraUploadModalInterval = undefined
     window.customVariables.isAppActive = true
+    window.customVariables.gettingThumbnails = {}
 
     window.Media = Media
+    window.localforage = localforage
 
     window.customFunctions.checkForSendIntent = () => {
         if(!isPlatform("android")){
@@ -351,10 +355,10 @@ export function setupWindowFunctions(){
             }
 
             try{
-                let getCameraUpload = await Storage.get({ key: "cameraUpload" })
+                let getCameraUpload = await localforage.getItem("cameraUpload")
 
-                if(typeof getCameraUpload.value == "string"){
-                    window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload.value)
+                if(typeof getCameraUpload == "string"){
+                    window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload)
 
                     if(typeof window.customVariables.cameraUpload.uploadedIds == "undefined" 
                     || typeof window.customVariables.cameraUpload.cachedIds == "undefined"
@@ -664,10 +668,7 @@ export function setupWindowFunctions(){
                             window.customVariables.cameraUpload.uploadedIds[fileObjects[i].id] = true
 
                             try{
-                                await Storage.set({
-                                    key: "cameraUpload",
-                                    value: await workers.JSONStringifyWorker(window.customVariables.cameraUpload)
-                                })
+                                await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
                             }
                             catch(e){
                                 console.log(e)
@@ -733,10 +734,7 @@ export function setupWindowFunctions(){
         }
 
         try{
-            await Storage.set({
-                key: "cameraUpload",
-                value: await workers.JSONStringifyWorker(window.customVariables.cameraUpload)
-            })
+            await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
         }
         catch(e){
             console.log(e)
@@ -1739,10 +1737,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveItemsCache = async () => {
         try{
-            await Storage.set({
-                key: "itemsCache",
-                value: await workers.JSONStringifyWorker(window.customVariables.itemsCache)
-            })
+            await localforage.setItem("itemsCache", await workers.JSONStringifyWorker(window.customVariables.itemsCache))
         }
         catch(e){
             console.log(e)
@@ -1751,10 +1746,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveOfflineSavedFiles = async () => {
         try{
-            await Storage.set({
-                key: "offlineSavedFiles",
-                value: await workers.JSONStringifyWorker(window.customVariables.offlineSavedFiles)
-            })
+            await localforage.setItem("offlineSavedFiles", await workers.JSONStringifyWorker(window.customVariables.offlineSavedFiles))
         }
         catch(e){
             console.log(e)
@@ -1763,10 +1755,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveGetThumbnailErrors = async () => {
         try{
-            await Storage.set({
-                key: "getThumbnailErrors",
-                value: await workers.JSONStringifyWorker(window.customVariables.getThumbnailErrors)
-            })
+            await localforage.setItem("getThumbnailErrors", await workers.JSONStringifyWorker(window.customVariables.getThumbnailErrors))
         }
         catch(e){
             console.log(e)
@@ -1774,12 +1763,8 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.saveAPICache = async () => {
-
         try{
-            await Storage.set({
-                key: "apiCache",
-                value: await workers.JSONStringifyWorker(window.customVariables.apiCache)
-            })
+            await localforage.setItem("apiCache", await workers.JSONStringifyWorker(window.customVariables.apiCache))
         }
         catch(e){
             console.log(e)
@@ -1788,10 +1773,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveThumbnailCache = async (skipLengthCheck = false) => {
         try{
-            await Storage.set({
-                key: "thumbnailCache",
-                value: await workers.JSONStringifyWorker(window.customVariables.thumbnailCache)
-            })
+            await localforage.setItem("thumbnailCache", await workers.JSONStringifyWorker(window.customVariables.thumbnailCache))
         }
         catch(e){
             console.log(e)
@@ -1804,20 +1786,9 @@ export function setupWindowFunctions(){
 
     window.customFunctions.saveCachedItems = async () => {
         try{
-            await Storage.set({
-                key: "cachedFiles",
-                value: await workers.JSONStringifyWorker(window.customVariables.cachedFiles)
-            })
-
-            await Storage.set({
-                key: "cachedFolders",
-                value: await workers.JSONStringifyWorker(window.customVariables.cachedFolders)
-            })
-
-            await Storage.set({
-                key: "cachedMetadata",
-                value: await workers.JSONStringifyWorker(window.customVariables.cachedMetadata)
-            })
+            await localforage.setItem("cachedFiles", await workers.JSONStringifyWorker(window.customVariables.cachedFiles))
+            await localforage.setItem("cachedFolders", await workers.JSONStringifyWorker(window.customVariables.cachedFolders))
+            await localforage.setItem("cachedMetadata", await workers.JSONStringifyWorker(window.customVariables.cachedMetadata))
         }
         catch(e){
             console.log(e)
@@ -2240,13 +2211,14 @@ export function setupWindowFunctions(){
 
         await Storage.remove({ key: "userPublicKey" })
         await Storage.remove({ key: "userPrivateKey" })
-        await Storage.remove({ key: "apiCache" })
-        await Storage.remove({ key: "cachedFiles" })
-        await Storage.remove({ key: "cachedFolders" })
-        await Storage.remove({ key: "cachedMetadata" })
-        await Storage.remove({ key: "getThumbnailErrors" })
-        await Storage.remove({ key: "cachedAPIItemListRequests" })
-        await Storage.remove({ key: "itemsCache" })
+
+        await localforage.removeItem("apiCache")
+        await localforage.removeItem("cachedFiles")
+        await localforage.removeItem("cachedFolders")
+        await localforage.removeItem("cachedMetadata")
+        await localforage.removeItem("getThumbnailErrors")
+        await localforage.removeItem("cachedAPIItemListRequests")
+        await localforage.removeItem("itemsCache")
 
         await Storage.set({ key: "isLoggedIn", value: "true" })
         await Storage.set({ key: "userAPIKey", value: res.data.apiKey })
@@ -3322,15 +3294,16 @@ export function setupWindowFunctions(){
             await Storage.remove({ key: "userMasterKeys" })
             await Storage.remove({ key: "userPublicKey" })
             await Storage.remove({ key: "userPrivateKey" })
-            await Storage.remove({ key: "offlineSavedFiles" })
-            await Storage.remove({ key: "apiCache" })
-            await Storage.remove({ key: "cachedFiles" })
-            await Storage.remove({ key: "cachedFolders" })
-            await Storage.remove({ key: "cachedMetadata" })
-            await Storage.remove({ key: "thumbnailCache" })
-            await Storage.remove({ key: "getThumbnailErrors" })
-            await Storage.remove({ key: "cachedAPIItemListRequests" })
-            await Storage.remove({ key: "itemsCache" })
+
+            await localforage.removeItem("offlineSavedFiles")
+            await localforage.removeItem("apiCache")
+            await localforage.removeItem("cachedFiles")
+            await localforage.removeItem("cachedFolders")
+            await localforage.removeItem("cachedMetadata")
+            await localforage.removeItem("thumbnailCache")
+            await localforage.removeItem("getThumbnailErrors")
+            await localforage.removeItem("cachedAPIItemListRequests")
+            await localforage.removeItem("itemsCache")
         }
         catch(e){
             console.log(e)
@@ -3992,7 +3965,7 @@ export function setupWindowFunctions(){
                         await window.customFunctions.saveThumbnailCache(true)
 
                         try{
-                            await Storage.set({ key: "getThumbnailErrors", value: JSON.stringify({}) })
+                            await localforage.setItem("getThumbnailErrors", JSON.stringify({}))
                         }
                         catch(e){
                             console.log(e)
@@ -6014,7 +5987,7 @@ export function setupWindowFunctions(){
         window.customVariables.cameraUpload.cachedIds = []
 
         try{
-            await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
+            await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
         }
         catch(e){
             console.log(e)
@@ -6049,7 +6022,7 @@ export function setupWindowFunctions(){
         window.customVariables.cameraUpload.cachedIds = []
 
         try{
-            await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
+            await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
         }
         catch(e){
             console.log(e)
@@ -6075,7 +6048,7 @@ export function setupWindowFunctions(){
         window.customVariables.cameraUpload.cachedIds = []
 
         try{
-            await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
+            await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
         }
         catch(e){
             console.log(e)
@@ -6101,7 +6074,7 @@ export function setupWindowFunctions(){
         window.customVariables.cameraUpload.cachedIds = []
 
         try{
-            await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
+            await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
         }
         catch(e){
             console.log(e)
@@ -6127,7 +6100,7 @@ export function setupWindowFunctions(){
         window.customVariables.cameraUpload.cachedIds = []
 
         try{
-            await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
+            await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
         }
         catch(e){
             console.log(e)
@@ -6153,7 +6126,7 @@ export function setupWindowFunctions(){
         window.customVariables.cameraUpload.cachedIds = []
 
         try{
-            await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
+            await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
         }
         catch(e){
             console.log(e)
@@ -6237,7 +6210,7 @@ export function setupWindowFunctions(){
                         }
 
                         try{
-                            await Storage.set({ key: "cameraUpload", value: JSON.stringify(window.customVariables.cameraUpload) })
+                            await localforage.setItem("cameraUpload", await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
                         }
                         catch(e){
                             console.log(e)
@@ -6261,10 +6234,10 @@ export function setupWindowFunctions(){
         let appSettings = this.state.settings
 
         try{
-            let getCameraUpload = await Storage.get({ key: "cameraUpload" })
+            let getCameraUpload = await localforage.getItem("cameraUpload")
 
-            if(typeof getCameraUpload.value == "string"){
-                window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload.value)
+            if(typeof getCameraUpload == "string"){
+                window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload)
 
                 if(typeof window.customVariables.cameraUpload.uploadedIds == "undefined" 
                 || typeof window.customVariables.cameraUpload.cachedIds == "undefined"

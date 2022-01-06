@@ -622,17 +622,13 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 															key
 														}, () => {
 															if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
-																if(this.state.settings.cameraUpload.parent !== parent){
-																	clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
+																clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
 				
-																	window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
-																		if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
-																			if(this.state.settings.cameraUpload.parent !== parent){
-																				this.updateItemList(false)
-																			}
-																		}
-																	}, 1000)
-																}
+																window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
+																	if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
+																		this.updateItemList(false)
+																	}
+																}, 1000)
 															}
 				
 															if(typeof cameraUploadCallback == "function"){

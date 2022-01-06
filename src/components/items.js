@@ -100,12 +100,6 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			scrollToIndex: scrollTo
 		}, () => {
 			this.forceUpdate()
-	
-			window.customVariables.currentThumbnailURL = window.location.href
-	
-			for(let i = 0; i < items.length; i++){
-				this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
-			}
 
 			setTimeout(window.customFunctions.saveCachedItems, 1000)
 
@@ -721,12 +715,6 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	return this.setState(stateObj, () => {
 		this.forceUpdate()
 
-		window.customVariables.currentThumbnailURL = window.location.href
-
-		for(let i = 0; i < items.length; i++){
-			this.getFileThumbnail(items[i], window.customVariables.currentThumbnailURL, i)
-		}
-
 		setTimeout(window.customFunctions.saveCachedItems, 1000)
 		setTimeout(window.customFunctions.saveItemsCache, 1000)
 
@@ -734,7 +722,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	})
 }
 
-export function getFileThumbnail(file, thumbURL, index){
+export async function getFileThumbnail(file, thumbURL, index){
 	if(!this.state.settings.showThumbnails){
 		return false
 	}
@@ -801,58 +789,43 @@ export function getFileThumbnail(file, thumbURL, index){
 
 	window.customVariables.isGettingThumbnail[file.uuid] = true
 
-	let intervalTimer = utils.getRandomArbitrary(10, 25)
+	await window.customVariables.getFileThumbnailSemaphore.acquire()
 
-	if(document.getElementById("item-thumbnail-" + file.uuid) !== null){
-		intervalTimer = 1
-	}
+	try{
+		let thumbnail = await this.getThumbnail(file, thumbURL, ext)
 
-	let onScreenInterval = setInterval(async () => {
-		if(thumbURL !== window.location.href){
-			delete window.customVariables.isGettingThumbnail[file.uuid]
+		window.customVariables.getFileThumbnailSemaphore.release()
 
-			return clearInterval(onScreenInterval)
+		if(typeof thumbnail !== "undefined"){
+			return gotThumbnail(thumbnail)
 		}
 		else{
-			if(document.getElementById("item-thumbnail-" + file.uuid) !== null){
-				clearInterval(onScreenInterval)
-		
-				try{
-					let thumbnail = await this.getThumbnail(file, thumbURL, ext)
+			delete window.customVariables.isGettingThumbnail[file.uuid]
+		}
+	}
+	catch(e){
+		console.log(e)
 
-					if(typeof thumbnail !== "undefined"){
-						return gotThumbnail(thumbnail)
-					}
-					else{
-						delete window.customVariables.isGettingThumbnail[file.uuid]
-						
-						return false
-					}
+		try{
+			if(e.indexOf("url changed") == -1){
+				if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
+					window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
 				}
-				catch(e){
-					console.log(e)
-
-					try{
-						if(e.indexOf("url changed") == -1){
-							if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
-								window.customVariables.getThumbnailErrors[file.uuid] = window.customVariables.getThumbnailErrors[file.uuid] + 1
-							}
-							else{
-								window.customVariables.getThumbnailErrors[file.uuid] = 1
-							}
-	
-							window.customFunctions.saveGetThumbnailErrors()
-						}
-					}
-					catch(err){  }
-
-					delete window.customVariables.isGettingThumbnail[file.uuid]
-
-					return false
+				else{
+					window.customVariables.getThumbnailErrors[file.uuid] = 1
 				}
+
+				window.customFunctions.saveGetThumbnailErrors()
 			}
 		}
-	}, intervalTimer)
+		catch(err){  }
+
+		delete window.customVariables.isGettingThumbnail[file.uuid]
+
+		window.customVariables.getFileThumbnailSemaphore.release()
+	}
+
+	return true
 }
 
 export async function refreshMainList(event){

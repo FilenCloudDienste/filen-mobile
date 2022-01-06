@@ -9,6 +9,8 @@ import { isPlatform } from "@ionic/core"
 import { modalController, popoverController, actionSheetController, loadingController, alertController } from "@ionic/core"
 import * as language from "../utils/language"
 
+const localforage = require("localforage")
+
 export function setupListeners(){
     if(Capacitor.isNative){
         App.addListener("backButton", async (e) => {
@@ -225,6 +227,40 @@ export async function setupStatusbar(type = "normal"){
 
 export async function doSetup(){
     try{
+		localforage.config({
+		    name: "filen",
+		    version: 1.0,
+		    size: (((1024 * 1024) * 1024) * 10),
+		    storeName: "keyvaluepairs"
+		})
+	}
+	catch(e){
+		try{
+			localforage.config({
+			    name: "filen",
+			    version: 1.0,
+			    size: (((1024 * 1024) * 1024) * 1),
+			    storeName: "keyvaluepairs"
+			})
+		}
+		catch(e){
+			try{
+				localforage.config({
+				    name: "filen",
+				    version: 1.0,
+				    size: ((1024 * 1024) * 100),
+				    storeName: "keyvaluepairs"
+				})
+			}
+			catch(e){
+				return console.log(e)
+			}
+		}
+	}
+
+    console.log(localforage)
+
+    try{
         await Storage.migrate()
     }
     catch(e){
@@ -247,16 +283,17 @@ export async function doSetup(){
         var getUserMasterKeys = await Storage.get({ key: "userMasterKeys" })
         var getUserPublicKey = await Storage.get({ key: "userPublicKey" })
         var getUserPrivateKey = await Storage.get({ key: "userPrivateKey" })
-        var getOfflineSavedFiles = await Storage.get({ key: "offlineSavedFiles" })
-        var getAPICache = await Storage.get({ key: "apiCache" })
         var getSettings = await Storage.get({ key: "settings" })
-        var getCachedFiles = await Storage.get({ key: "cachedFiles" })
-        var getCachedFolders = await Storage.get({ key: "cachedFolders" })
-        var getCachedMetadata = await Storage.get({ key: "cachedMetadata" })
-        var getThumbnailCache = await Storage.get({ key: "thumbnailCache" })
-        var getGetThumbnailErrors = await Storage.get({ key: "getThumbnailErrors" })
-        var getCachedAPIItemListRequests = await Storage.get({ key: "cachedAPIItemListRequests" })
-        var getItemsCache = await Storage.get({ key: "itemsCache" })
+        
+        var getOfflineSavedFiles = await localforage.getItem("offlineSavedFiles")
+        var getAPICache = await localforage.getItem("apiCache")
+        var getCachedFiles = await localforage.getItem("cachedFiles")
+        var getCachedFolders = await localforage.getItem("cachedFolders")
+        var getCachedMetadata = await localforage.getItem("cachedMetadata")
+        var getThumbnailCache = await localforage.getItem("thumbnailCache")
+        var getGetThumbnailErrors = await localforage.getItem("getThumbnailErrors")
+        var getCachedAPIItemListRequests = await localforage.getItem("cachedAPIItemListRequests")
+        var getItemsCache = await localforage.getItem("itemsCache")
     }
     catch(e){
         return console.log(e)
@@ -441,67 +478,67 @@ export async function doSetup(){
 
             window.customVariables.userMasterKeys = JSON.parse(getUserMasterKeys.value)
 
-            if(getOfflineSavedFiles.value == null){
+            if(getOfflineSavedFiles == null){
                 window.customVariables.offlineSavedFiles = {}
             }
             else{
-                window.customVariables.offlineSavedFiles = JSON.parse(getOfflineSavedFiles.value)
+                window.customVariables.offlineSavedFiles = JSON.parse(getOfflineSavedFiles)
             }
 
-            if(getCachedFiles.value == null){
+            if(getCachedFiles == null){
                 window.customVariables.cachedFiles = {}
             }
             else{
-                window.customVariables.cachedFiles = JSON.parse(getCachedFiles.value)
+                window.customVariables.cachedFiles = JSON.parse(getCachedFiles)
             }
 
-            if(getCachedFolders.value == null){
+            if(getCachedFolders == null){
                 window.customVariables.cachedFolders = {}
             }
             else{
-                window.customVariables.cachedFolders = JSON.parse(getCachedFolders.value)
+                window.customVariables.cachedFolders = JSON.parse(getCachedFolders)
             }
 
-            if(getCachedMetadata.value == null){
+            if(getCachedMetadata == null){
                 window.customVariables.cachedMetadata = {}
             }
             else{
-                window.customVariables.cachedMetadata = JSON.parse(getCachedMetadata.value)
+                window.customVariables.cachedMetadata = JSON.parse(getCachedMetadata)
             }
 
-            if(getThumbnailCache.value == null){
+            if(getThumbnailCache == null){
                 window.customVariables.thumbnailCache = {}
             }
             else{
-                window.customVariables.thumbnailCache = JSON.parse(getThumbnailCache.value)
+                window.customVariables.thumbnailCache = JSON.parse(getThumbnailCache)
             }
 
-            if(getGetThumbnailErrors.value == null){
+            if(getGetThumbnailErrors == null){
                 window.customVariables.getThumbnailErrors = {}
             }
             else{
-                window.customVariables.getThumbnailErrors = JSON.parse(getGetThumbnailErrors.value)
+                window.customVariables.getThumbnailErrors = JSON.parse(getGetThumbnailErrors)
             }
 
-            /*if(getAPICache.value == null){
+            /*if(getAPICache == null){
                 window.customVariables.apiCache = {}
             }
             else{
-                window.customVariables.apiCache = JSON.parse(getAPICache.value)
+                window.customVariables.apiCache = JSON.parse(getAPICache)
             }*/
 
-            /*if(getCachedAPIItemListRequests.value == null){
+            /*if(getCachedAPIItemListRequests == null){
                 window.customVariables.cachedAPIItemListRequests = {}
             }
             else{
-                window.customVariables.cachedAPIItemListRequests = JSON.parse(getCachedAPIItemListRequests.value)
+                window.customVariables.cachedAPIItemListRequests = JSON.parse(getCachedAPIItemListRequests)
             }*/
 
-            if(getItemsCache.value == null){
+            if(getItemsCache == null){
                 window.customVariables.itemsCache = {}
             }
             else{
-                window.customVariables.itemsCache = JSON.parse(getItemsCache.value)
+                window.customVariables.itemsCache = JSON.parse(getItemsCache)
             }
         }
         else{
