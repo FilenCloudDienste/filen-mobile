@@ -50,13 +50,21 @@ export function render(){
 
             window.customVariables.currentThumbnailURL = window.location.href
 
-            if(typeof this.state.itemList[index] !== "undefined"){
-                if(typeof this.state.itemList[index].thumbnail !== "string" && typeof window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] == "undefined"){
-                    window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] = true
-
-                    this.getFileThumbnail(this.state.itemList[index], window.customVariables.currentThumbnailURL, 1)
+            indexesToLoop.filter((el) => {
+                if(typeof this.state.itemList[el] == "undefined"){
+                    return false
                 }
-            }
+
+                return true
+            }).map((i) => {
+                if(typeof this.state.itemList[i] !== "undefined"){
+                    if(typeof this.state.itemList[i].thumbnail !== "string" && typeof window.customVariables.gettingThumbnails[this.state.itemList[i].uuid] == "undefined"){
+                        window.customVariables.gettingThumbnails[this.state.itemList[i].uuid] = true
+    
+                        this.getFileThumbnail(this.state.itemList[i], window.customVariables.currentThumbnailURL, 1)
+                    }
+                }
+            })
 
             return (
                 <IonItem key={index} style={style} className="background-transparent full-width">
@@ -593,8 +601,6 @@ export function render(){
 
             if(typeof this.state.itemList[index] !== "undefined"){
                 if(typeof this.state.itemList[index].thumbnail !== "string" && typeof window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] == "undefined"){
-                    console.log(this.state.itemList[index].name, index)
-
                     window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] = true
 
                     this.getFileThumbnail(this.state.itemList[index], window.customVariables.currentThumbnailURL, 1)
