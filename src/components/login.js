@@ -43,7 +43,7 @@ export async function showLogin(){
                                 <ion-input type="password" autocapitalize="off" autocomplete="password" id="login-password" placeholder="` + language.get(appLang, "passwordPlaceholder") + `" maxlength="1024"></ion-input>
                             </ion-item>
                             <ion-item style="width: 90%; display: none;" id="login-2fa-container">
-                                <ion-input type="number" autocomplete="off" id="login-2fa" placeholder="` + language.get(appLang, "2faPlaceholder") + `"></ion-input>
+                                <ion-input type="text" autocomplete="off" id="login-2fa" placeholder="` + language.get(appLang, "2faPlaceholder") + `"></ion-input>
                             </ion-item>
                             <ion-button expand="block" style="width: 90%; margin-top: 50px;" onClick="window.customFunctions.doLogin()">` + language.get(appLang, "loginButton") + `</ion-button>
                             <br>

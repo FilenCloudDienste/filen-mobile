@@ -3943,17 +3943,17 @@ export function setupWindowFunctions(){
                             })
                         }
 
-                        try{
-                            for(let i = 0; i < dirObj.length; i++){
-                                Filesystem.rmdir({
+                        for(let i = 0; i < dirObj.length; i++){
+                            try{
+                                await Filesystem.rmdir({
                                     path: dirObj[i].path,
                                     directory: dirObj[i].directory,
                                     recursive: true
                                 })
                             }
-                        }
-                        catch(e){
-                            console.log(e)
+                            catch(e){
+                                console.log(e)
+                            }
                         }
 
                         window.customVariables.thumbnailCache = {}
@@ -5958,6 +5958,13 @@ export function setupWindowFunctions(){
 
         document.getElementById("camera-upload-enabled-toggle").checked = !newVal
 
+        if(newVal){
+            window.$("#camera-upload-select-folder-btn").hide()
+        }
+        else{
+            window.$("#camera-upload-select-folder-btn").show()
+        }
+
         await window.customFunctions.saveSettings(newSettings)
 
         return window.customFunctions.setupCameraUpload(newVal)
@@ -6358,7 +6365,7 @@ export function setupWindowFunctions(){
                                     ` + language.get(appLang, "folder") + `
                                 </ion-label>
                             </ion-item-divider>
-                            <ion-item button lines="none" onClick="window.customFunctions.selectCameraUploadFolder()">
+                            <ion-item lines="none">
                                 <ion-label>
                                     ` + language.get(appLang, "folder") + `
                                 </ion-label>
@@ -6368,15 +6375,13 @@ export function setupWindowFunctions(){
                                     </ion-button>
                                 </ion-buttons>
                             </ion-item>
-                            ` + (!window.customVariables.cameraUploadRunning ? `
-                                <ion-item button lines="none" onClick="window.customFunctions.selectCameraUploadFolder()">
-                                    <ion-buttons>
-                                        <ion-button size="small" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
-                                            ` + language.get(appLang, "selectAFolder") + `
-                                        </ion-button>
-                                    </ion-buttons>
-                                </ion-item>
-                            ` : ``) + `
+                            <ion-item button lines="none" onClick="window.customFunctions.selectCameraUploadFolder()" id="camera-upload-select-folder-btn" ` + (window.customVariables.cameraUploadRunning ? `style="display: none;"` : ``) + `>
+                                <ion-buttons>
+                                    <ion-button size="small" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
+                                        ` + language.get(appLang, "selectAFolder") + `
+                                    </ion-button>
+                                </ion-buttons>
+                            </ion-item>
                             <ion-item-divider style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `">
                                 <ion-label>
                                     ` + language.get(appLang, "cameraUploadInfo") + `

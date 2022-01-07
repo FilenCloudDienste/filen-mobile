@@ -310,7 +310,7 @@ export async function updateUserUsage(){
 
     return this.setState({
         userStorageUsagePercentage: storageUsedPercent,
-        userStorageUsageMenuText: language.get(this.state.lang, "userStorageUsageMenuText", false, ["__MAX__", "__PERCENTAGE__"], [utils.formatBytes(res.data.max), storageUsedPercent]),
+        userStorageUsageMenuText: language.get(this.state.lang, "userStorageUsageMenuText", false, ["__MAX__", "__PERCENTAGE__"], [utils.formatBytes(res.data.max), storageUsedPercent]) + " (" + utils.formatBytes(res.data.storage) + ")",
 		userCurrentStorageUsage: res.data.storage,
 		userMaxStorage: res.data.max,
         userFiles: res.data.uploads,
