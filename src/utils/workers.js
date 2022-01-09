@@ -6286,9 +6286,18 @@ const createWorker = () => {
 		onmessage = async (e) => {
 			switch(e.data.type){
 				case "encryptMetadata":
-					var data = e.data.data.toString()
-					var key = e.data.key.toString()
-					var metadataVersion = e.data.version
+					try{
+						var data = e.data.data.toString()
+						var key = e.data.key.toString()
+						var metadataVersion = e.data.version
+					}
+					catch(err){
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							err: err
+						})
+					}
 
 					if(metadataVersion == 1){ //old deprecated
 						try{
@@ -6300,11 +6309,11 @@ const createWorker = () => {
 								data: enc
 							})
 						}
-						catch(e){
+						catch(err){
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: e
+								err: err
 							})
 						}
 					}
@@ -6328,19 +6337,28 @@ const createWorker = () => {
 								data: enc
 							})
 						}
-						catch(e){
+						catch(err){
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: e
+								err: err
 							})
 						}
 					}
 				break
 				case "decryptMetadata":
-					var data = e.data.data.toString()
-					var key = e.data.key.toString()
-					var sliced = data.slice(0, 8)
+					try{
+						var data = e.data.data.toString()
+						var key = e.data.key.toString()
+						var sliced = data.slice(0, 8)
+					}
+					catch(err){
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							err: err
+						})
+					}
 
 					if(sliced == "U2FsdGVk"){ //old deprecated
 						try{
@@ -6352,11 +6370,11 @@ const createWorker = () => {
 								data: dec
 							})
 						}
-						catch(e){
+						catch(err){
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: e
+								data: ""
 							})
 						}
 					}
@@ -6381,11 +6399,11 @@ const createWorker = () => {
 									data: new TextDecoder().decode(new Uint8Array(decrypted))
 								})
 							}
-							catch(e){
+							catch(err){
 								return postMessage({
 									id: e.data.id,
 									type: e.data.type,
-									err: e
+									err: err
 								})
 							}
 						}

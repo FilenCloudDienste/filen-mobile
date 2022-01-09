@@ -2504,7 +2504,24 @@ export async function deriveKeyFromPassword (password, salt, iterations = 200000
 }
 
 export async function encryptMetadata(data, key){
-  data = data.toString()
+	let metadataVersion = 1
+
+  	if(typeof window.customVariables.currentMetadataVersion == "number"){
+	  	metadataVersion = window.customVariables.currentMetadataVersion
+  	}
+
+	try{
+		let enc = await workers.encryptMetadataWorker(data, key, metadataVersion)
+
+		return enc
+	}
+	catch(e){
+		console.log(e)
+
+		return e
+	}
+
+  /*data = data.toString()
   key = key.toString()
 
   let metadataVersion = 1
@@ -2542,11 +2559,22 @@ export async function encryptMetadata(data, key){
 
       return ""
     }
-  }
+  }*/
 }
 
 export async function decryptMetadata(data, key){
-  data = data.toString()
+	try{
+		let dec = await workers.decryptMetadataWorker(data, key)
+
+		return dec
+	}
+	catch(e){
+		console.log(e)
+
+		return e
+	}
+
+  /*data = data.toString()
   key = key.toString()
 
   let sliced = data.slice(0, 8)
@@ -2585,7 +2613,7 @@ export async function decryptMetadata(data, key){
     else{
       return ""
     }
-  }
+  }*/
 }
 
 export function compareVersions(current, got){
