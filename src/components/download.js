@@ -447,48 +447,27 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback, 
         await window.customVariables.downloadChunkSemaphore.acquire()
     }
 
-    utils.fetchWithTimeout(3600000, fetch(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
+    workers.fetchWithTimeoutDownloadWorker(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
         method: "GET"
-    })).then((response) => {
-        if(response.status !== 200){
-            if(!isPreview){
-                window.customVariables.downloadChunkSemaphore.release()
-            }
-
-            return setTimeout(() => {
-                this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
-            }, 1000)
+    }, (3600000 * 3)).then((res) => {
+        if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
+            return callback("stopped")
         }
 
-        response.arrayBuffer().then((res) => {
-            if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
-                return callback("stopped")
-            }
-
-            try{
-                if(res.byteLength){
-                    if(res.byteLength > 1){
-                        workers.decryptData(file.uuid, index, file.key, res, file.version, (decrypted) => {
-                            if(!isPreview){
-                                window.customVariables.downloadChunkSemaphore.release()
-                            }
-
-                            if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
-                                return callback("stopped")
-                            }
-    
-                            return callback(null, index, decrypted)
-                        })
-                    }
-                    else{
+        try{
+            if(res.byteLength){
+                if(res.byteLength > 1){
+                    workers.decryptData(file.uuid, index, file.key, res, file.version, (err, decrypted) => {
                         if(!isPreview){
                             window.customVariables.downloadChunkSemaphore.release()
                         }
 
-                        return setTimeout(() => {
-                            this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
-                        }, 1000)
-                    }
+                        if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
+                            return callback("stopped")
+                        }
+
+                        return callback(null, index, decrypted)
+                    })
                 }
                 else{
                     if(!isPreview){
@@ -500,9 +479,7 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback, 
                     }, 1000)
                 }
             }
-            catch(e){
-                console.log(e)
-
+            else{
                 if(!isPreview){
                     window.customVariables.downloadChunkSemaphore.release()
                 }
@@ -511,8 +488,9 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback, 
                     this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
                 }, 1000)
             }
-        }).catch((err) => {
-            console.log(err)
+        }
+        catch(e){
+            console.log(e)
 
             if(!isPreview){
                 window.customVariables.downloadChunkSemaphore.release()
@@ -521,7 +499,7 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback, 
             return setTimeout(() => {
                 this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
             }, 1000)
-        })
+        }
     }).catch((err) => {
         console.log(err)
 
@@ -566,7 +544,7 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
         }
     }
 
-    workers.convertArrayBufferToBase64(data, async (b64Data) => {
+    workers.convertArrayBufferToBase64(data, async (err, b64Data) => {
         if(index == 0){
             try{
                 await Filesystem.writeFile({
@@ -1145,7 +1123,7 @@ export async function getThumbnail(file, thumbURL, ext){
                     return reject(e)
                 }
 
-                workers.convertArrayBufferToBase64(arrayBuffer, async (b64Data) => {
+                workers.convertArrayBufferToBase64(arrayBuffer, async (err, b64Data) => {
                     try{
                         await Filesystem.writeFile({
                             path: dirObj.path + "/" + thumbnailFileName,
@@ -1408,5 +1386,5 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
 
             clearInterval(downloadInterval)
         }
-    }, 100)
+    }, 10)
 }

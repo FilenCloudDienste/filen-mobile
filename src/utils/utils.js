@@ -1,4 +1,5 @@
 import { Capacitor, Plugins } from "@capacitor/core";
+import * as workers from "../utils/workers"
 
 const CryptoJS = require("crypto-js")
 const striptags = require("striptags")
@@ -107,23 +108,17 @@ export function backgroundAPIRequest(method, endpoint, data = {}){
 			return console.log("Request failed")
 		}
 
-		fetchWithTimeout(60000, fetch(getAPIServer() + endpoint, {
+		workers.fetchWithTimeoutJSONWorker(getAPIServer() + endpoint, {
 			method: method.toUpperCase(),
 			cache: "no-cache",
 			headers: {
 				"Content-Type": "application/json"
 			},
 			body: JSON.stringify(data)
-		})).then((response) => {
-			response.json().then((obj) => {
-				window.customVariables.cachedAPIItemListRequests[cacheKey] = obj
+		}, 180000).then((obj) => {
+			window.customVariables.cachedAPIItemListRequests[cacheKey] = obj
 
-				return window.customFunctions.saveAPICache()
-			}).catch((err) => {
-				console.log(err)
-
-				return doRequest((tries + 1), maxTries)
-			})
+			return window.customFunctions.saveAPICache()
 		}).catch((err) => {
 			console.log(err)
 
@@ -131,7 +126,7 @@ export function backgroundAPIRequest(method, endpoint, data = {}){
 		})
 	}
 
-	return doRequest(0, 16)
+	return doRequest(0, 32)
 }
 
 export function apiRequest(method, endpoint, data = {}){
@@ -178,35 +173,25 @@ export function apiRequest(method, endpoint, data = {}){
 				return reject(new Error("Request failed"))
 			}
 
-			fetchWithTimeout(60000, fetch(getAPIServer() + endpoint, {
+			workers.fetchWithTimeoutJSONWorker(getAPIServer() + endpoint, {
 				method: method.toUpperCase(),
 				cache: "no-cache",
 				headers: {
 					"Content-Type": "application/json"
 				},
 				body: JSON.stringify(data)
-			})).then((response) => {
-				response.json().then((obj) => {
-					if(endpoint == "/v1/dir/content"
-					|| endpoint == "/v1/user/baseFolders"
-					|| endpoint == "/v1/user/shared/in"
-					|| endpoint == "/v1/user/shared/out"
-					|| endpoint == "/v1/user/keyPair/info"){
-						window.customVariables.apiCache[cacheKey] = obj
+			}, 180000).then((obj) => {
+				if(endpoint == "/v1/dir/content"
+				|| endpoint == "/v1/user/baseFolders"
+				|| endpoint == "/v1/user/shared/in"
+				|| endpoint == "/v1/user/shared/out"
+				|| endpoint == "/v1/user/keyPair/info"){
+					window.customVariables.apiCache[cacheKey] = obj
 
-						window.customFunctions.saveAPICache()
-					}
+					window.customFunctions.saveAPICache()
+				}
 
-					return resolve(obj)
-				}).catch((err) => {
-					console.log(err)
-
-					if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
-						return resolve(window.customVariables.apiCache[cacheKey])
-					}
-
-					return doRequest((tries + 1), maxTries)
-				})
+				return resolve(obj)
 			}).catch((err) => {
 				console.log(err)
 
@@ -218,7 +203,7 @@ export function apiRequest(method, endpoint, data = {}){
 			})
 		}
 
-		return doRequest(0, 16)
+		return doRequest(0, 32)
     })
 }
 

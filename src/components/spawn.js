@@ -6,6 +6,7 @@ import * as workers from "../utils/workers"
 import { isPlatform } from "@ionic/react"
 import { Toast } from "@capacitor/toast"
 import { Camera, CameraResultType, CameraSource, CameraDirection } from "@capacitor/camera"
+import { Keyboard } from "@capacitor/keyboard"
 
 const utils = require("../utils/utils")
 const chooser = require("cordova-plugin-simple-file-chooser/www/chooser")
@@ -123,7 +124,7 @@ export async function spawnRenamePrompt(item, callback){
 
     await alert.present()
 
-    alert.onWillDismiss(() => {
+    alert.onWillDismiss(async () => {
         this.setState({
             mainSearchbarDisabled: false
         }, () => {
@@ -528,7 +529,7 @@ export async function mainFabAction(){
                     return false
                 }
     
-                workers.convertBase64ToArrayBuffer(image.base64String, (arrayBuffer) => {
+                workers.convertBase64ToArrayBuffer(image.base64String, (err, arrayBuffer) => {
                     let fileObject = {}
     
                     fileObject.name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpg"

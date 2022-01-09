@@ -258,8 +258,6 @@ export async function doSetup(){
 		}
 	}
 
-    console.log(localforage)
-
     try{
         await Storage.migrate()
     }
@@ -275,25 +273,42 @@ export async function doSetup(){
     }
 
     try{
+        var getIsLoggedIn = await Storage.get({ key: "isLoggedIn" })
+
+        if(getIsLoggedIn.value == null){
+            return this.showLogin()
+        }
+        else{
+            if(getIsLoggedIn.value !== "true"){
+                return this.showLogin()
+            }
+        }
+
+        var getUserEmail = await Storage.get({ key: "userEmail" })
+
+        if(typeof getUserEmail.value !== "string"){
+            return this.showLogin()
+        }
+
+        window.customVariables.userEmail = getUserEmail.value
+
         var getLang = await Storage.get({ key: "lang" })
         var getDarkMode = await Storage.get({ key: "darkMode" })
-        var getIsLoggedIn = await Storage.get({ key: "isLoggedIn" })
         var getUserAPIKey = await Storage.get({ key: "userAPIKey" })
-        var getUserEmail = await Storage.get({ key: "userEmail" })
         var getUserMasterKeys = await Storage.get({ key: "userMasterKeys" })
         var getUserPublicKey = await Storage.get({ key: "userPublicKey" })
         var getUserPrivateKey = await Storage.get({ key: "userPrivateKey" })
-        var getSettings = await Storage.get({ key: "settings" })
+        var getSettings = await Storage.get({ key: "settings@" + getUserEmail.value })
         
-        var getOfflineSavedFiles = await localforage.getItem("offlineSavedFiles")
-        var getAPICache = await localforage.getItem("apiCache")
-        var getCachedFiles = await localforage.getItem("cachedFiles")
-        var getCachedFolders = await localforage.getItem("cachedFolders")
-        var getCachedMetadata = await localforage.getItem("cachedMetadata")
-        var getThumbnailCache = await localforage.getItem("thumbnailCache")
-        var getGetThumbnailErrors = await localforage.getItem("getThumbnailErrors")
-        var getCachedAPIItemListRequests = await localforage.getItem("cachedAPIItemListRequests")
-        var getItemsCache = await localforage.getItem("itemsCache")
+        var getOfflineSavedFiles = await localforage.getItem("offlineSavedFiles@" + getUserEmail.value)
+        var getAPICache = await localforage.getItem("apiCache@" + getUserEmail.value)
+        var getCachedFiles = await localforage.getItem("cachedFiles@" + getUserEmail.value)
+        var getCachedFolders = await localforage.getItem("cachedFolders@" + getUserEmail.value)
+        var getCachedMetadata = await localforage.getItem("cachedMetadata@" + getUserEmail.value)
+        var getThumbnailCache = await localforage.getItem("thumbnailCache@" + getUserEmail.value)
+        var getGetThumbnailErrors = await localforage.getItem("getThumbnailErrors@" + getUserEmail.value)
+        var getCachedAPIItemListRequests = await localforage.getItem("cachedAPIItemListRequests@" + getUserEmail.value)
+        var getItemsCache = await localforage.getItem("itemsCache@" + getUserEmail.value)
     }
     catch(e){
         return console.log(e)
@@ -596,24 +611,6 @@ export async function doSetup(){
 
     window.customFunctions.triggerBiometricAuth()
     //window.customFunctions.isIndexEmpty()
-
-    /*try{
-        await BackgroundFetch.configure({
-            minimumFetchInterval: 15
-        }, (taskId) => {
-            console.log("[BackgroundFetch] taskId: ", taskId)
-    
-            BackgroundFetch.finish(taskId)
-          }, (taskId) => {
-    
-            console.log('[BackgroundFetch] TIMEOUT taskId: ', taskId)
-    
-            BackgroundFetch.finish(taskId)
-        })
-    }
-    catch(e){
-        console.log(e)
-    }*/
 
     setTimeout(() => {
         if(Capacitor.isNative){

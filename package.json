@@ -14,7 +14,7 @@
     "@capacitor/filesystem": "^1.0.6",
     "@capacitor/haptics": "^1.1.3",
     "@capacitor/ios": "^3.3.2",
-    "@capacitor/keyboard": "^1.1.3",
+    "@capacitor/keyboard": "^1.2.0",
     "@capacitor/network": "^1.0.6",
     "@capacitor/share": "^1.0.7",
     "@capacitor/splash-screen": "^1.1.6",

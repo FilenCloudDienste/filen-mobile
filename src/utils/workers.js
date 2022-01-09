@@ -24,9 +24,9 @@ const cryptoJSString = `
 	    var crypto;
 
 	    // Native crypto from window (Browser)
-	    if (typeof window !== 'undefined' && window.crypto) {
-	        crypto = window.crypto;
-	    }
+	    //if (typeof window !== 'undefined' && window.crypto) {
+	    //    crypto = window.crypto;
+	    //}
 
 	    // Native crypto in web worker (Browser)
 	    if (typeof self !== 'undefined' && self.crypto) {
@@ -34,21 +34,21 @@ const cryptoJSString = `
 	    }
 
 	    // Native (experimental IE 11) crypto from window (Browser)
-	    if (!crypto && typeof window !== 'undefined' && window.msCrypto) {
-	        crypto = window.msCrypto;
-	    }
+	    //if (!crypto && typeof window !== 'undefined' && window.msCrypto) {
+	    //    crypto = window.msCrypto;
+	    //}
 
 	    // Native crypto from global (NodeJS)
-	    if (!crypto && typeof global !== 'undefined' && global.crypto) {
-	        crypto = global.crypto;
-	    }
+	    //if (!crypto && typeof global !== 'undefined' && global.crypto) {
+	    //    crypto = global.crypto;
+	    //}
 
 	    // Native crypto import via require (NodeJS)
-	    if (!crypto && typeof require === 'function') {
-	        try {
-	            crypto = require('crypto');
-	        } catch (err) {}
-	    }
+	    //if (!crypto && typeof require === 'function') {
+	    //    try {
+	    //        crypto = require('crypto');
+	    //    } catch (err) {}
+	    //}
 
 	    /*
 	     * Cryptographically secure pseudorandom number generator
@@ -6081,11 +6081,18 @@ const uuidv4 = () => { // Public Domain/MIT
     });
 }
 
-const createEncryptionWorker = () => {
+const getRandomArbitrary = (min, max) => {
+	return Math.floor(Math.random() * (max - min) + min)
+}
+
+const createWorker = () => {
 	let blob = new Blob([`
+		` + cryptoJSString + `
+
+		const window = self
 		const nativeCrypto = self.crypto || window.crypto
 
- 		const convertUint8ArrayToBinaryString = (u8Array) => {
+		const convertUint8ArrayToBinaryString = (u8Array) => {
 			let i, len = u8Array.length, b_str = ""
 
 			for (i = 0; i < len; i++){
@@ -6099,274 +6106,74 @@ const createEncryptionWorker = () => {
 		    return self.btoa(Array.from(nativeCrypto.getRandomValues(new Uint8Array(length * 2))).map((b) => String.fromCharCode(b)).join("")).replace(/[+/]/g, "").substring(0, length)
 		}
 
-		onmessage = (e) => {
-			if(typeof e.data.data == "undefined"){
-				return postMessage({
-					uuid: e.data.uuid,
-					index: e.data.index,
-					data: "",
-					version: e.data.version
-				})
-			}
-
-			if(typeof e.data.data.byteLength == "undefined"){
-				return postMessage({
-					uuid: e.data.uuid,
-					index: e.data.index,
-					data: "",
-					version: e.data.version
-				})
-			}
-
-			if(e.data.data.byteLength == 0){
-				return postMessage({
-					uuid: e.data.uuid,
-					index: e.data.index,
-					data: "",
-					version: e.data.version
-				})
-			}
-
-			let preKey = new TextEncoder().encode(e.data.key)
-
-			if(e.data.version == 1){
-				let iv = preKey.slice(0, 16)
-
-				nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["encrypt"]).then((key) => {
-					nativeCrypto.subtle.encrypt({
-						name: "AES-CBC",
-						iv: iv
-					}, key, e.data.data).then((encrypted) => {
-						return postMessage({
-							uuid: e.data.uuid,
-							index: e.data.index,
-							data: convertUint8ArrayToBinaryString(new Uint8Array(encrypted)),
-							version: e.data.version
-						})
-					}).catch((err) => {
-						console.log(err)
-					})
-				}).catch((err) => {
-					console.log(err)
-				})
-			}
-			else if(e.data.version == 2){
-				let iv = generateRandomString(12)
-
-				nativeCrypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["encrypt"]).then((key) => {
-					nativeCrypto.subtle.encrypt({
-						name: "AES-GCM",
-						iv: new TextEncoder().encode(iv)
-					}, key, e.data.data).then((encrypted) => {
-						return postMessage({
-							uuid: e.data.uuid,
-							index: e.data.index,
-							data: iv + convertUint8ArrayToBinaryString(new Uint8Array(encrypted)),
-							version: e.data.version
-						})
-					}).catch((err) => {
-						console.log(err)
-					})
-				}).catch((err) => {
-					console.log(err)
-				})
-			}
-		}
-  	`], {
-  		type: "text/javascript"
-  	})
-  
-  	return new Worker((window.URL || window.webkitURL).createObjectURL(blob))
-}
-
-let encryptionWorker = [
-	createEncryptionWorker(),
-	createEncryptionWorker(),
-	createEncryptionWorker()
-]
-let encryptionWorkerResults = {}
-
-encryptionWorker.forEach((worker) => {
-	worker.onmessage = (e) => {
-		encryptionWorkerResults[e.data.uuid + "_" + e.data.index] = e.data.data
-	}
-})
-
-const createDecryptionWorker = () => {
-	let blob = new Blob([`
-		` + cryptoJSString + `
-
- 		const convertUint8ArrayToBinaryString = (u8Array) => {
-			let i, len = u8Array.length, b_str = ""
-
-			for (i = 0; i < len; i++){
-				b_str += String.fromCharCode(u8Array[i])
-			}
-
-			return b_str
-		}
-
 		function base64ArrayBuffer(arrayBuffer) {
-		  var base64    = ''
-		  var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+			var base64    = ''
+			var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
-		  var bytes         = new Uint8Array(arrayBuffer)
-		  var byteLength    = bytes.byteLength
-		  var byteRemainder = byteLength % 3
-		  var mainLength    = byteLength - byteRemainder
+			var bytes         = new Uint8Array(arrayBuffer)
+			var byteLength    = bytes.byteLength
+			var byteRemainder = byteLength % 3
+			var mainLength    = byteLength - byteRemainder
 
-		  var a, b, c, d
-		  var chunk
+			var a, b, c, d
+			var chunk
 
-		  // Main loop deals with bytes in chunks of 3
-		  for (var i = 0; i < mainLength; i = i + 3) {
-		    // Combine the three bytes into a single integer
-		    chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
+			// Main loop deals with bytes in chunks of 3
+			for (var i = 0; i < mainLength; i = i + 3) {
+			// Combine the three bytes into a single integer
+			chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
 
-		    // Use bitmasks to extract 6-bit segments from the triplet
-		    a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
-		    b = (chunk & 258048)   >> 12 // 258048   = (2^6 - 1) << 12
-		    c = (chunk & 4032)     >>  6 // 4032     = (2^6 - 1) << 6
-		    d = chunk & 63               // 63       = 2^6 - 1
+			// Use bitmasks to extract 6-bit segments from the triplet
+			a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
+			b = (chunk & 258048)   >> 12 // 258048   = (2^6 - 1) << 12
+			c = (chunk & 4032)     >>  6 // 4032     = (2^6 - 1) << 6
+			d = chunk & 63               // 63       = 2^6 - 1
 
-		    // Convert the raw binary segments to the appropriate ASCII encoding
-		    base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
-		  }
+			// Convert the raw binary segments to the appropriate ASCII encoding
+			base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
+			}
 
-		  // Deal with the remaining bytes and padding
-		  if (byteRemainder == 1) {
-		    chunk = bytes[mainLength]
+			// Deal with the remaining bytes and padding
+			if (byteRemainder == 1) {
+			chunk = bytes[mainLength]
 
-		    a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
+			a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
 
-		    // Set the 4 least significant bits to zero
-		    b = (chunk & 3)   << 4 // 3   = 2^2 - 1
+			// Set the 4 least significant bits to zero
+			b = (chunk & 3)   << 4 // 3   = 2^2 - 1
 
-		    base64 += encodings[a] + encodings[b] + '=='
-		  } else if (byteRemainder == 2) {
-		    chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
+			base64 += encodings[a] + encodings[b] + '=='
+			} else if (byteRemainder == 2) {
+			chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
 
-		    a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
-		    b = (chunk & 1008)  >>  4 // 1008  = (2^6 - 1) << 4
+			a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
+			b = (chunk & 1008)  >>  4 // 1008  = (2^6 - 1) << 4
 
-		    // Set the 2 least significant bits to zero
-		    c = (chunk & 15)    <<  2 // 15    = 2^4 - 1
+			// Set the 2 least significant bits to zero
+			c = (chunk & 15)    <<  2 // 15    = 2^4 - 1
 
-		    base64 += encodings[a] + encodings[b] + encodings[c] + '='
-		  }
-		  
-		  return base64
+			base64 += encodings[a] + encodings[b] + encodings[c] + '='
+			}
+			
+			return base64
 		}
 
 		function convertWordArrayToUint8Array(wordArray) {
-		    let arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : []
-		    let length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4
-		    let uInt8Array = new Uint8Array(length), index=0, word, i
+			let arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : []
+			let length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4
+			let uInt8Array = new Uint8Array(length), index=0, word, i
 
-		    for(i = 0; i < length; i++){
-		        word = arrayOfWords[i]
+			for(i = 0; i < length; i++){
+				word = arrayOfWords[i]
 
-		        uInt8Array[index++] = word >> 24
-		        uInt8Array[index++] = (word >> 16) & 0xff
-		        uInt8Array[index++] = (word >> 8) & 0xff
-		        uInt8Array[index++] = word & 0xff
-		    }
-
-		    return uInt8Array
-		}
-
- 		const nativeCrypto = self.crypto || window.crypto
-
-		onmessage = (e) => {
-			let preKey = new TextEncoder().encode(e.data.key)
-
-			if(e.data.version == 1){
-				let iv = preKey.slice(0, 16)
-
-				nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["decrypt"]).then((genKey) => {
-					let sliced = convertUint8ArrayToBinaryString(new Uint8Array(e.data.data.slice(0, 16)))
-
-					if(sliced.indexOf("Salted") !== -1){
-						return postMessage({
-							uuid: e.data.uuid,
-							index: e.data.index,
-							data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(base64ArrayBuffer(e.data.data), e.data.key)),
-							version: e.data.version
-						})
-					}
-					else if(sliced.indexOf("U2FsdGVk") !== -1){
-						return postMessage({
-							uuid: e.data.uuid,
-							index: e.data.index,
-							data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(convertUint8ArrayToBinaryString(new Uint8Array(e.data.data)), e.data.key)),
-							version: e.data.version
-						})
-					}
-					else{
-						nativeCrypto.subtle.decrypt({
-							name: "AES-CBC",
-							iv: iv
-						}, genKey, e.data.data).then((decrypted) => {
-							return postMessage({
-								uuid: e.data.uuid,
-								index: e.data.index,
-								data: new Uint8Array(decrypted),
-								version: e.data.version
-							})
-						}).catch((err) => {
-							return console.log(err)
-						})
-					}
-				}).catch((err) => {
-					return console.log(err)
-				})
+				uInt8Array[index++] = word >> 24
+				uInt8Array[index++] = (word >> 16) & 0xff
+				uInt8Array[index++] = (word >> 8) & 0xff
+				uInt8Array[index++] = word & 0xff
 			}
-			else if(e.data.version == 2){
-				let iv = e.data.data.slice(0, 12)
-				let encData = e.data.data.slice(12)
 
-				nativeCrypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["decrypt"]).then((genKey) => {
-					nativeCrypto.subtle.decrypt({
-						name: "AES-GCM",
-						iv: iv
-					}, genKey, encData).then((decrypted) => {
-						return postMessage({
-							uuid: e.data.uuid,
-							index: e.data.index,
-							data: new Uint8Array(decrypted),
-							version: e.data.version
-						})
-					}).catch((err) => {
-						return console.log(err)
-					})
-				}).catch((err) => {
-					return console.log(err)
-				})
-			}
+			return uInt8Array
 		}
-  	`], {
-  		type: "text/javascript"
-  	})
-  
-  	return new Worker((window.URL || window.webkitURL).createObjectURL(blob))
-}
-
-let decryptionWorker = [
-	createDecryptionWorker(),
-	createDecryptionWorker(),
-	createDecryptionWorker()
-]
-let decryptionWorkerResults = {}
-
-decryptionWorker.forEach((worker) => {
-	worker.onmessage = (e) => {
-		decryptionWorkerResults[e.data.uuid + "_" + e.data.index] = e.data.data
-	}
-})
-
-const createUtilWorker = () => {
-	let blob = new Blob([`
-		const window = self
 
 		function base64ArrayBuffer(arrayBuffer) {
 		  var base64    = ''
@@ -6430,41 +6237,444 @@ const createUtilWorker = () => {
 			return bytes.buffer;
 		}
 
-		onmessage = (e) => {
+		function buf2hex(buffer) { // buffer is an ArrayBuffer
+			return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join('');
+		}
+
+		async function deriveKeyFromPassword (password, salt, iterations = 200000, hash = "SHA-512", bitLength = 512, returnHex = true){	
+			try{
+				var bits = await nativeCrypto.subtle.deriveBits({
+					name: "PBKDF2",
+				  	salt: new TextEncoder().encode(salt),
+				  	iterations: iterations,
+				  	hash: {
+						name: hash
+				  	}
+				}, await nativeCrypto.subtle.importKey("raw", new TextEncoder().encode(password), {
+					name: "PBKDF2"
+				}, false, ["deriveBits"]), bitLength)
+			}
+			catch(e){
+				throw new Error(e)
+			}
+		  
+			if(returnHex){
+			  	return buf2hex(bits)
+			}
+		
+			return bits
+		}
+
+		function fetchWithTimeout(ms, promise) {
+			return new Promise((resolve, reject) => {
+				let timer = setTimeout(() => {
+					return reject(new Error("Request timeout after " + ms + "ms"))
+				}, ms)
+		
+				promise.then((value) => {
+					clearTimeout(timer)
+					
+					return resolve(value)
+				}).catch((err) => {
+					clearTimeout(timer)
+		
+					return reject(err)
+				})
+			})
+		}
+
+		onmessage = async (e) => {
 			switch(e.data.type){
+				case "encryptMetadata":
+					var data = e.data.data.toString()
+					var key = e.data.key.toString()
+					var metadataVersion = e.data.version
+
+					if(metadataVersion == 1){ //old deprecated
+						try{
+							var enc = CryptoJS.AES.encrypt(data, key).toString()
+
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								data: enc
+							})
+						}
+						catch(e){
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: e
+							})
+						}
+					}
+					else if(metadataVersion == 2){
+						try{
+							key = await deriveKeyFromPassword(key, key, 1, "SHA-512", 256, false) //transform variable length input key to 256 bit (32 bytes) as fast as possible since it's already derived and safe
+
+							var iv = generateRandomString(12)
+							var string = new TextEncoder().encode(data)
+
+							var encrypted = await nativeCrypto.subtle.encrypt({
+								name: "AES-GCM",
+								iv: new TextEncoder().encode(iv)
+							}, await nativeCrypto.subtle.importKey("raw", key, "AES-GCM", false, ["encrypt"]), string)
+
+							var enc = "002" + iv + base64ArrayBuffer(new Uint8Array(encrypted))
+
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								data: enc
+							})
+						}
+						catch(e){
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: e
+							})
+						}
+					}
+				break
+				case "decryptMetadata":
+					var data = e.data.data.toString()
+					var key = e.data.key.toString()
+					var sliced = data.slice(0, 8)
+
+					if(sliced == "U2FsdGVk"){ //old deprecated
+						try{
+							var dec = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8)
+
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								data: dec
+							})
+						}
+						catch(e){
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: e
+							})
+						}
+					}
+					else{
+						var version = data.slice(0, 3)
+
+						if(version == "002"){
+							try{
+								key = await deriveKeyFromPassword(key, key, 1, "SHA-512", 256, false) //transform variable length input key to 256 bit (32 bytes) as fast as possible since it's already derived and safe
+
+								var iv = new TextEncoder().encode(data.slice(3, 15))
+								var encrypted = _base64ToArrayBuffer(data.slice(15))
+
+								var decrypted = await nativeCrypto.subtle.decrypt({
+									name: "AES-GCM",
+									iv
+								}, await nativeCrypto.subtle.importKey("raw", key, "AES-GCM", false, ["decrypt"]), encrypted)
+
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									data: new TextDecoder().decode(new Uint8Array(decrypted))
+								})
+							}
+							catch(e){
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									err: e
+								})
+							}
+						}
+						else{
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: "invalid version"
+							})
+						}
+					}
+				break
+				case "encryptData":
+					if(typeof e.data.data == "undefined"){
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							uuid: e.data.uuid,
+							index: e.data.index,
+							data: "",
+							version: e.data.version
+						})
+					}
+		
+					if(typeof e.data.data.byteLength == "undefined"){
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							uuid: e.data.uuid,
+							index: e.data.index,
+							data: "",
+							version: e.data.version
+						})
+					}
+		
+					if(e.data.data.byteLength == 0){
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							uuid: e.data.uuid,
+							index: e.data.index,
+							data: "",
+							version: e.data.version
+						})
+					}
+		
+					var preKey = new TextEncoder().encode(e.data.key)
+		
+					if(e.data.version == 1){
+						var iv = preKey.slice(0, 16)
+		
+						nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["encrypt"]).then((key) => {
+							nativeCrypto.subtle.encrypt({
+								name: "AES-CBC",
+								iv: iv
+							}, key, e.data.data).then((encrypted) => {
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									uuid: e.data.uuid,
+									index: e.data.index,
+									data: convertUint8ArrayToBinaryString(new Uint8Array(encrypted)),
+									version: e.data.version
+								})
+							}).catch((err) => {
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									err: err
+								})
+							})
+						}).catch((err) => {
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: err
+							})
+						})
+					}
+					else if(e.data.version == 2){
+						var iv = generateRandomString(12)
+		
+						nativeCrypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["encrypt"]).then((key) => {
+							nativeCrypto.subtle.encrypt({
+								name: "AES-GCM",
+								iv: new TextEncoder().encode(iv)
+							}, key, e.data.data).then((encrypted) => {
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									uuid: e.data.uuid,
+									index: e.data.index,
+									data: iv + convertUint8ArrayToBinaryString(new Uint8Array(encrypted)),
+									version: e.data.version
+								})
+							}).catch((err) => {
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									err: err
+								})
+							})
+						}).catch((err) => {
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: err
+							})
+						})
+					}
+				break
+				case "decryptData":
+					var preKey = new TextEncoder().encode(e.data.key)
+
+					if(e.data.version == 1){
+						var iv = preKey.slice(0, 16)
+
+						nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["decrypt"]).then((genKey) => {
+							let sliced = convertUint8ArrayToBinaryString(new Uint8Array(e.data.data.slice(0, 16)))
+
+							if(sliced.indexOf("Salted") !== -1){
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									uuid: e.data.uuid,
+									index: e.data.index,
+									data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(base64ArrayBuffer(e.data.data), e.data.key)),
+									version: e.data.version
+								})
+							}
+							else if(sliced.indexOf("U2FsdGVk") !== -1){
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									uuid: e.data.uuid,
+									index: e.data.index,
+									data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(convertUint8ArrayToBinaryString(new Uint8Array(e.data.data)), e.data.key)),
+									version: e.data.version
+								})
+							}
+							else{
+								nativeCrypto.subtle.decrypt({
+									name: "AES-CBC",
+									iv: iv
+								}, genKey, e.data.data).then((decrypted) => {
+									return postMessage({
+										id: e.data.id,
+										type: e.data.type,
+										uuid: e.data.uuid,
+										index: e.data.index,
+										data: new Uint8Array(decrypted),
+										version: e.data.version
+									})
+								}).catch((err) => {
+									return postMessage({
+										id: e.data.id,
+										type: e.data.type,
+										err: err
+									})
+								})
+							}
+						}).catch((err) => {
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: err
+							})
+						})
+					}
+					else if(e.data.version == 2){
+						var iv = e.data.data.slice(0, 12)
+						var encData = e.data.data.slice(12)
+
+						nativeCrypto.subtle.importKey("raw", preKey, "AES-GCM", false, ["decrypt"]).then((genKey) => {
+							nativeCrypto.subtle.decrypt({
+								name: "AES-GCM",
+								iv: iv
+							}, genKey, encData).then((decrypted) => {
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									uuid: e.data.uuid,
+									index: e.data.index,
+									data: new Uint8Array(decrypted),
+									version: e.data.version
+								})
+							}).catch((err) => {
+								return postMessage({
+									id: e.data.id,
+									type: e.data.type,
+									err: err
+								})
+							})
+						}).catch((err) => {
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: err
+							})
+						})
+					}
+				break
 				case "arrayBufferToBase64":
 					return postMessage({
-						type: e.data.type,
 						id: e.data.id,
+						type: e.data.type,
 						data: base64ArrayBuffer(e.data.data)
 					})
 				break
 				case "base64ToArrayBuffer":
 					return postMessage({
-						type: e.data.type,
 						id: e.data.id,
+						type: e.data.type,
 						data: _base64ToArrayBuffer(e.data.data)
 					})
 				break
 				case "JSONParse":
 					return postMessage({
-						type: e.data.type,
 						id: e.data.id,
+						type: e.data.type,
 						data: JSON.parse(e.data.data)
 					})
 				break
 				case "JSONStringify":
 					return postMessage({
-						type: e.data.type,
 						id: e.data.id,
+						type: e.data.type,
 						data: JSON.stringify(e.data.data)
 					})
 				break
 				case "JSONStringifyLength":
 					return postMessage({
-						type: e.data.type,
 						id: e.data.id,
+						type: e.data.type,
 						data: JSON.stringify(e.data.data).length
+					})
+				break
+				case "fetchWithTimeoutJSON":
+					fetchWithTimeout(e.data.timeout, fetch(e.data.url, e.data.options)).then((response) => {
+						response.json().then((obj) => {
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								data: obj
+							})
+						}).catch((err) => {
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err
+							})
+						})
+					}).catch((err) => {
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							err
+						})
+					})
+				break
+				case "fetchWithTimeoutDownload":
+					fetchWithTimeout(e.data.timeout, fetch(e.data.url, e.data.options)).then((response) => {
+						if(response.status !== 200){
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err: "http status not 200"
+							})
+						}
+
+						response.arrayBuffer().then((ab) => {
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								data: ab
+							})
+						}).catch((err) => {
+							return postMessage({
+								id: e.data.id,
+								type: e.data.type,
+								err
+							})
+						})
+					}).catch((err) => {
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							err
+						})
 					})
 				break
 			}
@@ -6476,225 +6686,273 @@ const createUtilWorker = () => {
   	return new Worker((window.URL || window.webkitURL).createObjectURL(blob))
 }
 
-let utilWorker = createUtilWorker()
-let utilWorkerResults = {}
+let cpuCount = window.navigator.hardwareConcurrency || 8
+let workers = []
 
-utilWorker.onmessage = (e) => {
-	utilWorkerResults[e.data.type + "_" + e.data.id] = e.data.data
+for(let i = 0; i < cpuCount; i++){
+	workers.push(createWorker())
 }
 
-const getRandomArbitrary = (min, max) => {
-	return Math.floor(Math.random() * (max - min) + min)
+let workerCallbacks = {}
+let workerNextCallId = 0
+
+for(let i = 0; i < workers.length; i++){
+	workers[i].onmessage = (e) => {
+		if(!workerCallbacks[e.data.id]){
+			console.log("Worker call " + e.data.id + " has no callback defined.")
+		}
+		else{
+			if(e.data.err){
+				workerCallbacks[e.data.id](e.data.err)
+			}
+			else{
+				workerCallbacks[e.data.id](null, e.data)
+			}
+	
+			delete workerCallbacks[e.data.id]
+	
+			return true
+		}
+	}
 }
 
 module.exports = {
-    encryptData: (uuid, index, key, data, version, callback) => {
-		let worker = encryptionWorker[getRandomArbitrary(0, encryptionWorker.length - 1)]
+	fetchWithTimeoutDownloadWorker: (url, options, timeout) => {
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
 
-        worker.postMessage({
-            uuid,
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			return worker.postMessage({
+				type: "fetchWithTimeoutDownload",
+				id,
+				url,
+				options,
+				timeout
+			})
+		})
+	},
+	fetchWithTimeoutJSONWorker: (url, options, timeout) => {
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			return worker.postMessage({
+				type: "fetchWithTimeoutJSON",
+				id,
+				url,
+				options,
+				timeout
+			})
+		})
+	},
+	decryptMetadataWorker: (data, key) => {
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			return worker.postMessage({
+				type: "decryptMetadata",
+				id,
+				data,
+				key
+			})
+		})
+	},
+	encryptMetadataWorker: (data, key, version) => {
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			return worker.postMessage({
+				type: "encryptMetadata",
+				id,
+				data,
+				key,
+				version
+			})
+		})
+	},
+    encryptData: (uuid, index, key, data, version, callback) => {
+		let id = workerNextCallId++
+
+		workerCallbacks[id] = (err, data) => {
+			if(err){
+				return callback(err)
+			}
+
+			return callback(null, data.data)
+		}
+
+		let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+
+        return worker.postMessage({
+            id,
+			type: "encryptData",
+			uuid,
             index,
             key,
             data,
 			version
         })
-    
-        let waitInterval = setInterval(() => {
-            if(typeof encryptionWorkerResults[uuid + "_" + index] !== "undefined"){
-                clearInterval(waitInterval)
-    
-                let res = encryptionWorkerResults[uuid + "_" + index]
-    
-                delete encryptionWorkerResults[uuid + "_" + index]
-    
-                return callback(res)
-            }
-        }, 10)
     },
     decryptData: (uuid, index, key, data, version, callback) => {
-		let worker = decryptionWorker[getRandomArbitrary(0, decryptionWorker.length - 1)]
+		let id = workerNextCallId++
 
-        worker.postMessage({
+		workerCallbacks[id] = (err, data) => {
+			if(err){
+				return callback(err)
+			}
+
+			return callback(null, data.data)
+		}
+
+		let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+
+        return worker.postMessage({
+			id,
+			type: "decryptData",
             uuid,
             index,
             key,
             data,
 			version
         })
-    
-        let waitInterval = setInterval(() => {
-            if(typeof decryptionWorkerResults[uuid + "_" + index] !== "undefined"){
-                clearInterval(waitInterval)
-    
-                let res = decryptionWorkerResults[uuid + "_" + index]
-    
-                delete decryptionWorkerResults[uuid + "_" + index]
-    
-                return callback(res)
-            }
-        }, 10)
     },
     convertArrayBufferToBase64: (data, callback) => {
-        let type = "arrayBufferToBase64"
-        let id = uuidv4()
+		let id = workerNextCallId++
+
+		workerCallbacks[id] = (err, data) => {
+			if(err){
+				return callback(err)
+			}
+
+			return callback(null, data.data)
+		}
+
+		let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
     
-        utilWorker.postMessage({
-            type,
+        return worker.postMessage({
+            type: "arrayBufferToBase64",
             id,
             data
         })
-    
-        let waitInterval = setInterval(() => {
-            if(typeof utilWorkerResults[type + "_" + id] !== "undefined"){
-                clearInterval(waitInterval)
-    
-                let res = utilWorkerResults[type + "_" + id]
-    
-                delete utilWorkerResults[type + "_" + id]
-    
-                return callback(res)
-            }
-        }, 10)
 	},
 	convertBase64ToArrayBuffer: (data, callback) => {
-        let type = "base64ToArrayBuffer"
-        let id = uuidv4()
+        let id = workerNextCallId++
+
+		workerCallbacks[id] = (err, data) => {
+			if(err){
+				return callback(err)
+			}
+
+			return callback(null, data.data)
+		}
+
+		let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
     
-        utilWorker.postMessage({
-            type,
+        return worker.postMessage({
+            type: "base64ToArrayBuffer",
             id,
             data
         })
-    
-        let waitInterval = setInterval(() => {
-            if(typeof utilWorkerResults[type + "_" + id] !== "undefined"){
-                clearInterval(waitInterval)
-    
-                let res = utilWorkerResults[type + "_" + id]
-    
-                delete utilWorkerResults[type + "_" + id]
-    
-                return callback(res)
-            }
-        }, 10)
     },
 	JSONStringifyLengthWorker: (data) => {
-		return new Promise((resolve) => {
-			let type = "JSONStringifyLength"
-			let id = uuidv4()
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			utilWorker.postMessage({
-				type,
+			return worker.postMessage({
+				type: "JSONStringifyLength",
 				id,
 				data
 			})
-		
-			let waitInterval = setInterval(() => {
-				if(typeof utilWorkerResults[type + "_" + id] !== "undefined"){
-					clearInterval(waitInterval)
-		
-					let res = utilWorkerResults[type + "_" + id]
-		
-					delete utilWorkerResults[type + "_" + id]
-		
-					return resolve(res)
-				}
-			}, 10)
 		})
 	},
 	JSONStringifyWorker: (data) => {
-		return new Promise((resolve) => {
-			let type = "JSONStringify"
-			let id = uuidv4()
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			utilWorker.postMessage({
-				type,
+			return worker.postMessage({
+				type: "JSONStringify",
 				id,
 				data
 			})
-		
-			let waitInterval = setInterval(() => {
-				if(typeof utilWorkerResults[type + "_" + id] !== "undefined"){
-					clearInterval(waitInterval)
-		
-					let res = utilWorkerResults[type + "_" + id]
-		
-					delete utilWorkerResults[type + "_" + id]
-		
-					return resolve(res)
-				}
-			}, 10)
 		})
 	},
 	JSONParseWorker: (data) => {
-		return new Promise((resolve) => {
-			let type = "JSONParse"
-			let id = uuidv4()
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			utilWorker.postMessage({
-				type,
+			return worker.postMessage({
+				type: "JSONParse",
 				id,
 				data
 			})
-		
-			let waitInterval = setInterval(() => {
-				if(typeof utilWorkerResults[type + "_" + id] !== "undefined"){
-					clearInterval(waitInterval)
-		
-					let res = utilWorkerResults[type + "_" + id]
-		
-					delete utilWorkerResults[type + "_" + id]
-		
-					return resolve(res)
-				}
-			}, 10)
-		})
-	},
-	fileChunkToArrayBuffer: (chunk, callback) => {
-		let blob = new Blob([`
-			onmessage = (e) => {
-				let fileReader = new FileReaderSync()
-
-				let arrayBuffer = null
-
-				try{
-					arrayBuffer = fileReader.readAsArrayBuffer(e.data.chunk)
-				}
-				catch(e){
-					arrayBuffer = null
-
-					return postMessage({
-						err: e,
-						arrayBuffer
-					})
-				}
-
-				return postMessage({
-					err: null,
-					arrayBuffer
-				})
-			}
-		`], {
-			type: "text/javascript"
-		})
-  
-  		let worker = new Worker((window.URL || window.webkitURL).createObjectURL(blob))
-
-		worker.onmessage = (e) => {
-			chunk = undefined
-
-			worker.terminate()
-			worker = undefined
-
-			if(e.data.err){
-				return callback(e.data.err)
-			}
-
-			return callback(null, e.data.arrayBuffer)
-		}
-
-		worker.postMessage({
-			chunk
 		})
 	}
 }

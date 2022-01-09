@@ -61,53 +61,43 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
         return callback("stopped")
     }
 
-	fetch(utils.getUploadServer() + "/v1/upload?" + queryParams, {
+	workers.fetchWithTimeoutJSONWorker(utils.getUploadServer() + "/v1/upload?" + queryParams, {
 		method: "POST",
 		cache: "no-cache",
 		body: data
-	}).then((response) => {
-		response.json().then((obj) => {
-			let res = obj
+	}, ((3600 * 24) * 1000)).then((obj) => {
+		let res = obj
 
-			window.customVariables.uploadChunkSemaphore.release()
+		window.customVariables.uploadChunkSemaphore.release()
 
-			if(typeof window.customVariables.stoppedUploads[uuid] !== "undefined"){
-				return callback("stopped")
-			}
+		if(typeof window.customVariables.stoppedUploads[uuid] !== "undefined"){
+			return callback("stopped")
+		}
 
-			if(!res){
+		if(!res){
+			return setTimeout(() => {
+				this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
+			}, 1000)
+		}
+		else{
+			if(typeof res !== "object"){
 				return setTimeout(() => {
 					this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
 				}, 1000)
 			}
 			else{
-				if(typeof res !== "object"){
-					return setTimeout(() => {
-						this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
-					}, 1000)
+				if(!res.status){
+					if(res.message.toLowerCase().indexOf("blacklisted") !== -1){
+						return callback("blacklisted")
+					}
+
+					return callback(res.message)
 				}
 				else{
-					if(!res.status){
-						if(res.message.toLowerCase().indexOf("blacklisted") !== -1){
-							return callback("blacklisted")
-						}
-
-						return callback(res.message)
-					}
-					else{
-						return callback(null, res, utils.parseQuery(queryParams))
-					}
+					return callback(null, res, utils.parseQuery(queryParams))
 				}
 			}
-		}).catch((err) => {
-			console.log(err)
-
-			window.customVariables.uploadChunkSemaphore.release()
-
-			return setTimeout(() => {
-				this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
-			}, 1000)
-		})
+		}
 	}).catch((err) => {
 		console.log(err)
 
@@ -493,7 +483,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 		
 									chunk = undefined
 		
-									workers.encryptData(uuid, thisIndex, key, arrayBuffer, this.state.currentFileVersion, (encrypted) => {
+									workers.encryptData(uuid, thisIndex, key, arrayBuffer, this.state.currentFileVersion, (err, encrypted) => {
 										let blob = encrypted
 		
 										arrayBuffer = undefined

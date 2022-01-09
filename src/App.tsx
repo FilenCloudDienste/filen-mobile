@@ -95,7 +95,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			selectedItems: 0,
 			currentHref: window.location.href,
 			darkMode: false,
-			userEmail: "testnet@filen.io",
+			userEmail: "",
 			userStorageUsagePercentage: 0,
 			searchbarOpen: false,
 			windowHeight: window.innerHeight,
