@@ -17,6 +17,7 @@ import { Storage } from "@capacitor/storage"
 import { SendIntent } from "send-intent"
 import { Media } from "@capacitor-community/media"
 import { registerPlugin } from "@capacitor/core"
+import { Base64 } from "js-base64"
 
 const workers = require("../utils/workers")
 const utils = require("../utils/utils")
@@ -209,17 +210,17 @@ export function setupWindowFunctions(){
     window.customVariables.keyUpdateInterval = undefined
     window.customVariables.usageUpdateInterval = undefined
     window.customVariables.apiKey = ""
-    window.customVariables.uploadSemaphore = new utils.Semaphore(1)
+    window.customVariables.uploadSemaphore = new utils.Semaphore(3)
     window.customVariables.uploadChunkSemaphore = new utils.Semaphore(10)
     window.customVariables.downloadSemaphore = new utils.Semaphore(1)
     window.customVariables.downloadChunkSemaphore = new utils.Semaphore(20)
-    window.customVariables.shareItemSemaphore = new utils.Semaphore(8)
-    window.customVariables.decryptShareItemSemaphore = new utils.Semaphore(128)
+    window.customVariables.shareItemSemaphore = new utils.Semaphore(16)
+    window.customVariables.decryptShareItemSemaphore = new utils.Semaphore(256)
     window.customVariables.writeSemaphore = new utils.Semaphore(64)
     window.customVariables.transfersSemaphore = new utils.Semaphore(1)
     window.customVariables.currentUploadThreads = 0
-    window.customVariables.maxUploadThreads = 6
-    window.customVariables.maxDownloadThreads = 16
+    window.customVariables.maxUploadThreads = 10
+    window.customVariables.maxDownloadThreads = 20
     window.customVariables.currentDownloadThreads = 0
     window.customVariables.maxWriteThreads = 256
     window.customVariables.currentWriteThreads = 0
@@ -522,7 +523,7 @@ export function setupWindowFunctions(){
             }
         }
 
-        let max = 1
+        let max = 3
         let current = 0
         let fileObjects = []
 
@@ -556,91 +557,99 @@ export function setupWindowFunctions(){
                 if(data.medias.length > 0){
                     let index = data.medias[0].index
                     let url = data.medias[0].url
-                    let heicURL = data.medias[0].heicURL || undefined
+                    
+                    if(url && typeof url == "string" && url.length > 4){
+                        let heicURL = data.medias[0].heicURL || undefined
+                        let realURL = url
 
-                    if(url.indexOf("file://") == -1){
-                        url = "file://" + url
-                    }
+                        if(url.indexOf("file://") == -1){
+                            url = "file://" + url
+                        }
 
-                    let mimeType = mime.lookup(url.replace("file://", ""))
-                    let mimeTypeCheckPassed = false
+                        let mimeType = mime.lookup(url.replace("file://", ""))
+                        let mimeTypeCheckPassed = false
 
-                    if(this.state.settings.cameraUpload.photos && mimeType.indexOf("image/") !== -1){
-                        mimeTypeCheckPassed = true
-                    }
+                        if(this.state.settings.cameraUpload.photos && mimeType.indexOf("image/") !== -1){
+                            mimeTypeCheckPassed = true
+                        }
 
-                    if(this.state.settings.cameraUpload.videos && mimeType.indexOf("video/") !== -1){
-                        mimeTypeCheckPassed = true
-                    }
+                        if(this.state.settings.cameraUpload.videos && mimeType.indexOf("video/") !== -1){
+                            mimeTypeCheckPassed = true
+                        }
 
-                    if(typeof mimeType == "string"){
-                        if(mimeType.indexOf("/") !== -1){
-                            if(this.state.settings.cameraUpload.photos && this.state.settings.cameraUpload.videos){
-                                if(mimeType.indexOf("image/") !== -1 || mimeType.indexOf("video/") !== -1){
-                                    mimeTypeCheckPassed = true
+                        if(typeof mimeType == "string"){
+                            if(mimeType.indexOf("/") !== -1){
+                                if(this.state.settings.cameraUpload.photos && this.state.settings.cameraUpload.videos){
+                                    if(mimeType.indexOf("image/") !== -1 || mimeType.indexOf("video/") !== -1){
+                                        mimeTypeCheckPassed = true
+                                    }
                                 }
-                            }
 
-                            if(!this.state.settings.cameraUpload.photos && this.state.settings.cameraUpload.videos){
-                                if(mimeType.indexOf("video/") !== -1){
-                                    mimeTypeCheckPassed = true
+                                if(!this.state.settings.cameraUpload.photos && this.state.settings.cameraUpload.videos){
+                                    if(mimeType.indexOf("video/") !== -1){
+                                        mimeTypeCheckPassed = true
+                                    }
                                 }
-                            }
 
-                            if(this.state.settings.cameraUpload.photos && !this.state.settings.cameraUpload.videos){
-                                if(mimeType.indexOf("image/") !== -1){
-                                    mimeTypeCheckPassed = true
+                                if(this.state.settings.cameraUpload.photos && !this.state.settings.cameraUpload.videos){
+                                    if(mimeType.indexOf("image/") !== -1){
+                                        mimeTypeCheckPassed = true
+                                    }
                                 }
-                            }
 
-                            if(!this.state.settings.cameraUpload.photos && !this.state.settings.cameraUpload.videos){
-                                mimeTypeCheckPassed = false
+                                if(!this.state.settings.cameraUpload.photos && !this.state.settings.cameraUpload.videos){
+                                    mimeTypeCheckPassed = false
+                                }
                             }
                         }
-                    }
 
-                    if(mimeTypeCheckPassed){
-                        try{
-                            let fileObj = await new Promise((resolve, reject) => {
-                                let tempName = "UPLOAD_" + utils.uuidv4()
-                                let fileObject = {}
-    
-                                fileObject.tempName = tempName
-                                fileObject.editorParent = parent
-    
-                                window.resolveLocalFileSystemURL(url, (resolved) => {
-                                    if(resolved.isFile){
-                                        resolved.file((resolvedFile) => {
-                                            fileObject.name = resolvedFile.name
-                                            fileObject.lastModified = Math.floor(resolvedFile.lastModified) || Math.floor((+new Date()))
-                                            fileObject.size = resolvedFile.size
-                                            fileObject.type = resolvedFile.type
-                                            fileObject.fileEntry = resolvedFile
-                                            fileObject.tempFileEntry = undefined
-    
-                                            return resolve(fileObject)
-                                        }, (err) => {
-                                            return reject(err)
-                                        })
-                                    }
-                                    else{
-                                        return reject("selected path is not a file")
-                                    }
-                                }, (err) => {
-                                    return reject(err)
+                        if(mimeTypeCheckPassed){
+                            try{
+                                let fileObj = await new Promise((resolve, reject) => {
+                                    let tempName = "UPLOAD_" + utils.uuidv4()
+                                    let fileObject = {}
+        
+                                    fileObject.tempName = tempName
+                                    fileObject.editorParent = parent
+        
+                                    window.resolveLocalFileSystemURL(url, (resolved) => {
+                                        if(resolved.isFile){
+                                            resolved.file((resolvedFile) => {
+                                                fileObject.name = resolvedFile.name
+                                                fileObject.lastModified = Math.floor(resolvedFile.lastModified) || Math.floor((+new Date()))
+                                                fileObject.size = resolvedFile.size
+                                                fileObject.type = resolvedFile.type
+                                                fileObject.fileEntry = resolvedFile
+                                                fileObject.tempFileEntry = undefined
+        
+                                                return resolve(fileObject)
+                                            }, (err) => {
+                                                return reject(err)
+                                            })
+                                        }
+                                        else{
+                                            return reject("selected path is not a file")
+                                        }
+                                    }, (err) => {
+                                        return reject(err)
+                                    })
                                 })
-                            })
-    
-                            fileObjects.push({
-                                file: fileObj,
-                                id,
-                                index,
-                                url,
-                                heicURL
-                            })
+        
+                                fileObjects.push({
+                                    file: fileObj,
+                                    id,
+                                    index,
+                                    url,
+                                    heicURL
+                                })
+                            }
+                            catch(e){
+                                console.log(e)
+                            }
                         }
-                        catch(e){
-                            console.log(e)
+                        else{
+                            window.customVariables.cameraUpload.blockedIds[id] = true
+                            current -= 1
                         }
                     }
                     else{
@@ -651,10 +660,12 @@ export function setupWindowFunctions(){
             }
         }
 
-        for(let i = 0; i < fileObjects.length; i++){
-            if(typeof fileObjects[i].file !== "undefined"){
-                try{
-                    await new Promise((resolve, reject) => {
+        await new Promise((topResolve) => {
+            let done = 0
+            
+            for(let i = 0; i < fileObjects.length; i++){
+                if(typeof fileObjects[i].file !== "undefined"){
+                    new Promise((resolve, reject) => {
                         if(!this.state.settings.cameraUpload.enabled || !window.customVariables.cameraUploadEnabled){
                             return reject("stopped")
                         }
@@ -726,13 +737,19 @@ export function setupWindowFunctions(){
                                 return resolve()
                             }
                         })
+                    }).then(() => {
+                        done += 1
+
+                        if(done >= fileObjects.length){
+                            return topResolve()
+                        }
                     })
                 }
-                catch(e){
-                    console.log(e)
+                else{
+                    done += 1
                 }
             }
-        }
+        })
 
         try{
             await localforage.setItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
@@ -750,32 +767,6 @@ export function setupWindowFunctions(){
 
     if(!window.customVariables.listenersAdded){
         window.customVariables.listenersAdded = true
-
-        /*BackgroundGeolocation.addWatcher({
-            backgroundMessage: "Cancel to prevent battery drain.",
-            backgroundTitle: "Tracking You.",
-            requestPermissions: true,
-            stale: true,
-            distanceFilter: 0
-        }, (location, err) => {
-            if(err){
-                if(err.code === "NOT_AUTHORIZED"){
-                    if(window.confirm(
-                        "This app needs your location, " +
-                        "but does not have permission.\n\n" +
-                        "Open settings now?"
-                    )){
-                        BackgroundGeolocation.openSettings();
-                    }
-                }
-
-                return console.error(err)
-            }
-    
-            //return console.log(location)
-        }).then((watcherId) => {
-            console.log(watcherId)
-        })*/
 
         Network.addListener("networkStatusChange", (status) => {
             let old = window.customVariables.networkStatus
@@ -3126,7 +3117,7 @@ export function setupWindowFunctions(){
     window.customFunctions.queueFileDownload = this.queueFileDownload
 
     window.customFunctions.openItemActionSheetFromJSON = (itemJSON) => {
-        let item = JSON.parse(window.atob(itemJSON))
+        let item = JSON.parse(Base64.decode(itemJSON))
 
         return this.spawnItemActionSheet(item)
     }
@@ -3288,22 +3279,12 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.logoutUser = async () => {
-        let newSettings = this.state.settings
-        
-        newSettings.cameraUpload = {
-            enabled: false,
-            parent: "",
-            parentName: "",
-            photos: true,
-            videos: true,
-            hidden: true,
-            burst: false,
-            icloud: true,
-            shared: false,
-            convertHeic: true
-        }
+        let loading = await loadingController.create({
+            message: "",
+            backdropDismiss: false
+        })
 
-        await window.customFunctions.saveSettings(newSettings)
+        loading.present()
 
         try{
             await Storage.remove({ key: "isLoggedIn" })
@@ -3326,6 +3307,8 @@ export function setupWindowFunctions(){
         catch(e){
             console.log(e)
         }
+
+        loading.dismiss()
 
         return document.location.href = "index.html"
     }
@@ -3398,7 +3381,11 @@ export function setupWindowFunctions(){
 
                         loading.dismiss()
 
-                        this.updateItemList()
+                        this.setState({
+                            itemList: []
+                        }, () => {
+                            this.forceUpdate()
+                        })
 
                         return this.spawnToast(language.get(this.state.lang, "trashEmptied"))
                     }
@@ -3410,7 +3397,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.changeItemColor = async (itemJSON, color) => {
-        let item = JSON.parse(window.atob(itemJSON))
+        let item = JSON.parse(Base64.decode(itemJSON))
 
         let loading = await loadingController.create({
             message: ""
@@ -3454,7 +3441,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.editItemPublicLink = async (itemJSON, type, isEdit = false, currentLinkUUID = "") => {
-        let item = JSON.parse(window.atob(itemJSON))
+        let item = JSON.parse(Base64.decode(itemJSON))
         let linkUUID = utils.uuidv4()
 
         currentLinkUUID = window.$("#save-link-btn").attr("data-currentlinkuuid")
@@ -5041,7 +5028,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openVersionsItemPreview = (itemJSON) => {
-        let item = JSON.parse(window.atob(itemJSON))
+        let item = JSON.parse(Base64.decode(itemJSON))
 
         return this.previewItem(item, undefined, true)
     }
@@ -5089,7 +5076,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.openVersionActionSheet = async (item) => {
         try{
-            item = JSON.parse(window.atob(item))
+            item = JSON.parse(Base64.decode(item))
         }
         catch(e){
             return console.log(e)
@@ -5115,7 +5102,7 @@ export function setupWindowFunctions(){
                 text: language.get(this.state.lang, "previewItem"),
                 icon: Ionicons.imageOutline,
                 handler: () => {
-                    return window.customFunctions.openVersionsItemPreview(window.btoa(JSON.stringify(item)))
+                    return window.customFunctions.openVersionsItemPreview(Base64.encode(JSON.stringify(item)))
                 }
             })
         }
@@ -5233,7 +5220,7 @@ export function setupWindowFunctions(){
 
             versionsHTML += `
                 <ion-item id="version-item-` + versionData[i].uuid + `" onClick="window.customFunctions.openVersionActionSheet('` + 
-                    window.btoa(JSON.stringify({
+                    Base64.encode(JSON.stringify({
                         uuid: versionData[i].uuid,
                         name: metadata.name,
                         type: "file",
@@ -6227,11 +6214,11 @@ export function setupWindowFunctions(){
 
                         await window.customFunctions.saveSettings(newSettings)
 
-                        window.customVariables.cameraUpload = {
+                        /*window.customVariables.cameraUpload = {
                             uploadedIds: {},
                             cachedIds: [],
                             blockedIds: {},
-                            lastCheck: 0,
+                            lastCheck: 0
                         }
 
                         try{
@@ -6239,7 +6226,7 @@ export function setupWindowFunctions(){
                         }
                         catch(e){
                             console.log(e)
-                        }
+                        }*/
 
                         loading.dismiss()
 
@@ -6261,6 +6248,7 @@ export function setupWindowFunctions(){
         let appDarkMode = this.state.darkMode
         let modalId = "camera-upload-modal-" + utils.generateRandomClassName()
         let appSettings = this.state.settings
+        let appState = this.state
 
         try{
             let getCameraUpload = await localforage.getItem("cameraUpload@" + window.customVariables.userEmail)
@@ -6300,7 +6288,8 @@ export function setupWindowFunctions(){
             }
         }
 
-        let progress = ((Object.keys(window.customVariables.cameraUpload.uploadedIds).length / window.customVariables.cameraUpload.cachedIds.length) * 100)
+        let uploadedCount = (Object.keys(window.customVariables.cameraUpload.uploadedIds).length + Object.keys(window.customVariables.cameraUpload.blockedIds).length)
+        let progress = ((uploadedCount / window.customVariables.cameraUpload.cachedIds.length) * 100)
 
         if(progress >= 100){
             progress = 100
@@ -6397,7 +6386,7 @@ export function setupWindowFunctions(){
                                     </ion-button>
                                 </ion-buttons>
                             </ion-item>
-                            <ion-item button lines="none" onClick="window.customFunctions.selectCameraUploadFolder()" id="camera-upload-select-folder-btn" ` + (window.customVariables.cameraUploadRunning ? `style="display: none;"` : ``) + `>
+                            <ion-item button lines="none" onClick="window.customFunctions.selectCameraUploadFolder()" id="camera-upload-select-folder-btn" ` + (window.customVariables.cameraUploadRunning || window.customVariables.cameraUploadEnabled ? `style="display: none;"` : ``) + `>
                                 <ion-buttons>
                                     <ion-button size="small" fill="solid" color="` + (appDarkMode ? `dark` : `light`) + `">
                                         ` + language.get(appLang, "selectAFolder") + `
@@ -6426,6 +6415,16 @@ export function setupWindowFunctions(){
                                 <ion-buttons slot="end">
                                     <ion-button fill="none">
                                         <text id="camera-upload-uploaded-text">` + Object.keys(window.customVariables.cameraUpload.uploadedIds).length + `</text>
+                                    </ion-button>
+                                </ion-buttons>
+                            </ion-item>
+                            <ion-item lines="none">
+                                <ion-label>
+                                    ` + language.get(appLang, "filesIgnored") + `
+                                </ion-label>
+                                <ion-buttons slot="end">
+                                    <ion-button fill="none">
+                                        <text id="camera-upload-ignored-text">` + Object.keys(window.customVariables.cameraUpload.blockedIds).length + `</text>
                                     </ion-button>
                                 </ion-buttons>
                             </ion-item>
@@ -6478,8 +6477,10 @@ export function setupWindowFunctions(){
         window.customVariables.updateCameraUploadModalInterval = setInterval(() => {
             document.getElementById("camera-upload-total-text").innerHTML = window.customVariables.cameraUpload.cachedIds.length
             document.getElementById("camera-upload-uploaded-text").innerHTML = Object.keys(window.customVariables.cameraUpload.uploadedIds).length
+            document.getElementById("camera-upload-ignored-text").innerHTML = Object.keys(window.customVariables.cameraUpload.blockedIds).length
 
-            let progress = ((Object.keys(window.customVariables.cameraUpload.uploadedIds).length / window.customVariables.cameraUpload.cachedIds.length) * 100)
+            let uploadedCount = (Object.keys(window.customVariables.cameraUpload.uploadedIds).length + Object.keys(window.customVariables.cameraUpload.blockedIds).length)
+            let progress = ((uploadedCount / window.customVariables.cameraUpload.cachedIds.length) * 100)
 
             if(progress >= 100){
                 progress = 100

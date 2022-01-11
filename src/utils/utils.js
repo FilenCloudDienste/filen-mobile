@@ -160,13 +160,20 @@ export function apiRequest(method, endpoint, data = {}){
             }
         }*/
 
-        if(Capacitor.isNative){
-            if(Plugins.Network.getStatus() == "none"){
-                if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
-                    return resolve(window.customVariables.apiCache[cacheKey])
-                }
-            }
-        }
+		if(typeof window.customVariables.networkStatus !== "undefined"){
+			if(!window.customVariables.networkStatus.connected){
+				return resolve(window.customVariables.apiCache[cacheKey])
+			}
+		}
+		else{
+			if(Capacitor.isNative){
+				if(Plugins.Network.getStatus() == "none"){
+					if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
+						return resolve(window.customVariables.apiCache[cacheKey])
+					}
+				}
+			}
+		}
 
         const doRequest = (tries, maxTries) => {
 			if(tries >= maxTries){
@@ -260,10 +267,6 @@ export async function decryptFolderName(str, userMasterKeys, uuid = undefined){
     }
 
     let folderName = ""
-
-    if(userMasterKeys.length > 0){
-		userMasterKeys = userMasterKeys.reverse()
-	}
 
     let obj = undefined
 
@@ -382,10 +385,6 @@ export async function decryptFileMetadata(metadata, userMasterKeys, uuid = undef
     let fileMime = ""
     let fileKey = ""
 	let fileLastModified = undefined
-
-    if(userMasterKeys.length > 0){
-		userMasterKeys = userMasterKeys.reverse()
-	}
 
 	for(let i = 0; i < userMasterKeys.length; i++){
 		try{
@@ -744,10 +743,6 @@ export function Semaphore(max){
 
 export async function decryptFolderLinkKey(str, userMasterKeys){
 	let link = ""
-
-    if(userMasterKeys.length > 1){
-      	userMasterKeys = userMasterKeys.reverse()
-    }
 
 	for(let i = 0; i < userMasterKeys.length; i++){
 		try{
@@ -2569,9 +2564,7 @@ export async function decryptMetadata(data, key){
 		return dec
 	}
 	catch(e){
-		console.log(e)
-
-		return e
+		return ""
 	}
 
   /*data = data.toString()

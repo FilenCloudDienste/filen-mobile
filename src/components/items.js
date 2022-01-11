@@ -9,6 +9,7 @@ import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
 import { Haptics, HapticsImpactStyle } from "@capacitor/haptics"
 import { Media } from "@capacitor-community/media"
 import { Mediastore } from "@agorapulse/capacitor-mediastore"
+import { Base64 } from "js-base64"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require("safe-area-insets")
@@ -87,18 +88,20 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 		window.customVariables.itemList = items
 	
-		let scrollTo = 0
+		let scrollTo = undefined
 	
 		if(typeof window.customVariables.scrollToIndex[parent] !== "undefined"){
 			scrollTo = window.customVariables.scrollToIndex[parent]
 	
 			delete window.customVariables.scrollToIndex[parent]
 		}
-	
-		return this.setState({
+
+		var stateObj = {
 			itemList: items,
 			scrollToIndex: scrollTo
-		}, () => {
+		}
+	
+		return this.setState(stateObj, () => {
 			this.forceUpdate()
 
 			setTimeout(window.customFunctions.saveCachedItems, 1000)
@@ -691,7 +694,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		}
 	}
 
-	let scrollTo = 0
+	let scrollTo = undefined
 
 	if(typeof window.customVariables.scrollToIndex[parent] !== "undefined"){
 		scrollTo = window.customVariables.scrollToIndex[parent]
@@ -699,7 +702,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		delete window.customVariables.scrollToIndex[parent]
 	}
 
-	let stateObj = { //
+	var stateObj = {
 		itemList: items,
 		scrollToIndex: scrollTo,
 		showMainSkeletonPlaceholder: false
@@ -1079,7 +1082,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 								` + item.name + `
 							</ion-title>
 							<ion-buttons slot="end">
-								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + window.btoa(JSON.stringify(item)) + `')">
+								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + Base64.encode(JSON.stringify(item)) + `')">
 									<ion-icon slot="icon-only" icon="` + Ionicons.ellipsisVertical + `" style="color: white;"></ion-icon>
 								</ion-button>
 							</ion-buttons>
@@ -1109,7 +1112,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 								` + item.name + `
 							</ion-title>
 							<ion-buttons slot="end">
-								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + window.btoa(JSON.stringify(item)) + `')">
+								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + Base64.encode(JSON.stringify(item)) + `')">
 									<ion-icon slot="icon-only" icon="` + Ionicons.ellipsisVertical + `" style="color: white;"></ion-icon>
 								</ion-button>
 							</ion-buttons>
@@ -1139,7 +1142,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 								` + item.name + `
 							</ion-title>
 							<ion-buttons slot="end">
-								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + window.btoa(JSON.stringify(item)) + `')">
+								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + Base64.encode(JSON.stringify(item)) + `')">
 									<ion-icon slot="icon-only" icon="` + Ionicons.ellipsisVertical + `" style="color: white;"></ion-icon>
 								</ion-button>
 							</ion-buttons>
@@ -1171,7 +1174,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 								` + item.name + `
 							</ion-title>
 							<ion-buttons slot="end">
-								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + window.btoa(JSON.stringify(item)) + `')">
+								<ion-button onclick="window.customFunctions.openItemActionSheetFromJSON('` + Base64.encode(JSON.stringify(item)) + `')">
 									<ion-icon slot="icon-only" icon="` + Ionicons.ellipsisVertical + `"></ion-icon>
 								</ion-button>
 							</ion-buttons>
@@ -1359,7 +1362,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 					}
 					else{
 						if(xDiffAbs < yDiffAbs && Math.max(xDiffAbs, yDiffAbs) > offsetY){
-							//window.customFunctions.dismissModal()
+							window.customFunctions.dismissModal()
 						}
 					}
 
@@ -2706,7 +2709,7 @@ export async function openPublicLinkModal(item){
 									<ion-icon icon="` + Ionicons.link + `" style="font-size: 65pt; color: ` + (appDarkMode ? "white" : "gray") + `;"></ion-icon>
 									<br>
 									<br>
-									<ion-button color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', false)">` + language.get(appLang, "enablePublicLink") + `</ion-button>	
+									<ion-button color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + Base64.encode(JSON.stringify(item)) + `', 'enable', false)">` + language.get(appLang, "enablePublicLink") + `</ion-button>	
 								</center>
 							</div>
 						</div>
@@ -2715,7 +2718,7 @@ export async function openPublicLinkModal(item){
 								<ion-label>
 									` + language.get(appLang, "publicLinkEnabled") + `
 								</ion-label>
-								<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'disable', false)" checked></ion-toggle>
+								<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + Base64.encode(JSON.stringify(item)) + `', 'disable', false)" checked></ion-toggle>
 							</ion-item>
 							<ion-item lines="none">
 								<ion-input type="text" id="public-link-input" onClick="window.customFunctions.copyPublicLinkToClipboard()" value="https://filen.io/d/` + res.data.uuid + `#!` + item.key + `" disabled></ion-input>
@@ -2754,7 +2757,7 @@ export async function openPublicLinkModal(item){
 								<ion-toggle slot="end" id="public-link-enable-download-btn-toggle" ` + (res.data.downloadBtn == 1 ? `checked` : ``) + `></ion-toggle>
 							</ion-item>
 							<section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
-								<ion-button id="save-link-btn" data-currentlinkuuid="` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `" expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', true)">` + language.get(appLang, "savePublicLink") + `</ion-button>
+								<ion-button id="save-link-btn" data-currentlinkuuid="` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `" expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + Base64.encode(JSON.stringify(item)) + `', 'enable', true)">` + language.get(appLang, "savePublicLink") + `</ion-button>
 							</section>
 						</div>
 					</ion-content>
@@ -2846,7 +2849,7 @@ export async function openPublicLinkModal(item){
 									<ion-icon icon="` + Ionicons.link + `" style="font-size: 65pt; color: ` + (appDarkMode ? "white" : "gray") + `;"></ion-icon>
 									<br>
 									<br>
-									<ion-button color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', false)">` + language.get(appLang, "enablePublicLink") + `</ion-button>	
+									<ion-button color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + Base64.encode(JSON.stringify(item)) + `', 'enable', false)">` + language.get(appLang, "enablePublicLink") + `</ion-button>	
 								</center>
 							</div>
 						</div>
@@ -2855,7 +2858,7 @@ export async function openPublicLinkModal(item){
 								<ion-label>
 									` + language.get(appLang, "publicLinkEnabled") + `
 								</ion-label>
-								<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'disable', true, '` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `')" checked></ion-toggle>
+								<ion-toggle slot="end" id="public-link-enabled-toggle" onClick="window.customFunctions.editItemPublicLink('` + Base64.encode(JSON.stringify(item)) + `', 'disable', true, '` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `')" checked></ion-toggle>
 							</ion-item>
 							<ion-item lines="none">
 								<ion-input type="text" id="public-link-input" onClick="window.customFunctions.copyPublicLinkToClipboard()" value="https://filen.io/f/` + res.data.uuid + `#!` + linkKey + `" disabled></ion-input>
@@ -2894,7 +2897,7 @@ export async function openPublicLinkModal(item){
 								<ion-toggle slot="end" id="public-link-enable-download-btn-toggle" ` + (typeof res.data.downloadBtn !== "undefined" ? (res.data.downloadBtn == 1 ? `checked` : ``) : ``) + `></ion-toggle>
 							</ion-item>-->
 							<section style="padding-left: 15px; padding-right: 15px; margin-top: 30px;">
-								<ion-button id="save-link-btn" data-currentlinkuuid="` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `" expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + window.btoa(JSON.stringify(item)) + `', 'enable', true)">` + language.get(appLang, "savePublicLink") + `</ion-button>
+								<ion-button id="save-link-btn" data-currentlinkuuid="` + (typeof res.data.uuid !== "undefined" ? res.data.uuid : ``) + `" expand="block" size="small" color="primary" fill="solid" onClick="window.customFunctions.editItemPublicLink('` + Base64.encode(JSON.stringify(item)) + `', 'enable', true)">` + language.get(appLang, "savePublicLink") + `</ion-button>
 							</section>
 						</div>
 					</ion-content>
@@ -3184,12 +3187,12 @@ export async function colorItem(item){
 				</ion-header>
 				<ion-content style="--background: ` + (appDarkMode ? "#1E1E1E" : "white") + `" fullscreen>
 					<section style="padding: 15px;">
-						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'default')" style="--background: #F6C358;">` + language.get(appLang, "colorItemDefault") + `</ion-button>
-						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'blue')" style="--background: #2992E5; margin-top: 10px;">` + language.get(appLang, "colorItemBlue") + `</ion-button>
-						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'green')" style="--background: #57A15B; margin-top: 10px;">` + language.get(appLang, "colorItemGreen") + `</ion-button>
-						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'purple')" style="--background: #8E3A9D; margin-top: 10px;">` + language.get(appLang, "colorItemPurple") + `</ion-button>
-						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'red')" style="--background: #CB2E35; margin-top: 10px;">` + language.get(appLang, "colorItemRed") + `</ion-button>
-						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + window.btoa(JSON.stringify(item)) + `', 'gray')" style="--background: gray; margin-top: 10px;">` + language.get(appLang, "colorItemGray") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + Base64.encode(JSON.stringify(item)) + `', 'default')" style="--background: #F6C358;">` + language.get(appLang, "colorItemDefault") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + Base64.encode(JSON.stringify(item)) + `', 'blue')" style="--background: #2992E5; margin-top: 10px;">` + language.get(appLang, "colorItemBlue") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + Base64.encode(JSON.stringify(item)) + `', 'green')" style="--background: #57A15B; margin-top: 10px;">` + language.get(appLang, "colorItemGreen") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + Base64.encode(JSON.stringify(item)) + `', 'purple')" style="--background: #8E3A9D; margin-top: 10px;">` + language.get(appLang, "colorItemPurple") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + Base64.encode(JSON.stringify(item)) + `', 'red')" style="--background: #CB2E35; margin-top: 10px;">` + language.get(appLang, "colorItemRed") + `</ion-button>
+						<ion-button expand="block" size="small" onClick="window.customFunctions.changeItemColor('` + Base64.encode(JSON.stringify(item)) + `', 'gray')" style="--background: gray; margin-top: 10px;">` + language.get(appLang, "colorItemGray") + `</ion-button>
 					</section>
 				</ion-content>
 			`
@@ -3347,7 +3350,7 @@ export async function spawnItemActionSheet(item){
 	options['removeFromShared'] = {
 		text: language.get(this.state.lang, "removeFromShared"),
 		icon: Ionicons.stopCircleOutline,
-		handler: () => {
+		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			this.removeSharedInItem(item, false)
@@ -3357,7 +3360,7 @@ export async function spawnItemActionSheet(item){
 	options['cancel'] = {
 		text: language.get(this.state.lang, "cancel"),
 		icon: Ionicons.closeOutline,
-		handler: () => {
+		handler: async () => {
 			return actionSheet.dismiss()
 		}
 	}
@@ -3365,7 +3368,7 @@ export async function spawnItemActionSheet(item){
 	options['stopSharing'] = {
 		text: language.get(this.state.lang, "stopSharing"),
 		icon: Ionicons.stopCircleOutline,
-		handler: () => {
+		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			this.stopSharingItem(item, false)
@@ -3375,7 +3378,7 @@ export async function spawnItemActionSheet(item){
 	options['restore'] = {
 		text: language.get(this.state.lang, "restoreItem"),
 		icon: Ionicons.bagAddOutline,
-		handler: () => {
+		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			return this.restoreItem(item, false)
@@ -3385,9 +3388,9 @@ export async function spawnItemActionSheet(item){
 	options['publicLink'] = {
 		text: language.get(this.state.lang, "itemPublicLink"),
 		icon: Ionicons.linkOutline,
-		handler: () => {
-			window.customFunctions.dismissModal()
-			window.customFunctions.dismissActionSheet()
+		handler: async () => {
+			await window.customFunctions.dismissModal()
+			await window.customFunctions.dismissActionSheet()
 
 			return this.openPublicLinkModal(item)
 		}
@@ -3396,7 +3399,7 @@ export async function spawnItemActionSheet(item){
 	options['share'] = {
 		text: language.get(this.state.lang, "shareItem"),
 		icon: Ionicons.shareSocialOutline,
-		handler: () => {
+		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			return this.shareItem(item)
@@ -3406,7 +3409,7 @@ export async function spawnItemActionSheet(item){
 	options['move'] = {
 		text: language.get(this.state.lang, "moveItem"),
 		icon: Ionicons.moveOutline,
-		handler: () => {
+		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			return this.moveItem(item)
@@ -3416,7 +3419,7 @@ export async function spawnItemActionSheet(item){
 	options['rename'] = {
 		text: language.get(this.state.lang, "renameItem"),
 		icon: Ionicons.textOutline,
-		handler: () => {
+		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			return this.renameItem(item)
@@ -3426,8 +3429,8 @@ export async function spawnItemActionSheet(item){
 	options['color'] = {
 		text: language.get(this.state.lang, "colorItem"),
 		icon: Ionicons.colorFillOutline,
-		handler: () => {
-			window.customFunctions.dismissActionSheet()
+		handler: async () => {
+			await window.customFunctions.dismissActionSheet()
 
 			return this.colorItem(item)
 		}
@@ -3436,7 +3439,7 @@ export async function spawnItemActionSheet(item){
 	options['trash'] = {
 		text: language.get(this.state.lang, "trashItem"),
 		icon: Ionicons.trashOutline,
-		handler: () => {
+		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			return this.trashItem(item, false)
@@ -3446,8 +3449,8 @@ export async function spawnItemActionSheet(item){
 	options['versions'] = {
 		text: language.get(this.state.lang, "itemVersions"),
 		icon: Ionicons.timeOutline,
-		handler: () => {
-			window.customFunctions.dismissActionSheet()
+		handler: async () => {
+			await window.customFunctions.dismissActionSheet()
 
 			return window.customFunctions.openVersionHistoryModal(item)
 		}
@@ -3457,7 +3460,7 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "downloadItem"),
 		icon: Ionicons.downloadOutline,
 		handler: async () => {
-			await window.customFunctions.dismissActionSheet()
+			window.customFunctions.dismissActionSheet()
 
 			if(isPlatform("ios")){
 				return this.queueFileDownload(item)
@@ -3498,7 +3501,7 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "saveToGallery"),
 		icon: Ionicons.imageOutline,
 		handler: async () => {
-			await window.customFunctions.dismissActionSheet()
+			window.customFunctions.dismissActionSheet()
 
 			this.queueFileDownload(item, true, undefined, false, async (err, downloadedPath, doDelete) => {
 				if(err){
@@ -3624,7 +3627,7 @@ export async function spawnItemActionSheet(item){
 		text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
 		icon: Ionicons.saveOutline,
 		handler: async () => {
-			await window.customFunctions.dismissActionSheet()
+			window.customFunctions.dismissActionSheet()
 
 			if(item.offline){
 				return this.makeItemAvailableOffline(false, item, false)
@@ -3639,7 +3642,7 @@ export async function spawnItemActionSheet(item){
 		text: item.favorited == 1 ? language.get(this.state.lang, "unfavorite") : language.get(this.state.lang, "favorite"),
 		icon: Ionicons.starOutline,
 		handler: async () => {
-			await window.customFunctions.dismissActionSheet()
+			window.customFunctions.dismissActionSheet()
 
 			if(typeof item.favorited == "undefined"){
 				return false
@@ -3739,7 +3742,7 @@ export async function spawnItemActionSheet(item){
 		text: language.get(this.state.lang, "edit"),
 		icon: Ionicons.createOutline,
 		handler: async () => {
-			window.customFunctions.dismissActionSheet()
+			await window.customFunctions.dismissActionSheet()
 
 			let loading = await loadingController.create({
 				message: "", //language.get(this.state.lang, "loadingPreview")
@@ -3786,7 +3789,7 @@ export async function spawnItemActionSheet(item){
 	options['deviceOffline'] = {
 		text: language.get(this.state.lang, "deviceOfflineAS"),
 		icon: Ionicons.cloudOfflineOutline,
-		handler: () => {
+		handler: async () => {
 			return window.customFunctions.dismissActionSheet()
 		}
 	}

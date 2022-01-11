@@ -1055,8 +1055,8 @@ export async function getThumbnail(file, thumbURL, ext){
         }
 
         let compression = {
-            width: 250,
-            height: 250,
+            width: 256,
+            height: 256,
             quality: 0.1
         }
     
@@ -1085,7 +1085,7 @@ export async function getThumbnail(file, thumbURL, ext){
                 return reject("url changed")
             }
 
-            if((this.state.uploadsCount + this.state.downloadsCount) !== 0){
+            /*if((this.state.uploadsCount + this.state.downloadsCount) !== 0){
                 await new Promise((resolve) => {
                     let wait = setInterval(() => {
                         if((this.state.uploadsCount + this.state.downloadsCount) <= 0){
@@ -1095,7 +1095,7 @@ export async function getThumbnail(file, thumbURL, ext){
                         }
                     }, 100)
                 })
-            }
+            }*/
 
             if(thumbURL !== window.location.href){
                 window.customVariables.thumbnailSemaphore.release()
@@ -1351,7 +1351,7 @@ export async function downloadPreview(file, progressCallback, callback, maxChunk
         else{
             return setTimeout(() => {
                 write(index, data, callback)
-            }, 5)
+            }, 10)
         }
     }
 

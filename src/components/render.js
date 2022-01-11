@@ -970,7 +970,7 @@ export function render(){
                         <IonHeader className="ion-no-border">
                             <IonToolbar>
                                 <IonTitle>
-                                    {language.get(this.state.lang, "transfersMenuTitle")}
+                                    {language.get(this.state.lang, "transfersMenuTitle")} {(this.state.uploadsCount + this.state.downloadsCount) > 0 ? "(" + (this.state.uploadsCount + this.state.downloadsCount) + ")" : ""}
                                 </IonTitle>
                             </IonToolbar>
                         </IonHeader>

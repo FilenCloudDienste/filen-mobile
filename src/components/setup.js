@@ -273,6 +273,69 @@ export async function doSetup(){
     }
 
     try{
+        var getLang = await Storage.get({ key: "lang" })
+        var getDarkMode = await Storage.get({ key: "darkMode" })
+
+        if(getLang.value){
+            this.setState({
+                lang: getLang.value,
+                mainToolbarTitle: language.get(getLang.value, "cloudDrives")
+            }, () => {
+                this.forceUpdate()
+            })
+    
+            window.customVariables.lang = getLang.value
+        }
+        else{
+            let deviceLang = await Device.getLanguageCode()
+            let defaultLang = "en"
+    
+            if(language.isAvailable(deviceLang.value)){
+                defaultLang = deviceLang.value
+            }
+    
+            this.setState({
+                lang: defaultLang,
+                mainToolbarTitle: language.get(defaultLang, "cloudDrives")
+            }, () => {
+                this.forceUpdate()
+            })
+    
+            window.customVariables.lang = defaultLang
+        }
+    
+        if(getDarkMode.value == null){
+            document.body.classList.toggle("dark", true)
+    
+            this.setState({
+                darkMode: true
+            }, () => {
+                this.forceUpdate()
+            })
+        }
+        else{
+            if(getDarkMode.value == "true"){
+                document.body.classList.toggle("dark", true)
+    
+                this.setState({
+                    darkMode: true
+                }, () => {
+                    this.forceUpdate()
+                })
+            }
+            else{
+                document.body.classList.toggle("dark", false)
+    
+                this.setState({
+                    darkMode: false
+                }, () => {
+                    this.forceUpdate()
+                })
+            }
+        }
+    
+        this.setupStatusbar()
+
         var getIsLoggedIn = await Storage.get({ key: "isLoggedIn" })
 
         if(getIsLoggedIn.value == null){
@@ -292,8 +355,6 @@ export async function doSetup(){
 
         window.customVariables.userEmail = getUserEmail.value
 
-        var getLang = await Storage.get({ key: "lang" })
-        var getDarkMode = await Storage.get({ key: "darkMode" })
         var getUserAPIKey = await Storage.get({ key: "userAPIKey" })
         var getUserMasterKeys = await Storage.get({ key: "userMasterKeys" })
         var getUserPublicKey = await Storage.get({ key: "userPublicKey" })
@@ -313,66 +374,6 @@ export async function doSetup(){
     catch(e){
         return console.log(e)
     }
-
-    if(getLang.value){
-        this.setState({
-            lang: getLang.value,
-            mainToolbarTitle: language.get(getLang.value, "cloudDrives")
-        }, () => {
-            this.forceUpdate()
-        })
-
-        window.customVariables.lang = getLang.value
-    }
-    else{
-        let deviceLang = await Device.getLanguageCode()
-        let defaultLang = "en"
-
-        if(language.isAvailable(deviceLang.value)){
-            defaultLang = deviceLang.value
-        }
-
-        this.setState({
-            lang: defaultLang,
-            mainToolbarTitle: language.get(defaultLang, "cloudDrives")
-        }, () => {
-            this.forceUpdate()
-        })
-
-        window.customVariables.lang = defaultLang
-    }
-
-    if(getDarkMode.value == null){
-        document.body.classList.toggle("dark", true)
-
-        this.setState({
-            darkMode: true
-        }, () => {
-            this.forceUpdate()
-        })
-    }
-    else{
-        if(getDarkMode.value == "true"){
-            document.body.classList.toggle("dark", true)
-
-            this.setState({
-                darkMode: true
-            }, () => {
-                this.forceUpdate()
-            })
-        }
-        else{
-            document.body.classList.toggle("dark", false)
-
-            this.setState({
-                darkMode: false
-            }, () => {
-                this.forceUpdate()
-            })
-        }
-    }
-
-    this.setupStatusbar()
 
     if(getIsLoggedIn.value == null){
         return this.showLogin()

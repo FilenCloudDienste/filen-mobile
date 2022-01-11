@@ -6295,7 +6295,7 @@ const createWorker = () => {
 						return postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							err: err
+							err: err.toString()
 						})
 					}
 
@@ -6313,7 +6313,7 @@ const createWorker = () => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: err
+								err: err.toString()
 							})
 						}
 					}
@@ -6341,7 +6341,7 @@ const createWorker = () => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: err
+								err: err.toString()
 							})
 						}
 					}
@@ -6356,7 +6356,7 @@ const createWorker = () => {
 						return postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							err: err
+							err: err.toString()
 						})
 					}
 
@@ -6374,7 +6374,7 @@ const createWorker = () => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								data: ""
+								err: err.toString()
 							})
 						}
 					}
@@ -6403,7 +6403,7 @@ const createWorker = () => {
 								return postMessage({
 									id: e.data.id,
 									type: e.data.type,
-									err: err
+									err: err.toString()
 								})
 							}
 						}
@@ -6472,14 +6472,14 @@ const createWorker = () => {
 								return postMessage({
 									id: e.data.id,
 									type: e.data.type,
-									err: err
+									err: err.toString()
 								})
 							})
 						}).catch((err) => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: err
+								err: err.toString()
 							})
 						})
 					}
@@ -6503,14 +6503,14 @@ const createWorker = () => {
 								return postMessage({
 									id: e.data.id,
 									type: e.data.type,
-									err: err
+									err: err.toString()
 								})
 							})
 						}).catch((err) => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: err
+								err: err.toString()
 							})
 						})
 					}
@@ -6561,7 +6561,7 @@ const createWorker = () => {
 									return postMessage({
 										id: e.data.id,
 										type: e.data.type,
-										err: err
+										err: err.toString()
 									})
 								})
 							}
@@ -6569,7 +6569,7 @@ const createWorker = () => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: err
+								err: err.toString()
 							})
 						})
 					}
@@ -6594,14 +6594,14 @@ const createWorker = () => {
 								return postMessage({
 									id: e.data.id,
 									type: e.data.type,
-									err: err
+									err: err.toString()
 								})
 							})
 						}).catch((err) => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err: err
+								err: err.toString()
 							})
 						})
 					}
