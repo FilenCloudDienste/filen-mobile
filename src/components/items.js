@@ -27,7 +27,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	if(showLoader){
 		var loading = await loadingController.create({
 			message: "",
-			backdropDismiss: false
+			backdropDismiss: false,
+			showBackdrop: false
 		})
 	
 		loading.present()

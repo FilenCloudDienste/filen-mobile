@@ -210,7 +210,7 @@ export function setupWindowFunctions(){
     window.customVariables.keyUpdateInterval = undefined
     window.customVariables.usageUpdateInterval = undefined
     window.customVariables.apiKey = ""
-    window.customVariables.uploadSemaphore = new utils.Semaphore(3)
+    window.customVariables.uploadSemaphore = new utils.Semaphore(1)
     window.customVariables.uploadChunkSemaphore = new utils.Semaphore(10)
     window.customVariables.downloadSemaphore = new utils.Semaphore(1)
     window.customVariables.downloadChunkSemaphore = new utils.Semaphore(20)
@@ -302,7 +302,7 @@ export function setupWindowFunctions(){
         uploadedIds: {},
         cachedIds: [],
         blockedIds: {},
-        lastCheck: 0,
+        lastCheck: 0
     }
     window.customVariables.cameraUploadRunning = false
     window.customVariables.cameraUploadEnabled = false
@@ -523,7 +523,7 @@ export function setupWindowFunctions(){
             }
         }
 
-        let max = 3
+        let max = 1
         let current = 0
         let fileObjects = []
 
@@ -621,6 +621,15 @@ export function setupWindowFunctions(){
                                                 fileObject.type = resolvedFile.type
                                                 fileObject.fileEntry = resolvedFile
                                                 fileObject.tempFileEntry = undefined
+
+                                                if(fileObject.name.indexOf(".") !== -1){
+                                                    let ex = fileObject.name.split(".")
+                                                    let ext = ex.pop()
+                                                    let without = ex.join(".")
+                                                    let title = (without + "_" + Math.floor((+new Date()) / 1000) + "." + ext).trim()
+                                                    
+                                                    fileObject.name = title
+                                                }
         
                                                 return resolve(fileObject)
                                             }, (err) => {
@@ -661,6 +670,10 @@ export function setupWindowFunctions(){
         }
 
         await new Promise((topResolve) => {
+            if(fileObjects.length == 0){
+                return topResolve()
+            }
+
             let done = 0
             
             for(let i = 0; i < fileObjects.length; i++){
