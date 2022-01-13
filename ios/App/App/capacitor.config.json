@@ -8,11 +8,12 @@
 		"SplashScreen": {
 			"launchShowDuration": 15000,
 			"launchAutoHide": false,
-			"showSpinner": true
+			"showSpinner": true,
+			"backgroundColor": "#121212",
+			"spinnerColor": "#3780ff",
+			"splashFullScreen": false,
+			"splashImmersive": false
 		}
 	},
-	"cordova": {},
-	"server": {
-		"url": "http://localhost:8100"
-	}
+	"cordova": {}
 }

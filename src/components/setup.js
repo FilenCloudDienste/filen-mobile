@@ -556,6 +556,17 @@ export async function doSetup(){
             else{
                 window.customVariables.itemsCache = JSON.parse(getItemsCache)
             }
+
+            try{
+                let getCameraUpload = await localforage.getItem("cameraUpload@" + getUserEmail.value)
+    
+                if(getCameraUpload){
+                    window.customVariables.cameraUpload = JSON.parse(getCameraUpload)
+                }
+            }
+            catch(e){
+                console.log(e)
+            }
         }
         else{
             return this.showLogin()

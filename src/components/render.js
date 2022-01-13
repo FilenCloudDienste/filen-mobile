@@ -1295,7 +1295,8 @@ export function render(){
                                 }
 
                                 let loading = await loadingController.create({
-                                    message: ""
+                                    message: "",
+                                    showBackdrop: false
                                 })
     
                                 loading.present()

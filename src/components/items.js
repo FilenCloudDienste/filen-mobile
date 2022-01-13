@@ -1026,7 +1026,8 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 		if(previewLocally){
 			let loading = await loadingController.create({
 				message: "",
-				backdropDismiss: false
+				backdropDismiss: false,
+				showBackdrop: false
 			})
 	
 			loading.present()
@@ -1363,7 +1364,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 					}
 					else{
 						if(xDiffAbs < yDiffAbs && Math.max(xDiffAbs, yDiffAbs) > offsetY){
-							window.customFunctions.dismissModal()
+							//window.customFunctions.dismissModal()
 						}
 					}
 
@@ -1533,7 +1534,8 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 
 		let loading = await loadingController.create({
 			message: "",
-			backdropDismiss: true
+			backdropDismiss: true,
+			showBackdrop: false
 		})
 
 		loading.present()
@@ -1609,7 +1611,8 @@ export async function moveFolder(folder, destination, showLoader){
 
 	if(showLoader){
 		var loading = await loadingController.create({
-			message: ""
+			message: "",
+			showBackdrop: false
 		})
 	
 		loading.present()
@@ -1689,7 +1692,8 @@ export async function moveFile(file, destination, showLoader){
 
 	if(showLoader){
 		var loading = await loadingController.create({
-			message: ""
+			message: "",
+			showBackdrop: false
 		})
 	
 		loading.present()
@@ -1795,7 +1799,8 @@ export async function renameItem(item){
 		}
 
 		var loading = await loadingController.create({
-			message: ""
+			message: "",
+			showBackdrop: false
 		})
 	
 		loading.present()
@@ -2081,7 +2086,8 @@ export function getSelectedItems(){
 export async function restoreItem(item, showLoader){
 	if(showLoader){
 		var loading = await loadingController.create({
-			message: ""
+			message: "",
+			showBackdrop: false
 		})
 	
 		loading.present()
@@ -2212,7 +2218,8 @@ export async function trashItem(item, showLoader){
 
 	if(showLoader){
 		var loading = await loadingController.create({
-			message: ""
+			message: "",
+			showBackdrop: false
 		})
 	
 		loading.present()
@@ -2269,7 +2276,8 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 	}
 
 	let loading = await loadingController.create({
-		message: ""
+		message: "",
+		showBackdrop: false
 	})
 
 	loading.present()
@@ -2649,7 +2657,8 @@ export async function openPublicLinkModal(item){
 	}
 
 	let loading = await loadingController.create({
-		message: ""
+		message: "",
+		showBackdrop: false
 	})
 
 	loading.present()
@@ -3003,7 +3012,8 @@ export function makeItemAvailableOffline(offline, item, openAfterDownload = fals
 export async function removeSharedInItem(item, showLoader){
 	if(showLoader){
 		var loading = await loadingController.create({
-			message: ""
+			message: "",
+			showBackdrop: false
 		})
 
 		loading.present()
@@ -3052,7 +3062,8 @@ export async function removeSharedInItem(item, showLoader){
 export async function stopSharingItem(item, showLoader){
 	if(showLoader){
 		var loading = await loadingController.create({
-			message: ""
+			message: "",
+			showBackdrop: false
 		})
 
 		loading.present()
@@ -3229,7 +3240,8 @@ export async function colorItem(item){
 export async function favoriteItemRequest(item, value, showLoader = true){
 	if(showLoader){
 		var loading = await loadingController.create({
-			message: ""
+			message: "",
+			showBackdrop: false
 		})
 	
 		loading.present()
@@ -3510,7 +3522,8 @@ export async function spawnItemActionSheet(item){
 				}
 
 				let loading = await loadingController.create({
-					message: ""
+					message: "",
+					showBackdrop: false
 				})
 		
 				loading.present()
@@ -3680,7 +3693,8 @@ export async function spawnItemActionSheet(item){
 						handler: async () => {
 							let loading = await loadingController.create({
 								message: "",
-								backdropDismiss: false
+								backdropDismiss: false,
+								showBackdrop: false
 							})
 					
 							loading.present()
@@ -3747,7 +3761,8 @@ export async function spawnItemActionSheet(item){
 
 			let loading = await loadingController.create({
 				message: "", //language.get(this.state.lang, "loadingPreview")
-				backdropDismiss: true
+				backdropDismiss: true,
+				showBackdrop: false
 			})
 	
 			loading.present()

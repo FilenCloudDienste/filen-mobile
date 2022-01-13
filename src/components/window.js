@@ -356,44 +356,6 @@ export function setupWindowFunctions(){
                 return false
             }
 
-            try{
-                let getCameraUpload = await localforage.getItem("cameraUpload@" + window.customVariables.userEmail)
-
-                if(typeof getCameraUpload == "string"){
-                    window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload)
-
-                    if(typeof window.customVariables.cameraUpload.uploadedIds == "undefined" 
-                    || typeof window.customVariables.cameraUpload.cachedIds == "undefined"
-                    || typeof window.customVariables.cameraUpload.blockedIds == "undefined"
-                    || typeof window.customVariables.cameraUpload.lastCheck == "undefined"){
-                        window.customVariables.cameraUpload = {
-                            uploadedIds: {},
-                            cachedIds: [],
-                            blockedIds: {},
-                            lastCheck: 0,
-                        }
-                    }
-                }
-                else{
-                    window.customVariables.cameraUpload = {
-                        uploadedIds: {},
-                        cachedIds: [],
-                        blockedIds: {},
-                        lastCheck: 0,
-                    }
-                }
-            }
-            catch(e){
-                console.log(e)
-
-                window.customVariables.cameraUpload = {
-                    uploadedIds: {},
-                    cachedIds: [],
-                    blockedIds: {},
-                    lastCheck: 0,
-                }
-            }
-
             if(window.customVariables.cameraUploadEnabled){
                 return false
             }
@@ -1159,7 +1121,8 @@ export function setupWindowFunctions(){
 
     window.customFunctions.fetchUserInfo = async () => {
         let loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
 
         loading.present()
@@ -2055,7 +2018,8 @@ export function setupWindowFunctions(){
         }
 
         let loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -2281,7 +2245,8 @@ export function setupWindowFunctions(){
         }
 
         let loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -2407,7 +2372,8 @@ export function setupWindowFunctions(){
         let modalId = "terms-modal-" + utils.generateRandomClassName()
 
         let loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
 
         loading.present()
@@ -2485,7 +2451,8 @@ export function setupWindowFunctions(){
         let modalId = "privacy-modal-" + utils.generateRandomClassName()
 
         let loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
 
         loading.present()
@@ -2561,7 +2528,8 @@ export function setupWindowFunctions(){
         let modalId = "imprint-modal-" + utils.generateRandomClassName()
 
         let loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
 
         loading.present()
@@ -2652,7 +2620,8 @@ export function setupWindowFunctions(){
         }
 
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -2790,7 +2759,8 @@ export function setupWindowFunctions(){
         }
 
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -3139,7 +3109,8 @@ export function setupWindowFunctions(){
         window.customFunctions.dismissPopover()
 
         var loading = await loadingController.create({
-			message: ""
+			message: "",
+            showBackdrop: false
 		})
 	
 		loading.present()
@@ -3294,7 +3265,8 @@ export function setupWindowFunctions(){
     window.customFunctions.logoutUser = async () => {
         let loading = await loadingController.create({
             message: "",
-            backdropDismiss: false
+            backdropDismiss: false,
+            showBackdrop: false
         })
 
         loading.present()
@@ -3366,7 +3338,8 @@ export function setupWindowFunctions(){
                     text: language.get(this.state.lang, "alertOkButton"),
                     handler: async () => {
                         let loading = await loadingController.create({
-                            message: ""
+                            message: "",
+                            showBackdrop: false
                         })
 
                         loading.present()
@@ -3413,7 +3386,8 @@ export function setupWindowFunctions(){
         let item = JSON.parse(Base64.decode(itemJSON))
 
         let loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -3466,7 +3440,8 @@ export function setupWindowFunctions(){
         }
 
         let loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -4030,7 +4005,8 @@ export function setupWindowFunctions(){
                                     text: language.get(this.state.lang, "alertOkButton"),
                                     handler: async () => {
                                         var loading = await loadingController.create({
-                                            message: ""
+                                            message: "",
+                                            showBackdrop: false
                                         })
                                     
                                         loading.present()
@@ -4124,7 +4100,8 @@ export function setupWindowFunctions(){
                                     text: language.get(this.state.lang, "alertOkButton"),
                                     handler: async () => {
                                         var loading = await loadingController.create({
-                                            message: ""
+                                            message: "",
+                                            showBackdrop: false
                                         })
                                     
                                         loading.present()
@@ -4219,7 +4196,8 @@ export function setupWindowFunctions(){
                                         text: language.get(this.state.lang, "alertOkButton"),
                                         handler: async () => {
                                             var loading = await loadingController.create({
-                                                message: ""
+                                                message: "",
+                                                showBackdrop: false
                                             })
                                         
                                             loading.present()
@@ -4343,7 +4321,8 @@ export function setupWindowFunctions(){
                         let code = inputs['code-input']
 
                         var loading = await loadingController.create({
-                            message: ""
+                            message: "",
+                            showBackdrop: false
                         })
                     
                         loading.present()
@@ -4385,7 +4364,8 @@ export function setupWindowFunctions(){
 
     window.customFunctions.showGDPR = async () => {
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -4635,7 +4615,8 @@ export function setupWindowFunctions(){
                             let code = inputs['two-factor-input']
     
                             var loading = await loadingController.create({
-                                message: ""
+                                message: "",
+                                showBackdrop: false
                             })
                         
                             loading.present()
@@ -4711,7 +4692,8 @@ export function setupWindowFunctions(){
                             let code = inputs['two-factor-input']
     
                             var loading = await loadingController.create({
-                                message: ""
+                                message: "",
+                                showBackdrop: false
                             })
                         
                             loading.present()
@@ -4758,7 +4740,8 @@ export function setupWindowFunctions(){
 
     window.customFunctions.openEventsModal = async () => {
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -4849,7 +4832,8 @@ export function setupWindowFunctions(){
 
     window.customFunctions.openEventDetailsModal = async (uuid) => {
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -5048,7 +5032,8 @@ export function setupWindowFunctions(){
 
     window.customFunctions.restoreVersionedItem = async (uuid, currentUUID) => {
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -5134,7 +5119,8 @@ export function setupWindowFunctions(){
             handler: async () => {
                 let loading = await loadingController.create({
                     message: "",
-                    backdropDismiss: false
+                    backdropDismiss: false,
+                    showBackdrop: false
                 })
         
                 loading.present()
@@ -5189,7 +5175,8 @@ export function setupWindowFunctions(){
         }
 
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -5316,7 +5303,8 @@ export function setupWindowFunctions(){
 
     window.customFunctions.openInviteModal = async () => {
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -5436,7 +5424,8 @@ export function setupWindowFunctions(){
         }
 
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -5511,7 +5500,8 @@ export function setupWindowFunctions(){
         }
 
         var loading = await loadingController.create({
-            message: ""
+            message: "",
+            showBackdrop: false
         })
     
         loading.present()
@@ -5872,7 +5862,8 @@ export function setupWindowFunctions(){
                     handler: async () => {
                         let loading = await loadingController.create({
                             message: "",
-                            backdropDismiss: false
+                            backdropDismiss: false,
+                            showBackdrop: false
                         })
 
                         let deletedUUIDs = []
@@ -6215,7 +6206,8 @@ export function setupWindowFunctions(){
                         }
 
                         var loading = await loadingController.create({
-                            message: ""
+                            message: "",
+                            showBackdrop: false
                         })
                     
                         loading.present()
@@ -6226,20 +6218,6 @@ export function setupWindowFunctions(){
                         newSettings.cameraUpload.parentName = window.customVariables.cachedFolders[parent].name
 
                         await window.customFunctions.saveSettings(newSettings)
-
-                        /*window.customVariables.cameraUpload = {
-                            uploadedIds: {},
-                            cachedIds: [],
-                            blockedIds: {},
-                            lastCheck: 0
-                        }
-
-                        try{
-                            await localforage.setItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
-                        }
-                        catch(e){
-                            console.log(e)
-                        }*/
 
                         loading.dismiss()
 
@@ -6262,44 +6240,6 @@ export function setupWindowFunctions(){
         let modalId = "camera-upload-modal-" + utils.generateRandomClassName()
         let appSettings = this.state.settings
         let appState = this.state
-
-        try{
-            let getCameraUpload = await localforage.getItem("cameraUpload@" + window.customVariables.userEmail)
-
-            if(typeof getCameraUpload == "string"){
-                window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload)
-
-                if(typeof window.customVariables.cameraUpload.uploadedIds == "undefined" 
-                || typeof window.customVariables.cameraUpload.cachedIds == "undefined"
-                || typeof window.customVariables.cameraUpload.blockedIds == "undefined"
-                || typeof window.customVariables.cameraUpload.lastCheck == "undefined"){
-                    window.customVariables.cameraUpload = {
-                        uploadedIds: {},
-                        cachedIds: [],
-                        blockedIds: {},
-                        lastCheck: 0,
-                    }
-                }
-            }
-            else{
-                window.customVariables.cameraUpload = {
-                    uploadedIds: {},
-                    cachedIds: [],
-                    blockedIds: {},
-                    lastCheck: 0,
-                }
-            }
-        }
-        catch(e){
-            console.log(e)
-
-            window.customVariables.cameraUpload = {
-                uploadedIds: {},
-                cachedIds: [],
-                blockedIds: {},
-                lastCheck: 0,
-            }
-        }
 
         let uploadedCount = (Object.keys(window.customVariables.cameraUpload.uploadedIds).length + Object.keys(window.customVariables.cameraUpload.blockedIds).length)
         let progress = ((uploadedCount / window.customVariables.cameraUpload.cachedIds.length) * 100)

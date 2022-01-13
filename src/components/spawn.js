@@ -254,7 +254,8 @@ export async function mainFabAction(){
                             }
 
                             let loading = await loadingController.create({
-                                message: ""
+                                message: "",
+                                showBackdrop: false
                             })
 
                             loading.present()
