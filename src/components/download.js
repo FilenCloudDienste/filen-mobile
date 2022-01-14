@@ -3,8 +3,11 @@ import * as workers from "../utils/workers"
 import { Capacitor } from "@capacitor/core"
 import Compressor from "compressorjs"
 import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
+import imageCompression from "browser-image-compression"
 
 const utils = require("../utils/utils")
+const localforage = require("localforage")
+const pica = require("pica")()
 
 export async function getTempDir(callback){
     if(Capacitor.platform == "android"){
@@ -1037,14 +1040,6 @@ export async function getThumbnail(file, thumbURL, ext){
                 }
             }
         }
-        else{
-            return reject("not native")
-        }
-
-        let dirObj = {
-            path: "ThumbnailCache/" + file.uuid,
-            directory: FilesystemDirectory.External
-        }
 
         let videoExts = ["mp4", "webm", "mov", "avi", "wmv"]
 
@@ -1058,6 +1053,12 @@ export async function getThumbnail(file, thumbURL, ext){
             width: 256,
             height: 256,
             quality: 0.1
+        }
+
+        let cacheKey = "thumbnail:" + file.uuid
+
+        if(typeof window.customVariables.thumbnailBlobCache[cacheKey] !== "undefined"){
+            return resolve(window.customVariables.thumbnailBlobCache[cacheKey])
         }
     
         await window.customVariables.thumbnailSemaphore.acquire()
@@ -1078,44 +1079,69 @@ export async function getThumbnail(file, thumbURL, ext){
             thumbnailFileName = nameEx.join(".")
         }
 
-        if(typeof window.customVariables.thumbnailCache[file.uuid] == "undefined"){
-            if(thumbURL !== window.location.href){
-                window.customVariables.thumbnailSemaphore.release()
+        const clearCachedBlobs = () => {
+            if(window.customVariables.thumbnailBlobCacheSize > 134217728){ // 128MiB
+                let first = window.customVariables.thumbnailBlobCacheArray[0]
 
-                return reject("url changed")
-            }
+                if(typeof first !== "undefined"){
+                    window.customVariables.urlCreator.revokeObjectURL(first.url)
 
-            /*if((this.state.uploadsCount + this.state.downloadsCount) !== 0){
-                await new Promise((resolve) => {
-                    let wait = setInterval(() => {
-                        if((this.state.uploadsCount + this.state.downloadsCount) <= 0){
-                            clearInterval(wait)
-                            
-                            return resolve()
-                        }
-                    }, 100)
-                })
-            }*/
+                    delete window.customVariables.thumbnailBlobCache[first.key]
 
-            if(thumbURL !== window.location.href){
-                window.customVariables.thumbnailSemaphore.release()
+                    window.customVariables.thumbnailBlobCacheSize = window.customVariables.thumbnailBlobCacheSize - first.size
 
-                return reject("url changed")
-            }
+                    window.customVariables.thumbnailBlobCacheArray.shift()
 
-            const writeThumbnail = async (arrayBuffer) => {
-                if(typeof arrayBuffer !== "object"){
-                    window.customVariables.thumbnailSemaphore.release()
-
-                    return reject("not arraybuffer")
+                    return setTimeout(clearCachedBlobs, 100)
                 }
+                
+
+                return true
+            }
+            
+            return true
+        }
+
+        const createImgBlob = async (arrayBuffer) => {
+            try{
+                var blob = await workers.newBlob(arrayBuffer)
+            }
+            catch(e){
+                window.customVariables.thumbnailSemaphore.release()
+
+                delete window.customVariables.thumbnailCache[cacheKey]
+                delete window.customVariables.thumbnailBlobCache[cacheKey]
+
+                return reject(e)
+            }
+            
+            let imageURL = window.customVariables.urlCreator.createObjectURL(blob)
+
+            window.customVariables.thumbnailBlobCache[cacheKey] = imageURL
+
+            window.customVariables.thumbnailBlobCacheArray.push({
+                url: imageURL,
+                key: cacheKey,
+                size: blob.size
+            })
+
+            window.customVariables.thumbnailBlobCacheSize = window.customVariables.thumbnailBlobCacheSize + blob.size
+
+            window.customVariables.thumbnailSemaphore.release()
+
+            clearCachedBlobs()
+
+            return resolve(imageURL)
+        }
+
+        const writeThumbnail = (blob) => {
+            let fileReader = new FileReader()
+
+            fileReader.onload = async () => {
+                let arrayBuffer = fileReader.result
 
                 try{
-                    if(arrayBuffer.byteLength <= 0){
-                        window.customVariables.thumbnailSemaphore.release()
-    
-                        return reject("invalid arraybuffer length")
-                    }
+                    await workers.localforageSetItem(cacheKey, arrayBuffer)
                 }
                 catch(e){
                     window.customVariables.thumbnailSemaphore.release()
@@ -1123,41 +1149,40 @@ export async function getThumbnail(file, thumbURL, ext){
                     return reject(e)
                 }
 
-                workers.convertArrayBufferToBase64(arrayBuffer, async (err, b64Data) => {
-                    try{
-                        await Filesystem.writeFile({
-                            path: dirObj.path + "/" + thumbnailFileName,
-                            directory: dirObj.directory,
-                            data: b64Data,
-                            recursive: true
-                        })
+                window.customVariables.thumbnailCache[cacheKey] = true
 
-                        var uri = await Filesystem.getUri({
-                            path: dirObj.path + "/" + thumbnailFileName,
-                            directory: dirObj.directory
-                        })
-                    }
-                    catch(e){
-                        window.customVariables.thumbnailSemaphore.release()
+                return createImgBlob(arrayBuffer)
+            }
 
-                        return reject(e)
-                    }
+            fileReader.onerror = (err) => {
+                window.customVariables.thumbnailSemaphore.release()
 
-                    if(thumbURL !== window.location.href){
-                        window.customVariables.thumbnailSemaphore.release()
-        
-                        return reject("url changed")
-                    }
+                return reject(err)
+            }
 
-                    let imageURL = window.Ionic.WebView.convertFileSrc(uri.uri)
+            return fileReader.readAsArrayBuffer(blob)
+        }
 
-                    window.customVariables.thumbnailBlobCache[file.uuid] = imageURL
-                    window.customVariables.thumbnailCache[file.uuid] = true
-
-                    window.customVariables.thumbnailSemaphore.release()
-
-                    return resolve(imageURL)
+        const compressImg = async (blob) => {
+            try{
+                let compressed = await imageCompression(blob, {
+                    maxWidthOrHeight: compression.width,
+                    useWebWorker: true,
+                    fileType: "image/png"
                 })
+
+                return compressed
+            }
+            catch(e){
+                return e
+            }
+        }
+
+        if(typeof window.customVariables.thumbnailCache[cacheKey] == "undefined"){
+            if(thumbURL !== window.location.href){
+                window.customVariables.thumbnailSemaphore.release()
+
+                return reject("url changed")
             }
 
             if(videoExts.includes(ext)){ //video thumbnail
@@ -1168,7 +1193,14 @@ export async function getThumbnail(file, thumbURL, ext){
                         return reject(err)
                     }
 
-                    downloadData = new Blob([downloadData])
+                    try{
+                        downloadData = await workers.newBlob(downloadData)
+                    }
+                    catch(e){
+                        window.customVariables.thumbnailSemaphore.release()
+    
+                        return reject(e)
+                    }
     
                     try{
                         var thumbnailData = await utils.getVideoCover(downloadData)
@@ -1180,42 +1212,15 @@ export async function getThumbnail(file, thumbURL, ext){
                     }
 
                     try{
-                        var compressedImage = await new Promise((resolve, reject) => {
-                            new Compressor(thumbnailData, {
-                                quality: compression.quality,
-                                maxWidth: compression.width,
-                                maxHeight: compression.height,
-                                mimeType: "image/png",
-                                success(result){
-                                    return resolve(result)
-                                },
-                                error(err){
-                                    return reject(err)
-                                }
-                            })
-                        })
+                        var compressedImage = await compressImg(thumbnailData)
                     }
                     catch(e){
                         window.customVariables.thumbnailSemaphore.release()
     
                         return reject(e)
                     }
-    
-                    let fileReader = new FileReader()
-    
-                    fileReader.onload = (e) => {
-                        let arrayBuffer = e.target.result
-    
-                        return writeThumbnail(arrayBuffer)
-                    }
-    
-                    fileReader.onerror = (err) => {
-                        window.customVariables.thumbnailSemaphore.release()
-    
-                        return reject(err)
-                    }
-    
-                    fileReader.readAsArrayBuffer(compressedImage)
+
+                    return writeThumbnail(compressedImage)
                 }, 32, true)
             }
             else{
@@ -1225,49 +1230,29 @@ export async function getThumbnail(file, thumbURL, ext){
     
                         return reject(err)
                     }
-    
-                    if(utils.canCompressThumbnail(ext)){
-                        data = new Blob([data], {
+
+                    try{
+                        data = await workers.newBlob(data, {
                             type: "image/png"
                         })
+                    }
+                    catch(e){
+                        window.customVariables.thumbnailSemaphore.release()
         
+                        return reject(e)
+                    }
+    
+                    if(utils.canCompressThumbnail(ext)){
                         try{
-                            var compressedImage = await new Promise((resolve, reject) => {
-                                new Compressor(data, {
-                                    quality: compression.quality,
-                                    maxWidth: compression.width,
-                                    maxHeight: compression.height,
-                                    mimeType: "image/png",
-                                    success(result){
-                                        return resolve(result)
-                                    },
-                                    error(err){
-                                        return reject(err)
-                                    }
-                                })
-                            })
+                            var compressedImage = await compressImg(data)
                         }
                         catch(e){
                             window.customVariables.thumbnailSemaphore.release()
         
                             return reject(e)
                         }
-        
-                        let fileReader = new FileReader()
-        
-                        fileReader.onload = (e) => {
-                            let arrayBuffer = e.target.result
-        
-                            return writeThumbnail(arrayBuffer)
-                        }
-        
-                        fileReader.onerror = (err) => {
-                            window.customVariables.thumbnailSemaphore.release()
-        
-                            return reject(err)
-                        }
-        
-                        fileReader.readAsArrayBuffer(compressedImage)
+
+                        return writeThumbnail(compressedImage)
                     }
                     else{
                         return writeThumbnail(data)
@@ -1276,35 +1261,29 @@ export async function getThumbnail(file, thumbURL, ext){
             }
         }
         else{
+            if(typeof window.customVariables.thumbnailBlobCache[cacheKey] !== "undefined"){
+                window.customVariables.thumbnailSemaphore.release()
+
+                return resolve(window.customVariables.thumbnailBlobCache[cacheKey])
+            }
+
             try{
-                var stat = await Filesystem.stat({
-                    path: dirObj.path + "/" + thumbnailFileName,
-                    directory: dirObj.directory
-                })
+                var getData = await workers.localforageGetItem(cacheKey)
             }
             catch(e){
                 window.customVariables.thumbnailSemaphore.release()
 
-                delete window.customVariables.thumbnailCache[file.uuid]
-                delete window.customVariables.thumbnailBlobCache[file.uuid]
+                delete window.customVariables.thumbnailCache[cacheKey]
+                delete window.customVariables.thumbnailBlobCache[cacheKey]
 
                 return reject(e)
             }
 
-            if(typeof stat.uri !== "string" || typeof stat.mtime == "undefined" || typeof stat.size == "undefined"){
+            if(!getData){
                 window.customVariables.thumbnailSemaphore.release()
 
-                delete window.customVariables.thumbnailCache[file.uuid]
-                delete window.customVariables.thumbnailBlobCache[file.uuid]
-
-                return reject("Thumbnail not found on device, it might have been deleted")
-            }
-
-            if(stat.uri.length <= 1 || stat.size <= 8){
-                window.customVariables.thumbnailSemaphore.release()
-
-                delete window.customVariables.thumbnailCache[file.uuid]
-                delete window.customVariables.thumbnailBlobCache[file.uuid]
+                delete window.customVariables.thumbnailCache[cacheKey]
+                delete window.customVariables.thumbnailBlobCache[cacheKey]
 
                 return reject("Thumbnail not found on device, it might have been deleted")
             }
@@ -1315,14 +1294,7 @@ export async function getThumbnail(file, thumbURL, ext){
                 return reject("url changed")
             }
 
-            let imageURL = window.Ionic.WebView.convertFileSrc(stat.uri)
-
-            window.customVariables.thumbnailBlobCache[file.uuid] = imageURL
-            window.customVariables.thumbnailCache[file.uuid] = true
-
-            window.customVariables.thumbnailSemaphore.release()
-
-            return resolve(imageURL)
+            return createImgBlob(getData)
         }
     })
 }

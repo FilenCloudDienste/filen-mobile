@@ -376,7 +376,7 @@ export function render(){
                                             </div>
                                         )
                                     }
-                                    {this.state.itemList[index].date}
+                                    {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
                                 </p>
                             </div>
                         ) : (
@@ -455,7 +455,7 @@ export function render(){
                                                 </div>
                                             )
                                         }
-                                        {this.state.itemList[index].date}
+                                        {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
                                     </p>
                                 </div>
                             ) : (
@@ -532,7 +532,7 @@ export function render(){
                                                 </span>
                                             )
                                         }
-                                        {this.state.itemList[index].date}
+                                        {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
                                     </p>
                                 </div>
                             ) : (
@@ -1369,7 +1369,7 @@ export function render(){
                                 return routeTo("/base")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
-                                "--ripple-color": "gray",
+                                "--ripple-color": "transparent",
                                 color: (window.location.href.indexOf("base") !== -1 ? "#3780FF" : "")
                             }}>
                                 <IonIcon slot="icon-only" icon={Ionicons.cloud} />
@@ -1381,7 +1381,7 @@ export function render(){
                                             return routeTo("/shared-in")
                                         }} style={{
                                             width: (showShareLinks ? "16.66%" : "25%"),
-                                            "--ripple-color": "gray",
+                                            "--ripple-color": "transparent",
                                             color: (window.location.href.indexOf("shared-in") !== -1 ? "#3780FF" : "")
                                         }}>
                                             <IonIcon slot="icon-only" icon={Ionicons.folder} />
@@ -1390,7 +1390,7 @@ export function render(){
                                             return routeTo("/shared-out")
                                         }} style={{
                                             width: (showShareLinks ? "16.66%" : "25%"),
-                                            "--ripple-color": "gray",
+                                            "--ripple-color": "transparent",
                                             color: (window.location.href.indexOf("shared-out") !== -1 ? "#3780FF" : "")
                                         }}>
                                             <IonIcon slot="icon-only" icon={Ionicons.folderOpen} />
@@ -1402,7 +1402,7 @@ export function render(){
                                 return routeTo("/links")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
-                                "--ripple-color": "gray",
+                                "--ripple-color": "transparent",
                                 color: (window.location.href.indexOf("links") !== -1 ? "#3780FF" : "")
                             }}>
                                 <IonIcon slot="icon-only" icon={Ionicons.link} />
@@ -1411,7 +1411,7 @@ export function render(){
                                 return routeTo("/favorites")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
-                                "--ripple-color": "gray",
+                                "--ripple-color": "transparent",
                                 color: (window.location.href.indexOf("favorites") !== -1 ? "#3780FF" : "")
                             }}>
                                 <IonIcon slot="icon-only" icon={Ionicons.star} />
@@ -1420,7 +1420,7 @@ export function render(){
                                 return routeTo("/recent")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
-                                "--ripple-color": "gray",
+                                "--ripple-color": "transparent",
                                 color: (window.location.href.indexOf("recent") !== -1 ? "#3780FF" : "")
                             }}>
                                 <IonIcon slot="icon-only" icon={Ionicons.time} />

@@ -224,11 +224,6 @@ body {
   --ion-card-background: #1e1e1e;
 }
 
-.ripple-parent {
-  position: relative;
-  overflow: hidden;
-}
-
 .modal-no-backdrop {
   -webkit-box-shadow: none;
   box-shadow: none;

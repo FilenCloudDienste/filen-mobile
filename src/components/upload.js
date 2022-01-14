@@ -1,5 +1,6 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
+import { Capacitor } from "@capacitor/core"
 
 const utils = require("../utils/utils")
 
@@ -111,6 +112,16 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 
 export async function queueFileUpload(file, passedUpdateUUID = undefined, cameraUploadCallback = undefined){
 	//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
+
+	if(Capacitor.isNative){
+		if(this.state.settings.onlyWifiUploads){
+			let networkStatus = this.state.networkStatus
+
+			if(networkStatus.connectionType !== "wifi"){
+				return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+			}
+		}
+	}
 
 	const deleteTempFile = () => {
 		if(typeof file.tempFileEntry == "undefined"){

@@ -8,6 +8,8 @@ import { StatusBar, StatusBarStyle } from "@capacitor/status-bar"
 import { isPlatform } from "@ionic/core"
 import { modalController, popoverController, actionSheetController, loadingController, alertController } from "@ionic/core"
 import * as language from "../utils/language"
+import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
+import * as workers from "../utils/workers"
 
 const localforage = require("localforage")
 
@@ -272,6 +274,44 @@ export async function doSetup(){
         return console.log(e)
     }
 
+    let dirObj = []
+
+    if(Capacitor.platform == "ios"){
+        dirObj.push({
+            path: "ThumbnailCache/",
+            directory: FilesystemDirectory.Documents
+        })
+
+        dirObj.push({
+            path: "FilenThumbnailCache/",
+            directory: FilesystemDirectory.Documents
+        })
+    }
+    else{
+        dirObj.push({
+            path: "ThumbnailCache/",
+            directory: FilesystemDirectory.External
+        })
+
+        dirObj.push({
+            path: "FilenThumbnailCache/",
+            directory: FilesystemDirectory.External
+        })
+    }
+
+    for(let i = 0; i < dirObj.length; i++){
+        try{
+            await Filesystem.rmdir({
+                path: dirObj[i].path,
+                directory: dirObj[i].directory,
+                recursive: true
+            })
+        }
+        catch(e){
+            console.log(e)
+        }
+    }
+
     try{
         var getLang = await Storage.get({ key: "lang" })
         var getDarkMode = await Storage.get({ key: "darkMode" })
@@ -370,6 +410,7 @@ export async function doSetup(){
         var getGetThumbnailErrors = await localforage.getItem("getThumbnailErrors@" + getUserEmail.value)
         var getCachedAPIItemListRequests = await localforage.getItem("cachedAPIItemListRequests@" + getUserEmail.value)
         var getItemsCache = await localforage.getItem("itemsCache@" + getUserEmail.value)
+        var getFolderSizeCache = await localforage.getItem("folderSizeCache@" + getUserEmail.value)
     }
     catch(e){
         return console.log(e)
@@ -382,6 +423,7 @@ export async function doSetup(){
         if(getIsLoggedIn.value == "true"){
             let settings = {
                 onlyWifi: false,
+                onlyWifiUploads: false,
                 showThumbnails: true,
                 gridModeEnabled: false,
                 biometricPINCode: "",
@@ -406,6 +448,10 @@ export async function doSetup(){
 
             if(typeof settings.onlyWifi == "undefined"){
                 settings.onlyWifi = false
+            }
+
+            if(typeof settings.onlyWifiUploads == "undefined"){
+                settings.onlyWifiUploads = false
             }
 
             if(typeof settings.showThumbnails == "undefined"){
@@ -566,6 +612,13 @@ export async function doSetup(){
             }
             catch(e){
                 console.log(e)
+            }
+
+            if(getFolderSizeCache == null){
+                window.customVariables.folderSizeCache = {}
+            }
+            else{
+                window.customVariables.folderSizeCache = JSON.parse(getFolderSizeCache)
             }
         }
         else{

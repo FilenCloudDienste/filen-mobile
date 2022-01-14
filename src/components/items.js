@@ -10,6 +10,7 @@ import { Haptics, HapticsImpactStyle } from "@capacitor/haptics"
 import { Media } from "@capacitor-community/media"
 import { Mediastore } from "@agorapulse/capacitor-mediastore"
 import { Base64 } from "js-base64"
+import * as workers from "../utils/workers"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require("safe-area-insets")
@@ -51,6 +52,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 	let routeEx = window.location.hash.split("/")
 	let parent = routeEx[routeEx.length - 1]
+	let requestedFolderSizes = {}
 
 	if(!isDeviceOnline){
 		bypassItemsCache = false
@@ -111,6 +113,29 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				setTimeout(() => {
 					loading.dismiss()
 				}, 1)
+			}
+
+			for(let i = 0; i < items.length; i++){
+				if(typeof requestedFolderSizes[items[i].uuid] == "undefined" && items[i].type !== "file"){
+					requestedFolderSizes[items[i].uuid] = true
+	
+					let canRequest = false
+	
+					if(typeof window.customVariables.requestFolderSizesTimeout[items[i].uuid] == "number"){
+						if(Math.floor((+new Date()) / 1000) > window.customVariables.requestFolderSizesTimeout[items[i].uuid]){
+							canRequest = true
+						}
+					}
+					else{
+						canRequest = true
+					}
+	
+					if(canRequest){
+						window.customVariables.requestFolderSizesTimeout[items[i].uuid] = (Math.floor((+new Date()) / 1000) + 60)
+	
+						window.customFunctions.getFolderSize(items[i], window.location.href)
+					}
+				}
 			}
 		})
 	}
@@ -209,7 +234,10 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				favorited: folder.favorited,
 				isBase: true,
 				isSync: folder.is_sync,
-				isDefault: folder.is_default
+				isDefault: folder.is_default,
+				size: window.customFunctions.getFolderSizeFromCache({
+					uuid: folder.uuid
+				}, window.location.href)
 			}
 
 			items.push(item)
@@ -274,7 +302,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				uuid: file.uuid,
 				name: utils.sanitizeHTML(metadata.name),
 				mime: utils.sanitizeHTML(metadata.mime),
-				size: parseInt(metadata.size),
+				size: file.size,
 				key: utils.sanitizeHTML(metadata.key),
 				lastModified: (typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp),
 				bucket: file.bucket,
@@ -291,7 +319,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				offline: offline,
 				version: file.version,
 				favorited: file.favorited,
-				thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
+				thumbnail: (typeof window.customVariables.thumbnailBlobCache['thumbnail:' + file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache['thumbnail:' + file.uuid] : undefined)
 			}
 
 			items.push(item)
@@ -384,7 +412,12 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					sharerEmail: folder.sharerEmail,
 					color: folder.color || null,
 					isSync: folder.is_sync,
-					isDefault: folder.is_default
+					isDefault: folder.is_default,
+					size: window.customFunctions.getFolderSizeFromCache({
+						uuid: folder.uuid,
+						sharerId: folder.sharerId,
+						receiverId: window.customVariables.cachedUserInfo.id
+					}, window.location.href)
 				}
 
 				items.push(item)
@@ -409,7 +442,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					uuid: file.uuid,
 					name: utils.sanitizeHTML(decryptedMetadata.name),
 					mime: utils.sanitizeHTML(decryptedMetadata.mime),
-					size: parseInt(decryptedMetadata.size),
+					size: file.size,
 					key: utils.sanitizeHTML(decryptedMetadata.key),
 					lastModified: (typeof decryptedMetadata.lastModified == "number" ? decryptedMetadata.lastModified : file.timestamp),
 					bucket: file.bucket,
@@ -425,7 +458,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					sharerEmail: file.sharerEmail,
 					offline: offline,
 					version: file.version,
-					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
+					thumbnail: (typeof window.customVariables.thumbnailBlobCache['thumbnail:' + file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache['thumbnail:' + file.uuid] : undefined)
 				}
 
 				items.push(item)
@@ -498,7 +531,12 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					color: folder.color || null,
 					favorited: folder.favorited,
 					isSync: folder.is_sync,
-					isDefault: folder.is_default
+					isDefault: folder.is_default,
+					size: window.customFunctions.getFolderSizeFromCache({
+						uuid: folder.uuid,
+						sharerId: window.customVariables.cachedUserInfo.id,
+						receiverId: folder.receiverId
+					}, window.location.href)
 				}
 
 				items.push(item)
@@ -523,7 +561,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					uuid: file.uuid,
 					name: utils.sanitizeHTML(metadata.name),
 					mime: utils.sanitizeHTML(metadata.mime),
-					size: parseInt(metadata.size),
+					size: file.size,
 					key: utils.sanitizeHTML(metadata.key),
 					lastModified: (typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp),
 					bucket: file.bucket,
@@ -540,7 +578,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					offline: offline,
 					version: file.version,
 					favorited: file.favorited,
-					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
+					thumbnail: (typeof window.customVariables.thumbnailBlobCache['thumbnail:' + file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache['thumbnail:' + file.uuid] : undefined)
 				}
 
 				items.push(item)
@@ -608,7 +646,10 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					color: folder.color || null,
 					favorited: folder.favorited,
 					isSync: folder.is_sync,
-					isDefault: folder.is_default
+					isDefault: folder.is_default,
+					size: window.customFunctions.getFolderSizeFromCache({
+						uuid: folder.uuid
+					}, window.location.href)
 				}
 
 				items.push(item)
@@ -633,7 +674,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					uuid: file.uuid,
 					name: utils.sanitizeHTML(metadata.name),
 					mime: utils.sanitizeHTML(metadata.mime),
-					size: parseInt(metadata.size),
+					size: file.size,
 					key: utils.sanitizeHTML(metadata.key),
 					lastModified: (typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp),
 					bucket: file.bucket,
@@ -650,7 +691,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 					offline: offline,
 					version: file.version,
 					favorited: file.favorited,
-					thumbnail: (typeof window.customVariables.thumbnailBlobCache[file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache[file.uuid] : undefined)
+					thumbnail: (typeof window.customVariables.thumbnailBlobCache['thumbnail:' + file.uuid] !== "undefined" ? window.customVariables.thumbnailBlobCache['thumbnail:' + file.uuid] : undefined)
 				}
 
 				items.push(item)
@@ -723,6 +764,29 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		setTimeout(window.customFunctions.saveItemsCache, 1000)
 
 		window.customFunctions.dismissLoader()
+
+		for(let i = 0; i < items.length; i++){
+			if(typeof requestedFolderSizes[items[i].uuid] == "undefined" && items[i].type !== "file"){
+				requestedFolderSizes[items[i].uuid] = true
+
+				let canRequest = false
+
+				if(typeof window.customVariables.requestFolderSizesTimeout[items[i].uuid] == "number"){
+					if(Math.floor((+new Date()) / 1000) > window.customVariables.requestFolderSizesTimeout[items[i].uuid]){
+						canRequest = true
+					}
+				}
+				else{
+					canRequest = true
+				}
+
+				if(canRequest){
+					window.customVariables.requestFolderSizesTimeout[items[i].uuid] = (Math.floor((+new Date()) / 1000) + 60)
+
+					window.customFunctions.getFolderSize(items[i], window.location.href)
+				}
+			}
+		}
 	})
 }
 
@@ -1058,10 +1122,15 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 		const gotPreviewData = async (dataArray) => {
 			window.customVariables.imagePreviewZoomedIn = false
 
-			let blob = new Blob([dataArray], {
-				type: item.mime,
-				name: item.name
-			})
+			try{
+				var blob = await workers.newBlob(dataArray, {
+					type: item.mime,
+					name: item.name
+				})
+			}
+			catch(e){
+				return console.log(e)
+			}
 
 			if(typeof window.customVariables.currentPreviewURL !== "undefined"){
 				window.customVariables.urlCreator.revokeObjectURL(window.customVariables.currentPreviewURL)

@@ -201,6 +201,12 @@ export async function openSettingsModal(){
                         </ion-item>
                         <ion-item lines="none">
                             <ion-label>
+                                ` + language.get(appLang, "onlyUseWifiForUploads") + `
+                            </ion-label>
+                            <ion-toggle slot="end" id="settings-only-wifi-uploads-toggle" onClick="window.customFunctions.toggleOnlyWifiUploads()" ` + (appSettings.onlyWifiUploads && "checked") + `></ion-toggle>
+                        </ion-item>
+                        <ion-item lines="none">
+                            <ion-label>
                                 ` + language.get(appLang, "onlyUseWifiForDownloads") + `
                             </ion-label>
                             <ion-toggle slot="end" id="settings-only-wifi-toggle" onClick="window.customFunctions.toggleOnlyWifi()" ` + (appSettings.onlyWifi && "checked") + `></ion-toggle>

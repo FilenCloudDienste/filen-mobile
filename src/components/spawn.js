@@ -530,13 +530,13 @@ export async function mainFabAction(){
                     return false
                 }
     
-                workers.convertBase64ToArrayBuffer(image.base64String, (err, arrayBuffer) => {
+                workers.convertBase64ToArrayBuffer(image.base64String, async (err, arrayBuffer) => {
                     let fileObject = {}
     
                     fileObject.name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpg"
                     
                     try{
-                        var blob = new Blob([arrayBuffer], {
+                        var blob = await workers.newBlob(arrayBuffer, {
                             name: fileObject.name,
                             lastModified: (+new Date())
                         })

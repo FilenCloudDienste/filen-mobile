@@ -370,6 +370,7 @@ translations['en']['progress'] = "Progress"
 translations['en']['advanced'] = "Advanced"
 translations['en']['transfersMore'] = "And __COUNT__ more.."
 translations['en']['filesIgnored'] = "Files ignored"
+translations['en']['onlyUseWifiForUploads'] = "Only use Wi-Fi for uploads"
 
 module.exports = {
     translations
