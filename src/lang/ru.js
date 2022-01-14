@@ -369,6 +369,7 @@ translations['ru']['convertHEICToJPG'] = "Конвертировать HEIC в J
 translations['ru']['progress'] = "Прогресс"
 translations['ru']['advanced'] = "Расширенные"
 translations['ru']['transfersMore'] = "И ещё __COUNT__ .."
+translations['ru']['filesIgnored'] = "Файлы игнорируются"
 
 module.exports = {
     translations
