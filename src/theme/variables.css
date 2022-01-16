@@ -294,3 +294,7 @@ body {
 .action-sheet-group.sc-ion-action-sheet-md:last-child {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+ion-menu {
+  --ion-backdrop-color: transparent;
+}

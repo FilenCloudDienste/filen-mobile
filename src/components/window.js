@@ -312,6 +312,7 @@ export function setupWindowFunctions(){
     window.customVariables.requestFolderSizesTimeout = {}
     window.customVariables.thumbnailBlobCacheArray = []
     window.customVariables.thumbnailBlobCacheSize = 0
+    window.customVariables.localforageSetSemaphore = new utils.Semaphore(1)
 
     window.Media = Media
     window.localforage = localforage
@@ -1111,28 +1112,28 @@ export function setupWindowFunctions(){
         }
     }
 
-    const updateHeightAndWidthState = () => {
+    window.customFunctions.updateHeightAndWidthState = () => {
+        let gridItemWidth = (window.innerWidth / 2) - 25
+        let gridItemHeight = (window.innerHeight / 5)
+
+        if(gridItemHeight < gridItemWidth){
+            gridItemHeight = gridItemWidth
+        }
+
         return this.setState({
             windowHeight: window.innerHeight,
             windowWidth: window.innerWidth,
-            gridItemWidth: (window.innerWidth / 2) - 25
-        }, () => {
-            this.forceUpdate()
+            gridItemWidth: gridItemWidth,
+            gridItemHeight: gridItemHeight
         })
     }
 
-    clearInterval(window.customVariables.deviceHeightAndWidthInterval)
-
-    window.customVariables.deviceHeightAndWidthInterval = setInterval(() => {
-        updateHeightAndWidthState()
-    }, 500)
-
     window.addEventListener("orientationchange", () => {
-        updateHeightAndWidthState()
+        window.customFunctions.updateHeightAndWidthState()
     }, false)
 
     window.addEventListener("resize", function() {
-        updateHeightAndWidthState()
+        window.customFunctions.updateHeightAndWidthState()
     }, false)
 
     document.onclick = (e) => {
@@ -1672,7 +1673,8 @@ export function setupWindowFunctions(){
         window.customFunctions.saveSettings(newSettings)
 
         return this.setState({
-            settings: newSettings
+            settings: newSettings,
+            scrollToIndex: 0
         }, () => {
             this.forceUpdate()
         })
@@ -2015,19 +2017,6 @@ export function setupWindowFunctions(){
 
     window.customFunctions.openRegisterModal = () => {
         return this.showRegister()
-    }
-
-    window.customFunctions.doLogout = async () => {
-        await Storage.set({ key: "isLoggedIn", value: "false" })
-        await Storage.set({ key: "userAPIKey", value: "" })
-        await Storage.set({ key: "userEmail", value: "" })
-        await Storage.set({ key: "userMasterKeys", value: JSON.stringify([]) })
-        await Storage.set({ key: "userPublicKey", value: "" })
-        await Storage.set({ key: "userPrivateKey", value: "" })
-
-        this.setState({ isLoggedIn: false })
-
-        return this.showLogin()
     }
 
     window.customFunctions.doLogin = async () => {
@@ -3067,7 +3056,8 @@ export function setupWindowFunctions(){
                     icon: "close",
                     role: "cancel"
                 }
-            ]
+            ],
+            showBackdrop: false
         })
 
         return actionSheet.present()
@@ -3107,7 +3097,8 @@ export function setupWindowFunctions(){
 
         let actionSheet = await actionSheetController.create({
             header: language.get(this.state.lang, "help"),
-            buttons: btns
+            buttons: btns,
+            showBackdrop: false
         })
 
         return actionSheet.present()
@@ -3291,7 +3282,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.logoutUser = async () => {
-        let loading = await loadingController.create({
+        var loading = await loadingController.create({
             message: "",
             backdropDismiss: false,
             showBackdrop: false
@@ -3929,6 +3920,18 @@ export function setupWindowFunctions(){
                             return alert.dismiss()
                         }
 
+                        alert.dismiss()
+
+                        let loading = await loadingController.create({
+                            message: "",
+                            showBackdrop: false,
+                            backdropDismiss: false
+                        })
+
+                        loading.present()
+
+                        await workers.clearThumbnailsLocalforage()
+
                         window.customVariables.thumbnailCache = {}
                         window.customVariables.thumbnailBlobCache = {}
                         window.customVariables.lastThumbnailCacheLength = undefined
@@ -3944,9 +3947,7 @@ export function setupWindowFunctions(){
                             console.log(e)
                         }
 
-                        await workers.clearThumbnailsLocalforage()
-
-                        alert.dismiss()
+                        loading.dismiss()
 
                         return this.spawnToast(language.get(this.state.lang, "settingsClearThumbnailCacheDone"))
                     }
@@ -5591,9 +5592,17 @@ export function setupWindowFunctions(){
                 {
                     text: language.get(this.state.lang, "orderByReset"),
                     handler: () => {
-                        let sortedItems = utils.orderItemsByType(this.state.itemList, "dateDesc")
+                        if(utils.currentParentFolder() == this.state.settings.cameraUpload.parent ){
+                            var sortedItems = utils.orderItemsByType(this.state.itemList, "dateAsc")
+                            
+                            window.customVariables.orderBy = "dateAsc"
+                        }
+                        else{
+                            var sortedItems = utils.orderItemsByType(this.state.itemList, "nameAsc")
 
-                        window.customVariables.orderBy = "nameAsc"
+                            window.customVariables.orderBy = "nameAsc"
+                        }
+                        
                         window.customVariables.itemList = sortedItems
 
                         return this.setState({

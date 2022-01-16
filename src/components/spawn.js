@@ -174,7 +174,8 @@ export async function mainFabAction(){
         })
     
         let actionSheet = await actionSheetController.create({
-            buttons: fabButtons
+            buttons: fabButtons,
+            showBackdrop: false
         })
     
         return actionSheet.present()
@@ -821,7 +822,8 @@ export async function mainFabAction(){
     })
 
     let actionSheet = await actionSheetController.create({
-        buttons: fabButtons
+        buttons: fabButtons,
+        showBackdrop: false
     })
 
     return actionSheet.present()
@@ -849,7 +851,8 @@ export async function mainMenuPopover(event){
 
     let popover = await popoverController.create({
         component: customElementId,
-        event: event
+        event: event,
+        showBackdrop: false
     })
 
     return popover.present()

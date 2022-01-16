@@ -82,7 +82,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		if(parent == "recent"){
 			items = utils.orderItemsByType(items, "dateDesc")
 		}
-		else if(parent == this.state.settings.cameraUpload.parent){
+		else if(parent == this.state.settings.cameraUpload.parent && window.customVariables.orderBy == "nameAsc"){
 			items = utils.orderItemsByType(items, "dateAsc")
 		}
 		else{
@@ -790,22 +790,38 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	})
 }
 
-export async function getFileThumbnail(file, thumbURL, index){
+export async function getFileThumbnail(file, thumbURL, callback = undefined){
 	if(!this.state.settings.showThumbnails){
+		if(typeof callback == "function"){
+			callback(true)
+		}
+
 		return false
 	}
 
 	if(file.type !== "file" || file.name.indexOf(".") == -1){
+		if(typeof callback == "function"){
+			callback(true)
+		}
+
 		return false
 	}
 
 	if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
 		if(window.customVariables.getThumbnailErrors[file.uuid] >= 32){
+			if(typeof callback == "function"){
+				callback(true)
+			}
+
 			return false
 		}
 	}
 
 	if(typeof window.customVariables.isGettingThumbnail[file.uuid] !== "undefined"){
+		if(typeof callback == "function"){
+			callback(true)
+		}
+
 		return false
 	}
 
@@ -813,29 +829,39 @@ export async function getFileThumbnail(file, thumbURL, index){
 	ext = ext[ext.length - 1]
 
 	if(!utils.canShowThumbnail(ext)){
+		if(typeof callback == "function"){
+			callback(true)
+		}
+
 		return false
 	}
 
 	const gotThumbnail = async (thumbnail) => {
 		//await window.customVariables.updateItemsSemaphore.acquire()
 
+		if(typeof callback == "function"){
+			callback(null, thumbnail)
+		}
+
 		let newItems = this.state.itemList
+		let didUpdate = false
 
 		for(let i = 0; i < newItems.length; i++){
-			if(newItems[i].uuid == file.uuid){
+			if(newItems[i].uuid == file.uuid && newItems[i].thumbnail !== thumbnail){
 				newItems[i].thumbnail = thumbnail
+				didUpdate = true
 			}
 		}
 
-		window.customVariables.itemList = newItems
-
-		if(thumbURL == window.location.href){
+		if(thumbURL == window.location.href && didUpdate){
+			window.customVariables.itemList = newItems
+			
 			return this.setState({
 				itemList: newItems
 			}, () => {
 				this.forceUpdate()
 
-				setTimeout(window.customFunctions.saveThumbnailCache, 1000)
+				window.customFunctions.saveThumbnailCache()
 
 				//window.customVariables.updateItemsSemaphore.release()
 
@@ -891,6 +917,10 @@ export async function getFileThumbnail(file, thumbURL, index){
 		delete window.customVariables.isGettingThumbnail[file.uuid]
 
 		window.customVariables.getFileThumbnailSemaphore.release()
+	}
+
+	if(typeof callback == "function"){
+		callback(true)
 	}
 
 	return true
@@ -1029,7 +1059,8 @@ export async function selectItemsAction(event){
 
     let popover = await popoverController.create({
         component: customElementId,
-        event: event
+        event: event,
+		showBackdrop: false
     })
 
     return popover.present()
@@ -1881,6 +1912,12 @@ export async function renameItem(item){
 				return this.spawnToast(language.get(this.state.lang, "invalidFileName"))
 			}
 
+			if(newName.length >= 250){
+				loading.dismiss()
+
+				return this.spawnToast(language.get(this.state.lang, "invalidFileName"))
+			}
+
 			let nameEx = item.name.split(".")
 			let fileExt = nameEx[nameEx.length - 1]
 			let renameWithDot = false
@@ -1990,6 +2027,12 @@ export async function renameItem(item){
 		}
 		else{
 			if(utils.fileNameValidationRegex(newName)){
+				loading.dismiss()
+
+				return this.spawnToast(language.get(this.state.lang, "invalidFolderName"))
+			}
+
+			if(newName.length >= 250){
 				loading.dismiss()
 
 				return this.spawnToast(language.get(this.state.lang, "invalidFolderName"))
@@ -4137,7 +4180,8 @@ export async function spawnItemActionSheet(item){
 
     let actionSheet = await actionSheetController.create({
         header: headerName,
-        buttons: presentButtons
+        buttons: presentButtons,
+		showBackdrop: false
     })
 
 	await actionSheet.present()

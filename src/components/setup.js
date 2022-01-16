@@ -229,38 +229,6 @@ export async function setupStatusbar(type = "normal"){
 
 export async function doSetup(){
     try{
-		localforage.config({
-		    name: "filen",
-		    version: 1.0,
-		    size: (((1024 * 1024) * 1024) * 10),
-		    storeName: "keyvaluepairs"
-		})
-	}
-	catch(e){
-		try{
-			localforage.config({
-			    name: "filen",
-			    version: 1.0,
-			    size: (((1024 * 1024) * 1024) * 1),
-			    storeName: "keyvaluepairs"
-			})
-		}
-		catch(e){
-			try{
-				localforage.config({
-				    name: "filen",
-				    version: 1.0,
-				    size: ((1024 * 1024) * 100),
-				    storeName: "keyvaluepairs"
-				})
-			}
-			catch(e){
-				return console.log(e)
-			}
-		}
-	}
-
-    try{
         await Storage.migrate()
     }
     catch(e){
@@ -401,16 +369,16 @@ export async function doSetup(){
         var getUserPrivateKey = await Storage.get({ key: "userPrivateKey" })
         var getSettings = await Storage.get({ key: "settings@" + getUserEmail.value })
         
-        var getOfflineSavedFiles = await localforage.getItem("offlineSavedFiles@" + getUserEmail.value)
-        var getAPICache = await localforage.getItem("apiCache@" + getUserEmail.value)
-        var getCachedFiles = await localforage.getItem("cachedFiles@" + getUserEmail.value)
-        var getCachedFolders = await localforage.getItem("cachedFolders@" + getUserEmail.value)
-        var getCachedMetadata = await localforage.getItem("cachedMetadata@" + getUserEmail.value)
-        var getThumbnailCache = await localforage.getItem("thumbnailCache@" + getUserEmail.value)
-        var getGetThumbnailErrors = await localforage.getItem("getThumbnailErrors@" + getUserEmail.value)
-        var getCachedAPIItemListRequests = await localforage.getItem("cachedAPIItemListRequests@" + getUserEmail.value)
-        var getItemsCache = await localforage.getItem("itemsCache@" + getUserEmail.value)
-        var getFolderSizeCache = await localforage.getItem("folderSizeCache@" + getUserEmail.value)
+        var getOfflineSavedFiles = await workers.localforageGetItem("offlineSavedFiles@" + getUserEmail.value)
+        var getAPICache = await workers.localforageGetItem("apiCache@" + getUserEmail.value)
+        var getCachedFiles = await workers.localforageGetItem("cachedFiles@" + getUserEmail.value)
+        var getCachedFolders = await workers.localforageGetItem("cachedFolders@" + getUserEmail.value)
+        var getCachedMetadata = await workers.localforageGetItem("cachedMetadata@" + getUserEmail.value)
+        var getThumbnailCache = await workers.localforageGetItem("thumbnailCache@" + getUserEmail.value)
+        var getGetThumbnailErrors = await workers.localforageGetItem("getThumbnailErrors@" + getUserEmail.value)
+        var getCachedAPIItemListRequests = await workers.localforageGetItem("cachedAPIItemListRequests@" + getUserEmail.value)
+        var getItemsCache = await workers.localforageGetItem("itemsCache@" + getUserEmail.value)
+        var getFolderSizeCache = await workers.localforageGetItem("folderSizeCache@" + getUserEmail.value)
     }
     catch(e){
         return console.log(e)
@@ -443,7 +411,7 @@ export async function doSetup(){
             }
 
             if(typeof getSettings.value == "string"){
-                settings = JSON.parse(getSettings.value)
+                settings = await workers.JSONParseWorker(getSettings.value)
             }
 
             if(typeof settings.onlyWifi == "undefined"){
@@ -529,7 +497,7 @@ export async function doSetup(){
             this.setState({
                 userAPIKey: getUserAPIKey.value,
                 userEmail: getUserEmail.value,
-                userMasterKeys: JSON.parse(getUserMasterKeys.value),
+                userMasterKeys: await workers.JSONParseWorker(getUserMasterKeys.value),
                 userPublicKey: getUserPublicKey.value,
                 userPrivateKey: getUserPrivateKey.value,
                 isLoggedIn: true,
@@ -538,76 +506,76 @@ export async function doSetup(){
                 this.forceUpdate()
             })
 
-            window.customVariables.userMasterKeys = JSON.parse(getUserMasterKeys.value)
+            window.customVariables.userMasterKeys = await workers.JSONParseWorker(getUserMasterKeys.value)
 
             if(getOfflineSavedFiles == null){
                 window.customVariables.offlineSavedFiles = {}
             }
             else{
-                window.customVariables.offlineSavedFiles = JSON.parse(getOfflineSavedFiles)
+                window.customVariables.offlineSavedFiles = await workers.JSONParseWorker(getOfflineSavedFiles)
             }
 
             if(getCachedFiles == null){
                 window.customVariables.cachedFiles = {}
             }
             else{
-                window.customVariables.cachedFiles = JSON.parse(getCachedFiles)
+                window.customVariables.cachedFiles = await workers.JSONParseWorker(getCachedFiles)
             }
 
             if(getCachedFolders == null){
                 window.customVariables.cachedFolders = {}
             }
             else{
-                window.customVariables.cachedFolders = JSON.parse(getCachedFolders)
+                window.customVariables.cachedFolders = await workers.JSONParseWorker(getCachedFolders)
             }
 
             if(getCachedMetadata == null){
                 window.customVariables.cachedMetadata = {}
             }
             else{
-                window.customVariables.cachedMetadata = JSON.parse(getCachedMetadata)
+                window.customVariables.cachedMetadata = await workers.JSONParseWorker(getCachedMetadata)
             }
 
             if(getThumbnailCache == null){
                 window.customVariables.thumbnailCache = {}
             }
             else{
-                window.customVariables.thumbnailCache = JSON.parse(getThumbnailCache)
+                window.customVariables.thumbnailCache = await workers.JSONParseWorker(getThumbnailCache)
             }
 
             if(getGetThumbnailErrors == null){
                 window.customVariables.getThumbnailErrors = {}
             }
             else{
-                window.customVariables.getThumbnailErrors = JSON.parse(getGetThumbnailErrors)
+                window.customVariables.getThumbnailErrors = await workers.JSONParseWorker(getGetThumbnailErrors)
             }
 
             /*if(getAPICache == null){
                 window.customVariables.apiCache = {}
             }
             else{
-                window.customVariables.apiCache = JSON.parse(getAPICache)
+                window.customVariables.apiCache = await workers.JSONParseWorker(getAPICache)
             }*/
 
             /*if(getCachedAPIItemListRequests == null){
                 window.customVariables.cachedAPIItemListRequests = {}
             }
             else{
-                window.customVariables.cachedAPIItemListRequests = JSON.parse(getCachedAPIItemListRequests)
+                window.customVariables.cachedAPIItemListRequests = await workers.JSONParseWorker(getCachedAPIItemListRequests)
             }*/
 
             if(getItemsCache == null){
                 window.customVariables.itemsCache = {}
             }
             else{
-                window.customVariables.itemsCache = JSON.parse(getItemsCache)
+                window.customVariables.itemsCache = await workers.JSONParseWorker(getItemsCache)
             }
 
             try{
-                let getCameraUpload = await localforage.getItem("cameraUpload@" + getUserEmail.value)
+                let getCameraUpload = await workers.localforageGetItem("cameraUpload@" + getUserEmail.value)
     
                 if(getCameraUpload){
-                    window.customVariables.cameraUpload = JSON.parse(getCameraUpload)
+                    window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload)
                 }
             }
             catch(e){
@@ -618,7 +586,7 @@ export async function doSetup(){
                 window.customVariables.folderSizeCache = {}
             }
             else{
-                window.customVariables.folderSizeCache = JSON.parse(getFolderSizeCache)
+                window.customVariables.folderSizeCache = await workers.JSONParseWorker(getFolderSizeCache)
             }
         }
         else{
@@ -627,6 +595,8 @@ export async function doSetup(){
     }
 
     window.customVariables.apiKey = getUserAPIKey.value
+
+    window.customFunctions.updateHeightAndWidthState()
 
     if(networkStatus.connected){
         await window.customFunctions.fetchUserInfo()

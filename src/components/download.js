@@ -1,13 +1,10 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor } from "@capacitor/core"
-import Compressor from "compressorjs"
 import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
-import imageCompression from "browser-image-compression"
+import Compressor from 'compressorjs'; 
 
 const utils = require("../utils/utils")
-const localforage = require("localforage")
-const pica = require("pica")()
 
 export async function getTempDir(callback){
     if(Capacitor.platform == "android"){
@@ -461,6 +458,10 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback, 
             if(res.byteLength){
                 if(res.byteLength > 1){
                     workers.decryptData(file.uuid, index, file.key, res, file.version, (err, decrypted) => {
+                        if(err){
+                            return callback(err)
+                        }
+
                         if(!isPreview){
                             window.customVariables.downloadChunkSemaphore.release()
                         }
@@ -548,6 +549,10 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
     }
 
     workers.convertArrayBufferToBase64(data, async (err, b64Data) => {
+        if(err){
+            return callback(err)
+        }
+
         if(index == 0){
             try{
                 await Filesystem.writeFile({
@@ -1027,6 +1032,26 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
     })
 }
 
+export function genThumbnail(index){
+    if(typeof this.state.itemList[index] !== "undefined"){
+        if(this.state.itemList[index].type == "file"){
+            if(typeof this.state.itemList[index].thumbnail !== "string" && typeof window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] == "undefined"){
+                window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] = true
+    
+                window.customVariables.currentThumbnailURL = window.location.href
+
+                let uuid = this.state.itemList[index].uuid
+    
+                this.getFileThumbnail(this.state.itemList[index], window.customVariables.currentThumbnailURL, () => {
+                    return delete window.customVariables.gettingThumbnails[uuid]
+                })
+            }
+        }
+    }
+
+    return true
+}
+
 export async function getThumbnail(file, thumbURL, ext){
     return new Promise(async (resolve, reject) => {
         if(Capacitor.isNative){
@@ -1041,7 +1066,10 @@ export async function getThumbnail(file, thumbURL, ext){
             }
         }
 
+        let thumbnailMaxWidthOrHeight = 512
+        let thumbnailQuality = 0.6
         let videoExts = ["mp4", "webm", "mov", "avi", "wmv"]
+        let cacheKey = "thumbnail:" + thumbnailMaxWidthOrHeight + ":" + thumbnailQuality + ":" + file.uuid
 
         if(videoExts.includes(ext)){
             if(Capacitor.platform == "ios"){
@@ -1049,48 +1077,54 @@ export async function getThumbnail(file, thumbURL, ext){
             }
         }
 
-        let compression = {
-            width: 256,
-            height: 256,
-            quality: 0.1
+        const removeThumbnailStringFromItemList = (uuid) => {
+            let newItems = this.state.itemList
+
+            for(let i = 0; i < newItems.length; i++){
+                if(newItems[i].uuid == uuid){
+                    newItems[i].thumbnail = undefined
+                }
+            }
+
+            window.customVariables.itemList = newItems
+
+            return this.setState({
+                itemList: newItems
+            }, () => {
+                this.forceUpdate()
+            })
         }
 
-        let cacheKey = "thumbnail:" + file.uuid
-
-        if(typeof window.customVariables.thumbnailBlobCache[cacheKey] !== "undefined"){
-            return resolve(window.customVariables.thumbnailBlobCache[cacheKey])
-        }
-    
-        await window.customVariables.thumbnailSemaphore.acquire()
-
-        if(file.chunks > 32 && !videoExts.includes(ext)){
-            window.customVariables.thumbnailSemaphore.release()
-
-            return reject("too big")
-        }
-
-        let thumbnailFileName = file.name.toLowerCase()
-
-        if(videoExts.includes(ext)){
-            let nameEx = file.name.split(".")
-
-            nameEx[nameEx.length - 1] = "jpg"
-
-            thumbnailFileName = nameEx.join(".")
-        }
-
-        const clearCachedBlobs = () => {
-            if(window.customVariables.thumbnailBlobCacheSize > 134217728){ // 128MiB
+        const clearCachedBlobs = async () => {
+            if(window.customVariables.thumbnailBlobCacheArray.length >= 512){
                 let first = window.customVariables.thumbnailBlobCacheArray[0]
 
                 if(typeof first !== "undefined"){
-                    window.customVariables.urlCreator.revokeObjectURL(first.url)
+                    await workers.revokeObjectURL(first.url)
 
                     delete window.customVariables.thumbnailBlobCache[first.key]
 
                     window.customVariables.thumbnailBlobCacheSize = window.customVariables.thumbnailBlobCacheSize - first.size
 
                     window.customVariables.thumbnailBlobCacheArray.shift()
+
+                    removeThumbnailStringFromItemList(first.uuid)
+                }
+            }
+
+            if(window.customVariables.thumbnailBlobCacheSize > (134217728 * 1)){ // 128MiB
+                let first = window.customVariables.thumbnailBlobCacheArray[0]
+
+                if(typeof first !== "undefined"){
+                    await workers.revokeObjectURL(first.url)
+
+                    delete window.customVariables.thumbnailBlobCache[first.key]
+
+                    window.customVariables.thumbnailBlobCacheSize = window.customVariables.thumbnailBlobCacheSize - first.size
+
+                    window.customVariables.thumbnailBlobCacheArray.shift()
+
+                    removeThumbnailStringFromItemList(first.uuid)
 
                     return setTimeout(clearCachedBlobs, 100)
                 }
@@ -1104,7 +1138,9 @@ export async function getThumbnail(file, thumbURL, ext){
 
         const createImgBlob = async (arrayBuffer) => {
             try{
-                var blob = await workers.newBlob(arrayBuffer)
+                var blob = await workers.newBlob(arrayBuffer, {
+                    type: "image/jpeg"
+                })
             }
             catch(e){
                 window.customVariables.thumbnailSemaphore.release()
@@ -1115,14 +1151,15 @@ export async function getThumbnail(file, thumbURL, ext){
                 return reject(e)
             }
             
-            let imageURL = window.customVariables.urlCreator.createObjectURL(blob)
+            let imageURL = await workers.createObjectURL(blob)
 
             window.customVariables.thumbnailBlobCache[cacheKey] = imageURL
 
             window.customVariables.thumbnailBlobCacheArray.push({
                 url: imageURL,
                 key: cacheKey,
-                size: blob.size
+                size: blob.size,
+                uuid: file.uuid
             })
 
             window.customVariables.thumbnailBlobCacheSize = window.customVariables.thumbnailBlobCacheSize + blob.size
@@ -1165,10 +1202,19 @@ export async function getThumbnail(file, thumbURL, ext){
 
         const compressImg = async (blob) => {
             try{
-                let compressed = await imageCompression(blob, {
-                    maxWidthOrHeight: compression.width,
-                    useWebWorker: true,
-                    fileType: "image/png"
+                let compressed = await new Promise((resolve, reject) => {
+                    return new Compressor(blob, {
+                        quality: thumbnailQuality,
+                        maxHeight: thumbnailMaxWidthOrHeight,
+                        convertSize: 1,
+                        convertTypes: ["image/png"],
+                        success(result){
+                            return resolve(result)
+                        },
+                        error(err){
+                            return reject(err)
+                        }
+                    })
                 })
 
                 return compressed
@@ -1176,6 +1222,46 @@ export async function getThumbnail(file, thumbURL, ext){
             catch(e){
                 return e
             }
+        }
+
+        if(typeof window.customVariables.thumbnailBlobCache[cacheKey] !== "undefined"){
+            return resolve(window.customVariables.thumbnailBlobCache[cacheKey])
+        }
+
+        if(typeof window.customVariables.thumbnailCache[cacheKey] !== "undefined"){
+            try{
+                var getData = await workers.localforageGetItem(cacheKey)
+            }
+            catch(e){
+                window.customVariables.thumbnailSemaphore.release()
+    
+                delete window.customVariables.thumbnailCache[cacheKey]
+                delete window.customVariables.thumbnailBlobCache[cacheKey]
+    
+                return reject(e)
+            }
+
+            if(getData && thumbURL == window.location.href){
+                return createImgBlob(getData)
+            }
+        }
+    
+        await window.customVariables.thumbnailSemaphore.acquire()
+
+        /*if(file.chunks > 128 && !videoExts.includes(ext)){
+            window.customVariables.thumbnailSemaphore.release()
+
+            return reject("too big")
+        }*/
+
+        let thumbnailFileName = file.name.toLowerCase()
+
+        if(videoExts.includes(ext)){
+            let nameEx = file.name.split(".")
+
+            nameEx[nameEx.length - 1] = "jpg"
+
+            thumbnailFileName = nameEx.join(".")
         }
 
         if(typeof window.customVariables.thumbnailCache[cacheKey] == "undefined"){

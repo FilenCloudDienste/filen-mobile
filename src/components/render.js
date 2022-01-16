@@ -29,7 +29,7 @@ const safeAreaInsets = require('safe-area-insets')
 export function render(){
     let showShareLinks = (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0)
 
-    let rowRenderer = ({ index, style }) => {
+    const rowRenderer = ({ index, style }) => {
         if(this.state.settings.gridModeEnabled){
             let startFromIndex = 0
             let gridItemsPerRow = 2
@@ -48,22 +48,14 @@ export function render(){
                 }
             }
 
-            window.customVariables.currentThumbnailURL = window.location.href
-
             indexesToLoop.filter((el) => {
                 if(typeof this.state.itemList[el] == "undefined"){
                     return false
                 }
 
                 return true
-            }).map((i) => {
-                if(typeof this.state.itemList[i] !== "undefined"){
-                    if(typeof this.state.itemList[i].thumbnail !== "string" && typeof window.customVariables.gettingThumbnails[this.state.itemList[i].uuid] == "undefined"){
-                        window.customVariables.gettingThumbnails[this.state.itemList[i].uuid] = true
-    
-                        this.getFileThumbnail(this.state.itemList[i], window.customVariables.currentThumbnailURL, 1)
-                    }
-                }
+            }).map((index) => {
+                this.genThumbnail(index)
             })
 
             return (
@@ -162,7 +154,7 @@ export function render(){
                                                         <div style={{
                                                             width: "100%",
                                                             height: "100%",
-                                                            backgroundColor: "black",
+                                                            backgroundColor: "transparent",
                                                             display: "inline-block",
                                                             backgroundSize: "cover",
                                                             backgroundPosition: "center center",
@@ -192,7 +184,8 @@ export function render(){
                                                                 display: "inline-block",
                                                                 verticalAlign: "middle",
                                                                 lineHeight: "initial",
-                                                                textAlign: "left"
+                                                                textAlign: "left",
+                                                                overflow: "hidden"
                                                             }} id={"item-thumbnail-" + this.state.itemList[currentIndex].uuid}>
                                                                 <img src={utils.getFileIconFromName(this.state.itemList[currentIndex].name)} width="55"></img>
                                                             </div>
@@ -255,7 +248,7 @@ export function render(){
         if(this.state.showMainSkeletonPlaceholder){
             return (
                 <IonItem key={index} type="button" button lines="none" style={style}>
-                    <IonThumbnail slot="start">
+                    <IonThumbnail className="outer-thumbnail" slot="start">
                         <IonSkeletonText animated />
                     </IonThumbnail>
                     <IonLabel>
@@ -271,7 +264,12 @@ export function render(){
         }
         else{
             let startContent = this.state.selectedItems > 0 ? (
-                <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.selectItem(true, index)}>
+                <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.selectItem(true, index)} style={{
+                    border: "none",
+                    "--border": "none",
+                    overflow: "hidden",
+                    padding: (this.state.itemList[index].type == "folder" ? "0px" : "7px")
+                }}>
                     {
                         this.state.itemList[index].type == "folder" ? (
                             <div>
@@ -285,7 +283,7 @@ export function render(){
                                             color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
                                             position: "absolute",
                                             marginTop: "6px",
-                                            marginLeft: "9px"
+                                            marginLeft: "5px"
                                         }} />
                                     ) : (
                                         <IonIcon icon={Ionicons.folderSharp} style={{
@@ -293,21 +291,35 @@ export function render(){
                                             color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
                                             position: "absolute",
                                             marginTop: "6px",
-                                            marginLeft: "9px"
+                                            marginLeft: "5px"
                                         }}></IonIcon>
                                     )
                                 }
                             </div>
                         ) : (
-                            <img src={typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
-                                padding: "10px",
-                                marginTop: "-1px"
-                            }}></img>
+                            <div style={{
+                                width: "100%",
+                                height: "100%",
+                                backgroundColor: "transparent",
+                                display: "inline-block",
+                                backgroundSize: "cover",
+                                backgroundPosition: "center center",
+                                backgroundRepeat: "no-repeat",
+                                border: "none",
+                                outline: "none",
+                                zIndex: "101",
+                                backgroundImage: "url(" + (typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)) + ")",
+                            }}></div>
                         )
                     }
                 </IonThumbnail>
             ) : (
-                <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])}>
+                <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])} style={{
+                    border: "none",
+                    "--border": "none",
+                    overflow: "hidden",
+                    padding: (this.state.itemList[index].type == "folder" ? "0px" : "7px")
+                }}>
                     {
                         this.state.itemList[index].type == "folder" ? (
                             <div>
@@ -321,7 +333,7 @@ export function render(){
                                             color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
                                             position: "absolute",
                                             marginTop: "6px",
-                                            marginLeft: "9px"
+                                            marginLeft: "5px"
                                         }} />
                                     ) : (
                                         <IonIcon icon={Ionicons.folderSharp} style={{
@@ -329,16 +341,25 @@ export function render(){
                                             color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
                                             position: "absolute",
                                             marginTop: "6px",
-                                            marginLeft: "9px"
+                                            marginLeft: "5px"
                                         }}></IonIcon>
                                     )
                                 }
                             </div>
                         ) : (
-                            <img src={typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)} style={{
-                                padding: "10px",
-                                marginTop: "-1px"
-                            }}></img>
+                            <div style={{
+                                width: "100%",
+                                height: "100%",
+                                backgroundColor: "transparent",
+                                display: "inline-block",
+                                backgroundSize: "cover",
+                                backgroundPosition: "center center",
+                                backgroundRepeat: "no-repeat",
+                                border: "none",
+                                outline: "none",
+                                zIndex: "101",
+                                backgroundImage: "url(" + (typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)) + ")",
+                            }}></div>
                         )
                     }
                 </IonThumbnail>
@@ -597,15 +618,7 @@ export function render(){
                 </IonButtons>
             )
 
-            window.customVariables.currentThumbnailURL = window.location.href
-
-            if(typeof this.state.itemList[index] !== "undefined"){
-                if(typeof this.state.itemList[index].thumbnail !== "string" && typeof window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] == "undefined"){
-                    window.customVariables.gettingThumbnails[this.state.itemList[index].uuid] = true
-
-                    this.getFileThumbnail(this.state.itemList[index], window.customVariables.currentThumbnailURL, 1)
-                }
-            }
+            this.genThumbnail(index)
 
             return (
                 <Hammer key={index} onPress={() => this.selectItem(true, index)} options={{
@@ -1214,6 +1227,13 @@ export function render(){
                                                         outline: "none",
                                                         border: "none"
                                                     }}
+                                                    onRowsRendered={({ overscanStart, overscanStop, start, stop }) => {
+                                                        for(let i = (overscanStart - 1); i < (overscanStop + 1); i++){
+                                                            if(i >= 0){
+                                                                this.genThumbnail(i)
+                                                            }
+                                                        }
+                                                    }}
                                                 ></List>
                                             </>
                                         ) : (
@@ -1232,6 +1252,13 @@ export function render(){
                                                     style={{
                                                         outline: "none",
                                                         border: "none"
+                                                    }}
+                                                    onRowsRendered={({ overscanStartIndex, overscanStopIndex}) => {
+                                                        for(let i = (overscanStartIndex - 1); i < (overscanStopIndex + 1); i++){
+                                                            if(i >= 0){
+                                                                this.genThumbnail(i)
+                                                            }
+                                                        }
                                                     }}
                                                 ></List>
                                             </>

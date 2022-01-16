@@ -9136,6 +9136,56 @@ const createWorker = () => {
 			})
 		}
 
+		function getOrientation(file, callback) {
+			var reader = new FileReader()
+
+			reader.onload = function(e){
+				var view = new DataView(e.target.result)
+
+				if(view.getUint16(0, false) != 0xFFD8){
+					return callback(-2)
+				}
+
+				var length = view.byteLength, offset = 2;
+
+				while (offset < length){
+					if (view.getUint16(offset+2, false) <= 8) return callback(-1);
+
+					var marker = view.getUint16(offset, false);
+					offset += 2;
+
+					if (marker == 0xFFE1){
+						if (view.getUint32(offset += 2, false) != 0x45786966) {
+							return callback(-1);
+						}
+		
+						var little = view.getUint16(offset += 6, false) == 0x4949;
+
+						offset += view.getUint32(offset + 4, little);
+
+						var tags = view.getUint16(offset, little);
+
+						offset += 2;
+
+						for (var i = 0; i < tags; i++){
+							if (view.getUint16(offset + (i * 12), little) == 0x0112){
+								return callback(view.getUint16(offset + (i * 12) + 8, little));
+							}
+						}
+					}
+					else if ((marker & 0xFF00) != 0xFF00){
+						break;
+					}
+					else{ 
+						offset += view.getUint16(offset, false);
+					}
+				}
+
+				return callback(-1);
+			};
+			reader.readAsArrayBuffer(file);
+		}
+
 		onmessage = async (e) => {
 			switch(e.data.type){
 				case "encryptMetadata":
@@ -9506,14 +9556,14 @@ const createWorker = () => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err
+								err: err.toString()
 							})
 						})
 					}).catch((err) => {
 						return postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							err
+							err: err.toString()
 						})
 					})
 				break
@@ -9537,14 +9587,14 @@ const createWorker = () => {
 							return postMessage({
 								id: e.data.id,
 								type: e.data.type,
-								err
+								err: err.toString()
 							})
 						})
 					}).catch((err) => {
 						return postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							err
+							err: err.toString()
 						})
 					})
 				break
@@ -9594,7 +9644,7 @@ const createWorker = () => {
 						return postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							err
+							err: err.toString()
 						})
 					}
 				break
@@ -9612,25 +9662,52 @@ const createWorker = () => {
 						return postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							err
+							err: err.toString()
 						})
 					}
 				break
 				case "clearThumbnailsLocalforage":
-					postMessage({
-						id: e.data.id,
-						type: e.data.type,
-						data: true
-					})
-
 					localforage.iterate((value, key, iterationNumber) => {
 						if(key.indexOf("thumbnail:") !== -1){
 							localforage.removeItem(key)
 						}
 					}).then(() => {
-						return true
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							data: true
+						})
 					}).catch((err) => {
-						return true
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							data: true
+						})
+					})
+				break
+				case "getExifOrientation":
+					getOrientation(e.data.file, (orientation) => {
+						return postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							data: orientation
+						})
+					})
+				break
+				case "createObjectURL":
+					return postMessage({
+						id: e.data.id,
+						type: e.data.type,
+						data: (window.URL || window.webkitURL).createObjectURL(e.data.data)
+					})
+				break
+				case "revokeObjectURL":
+					(window.URL || window.webkitURL).revokeObjectURL(e.data.data)
+
+					return postMessage({
+						id: e.data.id,
+						type: e.data.type,
+						data: true
 					})
 				break
 			}
@@ -9673,7 +9750,7 @@ for(let i = 0; i < workers.length; i++){
 }
 
 module.exports = {
-	clearThumbnailsLocalforage: () => {
+	createObjectURL: (blob) => {
 		return new Promise((resolve, reject) => {
 			let id = workerNextCallId++
 
@@ -9688,51 +9765,132 @@ module.exports = {
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
 			return worker.postMessage({
-				type: "clearThumbnailsLocalforage",
-				id
+				type: "createObjectURL",
+				id,
+				data: blob
+			})
+		})
+	},
+	revokeObjectURL: (blob) => {
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			return worker.postMessage({
+				type: "revokeObjectURL",
+				id,
+				data: blob
+			})
+		})
+	},
+	getExifOrientation: (blob) => {
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			return worker.postMessage({
+				type: "getExifOrientation",
+				id,
+				file: blob
+			})
+		})
+	},
+	clearThumbnailsLocalforage: () => {
+		return new Promise((resolve, reject) => {
+			window.customVariables.localforageSetSemaphore.acquire().then(() => {
+				let id = workerNextCallId++
+
+				workerCallbacks[id] = (err, data) => {
+					window.customVariables.localforageSetSemaphore.release()
+					
+					if(err){
+						return reject(err)
+					}
+
+					return resolve(data.data)
+				}
+
+				let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+			
+				return worker.postMessage({
+					type: "clearThumbnailsLocalforage",
+					id
+				})
+			}).catch((err) => {
+				return resolve(err)
 			})
 		})
 	},
 	localforageSetItem: (key, data) => {
 		return new Promise((resolve, reject) => {
-			let id = workerNextCallId++
+			window.customVariables.localforageSetSemaphore.acquire().then(() => {
+				let id = workerNextCallId++
 
-			workerCallbacks[id] = (err, data) => {
-				if(err){
-					return reject(err)
+				workerCallbacks[id] = (err, data) => {
+					window.customVariables.localforageSetSemaphore.release()
+
+					if(err){
+						return reject(err)
+					}
+
+					return resolve(data.data)
 				}
 
-				return resolve(data.data)
-			}
-
-			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
-		
-			return worker.postMessage({
-				type: "localforageSetItem",
-				id,
-				key,
-				data
+				let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+			
+				return worker.postMessage({
+					type: "localforageSetItem",
+					id,
+					key,
+					data
+				})
+			}).catch((err) => {
+				return resolve(err)
 			})
 		})
 	},
 	localforageGetItem: (key) => {
 		return new Promise((resolve, reject) => {
-			let id = workerNextCallId++
+			window.customVariables.localforageSetSemaphore.acquire().then(() => {
+				let id = workerNextCallId++
 
-			workerCallbacks[id] = (err, data) => {
-				if(err){
-					return reject(err)
+				workerCallbacks[id] = (err, data) => {
+					window.customVariables.localforageSetSemaphore.release()
+
+					if(err){
+						return reject(err)
+					}
+
+					return resolve(data.data)
 				}
 
-				return resolve(data.data)
-			}
-
-			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
-		
-			return worker.postMessage({
-				type: "localforageGetItem",
-				id,
-				key
+				let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+			
+				return worker.postMessage({
+					type: "localforageGetItem",
+					id,
+					key
+				})
+			}).catch((err) => {
+				return resolve(err)
 			})
 		})
 	},

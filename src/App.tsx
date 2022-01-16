@@ -146,7 +146,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 			showMainSkeletonPlaceholder: false,
 			mainSearchbarDisabled: false,
 			refresherEnabled: false,
-			gridItemHeight: 180,
+			gridItemHeight: (window.innerHeight / 5),
 			gridItemWidth: (window.innerWidth / 2) - 25,
 			cachedUserInfo: {},
 			authShowing: false,
@@ -238,6 +238,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	getThumbnail = downloadComponents.getThumbnail.bind(this)
 	getThumbnailDir = downloadComponents.getThumbnailDir.bind(this)
 	getTempDir = downloadComponents.getTempDir.bind(this)
+	genThumbnail = downloadComponents.genThumbnail.bind(this)
 
 	openSettingsModal = settingsComponents.openSettingsModal.bind(this)
 
