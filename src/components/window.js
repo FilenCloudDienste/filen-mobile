@@ -5,7 +5,6 @@ import * as Ionicons from 'ionicons/icons'
 import { isPlatform } from "@ionic/react"
 import { FingerprintAIO } from "@ionic-native/fingerprint-aio"
 import { FileOpener } from "@ionic-native/file-opener"
-import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
 import { Network } from "@capacitor/network"
 import { Keyboard } from "@capacitor/keyboard"
 import { Haptics, HapticsImpactStyle } from "@capacitor/haptics"
@@ -13,10 +12,8 @@ import { Clipboard } from "@capacitor/clipboard"
 import { App } from "@capacitor/app"
 import { Share } from "@capacitor/share"
 import { SplashScreen } from "@capacitor/splash-screen"
-import { Storage } from "@capacitor/storage"
 import { SendIntent } from "send-intent"
 import { Media } from "@capacitor-community/media"
-import { registerPlugin } from "@capacitor/core"
 import { Base64 } from "js-base64"
 
 const workers = require("../utils/workers")
@@ -24,7 +21,6 @@ const utils = require("../utils/utils")
 const safeAreaInsets = require("safe-area-insets")
 const CryptoJS = require("crypto-js")
 const mime = require("mime-types")
-const localforage = require("localforage")
 
 export async function doRouting(){
     if(window.customVariables.isCurrentlyRouting){
@@ -169,12 +165,12 @@ export function windowRouter(){
 export function setupWindowFunctions(){
     window.$ = undefined
 
-    let hacktimerScript = document.createElement("script")
+    /*let hacktimerScript = document.createElement("script")
 
     hacktimerScript.type = "text/javascript"
     hacktimerScript.src = "assets/hacktimer/HackTimer.js"
 
-    document.getElementsByTagName("head")[0].appendChild(hacktimerScript)
+    document.getElementsByTagName("head")[0].appendChild(hacktimerScript)*/
 
     let jQueryScript = document.createElement("script")
 
@@ -245,8 +241,8 @@ export function setupWindowFunctions(){
     window.customVariables.thumbnailBlobCache = {}
     window.customVariables.currentThumbnailURL = undefined
     window.customVariables.lastThumbnailCacheLength = undefined
-    window.customVariables.thumbnailSemaphore = new utils.Semaphore(3)
-    window.customVariables.getFileThumbnailSemaphore = new utils.Semaphore(3)
+    window.customVariables.thumbnailSemaphore = new utils.Semaphore(1)
+    window.customVariables.getFileThumbnailSemaphore = new utils.Semaphore(1)
     window.customVariables.updateItemsSemaphore = new utils.Semaphore(1)
     window.customVariables.fsCopySemaphore = new utils.Semaphore(1)
     window.customVariables.cameraUploadSemaphore = new utils.Semaphore(1)
@@ -310,12 +306,10 @@ export function setupWindowFunctions(){
     window.customVariables.isAppActive = true
     window.customVariables.gettingThumbnails = {}
     window.customVariables.requestFolderSizesTimeout = {}
-    window.customVariables.thumbnailBlobCacheArray = []
-    window.customVariables.thumbnailBlobCacheSize = 0
-    window.customVariables.localforageSetSemaphore = new utils.Semaphore(1)
+    window.customVariables.thumbnailsInView = {}
+    window.customVariables.debounceIds = {}
+    window.customVariables.didRequestThumbnail = {}
 
-    window.Media = Media
-    window.localforage = localforage
     window.workers = workers
     window.utils = utils
 
@@ -609,7 +603,7 @@ export function setupWindowFunctions(){
                                                     let ex = fileObject.name.split(".")
                                                     let ext = ex.pop()
                                                     let without = ex.join(".")
-                                                    let title = (without + "_" + Math.floor((+new Date()) / 1000) + "." + ext).trim()
+                                                    let title = (without + "_" + fileObject.lastModified + "." + ext).trim()
                                                     
                                                     fileObject.name = title
                                                 }
@@ -1725,81 +1719,147 @@ export function setupWindowFunctions(){
         }
     }
 
-    window.customFunctions.saveItemsCache = async () => {
-        try{
-            await workers.localforageSetItem("itemsCache@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.itemsCache))
-        }
-        catch(e){
-            console.log(e)
-        }
+    window.customFunctions.saveItemsCache = () => {
+        clearInterval(window.customVariables.debounceIds['saveItemsCache'])
+
+        return window.customVariables.debounceIds['saveItemsCache'] = setTimeout(async () => {
+            try{
+                let data = await workers.JSONStringifyWorker(window.customVariables.itemsCache)
+
+                await workers.localforageSetItem("itemsCache@" + window.customVariables.userEmail, data)
+
+                data = null
+            }
+            catch(e){
+                console.log(e)
+            }
+
+            return true
+        }, 3000)
     }
 
-    window.customFunctions.saveOfflineSavedFiles = async () => {
-        try{
-            await workers.localforageSetItem("offlineSavedFiles@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.offlineSavedFiles))
-        }
-        catch(e){
-            console.log(e)
-        }
+    window.customFunctions.saveOfflineSavedFiles = () => {
+        clearInterval(window.customVariables.debounceIds['saveOfflineSavedFiles'])
+
+        return window.customVariables.debounceIds['saveOfflineSavedFiles'] = setTimeout(async () => {
+            try{
+                let data = await workers.JSONStringifyWorker(window.customVariables.offlineSavedFiles)
+
+                await workers.localforageSetItem("offlineSavedFiles@" + window.customVariables.userEmail, data)
+
+                data = null
+            }
+            catch(e){
+                console.log(e)
+            }
+            return true
+        }, 3000)
     }
 
-    window.customFunctions.saveGetThumbnailErrors = async () => {
-        try{
-            await workers.localforageSetItem("getThumbnailErrors@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.getThumbnailErrors))
-        }
-        catch(e){
-            console.log(e)
-        }
+    window.customFunctions.saveGetThumbnailErrors = () => {
+        clearInterval(window.customVariables.debounceIds['saveGetThumbnailErrors'])
+
+        return window.customVariables.debounceIds['saveGetThumbnailErrors'] = setTimeout(async () => {
+            try{
+                let data = await workers.JSONStringifyWorker(window.customVariables.getThumbnailErrors)
+
+                await workers.localforageSetItem("getThumbnailErrors@" + window.customVariables.userEmail, data)
+
+                data = null
+            }
+            catch(e){
+                console.log(e)
+            }
+            return true
+        }, 3000)
     }
 
-    window.customFunctions.saveAPICache = async () => {
-        try{
-            await workers.localforageSetItem("apiCache@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.apiCache))
-        }
-        catch(e){
-            console.log(e)
-        }
+    window.customFunctions.saveAPICache = () => {
+        clearInterval(window.customVariables.debounceIds['saveAPICache'])
+
+        return window.customVariables.debounceIds['saveAPICache'] = setTimeout(async () => {
+            try{
+                let data = await workers.JSONStringifyWorker(window.customVariables.apiCache)
+
+                await workers.localforageSetItem("apiCache@" + window.customVariables.userEmail, data)
+
+                data = null
+            }
+            catch(e){
+                console.log(e)
+            }
+
+            return true
+        }, 3000)
     }
 
-    window.customFunctions.saveThumbnailCache = async (skipLengthCheck = false) => {
-        try{
-            await workers.localforageSetItem("thumbnailCache@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.thumbnailCache))
-        }
-        catch(e){
-            console.log(e)
+    window.customFunctions.saveThumbnailCache = () => {
+        return new Promise((resolve) => {
+            clearInterval(window.customVariables.debounceIds['saveThumbnailCache'])
 
-            return false
-        }
+            return window.customVariables.debounceIds['saveThumbnailCache'] = setTimeout(async () => {
+                try{
+                    let data = await workers.JSONStringifyWorker(window.customVariables.thumbnailCache)
 
-        return true
+                    await workers.localforageSetItem("thumbnailCache@" + window.customVariables.userEmail, data)
+
+                    data = null
+                }
+                catch(e){
+                    console.log(e)
+                }
+        
+                return resolve(true)
+            }, 3000)
+        })
     }
 
-    window.customFunctions.saveCachedItems = async () => {
-        try{
-            await workers.localforageSetItem("cachedFiles@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cachedFiles))
-            await workers.localforageSetItem("cachedFolders@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cachedFolders))
-            await workers.localforageSetItem("cachedMetadata@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cachedMetadata))
-        }
-        catch(e){
-            console.log(e)
+    window.customFunctions.saveCachedItems = () => {
+        return new Promise((resolve) => {
+            clearInterval(window.customVariables.debounceIds['saveCachedItems'])
 
-            return false
-        }
+            return window.customVariables.debounceIds['saveCachedItems'] = setTimeout(async () => {
+                try{
+                    let data1 = await workers.JSONStringifyWorker(window.customVariables.cachedFiles)
+                    let data2 = await workers.JSONStringifyWorker(window.customVariables.cachedFolders)
+                    let data3 = await workers.JSONStringifyWorker(window.customVariables.cachedMetadata)
 
-        return true
+                    await workers.localforageSetItem("cachedFiles@" + window.customVariables.userEmail, data1)
+                    await workers.localforageSetItem("cachedFolders@" + window.customVariables.userEmail, data2)
+                    await workers.localforageSetItem("cachedMetadata@" + window.customVariables.userEmail, data3)
+
+                    data1 = null
+                    data2 = null
+                    data3 = null
+                }
+                catch(e){
+                    console.log(e)
+                }
+        
+                return resolve(true)
+            }, 3000)
+        })
     }
 
-    window.customFunctions.saveFolderSizeCache = async () => {
-        try{
-            await workers.localforageSetItem("folderSizeCache@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.folderSizeCache))
-        }
-        catch(e){
-            console.log(e)
+    window.customFunctions.saveFolderSizeCache = () => {
+        return new Promise((resolve) => {
+            clearInterval(window.customVariables.debounceIds['saveFolderSizeCache'])
 
-            return false
-        }
+            return window.customVariables.debounceIds['saveFolderSizeCache'] = setTimeout(async () => {
+                try{
+                    let data = await workers.JSONStringifyWorker(window.customVariables.folderSizeCache)
 
-        return true
+                    await workers.localforageSetItem("folderSizeCache@" + window.customVariables.userEmail, data)
+
+                    data = null
+                }
+                catch(e){
+                    console.log(e)
+                }
+        
+                return resolve(true)
+            }, 3000)
+        })
     }
 
     window.customFunctions.dismissActionSheet = async (all = false) => {
@@ -2200,14 +2260,19 @@ export function setupWindowFunctions(){
             }
         }
 
-        await Storage.remove({ key: "userPublicKey" })
-        await Storage.remove({ key: "userPrivateKey" })
+        try{
+            await workers.localforageRemoveItem("userPublicKey")
+            await workers.localforageRemoveItem("userPrivateKey")
 
-        await Storage.set({ key: "isLoggedIn", value: "true" })
-        await Storage.set({ key: "userAPIKey", value: res.data.apiKey })
-        await Storage.set({ key: "userEmail", value: email })
-        await Storage.set({ key: "userMasterKeys", value: JSON.stringify([mKey]) })
-        await Storage.set({ key: "userAuthVersion", value: authVersion })
+            await workers.localforageSetItem("isLoggedIn", "true")
+            await workers.localforageSetItem("userAPIKey", res.data.apiKey)
+            await workers.localforageSetItem("userEmail", email)
+            await workers.localforageSetItem("userMasterKeys", await workers.JSONStringifyWorker([mKey]))
+            await workers.localforageSetItem("userAuthVersion", authVersion)
+        }
+        catch(e){
+            return console.log(e)
+        }
 
         return document.location.href = "index.html"
     }
@@ -2883,7 +2948,12 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.setLang = async (lang = "en") => {
-        await Storage.set({ key: "lang", value: lang })
+        try{
+            await workers.localforageSetItem("lang", lang)
+        }
+        catch(e){
+            return console.log(e)
+        }
 
         return document.location.href = "index.html"
     }
@@ -3171,48 +3241,58 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.settingsToggleDarkMode = async () => {
-        if(this.state.darkMode){
-            await Storage.set({ key: "darkMode", value: "false" })
-
-            document.getElementById("settings-dark-mode-toggle").checked = false
-
-            return this.setState({
-                darkMode: false
-            }, () => {
-                document.location.href = "index.html"
-            })
+        try{
+            if(this.state.darkMode){
+                await workers.localforageSetItem("darkMode", "false")
+    
+                document.getElementById("settings-dark-mode-toggle").checked = false
+    
+                return this.setState({
+                    darkMode: false
+                }, () => {
+                    document.location.href = "index.html"
+                })
+            }
+            else{
+                await workers.localforageSetItem("darkMode", "true")
+    
+                document.getElementById("settings-dark-mode-toggle").checked = true
+    
+                return this.setState({
+                    darkMode: true
+                }, () => {
+                    document.location.href = "index.html"
+                })
+            }
         }
-        else{
-            await Storage.set({ key: "darkMode", value: "true" })
-
-            document.getElementById("settings-dark-mode-toggle").checked = true
-
-            return this.setState({
-                darkMode: true
-            }, () => {
-                document.location.href = "index.html"
-            })
+        catch(e){
+            return console.log(e)
         }
     }
 
     window.customFunctions.loginToggleDarkMode = async () => {
-        if(this.state.darkMode){
-            await Storage.set({ key: "darkMode", value: "false" })
-
-            return this.setState({
-                darkMode: false
-            }, () => {
-                document.location.href = "index.html"
-            })
+        try{
+            if(this.state.darkMode){
+                await workers.localforageSetItem("darkMode", "false")
+    
+                return this.setState({
+                    darkMode: false
+                }, () => {
+                    document.location.href = "index.html"
+                })
+            }
+            else{
+                await workers.localforageSetItem("darkMode", "true")
+    
+                return this.setState({
+                    darkMode: true
+                }, () => {
+                    document.location.href = "index.html"
+                })
+            }
         }
-        else{
-            await Storage.set({ key: "darkMode", value: "true" })
-
-            return this.setState({
-                darkMode: true
-            }, () => {
-                document.location.href = "index.html"
-            })
+        catch(e){
+            return console.log(e)
         }
     }
 
@@ -3225,7 +3305,7 @@ export function setupWindowFunctions(){
 
                 window.customVariables.saveSettingsDebounce = setTimeout(async () => {
                     try{
-                        await Storage.set({ key: "settings@" + window.customVariables.userEmail, value: JSON.stringify(newSettings) })
+                        await workers.localforageSetItem("settings@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(newSettings))
                     }
                     catch(e){
                         console.log(e)
@@ -3291,12 +3371,12 @@ export function setupWindowFunctions(){
         loading.present()
 
         try{
-            await Storage.remove({ key: "isLoggedIn" })
-            await Storage.remove({ key: "userAPIKey" })
-            await Storage.remove({ key: "userEmail" })
-            await Storage.remove({ key: "userMasterKeys" })
-            await Storage.remove({ key: "userPublicKey" })
-            await Storage.remove({ key: "userPrivateKey" })
+            await workers.localforageRemoveItem("isLoggedIn")
+            await workers.localforageRemoveItem("userAPIKey")
+            await workers.localforageRemoveItem("userEmail")
+            await workers.localforageRemoveItem("userMasterKeys")
+            await workers.localforageRemoveItem("userPublicKey")
+            await workers.localforageRemoveItem("userPrivateKey")
         }
         catch(e){
             console.log(e)
@@ -3930,7 +4010,29 @@ export function setupWindowFunctions(){
 
                         loading.present()
 
-                        await workers.clearThumbnailsLocalforage()
+                        try{
+                            await new Promise((resolve, reject) => {
+                                window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory, (rootDirEntry) => {
+                                    rootDirEntry.getDirectory("thumbnailCache", {
+                                        create: true
+                                    }, (subDirEntry) => {
+                                        subDirEntry.removeRecursively(() => {
+                                            return resolve(true)
+                                        }, (err) => {
+                                            return reject(err)
+                                        })
+                                    }, (err) => {
+                    
+                                        return reject(err)
+                                    })                    
+                                }, (err) => {
+                                    return reject(err)
+                                })
+                            })
+                        }
+                        catch(e){
+                            console.log(e)
+                        }
 
                         window.customVariables.thumbnailCache = {}
                         window.customVariables.thumbnailBlobCache = {}
@@ -5527,7 +5629,12 @@ export function setupWindowFunctions(){
 
         let newKeys = this.state.userMasterKeys.join("|") + "|" + utils.hashFn(newPassword)
 
-        await Storage.set({ key: "userMasterKeys", value: JSON.stringify(newKeys.split("|")) })
+        try{
+            await workers.localforageSetItem("userMasterKeys", await workers.JSONStringifyWorker(newKeys.split("|")))
+        }
+        catch(e){
+            console.log(e)
+        }
 
         this.setState({
             userMasterKeys: newKeys.split("|")
@@ -5602,7 +5709,7 @@ export function setupWindowFunctions(){
 
                             window.customVariables.orderBy = "nameAsc"
                         }
-                        
+
                         window.customVariables.itemList = sortedItems
 
                         return this.setState({
@@ -5921,22 +6028,25 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openOfflineFile = async (item) => {
-        this.getDownloadDir(true, item.uuid, (err, dirObj) => {
-			if(err){
-				console.log(err)
+        window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory + "/offlineFiles/" + item.uuid, (resolved) => {
+            if(resolved.isFile){
+                FileOpener.open(resolved.nativeURL, item.mime).then(() => {
+                    console.log(resolved.nativeURL, item.mime)
+                }).catch((err) => {
+                    console.log(err)
+                    console.log(resolved.nativeURL, item.mime)
+    
+                    return this.spawnToast(language.get(this.state.lang, "noAppFoundToOpenFile", true, ["__NAME__"], [item.name]))
+                })
+            }
+            else{
+                return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
+            }
+        }, (err) => {
+            console.log(err)
 
-				return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
-			}
-
-			FileOpener.open(dirObj.uri.uri + "/" + item.name, item.mime).then(() => {
-				console.log(dirObj.uri.uri + "/" + item.name, item.mime)
-			}).catch((err) => {
-				console.log(err)
-				console.log(dirObj.uri.uri + "/" + item.name, item.mime)
-
-				return this.spawnToast(language.get(this.state.lang, "noAppFoundToOpenFile", true, ["__NAME__"], [item.name]))
-			})
-		})
+			return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
+        })
     }
 
     window.customFunctions.toggleCameraUploadEnabled = async () => {

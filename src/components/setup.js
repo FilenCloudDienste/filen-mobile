@@ -229,13 +229,6 @@ export async function setupStatusbar(type = "normal"){
 
 export async function doSetup(){
     try{
-        await Storage.migrate()
-    }
-    catch(e){
-        return console.log(e)
-    }
-
-    try{
         var networkStatus = await Network.getStatus()
     }
     catch(e){
@@ -254,6 +247,26 @@ export async function doSetup(){
             path: "FilenThumbnailCache/",
             directory: FilesystemDirectory.Documents
         })
+
+        dirObj.push({
+            path: "NoCloud/",
+            directory: FilesystemDirectory.Documents
+        })
+
+        dirObj.push({
+            path: "Filen Downloads/",
+            directory: FilesystemDirectory.Documents
+        })
+
+        dirObj.push({
+            path: "FilenOfflineFiles/",
+            directory: FilesystemDirectory.Documents
+        })
+
+        dirObj.push({
+            path: "Download/",
+            directory: FilesystemDirectory.Documents
+        })
     }
     else{
         dirObj.push({
@@ -263,6 +276,26 @@ export async function doSetup(){
 
         dirObj.push({
             path: "FilenThumbnailCache/",
+            directory: FilesystemDirectory.External
+        })
+
+        dirObj.push({
+            path: "NoCloud/",
+            directory: FilesystemDirectory.External
+        })
+
+        dirObj.push({
+            path: "Filen Downloads/",
+            directory: FilesystemDirectory.External
+        })
+
+        dirObj.push({
+            path: "Downloads/",
+            directory: FilesystemDirectory.External
+        })
+
+        dirObj.push({
+            path: "Download/",
             directory: FilesystemDirectory.External
         })
     }
@@ -281,25 +314,25 @@ export async function doSetup(){
     }
 
     try{
-        var getLang = await Storage.get({ key: "lang" })
-        var getDarkMode = await Storage.get({ key: "darkMode" })
+        var getLang = await workers.localforageGetItem("lang")
+        var getDarkMode = await workers.localforageGetItem("darkMode")
 
-        if(getLang.value){
+        if(getLang !== null){
             this.setState({
-                lang: getLang.value,
-                mainToolbarTitle: language.get(getLang.value, "cloudDrives")
+                lang: getLang,
+                mainToolbarTitle: language.get(getLang, "cloudDrives")
             }, () => {
                 this.forceUpdate()
             })
     
-            window.customVariables.lang = getLang.value
+            window.customVariables.lang = getLang
         }
         else{
             let deviceLang = await Device.getLanguageCode()
             let defaultLang = "en"
     
-            if(language.isAvailable(deviceLang.value)){
-                defaultLang = deviceLang.value
+            if(language.isAvailable(deviceLang)){
+                defaultLang = deviceLang
             }
     
             this.setState({
@@ -312,7 +345,7 @@ export async function doSetup(){
             window.customVariables.lang = defaultLang
         }
     
-        if(getDarkMode.value == null){
+        if(getDarkMode == null){
             document.body.classList.toggle("dark", true)
     
             this.setState({
@@ -322,7 +355,7 @@ export async function doSetup(){
             })
         }
         else{
-            if(getDarkMode.value == "true"){
+            if(getDarkMode == "true"){
                 document.body.classList.toggle("dark", true)
     
                 this.setState({
@@ -344,51 +377,51 @@ export async function doSetup(){
     
         this.setupStatusbar()
 
-        var getIsLoggedIn = await Storage.get({ key: "isLoggedIn" })
+        var getIsLoggedIn = await workers.localforageGetItem("isLoggedIn")
 
-        if(getIsLoggedIn.value == null){
+        if(getIsLoggedIn == null){
             return this.showLogin()
         }
         else{
-            if(getIsLoggedIn.value !== "true"){
+            if(getIsLoggedIn !== "true"){
                 return this.showLogin()
             }
         }
 
-        var getUserEmail = await Storage.get({ key: "userEmail" })
+        var getUserEmail = await workers.localforageGetItem("userEmail")
 
-        if(typeof getUserEmail.value !== "string"){
+        if(typeof getUserEmail !== "string"){
             return this.showLogin()
         }
 
-        window.customVariables.userEmail = getUserEmail.value
+        window.customVariables.userEmail = getUserEmail
 
-        var getUserAPIKey = await Storage.get({ key: "userAPIKey" })
-        var getUserMasterKeys = await Storage.get({ key: "userMasterKeys" })
-        var getUserPublicKey = await Storage.get({ key: "userPublicKey" })
-        var getUserPrivateKey = await Storage.get({ key: "userPrivateKey" })
-        var getSettings = await Storage.get({ key: "settings@" + getUserEmail.value })
+        var getUserAPIKey = await workers.localforageGetItem("userAPIKey")
+        var getUserMasterKeys = await workers.localforageGetItem("userMasterKeys")
+        var getUserPublicKey = await workers.localforageGetItem("userPublicKey")
+        var getUserPrivateKey = await workers.localforageGetItem("userPrivateKey")
+        var getSettings = await workers.localforageGetItem("settings@" + getUserEmail)
         
-        var getOfflineSavedFiles = await workers.localforageGetItem("offlineSavedFiles@" + getUserEmail.value)
-        var getAPICache = await workers.localforageGetItem("apiCache@" + getUserEmail.value)
-        var getCachedFiles = await workers.localforageGetItem("cachedFiles@" + getUserEmail.value)
-        var getCachedFolders = await workers.localforageGetItem("cachedFolders@" + getUserEmail.value)
-        var getCachedMetadata = await workers.localforageGetItem("cachedMetadata@" + getUserEmail.value)
-        var getThumbnailCache = await workers.localforageGetItem("thumbnailCache@" + getUserEmail.value)
-        var getGetThumbnailErrors = await workers.localforageGetItem("getThumbnailErrors@" + getUserEmail.value)
-        var getCachedAPIItemListRequests = await workers.localforageGetItem("cachedAPIItemListRequests@" + getUserEmail.value)
-        var getItemsCache = await workers.localforageGetItem("itemsCache@" + getUserEmail.value)
-        var getFolderSizeCache = await workers.localforageGetItem("folderSizeCache@" + getUserEmail.value)
+        var getOfflineSavedFiles = await workers.localforageGetItem("offlineSavedFiles@" + getUserEmail)
+        var getAPICache = await workers.localforageGetItem("apiCache@" + getUserEmail)
+        var getCachedFiles = await workers.localforageGetItem("cachedFiles@" + getUserEmail)
+        var getCachedFolders = await workers.localforageGetItem("cachedFolders@" + getUserEmail)
+        var getCachedMetadata = await workers.localforageGetItem("cachedMetadata@" + getUserEmail)
+        var getThumbnailCache = await workers.localforageGetItem("thumbnailCache@" + getUserEmail)
+        var getGetThumbnailErrors = await workers.localforageGetItem("getThumbnailErrors@" + getUserEmail)
+        var getCachedAPIItemListRequests = await workers.localforageGetItem("cachedAPIItemListRequests@" + getUserEmail)
+        var getItemsCache = await workers.localforageGetItem("itemsCache@" + getUserEmail)
+        var getFolderSizeCache = await workers.localforageGetItem("folderSizeCache@" + getUserEmail)
     }
     catch(e){
         return console.log(e)
     }
 
-    if(getIsLoggedIn.value == null){
+    if(getIsLoggedIn == null){
         return this.showLogin()
     }
     else{
-        if(getIsLoggedIn.value == "true"){
+        if(getIsLoggedIn == "true"){
             let settings = {
                 onlyWifi: false,
                 onlyWifiUploads: false,
@@ -410,8 +443,8 @@ export async function doSetup(){
                 }
             }
 
-            if(typeof getSettings.value == "string"){
-                settings = await workers.JSONParseWorker(getSettings.value)
+            if(typeof getSettings == "string"){
+                settings = await workers.JSONParseWorker(getSettings)
             }
 
             if(typeof settings.onlyWifi == "undefined"){
@@ -495,18 +528,18 @@ export async function doSetup(){
             }
 
             this.setState({
-                userAPIKey: getUserAPIKey.value,
-                userEmail: getUserEmail.value,
-                userMasterKeys: await workers.JSONParseWorker(getUserMasterKeys.value),
-                userPublicKey: getUserPublicKey.value,
-                userPrivateKey: getUserPrivateKey.value,
+                userAPIKey: getUserAPIKey,
+                userEmail: getUserEmail,
+                userMasterKeys: await workers.JSONParseWorker(getUserMasterKeys),
+                userPublicKey: getUserPublicKey,
+                userPrivateKey: getUserPrivateKey,
                 isLoggedIn: true,
                 settings: settings
             }, () => {
                 this.forceUpdate()
             })
 
-            window.customVariables.userMasterKeys = await workers.JSONParseWorker(getUserMasterKeys.value)
+            window.customVariables.userMasterKeys = await workers.JSONParseWorker(getUserMasterKeys)
 
             if(getOfflineSavedFiles == null){
                 window.customVariables.offlineSavedFiles = {}
@@ -572,7 +605,7 @@ export async function doSetup(){
             }
 
             try{
-                let getCameraUpload = await workers.localforageGetItem("cameraUpload@" + getUserEmail.value)
+                let getCameraUpload = await workers.localforageGetItem("cameraUpload@" + getUserEmail)
     
                 if(getCameraUpload){
                     window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload)
@@ -594,7 +627,7 @@ export async function doSetup(){
         }
     }
 
-    window.customVariables.apiKey = getUserAPIKey.value
+    window.customVariables.apiKey = getUserAPIKey
 
     window.customFunctions.updateHeightAndWidthState()
 

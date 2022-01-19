@@ -1,3 +1,5 @@
+const localforage = require("localforage")
+
 const cryptoJSString = `
 	;(function (root, factory) {
 	if (typeof exports === "object") {
@@ -6866,14 +6868,16 @@ function _tryReconnect(dbInfo) {
 // so we have to do it with callbacks
 function createTransaction(dbInfo, mode, callback, retries) {
     if (retries === undefined) {
-        retries = 1;
+        retries = 1024;
     }
 
     try {
         var tx = dbInfo.db.transaction(dbInfo.storeName, mode);
         callback(null, tx);
     } catch (err) {
-        if (retries > 0 && (!dbInfo.db || err.name === 'InvalidStateError' || err.name === 'NotFoundError')) {
+		console.log("ERROROROROROROROROR", err.toString().toLowerCase(), typeof err.toString().toLowerCase())
+
+        if (retries > 0 && (!dbInfo.db || err.name === 'InvalidStateError' || err.name === 'NotFoundError' || err.toString().toLowerCase().indexOf('server lost') !== -1)) {
             return Promise$1.resolve().then(function () {
                 if (!dbInfo.db || err.name === 'NotFoundError' && !dbInfo.db.objectStoreNames.contains(dbInfo.storeName) && dbInfo.version <= dbInfo.db.version) {
                     // increase the db version, to create the new ObjectStore
@@ -8884,6 +8888,249 @@ module.exports = localforage_js;
 });
 `
 
+const utilFunctionsString = `
+const convertUint8ArrayToBinaryString = (u8Array) => {
+	let i, len = u8Array.length, b_str = ""
+
+	for (i = 0; i < len; i++){
+		b_str += String.fromCharCode(u8Array[i])
+	}
+
+	return b_str
+}
+
+const generateRandomString = (length = 32) => {
+	return self.btoa(Array.from(nativeCrypto.getRandomValues(new Uint8Array(length * 2))).map((b) => String.fromCharCode(b)).join("")).replace(/[+/]/g, "").substring(0, length)
+}
+
+function base64ArrayBuffer(arrayBuffer) {
+	var base64    = ''
+	var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+	var bytes         = new Uint8Array(arrayBuffer)
+	var byteLength    = bytes.byteLength
+	var byteRemainder = byteLength % 3
+	var mainLength    = byteLength - byteRemainder
+
+	var a, b, c, d
+	var chunk
+
+	// Main loop deals with bytes in chunks of 3
+	for (var i = 0; i < mainLength; i = i + 3) {
+	// Combine the three bytes into a single integer
+	chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
+
+	// Use bitmasks to extract 6-bit segments from the triplet
+	a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
+	b = (chunk & 258048)   >> 12 // 258048   = (2^6 - 1) << 12
+	c = (chunk & 4032)     >>  6 // 4032     = (2^6 - 1) << 6
+	d = chunk & 63               // 63       = 2^6 - 1
+
+	// Convert the raw binary segments to the appropriate ASCII encoding
+	base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
+	}
+
+	// Deal with the remaining bytes and padding
+	if (byteRemainder == 1) {
+	chunk = bytes[mainLength]
+
+	a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
+
+	// Set the 4 least significant bits to zero
+	b = (chunk & 3)   << 4 // 3   = 2^2 - 1
+
+	base64 += encodings[a] + encodings[b] + '=='
+	} else if (byteRemainder == 2) {
+	chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
+
+	a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
+	b = (chunk & 1008)  >>  4 // 1008  = (2^6 - 1) << 4
+
+	// Set the 2 least significant bits to zero
+	c = (chunk & 15)    <<  2 // 15    = 2^4 - 1
+
+	base64 += encodings[a] + encodings[b] + encodings[c] + '='
+	}
+	
+	return base64
+}
+
+function convertWordArrayToUint8Array(wordArray) {
+	let arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : []
+	let length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4
+	let uInt8Array = new Uint8Array(length), index=0, word, i
+
+	for(i = 0; i < length; i++){
+		word = arrayOfWords[i]
+
+		uInt8Array[index++] = word >> 24
+		uInt8Array[index++] = (word >> 16) & 0xff
+		uInt8Array[index++] = (word >> 8) & 0xff
+		uInt8Array[index++] = word & 0xff
+	}
+
+	return uInt8Array
+}
+
+function base64ArrayBuffer(arrayBuffer) {
+  var base64    = ''
+  var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+  var bytes         = new Uint8Array(arrayBuffer)
+  var byteLength    = bytes.byteLength
+  var byteRemainder = byteLength % 3
+  var mainLength    = byteLength - byteRemainder
+
+  var a, b, c, d
+  var chunk
+
+  // Main loop deals with bytes in chunks of 3
+  for (var i = 0; i < mainLength; i = i + 3) {
+	// Combine the three bytes into a single integer
+	chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
+
+	// Use bitmasks to extract 6-bit segments from the triplet
+	a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
+	b = (chunk & 258048)   >> 12 // 258048   = (2^6 - 1) << 12
+	c = (chunk & 4032)     >>  6 // 4032     = (2^6 - 1) << 6
+	d = chunk & 63               // 63       = 2^6 - 1
+
+	// Convert the raw binary segments to the appropriate ASCII encoding
+	base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
+  }
+
+  // Deal with the remaining bytes and padding
+  if (byteRemainder == 1) {
+	chunk = bytes[mainLength]
+
+	a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
+
+	// Set the 4 least significant bits to zero
+	b = (chunk & 3)   << 4 // 3   = 2^2 - 1
+
+	base64 += encodings[a] + encodings[b] + '=='
+  } else if (byteRemainder == 2) {
+	chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
+
+	a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
+	b = (chunk & 1008)  >>  4 // 1008  = (2^6 - 1) << 4
+
+	// Set the 2 least significant bits to zero
+	c = (chunk & 15)    <<  2 // 15    = 2^4 - 1
+
+	base64 += encodings[a] + encodings[b] + encodings[c] + '='
+  }
+  
+  return base64
+}
+
+function _base64ToArrayBuffer(base64) {
+	var binary_string = self.atob(base64);
+	var len = binary_string.length;
+	var bytes = new Uint8Array(len);
+	for (var i = 0; i < len; i++) {
+		bytes[i] = binary_string.charCodeAt(i);
+	}
+	return bytes.buffer;
+}
+
+function buf2hex(buffer) { // buffer is an ArrayBuffer
+	return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+async function deriveKeyFromPassword (password, salt, iterations = 200000, hash = "SHA-512", bitLength = 512, returnHex = true){	
+	try{
+		var bits = await nativeCrypto.subtle.deriveBits({
+			name: "PBKDF2",
+			  salt: new TextEncoder().encode(salt),
+			  iterations: iterations,
+			  hash: {
+				name: hash
+			  }
+		}, await nativeCrypto.subtle.importKey("raw", new TextEncoder().encode(password), {
+			name: "PBKDF2"
+		}, false, ["deriveBits"]), bitLength)
+	}
+	catch(e){
+		throw new Error(e)
+	}
+  
+	if(returnHex){
+		  return buf2hex(bits)
+	}
+
+	return bits
+}
+
+function fetchWithTimeout(ms, promise) {
+	return new Promise((resolve, reject) => {
+		let timer = setTimeout(() => {
+			return reject(new Error("Request timeout after " + ms + "ms"))
+		}, ms)
+
+		promise.then((value) => {
+			clearTimeout(timer)
+			
+			return resolve(value)
+		}).catch((err) => {
+			clearTimeout(timer)
+
+			return reject(err)
+		})
+	})
+}
+
+function getOrientation(file, callback) {
+	var reader = new FileReader()
+
+	reader.onload = function(e){
+		var view = new DataView(e.target.result)
+
+		if(view.getUint16(0, false) != 0xFFD8){
+			return callback(-2)
+		}
+
+		var length = view.byteLength, offset = 2;
+
+		while (offset < length){
+			if (view.getUint16(offset+2, false) <= 8) return callback(-1);
+
+			var marker = view.getUint16(offset, false);
+			offset += 2;
+
+			if (marker == 0xFFE1){
+				if (view.getUint32(offset += 2, false) != 0x45786966) {
+					return callback(-1);
+				}
+
+				var little = view.getUint16(offset += 6, false) == 0x4949;
+
+				offset += view.getUint32(offset + 4, little);
+
+				var tags = view.getUint16(offset, little);
+
+				offset += 2;
+
+				for (var i = 0; i < tags; i++){
+					if (view.getUint16(offset + (i * 12), little) == 0x0112){
+						return callback(view.getUint16(offset + (i * 12) + 8, little));
+					}
+				}
+			}
+			else if ((marker & 0xFF00) != 0xFF00){
+				break;
+			}
+			else{ 
+				offset += view.getUint16(offset, false);
+			}
+		}
+
+		return callback(-1);
+	};
+	reader.readAsArrayBuffer(file);
+}
+`
+
 const uuidv4 = () => { // Public Domain/MIT
     let d = new Date().getTime();//Timestamp
     let d2 = (performance && performance.now && (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
@@ -8911,29 +9158,35 @@ const createWorker = () => {
 
 		` + cryptoJSString + `
 
+		` + utilFunctionsString + `
+
 		` + localforageString + `
 
 		try{
 			localforage.config({
-				name: "filen",
+				name: "filen_localForage",
 				version: 1.0,
-				size: (((1024 * 1024) * 1024) * 10),
+				size: (((1024 * 1024) * 1024) * 32),
 				storeName: "keyvaluepairs"
 			})
 		}
 		catch(e){
+			console.log(e)
+
 			try{
 				localforage.config({
-					name: "filen",
+					name: "filen_localForage",
 					version: 1.0,
 					size: (((1024 * 1024) * 1024) * 1),
 					storeName: "keyvaluepairs"
 				})
 			}
 			catch(e){
+				console.log(e)
+
 				try{
 					localforage.config({
-						name: "filen",
+						name: "filen_localForage",
 						version: 1.0,
 						size: ((1024 * 1024) * 100),
 						storeName: "keyvaluepairs"
@@ -8945,246 +9198,7 @@ const createWorker = () => {
 			}
 		}
 
-		const convertUint8ArrayToBinaryString = (u8Array) => {
-			let i, len = u8Array.length, b_str = ""
-
-			for (i = 0; i < len; i++){
-				b_str += String.fromCharCode(u8Array[i])
-			}
-
-			return b_str
-		}
-
-		const generateRandomString = (length = 32) => {
-		    return self.btoa(Array.from(nativeCrypto.getRandomValues(new Uint8Array(length * 2))).map((b) => String.fromCharCode(b)).join("")).replace(/[+/]/g, "").substring(0, length)
-		}
-
-		function base64ArrayBuffer(arrayBuffer) {
-			var base64    = ''
-			var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-
-			var bytes         = new Uint8Array(arrayBuffer)
-			var byteLength    = bytes.byteLength
-			var byteRemainder = byteLength % 3
-			var mainLength    = byteLength - byteRemainder
-
-			var a, b, c, d
-			var chunk
-
-			// Main loop deals with bytes in chunks of 3
-			for (var i = 0; i < mainLength; i = i + 3) {
-			// Combine the three bytes into a single integer
-			chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
-
-			// Use bitmasks to extract 6-bit segments from the triplet
-			a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
-			b = (chunk & 258048)   >> 12 // 258048   = (2^6 - 1) << 12
-			c = (chunk & 4032)     >>  6 // 4032     = (2^6 - 1) << 6
-			d = chunk & 63               // 63       = 2^6 - 1
-
-			// Convert the raw binary segments to the appropriate ASCII encoding
-			base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
-			}
-
-			// Deal with the remaining bytes and padding
-			if (byteRemainder == 1) {
-			chunk = bytes[mainLength]
-
-			a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
-
-			// Set the 4 least significant bits to zero
-			b = (chunk & 3)   << 4 // 3   = 2^2 - 1
-
-			base64 += encodings[a] + encodings[b] + '=='
-			} else if (byteRemainder == 2) {
-			chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
-
-			a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
-			b = (chunk & 1008)  >>  4 // 1008  = (2^6 - 1) << 4
-
-			// Set the 2 least significant bits to zero
-			c = (chunk & 15)    <<  2 // 15    = 2^4 - 1
-
-			base64 += encodings[a] + encodings[b] + encodings[c] + '='
-			}
-			
-			return base64
-		}
-
-		function convertWordArrayToUint8Array(wordArray) {
-			let arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : []
-			let length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4
-			let uInt8Array = new Uint8Array(length), index=0, word, i
-
-			for(i = 0; i < length; i++){
-				word = arrayOfWords[i]
-
-				uInt8Array[index++] = word >> 24
-				uInt8Array[index++] = (word >> 16) & 0xff
-				uInt8Array[index++] = (word >> 8) & 0xff
-				uInt8Array[index++] = word & 0xff
-			}
-
-			return uInt8Array
-		}
-
-		function base64ArrayBuffer(arrayBuffer) {
-		  var base64    = ''
-		  var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-
-		  var bytes         = new Uint8Array(arrayBuffer)
-		  var byteLength    = bytes.byteLength
-		  var byteRemainder = byteLength % 3
-		  var mainLength    = byteLength - byteRemainder
-
-		  var a, b, c, d
-		  var chunk
-
-		  // Main loop deals with bytes in chunks of 3
-		  for (var i = 0; i < mainLength; i = i + 3) {
-		    // Combine the three bytes into a single integer
-		    chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
-
-		    // Use bitmasks to extract 6-bit segments from the triplet
-		    a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
-		    b = (chunk & 258048)   >> 12 // 258048   = (2^6 - 1) << 12
-		    c = (chunk & 4032)     >>  6 // 4032     = (2^6 - 1) << 6
-		    d = chunk & 63               // 63       = 2^6 - 1
-
-		    // Convert the raw binary segments to the appropriate ASCII encoding
-		    base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
-		  }
-
-		  // Deal with the remaining bytes and padding
-		  if (byteRemainder == 1) {
-		    chunk = bytes[mainLength]
-
-		    a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
-
-		    // Set the 4 least significant bits to zero
-		    b = (chunk & 3)   << 4 // 3   = 2^2 - 1
-
-		    base64 += encodings[a] + encodings[b] + '=='
-		  } else if (byteRemainder == 2) {
-		    chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
-
-		    a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
-		    b = (chunk & 1008)  >>  4 // 1008  = (2^6 - 1) << 4
-
-		    // Set the 2 least significant bits to zero
-		    c = (chunk & 15)    <<  2 // 15    = 2^4 - 1
-
-		    base64 += encodings[a] + encodings[b] + encodings[c] + '='
-		  }
-		  
-		  return base64
-		}
-
-		function _base64ToArrayBuffer(base64) {
-			var binary_string = self.atob(base64);
-			var len = binary_string.length;
-			var bytes = new Uint8Array(len);
-			for (var i = 0; i < len; i++) {
-				bytes[i] = binary_string.charCodeAt(i);
-			}
-			return bytes.buffer;
-		}
-
-		function buf2hex(buffer) { // buffer is an ArrayBuffer
-			return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join('');
-		}
-
-		async function deriveKeyFromPassword (password, salt, iterations = 200000, hash = "SHA-512", bitLength = 512, returnHex = true){	
-			try{
-				var bits = await nativeCrypto.subtle.deriveBits({
-					name: "PBKDF2",
-				  	salt: new TextEncoder().encode(salt),
-				  	iterations: iterations,
-				  	hash: {
-						name: hash
-				  	}
-				}, await nativeCrypto.subtle.importKey("raw", new TextEncoder().encode(password), {
-					name: "PBKDF2"
-				}, false, ["deriveBits"]), bitLength)
-			}
-			catch(e){
-				throw new Error(e)
-			}
-		  
-			if(returnHex){
-			  	return buf2hex(bits)
-			}
-		
-			return bits
-		}
-
-		function fetchWithTimeout(ms, promise) {
-			return new Promise((resolve, reject) => {
-				let timer = setTimeout(() => {
-					return reject(new Error("Request timeout after " + ms + "ms"))
-				}, ms)
-		
-				promise.then((value) => {
-					clearTimeout(timer)
-					
-					return resolve(value)
-				}).catch((err) => {
-					clearTimeout(timer)
-		
-					return reject(err)
-				})
-			})
-		}
-
-		function getOrientation(file, callback) {
-			var reader = new FileReader()
-
-			reader.onload = function(e){
-				var view = new DataView(e.target.result)
-
-				if(view.getUint16(0, false) != 0xFFD8){
-					return callback(-2)
-				}
-
-				var length = view.byteLength, offset = 2;
-
-				while (offset < length){
-					if (view.getUint16(offset+2, false) <= 8) return callback(-1);
-
-					var marker = view.getUint16(offset, false);
-					offset += 2;
-
-					if (marker == 0xFFE1){
-						if (view.getUint32(offset += 2, false) != 0x45786966) {
-							return callback(-1);
-						}
-		
-						var little = view.getUint16(offset += 6, false) == 0x4949;
-
-						offset += view.getUint32(offset + 4, little);
-
-						var tags = view.getUint16(offset, little);
-
-						offset += 2;
-
-						for (var i = 0; i < tags; i++){
-							if (view.getUint16(offset + (i * 12), little) == 0x0112){
-								return callback(view.getUint16(offset + (i * 12) + 8, little));
-							}
-						}
-					}
-					else if ((marker & 0xFF00) != 0xFF00){
-						break;
-					}
-					else{ 
-						offset += view.getUint16(offset, false);
-					}
-				}
-
-				return callback(-1);
-			};
-			reader.readAsArrayBuffer(file);
-		}
+		localforage.ready()
 
 		onmessage = async (e) => {
 			switch(e.data.type){
@@ -9195,29 +9209,45 @@ const createWorker = () => {
 						var metadataVersion = e.data.version
 					}
 					catch(err){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							err: err.toString()
 						})
+
+						e = null
+
+						return true
 					}
 
 					if(metadataVersion == 1){ //old deprecated
 						try{
 							var enc = CryptoJS.AES.encrypt(data, key).toString()
 
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								data: enc
 							})
+
+							e = null
+							data = null
+							key = null
+
+							return true
 						}
 						catch(err){
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+
+							e = null
+							data = null
+							key = null
+
+							return true
 						}
 					}
 					else if(metadataVersion == 2){
@@ -9234,18 +9264,34 @@ const createWorker = () => {
 
 							var enc = "002" + iv + base64ArrayBuffer(new Uint8Array(encrypted))
 
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								data: enc
 							})
+
+							e = null
+							data = null
+							key = null
+							iv = null
+							string = null
+							encrypted = null
+							enc = null
+
+							return true
 						}
 						catch(err){
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+
+							e = null
+							data = null
+							key = null
+
+							return true
 						}
 					}
 				break
@@ -9256,29 +9302,49 @@ const createWorker = () => {
 						var sliced = data.slice(0, 8)
 					}
 					catch(err){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							err: err.toString()
 						})
+
+						e = null
+
+						return true
 					}
 
 					if(sliced == "U2FsdGVk"){ //old deprecated
 						try{
 							var dec = CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8)
 
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								data: dec
 							})
+
+							e = null
+							data = null
+							key = null
+							sliced = null
+							dec = null
+
+							return true
 						}
 						catch(err){
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+
+							e = null
+							data = null
+							key = null
+							sliced = null
+							err = null
+
+							return true
 						}
 					}
 					else{
@@ -9296,32 +9362,62 @@ const createWorker = () => {
 									iv
 								}, await nativeCrypto.subtle.importKey("raw", key, "AES-GCM", false, ["decrypt"]), encrypted)
 
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									data: new TextDecoder().decode(new Uint8Array(decrypted))
 								})
+
+								e = null
+								data = null
+								key = null
+								sliced = null
+								key = null
+								iv = null
+								encrypted = null
+								decrypted = null
+								version = null
+
+								return true
 							}
 							catch(err){
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									err: err.toString()
 								})
+
+								e = null
+								data = null
+								key = null
+								sliced = null
+								version = null
+								err = null
+
+								return true
 							}
 						}
 						else{
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: "invalid version"
 							})
+
+							e = null
+							data = null
+							key = null
+							sliced = null
+							version = null
+							err = null
+
+							return true
 						}
 					}
 				break
 				case "encryptData":
 					if(typeof e.data.data == "undefined"){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							uuid: e.data.uuid,
@@ -9329,10 +9425,14 @@ const createWorker = () => {
 							data: "",
 							version: e.data.version
 						})
+
+						e = null
+
+						return true
 					}
 		
 					if(typeof e.data.data.byteLength == "undefined"){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							uuid: e.data.uuid,
@@ -9340,10 +9440,14 @@ const createWorker = () => {
 							data: "",
 							version: e.data.version
 						})
+
+						e = null
+
+						return true
 					}
 		
 					if(e.data.data.byteLength == 0){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							uuid: e.data.uuid,
@@ -9351,6 +9455,10 @@ const createWorker = () => {
 							data: "",
 							version: e.data.version
 						})
+
+						e = null
+
+						return true
 					}
 		
 					var preKey = new TextEncoder().encode(e.data.key)
@@ -9363,7 +9471,7 @@ const createWorker = () => {
 								name: "AES-CBC",
 								iv: iv
 							}, key, e.data.data).then((encrypted) => {
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									uuid: e.data.uuid,
@@ -9371,19 +9479,36 @@ const createWorker = () => {
 									data: convertUint8ArrayToBinaryString(new Uint8Array(encrypted)),
 									version: e.data.version
 								})
+
+								e = null
+								preKey = null
+
+								return true
 							}).catch((err) => {
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									err: err.toString()
 								})
+
+								e = null
+								preKey = null
+								err = null
+
+								return true
 							})
 						}).catch((err) => {
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+
+							e = null
+							preKey = null
+							err = null
+
+							return true
 						})
 					}
 					else if(e.data.version == 2){
@@ -9394,7 +9519,7 @@ const createWorker = () => {
 								name: "AES-GCM",
 								iv: new TextEncoder().encode(iv)
 							}, key, e.data.data).then((encrypted) => {
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									uuid: e.data.uuid,
@@ -9402,19 +9527,39 @@ const createWorker = () => {
 									data: iv + convertUint8ArrayToBinaryString(new Uint8Array(encrypted)),
 									version: e.data.version
 								})
+
+								e = null
+								preKey = null
+								iv = null
+
+								return true
 							}).catch((err) => {
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									err: err.toString()
 								})
+
+								e = null
+								preKey = null
+								iv = null
+								err = null
+
+								return true
 							})
 						}).catch((err) => {
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+
+							e = null
+							preKey = null
+							iv = null
+							err = null
+
+							return true
 						})
 					}
 				break
@@ -9425,10 +9570,10 @@ const createWorker = () => {
 						var iv = preKey.slice(0, 16)
 
 						nativeCrypto.subtle.importKey("raw", preKey, "AES-CBC", false, ["decrypt"]).then((genKey) => {
-							let sliced = convertUint8ArrayToBinaryString(new Uint8Array(e.data.data.slice(0, 16)))
+							var sliced = convertUint8ArrayToBinaryString(new Uint8Array(e.data.data.slice(0, 16)))
 
 							if(sliced.indexOf("Salted") !== -1){
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									uuid: e.data.uuid,
@@ -9436,9 +9581,16 @@ const createWorker = () => {
 									data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(base64ArrayBuffer(e.data.data), e.data.key)),
 									version: e.data.version
 								})
+
+								e = null
+								preKey = null
+								iv = null
+								sliced = null
+
+								return true
 							}
 							else if(sliced.indexOf("U2FsdGVk") !== -1){
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									uuid: e.data.uuid,
@@ -9446,13 +9598,20 @@ const createWorker = () => {
 									data: convertWordArrayToUint8Array(CryptoJS.AES.decrypt(convertUint8ArrayToBinaryString(new Uint8Array(e.data.data)), e.data.key)),
 									version: e.data.version
 								})
+
+								e = null
+								preKey = null
+								iv = null
+								sliced = null
+
+								return true
 							}
 							else{
 								nativeCrypto.subtle.decrypt({
 									name: "AES-CBC",
 									iv: iv
 								}, genKey, e.data.data).then((decrypted) => {
-									return postMessage({
+									postMessage({
 										id: e.data.id,
 										type: e.data.type,
 										uuid: e.data.uuid,
@@ -9460,20 +9619,42 @@ const createWorker = () => {
 										data: new Uint8Array(decrypted),
 										version: e.data.version
 									})
+
+									e = null
+									preKey = null
+									iv = null
+									sliced = null
+
+									return true
 								}).catch((err) => {
-									return postMessage({
+									postMessage({
 										id: e.data.id,
 										type: e.data.type,
 										err: err.toString()
 									})
+
+									e = null
+									preKey = null
+									iv = null
+									sliced = null
+									err = null
+
+									return true
 								})
 							}
 						}).catch((err) => {
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+
+							e = null
+							preKey = null
+							err = null
+							iv = null
+
+							return true
 						})
 					}
 					else if(e.data.version == 2){
@@ -9485,7 +9666,7 @@ const createWorker = () => {
 								name: "AES-GCM",
 								iv: iv
 							}, genKey, encData).then((decrypted) => {
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									uuid: e.data.uuid,
@@ -9493,182 +9674,382 @@ const createWorker = () => {
 									data: new Uint8Array(decrypted),
 									version: e.data.version
 								})
+
+								e = null
+								iv = null
+								preKey = null
+								encData = null
+
+								return true
 							}).catch((err) => {
-								return postMessage({
+								postMessage({
 									id: e.data.id,
 									type: e.data.type,
 									err: err.toString()
 								})
+
+								e = null
+								iv = null
+								preKey = null
+								encData = null
+								err = null
+
+								return true
 							})
 						}).catch((err) => {
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+
+							e = null
+							iv = null
+							preKey = null
+							encData = null
+							err = null
+
+							return true
 						})
 					}
 				break
 				case "arrayBufferToBase64":
-					return postMessage({
+					var data = base64ArrayBuffer(e.data.data)
+
+					postMessage({
 						id: e.data.id,
 						type: e.data.type,
-						data: base64ArrayBuffer(e.data.data)
+						data: data
 					})
+
+					e = null
+					data = null
+
+					return true
 				break
 				case "base64ToArrayBuffer":
-					return postMessage({
+					var data = _base64ToArrayBuffer(e.data.data)
+
+					postMessage({
 						id: e.data.id,
 						type: e.data.type,
-						data: _base64ToArrayBuffer(e.data.data)
+						data: data
 					})
+
+					e = null
+					data = null
+
+					return true
 				break
 				case "JSONParse":
-					return postMessage({
+					var json = JSON.parse(e.data.data)
+
+					postMessage({
 						id: e.data.id,
 						type: e.data.type,
-						data: JSON.parse(e.data.data)
+						data: json
 					})
+
+					e = null
+					json = null
+
+					return true
 				break
 				case "JSONStringify":
-					return postMessage({
+					var json = JSON.stringify(e.data.data)
+
+					postMessage({
 						id: e.data.id,
 						type: e.data.type,
-						data: JSON.stringify(e.data.data)
+						data: json
 					})
+
+					e = null
+					json = null
+
+					return true
 				break
 				case "JSONStringifyLength":
-					return postMessage({
+					var json = JSON.stringify(e.data.data).length
+
+					postMessage({
 						id: e.data.id,
 						type: e.data.type,
-						data: JSON.stringify(e.data.data).length
+						data: json
 					})
+
+					e = null
+					json = null
+
+					return true
 				break
 				case "fetchWithTimeoutJSON":
 					fetchWithTimeout(e.data.timeout, fetch(e.data.url, e.data.options)).then((response) => {
 						response.json().then((obj) => {
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								data: obj
 							})
+	
+							response = null
+							e = null
+							obj = null
+	
+							return true
 						}).catch((err) => {
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+	
+							err = null
+							e = null
+							response = null
+	
+							return true
 						})
 					}).catch((err) => {
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							err: err.toString()
 						})
+
+						err = null
+						e = null
+
+						return true
 					})
 				break
 				case "fetchWithTimeoutDownload":
 					fetchWithTimeout(e.data.timeout, fetch(e.data.url, e.data.options)).then((response) => {
 						if(response.status !== 200){
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: "http status not 200"
 							})
+
+							response = null
+							e = null
+
+							return true
 						}
 
 						response.arrayBuffer().then((ab) => {
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								data: ab
 							})
+
+							response = null
+							ab = null
+							e = null
+
+							return true
 						}).catch((err) => {
-							return postMessage({
+							postMessage({
 								id: e.data.id,
 								type: e.data.type,
 								err: err.toString()
 							})
+
+							response = null
+							err = null
+							e = null
+
+							return true
 						})
 					}).catch((err) => {
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							err: err.toString()
 						})
+
+						err = null
+						e = null
+
+						return true
 					})
 				break
 				case "newBlob":
 					try{
-						return postMessage({
+						var blob = new Blob([e.data.data], e.data.options)
+
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							data: new Blob([e.data.data], e.data.options)
+							data: blob
 						})
+
+						e = null
+						blob = null
+
+						return true
 					}
 					catch(err){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							err
 						})
+
+						 e = null
+
+						return true
 					}
 				break
 				case "newFile":
 					try{
-						return postMessage({
+						var file = new File([e.data.data], e.data.options)
+
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							data: new File([e.data.data], e.data.options)
+							data: file
 						})
+
+						e = null
+						file = null
+
+						return true
 					}
 					catch(err){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							err
 						})
+
+						 e = null
+
+						return true
+					}
+				break
+				case "getExifOrientation":
+					getOrientation(e.data.file, (orientation) => {
+						postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							data: orientation
+						})
+
+						 e = null
+						 orientation = null
+
+						return true
+					})
+				break
+				case "createObjectURL":
+					postMessage({
+						id: e.data.id,
+						type: e.data.type,
+						data: (window.URL || window.webkitURL).createObjectURL(e.data.data)
+					})
+
+					e = null
+
+					return true
+				break
+				case "revokeObjectURL":
+					(window.URL || window.webkitURL).revokeObjectURL(e.data.data)
+
+					postMessage({
+						id: e.data.id,
+						type: e.data.type,
+						data: true
+					})
+
+					e = null
+
+					return true
+				break
+				case "localforageRemoveItem":
+					try{
+						await localforage.removeItem(e.data.key)
+
+						postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							data: true
+						})
+
+						e = null
+
+						return true
+					}
+					catch(err){
+						postMessage({
+							id: e.data.id,
+							type: e.data.type,
+							err: err.toString()
+						})
+
+						e = null
+
+						return true
 					}
 				break
 				case "localforageSetItem":
 					try{
 						await localforage.setItem(e.data.key, e.data.data)
 
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
-							data: e.data.data
+							data: true
 						})
+
+						e = null
+
+						return true
 					}
 					catch(err){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							err: err.toString()
 						})
+
+						e = null
+
+						return true
 					}
 				break
 				case "localforageGetItem":
 					try{
 						let data = await localforage.getItem(e.data.key)
 
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							data: data
 						})
+
+						data = null
+						e = null
+
+						return true
 					}
 					catch(err){
-						return postMessage({
+						postMessage({
 							id: e.data.id,
 							type: e.data.type,
 							err: err.toString()
 						})
+
+						e = null
+
+						return true
 					}
 				break
-				case "clearThumbnailsLocalforage":
+				case "clearLocalForageKeys":
 					localforage.iterate((value, key, iterationNumber) => {
-						if(key.indexOf("thumbnail:") !== -1){
+						if(key.indexOf(e.data.term) !== -1){
 							localforage.removeItem(key)
 						}
 					}).then(() => {
@@ -9685,32 +10066,11 @@ const createWorker = () => {
 						})
 					})
 				break
-				case "getExifOrientation":
-					getOrientation(e.data.file, (orientation) => {
-						return postMessage({
-							id: e.data.id,
-							type: e.data.type,
-							data: orientation
-						})
-					})
-				break
-				case "createObjectURL":
-					return postMessage({
-						id: e.data.id,
-						type: e.data.type,
-						data: (window.URL || window.webkitURL).createObjectURL(e.data.data)
-					})
-				break
-				case "revokeObjectURL":
-					(window.URL || window.webkitURL).revokeObjectURL(e.data.data)
-
-					return postMessage({
-						id: e.data.id,
-						type: e.data.type,
-						data: true
-					})
-				break
 			}
+
+			delete e
+
+			return false
 		}
   	`], {
   		type: "text/javascript"
@@ -9719,7 +10079,25 @@ const createWorker = () => {
   	return new Worker((window.URL || window.webkitURL).createObjectURL(blob))
 }
 
-let cpuCount = window.navigator.hardwareConcurrency || 8
+const workerOnMessage = (e) => {
+	if(!workerCallbacks[e.data.id]){
+		console.log("Worker call " + e.data.id + " has no callback defined.")
+	}
+	else{
+		if(e.data.err){
+			workerCallbacks[e.data.id](e.data.err)
+		}
+		else{
+			workerCallbacks[e.data.id](null, e.data)
+		}
+
+		delete workerCallbacks[e.data.id]
+
+		return true
+	}
+}
+
+let cpuCount = 8
 let workers = []
 
 for(let i = 0; i < cpuCount; i++){
@@ -9730,23 +10108,7 @@ let workerCallbacks = {}
 let workerNextCallId = 0
 
 for(let i = 0; i < workers.length; i++){
-	workers[i].onmessage = (e) => {
-		if(!workerCallbacks[e.data.id]){
-			console.log("Worker call " + e.data.id + " has no callback defined.")
-		}
-		else{
-			if(e.data.err){
-				workerCallbacks[e.data.id](e.data.err)
-			}
-			else{
-				workerCallbacks[e.data.id](null, e.data)
-			}
-	
-			delete workerCallbacks[e.data.id]
-	
-			return true
-		}
-	}
+	workers[i].onmessage = workerOnMessage
 }
 
 module.exports = {
@@ -9764,11 +10126,17 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "createObjectURL",
 				id,
 				data: blob
 			})
+
+			 id = null
+			 blob = null
+			 worker = null
+
+			return true
 		})
 	},
 	revokeObjectURL: (blob) => {
@@ -9785,11 +10153,17 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "revokeObjectURL",
 				id,
 				data: blob
 			})
+
+			 id = null
+			 blob = null
+			 worker = null
+
+			return true
 		})
 	},
 	getExifOrientation: (blob) => {
@@ -9806,92 +10180,127 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "getExifOrientation",
 				id,
 				file: blob
 			})
+
+			 id=null
+			 blob=null
+			 worker=null
+
+			return true
 		})
 	},
-	clearThumbnailsLocalforage: () => {
+	clearLocalForageKeys: (term) => {
 		return new Promise((resolve, reject) => {
-			window.customVariables.localforageSetSemaphore.acquire().then(() => {
-				let id = workerNextCallId++
+			let id = workerNextCallId++
 
-				workerCallbacks[id] = (err, data) => {
-					window.customVariables.localforageSetSemaphore.release()
-					
-					if(err){
-						return reject(err)
-					}
-
-					return resolve(data.data)
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
 				}
 
-				let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
-			
-				return worker.postMessage({
-					type: "clearThumbnailsLocalforage",
-					id
-				})
-			}).catch((err) => {
-				return resolve(err)
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			worker.postMessage({
+				type: "clearLocalForageKeys",
+				id,
+				term
 			})
+
+			 id = null
+			 term = null
+			 worker = null
+
+			return true
+		})
+	},
+	localforageRemoveItem: (key) => {
+		return new Promise((resolve, reject) => {
+			let id = workerNextCallId++
+
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
+				}
+
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			worker.postMessage({
+				type: "localforageRemoveItem",
+				id,
+				key
+			})
+
+			 id = null
+			 key = null
+			 worker = null
+
+			return true
 		})
 	},
 	localforageSetItem: (key, data) => {
 		return new Promise((resolve, reject) => {
-			window.customVariables.localforageSetSemaphore.acquire().then(() => {
-				let id = workerNextCallId++
+			let id = workerNextCallId++
 
-				workerCallbacks[id] = (err, data) => {
-					window.customVariables.localforageSetSemaphore.release()
-
-					if(err){
-						return reject(err)
-					}
-
-					return resolve(data.data)
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
 				}
 
-				let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
-			
-				return worker.postMessage({
-					type: "localforageSetItem",
-					id,
-					key,
-					data
-				})
-			}).catch((err) => {
-				return resolve(err)
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+		
+			worker.postMessage({
+				type: "localforageSetItem",
+				id,
+				key,
+				data
 			})
+
+			 data = null
+			 key = null
+			 id = null
+			 worker = null
+
+			return true
 		})
 	},
 	localforageGetItem: (key) => {
 		return new Promise((resolve, reject) => {
-			window.customVariables.localforageSetSemaphore.acquire().then(() => {
-				let id = workerNextCallId++
+			let id = workerNextCallId++
 
-				workerCallbacks[id] = (err, data) => {
-					window.customVariables.localforageSetSemaphore.release()
-
-					if(err){
-						return reject(err)
-					}
-
-					return resolve(data.data)
+			workerCallbacks[id] = (err, data) => {
+				if(err){
+					return reject(err)
 				}
 
-				let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
-			
-				return worker.postMessage({
-					type: "localforageGetItem",
-					id,
-					key
-				})
-			}).catch((err) => {
-				return resolve(err)
+				return resolve(data.data)
+			}
+
+			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
+
+			worker.postMessage({
+				type: "localforageGetItem",
+				id,
+				key
 			})
+
+			 id = null
+			 key = null
+			 worker = null
+
+			return true
 		})
 	},
 	newBlob: (data, options) => {
@@ -9908,12 +10317,19 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "newBlob",
 				id,
 				data,
 				options
 			})
+
+			 id = null
+			 data = null
+			 options = null
+			 worker = null
+
+			return true
 		})
 	},
 	newFile: (data, options) => {
@@ -9930,12 +10346,19 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "newFile",
 				id,
 				data,
 				options
 			})
+
+			 id = null
+			 data = null
+			 options = null
+			 worker = null
+
+			return true
 		})
 	},
 	fetchWithTimeoutDownloadWorker: (url, options, timeout) => {
@@ -9952,13 +10375,21 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "fetchWithTimeoutDownload",
 				id,
 				url,
 				options,
 				timeout
 			})
+
+			 id=null
+			 url=null
+			 options=null
+			 timeout=null
+			 worker=null
+
+			return true
 		})
 	},
 	fetchWithTimeoutJSONWorker: (url, options, timeout) => {
@@ -9975,13 +10406,21 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "fetchWithTimeoutJSON",
 				id,
 				url,
 				options,
 				timeout
 			})
+
+			 id =null
+			 url=null
+			 options=null
+			 timeout=null
+			 worker=null
+
+			return true
 		})
 	},
 	decryptMetadataWorker: (data, key) => {
@@ -9998,12 +10437,19 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "decryptMetadata",
 				id,
 				data,
 				key
 			})
+
+			id = null
+			data = null
+			key = null
+			worker = null
+
+			return true
 		})
 	},
 	encryptMetadataWorker: (data, key, version) => {
@@ -10020,13 +10466,21 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "encryptMetadata",
 				id,
 				data,
 				key,
 				version
 			})
+
+			id = null
+			data = null
+			key = null
+			version = null
+			worker = null
+
+			return true
 		})
 	},
     encryptData: (uuid, index, key, data, version, callback) => {
@@ -10042,7 +10496,7 @@ module.exports = {
 
 		let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 
-        return worker.postMessage({
+        worker.postMessage({
             id,
 			type: "encryptData",
 			uuid,
@@ -10051,6 +10505,16 @@ module.exports = {
             data,
 			version
         })
+
+		id = null
+		uuid = null
+		index = null
+		key = null
+		data = null
+		version = null
+		worker = null
+
+		return true
     },
     decryptData: (uuid, index, key, data, version, callback) => {
 		let id = workerNextCallId++
@@ -10065,7 +10529,7 @@ module.exports = {
 
 		let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 
-        return worker.postMessage({
+        worker.postMessage({
 			id,
 			type: "decryptData",
             uuid,
@@ -10074,6 +10538,16 @@ module.exports = {
             data,
 			version
         })
+
+		id = null
+		uuid = null
+		index = null
+		key = null
+		data = null
+		version = null
+		worker = null
+
+		return true
     },
     convertArrayBufferToBase64: (data, callback) => {
 		let id = workerNextCallId++
@@ -10088,11 +10562,17 @@ module.exports = {
 
 		let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
     
-        return worker.postMessage({
+        worker.postMessage({
             type: "arrayBufferToBase64",
             id,
             data
         })
+
+		 id=null
+		 data=null
+		 worker=null
+
+		return true
 	},
 	convertBase64ToArrayBuffer: (data, callback) => {
         let id = workerNextCallId++
@@ -10107,11 +10587,17 @@ module.exports = {
 
 		let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
     
-        return worker.postMessage({
+        worker.postMessage({
             type: "base64ToArrayBuffer",
             id,
             data
         })
+
+		id = null
+		data = null
+		worker = null
+
+		return true
     },
 	JSONStringifyLengthWorker: (data) => {
 		return new Promise((resolve, reject) => {
@@ -10127,11 +10613,17 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "JSONStringifyLength",
 				id,
 				data
 			})
+
+			id = null
+			data = null
+			worker = null
+
+			return true
 		})
 	},
 	JSONStringifyWorker: (data) => {
@@ -10148,11 +10640,17 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "JSONStringify",
 				id,
 				data
 			})
+
+			id = null
+			data = null
+			worker = null
+
+			return true
 		})
 	},
 	JSONParseWorker: (data) => {
@@ -10169,11 +10667,17 @@ module.exports = {
 
 			let worker = workers[getRandomArbitrary(0, (workers.length - 1))]
 		
-			return worker.postMessage({
+			worker.postMessage({
 				type: "JSONParse",
 				id,
 				data
 			})
+
+			id = null
+			data = null
+			worker = null
+
+			return true
 		})
 	}
 }

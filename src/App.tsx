@@ -77,7 +77,8 @@ interface AppStates {
 	cachedUserInfo: any,
 	authShowing: boolean,
 	networkStatus: any,
-	isDeviceOnline: boolean
+	isDeviceOnline: boolean,
+	itemListChangeCounter: number
 }
 
 export default class App extends React.PureComponent<{}, AppStates> {
@@ -154,7 +155,8 @@ export default class App extends React.PureComponent<{}, AppStates> {
 				connected: true,
 				connectionType: "wifi"
 			},
-			isDeviceOnline: true
+			isDeviceOnline: true,
+			itemListChangeCounter: 0
 		}
 
 		this.componentDidMount = this.componentDidMount.bind(this)
@@ -211,7 +213,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 	downloadSelectedItems = itemsComponents.downloadSelectedItems.bind(this)
 	shareSelectedItems = itemsComponents.shareSelectedItems.bind(this)
 	storeSelectedItemsOffline = itemsComponents.storeSelectedItemsOffline.bind(this)
-	getFileThumbnail = itemsComponents.getFileThumbnail.bind(this)
+	getFileThumbnail = downloadComponents.getFileThumbnail.bind(this)
 	colorItem = itemsComponents.colorItem.bind(this)
 	favoriteItem = itemsComponents.favoriteItem.bind(this)
 	favoriteItemRequest = itemsComponents.favoriteItemRequest.bind(this)
@@ -242,6 +244,7 @@ export default class App extends React.PureComponent<{}, AppStates> {
 
 	openSettingsModal = settingsComponents.openSettingsModal.bind(this)
 
+	rowRenderer = renderComponents.rowRenderer.bind(this)
     render = renderComponents.render.bind(this)
 
 	componentDidMount(){

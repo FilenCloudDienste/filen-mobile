@@ -26,347 +26,418 @@ import { routeTo } from './router';
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 
-export function render(){
-    let showShareLinks = (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0)
+export function rowRenderer({ index, style }){
+    if(this.state.settings.gridModeEnabled){
+        let startFromIndex = 0
+        let gridItemsPerRow = 2
+        let indexesToLoop = []
 
-    const rowRenderer = ({ index, style }) => {
-        if(this.state.settings.gridModeEnabled){
-            let startFromIndex = 0
-            let gridItemsPerRow = 2
-            let indexesToLoop = []
-
-            if(this.state.itemList.length == 1){
-                indexesToLoop = [0]
-            }
-            else{
-                if(index > 0){
-                    startFromIndex = (index * gridItemsPerRow)
-                }
-    
-                for(let i = startFromIndex; i < (gridItemsPerRow + startFromIndex); i++){
-                    indexesToLoop.push(i)
-                }
-            }
-
-            indexesToLoop.filter((el) => {
-                if(typeof this.state.itemList[el] == "undefined"){
-                    return false
-                }
-
-                return true
-            }).map((index) => {
-                this.genThumbnail(index)
-            })
-
-            return (
-                <IonItem key={index} style={style} className="background-transparent full-width">
-                    <div style={{
-                        width: "100%",
-                        height: this.state.gridItemHeight,
-                        display: "flex"
-                    }}>
-                        {
-                            indexesToLoop.filter((el) => {
-                                if(typeof this.state.itemList[el] == "undefined"){
-                                    return false
-                                }
-
-                                return true
-                            }).map((currentIndex) => {
-                                return (
-                                    <Hammer key={currentIndex} onPress={() => this.selectItem(true, currentIndex)} options={{
-                                        recognizers: {
-                                            press: {
-                                                time: 500,
-                                                threshold: 500
-                                            }
-                                        }
-                                    }} >
-                                        <div style={{
-                                            width: this.state.gridItemWidth,
-                                            marginRight: "10px",
-                                            marginBottom: "10px",
-                                            background: (this.state.darkMode ? "transparent" : "transparent"),
-                                            borderRadius: "5px",
-                                            border: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
-                                        }}>
-                                            <div style={{
-                                                width: "100%",
-                                                height: this.state.gridItemHeight - 45 + "px",
-                                                padding: "0px",
-                                                backgroundClip: "content-box",
-                                                zIndex: "101"
-                                            }} onClick={() => {
-                                                if(this.state.itemList[currentIndex].selected){
-                                                    if(this.state.selectedItems > 0){
-                                                        this.selectItem(false, currentIndex)
-                                                    }
-                                                    else{
-                                                        this.selectItem(true, currentIndex)
-                                                    }
-                                                }
-                                                else{
-                                                    if(this.state.selectedItems > 0){
-                                                        this.selectItem(true, currentIndex)
-                                                    }
-                                                    else{
-                                                        this.state.itemList[currentIndex].type == "file" ? this.previewItem(this.state.itemList[currentIndex]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[currentIndex], currentIndex, window.location.href.split("/").slice(-1)[0])
-                                                    }
-                                                }
-                                            } }>
-                                                {
-                                                    this.state.itemList[currentIndex].type == "folder" ? (
-                                                        <div style={{
-                                                            width: "100%",
-                                                            height: "100%",
-                                                            backgroundColor: "transparent",
-                                                            lineHeight: this.state.gridItemHeight - 45 + "px",
-                                                            textAlign: "center",
-                                                            border: "none",
-                                                            borderRadius: "0px",
-                                                            outline: "none",
-                                                            zIndex: "101",
-                                                            borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
-                                                        }}>
-                                                            <div style={{
-                                                                display: "inline-block",
-                                                                verticalAlign: "middle",
-                                                                lineHeight: "initial",
-                                                                textAlign: "left"
-                                                            }}>
-                                                                {
-                                                                    this.state.itemList[currentIndex].isBase ? (
-                                                                        <FaHdd style={{
-                                                                            fontSize: "50pt",
-                                                                            color: utils.getFolderColorStyle(this.state.itemList[currentIndex].color, true)
-                                                                        }} />
-                                                                    ) : (
-                                                                        <IonIcon icon={Ionicons.folderSharp} style={{
-                                                                            fontSize: "50pt",
-                                                                            color: utils.getFolderColorStyle(this.state.itemList[currentIndex].color, true),
-                                                                        }}></IonIcon>
-                                                                    )
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                    : typeof this.state.itemList[currentIndex].thumbnail == "string" ? (
-                                                        <div style={{
-                                                            width: "100%",
-                                                            height: "100%",
-                                                            backgroundColor: "transparent",
-                                                            display: "inline-block",
-                                                            backgroundSize: "cover",
-                                                            backgroundPosition: "center center",
-                                                            backgroundRepeat: "no-repeat",
-                                                            border: "none",
-                                                            borderTopRightRadius: "5px",
-                                                            borderTopLeftRadius: "5px",
-                                                            outline: "none",
-                                                            zIndex: "101",
-                                                            backgroundImage: "url(" + this.state.itemList[currentIndex].thumbnail + ")",
-                                                            borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
-                                                        }} id={"item-thumbnail-" + this.state.itemList[currentIndex].uuid}></div>
-                                                    ) : (
-                                                        <div style={{
-                                                            width: "100%",
-                                                            height: "100%",
-                                                            backgroundColor: "transparent",
-                                                            lineHeight: this.state.gridItemHeight - 45 + "px",
-                                                            textAlign: "center",
-                                                            border: "none",
-                                                            borderRadius: "0px",
-                                                            outline: "none",
-                                                            zIndex: "101",
-                                                            borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
-                                                        }}>
-                                                            <div style={{
-                                                                display: "inline-block",
-                                                                verticalAlign: "middle",
-                                                                lineHeight: "initial",
-                                                                textAlign: "left",
-                                                                overflow: "hidden"
-                                                            }} id={"item-thumbnail-" + this.state.itemList[currentIndex].uuid}>
-                                                                <img src={utils.getFileIconFromName(this.state.itemList[currentIndex].name)} width="55"></img>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                }
-                                            </div>
-                                            <div style={{
-                                                width: "100%",
-                                                marginTop: "6px"
-                                            }} onClick={() => {
-                                                this.state.itemList[currentIndex].selected ? this.selectItem(false, currentIndex) : this.spawnItemActionSheet(this.state.itemList[currentIndex])
-                                            }}>
-                                                <div style={{
-                                                    width: "81%",
-                                                    float: "left",
-                                                    paddingLeft: "10px"
-                                                }} className="overflow-ellipsis">
-                                                    {this.state.itemList[currentIndex].name}
-                                                </div>
-                                                <div style={{
-                                                    width: "14%",
-                                                    float: "right"
-                                                }}>
-                                                    {
-                                                        this.state.itemList[currentIndex].selected ? (
-                                                            <IonButtons style={{
-                                                                marginTop: "-14px",
-                                                                marginLeft: "-16px"
-                                                            }}>
-                                                                <IonButton slot="end" onClick={() => this.selectItem(false, currentIndex)}>
-                                                                    <IonIcon slot="icon-only" icon={Ionicons.checkbox} />
-                                                                </IonButton>
-                                                            </IonButtons>
-                                                        ) : (
-                                                            <IonButtons style={{
-                                                                marginTop: "-14px",
-                                                                marginLeft: "-11px"
-                                                            }}>
-                                                                <IonButton slot="end" style={{
-                                                                    fontSize: "8pt"
-                                                                }}>
-                                                                    <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
-                                                                </IonButton>
-                                                            </IonButtons>
-                                                        )
-                                                    }
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Hammer>
-                                )
-                            })
-                        }
-                    </div>
-                </IonItem>
-            )
-        }
-
-        if(this.state.showMainSkeletonPlaceholder){
-            return (
-                <IonItem key={index} type="button" button lines="none" style={style}>
-                    <IonThumbnail className="outer-thumbnail" slot="start">
-                        <IonSkeletonText animated />
-                    </IonThumbnail>
-                    <IonLabel>
-                        <IonSkeletonText animated />
-                        <br />
-                        <IonSkeletonText animated style={{
-                            width: "25%",
-                            marginTop: "-10px"
-                        }} />
-                    </IonLabel>
-                </IonItem>
-            )
+        if(this.state.itemList.length == 1){
+            indexesToLoop = [0]
         }
         else{
-            let startContent = this.state.selectedItems > 0 ? (
-                <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.selectItem(true, index)} style={{
-                    border: "none",
-                    "--border": "none",
-                    overflow: "hidden",
-                    padding: (this.state.itemList[index].type == "folder" ? "0px" : "7px")
+            if(index > 0){
+                startFromIndex = (index * gridItemsPerRow)
+            }
+
+            for(let i = startFromIndex; i < (gridItemsPerRow + startFromIndex); i++){
+                indexesToLoop.push(i)
+            }
+        }
+
+        return (
+            <IonItem key={index} style={style} className="background-transparent full-width">
+                <div style={{
+                    width: "100%",
+                    height: this.state.gridItemHeight,
+                    display: "flex"
                 }}>
                     {
-                        this.state.itemList[index].type == "folder" ? (
-                            <div>
-                                <img src="assets/images/folder.svg" style={{
-                                    display: "none"
-                                }}></img>
+                        indexesToLoop.filter((el) => {
+                            if(typeof this.state.itemList[el] == "undefined"){
+                                return false
+                            }
+
+                            return true
+                        }).map((currentIndex) => {
+                            return (
+                                <Hammer key={currentIndex} onPress={() => this.selectItem(true, currentIndex)} options={{
+                                    recognizers: {
+                                        press: {
+                                            time: 500,
+                                            threshold: 500
+                                        }
+                                    }
+                                }} >
+                                    <div style={{
+                                        width: this.state.gridItemWidth,
+                                        marginRight: "10px",
+                                        marginBottom: "10px",
+                                        background: (this.state.darkMode ? "transparent" : "transparent"),
+                                        borderRadius: "5px",
+                                        border: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                    }}>
+                                        <div style={{
+                                            width: "100%",
+                                            height: this.state.gridItemHeight - 45 + "px",
+                                            padding: "0px",
+                                            backgroundClip: "content-box",
+                                            zIndex: "101"
+                                        }} onClick={() => {
+                                            if(this.state.itemList[currentIndex].selected){
+                                                if(this.state.selectedItems > 0){
+                                                    this.selectItem(false, currentIndex)
+                                                }
+                                                else{
+                                                    this.selectItem(true, currentIndex)
+                                                }
+                                            }
+                                            else{
+                                                if(this.state.selectedItems > 0){
+                                                    this.selectItem(true, currentIndex)
+                                                }
+                                                else{
+                                                    this.state.itemList[currentIndex].type == "file" ? this.previewItem(this.state.itemList[currentIndex]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[currentIndex], currentIndex, window.location.href.split("/").slice(-1)[0])
+                                                }
+                                            }
+                                        } }>
+                                            {
+                                                this.state.itemList[currentIndex].type == "folder" ? (
+                                                    <div style={{
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        backgroundColor: "transparent",
+                                                        lineHeight: this.state.gridItemHeight - 45 + "px",
+                                                        textAlign: "center",
+                                                        border: "none",
+                                                        borderRadius: "0px",
+                                                        outline: "none",
+                                                        zIndex: "101",
+                                                        borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                    }}>
+                                                        <div style={{
+                                                            display: "inline-block",
+                                                            verticalAlign: "middle",
+                                                            lineHeight: "initial",
+                                                            textAlign: "left"
+                                                        }}>
+                                                            {
+                                                                this.state.itemList[currentIndex].isBase ? (
+                                                                    <FaHdd style={{
+                                                                        fontSize: "50pt",
+                                                                        color: utils.getFolderColorStyle(this.state.itemList[currentIndex].color, true)
+                                                                    }} />
+                                                                ) : (
+                                                                    <IonIcon icon={Ionicons.folderSharp} style={{
+                                                                        fontSize: "50pt",
+                                                                        color: utils.getFolderColorStyle(this.state.itemList[currentIndex].color, true),
+                                                                    }}></IonIcon>
+                                                                )
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                )
+                                                : typeof this.state.itemList[currentIndex].thumbnail == "string" ? (
+                                                    <div style={{
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        backgroundColor: "transparent",
+                                                        display: "inline-block",
+                                                        backgroundSize: "cover",
+                                                        backgroundPosition: "center center",
+                                                        backgroundRepeat: "no-repeat",
+                                                        border: "none",
+                                                        borderTopRightRadius: "5px",
+                                                        borderTopLeftRadius: "5px",
+                                                        outline: "none",
+                                                        zIndex: "101",
+                                                        backgroundImage: "url(" + this.state.itemList[currentIndex].thumbnail + ")",
+                                                        borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                    }} id={"item-thumbnail-" + this.state.itemList[currentIndex].uuid}></div>
+                                                ) : (
+                                                    <div style={{
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        backgroundColor: "transparent",
+                                                        lineHeight: this.state.gridItemHeight - 45 + "px",
+                                                        textAlign: "center",
+                                                        border: "none",
+                                                        borderRadius: "0px",
+                                                        outline: "none",
+                                                        zIndex: "101",
+                                                        borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                    }}>
+                                                        <div style={{
+                                                            display: "inline-block",
+                                                            verticalAlign: "middle",
+                                                            lineHeight: "initial",
+                                                            textAlign: "left",
+                                                            overflow: "hidden"
+                                                        }}>
+                                                            <img src={utils.getFileIconFromName(this.state.itemList[currentIndex].name)} width="55"></img>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            }
+                                        </div>
+                                        <div style={{
+                                            width: "100%",
+                                            marginTop: "6px"
+                                        }} onClick={() => {
+                                            this.state.itemList[currentIndex].selected ? this.selectItem(false, currentIndex) : this.spawnItemActionSheet(this.state.itemList[currentIndex])
+                                        }}>
+                                            <div style={{
+                                                width: "81%",
+                                                float: "left",
+                                                paddingLeft: "10px",
+                                                fontSize: "10pt",
+                                                paddingTop: "2px"
+                                            }} className="overflow-ellipsis">
+                                                {this.state.itemList[currentIndex].name}
+                                            </div>
+                                            <div style={{
+                                                width: "14%",
+                                                float: "right"
+                                            }}>
+                                                {
+                                                    this.state.itemList[currentIndex].selected ? (
+                                                        <IonButtons style={{
+                                                            marginTop: "-14px",
+                                                            marginLeft: "-16px"
+                                                        }}>
+                                                            <IonButton slot="end" onClick={() => this.selectItem(false, currentIndex)}>
+                                                                <IonIcon slot="icon-only" icon={Ionicons.checkbox} />
+                                                            </IonButton>
+                                                        </IonButtons>
+                                                    ) : (
+                                                        <IonButtons style={{
+                                                            marginTop: "-14px",
+                                                            marginLeft: "-11px"
+                                                        }}>
+                                                            <IonButton slot="end" style={{
+                                                                fontSize: "8pt"
+                                                            }}>
+                                                                <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
+                                                            </IonButton>
+                                                        </IonButtons>
+                                                    )
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Hammer>
+                            )
+                        })
+                    }
+                </div>
+            </IonItem>
+        )
+    }
+
+    if(this.state.showMainSkeletonPlaceholder){
+        return (
+            <IonItem key={index} type="button" button lines="none" style={style}>
+                <IonThumbnail className="outer-thumbnail" slot="start">
+                    <IonSkeletonText animated />
+                </IonThumbnail>
+                <IonLabel>
+                    <IonSkeletonText animated />
+                    <br />
+                    <IonSkeletonText animated style={{
+                        width: "25%",
+                        marginTop: "-10px"
+                    }} />
+                </IonLabel>
+            </IonItem>
+        )
+    }
+    else{
+        let startContent = this.state.selectedItems > 0 ? (
+            <IonThumbnail slot="start" onClick={() => this.selectItem(true, index)} style={{
+                border: "none",
+                "--border": "none",
+                overflow: "hidden",
+                padding: (this.state.itemList[index].type == "folder" ? "0px" : "7px")
+            }}>
+                {
+                    this.state.itemList[index].type == "folder" ? (
+                        <div>
+                            <img src="assets/images/folder.svg" style={{
+                                display: "none"
+                            }}></img>
+                            {
+                                this.state.itemList[index].isBase ? (
+                                    <FaHdd style={{
+                                        fontSize: "30pt",
+                                        color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                        position: "absolute",
+                                        marginTop: "6px",
+                                        marginLeft: "5px"
+                                    }} />
+                                ) : (
+                                    <IonIcon icon={Ionicons.folderSharp} style={{
+                                        fontSize: "30pt",
+                                        color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                        position: "absolute",
+                                        marginTop: "6px",
+                                        marginLeft: "5px"
+                                    }}></IonIcon>
+                                )
+                            }
+                        </div>
+                    ) : (
+                        <div style={{
+                            width: "100%",
+                            height: "100%",
+                            backgroundColor: "transparent",
+                            display: "inline-block",
+                            backgroundSize: "cover",
+                            backgroundPosition: "center center",
+                            backgroundRepeat: "no-repeat",
+                            border: "none",
+                            outline: "none",
+                            zIndex: "101",
+                            borderRadius: "5px",
+                            backgroundImage: "url(" + (typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)) + ")",
+                        }} id={"item-thumbnail-" + this.state.itemList[index].uuid}></div>
+                    )
+                }
+            </IonThumbnail>
+        ) : (
+            <IonThumbnail slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])} style={{
+                border: "none",
+                "--border": "none",
+                overflow: "hidden",
+                padding: (this.state.itemList[index].type == "folder" ? "0px" : "7px")
+            }}>
+                {
+                    this.state.itemList[index].type == "folder" ? (
+                        <div>
+                            <img src="assets/images/folder.svg" style={{
+                                display: "none"
+                            }}></img>
+                            {
+                                this.state.itemList[index].isBase ? (
+                                    <FaHdd style={{
+                                        fontSize: "30pt",
+                                        color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                        position: "absolute",
+                                        marginTop: "6px",
+                                        marginLeft: "5px"
+                                    }} />
+                                ) : (
+                                    <IonIcon icon={Ionicons.folderSharp} style={{
+                                        fontSize: "30pt",
+                                        color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                        position: "absolute",
+                                        marginTop: "6px",
+                                        marginLeft: "5px"
+                                    }}></IonIcon>
+                                )
+                            }
+                        </div>
+                    ) : (
+                        <div style={{
+                            width: "100%",
+                            height: "100%",
+                            backgroundColor: "transparent",
+                            display: "inline-block",
+                            backgroundSize: "cover",
+                            backgroundPosition: "center center",
+                            backgroundRepeat: "no-repeat",
+                            border: "none",
+                            outline: "none",
+                            zIndex: "101",
+                            borderRadius: "5px",
+                            backgroundImage: "url(" + (typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)) + ")",
+                        }} id={"item-thumbnail-" + this.state.itemList[index].uuid}></div>
+                    )
+                }
+            </IonThumbnail>
+        )
+
+        let itemLabel = this.state.itemList[index].selected ? (
+            <IonLabel onClick={() => this.selectItem(false, index) }>
+                {
+                    this.state.itemList[index].type == "folder" ? (
+                        <div>
+                            <h2>{this.state.itemList[index].name}</h2>
+                            <p style={{
+                                color: this.state.darkMode ? "gray" : "black",
+                                fontSize: "9pt"
+                            }}>
                                 {
-                                    this.state.itemList[index].isBase ? (
-                                        <FaHdd style={{
-                                            fontSize: "30pt",
-                                            color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
-                                            position: "absolute",
-                                            marginTop: "6px",
-                                            marginLeft: "5px"
-                                        }} />
-                                    ) : (
-                                        <IonIcon icon={Ionicons.folderSharp} style={{
-                                            fontSize: "30pt",
-                                            color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
-                                            position: "absolute",
-                                            marginTop: "6px",
-                                            marginLeft: "5px"
+                                    this.state.itemList[index].favorited == 1 && (
+                                        <IonIcon icon={Ionicons.star} style={{
+                                            marginRight: "5px",
+                                            fontWeight: "bold"
                                         }}></IonIcon>
                                     )
                                 }
-                            </div>
-                        ) : (
-                            <div style={{
-                                width: "100%",
-                                height: "100%",
-                                backgroundColor: "transparent",
-                                display: "inline-block",
-                                backgroundSize: "cover",
-                                backgroundPosition: "center center",
-                                backgroundRepeat: "no-repeat",
-                                border: "none",
-                                outline: "none",
-                                zIndex: "101",
-                                backgroundImage: "url(" + (typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)) + ")",
-                            }}></div>
-                        )
-                    }
-                </IonThumbnail>
-            ) : (
-                <IonThumbnail id={"item-thumbnail-" + this.state.itemList[index].uuid} slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])} style={{
-                    border: "none",
-                    "--border": "none",
-                    overflow: "hidden",
-                    padding: (this.state.itemList[index].type == "folder" ? "0px" : "7px")
-                }}>
-                    {
-                        this.state.itemList[index].type == "folder" ? (
-                            <div>
-                                <img src="assets/images/folder.svg" style={{
-                                    display: "none"
-                                }}></img>
                                 {
-                                    this.state.itemList[index].isBase ? (
-                                        <FaHdd style={{
-                                            fontSize: "30pt",
-                                            color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
-                                            position: "absolute",
-                                            marginTop: "6px",
-                                            marginLeft: "5px"
-                                        }} />
-                                    ) : (
-                                        <IonIcon icon={Ionicons.folderSharp} style={{
-                                            fontSize: "30pt",
-                                            color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
-                                            position: "absolute",
-                                            marginTop: "6px",
-                                            marginLeft: "5px"
+                                    window.location.href.indexOf("shared-in") !== -1 && (
+                                        <div>
+                                            {this.state.itemList[index].sharerEmail}, 
+                                        </div>
+                                    )
+                                }
+                                {
+                                    window.location.href.indexOf("shared-out") !== -1 && (
+                                        <div>
+                                            {this.state.itemList[index].receiverEmail}, 
+                                        </div>
+                                    )
+                                }
+                                {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
+                            </p>
+                        </div>
+                    ) : (
+                        <div>
+                            <h2>{this.state.itemList[index].name}</h2>
+                            <p style={{
+                                color: this.state.darkMode ? "gray" : "black",
+                                fontSize: "9pt"
+                            }}>
+                                {
+                                    this.state.itemList[index].offline && (
+                                        <IonIcon icon={Ionicons.checkmark} style={{
+                                            color: "darkgreen",
+                                            marginRight: "5px",
+                                            fontWeight: "bold"
                                         }}></IonIcon>
                                     )
                                 }
-                            </div>
-                        ) : (
-                            <div style={{
-                                width: "100%",
-                                height: "100%",
-                                backgroundColor: "transparent",
-                                display: "inline-block",
-                                backgroundSize: "cover",
-                                backgroundPosition: "center center",
-                                backgroundRepeat: "no-repeat",
-                                border: "none",
-                                outline: "none",
-                                zIndex: "101",
-                                backgroundImage: "url(" + (typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)) + ")",
-                            }}></div>
-                        )
-                    }
-                </IonThumbnail>
-            )
-    
-            let itemLabel = this.state.itemList[index].selected ? (
-                <IonLabel onClick={() => this.selectItem(false, index) }>
+                                {
+                                    this.state.itemList[index].favorited == 1 && (
+                                        <IonIcon icon={Ionicons.star} style={{
+                                            marginRight: "5px",
+                                            fontWeight: "bold"
+                                        }}></IonIcon>
+                                    )
+                                }
+                                {
+                                    window.location.href.indexOf("shared-in") !== -1 && (
+                                        <div>
+                                            {this.state.itemList[index].sharerEmail}, 
+                                        </div>
+                                    )
+                                }
+                                {
+                                    window.location.href.indexOf("shared-out") !== -1 && (
+                                        <div>
+                                            {this.state.itemList[index].receiverEmail}, 
+                                        </div>
+                                    )
+                                }
+                                {utils.formatBytes(this.state.itemList[index].size)}, {this.state.itemList[index].date}
+                            </p>
+                        </div>
+                    )
+                }
+            </IonLabel>
+        ) : (
+            this.state.selectedItems > 0 ? (
+                <IonLabel onClick={() => this.selectItem(true, index) }>
                     {
                         this.state.itemList[index].type == "folder" ? (
                             <div>
@@ -378,8 +449,7 @@ export function render(){
                                     {
                                         this.state.itemList[index].favorited == 1 && (
                                             <IonIcon icon={Ionicons.star} style={{
-                                                marginRight: "5px",
-                                                fontWeight: "bold"
+                                                marginRight: "5px"
                                             }}></IonIcon>
                                         )
                                     }
@@ -419,23 +489,22 @@ export function render(){
                                     {
                                         this.state.itemList[index].favorited == 1 && (
                                             <IonIcon icon={Ionicons.star} style={{
-                                                marginRight: "5px",
-                                                fontWeight: "bold"
+                                                marginRight: "5px"
                                             }}></IonIcon>
                                         )
                                     }
                                     {
                                         window.location.href.indexOf("shared-in") !== -1 && (
-                                            <div>
-                                                {this.state.itemList[index].sharerEmail}, 
-                                            </div>
+                                            <span>
+                                                {this.state.itemList[index].sharerEmail},&nbsp;
+                                            </span>
                                         )
                                     }
                                     {
                                         window.location.href.indexOf("shared-out") !== -1 && (
-                                            <div>
-                                                {this.state.itemList[index].receiverEmail}, 
-                                            </div>
+                                            <span>
+                                                {this.state.itemList[index].receiverEmail},&nbsp;
+                                            </span>
                                         )
                                     }
                                     {utils.formatBytes(this.state.itemList[index].size)}, {this.state.itemList[index].date}
@@ -445,199 +514,122 @@ export function render(){
                     }
                 </IonLabel>
             ) : (
-                this.state.selectedItems > 0 ? (
-                    <IonLabel onClick={() => this.selectItem(true, index) }>
-                        {
-                            this.state.itemList[index].type == "folder" ? (
-                                <div>
-                                    <h2>{this.state.itemList[index].name}</h2>
-                                    <p style={{
-                                        color: this.state.darkMode ? "gray" : "black",
-                                        fontSize: "9pt"
-                                    }}>
-                                        {
-                                            this.state.itemList[index].favorited == 1 && (
-                                                <IonIcon icon={Ionicons.star} style={{
-                                                    marginRight: "5px"
-                                                }}></IonIcon>
-                                            )
-                                        }
-                                        {
-                                            window.location.href.indexOf("shared-in") !== -1 && (
-                                                <div>
-                                                    {this.state.itemList[index].sharerEmail}, 
-                                                </div>
-                                            )
-                                        }
-                                        {
-                                            window.location.href.indexOf("shared-out") !== -1 && (
-                                                <div>
-                                                    {this.state.itemList[index].receiverEmail}, 
-                                                </div>
-                                            )
-                                        }
-                                        {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div>
-                                    <h2>{this.state.itemList[index].name}</h2>
-                                    <p style={{
-                                        color: this.state.darkMode ? "gray" : "black",
-                                        fontSize: "9pt"
-                                    }}>
-                                        {
-                                            this.state.itemList[index].offline && (
-                                                <IonIcon icon={Ionicons.checkmark} style={{
-                                                    color: "darkgreen",
-                                                    marginRight: "5px",
-                                                    fontWeight: "bold"
-                                                }}></IonIcon>
-                                            )
-                                        }
-                                        {
-                                            this.state.itemList[index].favorited == 1 && (
-                                                <IonIcon icon={Ionicons.star} style={{
-                                                    marginRight: "5px"
-                                                }}></IonIcon>
-                                            )
-                                        }
-                                        {
-                                            window.location.href.indexOf("shared-in") !== -1 && (
-                                                <span>
-                                                    {this.state.itemList[index].sharerEmail},&nbsp;
-                                                </span>
-                                            )
-                                        }
-                                        {
-                                            window.location.href.indexOf("shared-out") !== -1 && (
-                                                <span>
-                                                    {this.state.itemList[index].receiverEmail},&nbsp;
-                                                </span>
-                                            )
-                                        }
-                                        {utils.formatBytes(this.state.itemList[index].size)}, {this.state.itemList[index].date}
-                                    </p>
-                                </div>
-                            )
-                        }
-                    </IonLabel>
-                ) : (
-                    <IonLabel onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])}>
-                        {
-                            this.state.itemList[index].type == "folder" ? (
-                                <div>
-                                    <h2>{this.state.itemList[index].name}</h2>
-                                    <p style={{
-                                        color: this.state.darkMode ? "gray" : "black",
-                                        fontSize: "9pt"
-                                    }}>
-                                        {
-                                            this.state.itemList[index].favorited == 1 && (
-                                                <IonIcon icon={Ionicons.star} style={{
-                                                    marginRight: "5px"
-                                                }}></IonIcon>
-                                            )
-                                        }
-                                        {
-                                            window.location.href.indexOf("shared-in") !== -1 && (
-                                                <span>
-                                                    {this.state.itemList[index].sharerEmail},&nbsp;
-                                                </span>
-                                            )
-                                        }
-                                        {
-                                            window.location.href.indexOf("shared-out") !== -1 && (
-                                                <span>
-                                                    {this.state.itemList[index].receiverEmail},&nbsp;
-                                                </span>
-                                            )
-                                        }
-                                        {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div>
-                                    <h2>{this.state.itemList[index].name}</h2>
-                                    <p style={{
-                                        color: this.state.darkMode ? "gray" : "black",
-                                        fontSize: "9pt"
-                                    }}>
-                                        {
-                                            this.state.itemList[index].offline && (
-                                                <IonIcon icon={Ionicons.checkmarkOutline} style={{
-                                                    color: "darkgreen",
-                                                    marginRight: "5px",
-                                                    fontWeight: "bold"
-                                                }}></IonIcon>
-                                            )
-                                        }
-                                        {
-                                            this.state.itemList[index].favorited == 1 && (
-                                                <IonIcon icon={Ionicons.star} style={{
-                                                    marginRight: "5px"
-                                                }}></IonIcon>
-                                            )
-                                        }
-                                        {
-                                            window.location.href.indexOf("shared-in") !== -1 && (
-                                                <span>
-                                                    {this.state.itemList[index].sharerEmail},&nbsp;
-                                                </span>
-                                            )
-                                        }
-                                        {
-                                            window.location.href.indexOf("shared-out") !== -1 && (
-                                                <span>
-                                                    {this.state.itemList[index].receiverEmail},&nbsp;
-                                                </span>
-                                            )
-                                        }
-                                        {utils.formatBytes(this.state.itemList[index].size)}, {this.state.itemList[index].date}
-                                    </p>
-                                </div>
-                            )
-                        }
-                    </IonLabel>
-                )
-            )
-    
-            let endContent = this.state.itemList[index].selected ? (
-                <IonButtons>
-                    <IonButton slot="end" onClick={() => this.selectItem(false, index)}>
-                        <IonIcon slot="icon-only" icon={Ionicons.checkbox} />
-                    </IonButton>
-                </IonButtons>
-            ) : (
-                <IonButtons>
-                    <IonButton slot="end" onClick={() => this.spawnItemActionSheet(this.state.itemList[index])} style={{
-                        fontSize: "8pt"
-                    }}>
-                        <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
-                    </IonButton>
-                </IonButtons>
-            )
-
-            this.genThumbnail(index)
-
-            return (
-                <Hammer key={index} onPress={() => this.selectItem(true, index)} options={{
-                    recognizers: {
-                        press: {
-                            time: 500,
-                            threshold: 500
-                        }
+                <IonLabel onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])}>
+                    {
+                        this.state.itemList[index].type == "folder" ? (
+                            <div>
+                                <h2>{this.state.itemList[index].name}</h2>
+                                <p style={{
+                                    color: this.state.darkMode ? "gray" : "black",
+                                    fontSize: "9pt"
+                                }}>
+                                    {
+                                        this.state.itemList[index].favorited == 1 && (
+                                            <IonIcon icon={Ionicons.star} style={{
+                                                marginRight: "5px"
+                                            }}></IonIcon>
+                                        )
+                                    }
+                                    {
+                                        window.location.href.indexOf("shared-in") !== -1 && (
+                                            <span>
+                                                {this.state.itemList[index].sharerEmail},&nbsp;
+                                            </span>
+                                        )
+                                    }
+                                    {
+                                        window.location.href.indexOf("shared-out") !== -1 && (
+                                            <span>
+                                                {this.state.itemList[index].receiverEmail},&nbsp;
+                                            </span>
+                                        )
+                                    }
+                                    {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
+                                </p>
+                            </div>
+                        ) : (
+                            <div>
+                                <h2>{this.state.itemList[index].name}</h2>
+                                <p style={{
+                                    color: this.state.darkMode ? "gray" : "black",
+                                    fontSize: "9pt"
+                                }}>
+                                    {
+                                        this.state.itemList[index].offline && (
+                                            <IonIcon icon={Ionicons.checkmarkOutline} style={{
+                                                color: "darkgreen",
+                                                marginRight: "5px",
+                                                fontWeight: "bold"
+                                            }}></IonIcon>
+                                        )
+                                    }
+                                    {
+                                        this.state.itemList[index].favorited == 1 && (
+                                            <IonIcon icon={Ionicons.star} style={{
+                                                marginRight: "5px"
+                                            }}></IonIcon>
+                                        )
+                                    }
+                                    {
+                                        window.location.href.indexOf("shared-in") !== -1 && (
+                                            <span>
+                                                {this.state.itemList[index].sharerEmail},&nbsp;
+                                            </span>
+                                        )
+                                    }
+                                    {
+                                        window.location.href.indexOf("shared-out") !== -1 && (
+                                            <span>
+                                                {this.state.itemList[index].receiverEmail},&nbsp;
+                                            </span>
+                                        )
+                                    }
+                                    {utils.formatBytes(this.state.itemList[index].size)}, {this.state.itemList[index].date}
+                                </p>
+                            </div>
+                        )
                     }
-                }} style={style}>
-                    <IonItem type="button" button lines="none" className={this.state.itemList[index].selected ? (this.state.darkMode ? "item-selected-dark-mode" : "item-selected-light-mode") : "item-not-activated-mode"}>
-                        {startContent}
-                        {itemLabel}
-                        {endContent}
-                    </IonItem>
-                </Hammer>
+                </IonLabel>
             )
-        }
+        )
+
+        let endContent = this.state.itemList[index].selected ? (
+            <IonButtons>
+                <IonButton slot="end" onClick={() => this.selectItem(false, index)}>
+                    <IonIcon slot="icon-only" icon={Ionicons.checkbox} />
+                </IonButton>
+            </IonButtons>
+        ) : (
+            <IonButtons>
+                <IonButton slot="end" onClick={() => this.spawnItemActionSheet(this.state.itemList[index])} style={{
+                    fontSize: "8pt"
+                }}>
+                    <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
+                </IonButton>
+            </IonButtons>
+        )
+
+        return (
+            <Hammer key={index} onPress={() => this.selectItem(true, index)} options={{
+                recognizers: {
+                    press: {
+                        time: 500,
+                        threshold: 500
+                    }
+                }
+            }} style={style}>
+                <IonItem type="button" button lines="none" className={this.state.itemList[index].selected ? (this.state.darkMode ? "item-selected-dark-mode" : "item-selected-light-mode") : "item-not-activated-mode"}>
+                    {startContent}
+                    {itemLabel}
+                    {endContent}
+                </IonItem>
+            </Hammer>
+        )
     }
+}
+
+export function render(){
+    let showShareLinks = (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0)
 
     let mainToolbar = this.state.selectedItems > 0 ? (
         <IonToolbar style={{
@@ -1218,8 +1210,8 @@ export function render(){
                                                     width={this.state.windowWidth}
                                                     rowCount={Math.round(this.state.itemList.length / 2)}
                                                     rowHeight={this.state.gridItemHeight}
-                                                    overscanRowCount={3}
-                                                    rowRenderer={rowRenderer}
+                                                    overscanRowCount={8}
+                                                    rowRenderer={this.rowRenderer}
                                                     scrollToIndex={this.state.scrollToIndex}
                                                     scrollToAlignment="center"
                                                     onScroll={() => window.customFunctions.itemListScrolling()}
@@ -1227,10 +1219,29 @@ export function render(){
                                                         outline: "none",
                                                         border: "none"
                                                     }}
-                                                    onRowsRendered={({ overscanStart, overscanStop, start, stop }) => {
-                                                        for(let i = (overscanStart - 1); i < (overscanStop + 1); i++){
-                                                            if(i >= 0){
-                                                                this.genThumbnail(i)
+                                                    onRowsRendered={({startIndex, stopIndex}) => {
+                                                        startIndex = Math.floor(startIndex / 2)
+                                                        stopIndex = Math.floor(stopIndex * 2)
+
+                                                        let inView = {}
+
+                                                        for(let index = startIndex; index < stopIndex; index++){
+                                                            if(index >= 0){
+                                                                if(typeof this.state.itemList[index] !== "undefined"){
+                                                                    inView[this.state.itemList[index].uuid] = true
+                                                                    window.customVariables.thumbnailsInView[this.state.itemList[index].uuid] = true
+
+                                                                    this.genThumbnail(this.state.itemList[index], index)
+                                                                }
+                                                            }
+                                                        }
+
+                                                        for(let prop in window.customVariables.thumbnailsInView){
+                                                            if(typeof inView[prop] !== "undefined"){
+                                                                window.customVariables.thumbnailsInView[prop] = true
+                                                            }
+                                                            else{
+                                                                delete window.customVariables.thumbnailsInView[prop]
                                                             }
                                                         }
                                                     }}
@@ -1244,8 +1255,8 @@ export function render(){
                                                     width={this.state.windowWidth}
                                                     rowCount={this.state.itemList.length}
                                                     rowHeight={72}
-                                                    overscanRowCount={3}
-                                                    rowRenderer={rowRenderer}
+                                                    overscanRowCount={8}
+                                                    rowRenderer={this.rowRenderer}
                                                     scrollToIndex={this.state.scrollToIndex}
                                                     scrollToAlignment="center"
                                                     onScroll={() => window.customFunctions.itemListScrolling()}
@@ -1253,10 +1264,29 @@ export function render(){
                                                         outline: "none",
                                                         border: "none"
                                                     }}
-                                                    onRowsRendered={({ overscanStartIndex, overscanStopIndex}) => {
-                                                        for(let i = (overscanStartIndex - 1); i < (overscanStopIndex + 1); i++){
-                                                            if(i >= 0){
-                                                                this.genThumbnail(i)
+                                                    onRowsRendered={({startIndex, stopIndex}) => {
+                                                        startIndex = Math.floor(startIndex - 2)
+                                                        stopIndex = Math.floor(stopIndex + 2)
+
+                                                        let inView = {}
+
+                                                        for(let index = startIndex; index < stopIndex; index++){
+                                                            if(index >= 0){
+                                                                if(typeof this.state.itemList[index] !== "undefined"){
+                                                                    inView[this.state.itemList[index].uuid] = true
+                                                                    window.customVariables.thumbnailsInView[this.state.itemList[index].uuid] = true
+
+                                                                    this.genThumbnail(this.state.itemList[index], index)
+                                                                }
+                                                            }
+                                                        }
+
+                                                        for(let prop in window.customVariables.thumbnailsInView){
+                                                            if(typeof inView[prop] !== "undefined"){
+                                                                window.customVariables.thumbnailsInView[prop] = true
+                                                            }
+                                                            else{
+                                                                delete window.customVariables.thumbnailsInView[prop]
                                                             }
                                                         }
                                                     }}

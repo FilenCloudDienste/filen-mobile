@@ -693,6 +693,16 @@ export function convertUint8ArrayToBinaryString(u8Array){
     return b_str
 }
 
+export function generateRandomStringUnsafe(length = 32){
+	var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
 export function Semaphore(max){
     var counter = 0;
     var waiting = [];

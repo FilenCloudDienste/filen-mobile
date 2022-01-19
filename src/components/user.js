@@ -1,5 +1,5 @@
 import * as language from "../utils/language"
-import { Storage } from "@capacitor/storage"
+import * as workers from "../utils/workers"
 
 const utils = require("../utils/utils")
 
@@ -141,8 +141,17 @@ export async function updateUserKeys(cb){
             }
 
             if(privKey.length > 16){
-                await Storage.set({ key: "userPublicKey", value: res.data.publicKey })
-                await Storage.set({ key: "userPrivateKey", value: privKey })
+                try{
+                    await workers.localforageSetItem("userPublicKey", res.data.publicKey)
+                    await workers.localforageSetItem("userPrivateKey", privKey)
+                }
+                catch(e){
+                    if(typeof cb == "function"){
+                        cb(e)
+                    }
+                    
+                    return console.log(e)
+                }
 
                 this.setState({
                     userPublicKey: res.data.publicKey,
@@ -255,7 +264,16 @@ export async function updateUserKeys(cb){
     }
 
     if(newKeys.length > 16){
-        await Storage.set({ key: "userMasterKeys", value: JSON.stringify(newKeys.split("|")) })
+        try{
+            await workers.localforageSetItem("userMasterKeys", await workers.JSONStringifyWorker(newKeys.split("|")))
+        }
+        catch(e){
+            if(typeof cb == "function"){
+                cb(e)
+            }
+    
+            return console.log(e)
+        }
 
         this.setState({
             userMasterKeys: newKeys.split("|")

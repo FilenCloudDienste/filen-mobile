@@ -1,6 +1,7 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor } from "@capacitor/core"
+import { compressThumbnailImg, writeThumbnail } from "./download"
 
 const utils = require("../utils/utils")
 
@@ -287,13 +288,14 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 		let nameH = utils.hashFn(name.toLowerCase())
 		let mimeEnc = await utils.encryptMetadata(mime, key)
 		let sizeEnc = await utils.encryptMetadata(size.toString(), key)
+		let fileLastModified = Math.floor(file.lastModified / 1000) || Math.floor((+new Date()) / 1000)
 		
 		let metaData = await utils.encryptMetadata(JSON.stringify({
 			name,
 			size,
 			mime,
 			key,
-			lastModified: Math.floor(file.lastModified / 1000) || Math.floor((+new Date()) / 1000)
+			lastModified: fileLastModified
 		}), this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
 
 		let firstDone = false
@@ -356,7 +358,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 				delete currentUploads[uuid]
 				delete window.customVariables.uploads[uuid]
 
-				return this.setState({
+				this.setState({
 					uploads: currentUploads,
 					uploadsCount: (this.state.uploadsCount - 1)
 				}, () => {
@@ -366,6 +368,14 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 			catch(e){
 				console.log(e)
 			}
+
+			nameEnc = null
+			nameH = null
+			mimeEnc = null
+			sizeEnc = null
+			metaData = null
+
+			return true
 		}
 
 		const setProgress = (progress) => {
@@ -495,9 +505,29 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 									chunk = undefined
 		
 									workers.encryptData(uuid, thisIndex, key, arrayBuffer, this.state.currentFileVersion, (err, encrypted) => {
+										if(err){
+											console.log(err)
+		
+											window.customVariables.uploadSemaphore.release()
+											window.customVariables.currentUploadThreads -= 1
+	
+											removeFromState()
+											deleteTempFile()
+
+											encrypted = null
+											arrayBuffer = null
+
+											if(typeof cameraUploadCallback == "function"){
+												return cameraUploadCallback("failed")
+											}
+											else{
+												return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+											}
+										}
+
 										let blob = encrypted
 		
-										arrayBuffer = undefined
+										arrayBuffer = null
 		
 										let queryParams = new URLSearchParams({
 											apiKey: this.state.userAPIKey,
@@ -516,7 +546,10 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 											version: uploadVersion
 										}).toString()
 		
-										this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, (err, res, parsedQueryParams) => {
+										this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, async (err, res, parsedQueryParams) => {
+											res = null
+											parsedQueryParams = null
+
 											if(err){
 												console.log(err)
 		
@@ -589,16 +622,69 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 		
 											window.customVariables.currentUploadThreads -= 1
 											firstDone = true
-											blob = undefined
+											blob = null
 											chunksUploaded += 1
 		
 											if((chunksUploaded - 1) >= fileChunks){
 												clearInterval(uploadInterval)
 		
-												window.customVariables.uploadSemaphore.release()
-		
 												if(!markedAsDone){
 													markedAsDone = true
+
+													window.customVariables.uploadSemaphore.release()
+
+													let ext = name.toLowerCase().split(".")
+													ext = ext[ext.length - 1]
+
+													if(utils.canShowThumbnail(ext) && !["mp4", "webm", "mov", "avi", "wmv"].includes(ext)){
+														try{
+															await new Promise((resolve, reject) => {
+																let fr = new FileReader()
+
+																fr.onload = () => {
+																	workers.newBlob(fr.result, {
+																		type: "image/png"
+																	}).then((blob) => {
+																		fr = null
+
+																		compressThumbnailImg(blob).then((compressed) => {
+																			blob = null
+
+																			writeThumbnail({
+																				uuid
+																			}, compressed).then((thumbURL) => {
+																				thumbURL = null
+																				compressed = null
+		
+																				window.customFunctions.saveThumbnailCache()
+		
+																				return resolve(true)
+																			})
+																		}).catch((err) => {
+																			blob = null
+
+																			return reject(err)
+																		})
+																	}).catch((err) => {
+																		fr = null
+
+																		return reject(err)
+																	})
+																}
+
+																fr.onerror = (err) => {
+																	fr = null
+
+																	return reject(err)
+																}
+
+																return fr.readAsArrayBuffer(file.fileEntry)
+															})
+														}
+														catch(e){
+															console.log("ya", e)
+														}
+													}
 		
 													this.markUploadAsDone(uuid, uploadKey, 0, 1000000, (err) => {
 														if(err){
@@ -620,7 +706,8 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 															name,
 															size: parseInt(size),
 															mime,
-															key
+															key,
+															lastModified: fileLastModified
 														}, () => {
 															if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
 																clearInterval(window.customVariables.reloadContentAfterUploadTimeout)
@@ -670,11 +757,13 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 								}
 		
 								fileReader.readAsArrayBuffer(chunk)
+
+								chunk = null
 							}
 						}
 					}
 					else{
-						clearInterval(uploadInterval)
+						return clearInterval(uploadInterval)
 					}
 				}
 			}
