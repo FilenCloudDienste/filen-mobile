@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@agorapulse/capacitor-mediastore": "^0.0.2",
+    "@awesome-cordova-plugins/http": "^5.37.3",
+    "@capacitor-community/http": "^1.4.1",
     "@capacitor-community/media": "git+https://github.com/FilenCloudDienste/capacitor-media.git",
     "@capacitor/android": "^3.3.2",
     "@capacitor/app": "^1.0.6",
@@ -41,12 +43,15 @@
     "argon2": "^0.27.2",
     "boxicons": "^2.0.9",
     "browser-image-compression": "^1.0.17",
+    "capacitor-blob-writer": "github:diachedelic/capacitor-blob-writer",
     "compressorjs": "^1.0.7",
+    "cordova-plugin-advanced-http": "^3.2.2",
     "cordova-plugin-file": "^6.0.2",
     "cordova-plugin-file-opener2": "git+https://github.com/FilenCloudDienste/cordova-plugin-file-opener2.git",
     "cordova-plugin-fingerprint-aio": "^4.0.2",
     "cordova-plugin-mediapicker-dmcsdk": "git+https://github.com/FilenCloudDienste/cordova-plugin-mediapicker-dmcsdk.git",
     "cordova-plugin-navigationbar-color": "^0.1.0",
+    "cordova-plugin-screen-orientation": "^3.0.2",
     "cordova-plugin-simple-file-chooser": "git+https://github.com/FilenCloudDienste/cordova-plugin-simple-file-chooser.git",
     "crypto": "^1.0.1",
     "crypto-js": "^4.0.0",
@@ -95,12 +100,12 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev-android": "ionic capacitor run android --livereload",
-    "dev-ios": "ionic capacitor run ios --livereload",
-    "dev-android-external": "ionic capacitor run android --livereload --external",
-    "dev-ios-external": "ionic capacitor run ios --livereload --external",
-    "build-android": "ionic capacitor run android --prod",
-    "build-ios": "ionic capacitor run ios --prod"
+    "dev-android": "ionic capacitor run android --livereload --prod --release",
+    "dev-ios": "ionic capacitor run ios --livereload --prod --release",
+    "dev-android-external": "ionic capacitor run android --livereload --external --prod --release",
+    "dev-ios-external": "ionic capacitor run ios --livereload --external --prod --release",
+    "build-android": "ionic capacitor run android --prod --release",
+    "build-ios": "ionic capacitor run ios --prod --release"
   },
   "eslintConfig": {
     "extends": "react-app"

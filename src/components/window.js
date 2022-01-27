@@ -1,7 +1,7 @@
 import { Capacitor } from "@capacitor/core"
 import { modalController, popoverController, toastController, menuController, alertController, loadingController, actionSheetController } from "@ionic/core"
 import * as language from "../utils/language"
-import * as Ionicons from 'ionicons/icons'
+import * as Ionicons from "ionicons/icons"
 import { isPlatform } from "@ionic/react"
 import { FingerprintAIO } from "@ionic-native/fingerprint-aio"
 import { FileOpener } from "@ionic-native/file-opener"
@@ -15,6 +15,14 @@ import { SplashScreen } from "@capacitor/splash-screen"
 import { SendIntent } from "send-intent"
 import { Media } from "@capacitor-community/media"
 import { Base64 } from "js-base64"
+import * as storage from "./storage"
+import { queueFileUpload, fileExists } from "./upload"
+import { updateItemList, previewItem, spawnItemActionSheet, moveSelectedItems, trashSelectedItems, restoreSelectedItems, getSelectedItems, removeSelectedItemsFromSharedIn, stopSharingSelectedItems, downloadSelectedItems, shareSelectedItems, storeSelectedItemsOffline, favoriteItem } from "./items";
+import { updateUserUsage } from "./user"
+import { setupStatusbar } from "./setup"
+import { openSettingsModal } from "./settings"
+import { spawnToast } from "./spawn"
+import { showRegister } from "./register"
 
 const workers = require("../utils/workers")
 const utils = require("../utils/utils")
@@ -22,7 +30,7 @@ const safeAreaInsets = require("safe-area-insets")
 const CryptoJS = require("crypto-js")
 const mime = require("mime-types")
 
-export async function doRouting(){
+export async function doRouting(self){
     if(window.customVariables.isCurrentlyRouting){
         return false
     }
@@ -44,7 +52,7 @@ export async function doRouting(){
     if(doRouting){
         window.currentHref = window.location.href
 
-        this.setState({
+        self.setState({
             currentHref: window.currentHref
         })
 
@@ -53,9 +61,9 @@ export async function doRouting(){
 
         let routeEx = window.location.hash.split("/")
 
-        if(this.state.isLoggedIn){
+        if(self.state.isLoggedIn){
             if(routeEx[1] == "base" || routeEx[1] == "shared-in" || routeEx[1] == "shared-out" || routeEx[1] == "trash" || routeEx[1] == "links" || routeEx[1] == "recent" || routeEx[1] == "favorites"){
-                await this.updateItemList()
+                await updateItemList(self)
 
                 let foldersInRoute = routeEx.slice(2)
 
@@ -63,85 +71,85 @@ export async function doRouting(){
                     let lastFolderInRoute = foldersInRoute[foldersInRoute.length - 1]
 
                     if(window.customVariables.cachedFolders[lastFolderInRoute]){
-                        this.setState({
+                        self.setState({
                             mainToolbarTitle: window.customVariables.cachedFolders[lastFolderInRoute].name,
                             showMainToolbarBackButton: true
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                     else{
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "cloudDrives"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                 }
                 else{
                     if(routeEx[1] == "shared-in"){
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "sharedInTitle"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "sharedInTitle"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                     else if(routeEx[1] == "shared-out"){
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "sharedOutTitle"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "sharedOutTitle"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                     else if(routeEx[1] == "trash"){
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "trashTitle"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "trashTitle"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                     else if(routeEx[1] == "links"){
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "linksTitle"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "linksTitle"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                     else if(routeEx[1] == "recent"){
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "recent"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "recent"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                     else if(routeEx[1] == "events"){
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "events"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "events"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                     else if(routeEx[1] == "favorites"){
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "favorites"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "favorites"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                     else{
-                        this.setState({
-                            mainToolbarTitle: language.get(this.state.lang, "cloudDrives"),
+                        self.setState({
+                            mainToolbarTitle: language.get(self.state.lang, "cloudDrives"),
                             showMainToolbarBackButton: false
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                 }
@@ -150,19 +158,21 @@ export async function doRouting(){
     }
 
     window.customVariables.isCurrentlyRouting = false
+
+    return true
 }
 
-export function windowRouter(){
+export function windowRouter(self){
     window.onhashchange = () => {
-        if(typeof this !== "object"){
+        if(typeof self !== "object"){
             return false
         }
 
-        return this.doRouting()
+        return doRouting(self)
     }
 }
 
-export function setupWindowFunctions(){
+export function setupWindowFunctions(self){
     window.$ = undefined
 
     /*let hacktimerScript = document.createElement("script")
@@ -199,7 +209,7 @@ export function setupWindowFunctions(){
     window.customVariables.socket = undefined
     window.customVariables.socketPingInterval = undefined
     window.customVariables.itemList = []
-    window.customVariables.lang = this.state.lang
+    window.customVariables.lang = self.state.lang
     window.customVariables.cachedFolders = {}
     window.customVariables.cachedFiles = {}
     window.customVariables.cachedMetadata = {}
@@ -207,15 +217,16 @@ export function setupWindowFunctions(){
     window.customVariables.usageUpdateInterval = undefined
     window.customVariables.apiKey = ""
     window.customVariables.uploadSemaphore = new utils.Semaphore(1)
-    window.customVariables.uploadChunkSemaphore = new utils.Semaphore(10)
+    window.customVariables.uploadChunkSemaphore = new utils.Semaphore(8)
     window.customVariables.downloadSemaphore = new utils.Semaphore(1)
     window.customVariables.downloadChunkSemaphore = new utils.Semaphore(20)
-    window.customVariables.shareItemSemaphore = new utils.Semaphore(16)
+    window.customVariables.shareItemSemaphore = new utils.Semaphore(32)
     window.customVariables.decryptShareItemSemaphore = new utils.Semaphore(256)
     window.customVariables.writeSemaphore = new utils.Semaphore(64)
     window.customVariables.transfersSemaphore = new utils.Semaphore(1)
+    window.customVariables.blobWriterSemaphore = new utils.Semaphore(1024)
     window.customVariables.currentUploadThreads = 0
-    window.customVariables.maxUploadThreads = 10
+    window.customVariables.maxUploadThreads = 8
     window.customVariables.maxDownloadThreads = 20
     window.customVariables.currentDownloadThreads = 0
     window.customVariables.maxWriteThreads = 256
@@ -241,8 +252,8 @@ export function setupWindowFunctions(){
     window.customVariables.thumbnailBlobCache = {}
     window.customVariables.currentThumbnailURL = undefined
     window.customVariables.lastThumbnailCacheLength = undefined
-    window.customVariables.thumbnailSemaphore = new utils.Semaphore(1)
-    window.customVariables.getFileThumbnailSemaphore = new utils.Semaphore(1)
+    window.customVariables.thumbnailSemaphore = new utils.Semaphore(2)
+    window.customVariables.getFileThumbnailSemaphore = new utils.Semaphore(2)
     window.customVariables.updateItemsSemaphore = new utils.Semaphore(1)
     window.customVariables.fsCopySemaphore = new utils.Semaphore(1)
     window.customVariables.cameraUploadSemaphore = new utils.Semaphore(1)
@@ -269,9 +280,9 @@ export function setupWindowFunctions(){
     window.customVariables.isDocumentReady = false
     window.customVariables.isGettingThumbnail = {}
     window.customVariables.lastItemsCacheLength = undefined
-    window.customVariables.currentFileVersion = this.state.currentFileVersion
-    window.customVariables.currentAuthVersion = this.state.currentAuthVersion
-    window.customVariables.currentMetadataVersion = this.state.currentMetadataVersion
+    window.customVariables.currentFileVersion = self.state.currentFileVersion
+    window.customVariables.currentAuthVersion = self.state.currentAuthVersion
+    window.customVariables.currentMetadataVersion = self.state.currentMetadataVersion
     window.customFunctions.workers = workers
     window.customVariables.updateScreenShowing = false
     window.customVariables.currentPINCode = ""
@@ -281,7 +292,7 @@ export function setupWindowFunctions(){
     window.customVariables.currentBiometricModalType = "auth"
     window.customVariables.nextBiometricAuth = 0
     window.customVariables.biometricAuthShowing = false
-    window.customVariables.biometricAuthTimeout = 900 //secs
+    window.customVariables.biometricAuthTimeout = 900
     window.customVariables.currentTextEditorContent = ""
     window.customVariables.currentTextEditorItem = {}
     window.customVariables.cachedUserInfo = undefined
@@ -309,9 +320,7 @@ export function setupWindowFunctions(){
     window.customVariables.thumbnailsInView = {}
     window.customVariables.debounceIds = {}
     window.customVariables.didRequestThumbnail = {}
-
-    window.workers = workers
-    window.utils = utils
+    window.customVariables.cameraUploadFetchNewItemsTimeout = Math.floor((+new Date()) / 1000)
 
     window.customFunctions.checkForSendIntent = () => {
         if(!isPlatform("android")){
@@ -322,7 +331,7 @@ export function setupWindowFunctions(){
             if(result){
                 setTimeout(() => {
                     window.customFunctions.fileSendIntentReceived(result, "android")
-                }, 250)
+                }, 500)
             }
 
             return true
@@ -334,7 +343,7 @@ export function setupWindowFunctions(){
     window.customFunctions.setupCameraUpload = async (enable = true) => {
         await new Promise((resolve) => {
             let wait = setInterval(() => {
-                if(this.state.isLoggedIn && this.state.isDeviceOnline && window.customVariables.isDocumentReady){
+                if(self.state.isLoggedIn && self.state.isDeviceOnline && window.customVariables.isDocumentReady){
                     clearInterval(wait)
 
                     return setTimeout(resolve, 5000)
@@ -343,13 +352,13 @@ export function setupWindowFunctions(){
         })
 
         if(enable){
-            if(!this.state.settings.cameraUpload.enabled){
+            /*if(!self.state.settings.cameraUpload.enabled){
                 window.customVariables.cameraUploadEnabled = false
     
                 return false
             }
 
-            if(typeof this.state.settings.cameraUpload.parent !== "string"){
+            if(typeof self.state.settings.cameraUpload.parent !== "string"){
                 window.customVariables.cameraUploadEnabled = false
     
                 return false
@@ -357,11 +366,11 @@ export function setupWindowFunctions(){
 
             if(window.customVariables.cameraUploadEnabled){
                 return false
-            }
+            }*/
 
             window.customVariables.cameraUploadEnabled = true
 
-            return window.customFunctions.doCameraUpload()
+            return true
         }
         else{
             window.customVariables.cameraUploadEnabled = false
@@ -373,20 +382,24 @@ export function setupWindowFunctions(){
     window.customFunctions.doCameraUpload = async () => {
         await window.customVariables.cameraUploadSemaphore.acquire()
 
-        if(!this.state.isLoggedIn){
+        if(!self.state.isLoggedIn){
             window.customVariables.cameraUploadRunning = false
 
             window.customVariables.cameraUploadSemaphore.release()
 
-            return false
+            return setTimeout(() => {
+                window.customFunctions.doCameraUpload()
+            }, 1000)
         }
 
-        if(!this.state.isDeviceOnline){
+        if(!self.state.isDeviceOnline){
             window.customVariables.cameraUploadRunning = false
 
             window.customVariables.cameraUploadSemaphore.release()
 
-            return false
+            return setTimeout(() => {
+                window.customFunctions.doCameraUpload()
+            }, 1000)
         }
 
         if(!window.customVariables.isDocumentReady){
@@ -400,8 +413,8 @@ export function setupWindowFunctions(){
         }
 
         if(Capacitor.isNative){
-            if(this.state.settings.onlyWifiUploads){
-                let networkStatus = this.state.networkStatus
+            if(self.state.settings.onlyWifiUploads){
+                let networkStatus = self.state.networkStatus
     
                 if(networkStatus.connectionType !== "wifi"){
                     window.customVariables.cameraUploadRunning = false
@@ -415,20 +428,24 @@ export function setupWindowFunctions(){
             }
         }
 
-        if(!this.state.settings.cameraUpload.enabled){
+        if(!self.state.settings.cameraUpload.enabled){
             window.customVariables.cameraUploadRunning = false
 
             window.customVariables.cameraUploadSemaphore.release()
 
-            return false
+            return setTimeout(() => {
+                window.customFunctions.doCameraUpload()
+            }, 1000)
         }
 
-        if(typeof this.state.settings.cameraUpload.parent !== "string"){
+        if(typeof self.state.settings.cameraUpload.parent !== "string"){
             window.customVariables.cameraUploadRunning = false
 
             window.customVariables.cameraUploadSemaphore.release()
 
-            return false
+            return setTimeout(() => {
+                window.customFunctions.doCameraUpload()
+            }, 1000)
         }
 
         if(!window.customVariables.cameraUploadEnabled){
@@ -436,7 +453,9 @@ export function setupWindowFunctions(){
 
             window.customVariables.cameraUploadSemaphore.release()
 
-            return false
+            return setTimeout(() => {
+                window.customFunctions.doCameraUpload()
+            }, 1000)
         }
 
         if((window.customVariables.cameraUpload.lastCheck + 1000) > (+new Date())){
@@ -450,37 +469,17 @@ export function setupWindowFunctions(){
         window.customVariables.cameraUpload.lastCheck = (+new Date())
         window.customVariables.cameraUploadRunning = true
 
-        let parent = this.state.settings.cameraUpload.parent
+        let parent = self.state.settings.cameraUpload.parent
 
-        try{
-            var dataTotal = await Media.getMedias({
-                type: "total",
-                includeHidden: (this.state.settings.cameraUpload.hidden ? 1 : 0),
-                includeBurst: (this.state.settings.cameraUpload.burst ? 1 : 0),
-                iTunesSynced: (this.state.settings.cameraUpload.icloud ? 1 : 0),
-                cloudShared: (this.state.settings.cameraUpload.shared ? 1 : 0),
-                convertHeic: (this.state.settings.cameraUpload.convertHeic ? 1 : 0)
-            })
-        }
-        catch(e){
-            console.log(e)
-
-            window.customVariables.cameraUploadSemaphore.release()
-
-            return setTimeout(() => {
-                window.customFunctions.doCameraUpload()
-            }, 1000)
-        }
-
-        if(dataTotal.total > window.customVariables.cameraUpload.cachedIds.length){
+        if(Math.floor((+new Date()) / 1000) > window.customVariables.cameraUploadFetchNewItemsTimeout){
             try{
-                var dataAll = await Media.getMedias({
-                    type: "all",
-                    includeHidden: (this.state.settings.cameraUpload.hidden ? 1 : 0),
-                    includeBurst: (this.state.settings.cameraUpload.burst ? 1 : 0),
-                    iTunesSynced: (this.state.settings.cameraUpload.icloud ? 1 : 0),
-                    cloudShared: (this.state.settings.cameraUpload.shared ? 1 : 0),
-                    convertHeic: (this.state.settings.cameraUpload.convertHeic ? 1 : 0)
+                var dataTotal = await Media.getMedias({
+                    type: "total",
+                    includeHidden: (self.state.settings.cameraUpload.hidden ? 1 : 0),
+                    includeBurst: (self.state.settings.cameraUpload.burst ? 1 : 0),
+                    iTunesSynced: (self.state.settings.cameraUpload.icloud ? 1 : 0),
+                    cloudShared: (self.state.settings.cameraUpload.shared ? 1 : 0),
+                    convertHeic: (self.state.settings.cameraUpload.convertHeic ? 1 : 0)
                 })
             }
             catch(e){
@@ -493,10 +492,34 @@ export function setupWindowFunctions(){
                 }, 1000)
             }
 
-            window.customVariables.cameraUpload.cachedIds = []
-
-            for(let i = 0; i < dataAll.medias.length; i++){
-                window.customVariables.cameraUpload.cachedIds.push(dataAll.medias[i].id)
+            window.customVariables.cameraUploadFetchNewItemsTimeout = (Math.floor((+new Date()) / 1000) + 60)
+    
+            if(dataTotal.total > window.customVariables.cameraUpload.cachedIds.length){
+                try{
+                    var dataAll = await Media.getMedias({
+                        type: "all",
+                        includeHidden: (self.state.settings.cameraUpload.hidden ? 1 : 0),
+                        includeBurst: (self.state.settings.cameraUpload.burst ? 1 : 0),
+                        iTunesSynced: (self.state.settings.cameraUpload.icloud ? 1 : 0),
+                        cloudShared: (self.state.settings.cameraUpload.shared ? 1 : 0),
+                        convertHeic: (self.state.settings.cameraUpload.convertHeic ? 1 : 0)
+                    })
+                }
+                catch(e){
+                    console.log(e)
+        
+                    window.customVariables.cameraUploadSemaphore.release()
+        
+                    return setTimeout(() => {
+                        window.customFunctions.doCameraUpload()
+                    }, 1000)
+                }
+    
+                window.customVariables.cameraUpload.cachedIds = []
+    
+                for(let i = 0; i < dataAll.medias.length; i++){
+                    window.customVariables.cameraUpload.cachedIds.push(dataAll.medias[i].id)
+                }
             }
         }
 
@@ -514,11 +537,11 @@ export function setupWindowFunctions(){
                     var data = await Media.getMedias({
                         type: "id",
                         id: id,
-                        includeHidden: (this.state.settings.cameraUpload.hidden ? 1 : 0),
-                        includeBurst: (this.state.settings.cameraUpload.burst ? 1 : 0),
-                        iTunesSynced: (this.state.settings.cameraUpload.icloud ? 1 : 0),
-                        cloudShared: (this.state.settings.cameraUpload.shared ? 1 : 0),
-                        convertHeic: (this.state.settings.cameraUpload.convertHeic ? 1 : 0)
+                        includeHidden: (self.state.settings.cameraUpload.hidden ? 1 : 0),
+                        includeBurst: (self.state.settings.cameraUpload.burst ? 1 : 0),
+                        iTunesSynced: (self.state.settings.cameraUpload.icloud ? 1 : 0),
+                        cloudShared: (self.state.settings.cameraUpload.shared ? 1 : 0),
+                        convertHeic: (self.state.settings.cameraUpload.convertHeic ? 1 : 0)
                     })
                 }
                 catch(e){
@@ -546,35 +569,35 @@ export function setupWindowFunctions(){
                         let mimeType = mime.lookup(url.replace("file://", ""))
                         let mimeTypeCheckPassed = false
 
-                        if(this.state.settings.cameraUpload.photos && mimeType.indexOf("image/") !== -1){
+                        if(self.state.settings.cameraUpload.photos && mimeType.indexOf("image/") !== -1){
                             mimeTypeCheckPassed = true
                         }
 
-                        if(this.state.settings.cameraUpload.videos && mimeType.indexOf("video/") !== -1){
+                        if(self.state.settings.cameraUpload.videos && mimeType.indexOf("video/") !== -1){
                             mimeTypeCheckPassed = true
                         }
 
                         if(typeof mimeType == "string"){
                             if(mimeType.indexOf("/") !== -1){
-                                if(this.state.settings.cameraUpload.photos && this.state.settings.cameraUpload.videos){
+                                if(self.state.settings.cameraUpload.photos && self.state.settings.cameraUpload.videos){
                                     if(mimeType.indexOf("image/") !== -1 || mimeType.indexOf("video/") !== -1){
                                         mimeTypeCheckPassed = true
                                     }
                                 }
 
-                                if(!this.state.settings.cameraUpload.photos && this.state.settings.cameraUpload.videos){
+                                if(!self.state.settings.cameraUpload.photos && self.state.settings.cameraUpload.videos){
                                     if(mimeType.indexOf("video/") !== -1){
                                         mimeTypeCheckPassed = true
                                     }
                                 }
 
-                                if(this.state.settings.cameraUpload.photos && !this.state.settings.cameraUpload.videos){
+                                if(self.state.settings.cameraUpload.photos && !self.state.settings.cameraUpload.videos){
                                     if(mimeType.indexOf("image/") !== -1){
                                         mimeTypeCheckPassed = true
                                     }
                                 }
 
-                                if(!this.state.settings.cameraUpload.photos && !this.state.settings.cameraUpload.videos){
+                                if(!self.state.settings.cameraUpload.photos && !self.state.settings.cameraUpload.videos){
                                     mimeTypeCheckPassed = false
                                 }
                             }
@@ -603,7 +626,7 @@ export function setupWindowFunctions(){
                                                     let ex = fileObject.name.split(".")
                                                     let ext = ex.pop()
                                                     let without = ex.join(".")
-                                                    let title = (without + "_" + fileObject.lastModified + "." + ext).trim()
+                                                    let title = (without + "_" + Math.floor(fileObject.lastModified / 1000) + "." + ext).trim()
                                                     
                                                     fileObject.name = title
                                                 }
@@ -656,76 +679,112 @@ export function setupWindowFunctions(){
             for(let i = 0; i < fileObjects.length; i++){
                 if(typeof fileObjects[i].file !== "undefined"){
                     new Promise((resolve, reject) => {
-                        if(!this.state.settings.cameraUpload.enabled || !window.customVariables.cameraUploadEnabled){
+                        if(!self.state.settings.cameraUpload.enabled || !window.customVariables.cameraUploadEnabled){
                             return reject("stopped")
                         }
 
-                        this.queueFileUpload(fileObjects[i].file, undefined, async (err) => {
+                        fileExists(self, fileObjects[i].file.name, fileObjects[i].file.editorParent, async (err, exists) => {
                             if(err){
                                 return reject(err)
                             }
 
-                            await window.customVariables.cameraUploadUploadSemaphore.acquire()
+                            if(exists){
+                                await window.customVariables.cameraUploadUploadSemaphore.acquire()
+    
+                                window.customVariables.cameraUpload.uploadedIds[fileObjects[i].id] = true
+    
+                                await window.customFunctions.saveCameraUpload()
+    
+                                window.customVariables.cameraUploadUploadSemaphore.release()
 
-                            window.customVariables.cameraUpload.uploadedIds[fileObjects[i].id] = true
-
-                            try{
-                                await workers.localforageSetItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
+                                return resolve()
                             }
-                            catch(e){
-                                console.log(e)
-                            }
 
-                            window.customVariables.cameraUploadUploadSemaphore.release()
+                            queueFileUpload(self, fileObjects[i].file, undefined, async (err) => {
+                                if(err){
+                                    console.log(err)
 
-                            if(typeof fileObjects[i].heicURL !== "undefined"){
-                                window.resolveLocalFileSystemURL(fileObjects[i].url, (resolved) => {
-                                    if(resolved.isFile){
-                                        resolved.getParent((parent) => {
-                                            if(parent.isDirectory){
-                                                if(typeof parent.removeRecursively == "function"){
-                                                    parent.removeRecursively(() => {
-                                                        return resolve()
-                                                    }, (err) => {
-                                                        console.log(err)
+                                    try{
+                                        if(err.toString().indexOf("Parent folder is in the trash") !== -1){
+                                            let newSettings = self.state.settings
 
-                                                        return resolve()
-                                                    })
-                                                }
-                                                else if(typeof parent.remove == "function"){
-                                                    parent.remove(() => {
-                                                        return resolve()
-                                                    }, (err) => {
-                                                        console.log(err)
+                                            newSettings.cameraUpload.parent = ""
+                                            newSettings.cameraUpload.parentName = ""
+                                            newSettings.cameraUpload.enabled = false
 
+                                            await window.customFunctions.saveSettings(newSettings)
+
+                                            if(document.getElementById("camera-upload-enabled-toggle") !== null){
+                                                document.getElementById("camera-upload-enabled-toggle").checked = false
+                                            }
+
+                                            window.customFunctions.setupCameraUpload(false)
+                                        }
+                                    }
+                                    catch{}
+
+                                    await window.customFunctions.saveCameraUpload()
+
+                                    return resolve()
+                                }
+    
+                                await window.customVariables.cameraUploadUploadSemaphore.acquire()
+    
+                                window.customVariables.cameraUpload.uploadedIds[fileObjects[i].id] = true
+    
+                                await window.customFunctions.saveCameraUpload()
+    
+                                window.customVariables.cameraUploadUploadSemaphore.release()
+    
+                                if(typeof fileObjects[i].heicURL !== "undefined"){
+                                    window.resolveLocalFileSystemURL(fileObjects[i].url, (resolved) => {
+                                        if(resolved.isFile){
+                                            resolved.getParent((parent) => {
+                                                if(parent.isDirectory){
+                                                    if(typeof parent.removeRecursively == "function"){
+                                                        parent.removeRecursively(() => {
+                                                            return resolve()
+                                                        }, (err) => {
+                                                            console.log(err)
+    
+                                                            return resolve()
+                                                        })
+                                                    }
+                                                    else if(typeof parent.remove == "function"){
+                                                        parent.remove(() => {
+                                                            return resolve()
+                                                        }, (err) => {
+                                                            console.log(err)
+    
+                                                            return resolve()
+                                                        })
+                                                    }
+                                                    else{
                                                         return resolve()
-                                                    })
+                                                    }
                                                 }
                                                 else{
                                                     return resolve()
                                                 }
-                                            }
-                                            else{
+                                            }, (err) => {
+                                                console.log(err)
+    
                                                 return resolve()
-                                            }
-                                        }, (err) => {
-                                            console.log(err)
-
+                                            })
+                                        }
+                                        else{
                                             return resolve()
-                                        })
-                                    }
-                                    else{
+                                        }
+                                    }, (err) => {
+                                        console.log(err)
+    
                                         return resolve()
-                                    }
-                                }, (err) => {
-                                    console.log(err)
-
+                                    })
+                                }
+                                else{
                                     return resolve()
-                                })
-                            }
-                            else{
-                                return resolve()
-                            }
+                                }
+                            })
                         })
                     }).then(() => {
                         done += 1
@@ -740,13 +799,6 @@ export function setupWindowFunctions(){
                 }
             }
         })
-
-        try{
-            await workers.localforageSetItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
-        }
-        catch(e){
-            console.log(e)
-        }
 
         window.customVariables.cameraUploadSemaphore.release()
 
@@ -764,11 +816,11 @@ export function setupWindowFunctions(){
             window.customVariables.networkStatus = status
     
             if(old.connected !== window.customVariables.networkStatus.connected){
-                this.setState({
+                self.setState({
                     networkStatus: window.customVariables.networkStatus,
                     isDeviceOnline: window.customVariables.networkStatus.connected
                 }, () => {
-                    this.forceUpdate()
+                    self.forceUpdate()
                 })
             }
         })
@@ -778,7 +830,7 @@ export function setupWindowFunctions(){
                 return false
             }
     
-            if(!this.state.isLoggedIn){
+            if(!self.state.isLoggedIn){
                 return false
             }
 
@@ -839,7 +891,7 @@ export function setupWindowFunctions(){
                     else{
                         window.customVariables.backButtonPresses += 1
     
-                        this.spawnToast(language.get(this.state.lang, "closeAppPress"))
+                        spawnToast(language.get(self.state.lang, "closeAppPress"))
                     }
                 }
             }
@@ -858,10 +910,16 @@ export function setupWindowFunctions(){
             }
 
             window.customFunctions.setupCameraUpload(true)
+
+            setTimeout(() => {
+                window.customFunctions.doCameraUpload()
+            }, 1000)
         })
     
         window.addEventListener("load", () => {
             window.customVariables.isDocumentReady = true
+
+            window.screen.orientation.lock("portrait")
         })
 
         window.addEventListener("sendIntentReceived", () => {
@@ -879,8 +937,8 @@ export function setupWindowFunctions(){
 
         setTimeout(async () => {
             if(["#!/base", "#!/shared-in", "#!/shared-out", "#!/favorites", "#!/links"].includes(window.location.hash)){
-                if(this.state.itemList.length == 0){
-                    await this.updateItemList()
+                if(self.state.itemList.length == 0){
+                    await updateItemList(self)
                 }
             }
         }, 500)
@@ -1000,18 +1058,18 @@ export function setupWindowFunctions(){
         }
 
         let toast = await toastController.create({
-            message: language.get(this.state.lang, "selectDestination"),
+            message: language.get(self.state.lang, "selectDestination"),
             animated: false,
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "uploadHere"),
+                    text: language.get(self.state.lang, "uploadHere"),
                     handler: async () => {
                         let fileParent = utils.currentParentFolder()
 
@@ -1020,7 +1078,7 @@ export function setupWindowFunctions(){
                         }
 
                         for(let i = 0; i < fileObjects.length; i++){
-                            window.customFunctions.queueFileUpload(fileObjects[i])
+                            queueFileUpload(self, fileObjects[i])
                         }
 
                         return true
@@ -1076,12 +1134,12 @@ export function setupWindowFunctions(){
             let scrollTop = Math.floor(document.getElementById("main-virtual-list").scrollTop)
 
             /*if(scrollTop == 0){
-                this.setState({
+                self.setState({
                     refresherEnabled: true
                 })
             }
             else{
-                this.setState({
+                self.setState({
                     refresherEnabled: false
                 })
             }*/
@@ -1089,24 +1147,28 @@ export function setupWindowFunctions(){
             let diff = Math.floor(Math.floor(document.getElementById("main-virtual-list").scrollHeight - document.getElementById("main-virtual-list").offsetHeight) - Math.floor(scrollTop))
 
             if(scrollTop > 0 && diff <= 50){
-                this.setState({
+                self.setState({
                     hideMainFab: true
                 })
             }
             else{
-                this.setState({
+                self.setState({
                     hideMainFab: false
                 })
             }
         }
         else{
-            this.setState({
+            self.setState({
                 hideMainFab: false
             })
         }
     }
 
     window.customFunctions.updateHeightAndWidthState = () => {
+        if(self.state.windowHeight == window.innerHeight && self.state.windowWidth == window.innerWidth){
+            return false
+        }
+
         let gridItemWidth = (window.innerWidth / 2) - 25
         let gridItemHeight = (window.innerHeight / 5)
 
@@ -1114,21 +1176,31 @@ export function setupWindowFunctions(){
             gridItemHeight = gridItemWidth
         }
 
-        return this.setState({
+        return self.setState({
             windowHeight: window.innerHeight,
             windowWidth: window.innerWidth,
             gridItemWidth: gridItemWidth,
             gridItemHeight: gridItemHeight
+        }, () => {
+            return self.forceUpdate()
         })
     }
 
     window.addEventListener("orientationchange", () => {
-        window.customFunctions.updateHeightAndWidthState()
+        return window.customFunctions.updateHeightAndWidthState()
     }, false)
 
-    window.addEventListener("resize", function() {
-        window.customFunctions.updateHeightAndWidthState()
+    window.addEventListener("resize", () => {
+        return window.customFunctions.updateHeightAndWidthState()
     }, false)
+
+    document.addEventListener("resize", () => {
+        return window.customFunctions.updateHeightAndWidthState()
+    }, false)
+
+    setInterval(() => {
+        return window.customFunctions.updateHeightAndWidthState()
+    }, 100)
 
     document.onclick = (e) => {
         return window.customFunctions.togglePreviewHeader(e)
@@ -1152,7 +1224,7 @@ export function setupWindowFunctions(){
 
             loading.dismiss()
 
-            this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            spawnToast(language.get(self.state.lang, "apiRequestError"))
 
             return false
         }
@@ -1162,7 +1234,7 @@ export function setupWindowFunctions(){
 
             loading.dismiss()
 
-            this.spawnToast(res.message)
+            spawnToast(res.message)
 
             return false
         }
@@ -1171,21 +1243,21 @@ export function setupWindowFunctions(){
 
         window.customVariables.cachedUserInfo = res.data
 
-        this.setState({
+        self.setState({
             cachedUserInfo: res.data
         }, () => {
-            this.forceUpdate()
+            self.forceUpdate()
         })
 
         return true
     }
 
     window.customFunctions.triggerBiometricAuth = () => {
-        if(typeof this.state.settings.biometricPINCode == "undefined"){
+        if(typeof self.state.settings.biometricPINCode == "undefined"){
             return false
         }
 
-        if(this.state.settings.biometricPINCode.length !== 4){
+        if(self.state.settings.biometricPINCode.length !== 4){
             return false
         }
 
@@ -1236,13 +1308,13 @@ export function setupWindowFunctions(){
             return true
         }
 
-        if(window.customVariables.currentBiometricModalType == "auth" && typeof this.state.settings.biometricPINCode !== "undefined"){
+        if(window.customVariables.currentBiometricModalType == "auth" && typeof self.state.settings.biometricPINCode !== "undefined"){
             window.customVariables.currentPINCode = window.customVariables.currentPINCode + "" + number
 
             paintDots(window.customVariables.currentPINCode.length)
 
             if(window.customVariables.currentPINCode.length >= 4){
-                if(window.customVariables.currentPINCode !== this.state.settings.biometricPINCode){
+                if(window.customVariables.currentPINCode !== self.state.settings.biometricPINCode){
                     Haptics.impact(HapticsImpactStyle.Light)
 
                     await window.customFunctions.shakeDiv(window.$("#pin-code-dots"), 100, 10, 6)
@@ -1285,10 +1357,18 @@ export function setupWindowFunctions(){
                         window.customVariables.currentPINCode = ""
                         window.customVariables.confirmPINCode = ""
     
-                        window.$("#pin-code-text").html(language.get(this.state.lang, "biometricSetupPINCode"))
+                        window.$("#pin-code-text").html(language.get(self.state.lang, "biometricSetupPINCode"))
                     }
                     else{
-                        let newSettings = this.state.settings
+                        let loading = await loadingController.create({
+                            message: "",
+                            backdropDismiss: false,
+                            showBackdrop: false
+                        })
+
+                        await loading.present()
+
+                        let newSettings = self.state.settings
 
                         newSettings.biometricPINCode = window.customVariables.confirmPINCode
 
@@ -1297,13 +1377,11 @@ export function setupWindowFunctions(){
                         window.customVariables.currentPINCode = ""
                         window.customVariables.confirmPINCode = ""
 
-                        await new Promise((resolve) => {
-                            return setTimeout(resolve, 100)
-                        })
-
                         window.customVariables.biometricAuthShowing = false
 
                         window.$("#biometric-auth-screen").remove()
+
+                        loading.dismiss()
                     }
                 }
             }
@@ -1319,7 +1397,7 @@ export function setupWindowFunctions(){
 
                     window.customVariables.confirmPINCode = ""
 
-                    window.$("#pin-code-text").html(language.get(this.state.lang, "biometricSetupPINCodeConfirm"))
+                    window.$("#pin-code-text").html(language.get(self.state.lang, "biometricSetupPINCodeConfirm"))
                 }
             }
         }
@@ -1336,8 +1414,8 @@ export function setupWindowFunctions(){
             window.customVariables.biometricAuthShowing = true
         }
 
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "biometric-auth-modal-" + utils.generateRandomClassName()
 
         window.customVariables.currentPINCode = ""
@@ -1468,10 +1546,10 @@ export function setupWindowFunctions(){
             window.customFunctions.showBiometricAuth()
         }
 
-        //this.setupStatusbar("login/register")
+        //setupStatusbar(self, "login/register")
 
         //modal.onDidDismiss().then(() => {
-        //    this.setupStatusbar()
+        //    setupStatusbar(self)
         //})
 
         return true
@@ -1482,13 +1560,13 @@ export function setupWindowFunctions(){
             var available = await FingerprintAIO.isAvailable()
         }
         catch(e){
-            //this.spawnToast(language.get(this.state.lang, "biometricNotAvailable"))
+            //spawnToast(language.get(self.state.lang, "biometricNotAvailable"))
 
             return console.log(e)
         }
 
         if(!["finger", "face", "biometric"].includes(available)){
-            //return this.spawnToast(language.get(this.state.lang, "biometricNotAvailable"))
+            //return spawnToast(language.get(self.state.lang, "biometricNotAvailable"))
 
             return false
         }
@@ -1498,29 +1576,29 @@ export function setupWindowFunctions(){
                 clientId: "filen",
                 clientSecret: "filen",
                 disableBackup: true,
-                title: language.get(this.state.lang, "biometricTitle"),
-                description: language.get(this.state.lang, "biometricDescription"),
-                fallbackButtonTitle: language.get(this.state.lang, "biometricUsePIN"),
-                cancelButtonTitle: language.get(this.state.lang, "cancel"),
+                title: language.get(self.state.lang, "biometricTitle"),
+                description: language.get(self.state.lang, "biometricDescription"),
+                fallbackButtonTitle: language.get(self.state.lang, "biometricUsePIN"),
+                cancelButtonTitle: language.get(self.state.lang, "cancel"),
                 confirmationRequired: false
             })
         }
         catch(e){
-            //this.spawnToast(language.get(this.state.lang, "biometricInvalid"))
+            //spawnToast(language.get(self.state.lang, "biometricInvalid"))
 
             return console.log(e)
         }
 
         if(typeof result.code !== "undefined"){
             if(result.code == -108){
-                //this.spawnToast(language.get(this.state.lang, "biometricCanceled"))
+                //spawnToast(language.get(self.state.lang, "biometricCanceled"))
 
                 return false
             }
         }
 
         if(!["Success", "success", "biometric_success"].includes(result)){
-            //this.spawnToast(language.get(this.state.lang, "biometricInvalid"))
+            //spawnToast(language.get(self.state.lang, "biometricInvalid"))
 
             return false
         }
@@ -1567,8 +1645,8 @@ export function setupWindowFunctions(){
 
         window.customVariables.updateScreenShowing = true
 
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
 
         window.$("body").prepend(`
             <div id="update-screen" style="position: absolute; height: 100vh; width: 100vw; overflow: hidden; z-index: 100000;">
@@ -1627,7 +1705,7 @@ export function setupWindowFunctions(){
                 }
 
                 await utils.apiRequest("POST", "/v1/error/report", {
-                    apiKey: this.state.userAPIKey || "none",
+                    apiKey: self.state.userAPIKey || "none",
                     error: JSON.stringify(errObj),
                     platform: "mobile"
                 })
@@ -1637,18 +1715,18 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleBiometricAuth = () => {
-        if(typeof this.state.settings.biometricPINCode !== "undefined"){
-            if(this.state.settings.biometricPINCode.length == 4){
-                let newSettings = this.state.settings
+        if(typeof self.state.settings.biometricPINCode !== "undefined"){
+            if(self.state.settings.biometricPINCode.length == 4){
+                let newSettings = self.state.settings
 
                 newSettings.biometricPINCode = ""
 
                 window.customFunctions.saveSettings(newSettings)
 
-                return this.setState({
+                return self.setState({
                     settings: newSettings
                 }, () => {
-                    this.forceUpdate()
+                    self.forceUpdate()
                 })
             }
         }
@@ -1659,18 +1737,18 @@ export function setupWindowFunctions(){
     window.customFunctions.toggleGridMode = () => {
         window.customFunctions.dismissPopover()
 
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.gridModeEnabled
 
         newSettings.gridModeEnabled = newVal
 
         window.customFunctions.saveSettings(newSettings)
 
-        return this.setState({
+        return self.setState({
             settings: newSettings,
             scrollToIndex: 0
         }, () => {
-            this.forceUpdate()
+            self.forceUpdate()
         })
     }
 
@@ -1696,7 +1774,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.isDeviceOnline = () => {
-        return this.state.isDeviceOnline
+        return self.state.isDeviceOnline
     }
 
     window.customFunctions.getNetworkInfo = async () => {
@@ -1706,11 +1784,11 @@ export function setupWindowFunctions(){
             window.customVariables.networkStatus = await Network.getStatus()
 
             if(old.connected !== window.customVariables.networkStatus.connected){
-                this.setState({
+                self.setState({
                     networkStatus: window.customVariables.networkStatus,
                     isDeviceOnline: window.customVariables.networkStatus.connected
                 }, () => {
-                    this.forceUpdate()
+                    self.forceUpdate()
                 })
             }
         }
@@ -1719,147 +1797,44 @@ export function setupWindowFunctions(){
         }
     }
 
+    window.customFunctions.saveSettings = (newSettings) => {
+        self.setState({
+            settings: newSettings
+        })
+
+        return storage.saveSettings(newSettings)
+    }
+
     window.customFunctions.saveItemsCache = () => {
-        clearInterval(window.customVariables.debounceIds['saveItemsCache'])
-
-        return window.customVariables.debounceIds['saveItemsCache'] = setTimeout(async () => {
-            try{
-                let data = await workers.JSONStringifyWorker(window.customVariables.itemsCache)
-
-                await workers.localforageSetItem("itemsCache@" + window.customVariables.userEmail, data)
-
-                data = null
-            }
-            catch(e){
-                console.log(e)
-            }
-
-            return true
-        }, 3000)
+        return storage.saveItemsCache()
     }
 
     window.customFunctions.saveOfflineSavedFiles = () => {
-        clearInterval(window.customVariables.debounceIds['saveOfflineSavedFiles'])
-
-        return window.customVariables.debounceIds['saveOfflineSavedFiles'] = setTimeout(async () => {
-            try{
-                let data = await workers.JSONStringifyWorker(window.customVariables.offlineSavedFiles)
-
-                await workers.localforageSetItem("offlineSavedFiles@" + window.customVariables.userEmail, data)
-
-                data = null
-            }
-            catch(e){
-                console.log(e)
-            }
-            return true
-        }, 3000)
+        return storage.saveOfflineSavedFiles()
     }
 
     window.customFunctions.saveGetThumbnailErrors = () => {
-        clearInterval(window.customVariables.debounceIds['saveGetThumbnailErrors'])
-
-        return window.customVariables.debounceIds['saveGetThumbnailErrors'] = setTimeout(async () => {
-            try{
-                let data = await workers.JSONStringifyWorker(window.customVariables.getThumbnailErrors)
-
-                await workers.localforageSetItem("getThumbnailErrors@" + window.customVariables.userEmail, data)
-
-                data = null
-            }
-            catch(e){
-                console.log(e)
-            }
-            return true
-        }, 3000)
+        return storage.saveGetThumbnailErrors()
     }
 
     window.customFunctions.saveAPICache = () => {
-        clearInterval(window.customVariables.debounceIds['saveAPICache'])
-
-        return window.customVariables.debounceIds['saveAPICache'] = setTimeout(async () => {
-            try{
-                let data = await workers.JSONStringifyWorker(window.customVariables.apiCache)
-
-                await workers.localforageSetItem("apiCache@" + window.customVariables.userEmail, data)
-
-                data = null
-            }
-            catch(e){
-                console.log(e)
-            }
-
-            return true
-        }, 3000)
+        return storage.saveAPICache()
     }
 
     window.customFunctions.saveThumbnailCache = () => {
-        return new Promise((resolve) => {
-            clearInterval(window.customVariables.debounceIds['saveThumbnailCache'])
-
-            return window.customVariables.debounceIds['saveThumbnailCache'] = setTimeout(async () => {
-                try{
-                    let data = await workers.JSONStringifyWorker(window.customVariables.thumbnailCache)
-
-                    await workers.localforageSetItem("thumbnailCache@" + window.customVariables.userEmail, data)
-
-                    data = null
-                }
-                catch(e){
-                    console.log(e)
-                }
-        
-                return resolve(true)
-            }, 3000)
-        })
+        return storage.saveThumbnailCache()
     }
 
     window.customFunctions.saveCachedItems = () => {
-        return new Promise((resolve) => {
-            clearInterval(window.customVariables.debounceIds['saveCachedItems'])
-
-            return window.customVariables.debounceIds['saveCachedItems'] = setTimeout(async () => {
-                try{
-                    let data1 = await workers.JSONStringifyWorker(window.customVariables.cachedFiles)
-                    let data2 = await workers.JSONStringifyWorker(window.customVariables.cachedFolders)
-                    let data3 = await workers.JSONStringifyWorker(window.customVariables.cachedMetadata)
-
-                    await workers.localforageSetItem("cachedFiles@" + window.customVariables.userEmail, data1)
-                    await workers.localforageSetItem("cachedFolders@" + window.customVariables.userEmail, data2)
-                    await workers.localforageSetItem("cachedMetadata@" + window.customVariables.userEmail, data3)
-
-                    data1 = null
-                    data2 = null
-                    data3 = null
-                }
-                catch(e){
-                    console.log(e)
-                }
-        
-                return resolve(true)
-            }, 3000)
-        })
+        return storage.saveCachedItems()
     }
 
     window.customFunctions.saveFolderSizeCache = () => {
-        return new Promise((resolve) => {
-            clearInterval(window.customVariables.debounceIds['saveFolderSizeCache'])
+        return storage.saveFolderSizeCache()
+    }
 
-            return window.customVariables.debounceIds['saveFolderSizeCache'] = setTimeout(async () => {
-                try{
-                    let data = await workers.JSONStringifyWorker(window.customVariables.folderSizeCache)
-
-                    await workers.localforageSetItem("folderSizeCache@" + window.customVariables.userEmail, data)
-
-                    data = null
-                }
-                catch(e){
-                    console.log(e)
-                }
-        
-                return resolve(true)
-            }, 3000)
-        })
+    window.customFunctions.saveCameraUpload = () => {
+        return storage.saveCameraUpload()
     }
 
     window.customFunctions.dismissActionSheet = async (all = false) => {
@@ -2010,15 +1985,15 @@ export function setupWindowFunctions(){
     window.customFunctions.selectAllItems = () => {
         let items = []
 
-        for(let i = 0; i < this.state.itemList.length; i++){
-            let item = this.state.itemList[i]
+        for(let i = 0; i < self.state.itemList.length; i++){
+            let item = self.state.itemList[i]
 
             item.selected = true
 
             items.push(item)
         }
 
-        this.setState({
+        self.setState({
             itemList: items,
             selectedItems: items.length
         })
@@ -2029,15 +2004,15 @@ export function setupWindowFunctions(){
     window.customFunctions.unselectAllItems = () => {
         let items = []
 
-        for(let i = 0; i < this.state.itemList.length; i++){
-            let item = this.state.itemList[i]
+        for(let i = 0; i < self.state.itemList.length; i++){
+            let item = self.state.itemList[i]
 
             item.selected = false
 
             items.push(item)
         }
 
-        this.setState({
+        self.setState({
             itemList: items,
             selectedItems: 0
         })
@@ -2047,7 +2022,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.refresherPulled = async () => {
         try{
-            await this.updateItemList(false, true, false)
+            await updateItemList(self, false, true, false)
 
             document.getElementById("refresher").complete()
         }
@@ -2060,7 +2035,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.refreshItemList = async () => {
         try{
-            await this.updateItemList(true, true, false)
+            await updateItemList(self, true, true, false)
         }
         catch(e){
             console.log(e)
@@ -2076,7 +2051,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openRegisterModal = () => {
-        return this.showRegister()
+        return showRegister(self)
     }
 
     window.customFunctions.doLogin = async () => {
@@ -2088,8 +2063,8 @@ export function setupWindowFunctions(){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "loginInvalidInputs"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "loginInvalidInputs"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2122,8 +2097,8 @@ export function setupWindowFunctions(){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "apiRequestError"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "apiRequestError"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2138,8 +2113,8 @@ export function setupWindowFunctions(){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "loginWrongCredentials"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "loginWrongCredentials"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2174,8 +2149,8 @@ export function setupWindowFunctions(){
                     let alert = await alertController.create({
                         header: "",
                         subHeader: "",
-                        message: language.get(this.state.lang, "passwordDerivationError"),
-                        buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                        message: language.get(self.state.lang, "passwordDerivationError"),
+                        buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                     })
 
                     return alert.present()
@@ -2200,8 +2175,8 @@ export function setupWindowFunctions(){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "apiRequestError"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "apiRequestError"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2216,8 +2191,8 @@ export function setupWindowFunctions(){
                 let alert = await alertController.create({
                     header: "",
                     subHeader: "",
-                    message: language.get(this.state.lang, "loginWith2FACode"),
-                    buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                    message: language.get(self.state.lang, "loginWith2FACode"),
+                    buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                 })
 
                 return alert.present()
@@ -2232,8 +2207,8 @@ export function setupWindowFunctions(){
                     let alert = await alertController.create({
                         header: "",
                         subHeader: "",
-                        message: language.get(this.state.lang, "loginAccountNotActivated"),
-                        buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                        message: language.get(self.state.lang, "loginAccountNotActivated"),
+                        buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                     })
         
                     return alert.present()
@@ -2242,8 +2217,8 @@ export function setupWindowFunctions(){
                     let alert = await alertController.create({
                         header: "",
                         subHeader: "",
-                        message: language.get(this.state.lang, "loginAccountNotFound"),
-                        buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                        message: language.get(self.state.lang, "loginAccountNotFound"),
+                        buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                     })
         
                     return alert.present()
@@ -2252,8 +2227,8 @@ export function setupWindowFunctions(){
                 let alert = await alertController.create({
                     header: "",
                     subHeader: "",
-                    message: language.get(this.state.lang, "loginWrongCredentials"),
-                    buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                    message: language.get(self.state.lang, "loginWrongCredentials"),
+                    buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                 })
 
                 return alert.present()
@@ -2261,18 +2236,20 @@ export function setupWindowFunctions(){
         }
 
         try{
-            await workers.localforageRemoveItem("userPublicKey")
-            await workers.localforageRemoveItem("userPrivateKey")
+            await storage.remove("userPublicKey")
+            await storage.remove("userPrivateKey")
 
-            await workers.localforageSetItem("isLoggedIn", "true")
-            await workers.localforageSetItem("userAPIKey", res.data.apiKey)
-            await workers.localforageSetItem("userEmail", email)
-            await workers.localforageSetItem("userMasterKeys", await workers.JSONStringifyWorker([mKey]))
-            await workers.localforageSetItem("userAuthVersion", authVersion)
+            await storage.set("isLoggedIn", "true")
+            await storage.set("userAPIKey", res.data.apiKey)
+            await storage.set("userEmail", email)
+            await storage.set("userMasterKeys", await workers.JSONStringifyWorker([mKey]))
+            await storage.set("userAuthVersion", authVersion)
         }
         catch(e){
             return console.log(e)
         }
+
+        await window.customFunctions.waitForStorageWrites()
 
         return document.location.href = "index.html"
     }
@@ -2286,8 +2263,8 @@ export function setupWindowFunctions(){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "registerInvalidInputs"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "registerInvalidInputs"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2297,8 +2274,8 @@ export function setupWindowFunctions(){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "registerPasswordAtLeast10Chars"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "registerPasswordAtLeast10Chars"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2308,8 +2285,8 @@ export function setupWindowFunctions(){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "registerPasswordsDoNotMatch"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "registerPasswordsDoNotMatch"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2325,11 +2302,11 @@ export function setupWindowFunctions(){
         let salt = utils.generateRandomString(256)
 
         try{
-            if(this.state.currentAuthVersion == 1){
+            if(self.state.currentAuthVersion == 1){
                 password = utils.hashPassword(password)
                 passwordRepeat = password
             }
-            else if(this.state.currentAuthVersion == 2){
+            else if(self.state.currentAuthVersion == 2){
                 try{
 					let derivedKey = await utils.deriveKeyFromPassword(password, salt, 200000, "SHA-512", 512) //PBKDF2, 200.000 iterations, sha-512, 512 bit key, first half (from left) = master key, second half = auth key
 
@@ -2343,8 +2320,8 @@ export function setupWindowFunctions(){
                     let alert = await alertController.create({
                         header: "",
                         subHeader: "",
-                        message: language.get(this.state.lang, "passwordDerivationError"),
-                        buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                        message: language.get(self.state.lang, "passwordDerivationError"),
+                        buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                     })
 
                     return alert.present()
@@ -2356,7 +2333,7 @@ export function setupWindowFunctions(){
                 password,
                 passwordRepeat,
                 salt,
-                authVersion: this.state.currentAuthVersion
+                authVersion: self.state.currentAuthVersion
             })
         }
         catch(e){
@@ -2370,8 +2347,8 @@ export function setupWindowFunctions(){
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "apiRequestError"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "apiRequestError"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2386,32 +2363,32 @@ export function setupWindowFunctions(){
             let message = ""
 
             if(res.message.toLowerCase().indexOf("invalid email") !== -1 || res.message.toLowerCase().indexOf("invalid password") !== -1 || res.message.toLowerCase().indexOf("invalid email") !== -1){
-                message = language.get(this.state.lang, "registerInvalidFields")
+                message = language.get(self.state.lang, "registerInvalidFields")
             }
             else if(res.message.toLowerCase().indexOf("your password needs to be at least 10 characters long") !== -1){
-                message = language.get(this.state.lang, "registerPasswordAtLeast10Chars")
+                message = language.get(self.state.lang, "registerPasswordAtLeast10Chars")
             }
             else if(res.message.toLowerCase().indexOf("passwords do not match") !== -1){
-                message = language.get(this.state.lang, "registerPasswordsDoNotMatch")
+                message = language.get(self.state.lang, "registerPasswordsDoNotMatch")
             }
             else if(res.message.toLowerCase().indexOf("invalid email") !== -1){
-                message = language.get(this.state.lang, "registerInvalidEmail")
+                message = language.get(self.state.lang, "registerInvalidEmail")
             }
             else if(res.message.toLowerCase().indexOf("database error") !== -1){
-                message = language.get(this.state.lang, "apiRequestError")
+                message = language.get(self.state.lang, "apiRequestError")
             }
-            else if(res.message.toLowerCase().indexOf("this email is already registered") !== -1){
-                message = language.get(this.state.lang, "registerEmailAlreadyRegistered")
+            else if(res.message.toLowerCase().indexOf("self email is already registered") !== -1){
+                message = language.get(self.state.lang, "registerEmailAlreadyRegistered")
             }
-            else if(res.message.toLowerCase().indexOf("we could not send an email at this time, please try again later") !== -1){
-                message = language.get(this.state.lang, "registerCouldNotSendEmail")
+            else if(res.message.toLowerCase().indexOf("we could not send an email at self time, please try again later") !== -1){
+                message = language.get(self.state.lang, "registerCouldNotSendEmail")
             }
 
             let alert = await alertController.create({
                 header: "",
                 subHeader: "",
                 message: message,
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
 
             return alert.present()
@@ -2426,20 +2403,20 @@ export function setupWindowFunctions(){
         let alert = await alertController.create({
             header: "",
             subHeader: "",
-            message: language.get(this.state.lang, "registerSuccess"),
-            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            message: language.get(self.state.lang, "registerSuccess"),
+            buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
         })
 
         return alert.present()
     }
 
     window.customFunctions.openSettingsModal = async () => {
-        return this.openSettingsModal()
+        return openSettingsModal(self)
     }
 
     window.customFunctions.openTermsModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "terms-modal-" + utils.generateRandomClassName()
 
         let loading = await loadingController.create({
@@ -2459,7 +2436,7 @@ export function setupWindowFunctions(){
 
             loading.dismiss()
 
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
 
         loading.dismiss()
@@ -2498,14 +2475,14 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        if(!this.state.isLoggedIn){
-            this.setupStatusbar("modal")
+        if(!self.state.isLoggedIn){
+            setupStatusbar(self, "modal")
 
             try{
                 let sModal = await modalController.getTop()
 
                 sModal.onDidDismiss().then(() => {
-                    this.setupStatusbar()
+                    setupStatusbar(self)
                 })
             }
             catch(e){
@@ -2517,8 +2494,8 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openPrivacyModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "privacy-modal-" + utils.generateRandomClassName()
 
         let loading = await loadingController.create({
@@ -2538,7 +2515,7 @@ export function setupWindowFunctions(){
 
             loading.dismiss()
 
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
 
         loading.dismiss()
@@ -2575,14 +2552,14 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        if(!this.state.isLoggedIn){
-            this.setupStatusbar("modal")
+        if(!self.state.isLoggedIn){
+            setupStatusbar(self, "modal")
 
             try{
                 let sModal = await modalController.getTop()
 
                 sModal.onDidDismiss().then(() => {
-                    this.setupStatusbar()
+                    setupStatusbar(self)
                 })
             }
             catch(e){
@@ -2594,8 +2571,8 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openImprintModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "imprint-modal-" + utils.generateRandomClassName()
 
         let loading = await loadingController.create({
@@ -2615,7 +2592,7 @@ export function setupWindowFunctions(){
 
             loading.dismiss()
 
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
 
         loading.dismiss()
@@ -2652,14 +2629,14 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        if(!this.state.isLoggedIn){
-            this.setupStatusbar("modal")
+        if(!self.state.isLoggedIn){
+            setupStatusbar(self, "modal")
 
             try{
                 let sModal = await modalController.getTop()
 
                 sModal.onDidDismiss().then(() => {
-                    this.setupStatusbar()
+                    setupStatusbar(self)
                 })
             }
             catch(e){
@@ -2683,8 +2660,8 @@ export function setupWindowFunctions(){
             let apiAlert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "registerInvalidEmail"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "registerInvalidEmail"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
     
             return apiAlert.present()
@@ -2710,8 +2687,8 @@ export function setupWindowFunctions(){
             let apiAlert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "apiRequestError"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "apiRequestError"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
     
             return apiAlert.present()
@@ -2728,7 +2705,7 @@ export function setupWindowFunctions(){
                 header: "",
                 subHeader: "",
                 message: res.message,
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
     
             return apiAlert.present()
@@ -2741,16 +2718,16 @@ export function setupWindowFunctions(){
         let apiAlert = await alertController.create({
             header: "",
             subHeader: "",
-            message: language.get(this.state.lang, "forgotPasswordEmailSendSuccess"),
-            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            message: language.get(self.state.lang, "forgotPasswordEmailSendSuccess"),
+            buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
         })
 
         return apiAlert.present()
     }
 
     window.customFunctions.openForgotPasswordModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "forgot-password-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -2795,14 +2772,14 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        if(!this.state.isLoggedIn){
-            this.setupStatusbar("modal")
+        if(!self.state.isLoggedIn){
+            setupStatusbar(self, "modal")
 
             try{
                 let sModal = await modalController.getTop()
 
                 sModal.onDidDismiss().then(() => {
-                    this.setupStatusbar()
+                    setupStatusbar(self)
                 })
             }
             catch(e){
@@ -2822,8 +2799,8 @@ export function setupWindowFunctions(){
             let apiAlert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "registerInvalidEmail"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "registerInvalidEmail"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
     
             return apiAlert.present()
@@ -2849,8 +2826,8 @@ export function setupWindowFunctions(){
             let apiAlert = await alertController.create({
                 header: "",
                 subHeader: "",
-                message: language.get(this.state.lang, "apiRequestError"),
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                message: language.get(self.state.lang, "apiRequestError"),
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
     
             return apiAlert.present()
@@ -2867,7 +2844,7 @@ export function setupWindowFunctions(){
                 header: "",
                 subHeader: "",
                 message: res.message,
-                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
             })
     
             return apiAlert.present()
@@ -2880,16 +2857,16 @@ export function setupWindowFunctions(){
         let apiAlert = await alertController.create({
             header: "",
             subHeader: "",
-            message: language.get(this.state.lang, "resendConfirmationEmailSuccess"),
-            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            message: language.get(self.state.lang, "resendConfirmationEmailSuccess"),
+            buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
         })
 
         return apiAlert.present()
     }
 
     window.customFunctions.openResendConfirmationModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "resend-confirmation-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -2929,14 +2906,14 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        if(!this.state.isLoggedIn){
-            this.setupStatusbar("modal")
+        if(!self.state.isLoggedIn){
+            setupStatusbar(self, "modal")
 
             try{
                 let sModal = await modalController.getTop()
 
                 sModal.onDidDismiss().then(() => {
-                    this.setupStatusbar()
+                    setupStatusbar(self)
                 })
             }
             catch(e){
@@ -2949,18 +2926,20 @@ export function setupWindowFunctions(){
 
     window.customFunctions.setLang = async (lang = "en") => {
         try{
-            await workers.localforageSetItem("lang", lang)
+            await storage.set("lang", lang)
         }
         catch(e){
             return console.log(e)
         }
 
+        await window.customFunctions.waitForStorageWrites()
+
         return document.location.href = "index.html"
     }
 
     window.customFunctions.openLanguageModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "language-modal-" + utils.generateRandomClassName()
 
         let languagesHTML = ""
@@ -3011,14 +2990,14 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        if(!this.state.isLoggedIn){
-            this.setupStatusbar("modal")
+        if(!self.state.isLoggedIn){
+            setupStatusbar(self, "modal")
 
             try{
                 let sModal = await modalController.getTop()
 
                 sModal.onDidDismiss().then(() => {
-                    this.setupStatusbar()
+                    setupStatusbar(self)
                 })
             }
             catch(e){
@@ -3030,8 +3009,8 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openEncryptionModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "encryption-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -3083,13 +3062,13 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        this.setupStatusbar("modal")
+        setupStatusbar(self, "modal")
 
         try{
             let sModal = await modalController.getTop()
 
             sModal.onDidDismiss().then(() => {
-                this.setupStatusbar()
+                setupStatusbar(self)
             })
         }
         catch(e){
@@ -3101,10 +3080,10 @@ export function setupWindowFunctions(){
 
     window.customFunctions.openWebsiteModal = async () => {
         let actionSheet = await actionSheetController.create({
-            header: language.get(this.state.lang, "website"),
+            header: language.get(self.state.lang, "website"),
             buttons: [
                 {
-                    text: language.get(this.state.lang, "website"),
+                    text: language.get(self.state.lang, "website"),
                     icon: Ionicons.globe,
                     handler: () => {
                         window.open("https://filen.io/", "_system")
@@ -3113,7 +3092,7 @@ export function setupWindowFunctions(){
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "onlineFM"),
+                    text: language.get(self.state.lang, "onlineFM"),
                     icon: Ionicons.grid,
                     handler: () => {
                         window.open("https://filen.io/my-account/file-manager/default", "_system")
@@ -3122,7 +3101,7 @@ export function setupWindowFunctions(){
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     icon: "close",
                     role: "cancel"
                 }
@@ -3136,7 +3115,7 @@ export function setupWindowFunctions(){
     window.customFunctions.openHelpModal = async () => {
         let btns = [
             {
-                text: language.get(this.state.lang, "support"),
+                text: language.get(self.state.lang, "support"),
                 icon: Ionicons.helpBuoyOutline,
                 handler: () => {
                     window.open("https://support.filen.io/", "_system")
@@ -3145,28 +3124,28 @@ export function setupWindowFunctions(){
                 }
             },
             {
-                text: language.get(this.state.lang, "tos"),
+                text: language.get(self.state.lang, "tos"),
                 icon: Ionicons.informationCircleOutline,
                 handler: () => {
                     return window.customFunctions.openTermsModal()
                 }
             },
             {
-                text: language.get(this.state.lang, "privacyPolicy"),
+                text: language.get(self.state.lang, "privacyPolicy"),
                 icon: Ionicons.informationCircleOutline,
                 handler: () => {
                     return window.customFunctions.openPrivacyModal()
                 }
             },
             {
-                text: language.get(this.state.lang, "cancel"),
+                text: language.get(self.state.lang, "cancel"),
                 icon: "close",
                 role: "cancel"
             }
         ]
 
         let actionSheet = await actionSheetController.create({
-            header: language.get(this.state.lang, "help"),
+            header: language.get(self.state.lang, "help"),
             buttons: btns,
             showBackdrop: false
         })
@@ -3174,13 +3153,10 @@ export function setupWindowFunctions(){
         return actionSheet.present()
     }
 
-    window.customFunctions.queueFileUpload = this.queueFileUpload
-    window.customFunctions.queueFileDownload = this.queueFileDownload
-
     window.customFunctions.openItemActionSheetFromJSON = (itemJSON) => {
         let item = JSON.parse(Base64.decode(itemJSON))
 
-        return this.spawnItemActionSheet(item)
+        return spawnItemActionSheet(self, item)
     }
 
     window.customFunctions.favoriteSelectedItems = async (value) => {
@@ -3193,11 +3169,11 @@ export function setupWindowFunctions(){
 	
 		loading.present()
 
-        let items = this.state.itemList
+        let items = self.state.itemList
 
         for(let i = 0; i < items.length; i++){
             if(items[i].selected){
-                await this.favoriteItem(items[i], value, false)
+                await favoriteItem(self, items[i], value, false)
             }
         }
 
@@ -3209,116 +3185,95 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.moveSelectedItems = () => {
-        return this.moveSelectedItems()
+        return moveSelectedItems(self)
     }
 
     window.customFunctions.trashSelectedItems = () => {
-        return this.trashSelectedItems()
+        return trashSelectedItems(self)
     }
 
     window.customFunctions.restoreSelectedItems = () => {
-        return this.restoreSelectedItems()
+        return restoreSelectedItems(self)
     }
 
     window.customFunctions.removeSelectedItemsFromSharedIn = () => {
-        return this.removeSelectedItemsFromSharedIn()
+        return removeSelectedItemsFromSharedIn(self)
     }
 
     window.customFunctions.stopSharingSelectedItems = () => {
-        return this.stopSharingSelectedItems()
+        return stopSharingSelectedItems(self)
     }
 
     window.customFunctions.downloadSelectedItems = () => {
-        return this.downloadSelectedItems()
+        return downloadSelectedItems(self)
     }
 
     window.customFunctions.storeSelectedItemsOffline = () => {
-        return this.storeSelectedItemsOffline()
+        return storeSelectedItemsOffline(self)
     }
 
     window.customFunctions.shareSelectedItems = () => {
-        return this.shareSelectedItems()
+        return shareSelectedItems(self)
+    }
+
+    window.customFunctions.waitForStorageWrites = async () => {
+        await new Promise((resolve) => {
+            let interval = setInterval(() => {
+                if(!window.customVariables.isWritingToStorage){
+                    clearInterval(interval)
+
+                    return resolve()
+                }
+            }, 100)
+        })
+
+        return true
+    }
+
+    window.customFunctions.toggleTheme = async () => {
+        let loading = await loadingController.create({
+            message: "",
+            showBackdrop: false,
+            backdropDismiss: false
+        })
+    
+        loading.present()
+
+        try{
+            if(self.state.darkMode){
+                await storage.set("darkMode", "false")
+
+                if(document.getElementById("settings-dark-mode-toggle") !== null){
+                    document.getElementById("settings-dark-mode-toggle").checked = false
+                }
+            }
+            else{
+                await storage.set("darkMode", "true")
+    
+                if(document.getElementById("settings-dark-mode-toggle") !== null){
+                    document.getElementById("settings-dark-mode-toggle").checked = true
+                }
+            }
+        }
+        catch(e){
+            console.log(e)
+        }
+
+        await window.customFunctions.waitForStorageWrites()
+
+        return document.location.href = "index.html"
     }
 
     window.customFunctions.settingsToggleDarkMode = async () => {
-        try{
-            if(this.state.darkMode){
-                await workers.localforageSetItem("darkMode", "false")
-    
-                document.getElementById("settings-dark-mode-toggle").checked = false
-    
-                return this.setState({
-                    darkMode: false
-                }, () => {
-                    document.location.href = "index.html"
-                })
-            }
-            else{
-                await workers.localforageSetItem("darkMode", "true")
-    
-                document.getElementById("settings-dark-mode-toggle").checked = true
-    
-                return this.setState({
-                    darkMode: true
-                }, () => {
-                    document.location.href = "index.html"
-                })
-            }
-        }
-        catch(e){
-            return console.log(e)
-        }
+        return window.customFunctions.toggleTheme()
     }
 
     window.customFunctions.loginToggleDarkMode = async () => {
-        try{
-            if(this.state.darkMode){
-                await workers.localforageSetItem("darkMode", "false")
-    
-                return this.setState({
-                    darkMode: false
-                }, () => {
-                    document.location.href = "index.html"
-                })
-            }
-            else{
-                await workers.localforageSetItem("darkMode", "true")
-    
-                return this.setState({
-                    darkMode: true
-                }, () => {
-                    document.location.href = "index.html"
-                })
-            }
-        }
-        catch(e){
-            return console.log(e)
-        }
-    }
-
-    window.customFunctions.saveSettings = (newSettings) => {
-        return new Promise((resolve) => {
-            this.setState({
-                settings: newSettings
-            }, () => {
-                clearTimeout(window.customVariables.saveSettingsDebounce)
-
-                window.customVariables.saveSettingsDebounce = setTimeout(async () => {
-                    try{
-                        await workers.localforageSetItem("settings@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(newSettings))
-                    }
-                    catch(e){
-                        console.log(e)
-                    }
-
-                    return resolve()
-                }, 1000)
-            })
-        })
+        return window.customFunctions.toggleTheme()
     }
 
     window.customFunctions.settingsToggleConvertHeic = () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.convertHeic
 
         newSettings.convertHeic = newVal
@@ -3329,7 +3284,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleShowThumbnails = () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.showThumbnails
 
         newSettings.showThumbnails = newVal
@@ -3340,7 +3295,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleOnlyWifi = () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.onlyWifi
 
         newSettings.onlyWifi = newVal
@@ -3351,7 +3306,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleOnlyWifiUploads = () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.onlyWifiUploads
 
         newSettings.onlyWifiUploads = newVal
@@ -3371,36 +3326,36 @@ export function setupWindowFunctions(){
         loading.present()
 
         try{
-            await workers.localforageRemoveItem("isLoggedIn")
-            await workers.localforageRemoveItem("userAPIKey")
-            await workers.localforageRemoveItem("userEmail")
-            await workers.localforageRemoveItem("userMasterKeys")
-            await workers.localforageRemoveItem("userPublicKey")
-            await workers.localforageRemoveItem("userPrivateKey")
+            await storage.remove("isLoggedIn")
+            await storage.remove("userAPIKey")
+            await storage.remove("userEmail")
+            await storage.remove("userMasterKeys")
+            await storage.remove("userPublicKey")
+            await storage.remove("userPrivateKey")
         }
         catch(e){
             console.log(e)
         }
 
-        loading.dismiss()
+        await window.customFunctions.waitForStorageWrites()
 
         return document.location.href = "index.html"
     }
 
     window.customFunctions.doLogout = async () => {
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "logoutAlertHeader"),
-            message: language.get(this.state.lang, "logoutConfirmation"),
+            header: language.get(self.state.lang, "logoutAlertHeader"),
+            message: language.get(self.state.lang, "logoutConfirmation"),
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "alertOkButton"),
+                    text: language.get(self.state.lang, "alertOkButton"),
                     handler: () => {
                         return window.customFunctions.logoutUser()
                     }
@@ -3413,18 +3368,18 @@ export function setupWindowFunctions(){
 
     window.customFunctions.emptyTrash = async () => {
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "emptyTrashHeader"),
-            message: language.get(this.state.lang, "emptyTrashWarning"),
+            header: language.get(self.state.lang, "emptyTrashHeader"),
+            message: language.get(self.state.lang, "emptyTrashWarning"),
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "alertOkButton"),
+                    text: language.get(self.state.lang, "alertOkButton"),
                     handler: async () => {
                         let loading = await loadingController.create({
                             message: "",
@@ -3435,7 +3390,7 @@ export function setupWindowFunctions(){
 
                         try{
                             var res = await utils.apiRequest("POST", "/v1/trash/empty", {
-                                apiKey: this.state.userAPIKey
+                                apiKey: self.state.userAPIKey
                             })
                         }
                         catch(e){
@@ -3443,7 +3398,7 @@ export function setupWindowFunctions(){
 
                             loading.dismiss()
 
-                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                            return spawnToast(language.get(self.state.lang, "apiRequestError"))
                         }
 
                         if(!res.status){
@@ -3451,18 +3406,18 @@ export function setupWindowFunctions(){
 
                             loading.dismiss()
 
-                            return this.spawnToast(res.message)
+                            return spawnToast(res.message)
                         }
 
                         loading.dismiss()
 
-                        this.setState({
+                        self.setState({
                             itemList: []
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
 
-                        return this.spawnToast(language.get(this.state.lang, "trashEmptied"))
+                        return spawnToast(language.get(self.state.lang, "trashEmptied"))
                     }
                 }
             ]
@@ -3483,7 +3438,7 @@ export function setupWindowFunctions(){
 
         try{
             var res = await utils.apiRequest("POST", "/v1/dir/color/change", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 uuid: item.uuid,
                 color: color
             })
@@ -3493,7 +3448,7 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -3501,13 +3456,13 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
 
         loading.dismiss()
 
         try{
-            await this.updateItemList()
+            await updateItemList(self)
         }
         catch(e){
             console.log(e)
@@ -3570,7 +3525,7 @@ export function setupWindowFunctions(){
         if(item.type == "file"){
             try{
                 var res = await utils.apiRequest("POST", "/v1/link/edit", {
-                    apiKey: this.state.userAPIKey,
+                    apiKey: self.state.userAPIKey,
                     uuid: linkUUID,
                     fileUUID: item.uuid,
                     expiration: expires,
@@ -3586,7 +3541,7 @@ export function setupWindowFunctions(){
         
                 loading.dismiss()
         
-                return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                return spawnToast(language.get(self.state.lang, "apiRequestError"))
             }
         
             if(!res.status){
@@ -3594,7 +3549,7 @@ export function setupWindowFunctions(){
         
                 loading.dismiss()
         
-                return this.spawnToast(res.message)
+                return spawnToast(res.message)
             }
 
             loading.dismiss()
@@ -3615,7 +3570,7 @@ export function setupWindowFunctions(){
                 document.getElementById("public-link-enabled-share").style.display = "none"
 
                 try{
-                    await this.updateItemList()
+                    await updateItemList(self)
                 }
                 catch(e){
                     console.log(e)
@@ -3634,7 +3589,7 @@ export function setupWindowFunctions(){
 
                 try{
                     var res = await utils.apiRequest("POST", "/v1/dir/link/remove", {
-                        apiKey: this.state.userAPIKey,
+                        apiKey: self.state.userAPIKey,
                         uuid: item.uuid
                     })
                 }
@@ -3643,7 +3598,7 @@ export function setupWindowFunctions(){
             
                     removeLoading.dismiss()
             
-                    return callback(language.get(this.state.lang, "apiRequestError"))
+                    return callback(language.get(self.state.lang, "apiRequestError"))
                 }
             
                 if(!res.status){
@@ -3670,7 +3625,7 @@ export function setupWindowFunctions(){
 
                 try{
                     var res = await utils.apiRequest("POST", "/v1/dir/link/edit", {
-                        apiKey: this.state.userAPIKey,
+                        apiKey: self.state.userAPIKey,
                         uuid: item.uuid,
                         expiration: expires,
                         password: pass,
@@ -3684,7 +3639,7 @@ export function setupWindowFunctions(){
             
                     editLoading.dismiss()
             
-                    return callback(language.get(this.state.lang, "apiRequestError"))
+                    return callback(language.get(self.state.lang, "apiRequestError"))
                 }
             
                 if(!res.status){
@@ -3710,7 +3665,7 @@ export function setupWindowFunctions(){
 
                 try{
                     var res = await utils.apiRequest("POST", "/v1/download/dir", {
-                        apiKey: this.state.userAPIKey,
+                        apiKey: self.state.userAPIKey,
                         uuid: item.uuid
                     })
                 }
@@ -3719,7 +3674,7 @@ export function setupWindowFunctions(){
             
                     createLoading.dismiss()
             
-                    return callback(language.get(this.state.lang, "apiRequestError"))
+                    return callback(language.get(self.state.lang, "apiRequestError"))
                 }
             
                 if(!res.status){
@@ -3731,7 +3686,7 @@ export function setupWindowFunctions(){
                 }
 
                 let key = utils.generateRandomString(32)
-                let keyEnc = await utils.encryptMetadata(key, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+                let keyEnc = await utils.encryptMetadata(key, self.state.userMasterKeys[self.state.userMasterKeys.length - 1])
                 let newLinkUUID = utils.uuidv4()
                 let totalItems = (res.data.folders.length + res.data.files.length)
                 let doneItems = 0
@@ -3740,7 +3695,7 @@ export function setupWindowFunctions(){
                 const itemAdded = () => {
                     doneItems += 1
 
-                    createLoading.message = language.get(this.state.lang, "folderLinkAddedItemsCount", true, ["__ADDED__", "__TOTAL__"], [doneItems, totalItems])
+                    createLoading.message = language.get(self.state.lang, "folderLinkAddedItemsCount", true, ["__ADDED__", "__TOTAL__"], [doneItems, totalItems])
 
                     if(doneItems >= totalItems){
                         createLoading.dismiss()
@@ -3760,7 +3715,7 @@ export function setupWindowFunctions(){
 
                 const addItemRequest = async (data, tries, maxTries, cb) => {
                     if(tries >= maxTries){
-						return cb(language.get(this.state.lang, "apiRequestError"))
+						return cb(language.get(self.state.lang, "apiRequestError"))
                     }
                     
                     try{
@@ -3830,7 +3785,7 @@ export function setupWindowFunctions(){
 					addItem("folder", {
 						uuid: folder.uuid,
 						parent: folder.parent,
-						name: await utils.decryptFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+						name: await utils.decryptFolderName(folder.name, self.state.userMasterKeys, folder.uuid)
 					})
 
 					window.customVariables.decryptShareItemSemaphore.release()
@@ -3841,7 +3796,7 @@ export function setupWindowFunctions(){
 
 					await window.customVariables.decryptShareItemSemaphore.acquire()
 
-					let fileMetadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+					let fileMetadata = await utils.decryptFileMetadata(file.metadata, self.state.userMasterKeys, file.uuid)
 
 					addItem("file", {
 						uuid: file.uuid,
@@ -3862,14 +3817,14 @@ export function setupWindowFunctions(){
                 if(isEdit){
                     editFolderLink((err) => {
                         if(err){
-                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                            return spawnToast(language.get(self.state.lang, "apiRequestError"))
                         }
                     })
                 }
                 else{
                     createFolderLink((err, linkData) => {
                         if(err){
-                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                            return spawnToast(language.get(self.state.lang, "apiRequestError"))
                         }
     
                         document.getElementById("public-link-enabled-toggle").checked = true
@@ -3884,14 +3839,14 @@ export function setupWindowFunctions(){
             else{
                 removeFolderLink((err) => {
                     if(err){
-                        return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                        return spawnToast(language.get(self.state.lang, "apiRequestError"))
                     }
 
                     document.getElementById("enable-public-link-content").style.display = "block"
                     document.getElementById("public-link-enabled-content").style.display = "none"
                     document.getElementById("public-link-enabled-share").style.display = "none"
 
-                    this.updateItemList()
+                    updateItemList(self)
                 })
             }
 
@@ -3931,10 +3886,10 @@ export function setupWindowFunctions(){
             catch(e){
                 console.log(e)
     
-                return this.spawnToast(language.get(this.state.lang, "couldNotCopyToClipboard")) 
+                return spawnToast(language.get(self.state.lang, "couldNotCopyToClipboard")) 
             }
     
-            return this.spawnToast(language.get(this.state.lang, "copiedToClipboard"))
+            return spawnToast(language.get(self.state.lang, "copiedToClipboard"))
         }
 
         try{
@@ -3947,10 +3902,10 @@ export function setupWindowFunctions(){
         catch(e){
             console.log(e)
 
-            return this.spawnToast(language.get(this.state.lang, "couldNotCopyToClipboard")) 
+            return spawnToast(language.get(self.state.lang, "couldNotCopyToClipboard")) 
         }
 
-        return this.spawnToast(language.get(this.state.lang, "copiedToClipboard")) 
+        return spawnToast(language.get(self.state.lang, "copiedToClipboard")) 
     }
 
     window.customFunctions.copyStringToClipboard = async (string) => {
@@ -3961,10 +3916,10 @@ export function setupWindowFunctions(){
             catch(e){
                 console.log(e)
     
-                return this.spawnToast(language.get(this.state.lang, "couldNotCopyToClipboard")) 
+                return spawnToast(language.get(self.state.lang, "couldNotCopyToClipboard")) 
             }
     
-            return this.spawnToast(language.get(this.state.lang, "copiedToClipboard"))
+            return spawnToast(language.get(self.state.lang, "copiedToClipboard"))
         }
 
         try{
@@ -3975,26 +3930,26 @@ export function setupWindowFunctions(){
         catch(e){
             console.log(e)
 
-            return this.spawnToast(language.get(this.state.lang, "couldNotCopyToClipboard")) 
+            return spawnToast(language.get(self.state.lang, "couldNotCopyToClipboard")) 
         }
 
-        return this.spawnToast(language.get(this.state.lang, "copiedToClipboard")) 
+        return spawnToast(language.get(self.state.lang, "copiedToClipboard")) 
     }
 
     window.customFunctions.clearThumbnailCache = async () => {
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "settingsClearThumbnailCacheHeader"),
-            message: language.get(this.state.lang, "settingsClearThumbnailCacheInfo"),
+            header: language.get(self.state.lang, "settingsClearThumbnailCacheHeader"),
+            message: language.get(self.state.lang, "settingsClearThumbnailCacheInfo"),
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "alertOkButton"),
+                    text: language.get(self.state.lang, "alertOkButton"),
                     handler: async () => {
                         if(!Capacitor.isNative){
                             return alert.dismiss()
@@ -4043,7 +3998,7 @@ export function setupWindowFunctions(){
                         await window.customFunctions.saveThumbnailCache(true)
 
                         try{
-                            await workers.localforageSetItem("getThumbnailErrors@" + window.customVariables.userEmail, JSON.stringify({}))
+                            await storage.set("getThumbnailErrors@" + window.customVariables.userEmail, JSON.stringify({}))
                         }
                         catch(e){
                             console.log(e)
@@ -4051,7 +4006,7 @@ export function setupWindowFunctions(){
 
                         loading.dismiss()
 
-                        return this.spawnToast(language.get(this.state.lang, "settingsClearThumbnailCacheDone"))
+                        return spawnToast(language.get(self.state.lang, "settingsClearThumbnailCacheDone"))
                     }
                 }
             ]
@@ -4062,32 +4017,32 @@ export function setupWindowFunctions(){
 
     window.customFunctions.deleteEverything = async () => {
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "settingsDeleteAll"),
-            message: language.get(this.state.lang, "settingsDeleteAllInfo"),
+            header: language.get(self.state.lang, "settingsDeleteAll"),
+            message: language.get(self.state.lang, "settingsDeleteAllInfo"),
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "alertOkButton"),
+                    text: language.get(self.state.lang, "alertOkButton"),
                     handler: async () => {
                         let confirmAlert = await alertController.create({
-                            header: language.get(this.state.lang, "settingsDeleteAll"),
-                            message: language.get(this.state.lang, "settingsDeleteAllConfirm"),
+                            header: language.get(self.state.lang, "settingsDeleteAll"),
+                            message: language.get(self.state.lang, "settingsDeleteAllConfirm"),
                             buttons: [
                                 {
-                                    text: language.get(this.state.lang, "cancel"),
+                                    text: language.get(self.state.lang, "cancel"),
                                     role: "cancel",
                                     handler: () => {
                                         return false
                                     }
                                 },
                                 {
-                                    text: language.get(this.state.lang, "alertOkButton"),
+                                    text: language.get(self.state.lang, "alertOkButton"),
                                     handler: async () => {
                                         var loading = await loadingController.create({
                                             message: "",
@@ -4098,7 +4053,7 @@ export function setupWindowFunctions(){
 
                                         try{
                                             var res = await utils.apiRequest("POST", "/v1/user/delete/all", {
-                                                apiKey: this.state.userAPIKey
+                                                apiKey: self.state.userAPIKey
                                             })
                                         }
                                         catch(e){
@@ -4109,8 +4064,8 @@ export function setupWindowFunctions(){
                                             let apiAlert = await alertController.create({
                                                 header: "",
                                                 subHeader: "",
-                                                message: language.get(this.state.lang, "apiRequestError"),
-                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                message: language.get(self.state.lang, "apiRequestError"),
+                                                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                             })
                                     
                                             return apiAlert.present()
@@ -4125,7 +4080,7 @@ export function setupWindowFunctions(){
                                                 header: "",
                                                 subHeader: "",
                                                 message: res.message,
-                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                             })
                                     
                                             return apiAlert.present()
@@ -4136,8 +4091,8 @@ export function setupWindowFunctions(){
                                         let apiAlert = await alertController.create({
                                             header: "",
                                             subHeader: "",
-                                            message: language.get(this.state.lang, "settingsDeleteAllSuccess"),
-                                            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                            message: language.get(self.state.lang, "settingsDeleteAllSuccess"),
+                                            buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                         })
                                 
                                         return apiAlert.present()
@@ -4157,32 +4112,32 @@ export function setupWindowFunctions(){
 
     window.customFunctions.deleteVersioned = async () => {
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "settingsDeleteVersioned"),
-            message: language.get(this.state.lang, "settingsDeleteVersionedInfo"),
+            header: language.get(self.state.lang, "settingsDeleteVersioned"),
+            message: language.get(self.state.lang, "settingsDeleteVersionedInfo"),
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "alertOkButton"),
+                    text: language.get(self.state.lang, "alertOkButton"),
                     handler: async () => {
                         let confirmAlert = await alertController.create({
-                            header: language.get(this.state.lang, "settingsDeleteVersioned"),
-                            message: language.get(this.state.lang, "settingsDeleteAllConfirm"),
+                            header: language.get(self.state.lang, "settingsDeleteVersioned"),
+                            message: language.get(self.state.lang, "settingsDeleteAllConfirm"),
                             buttons: [
                                 {
-                                    text: language.get(this.state.lang, "cancel"),
+                                    text: language.get(self.state.lang, "cancel"),
                                     role: "cancel",
                                     handler: () => {
                                         return false
                                     }
                                 },
                                 {
-                                    text: language.get(this.state.lang, "alertOkButton"),
+                                    text: language.get(self.state.lang, "alertOkButton"),
                                     handler: async () => {
                                         var loading = await loadingController.create({
                                             message: "",
@@ -4193,7 +4148,7 @@ export function setupWindowFunctions(){
 
                                         try{
                                             var res = await utils.apiRequest("POST", "/v1/user/versions/delete", {
-                                                apiKey: this.state.userAPIKey
+                                                apiKey: self.state.userAPIKey
                                             })
                                         }
                                         catch(e){
@@ -4204,8 +4159,8 @@ export function setupWindowFunctions(){
                                             let apiAlert = await alertController.create({
                                                 header: "",
                                                 subHeader: "",
-                                                message: language.get(this.state.lang, "apiRequestError"),
-                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                message: language.get(self.state.lang, "apiRequestError"),
+                                                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                             })
                                     
                                             return apiAlert.present()
@@ -4220,7 +4175,7 @@ export function setupWindowFunctions(){
                                                 header: "",
                                                 subHeader: "",
                                                 message: res.message,
-                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                             })
                                     
                                             return apiAlert.present()
@@ -4231,8 +4186,8 @@ export function setupWindowFunctions(){
                                         let apiAlert = await alertController.create({
                                             header: "",
                                             subHeader: "",
-                                            message: language.get(this.state.lang, "settingsDeleteVersionedSuccess"),
-                                            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                            message: language.get(self.state.lang, "settingsDeleteVersionedSuccess"),
+                                            buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                         })
                                 
                                         return apiAlert.present()
@@ -4253,32 +4208,32 @@ export function setupWindowFunctions(){
     window.customFunctions.deleteAccount = async () => {
         const deleteIt = async (twoFactorKey = "XXXXXX") => {
             let alert = await alertController.create({
-                header: language.get(this.state.lang, "settingsDeleteAccount"),
-                message: language.get(this.state.lang, "settingsDeleteAccountInfo"),
+                header: language.get(self.state.lang, "settingsDeleteAccount"),
+                message: language.get(self.state.lang, "settingsDeleteAccountInfo"),
                 buttons: [
                     {
-                        text: language.get(this.state.lang, "cancel"),
+                        text: language.get(self.state.lang, "cancel"),
                         role: "cancel",
                         handler: () => {
                             return false
                         }
                     },
                     {
-                        text: language.get(this.state.lang, "alertOkButton"),
+                        text: language.get(self.state.lang, "alertOkButton"),
                         handler: async () => {
                             let confirmAlert = await alertController.create({
-                                header: language.get(this.state.lang, "settingsDeleteAccount"),
-                                message: language.get(this.state.lang, "settingsDeleteAllConfirm"),
+                                header: language.get(self.state.lang, "settingsDeleteAccount"),
+                                message: language.get(self.state.lang, "settingsDeleteAllConfirm"),
                                 buttons: [
                                     {
-                                        text: language.get(this.state.lang, "cancel"),
+                                        text: language.get(self.state.lang, "cancel"),
                                         role: "cancel",
                                         handler: () => {
                                             return false
                                         }
                                     },
                                     {
-                                        text: language.get(this.state.lang, "alertOkButton"),
+                                        text: language.get(self.state.lang, "alertOkButton"),
                                         handler: async () => {
                                             var loading = await loadingController.create({
                                                 message: "",
@@ -4289,7 +4244,7 @@ export function setupWindowFunctions(){
     
                                             try{
                                                 var res = await utils.apiRequest("POST", "/v1/user/account/delete", {
-                                                    apiKey: this.state.userAPIKey,
+                                                    apiKey: self.state.userAPIKey,
                                                     twoFactorKey
                                                 })
                                             }
@@ -4301,8 +4256,8 @@ export function setupWindowFunctions(){
                                                 let apiAlert = await alertController.create({
                                                     header: "",
                                                     subHeader: "",
-                                                    message: language.get(this.state.lang, "apiRequestError"),
-                                                    buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                    message: language.get(self.state.lang, "apiRequestError"),
+                                                    buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                                 })
                                         
                                                 return apiAlert.present()
@@ -4315,7 +4270,7 @@ export function setupWindowFunctions(){
                                                     header: "",
                                                     subHeader: "",
                                                     message: res.message,
-                                                    buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                    buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                                 })
                                         
                                                 return apiAlert.present()
@@ -4326,8 +4281,8 @@ export function setupWindowFunctions(){
                                             let apiAlert = await alertController.create({
                                                 header: "",
                                                 subHeader: "",
-                                                message: language.get(this.state.lang, "settingsDeleteAccountSuccess"),
-                                                buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+                                                message: language.get(self.state.lang, "settingsDeleteAccountSuccess"),
+                                                buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
                                             })
                                     
                                             return apiAlert.present()
@@ -4345,9 +4300,9 @@ export function setupWindowFunctions(){
             return alert.present()
         }
 
-        if(this.state.twoFactorEnabled){
+        if(self.state.twoFactorEnabled){
             let alert = await alertController.create({
-                header: language.get(this.state.lang, "settingsDeleteAccount2FA"),
+                header: language.get(self.state.lang, "settingsDeleteAccount2FA"),
                 inputs: [
                     {
                         type: "number",
@@ -4358,14 +4313,14 @@ export function setupWindowFunctions(){
                 ],
                 buttons: [
                     {
-                        text: language.get(this.state.lang, "cancel"),
+                        text: language.get(self.state.lang, "cancel"),
                         role: "cancel",
                         handler: () => {
                             return false
                         }
                     },
                     {
-                        text: language.get(this.state.lang, "alertOkButton"),
+                        text: language.get(self.state.lang, "alertOkButton"),
                         handler: async (inputs) => {
                             return deleteIt(inputs['2fa-input'])
                         }
@@ -4382,26 +4337,26 @@ export function setupWindowFunctions(){
 
     window.customFunctions.redeemCode = async () => {
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "settingsRedeemCode"),
+            header: language.get(self.state.lang, "settingsRedeemCode"),
             inputs: [
                 {
                     type: "text",
                     id: "code-input",
                     name: "code-input",
-                    placeholder: language.get(this.state.lang, "settingsRedeemCodePlaceholder"),
+                    placeholder: language.get(self.state.lang, "settingsRedeemCodePlaceholder"),
                     value: ""
                 }
             ],
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "alertOkButton"),
+                    text: language.get(self.state.lang, "alertOkButton"),
                     handler: async (inputs) => {
                         let code = inputs['code-input']
 
@@ -4414,7 +4369,7 @@ export function setupWindowFunctions(){
                     
                         try{
                             var res = await utils.apiRequest("POST", "/v1/user/code/redeem", {
-                                apiKey: this.state.userAPIKey,
+                                apiKey: self.state.userAPIKey,
                                 code
                             })
                         }
@@ -4423,7 +4378,7 @@ export function setupWindowFunctions(){
                     
                             loading.dismiss()
                     
-                            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                            return spawnToast(language.get(self.state.lang, "apiRequestError"))
                         }
                     
                         if(!res.status){
@@ -4431,14 +4386,14 @@ export function setupWindowFunctions(){
                     
                             console.log(res.message)
                     
-                            return this.spawnToast(res.message)
+                            return spawnToast(res.message)
                         }
                     
                         loading.dismiss()
 
-                        this.updateUserUsage()
+                        updateUserUsage(self)
 
-                        return this.spawnToast(language.get(this.state.lang, "codeRedeemSuccess"))
+                        return spawnToast(language.get(self.state.lang, "codeRedeemSuccess"))
                     }
                 }
             ]
@@ -4457,7 +4412,7 @@ export function setupWindowFunctions(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/user/gdpr/download", {
-                apiKey: this.state.userAPIKey
+                apiKey: self.state.userAPIKey
             })
         }
         catch(e){
@@ -4465,7 +4420,7 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -4473,13 +4428,13 @@ export function setupWindowFunctions(){
     
             console.log(res.message)
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
     
         loading.dismiss()
 
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "gdpr-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -4518,8 +4473,8 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.open2FAModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "two-factor-modal-" + utils.generateRandomClassName()
 
         if(typeof window.customVariables.lastSettingsRes.twoFactorKey !== "string"){
@@ -4530,7 +4485,7 @@ export function setupWindowFunctions(){
             return false
         }
 
-        if(this.state.twoFactorEnabled){
+        if(self.state.twoFactorEnabled){
             customElements.define(modalId, class ModalContent extends HTMLElement {
                 connectedCallback(){
                     this.innerHTML = `
@@ -4606,13 +4561,13 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        if(!this.state.twoFactorEnabled){
+        if(!self.state.twoFactorEnabled){
             new window.QRCode(document.getElementById("qr-code-container"), {
-                text: `otpauth://totp/` + encodeURIComponent("Filen") + `:` + encodeURIComponent(this.state.userEmail) + `?secret=` + window.customVariables.lastSettingsRes.twoFactorKey + `&issuer=` + encodeURIComponent("Filen") + `&digits=6&period=30`,
+                text: `otpauth://totp/` + encodeURIComponent("Filen") + `:` + encodeURIComponent(self.state.userEmail) + `?secret=` + window.customVariables.lastSettingsRes.twoFactorKey + `&issuer=` + encodeURIComponent("Filen") + `&digits=6&period=30`,
                 width: 250,
                 height: 250,
-                colorDark: (this.state.darkMode ? "#000000" : "#000000"),
-                colorLight: (this.state.darkMode ? "#ffffff" : "#ffffff"),
+                colorDark: (self.state.darkMode ? "#000000" : "#000000"),
+                colorLight: (self.state.darkMode ? "#ffffff" : "#ffffff"),
                 correctLevel: window.QRCode.CorrectLevel.H
             })
         }
@@ -4621,8 +4576,8 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.show2FARecoveryKeyModal = async (key) => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "two-factor-recovery-key-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -4676,26 +4631,26 @@ export function setupWindowFunctions(){
     window.customFunctions.toggle2FA = async (activate) => {
         if(activate){
             let alert = await alertController.create({
-                header: language.get(this.state.lang, "settings2FAActivate"),
+                header: language.get(self.state.lang, "settings2FAActivate"),
                 inputs: [
                     {
                         type: "number",
                         id: "two-factor-input",
                         name: "two-factor-input",
-                        placeholder: language.get(this.state.lang, "enterGenerated2FACode"),
+                        placeholder: language.get(self.state.lang, "enterGenerated2FACode"),
                         value: ""
                     }
                 ],
                 buttons: [
                     {
-                        text: language.get(this.state.lang, "cancel"),
+                        text: language.get(self.state.lang, "cancel"),
                         role: "cancel",
                         handler: () => {
                             return false
                         }
                     },
                     {
-                        text: language.get(this.state.lang, "alertOkButton"),
+                        text: language.get(self.state.lang, "alertOkButton"),
                         handler: async (inputs) => {
                             let code = inputs['two-factor-input']
     
@@ -4708,7 +4663,7 @@ export function setupWindowFunctions(){
                         
                             try{
                                 var res = await utils.apiRequest("POST", "/v1/user/settings/2fa/enable", {
-                                    apiKey: this.state.userAPIKey,
+                                    apiKey: self.state.userAPIKey,
                                     code
                                 })
                             }
@@ -4717,7 +4672,7 @@ export function setupWindowFunctions(){
                         
                                 loading.dismiss()
                         
-                                return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                                return spawnToast(language.get(self.state.lang, "apiRequestError"))
                             }
                         
                             if(!res.status){
@@ -4725,12 +4680,12 @@ export function setupWindowFunctions(){
                         
                                 console.log(res.message)
                         
-                                return this.spawnToast(res.message)
+                                return spawnToast(res.message)
                             }
                         
                             loading.dismiss()
 
-                            this.setState({
+                            self.setState({
                                 twoFactorEnabled: true
                             })
 
@@ -4743,7 +4698,7 @@ export function setupWindowFunctions(){
 
                             window.customFunctions.show2FARecoveryKeyModal(res.data.recoveryKeys)
     
-                            return this.spawnToast(language.get(this.state.lang, "2faActivated"))
+                            return spawnToast(language.get(self.state.lang, "2faActivated"))
                         }
                     }
                 ]
@@ -4753,26 +4708,26 @@ export function setupWindowFunctions(){
         }
         else{
             let alert = await alertController.create({
-                header: language.get(this.state.lang, "settings2FADisable"),
+                header: language.get(self.state.lang, "settings2FADisable"),
                 inputs: [
                     {
                         type: "number",
                         id: "two-factor-input",
                         name: "two-factor-input",
-                        placeholder: language.get(this.state.lang, "enterGenerated2FACode"),
+                        placeholder: language.get(self.state.lang, "enterGenerated2FACode"),
                         value: ""
                     }
                 ],
                 buttons: [
                     {
-                        text: language.get(this.state.lang, "cancel"),
+                        text: language.get(self.state.lang, "cancel"),
                         role: "cancel",
                         handler: () => {
                             return false
                         }
                     },
                     {
-                        text: language.get(this.state.lang, "alertOkButton"),
+                        text: language.get(self.state.lang, "alertOkButton"),
                         handler: async (inputs) => {
                             let code = inputs['two-factor-input']
     
@@ -4785,7 +4740,7 @@ export function setupWindowFunctions(){
                         
                             try{
                                 var res = await utils.apiRequest("POST", "/v1/user/settings/2fa/disable", {
-                                    apiKey: this.state.userAPIKey,
+                                    apiKey: self.state.userAPIKey,
                                     code
                                 })
                             }
@@ -4794,7 +4749,7 @@ export function setupWindowFunctions(){
                         
                                 loading.dismiss()
                         
-                                return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                                return spawnToast(language.get(self.state.lang, "apiRequestError"))
                             }
                         
                             if(!res.status){
@@ -4802,18 +4757,18 @@ export function setupWindowFunctions(){
                         
                                 console.log(res.message)
                         
-                                return this.spawnToast(res.message)
+                                return spawnToast(res.message)
                             }
                         
                             loading.dismiss()
 
-                            this.setState({
+                            self.setState({
                                 twoFactorEnabled: false
                             })
 
                             window.customFunctions.dismissModal()
     
-                            return this.spawnToast(language.get(this.state.lang, "2faDisabled"))
+                            return spawnToast(language.get(self.state.lang, "2faDisabled"))
                         }
                     }
                 ]
@@ -4833,7 +4788,7 @@ export function setupWindowFunctions(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/user/events", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 id: 0
             })
         }
@@ -4842,7 +4797,7 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -4850,19 +4805,19 @@ export function setupWindowFunctions(){
     
             console.log(res.message)
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
     
         loading.dismiss()
 
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "events-modal-" + utils.generateRandomClassName()
 
         let eventsHTML = ""
 
         for(let i = 0; i < res.data.events.length; i++){
-            eventsHTML += await utils.renderEventRow(res.data.events[i], this.state.userMasterKeys, appLang)
+            eventsHTML += await utils.renderEventRow(res.data.events[i], self.state.userMasterKeys, appLang)
         }
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -4899,13 +4854,13 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        this.setupStatusbar("modal")
+        setupStatusbar(self, "modal")
 
         try{
             let sModal = await modalController.getTop()
 
             sModal.onDidDismiss().then(() => {
-                this.setupStatusbar()
+                setupStatusbar(self)
             })
         }
         catch(e){
@@ -4925,7 +4880,7 @@ export function setupWindowFunctions(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/user/events/get", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 uuid
             })
         }
@@ -4934,7 +4889,7 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -4942,13 +4897,13 @@ export function setupWindowFunctions(){
     
             console.log(res.message)
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
     
         loading.dismiss()
 
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "event-detail-modal-" + utils.generateRandomClassName()
 
         let eventDate = (new Date(res.data.timestamp * 1000)).toString().split(" ")
@@ -5006,8 +4961,8 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openEmailPasswordModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "change-email-password-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -5093,13 +5048,13 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        this.setupStatusbar("modal")
+        setupStatusbar(self, "modal")
 
         try{
             let sModal = await modalController.getTop()
 
             sModal.onDidDismiss().then(() => {
-                this.setupStatusbar()
+                setupStatusbar(self)
             })
         }
         catch(e){
@@ -5112,7 +5067,7 @@ export function setupWindowFunctions(){
     window.customFunctions.openVersionsItemPreview = (itemJSON) => {
         let item = JSON.parse(Base64.decode(itemJSON))
 
-        return this.previewItem(item, undefined, true)
+        return previewItem(self, item, undefined, true)
     }
 
     window.customFunctions.restoreVersionedItem = async (uuid, currentUUID) => {
@@ -5125,7 +5080,7 @@ export function setupWindowFunctions(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/file/archive/restore", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 uuid: uuid,
                 currentUUID: currentUUID
             })
@@ -5135,7 +5090,7 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -5143,16 +5098,16 @@ export function setupWindowFunctions(){
     
             console.log(res.message)
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
     
         loading.dismiss()
 
         window.customFunctions.dismissModal()
 
-        this.spawnToast(language.get(this.state.lang, "fileVersionRestored"))
+        spawnToast(language.get(self.state.lang, "fileVersionRestored"))
 
-        this.updateItemList(false)
+        updateItemList(self, false)
 
         return true
     }
@@ -5182,7 +5137,7 @@ export function setupWindowFunctions(){
 
         if(utils.getFilePreviewType(nameEx[nameEx.length - 1], metadata.mime) !== "none"){
             buttons.push({
-                text: language.get(this.state.lang, "previewItem"),
+                text: language.get(self.state.lang, "previewItem"),
                 icon: Ionicons.imageOutline,
                 handler: () => {
                     return window.customFunctions.openVersionsItemPreview(Base64.encode(JSON.stringify(item)))
@@ -5191,7 +5146,7 @@ export function setupWindowFunctions(){
         }
 
         buttons.push({
-            text: language.get(this.state.lang, "restoreItem"),
+            text: language.get(self.state.lang, "restoreItem"),
             icon: Ionicons.bagAddOutline,
             handler: () => {
                 return window.customFunctions.restoreVersionedItem(item.uuid, item.itemUUID)
@@ -5199,7 +5154,7 @@ export function setupWindowFunctions(){
         })
 
         buttons.push({
-            text: language.get(this.state.lang, "deletePermanently"),
+            text: language.get(self.state.lang, "deletePermanently"),
             icon: Ionicons.trashBinOutline,
             handler: async () => {
                 let loading = await loadingController.create({
@@ -5221,7 +5176,7 @@ export function setupWindowFunctions(){
     
                     loading.dismiss()
     
-                    return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                    return spawnToast(language.get(self.state.lang, "apiRequestError"))
                 }
     
                 loading.dismiss()
@@ -5229,12 +5184,12 @@ export function setupWindowFunctions(){
                 if(!res.status){
                     console.log(res.message)
     
-                    return this.spawnToast(res.message)
+                    return spawnToast(res.message)
                 }
 
                 window.$("#version-item-" + item.uuid).remove()
     
-                return this.spawnToast(language.get(this.state.lang, "itemDeletedPermanently", true, ["__NAME__"], [item.name]))
+                return spawnToast(language.get(self.state.lang, "itemDeletedPermanently", true, ["__NAME__"], [item.name]))
             }
         })
 
@@ -5268,7 +5223,7 @@ export function setupWindowFunctions(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/file/versions", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 uuid: item.uuid
             })
         }
@@ -5277,7 +5232,7 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -5285,21 +5240,21 @@ export function setupWindowFunctions(){
     
             console.log(res.message)
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
     
         loading.dismiss()
 
         let versionData = res.data.versions
 
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "versions-modal-" + utils.generateRandomClassName()
 
         let versionsHTML = ""
 
         for(let i = 0; i < versionData.length; i++){
-            let metadata = await utils.decryptFileMetadata(versionData[i].metadata, this.state.userMasterKeys, versionData[i].uuid)
+            let metadata = await utils.decryptFileMetadata(versionData[i].metadata, self.state.userMasterKeys, versionData[i].uuid)
 			let uploadDate = (new Date(versionData[i].timestamp * 1000)).toString().split(" ")
             let dateString = uploadDate[1] + ` ` + uploadDate[2] + ` ` + uploadDate[3] + ` ` + uploadDate[4]
 
@@ -5370,13 +5325,13 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        this.setupStatusbar("modal")
+        setupStatusbar(self, "modal")
 
         try{
             let sModal = await modalController.getTop()
 
             sModal.onDidDismiss().then(() => {
-                this.setupStatusbar()
+                setupStatusbar(self)
             })
         }
         catch(e){
@@ -5396,7 +5351,7 @@ export function setupWindowFunctions(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/user/get/account", {
-                apiKey: this.state.userAPIKey
+                apiKey: self.state.userAPIKey
             })
         }
         catch(e){
@@ -5404,7 +5359,7 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -5412,15 +5367,15 @@ export function setupWindowFunctions(){
     
             console.log(res.message)
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
     
         loading.dismiss()
 
         let accountData = res.data
 
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "invite-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -5497,7 +5452,7 @@ export function setupWindowFunctions(){
             document.getElementById("change-email-email-repeat").value = ""
             document.getElementById("change-email-password").value = ""
 
-            return this.spawnToast(language.get(this.state.lang, "changeEmailInvalidFields"))
+            return spawnToast(language.get(self.state.lang, "changeEmailInvalidFields"))
         }
 
         if(newEmail.length <= 1 || newEmailRepeat.length <= 1 || password.length <= 1){
@@ -5505,7 +5460,7 @@ export function setupWindowFunctions(){
             document.getElementById("change-email-email-repeat").value = ""
             document.getElementById("change-email-password").value = ""
 
-            return this.spawnToast(language.get(this.state.lang, "changeEmailInvalidFields"))
+            return spawnToast(language.get(self.state.lang, "changeEmailInvalidFields"))
         }
 
         var loading = await loadingController.create({
@@ -5517,7 +5472,7 @@ export function setupWindowFunctions(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/user/settings/email/change", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 email: newEmail,
                 emailRepeat: newEmailRepeat,
                 password: utils.hashPassword(password)
@@ -5532,7 +5487,7 @@ export function setupWindowFunctions(){
             document.getElementById("change-email-email-repeat").value = ""
             document.getElementById("change-email-password").value = ""
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -5544,7 +5499,7 @@ export function setupWindowFunctions(){
             document.getElementById("change-email-email-repeat").value = ""
             document.getElementById("change-email-password").value = ""
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
     
         loading.dismiss()
@@ -5556,8 +5511,8 @@ export function setupWindowFunctions(){
         let successAlert = await alertController.create({
             header: "",
             subHeader: "",
-            message: language.get(this.state.lang, "changeEmailSuccess"),
-            buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+            message: language.get(self.state.lang, "changeEmailSuccess"),
+            buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
         })
 
         return successAlert.present()
@@ -5573,7 +5528,7 @@ export function setupWindowFunctions(){
             document.getElementById("change-password-password-repeat").value = ""
             document.getElementById("change-password-current").value = ""
 
-            return this.spawnToast(language.get(this.state.lang, "changePasswordInvalidFields"))
+            return spawnToast(language.get(self.state.lang, "changePasswordInvalidFields"))
         }
 
         if(newPassword.length <= 1 || newPasswordRepeat.length <= 1 || password.length <= 1){
@@ -5581,7 +5536,7 @@ export function setupWindowFunctions(){
             document.getElementById("change-password-password-repeat").value = ""
             document.getElementById("change-password-current").value = ""
 
-            return this.spawnToast(language.get(this.state.lang, "changePasswordInvalidFields"))
+            return spawnToast(language.get(self.state.lang, "changePasswordInvalidFields"))
         }
 
         var loading = await loadingController.create({
@@ -5593,7 +5548,7 @@ export function setupWindowFunctions(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/user/settings/password/change", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 password: utils.hashPassword(newPassword),
                 passwordRepeat: utils.hashPassword(newPasswordRepeat),
                 currentPassword: utils.hashPassword(password)
@@ -5608,7 +5563,7 @@ export function setupWindowFunctions(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -5620,148 +5575,148 @@ export function setupWindowFunctions(){
     
             console.log(res.message)
     
-            return this.spawnToast(res.message)
+            return spawnToast(res.message)
         }
 
         document.getElementById("change-password-password").value = ""
         document.getElementById("change-password-password-repeat").value = ""
         document.getElementById("change-password-current").value = ""
 
-        let newKeys = this.state.userMasterKeys.join("|") + "|" + utils.hashFn(newPassword)
+        let newKeys = self.state.userMasterKeys.join("|") + "|" + utils.hashFn(newPassword)
 
         try{
-            await workers.localforageSetItem("userMasterKeys", await workers.JSONStringifyWorker(newKeys.split("|")))
+            await storage.set("userMasterKeys", await workers.JSONStringifyWorker(newKeys.split("|")))
         }
         catch(e){
             console.log(e)
         }
 
-        this.setState({
+        self.setState({
             userMasterKeys: newKeys.split("|")
         }, () => {
             window.customVariables.userMasterKeys = newKeys.split("|")
 
-            this.updateUserKeys((err) => {
+            self.updateUserKeys((err) => {
                 if(err){
                     loading.dismiss()
             
                     console.log(res.message)
             
-                    return this.spawnToast(language.get(this.state.language, "apiRequestError"))
+                    return spawnToast(language.get(self.state.language, "apiRequestError"))
                 }
 
                 loading.dismiss()
 
                 window.customFunctions.logoutUser()
 
-                return this.spawnToast(language.get(this.state.lang, "changePasswordSuccess"))
+                return spawnToast(language.get(self.state.lang, "changePasswordSuccess"))
             })
         })
     }
 
     window.customFunctions.openOrderBy = async () => {
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "orderBy"),
+            header: language.get(self.state.lang, "orderBy"),
             inputs: [
                 {
                     type: "radio",
-                    label: language.get(this.state.lang, "orderByName"),
+                    label: language.get(self.state.lang, "orderByName"),
                     value: "name",
                     checked: (window.customVariables.orderBy.indexOf("name") !== -1 ? true : false)
                 },
                 {
                     type: "radio",
-                    label: language.get(this.state.lang, "orderBySize"),
+                    label: language.get(self.state.lang, "orderBySize"),
                     value: "size",
                     checked: (window.customVariables.orderBy.indexOf("size") !== -1 ? true : false)
                 },
                 {
                     type: "radio",
-                    label: language.get(this.state.lang, "orderByDate"),
+                    label: language.get(self.state.lang, "orderByDate"),
                     value: "date",
                     checked: (window.customVariables.orderBy.indexOf("date") !== -1 ? true : false)
                 },
                 {
                     type: "radio",
-                    label: language.get(this.state.lang, "orderByType"),
+                    label: language.get(self.state.lang, "orderByType"),
                     value: "type",
                     checked: (window.customVariables.orderBy.indexOf("type") !== -1 ? true : false)
                 }
             ],
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "orderByReset"),
+                    text: language.get(self.state.lang, "orderByReset"),
                     handler: () => {
-                        if(utils.currentParentFolder() == this.state.settings.cameraUpload.parent ){
-                            var sortedItems = utils.orderItemsByType(this.state.itemList, "dateAsc")
+                        if(utils.currentParentFolder() == self.state.settings.cameraUpload.parent ){
+                            var sortedItems = utils.orderItemsByType(self.state.itemList, "dateAsc")
                             
                             window.customVariables.orderBy = "dateAsc"
                         }
                         else{
-                            var sortedItems = utils.orderItemsByType(this.state.itemList, "nameAsc")
+                            var sortedItems = utils.orderItemsByType(self.state.itemList, "nameAsc")
 
                             window.customVariables.orderBy = "nameAsc"
                         }
 
                         window.customVariables.itemList = sortedItems
 
-                        return this.setState({
+                        return self.setState({
                             itemList: sortedItems
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "alertOkButton"),
+                    text: language.get(self.state.lang, "alertOkButton"),
                     handler: async (type) => {
                         let alert = await alertController.create({
-                            header: language.get(this.state.lang, "orderByDirection"),
+                            header: language.get(self.state.lang, "orderByDirection"),
                             inputs: [
                                 {
                                     type: "radio",
-                                    label: language.get(this.state.lang, "orderByDirectionAsc"),
+                                    label: language.get(self.state.lang, "orderByDirectionAsc"),
                                     value: "Asc",
                                     checked: (window.customVariables.orderBy.indexOf("Asc") !== -1 ? true : false)
                                 },
                                 {
                                     type: "radio",
-                                    label: language.get(this.state.lang, "orderByDirectionDesc"),
+                                    label: language.get(self.state.lang, "orderByDirectionDesc"),
                                     value: "Desc",
                                     checked: (window.customVariables.orderBy.indexOf("Desc") !== -1 ? true : false)
                                 }
                             ],
                             buttons: [
                                 {
-                                    text: language.get(this.state.lang, "cancel"),
+                                    text: language.get(self.state.lang, "cancel"),
                                     role: "cancel",
                                     handler: () => {
                                         return false
                                     }
                                 },
                                 {
-                                    text: language.get(this.state.lang, "alertOkButton"),
+                                    text: language.get(self.state.lang, "alertOkButton"),
                                     handler: (direction) => {
                                         let typeAndDirection = type + direction
 
                                         console.log(typeAndDirection)
 
-                                        let sortedItems = utils.orderItemsByType(this.state.itemList, typeAndDirection)
+                                        let sortedItems = utils.orderItemsByType(self.state.itemList, typeAndDirection)
                 
                                         window.customVariables.orderBy = typeAndDirection
                                         window.customVariables.itemList = sortedItems
                 
-                                        return this.setState({
+                                        return self.setState({
                                             itemList: sortedItems
                                         }, () => {
-                                            this.forceUpdate()
+                                            self.forceUpdate()
                                         })
                                     }
                                 }
@@ -5787,22 +5742,22 @@ export function setupWindowFunctions(){
         }
 
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "textEditorSaveChanges", true, ["__NAME__"], [window.customVariables.currentTextEditorItem.name]),
+            header: language.get(self.state.lang, "textEditorSaveChanges", true, ["__NAME__"], [window.customVariables.currentTextEditorItem.name]),
             buttons: [
                 {
-                    text: language.get(this.state.lang, "close"),
+                    text: language.get(self.state.lang, "close"),
                     handler: () => {
                         return alert.dismiss()
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "textEditorDontSave"),
+                    text: language.get(self.state.lang, "textEditorDontSave"),
                     handler: () => {
                         return window.customFunctions.dismissModal()
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "save"),
+                    text: language.get(self.state.lang, "save"),
                     handler: () => {
                         let file = new Blob([new TextEncoder().encode(value)], {
                             lastModified: new Date(),
@@ -5818,7 +5773,7 @@ export function setupWindowFunctions(){
                             value: ""
                         })
 
-                        this.queueFileUpload(file)
+                        queueFileUpload(self, file)
 
                         return window.customFunctions.dismissModal()
                     }
@@ -5875,14 +5830,14 @@ export function setupWindowFunctions(){
         fileObject.editorParent = window.customVariables.currentTextEditorItem.parent
         fileObject.type = "text/plain"
 
-        this.queueFileUpload(fileObject)
+        queueFileUpload(self, fileObject)
 
         return window.customFunctions.dismissModal()
     }
 
     window.customFunctions.openTextEditor = async (item, content = "") => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "editor-modal-" + utils.generateRandomClassName()
 
         window.customVariables.currentTextEditorContent = content
@@ -5925,10 +5880,10 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        this.setupStatusbar("login/register")
+        setupStatusbar(self, "login/register")
 
         modal.onDidDismiss().then(() => {
-            this.setupStatusbar()
+            setupStatusbar(self)
         })
 
         utils.moveCursorToStart("editor-textarea")
@@ -5939,24 +5894,24 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.deleteSelectedItemsPermanently = async () => {
-        let items = await this.getSelectedItems()
+        let items = await getSelectedItems(self)
 
         window.customFunctions.dismissPopover()
         window.customFunctions.unselectAllItems()
 
         let alert = await alertController.create({
-            header: language.get(this.state.lang, "deletePermanently"),
-            message: language.get(this.state.lang, "deletePermanentlyConfirmationMultiple", true, ["__COUNT__"], [items.length]),
+            header: language.get(self.state.lang, "deletePermanently"),
+            message: language.get(self.state.lang, "deletePermanentlyConfirmationMultiple", true, ["__COUNT__"], [items.length]),
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         return false
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "alertOkButton"),
+                    text: language.get(self.state.lang, "alertOkButton"),
                     handler: async () => {
                         let loading = await loadingController.create({
                             message: "",
@@ -6006,19 +5961,19 @@ export function setupWindowFunctions(){
 
                         let itemList = []
 
-                        for(let i = 0; i < this.state.itemList.length; i++){
-                            if(!deletedUUIDs.includes(this.state.itemList[i].uuid)){
-                                itemList.push(this.state.itemList[i])
+                        for(let i = 0; i < self.state.itemList.length; i++){
+                            if(!deletedUUIDs.includes(self.state.itemList[i].uuid)){
+                                itemList.push(self.state.itemList[i])
                             }
                         }
 
-                        this.setState({
+                        self.setState({
                             itemList: itemList
                         }, () => {
-                            this.forceUpdate()
+                            self.forceUpdate()
                         })
             
-                        return this.spawnToast(language.get(this.state.lang, "itemsDeletedPermanently", true, ["__COUNT__"], [deletedUUIDs.length]))
+                        return spawnToast(language.get(self.state.lang, "itemsDeletedPermanently", true, ["__COUNT__"], [deletedUUIDs.length]))
                     }
                 }
             ]
@@ -6036,26 +5991,26 @@ export function setupWindowFunctions(){
                     console.log(err)
                     console.log(resolved.nativeURL, item.mime)
     
-                    return this.spawnToast(language.get(this.state.lang, "noAppFoundToOpenFile", true, ["__NAME__"], [item.name]))
+                    return spawnToast(language.get(self.state.lang, "noAppFoundToOpenFile", true, ["__NAME__"], [item.name]))
                 })
             }
             else{
-                return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
+                return spawnToast(language.get(self.state.lang, "couldNotGetDownloadDir"))
             }
         }, (err) => {
             console.log(err)
 
-			return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
+			return spawnToast(language.get(self.state.lang, "couldNotGetDownloadDir"))
         })
     }
 
     window.customFunctions.toggleCameraUploadEnabled = async () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.cameraUpload.enabled
 
         if(newVal){
-            if(typeof this.state.settings.cameraUpload.parent == "string"){
-                if(this.state.settings.cameraUpload.parent.length <= 32){
+            if(typeof self.state.settings.cameraUpload.parent == "string"){
+                if(self.state.settings.cameraUpload.parent.length <= 32){
                     return window.customFunctions.selectCameraUploadFolder()
                 }
             }
@@ -6089,7 +6044,7 @@ export function setupWindowFunctions(){
             return false
         }
 
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.cameraUpload.photos
 
         newSettings.cameraUpload.photos = newVal
@@ -6102,12 +6057,7 @@ export function setupWindowFunctions(){
 
         window.customVariables.cameraUpload.blockedIds = {}
 
-        try{
-            await workers.localforageSetItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
-        }
-        catch(e){
-            console.log(e)
-        }
+        await window.customFunctions.saveCameraUpload()
 
         window.customVariables.cameraUploadSemaphore.release()
 
@@ -6123,7 +6073,7 @@ export function setupWindowFunctions(){
             return false
         }
         
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.cameraUpload.videos
 
         newSettings.cameraUpload.videos = newVal
@@ -6136,12 +6086,7 @@ export function setupWindowFunctions(){
 
         window.customVariables.cameraUpload.blockedIds = {}
 
-        try{
-            await workers.localforageSetItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
-        }
-        catch(e){
-            console.log(e)
-        }
+        await window.customFunctions.saveCameraUpload()
 
         window.customVariables.cameraUploadSemaphore.release()
 
@@ -6149,7 +6094,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleCameraUploadHidden = async () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.cameraUpload.hidden
 
         newSettings.cameraUpload.hidden = newVal
@@ -6162,12 +6107,7 @@ export function setupWindowFunctions(){
 
         window.customVariables.cameraUpload.blockedIds = {}
 
-        try{
-            await workers.localforageSetItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
-        }
-        catch(e){
-            console.log(e)
-        }
+        await window.customFunctions.saveCameraUpload()
 
         window.customVariables.cameraUploadSemaphore.release()
 
@@ -6175,7 +6115,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleCameraUploadBurst = async () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.cameraUpload.burst
 
         newSettings.cameraUpload.burst = newVal
@@ -6188,12 +6128,7 @@ export function setupWindowFunctions(){
 
         window.customVariables.cameraUpload.blockedIds = {}
 
-        try{
-            await workers.localforageSetItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
-        }
-        catch(e){
-            console.log(e)
-        }
+        await window.customFunctions.saveCameraUpload()
 
         window.customVariables.cameraUploadSemaphore.release()
 
@@ -6201,7 +6136,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleCameraUploadICloud = async () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.cameraUpload.icloud
 
         newSettings.cameraUpload.icloud = newVal
@@ -6214,12 +6149,7 @@ export function setupWindowFunctions(){
 
         window.customVariables.cameraUpload.blockedIds = {}
 
-        try{
-            await workers.localforageSetItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
-        }
-        catch(e){
-            console.log(e)
-        }
+        await window.customFunctions.saveCameraUpload()
 
         window.customVariables.cameraUploadSemaphore.release()
 
@@ -6227,7 +6157,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleCameraUploadShared = async () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.cameraUpload.shared
 
         newSettings.cameraUpload.shared = newVal
@@ -6240,12 +6170,7 @@ export function setupWindowFunctions(){
 
         window.customVariables.cameraUpload.blockedIds = {}
 
-        try{
-            await workers.localforageSetItem("cameraUpload@" + window.customVariables.userEmail, await workers.JSONStringifyWorker(window.customVariables.cameraUpload))
-        }
-        catch(e){
-            console.log(e)
-        }
+        await window.customFunctions.saveCameraUpload()
 
         window.customVariables.cameraUploadSemaphore.release()
 
@@ -6253,7 +6178,7 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.toggleCameraUploadConvertHeic = () => {
-        let newSettings = this.state.settings
+        let newSettings = self.state.settings
         let newVal = !newSettings.cameraUpload.convertHeic
 
         newSettings.cameraUpload.convertHeic = newVal
@@ -6271,11 +6196,11 @@ export function setupWindowFunctions(){
         await window.customFunctions.dismissModal(true)
 
         let toast = await toastController.create({
-            message: language.get(this.state.lang, "selectAFolder"),
+            message: language.get(self.state.lang, "selectAFolder"),
             animated: false,
             buttons: [
                 {
-                    text: language.get(this.state.lang, "cancel"),
+                    text: language.get(self.state.lang, "cancel"),
                     role: "cancel",
                     handler: () => {
                         window.customFunctions.openCameraUploadModal(true)
@@ -6284,7 +6209,7 @@ export function setupWindowFunctions(){
                     }
                 },
                 {
-                    text: language.get(this.state.lang, "select"),
+                    text: language.get(self.state.lang, "select"),
                     handler: async () => {
                         let parent = utils.currentParentFolder()
 
@@ -6311,7 +6236,7 @@ export function setupWindowFunctions(){
                     
                         loading.present()
 
-                        let newSettings = this.state.settings
+                        let newSettings = self.state.settings
 
                         newSettings.cameraUpload.parent = window.customVariables.cachedFolders[parent].uuid
                         newSettings.cameraUpload.parentName = window.customVariables.cachedFolders[parent].name
@@ -6320,7 +6245,7 @@ export function setupWindowFunctions(){
 
                         loading.dismiss()
 
-                        if(this.state.settings.cameraUpload.enabled){
+                        if(self.state.settings.cameraUpload.enabled){
                             window.customFunctions.setupCameraUpload(true)
                         }
 
@@ -6334,11 +6259,11 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openCameraUploadModal = async (returnFromSelection = false) => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "camera-upload-modal-" + utils.generateRandomClassName()
-        let appSettings = this.state.settings
-        let appState = this.state
+        let appSettings = self.state.settings
+        let appState = self.state
 
         let uploadedCount = (Object.keys(window.customVariables.cameraUpload.uploadedIds).length + Object.keys(window.customVariables.cameraUpload.blockedIds).length)
         let progress = ((uploadedCount / window.customVariables.cameraUpload.cachedIds.length) * 100)
@@ -6507,14 +6432,14 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        this.setupStatusbar("modal")
+        setupStatusbar(self, "modal")
 
         try{
             let sModal = await modalController.getTop()
     
             sModal.onDidDismiss().then(() => {
                 if(returnFromSelection){
-                    this.setupStatusbar()
+                    setupStatusbar(self)
                 }
 
                 clearInterval(window.customVariables.updateCameraUploadModalInterval)
@@ -6549,8 +6474,8 @@ export function setupWindowFunctions(){
     }
 
     window.customFunctions.openAdvancedModal = async () => {
-        let appLang = this.state.lang
-        let appDarkMode = this.state.darkMode
+        let appLang = self.state.lang
+        let appDarkMode = self.state.darkMode
         let modalId = "advanced-modal-" + utils.generateRandomClassName()
 
         customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -6622,7 +6547,7 @@ export function setupWindowFunctions(){
 
         await modal.present()
 
-        this.setupStatusbar("modal")
+        setupStatusbar(self, "modal")
 
         return true
     }
@@ -6653,7 +6578,7 @@ export function setupWindowFunctions(){
 
     window.customFunctions.getFolderSize = async (item, url) => {
         const gotSize = (size) => {
-            let items = this.state.itemList
+            let items = self.state.itemList
 
             for(let i = 0; i < items.length; i++){
                 if(items[i].uuid == item.uuid){
@@ -6663,10 +6588,10 @@ export function setupWindowFunctions(){
 
             window.customVariables.itemList = items
 
-            return this.setState({
+            return self.setState({
                 itemList: items
             }, () => {
-                this.forceUpdate()
+                self.forceUpdate()
             })
         }
     

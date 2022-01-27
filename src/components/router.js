@@ -1,30 +1,32 @@
-export function routeTo(route){
+import { doRouting } from "./window"
+
+export function routeTo(self, route){
     if(window.customVariables.navigateBackTimeout > (+new Date())){
         return false
     }
 
-    window.customVariables.navigateBackTimeout = ((+new Date()) + 500)
+    window.customVariables.navigateBackTimeout = ((+new Date()) + 250)
     window.customVariables.didRequestThumbnail = {}
 
     window.location.hash = "#!" + route
 
-    if(typeof this !== "object"){
+    if(typeof self !== "object"){
         return false
     }
 
-    return this.doRouting()
+    return doRouting(self)
 }
 
-export function routeToFolder(folder, index = 0, lastFolderUUID = undefined){
+export function routeToFolder(self, folder, index = 0, lastFolderUUID = undefined){
     if(window.customVariables.navigateBackTimeout > (+new Date())){
         return false
     }
 
-    window.customVariables.navigateBackTimeout = ((+new Date()) + 500)
+    window.customVariables.navigateBackTimeout = ((+new Date()) + 250)
     window.customVariables.didRequestThumbnail = {}
 
     /*if(window.location.href.indexOf("links") !== -1){
-        this.openPublicLinkModal(folder)
+        self.openPublicLinkModal(folder)
         
         return false
     }*/
@@ -33,7 +35,7 @@ export function routeToFolder(folder, index = 0, lastFolderUUID = undefined){
         return false
     }
 
-    this.setState({
+    self.setState({
         mainToolbarTitle: folder.name,
         currentReceiverId: folder.receiverId
     })
@@ -46,19 +48,19 @@ export function routeToFolder(folder, index = 0, lastFolderUUID = undefined){
 
     window.location.hash = window.location.hash + "/" + folder.uuid
 
-    if(typeof this !== "object"){
+    if(typeof self !== "object"){
         return false
     }
 
-    return this.doRouting()
+    return doRouting(self)
 }
 
-export function goToFolder(uuid){
+export function goToFolder(self, uuid){
     if(window.customVariables.navigateBackTimeout > (+new Date())){
         return false
     }
 
-    window.customVariables.navigateBackTimeout = ((+new Date()) + 500)
+    window.customVariables.navigateBackTimeout = ((+new Date()) + 250)
     window.customVariables.didRequestThumbnail = {}
 
     let ex = window.location.hash.split("/").slice(1)
@@ -72,7 +74,7 @@ export function goToFolder(uuid){
 
             console.log(nextURL)
 
-            return this.routeTo(nextURL)
+            return routeTo(self, nextURL)
         }
         else{
             nextURL += "/" + ex[i]
@@ -80,19 +82,19 @@ export function goToFolder(uuid){
     }
 }
 
-export function goBack(){
+export function goBack(self){
     if(window.customVariables.navigateBackTimeout > (+new Date())){
         return false
     }
 
-    window.customVariables.navigateBackTimeout = ((+new Date()) + 500)
+    window.customVariables.navigateBackTimeout = ((+new Date()) + 250)
     window.customVariables.didRequestThumbnail = {}
 
     window.history.back()
 
-    if(typeof this !== "object"){
+    if(typeof self !== "object"){
         return false
     }
 
-    return this.doRouting()
+    return doRouting(self)
 }

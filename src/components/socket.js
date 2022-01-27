@@ -1,7 +1,7 @@
 const socketIO = require("socket.io-client")
 
-export function initSocket(){
-    if(!this.state.isLoggedIn){
+export function initSocket(self){
+    if(!self.state.isLoggedIn){
         return false
     }
 
@@ -22,12 +22,12 @@ export function initSocket(){
     })
 
     window.customVariables.socket.on("connect", () => {
-        this.setState({
+        self.setState({
             socketConnected: true
         })
 
         window.customVariables.socket.emit("auth", {
-			apiKey: this.state.userAPIKey || ""
+			apiKey: self.state.userAPIKey || ""
 		})
 
         clearInterval(window.customVariables.socketPingInterval)
@@ -42,7 +42,7 @@ export function initSocket(){
     window.customVariables.socket.on("disconnect", (err) => {
         console.log(err)
 
-        this.setState({
+        self.setState({
             socketConnected: false
         })
 
@@ -56,8 +56,8 @@ export function initSocket(){
     })
 }
 
-export function sendSocket(message, data){
-    if(!this.state.isLoggedIn){
+export function sendSocket(self, message, data){
+    if(!self.state.isLoggedIn){
         return false
     }
 

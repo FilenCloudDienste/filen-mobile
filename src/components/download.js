@@ -1,390 +1,32 @@
 import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor } from "@capacitor/core"
-import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
-import Compressor from '../utils/compressor'; 
+import Compressor from "../utils/compressor"
+import writeBlob from "../utils/blobWriter"
+import { spawnToast } from "./spawn"
 
 const utils = require("../utils/utils")
 
-export async function getTempDir(callback){
-    if(Capacitor.platform == "android"){
-        let path = "Temp"
-        let directory = FilesystemDirectory.External
-
-        try{
-            await Filesystem.mkdir({
-                path,
-                directory,
-                recursive: true 
-            })
-
-            var uri = await Filesystem.getUri({
-                path,
-                directory
-            })
-
-            return callback(null, {
-                path,
-                directory,
-                uri
-            })
-        }
-        catch(e){
-            if(e.message == "Directory exists"){
-                try{
-                    var uri = await Filesystem.getUri({
-                        path,
-                        directory
-                    })
-
-                    return callback(null, {
-                        path,
-                        directory,
-                        uri
-                    })
-                }
-                catch(e){
-                    return callback(e)
-                }
-            }
-            else{
-                return callback(e)
-            }
-        }
-    }
-    else if(Capacitor.platform == "ios"){
-        let path = "Temp"
-        let directory = FilesystemDirectory.Documents
-
-        try{
-            await Filesystem.mkdir({
-                path,
-                directory,
-                recursive: true 
-            })
-
-            var uri = await Filesystem.getUri({
-                path,
-                directory
-            })
-
-            return callback(null, {
-                path,
-                directory,
-                uri
-            })
-        }
-        catch(e){
-            if(e.message == "Directory exists"){
-                try{
-                    var uri = await Filesystem.getUri({
-                        path,
-                        directory
-                    })
-
-                    return callback(null, {
-                        path,
-                        directory,
-                        uri
-                    })
-                }
-                catch(e){
-                    return callback(e)
-                }
-            }
-            else{
-                return callback(e)
-            }
-        }
-    }
-    else{
-        return callback(new Error("Can only run getdir function on native ios or android device"))
-    }
-}
-
-export async function getThumbnailDir(uuid, callback){
-    if(Capacitor.platform == "android"){
-        let path = "ThumbnailCache/" + uuid
-        let directory = FilesystemDirectory.External
-
-        try{
-            await Filesystem.mkdir({
-                path,
-                directory,
-                recursive: true 
-            })
-
-            var uri = await Filesystem.getUri({
-                path,
-                directory
-            })
-
-            return callback(null, {
-                path,
-                directory,
-                uri
-            })
-        }
-        catch(e){
-            if(e.message == "Directory exists"){
-                try{
-                    var uri = await Filesystem.getUri({
-                        path,
-                        directory
-                    })
-
-                    return callback(null, {
-                        path,
-                        directory,
-                        uri
-                    })
-                }
-                catch(e){
-                    return callback(e)
-                }
-            }
-            else{
-                return callback(e)
-            }
-        }
-    }
-    else if(Capacitor.platform == "ios"){
-        let path = "FilenThumbnailCache/" + uuid
-        let directory = FilesystemDirectory.Documents
-
-        try{
-            await Filesystem.mkdir({
-                path,
-                directory,
-                recursive: true 
-            })
-
-            var uri = await Filesystem.getUri({
-                path,
-                directory
-            })
-
-            return callback(null, {
-                path,
-                directory,
-                uri
-            })
-        }
-        catch(e){
-            if(e.message == "Directory exists"){
-                try{
-                    var uri = await Filesystem.getUri({
-                        path,
-                        directory
-                    })
-
-                    return callback(null, {
-                        path,
-                        directory,
-                        uri
-                    })
-                }
-                catch(e){
-                    return callback(e)
-                }
-            }
-            else{
-                return callback(e)
-            }
-        }
-    }
-    else{
-        return callback(new Error("Can only run getdir function on native ios or android device"))
-    }
-}
+let downloads = {}
+let currentDownloadThreads = 0
+let maxDownloadThreads = 20
+let currentWriteThreads = 0
+let maxWriteThreads = 128
 
 export async function getDownloadDir(makeOffline, fileName, callback){
-    if(Capacitor.platform == "android"){
-        if(makeOffline){
-            let path = "Downloads"
-            let directory = FilesystemDirectory.External
-
-            try{
-                await Filesystem.mkdir({
-                    path,
-                    directory,
-                    recursive: true 
-                })
-
-                var uri = await Filesystem.getUri({
-                    path,
-                    directory
-                })
-
-                return callback(null, {
-                    path,
-                    directory,
-                    uri
-                })
-            }
-            catch(e){
-                if(e.message == "Directory exists"){
-                    try{
-                        var uri = await Filesystem.getUri({
-                            path,
-                            directory
-                        })
-
-                        return callback(null, {
-                            path,
-                            directory,
-                            uri
-                        })
-                    }
-                    catch(e){
-                        return callback(e)
-                    }
-                }
-                else{
-                    return callback(e)
-                }
-            }
-        }
-        else{
-            let path = "Downloads"
-            let directory = FilesystemDirectory.External
-            
-            try{
-                await Filesystem.mkdir({
-                    path,
-                    directory,
-                    recursive: true 
-                })
-
-                var uri = await Filesystem.getUri({
-                    path,
-                    directory
-                })
-
-                return callback(null, {
-                    path,
-                    directory,
-                    uri
-                })
-            }
-            catch(e){
-                if(e.message == "Directory exists"){
-                    try{
-                        var uri = await Filesystem.getUri({
-                            path,
-                            directory
-                        })
-
-                        return callback(null, {
-                            path,
-                            directory,
-                            uri
-                        })
-                    }
-                    catch(e){
-                        return callback(e)
-                    }
-                }
-                else{
-                    return callback(e)
-                }
-            }
-        }
-    }
-    else if(Capacitor.platform == "ios"){
-        if(makeOffline){
-            let path = "Downloads"
-            let directory = FilesystemDirectory.Documents
-
-            try{
-                await Filesystem.mkdir({
-                    path,
-                    directory,
-                    recursive: true 
-                })
-
-                var uri = await Filesystem.getUri({
-                    path,
-                    directory
-                })
-
-                return callback(null, {
-                    path,
-                    directory,
-                    uri
-                })
-            }
-            catch(e){
-                if(e.message == "Directory exists"){
-                    try{
-                        var uri = await Filesystem.getUri({
-                            path,
-                            directory
-                        })
-
-                        return callback(null, {
-                            path,
-                            directory,
-                            uri
-                        })
-                    }
-                    catch(e){
-                        return callback(e)
-                    }
-                }
-                else{
-                    return callback(e)
-                }
-            }
-        }
-        else{
-            let path = "Downloads"
-            let directory = FilesystemDirectory.Documents
-
-            try{
-                await Filesystem.mkdir({
-                    path,
-                    directory,
-                    recursive: true 
-                })
-
-                var uri = await Filesystem.getUri({
-                    path,
-                    directory
-                })
-
-                return callback(null, {
-                    path,
-                    directory,
-                    uri
-                })
-            }
-            catch(e){
-                if(e.message == "Directory exists"){
-                    try{
-                        var uri = await Filesystem.getUri({
-                            path,
-                            directory
-                        })
-
-                        return callback(null, {
-                            path,
-                            directory,
-                            uri
-                        })
-                    }
-                    catch(e){
-                        return callback(e)
-                    }
-                }
-                else{
-                    return callback(e)
-                }
-            }
-        }
+    if(Capacitor.platform == "ios"){
+        return callback(null, {
+            path: window.cordova.file.documentsDirectory + "Downloads",
+            directory : window.cordova.file.documentsDirectory,
+            uri: window.cordova.file.documentsDirectory + "Downloads"
+        })
     }
     else{
-        return callback(new Error("Can only run getdir function on native ios or android device"))
+        return callback(null, {
+            path: window.cordova.file.dataDirectory + "Downloads",
+            directory : window.cordova.file.dataDirectory,
+            uri: window.cordova.file.dataDirectory + "Downloads"
+        })
     }
 }
 
@@ -417,92 +59,113 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback, 
         await window.customVariables.downloadChunkSemaphore.acquire()
     }
 
-    workers.fetchWithTimeoutDownloadWorker(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
+    return utils.fetchWithTimeout(3600000, fetch(utils.getDownloadServer() + "/" + file.region + "/" + file.bucket + "/" + file.uuid + "/" + index, {
         method: "GET"
-    }, (3600000 * 3)).then((res) => {
-        if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
-            callback("stopped")
+    })).then((response) => {
+        if(response.status !== 200){
+            if(!isPreview){
+                window.customVariables.downloadChunkSemaphore.release()
+            }
 
-            res = null
-            file = null
-
-            return false
+            response = null
+    
+            return setTimeout(() => {
+                downloadFileChunk(file, index, (tries + 1), maxTries, callback)
+            }, 1000)
         }
 
-        try{
-            if(res.byteLength){
-                if(res.byteLength > 1){
-                    workers.decryptData(file.uuid, index, file.key, res, file.version, (err, decrypted) => {
-                        if(err){
-                            callback(err)
-
-                            res = null
-                            err = null
-                            file = null
-
-                            return false
-                        }
-
-                        if(!isPreview){
-                            window.customVariables.downloadChunkSemaphore.release()
-                        }
-
-                        if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
-                            callback("stopped")
-
+        return response.arrayBuffer().then((res) => {
+            try{
+                if(res.byteLength){
+                    if(res.byteLength > 1){
+                        return workers.decryptData(file.uuid, index, file.key, res, file.version).then((decrypted) => {
+                            if(!isPreview){
+                                window.customVariables.downloadChunkSemaphore.release()
+                            }
+    
+                            if(typeof window.customVariables.stoppedDownloads[file.uuid] !== "undefined"){
+                                callback("stopped")
+    
+                                res = null
+                                decrypted = null
+                                file = null
+                                response = null
+    
+                                return false
+                            }
+    
+                            callback(null, index, decrypted)
+    
                             res = null
                             decrypted = null
                             file = null
-
+                            response = null
+    
                             return false
+                        }).catch((err) => {
+                            callback(err)
+    
+                            res = null
+                            err = null
+                            file = null
+                            response = null
+    
+                            return false
+                        })
+                    }
+                    else{
+                        if(!isPreview){
+                            window.customVariables.downloadChunkSemaphore.release()
                         }
-
-                        callback(null, index, decrypted)
-
+    
                         res = null
-                        decrypted = null
-                        file = null
-
-                        return false
-                    })
+                        response = null
+    
+                        return setTimeout(() => {
+                            downloadFileChunk(file, index, (tries + 1), maxTries, callback)
+                        }, 1000)
+                    }
                 }
                 else{
                     if(!isPreview){
                         window.customVariables.downloadChunkSemaphore.release()
                     }
-
+    
                     res = null
-
+                    response = null
+    
                     return setTimeout(() => {
-                        this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
+                        downloadFileChunk(file, index, (tries + 1), maxTries, callback)
                     }, 1000)
                 }
             }
-            else{
+            catch(e){
+                console.log(e)
+    
                 if(!isPreview){
                     window.customVariables.downloadChunkSemaphore.release()
                 }
-
+    
                 res = null
-
+                response = null
+    
                 return setTimeout(() => {
-                    this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
+                    downloadFileChunk(file, index, (tries + 1), maxTries, callback)
                 }, 1000)
             }
-        }
-        catch(e){
-            console.log(e)
+        }).catch((err) => {
+            console.log(err)
+
+            response = null
 
             if(!isPreview){
                 window.customVariables.downloadChunkSemaphore.release()
             }
 
-            res = null
-
             return setTimeout(() => {
-                this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
+                downloadFileChunk(file, index, (tries + 1), maxTries, callback)
             }, 1000)
-        }
+        })
     }).catch((err) => {
         console.log(err)
 
@@ -511,14 +174,14 @@ export async function downloadFileChunk(file, index, tries, maxTries, callback, 
         }
 
         return setTimeout(() => {
-            this.downloadFileChunk(file, index, (tries + 1), maxTries, callback)
+            downloadFileChunk(file, index, (tries + 1), maxTries, callback)
         }, 1000)
     })
 }
 
 export async function writeChunkToFile(file, dirObj, uuid, index, data, callback){
-    if(!window.customVariables.downloads[uuid]){
-        window.customVariables.currentWriteThreads -= 1
+    if(!downloads[uuid]){
+        currentWriteThreads -= 1
 
         file = null
         dirObj = null
@@ -529,14 +192,14 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
         return false
     }
 
-    if(window.customVariables.downloads[uuid].nextWriteChunk !== index){
+    if(downloads[uuid].nextWriteChunk !== index){
         return setTimeout(() => {
-            this.writeChunkToFile(file, dirObj, uuid, index, data, callback)
+            writeChunkToFile(file, dirObj, uuid, index, data, callback)
         }, 10)
     }
 
     if(typeof window.customVariables.stoppedDownloads[uuid] !== "undefined"){
-        window.customVariables.currentWriteThreads -= 1
+        currentWriteThreads -= 1
 
         file = null
         dirObj = null
@@ -547,101 +210,96 @@ export async function writeChunkToFile(file, dirObj, uuid, index, data, callback
         return false
     }
 
-    if(index == 0){
+    /*if(index == 0){
         try{
-            await Filesystem.deleteFile({
-                path: dirObj.path + "/" + file.name,
-                directory: dirObj.directory
+            await new Promise((resolve, reject) => {
+                window.resolveLocalFileSystemURL(dirObj.path + "/" + file.name, (resolved) => {
+                    resolved.remove(() => {
+                        return resolve(true)
+                    }, (err) => {
+                        return reject(err)
+                    })
+                }, (err) => {
+                    return reject(err)
+                })
             })
         }
         catch(e){
             console.log(e)
         }
-    }
+    }*/
 
-    workers.convertArrayBufferToBase64(data, async (err, b64Data) => {
-        if(err){
-            callback(err)
+    if(index == 0){
+        try{
+            let blob = await workers.newBlob(data)
+
+            await writeBlob({
+                blob: blob,
+                path: dirObj.path + "/" + file.name,
+                recursive: true,
+                append: false
+            })
+
+            currentWriteThreads -= 1
+
+            blob = null
+            file = null
+            dirObj = null
+            uuid = null
+            index = null
+            data = null
+
+            return callback(null)
+        }
+        catch(e){
+            currentWriteThreads -= 1
 
             file = null
             dirObj = null
             uuid = null
             index = null
             data = null
-            err = null
 
-            return false
+            return callback(e)
         }
+    }
+    else{
+        try{
+            let blob = await workers.newBlob(data)
 
-        if(index == 0){
-            try{
-                await Filesystem.writeFile({
-                    path: dirObj.path + "/" + file.name,
-                    directory: dirObj.directory,
-                    data: b64Data,
-                    recursive: true
-                })
+            await writeBlob({
+                blob: blob,
+                path: dirObj.path + "/" + file.name,
+                recursive: false,
+                append: true
+            })
 
-                window.customVariables.currentWriteThreads -= 1
+            currentWriteThreads -= 1
 
-                file = null
-                dirObj = null
-                uuid = null
-                index = null
-                data = null
-                b64Data = null
-    
-                return callback(null)
-            }
-            catch(e){
-                window.customVariables.currentWriteThreads -= 1
+            blob = null
+            file = null
+            dirObj = null
+            uuid = null
+            index = null
+            data = null
 
-                file = null
-                dirObj = null
-                uuid = null
-                index = null
-                data = null
-                b64Data = null
-
-                return callback(e)
-            }
+            return callback(null)
         }
-        else{
-            try{
-                await Filesystem.appendFile({
-                    path: dirObj.path + "/" + file.name,
-                    directory: dirObj.directory,
-                    data: b64Data
-                })
+        catch(e){
+            currentWriteThreads -= 1
 
-                window.customVariables.currentWriteThreads -= 1
+            file = null
+            dirObj = null
+            uuid = null
+            index = null
+            data = null
 
-                file = null
-                dirObj = null
-                uuid = null
-                index = null
-                data = null
-                b64Data = null
-    
-                return callback(null)
-            }
-            catch(e){
-                window.customVariables.currentWriteThreads -= 1
-
-                file = null
-                dirObj = null
-                uuid = null
-                index = null
-                data = null
-                b64Data = null
-
-                return callback(e)
-            }
+            return callback(e)
         }
-    })
+    }
 }
 
-export async function queueFileDownload(file, isOfflineRequest = false, optionalCallback = undefined, calledByPreview = false, saveToGalleryCallback = undefined){
+export async function queueFileDownload(self, file, isOfflineRequest = false, optionalCallback = undefined, calledByPreview = false, saveToGalleryCallback = undefined){
     const callOptionalCallback = (...args) => {
         if(typeof optionalCallback == "function"){
             optionalCallback(...args)
@@ -668,8 +326,8 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
     }
 
     if(Capacitor.isNative){
-        if(this.state.settings.onlyWifi){
-            let networkStatus = this.state.networkStatus
+        if(self.state.settings.onlyWifi){
+            let networkStatus = self.state.networkStatus
 
             if(networkStatus.connectionType !== "wifi"){
                 callOptionalCallback(null)
@@ -678,20 +336,20 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                     saveToGalleryCallback("no wifi")
                 }
 
-                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                return spawnToast(language.get(self.state.lang, "onlyWifiError"))
             }
         }
     }
 
-    for(let prop in window.customVariables.downloads){
-		if(window.customVariables.downloads[prop].name == file.name){
+    for(let prop in downloads){
+		if(downloads[prop].name == file.name){
             callOptionalCallback(null)
 
             if(typeof saveToGalleryCallback == "function"){
                 saveToGalleryCallback("already downloading")
             }
 
-			return this.spawnToast(language.get(this.state.lang, "fileDownloadAlreadyDownloadingFile", true, ["__NAME__"], [file.name]))
+			return spawnToast(language.get(self.state.lang, "fileDownloadAlreadyDownloadingFile", true, ["__NAME__"], [file.name]))
 		}
     }
     
@@ -718,7 +376,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                 return returnOfflineSavedPath(false)
             }
             else{
-                return this.spawnToast(language.get(this.state.lang, "fileAlreadyStoredOffline", true, ["__NAME__"], [file.name]))
+                return spawnToast(language.get(self.state.lang, "fileAlreadyStoredOffline", true, ["__NAME__"], [file.name]))
             }
         }
 
@@ -726,7 +384,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
         fileName = file.uuid
     }
 
-    this.getDownloadDir(makeOffline, fileName, async (err, dirObj) => {
+    getDownloadDir(makeOffline, fileName, async (err, dirObj) => {
         if(err){
             console.log(err)
 
@@ -736,7 +394,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                 saveToGalleryCallback("could not get download dir")
             }
 
-            return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
+            return spawnToast(language.get(self.state.lang, "couldNotGetDownloadDir"))
         }
 
         let isRemovedFromState = false
@@ -749,7 +407,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
 
             isAddedToState = true
 
-			let currentDownloads = this.state.downloads
+			let currentDownloads = self.state.downloads
 
 			currentDownloads[uuid] = {
 				uuid,
@@ -765,7 +423,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                 makeOffline: makeOffline
 			}
 
-			window.customVariables.downloads[uuid] = {
+			downloads[uuid] = {
 				uuid,
 				size,
                 chunks: file.chunks,
@@ -779,11 +437,11 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                 makeOffline: makeOffline
 			}
 
-			return this.setState({
+			return self.setState({
 				downloads: currentDownloads,
-				downloadsCount: (this.state.downloadsCount + 1)
+				downloadsCount: (self.state.downloadsCount + 1)
 			}, () => {
-                this.forceUpdate()
+                self.forceUpdate()
             })
 		}
 
@@ -799,16 +457,16 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
             callOptionalCallback(null)
 
             try{
-                let currentDownloads = this.state.downloads
+                let currentDownloads = self.state.downloads
 
                 delete currentDownloads[uuid]
-                delete window.customVariables.downloads[uuid]
+                delete downloads[uuid]
 
-                return this.setState({
+                return self.setState({
                     downloads: currentDownloads,
-                    downloadsCount: (this.state.downloadsCount - 1)
+                    downloadsCount: (self.state.downloadsCount - 1)
                 }, () => {
-                    this.forceUpdate()
+                    self.forceUpdate()
                 })
             }
             catch(e){
@@ -818,16 +476,11 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
 
 		const setProgress = (progress) => {
 			try{
-				let currentDownloads = this.state.downloads
+				downloads[uuid].progress = progress
 
-				currentDownloads[uuid].progress = progress
-				window.customVariables.downloads[uuid].progress = progress
+                window.$("#downloads-progress-" + uuid).html(downloads[uuid].progress >= 100 ? language.get(self.state.lang, "transfersFinishing") + " " + downloads[uuid].chunksWritten + "/" + downloads[uuid].chunks : downloads[uuid].progress == 0 ? language.get(self.state.lang, "transfersQueued") : downloads[uuid].progress + "%")
 
-				return this.setState({
-					downloads: currentDownloads
-				}, () => {
-                    this.forceUpdate()
-                })
+                return true
 			}
 			catch(e){
 				return console.log(e)
@@ -836,16 +489,9 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
 
 		const setLoaded = (moreLoaded) => {
 			try{
-				let currentDownloads = this.state.downloads
+				downloads[uuid].loaded += moreLoaded
 
-				currentDownloads[uuid].loaded += moreLoaded
-				window.customVariables.downloads[uuid].loaded += moreLoaded
-
-				return this.setState({
-					downloads: currentDownloads
-				}, () => {
-                    this.forceUpdate()
-                })
+                return true
 			}
 			catch(e){
 				return console.log(e)
@@ -854,14 +500,9 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
         
         const chunksDonePlus = () => {
             try{
-				let currentDownloads = this.state.downloads
+				downloads[uuid].chunksDone += 1
 
-				currentDownloads[uuid].chunksDone += 1
-				window.customVariables.downloads[uuid].chunksDone += 1
-
-				return this.setState({
-					downloads: currentDownloads
-				})
+                return true
 			}
 			catch(e){
 				return console.log(e)
@@ -870,18 +511,10 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
 
         const chunksWrittenPlus = () => {
             try{
-				let currentDownloads = this.state.downloads
+                downloads[uuid].nextWriteChunk += 1
+				downloads[uuid].chunksWritten += 1
 
-				currentDownloads[uuid].nextWriteChunk += 1
-                window.customVariables.downloads[uuid].nextWriteChunk += 1
-                currentDownloads[uuid].chunksWritten += 1
-				window.customVariables.downloads[uuid].chunksWritten += 1
-
-				return this.setState({
-					downloads: currentDownloads
-				}, () => {
-                    this.forceUpdate()
-                })
+                return true
 			}
 			catch(e){
 				return console.log(e)
@@ -890,27 +523,27 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
 
 		addToState()
 
-        //this.spawnToast(language.get(this.state.lang, "fileDownloadStarted", true, ["__NAME__"], [file.name]))
+        //spawnToast(language.get(self.state.lang, "fileDownloadStarted", true, ["__NAME__"], [file.name]))
 
         await window.customVariables.downloadSemaphore.acquire()
         
         let downloadInterval = setInterval(() => {
-            if(window.customVariables.currentDownloadThreads < window.customVariables.maxDownloadThreads && window.customVariables.currentWriteThreads < window.customVariables.maxWriteThreads){
-                window.customVariables.currentDownloadThreads += 1
-                window.customVariables.currentWriteThreads += 1
+            if(currentDownloadThreads < maxDownloadThreads && currentWriteThreads < maxWriteThreads){
+                currentDownloadThreads += 1
+                currentWriteThreads += 1
                 
                 currentIndex += 1
 
                 let thisIndex = currentIndex
 
-                if(thisIndex < file.chunks && typeof window.customVariables.downloads[uuid] !== "undefined"){
-                    this.downloadFileChunk(file, thisIndex, 0, 128, async (err, downloadIndex, downloadData) => {
-                        window.customVariables.currentDownloadThreads -= 1
+                if(thisIndex < file.chunks && typeof downloads[uuid] !== "undefined"){
+                    return downloadFileChunk(file, thisIndex, 0, 128, async (err, downloadIndex, downloadData) => {
+                        currentDownloadThreads -= 1
                         
                         if(err){
                             console.log(err)
 
-                            window.customVariables.currentWriteThreads -= 1
+                            currentWriteThreads -= 1
 
                             removeFromState()
 
@@ -925,16 +558,23 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                     window.customVariables.stoppedDownloadsDone[uuid] = true
 
                                     try{
-                                        await Filesystem.deleteFile({
-                                            path: dirObj.path + "/" + file.name,
-                                            directory: dirObj.directory
+                                        await new Promise((resolve, reject) => {
+                                            return window.resolveLocalFileSystemURL(dirObj.path + "/" + file.name, (resolved) => {
+                                                return resolved.remove(() => {
+                                                    return resolve(true)
+                                                }, (err) => {
+                                                    return reject(err)
+                                                })
+                                            }, (err) => {
+                                                return reject(err)
+                                            })
                                         })
                                     }
                                     catch(e){
                                         console.log(e)
                                     }
 
-                                    return this.spawnToast(language.get(this.state.lang, "downloadStopped", true, ["__NAME__"], [file.name]))
+                                    return spawnToast(language.get(self.state.lang, "downloadStopped", true, ["__NAME__"], [file.name]))
                                 }
                                 else{
                                     return false
@@ -945,15 +585,17 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                     saveToGalleryCallback("err")
                                 }
 
-                                return this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [file.name]))
+                                return spawnToast(language.get(self.state.lang, "fileDownloadError", true, ["__NAME__"], [file.name]))
                             }
                         }
 
-                        if(typeof window.customVariables.downloads[uuid] !== "undefined"){
+                        if(typeof downloads[uuid] !== "undefined"){
                             chunksDonePlus()
-                            setLoaded(downloadData.length)
+                            setLoaded(downloadData.byteLength)
                             
-                            this.writeChunkToFile(file, dirObj, uuid, downloadIndex, downloadData, async (err) => {
+                            return writeChunkToFile(file, dirObj, uuid, downloadIndex, downloadData, async (err) => {
+                                downloadData = null
+
                                 if(err){
                                     console.log(err)
 
@@ -973,7 +615,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                             saveToGalleryCallback("err")
                                         }
 
-                                        return this.spawnToast(language.get(this.state.lang, "fileWriteError", true, ["__NAME__"], [file.name]))
+                                        return spawnToast(language.get(self.state.lang, "fileWriteError", true, ["__NAME__"], [file.name]))
                                     }
                                 }
 
@@ -982,7 +624,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                 downloadData = null
 
                                 try{
-                                    let progress = ((window.customVariables.downloads[uuid].loaded / window.customVariables.downloads[uuid].size) * 100).toFixed(2)
+                                    let progress = ((downloads[uuid].loaded / downloads[uuid].size) * 100).toFixed(2)
         
                                     if(progress >= 100){
                                         progress = 100
@@ -995,43 +637,30 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                 }
 
                                 try{
-                                    if(window.customVariables.downloads[uuid].chunksWritten >= window.customVariables.downloads[uuid].chunks){
-                                        if(window.customVariables.downloads[uuid].makeOffline){
+                                    if(downloads[uuid].chunksWritten >= downloads[uuid].chunks){
+                                        if(downloads[uuid].makeOffline){
                                             try{
                                                 await new Promise((resolve, reject) => {
-                                                    this.getDownloadDir(true, fileName, (err, dirObj) => {
-                                                        if(err){
-                                                            return reject(err)
-                                                        }
-                                    
-                                                        Filesystem.getUri({
-                                                            path: dirObj.path + "/" + file.name,
-                                                            directory: dirObj.directory
-                                                        }).then((path) => {
-                                                            window.resolveLocalFileSystemURL(path.uri, (resolved) => {
-                                                                window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory, (rootDirEntry) => {
-                                                                    rootDirEntry.getDirectory("offlineFiles", {
-                                                                        create: true
-                                                                    }, (dirEntry) => {
-                                                                        resolved.moveTo(dirEntry, file.uuid, () => {
-                                                                            console.log(dirEntry.nativeURL)
+                                                    return window.resolveLocalFileSystemURL(dirObj.path + "/" + file.name, (resolved) => {
+                                                        return window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory, (rootDirEntry) => {
+                                                            return rootDirEntry.getDirectory("offlineFiles", {
+                                                                create: true
+                                                            }, (dirEntry) => {
+                                                                return resolved.moveTo(dirEntry, file.uuid, () => {
+                                                                    console.log(dirEntry.nativeURL)
 
-                                                                            return resolve(true)
-                                                                        }, (err) => {
-                                                                            return reject(err)
-                                                                        })
-                                                                    }, (err) => {
-                                                                        return reject(err)
-                                                                    })                    
+                                                                    return resolve(true)
                                                                 }, (err) => {
                                                                     return reject(err)
                                                                 })
                                                             }, (err) => {
                                                                 return reject(err)
-                                                            })
-                                                        }).catch((err) => {
+                                                            })                    
+                                                        }, (err) => {
                                                             return reject(err)
                                                         })
+                                                    }, (err) => {
+                                                        return reject(err)
                                                     })
                                                 })
                                             }
@@ -1042,7 +671,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                                     saveToGalleryCallback("err")
                                                 }
         
-                                                return this.spawnToast(language.get(this.state.lang, "fileWriteError", true, ["__NAME__"], [file.name]))
+                                                return spawnToast(language.get(self.state.lang, "fileWriteError", true, ["__NAME__"], [file.name]))
                                             }
 
                                             if(typeof saveToGalleryCallback == "function"){
@@ -1053,7 +682,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                             else{
                                                 window.customVariables.offlineSavedFiles[file.uuid] = true
         
-                                                let items = this.state.itemList
+                                                let items = self.state.itemList
                                                 let windowItems = window.customVariables.itemList
             
                                                 for(let i = 0; i < items.length; i++){
@@ -1068,7 +697,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                                     }
                                                 }
             
-                                                this.setState({
+                                                self.setState({
                                                     itemList: items
                                                 })
             
@@ -1079,14 +708,14 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                                 }
 
                                                 if(!calledByPreview){
-                                                    this.spawnToast(language.get(this.state.lang, "fileIsNowAvailableOffline", true, ["__NAME__"], [file.name]))
+                                                    spawnToast(language.get(self.state.lang, "fileIsNowAvailableOffline", true, ["__NAME__"], [file.name]))
                                                 }
             
                                                 removeFromState()
             
                                                 window.customFunctions.saveOfflineSavedFiles()
                                                 
-                                                return this.forceUpdate()
+                                                return self.forceUpdate()
                                             }
                                         }
                                         else{
@@ -1094,7 +723,7 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                                                 returnOfflineSavedPath()
                                             }
                                             else{
-                                                this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [file.name]))
+                                                spawnToast(language.get(self.state.lang, "fileDownloadDone", true, ["__NAME__"], [file.name]))
                                             }
 
                                             return removeFromState()
@@ -1109,8 +738,8 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
                     })
                 }
                 else{
-                    window.customVariables.currentDownloadThreads -= 1
-                    window.customVariables.currentWriteThreads -= 1
+                    currentDownloadThreads -= 1
+                    currentWriteThreads -= 1
                     
                     clearInterval(downloadInterval)
                 }
@@ -1119,21 +748,20 @@ export async function queueFileDownload(file, isOfflineRequest = false, optional
     })
 }
 
-export function genThumbnail(item, index){
-    if(item.type == "file" && this.state.settings.showThumbnails && typeof item.thumbnail !== "string" && typeof window.customVariables.didRequestThumbnail[item.uuid] == "undefined" && item.name.indexOf(".") !== -1){
-        window.customVariables.didRequestThumbnail[item.uuid] = true
+export function genThumbnail(item, self){
+    if(item.type == "file" && self.state.settings.showThumbnails && typeof item.thumbnail !== "string" && typeof window.customVariables.didRequestThumbnail[item.uuid] == "undefined" && item.name.indexOf(".") !== -1){
+        window.customVariables.didRequestThumbnail[item.uuid] = undefined
         window.customVariables.currentThumbnailURL = window.location.href
 
-        this.getFileThumbnail(item, window.location.href, index)
+        getFileThumbnail(item, window.location.href, self)
 
         item = null
-        index = null
 
         return true
     }
 }
 
-export async function getFileThumbnail(file, thumbURL, index, callback = undefined){
+export async function getFileThumbnail(file, thumbURL, self, callback = undefined){
 	if(typeof window.customVariables.getThumbnailErrors[file.uuid] !== "undefined"){
 		if(window.customVariables.getThumbnailErrors[file.uuid] >= 32){
 			if(typeof callback == "function"){
@@ -1142,7 +770,6 @@ export async function getFileThumbnail(file, thumbURL, index, callback = undefin
 
             file = null
             thumbURL = null
-            index = null
 
 			return false
 		}
@@ -1155,7 +782,6 @@ export async function getFileThumbnail(file, thumbURL, index, callback = undefin
 
         file = null
         thumbURL = null
-        index = null
 
 		return false
 	}
@@ -1170,55 +796,57 @@ export async function getFileThumbnail(file, thumbURL, index, callback = undefin
 
         file = null
         thumbURL = null
-        index = null
         ext = null
 
 		return false
 	}
 
 	const gotThumbnail = async (thumbnail) => {
-		//await window.customVariables.updateItemsSemaphore.acquire()
+		await window.customVariables.updateItemsSemaphore.acquire()
 
 		if(typeof callback == "function"){
 			callback(null, thumbnail)
 		}
 
-        let thumbnailDiv = document.getElementById("item-thumbnail-" + file.uuid)
-
-        if(thumbnailDiv !== null){
-            thumbnailDiv.style.backgroundImage = "url(" + thumbnail + ")"
-        }
-
-		let newItems = this.state.itemList
+		let newItems = self.state.itemList
         let didUpdate = false
-        
-        if(typeof newItems[index] !== "undefined"){
-            if(newItems[index].thumbnail !== thumbnail){
-                newItems[index].thumbnail = thumbnail
-                didUpdate = true
+
+        for(let i = 0; i < newItems.length; i++){
+            if(newItems[i].uuid == file.uuid){
+                if(newItems[i].thumbnail !== thumbnail){
+                    newItems[i].thumbnail = thumbnail
+                    didUpdate = true
+                    window.customVariables.thumbnailBlobCache[file.uuid] = thumbnail
+                }
             }
         }
 
 		if(thumbURL == window.location.href && didUpdate){
 			window.customVariables.itemList = newItems
 
-            let counter = this.state.itemListChangeCounter
+            let thumbnailDiv = document.getElementById("item-thumbnail-" + file.uuid)
+
+            if(thumbnailDiv !== null){
+                thumbnailDiv.style.backgroundImage = "url(" + thumbnail + ")"
+            }
+
+            let counter = self.state.itemListChangeCounter
 			
-			return this.setState({
+			return self.setState({
 				itemList: newItems,
                 itemListChangeCounter: (counter + 1)
 			}, () => {
-				this.forceUpdate()
+				self.forceUpdate()
 
 				window.customFunctions.saveThumbnailCache()
 
-				//window.customVariables.updateItemsSemaphore.release()
+				window.customVariables.updateItemsSemaphore.release()
 
 				delete window.customVariables.isGettingThumbnail[file.uuid]
 			})
 		}
 		else{
-			//window.customVariables.updateItemsSemaphore.release()
+			window.customVariables.updateItemsSemaphore.release()
 
 			delete window.customVariables.isGettingThumbnail[file.uuid]
 
@@ -1235,7 +863,7 @@ export async function getFileThumbnail(file, thumbURL, index, callback = undefin
 	await window.customVariables.getFileThumbnailSemaphore.acquire()
 
 	try{
-		let thumbnail = await this.getThumbnail(file, thumbURL, ext)
+		let thumbnail = await getThumbnail(file, thumbURL, ext, self)
 
 		window.customVariables.getFileThumbnailSemaphore.release()
 
@@ -1249,7 +877,7 @@ export async function getFileThumbnail(file, thumbURL, index, callback = undefin
 	catch(e){
 		try{
 			if(e.toString().indexOf("url changed") !== -1 || e.toString().indexOf("stopped") !== -1){
-                console.log(e)
+                //console.log(e)
 			}
             else{
                 console.log(e)
@@ -1329,108 +957,58 @@ export function writeThumbnail(file, blob){
         let dir = "cache" + utils.getRandomArbitrary(0, 512)
         let cacheKey = file.uuid
 
-        window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory, (rootDirEntry) => {
-            rootDirEntry.getDirectory("thumbnailCache", {
-                create: true
-            }, (subDirEntry) => {
-                subDirEntry.getDirectory(dir, {
-                    create: true
-                }, (dirEntry) => {
-                    let fileURL = window.Ionic.WebView.convertFileSrc(dirEntry.nativeURL + fileName)
+        let nativeFileURL = window.cordova.file.dataDirectory + "thumbnailCache/" + dir + "/" + fileName
+        let fileURL = window.Ionic.WebView.convertFileSrc(nativeFileURL)
 
-                    dirEntry.getFile(fileName, {
-                        create: true,
-                        exclusive: false
-                    }, (fileEntry) => {
-                        fileEntry.createWriter((fileWriter) => {
-                            fileWriter.onwriteend = () => {
-                                if(typeof fileURL == "string"){
-                                    window.customVariables.thumbnailCache[cacheKey] = {
-                                        dir,
-                                        fileName
-                                    }
-    
-                                    window.customVariables.thumbnailBlobCache[cacheKey] = fileURL
-                                }
+        return writeBlob({
+            path: nativeFileURL,
+            blob: blob,
+            recursive: true
+        }).then(() => {
+            window.customVariables.thumbnailCache[cacheKey] = {
+                dir,
+                fileName
+            }
 
-                                fileEntry = null
-                                dirEntry = null
-                                subDirEntry = null
-                                rootDirEntry = null
-                                fileName = null
-                                dir = null
-                                blob = null
-                                file = null
+            window.customVariables.thumbnailBlobCache[cacheKey] = fileURL
 
-                                return resolve(fileURL)
-                            }
-                    
-                            fileWriter.onerror = (e) => {
-                                fileEntry = null
-                                dirEntry = null
-                                subDirEntry = null
-                                rootDirEntry = null
-                                fileName = null
-                                dir = null
-                                blob = null
-                                file = null
+            resolve(fileURL)
 
-                                return reject(e)
-                            }
-                    
-                            return fileWriter.write(blob)
-                        })
-                    }, (err) => {
-                        blob = null
-                        dirEntry = null
-                        subDirEntry = null
-                        rootDirEntry = null
-                        fileName = null
-                        dir = null
-                        file = null
-
-                        return reject(err)
-                    })
-                }, (err) => {
-                    blob = null
-                    subDirEntry = null
-                    rootDirEntry = null
-                    fileName = null
-                    dir = null
-                    file = null
-
-                    return reject(err)
-                })
-            }, (err) => {
-                blob = null
-                rootDirEntry = null
-                fileName = null
-                dir = null
-                file = null
-
-                return reject(err)
-            })                    
-        }, (err) => {
-            blob = null
             fileName = null
             dir = null
+            blob = null
+            nativeFileURL = null
+            fileURL = null
+            cacheKey = null
             file = null
 
-            return reject(err)
+            return true
+        }).catch((err) => {
+            reject(err)
+
+            fileName = null
+            dir = null
+            blob = null
+            nativeFileURL = null
+            fileURL = null
+            cacheKey = null
+            file = null
+
+            return false
         })
     })
 }
 
-export async function getThumbnail(file, thumbURL, ext){
+export async function getThumbnail(file, thumbURL, ext, self){
     return new Promise(async (resolve, reject) => {
         if(Capacitor.isNative){
-            if(this.state.settings.onlyWifi){
-                let networkStatus = this.state.networkStatus
+            if(self.state.settings.onlyWifi){
+                let networkStatus = self.state.networkStatus
     
                 if(networkStatus.connectionType !== "wifi"){
                     reject("stopped")
 
-                    return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                    return spawnToast(language.get(self.state.lang, "onlyWifiError"))
                 }
             }
         }
@@ -1480,33 +1058,6 @@ export async function getThumbnail(file, thumbURL, ext){
             nativeURL = null
 
             return true
-
-            window.resolveLocalFileSystemURL(nativeURL, () => {
-                window.customVariables.thumbnailSemaphore.release()
-
-                let convertedURL = window.Ionic.WebView.convertFileSrc(nativeURL)
-
-                resolve(convertedURL)
-
-                convertedURL = null
-                cached = null
-                nativeURL = null
-
-                return true
-            }, (err) => {
-                delete window.customVariables.thumbnailCache[cacheKey]
-                delete window.customVariables.thumbnailBlobCache[cacheKey]
-
-                window.customVariables.thumbnailSemaphore.release()
-
-                reject(err)
-
-                cached = null
-                nativeURL = null
-                err = null
-
-                return true
-            })
         }
     
         await window.customVariables.thumbnailSemaphore.acquire()
@@ -1517,7 +1068,7 @@ export async function getThumbnail(file, thumbURL, ext){
 
         if(typeof window.customVariables.thumbnailCache[cacheKey] == "undefined"){
             if(videoExts.includes(ext)){ //video thumbnail
-                this.downloadPreview(file, undefined, async (err, downloadData) => {
+                return downloadPreview(file, undefined, async (err, downloadData) => {
                     if(err){
                         window.customVariables.thumbnailSemaphore.release()
 
@@ -1599,7 +1150,7 @@ export async function getThumbnail(file, thumbURL, ext){
                 }, 32, true, thumbURL)
             }
             else{
-                this.downloadPreview(file, undefined, async (err, data) => {
+                return downloadPreview(file, undefined, async (err, data) => {
                     if(err){
                         window.customVariables.thumbnailSemaphore.release()
 
@@ -1680,103 +1231,76 @@ export async function getThumbnail(file, thumbURL, ext){
 
 export async function downloadPreview(file, progressCallback, callback, maxChunks = Infinity, isThumbnailDownload = false, thumbURL = undefined){
     let dataArray = []
-    let currentIndex = -1
-    let currentWriteIndex = 0
-    let chunksDone = 0
-    
-    const write = (index, data, callback) => {
-        if(currentWriteIndex == index){
-            dataArray.push(data)
+    let maxChunksToDownload = maxChunks
+    let stopped = false
 
-            currentWriteIndex += 1
-            chunksDone += 1
-
-            if(typeof progressCallback == "function"){
-                progressCallback(chunksDone)
-            }
-
-            if(chunksDone == file.chunks || chunksDone == maxChunks){
-                let uint8 = utils.uInt8ArrayConcat(dataArray)
-
-                callback(null, uint8)
-
-                index = null
-                data = null
-                dataArray = null
-                uint8 = null
-
-                return true
-            }
-
-            index = null
-            data = null
-
-            return true
-        }
-        else{
-            return setTimeout(() => {
-                write(index, data, callback)
-            }, 10)
-        }
+    if(maxChunksToDownload > file.chunks){
+        maxChunksToDownload = file.chunks
     }
 
-    let downloadInterval = setInterval(() => {
-        currentIndex += 1
+    for(let i = 0; i < maxChunksToDownload; i++){
+        let thisIndex = i
 
-        let thisIndex = currentIndex
+        if(typeof thumbURL !== "undefined"){
+            if(thumbURL !== window.location.href){
+                callback("stopped")
 
-        if(isThumbnailDownload){
-            window.customVariables.stopGettingPreviewData = false
+                stopped = true
+
+                break
+            }
+
+            if(typeof window.customVariables.thumbnailsInView[file.uuid] == "undefined"){
+                callback("stopped")
+
+                stopped = true
+
+                break
+            }
         }
 
-        if(thisIndex < file.chunks && thisIndex < maxChunks && !window.customVariables.stopGettingPreviewData){
-            let doGet = true
+        if(window.customVariables.stopGettingPreviewData && !isThumbnailDownload){
+            window.customVariables.isGettingPreviewData = false
             
-            if(typeof thumbURL !== "undefined"){
-                if(thumbURL !== window.location.href){
-                    doGet = false
+            callback("stopped")
+
+            stopped = true
+
+            break
+        }
+
+        await new Promise((resolve) => {
+            downloadFileChunk(file, thisIndex, 0, 64, (err, downloadIndex, downloadData) => {
+                if(isThumbnailDownload){
+                    window.customVariables.stopGettingPreviewData = false
                 }
 
-                if(typeof window.customVariables.thumbnailsInView[file.uuid] == "undefined"){
-                    doGet = false
-                }
-            }
-            
-            if(doGet){
-                this.downloadFileChunk(file, thisIndex, 0, 64, (err, downloadIndex, downloadData) => {
-                    if(isThumbnailDownload){
-                        window.customVariables.stopGettingPreviewData = false
-                    }
-    
-                    if(err){
-                        downloadIndex = null
-                        downloadData = null
-
-                        return callback(err)
-                    }
-    
-                    write(downloadIndex, downloadData, callback)
-
+                if(err){
                     downloadIndex = null
                     downloadData = null
 
-                    return true
-                }, true)
-            }
-            else{
-                callback("stopped")
+                    return resolve(true)
+                }
 
-                return clearInterval(downloadInterval)
-            }
-        }
-        else{
-            if(window.customVariables.stopGettingPreviewData && !isThumbnailDownload){
-                window.customVariables.isGettingPreviewData = false
-                
-                callback("stopped")
-            }
+                dataArray.push(downloadData)
 
-            return clearInterval(downloadInterval)
-        }
-    }, 10)
+                return resolve(true)
+            })
+        })
+    }
+
+    if(stopped){
+        dataArray = null
+
+        return false
+    }
+
+    let uint8 = utils.uInt8ArrayConcat(dataArray)
+
+    callback(null, uint8)
+
+    uint8 = null
+    dataArray = null
+
+    return true
 }

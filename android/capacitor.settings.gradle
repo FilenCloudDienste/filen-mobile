@@ -5,6 +5,9 @@ project(':capacitor-android').projectDir = new File('../node_modules/@capacitor/
 include ':agorapulse-capacitor-mediastore'
 project(':agorapulse-capacitor-mediastore').projectDir = new File('../node_modules/@agorapulse/capacitor-mediastore/android')
 
+include ':capacitor-community-http'
+project(':capacitor-community-http').projectDir = new File('../node_modules/@capacitor-community/http/android')
+
 include ':capacitor-community-media'
 project(':capacitor-community-media').projectDir = new File('../node_modules/@capacitor-community/media/android')
 
@@ -46,6 +49,9 @@ project(':capacitor-storage').projectDir = new File('../node_modules/@capacitor/
 
 include ':capacitor-toast'
 project(':capacitor-toast').projectDir = new File('../node_modules/@capacitor/toast/android')
+
+include ':capacitor-blob-writer'
+project(':capacitor-blob-writer').projectDir = new File('../node_modules/capacitor-blob-writer/android')
 
 include ':send-intent'
 project(':send-intent').projectDir = new File('../node_modules/send-intent/android')

@@ -10,6 +10,7 @@ android {
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
     implementation project(':agorapulse-capacitor-mediastore')
+    implementation project(':capacitor-community-http')
     implementation project(':capacitor-community-media')
     implementation project(':capacitor-app')
     implementation project(':capacitor-camera')
@@ -24,6 +25,7 @@ dependencies {
     implementation project(':capacitor-status-bar')
     implementation project(':capacitor-storage')
     implementation project(':capacitor-toast')
+    implementation project(':capacitor-blob-writer')
     implementation project(':send-intent')
     implementation "com.android.support:support-v4:27.+"
     implementation "com.dmcBig:mediapicker:+"

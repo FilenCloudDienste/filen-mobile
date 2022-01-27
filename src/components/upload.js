@@ -2,17 +2,23 @@ import * as language from "../utils/language"
 import * as workers from "../utils/workers"
 import { Capacitor } from "@capacitor/core"
 import { compressThumbnailImg, writeThumbnail } from "./download"
+import { spawnToast } from "./spawn"
+import { updateItemList } from "./items"
 
 const utils = require("../utils/utils")
 
-export async function fileExists(name, parent, callback){
+let uploads = {}
+let currentUploadThreads = 0
+let maxUploadThreads = 10
+
+export async function fileExists(self, name, parent, callback){
 	if(parent == null){
 		parent = "default"
 	}
 
 	try{
 		var res = await utils.apiRequest("POST", "/v1/file/exists", {
-			apiKey: this.state.userAPIKey,
+			apiKey: self.state.userAPIKey,
 			parent,
 			nameHashed: utils.hashFn(name.toLowerCase())
 		})
@@ -43,7 +49,7 @@ export async function markUploadAsDone(uuid, uploadKey, tries, maxTries, callbac
 		console.log(e)
 		
 		return setTimeout(() => {
-			this.markUploadAsDone(uuid, uploadKey, (tries + 1), maxTries, callback)
+			markUploadAsDone(uuid, uploadKey, (tries + 1), maxTries, callback)
 		}, 1000)
     }
 
@@ -60,66 +66,127 @@ export async function uploadChunk(uuid, file, queryParams, data, tries, maxTries
 	await window.customVariables.uploadChunkSemaphore.acquire()
 
 	if(typeof window.customVariables.stoppedUploads[uuid] !== "undefined"){
+		uuid = null
+		file = null
+		queryParams = null
+		data = null
+		tries = null
+		maxTries = null
+
         return callback("stopped")
     }
 
-	workers.fetchWithTimeoutJSONWorker(utils.getUploadServer() + "/v1/upload?" + queryParams, {
+	return utils.fetchWithTimeout(7200000, fetch(utils.getUploadServer() + "/v1/upload?" + queryParams, {
 		method: "POST",
-		cache: "no-cache",
 		body: data
-	}, ((3600 * 24) * 1000)).then((obj) => {
-		let res = obj
+	})).then((response) => {
+		if(response.status !== 200){
+			window.customVariables.uploadChunkSemaphore.release()
 
-		window.customVariables.uploadChunkSemaphore.release()
-
-		if(typeof window.customVariables.stoppedUploads[uuid] !== "undefined"){
-			return callback("stopped")
-		}
-
-		if(!res){
 			return setTimeout(() => {
-				this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
+				uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
 			}, 1000)
 		}
-		else{
-			if(typeof res !== "object"){
+
+		return response.json().then((obj) => {
+			let res = obj
+
+			window.customVariables.uploadChunkSemaphore.release()
+
+			if(typeof window.customVariables.stoppedUploads[uuid] !== "undefined"){
+				uuid = null
+				file = null
+				queryParams = null
+				data = null
+				tries = null
+				maxTries = null
+
+				return callback("stopped")
+			}
+
+			if(!res){
 				return setTimeout(() => {
-					this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
+					uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
 				}, 1000)
 			}
 			else{
-				if(!res.status){
-					if(res.message.toLowerCase().indexOf("blacklisted") !== -1){
-						return callback("blacklisted")
-					}
-
-					return callback(res.message)
+				if(typeof res !== "object"){
+					return setTimeout(() => {
+						uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
+					}, 1000)
 				}
 				else{
-					return callback(null, res, utils.parseQuery(queryParams))
+					if(!res.status){
+						if(res.message.toLowerCase().indexOf("blacklisted") !== -1){
+							uuid = null
+							file = null
+							queryParams = null
+							data = null
+							tries = null
+							maxTries = null
+							res = null
+
+							return callback("blacklisted")
+						}
+
+						callback(res.message)
+
+						uuid = null
+						file = null
+						queryParams = null
+						data = null
+						tries = null
+						maxTries = null
+						res = null
+						callback = null
+
+						return true
+					}
+					else{
+						callback(null, res, utils.parseQuery(queryParams))
+
+						uuid = null
+						file = null
+						queryParams = null
+						data = null
+						tries = null
+						maxTries = null
+						res = null
+						callback = null
+
+						return true
+					}
 				}
 			}
-		}
+		}).catch((err) => {
+			console.log(err)
+
+			window.customVariables.uploadChunkSemaphore.release()
+
+			return setTimeout(() => {
+				uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
+			}, 1000)
+		})
 	}).catch((err) => {
 		console.log(err)
 
 		window.customVariables.uploadChunkSemaphore.release()
 
 		return setTimeout(() => {
-			this.uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
+			uploadChunk(uuid, file, queryParams, data, (tries + 1), maxTries, callback)
 		}, 1000)
 	})
 }
 
-export async function queueFileUpload(file, passedUpdateUUID = undefined, cameraUploadCallback = undefined){
-	//this.spawnToast(language.get(this.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
+export async function queueFileUpload(self, file, passedUpdateUUID = undefined, cameraUploadCallback = undefined){
+	//spawnToast(language.get(self.state.lang, "fileUploadStarted", true, ["__NAME__"], [file.name]))
 
 	if(Capacitor.isNative){
-		if(this.state.settings.onlyWifiUploads){
-			let networkStatus = this.state.networkStatus
+		if(self.state.settings.onlyWifiUploads){
+			let networkStatus = self.state.networkStatus
 
 			if(networkStatus.connectionType !== "wifi"){
-				return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+				return spawnToast(language.get(self.state.lang, "onlyWifiError"))
 			}
 		}
 	}
@@ -140,25 +207,25 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 		})
 	}
 
-	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
+	if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1] !== "string"){
 		deleteTempFile()
 
 		if(typeof cameraUploadCallback == "function"){
 			return cameraUploadCallback("failed")
 		}
 		else{
-			return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+			return spawnToast(language.get(self.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
 		}
 	}
 
-	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
+	if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1].length <= 16){
 		deleteTempFile()
 
 		if(typeof cameraUploadCallback == "function"){
 			return cameraUploadCallback("failed")
 		}
 		else{
-			return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+			return spawnToast(language.get(self.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
 		}
 	}
 
@@ -169,7 +236,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 			return cameraUploadCallback("invalid size")
 		}
 		else{
-			return this.spawnToast(language.get(this.state.lang, "uploadInvalidFileSize", true, ["__NAME__"], [file.name]))
+			return spawnToast(language.get(self.state.lang, "uploadInvalidFileSize", true, ["__NAME__"], [file.name]))
 		}
 	}
 
@@ -202,10 +269,10 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 	}
 
 	//if(utils.nameRegex(file.name) || utils.checkIfNameIsBanned(file.name) || utils.fileNameValidationRegex(file.name)){
-	//	return this.spawnToast(language.get(this.state.lang, "fileUploadInvalidFileName", true, ["__NAME__"], [file.name]))
+	//	return spawnToast(language.get(self.state.lang, "fileUploadInvalidFileName", true, ["__NAME__"], [file.name]))
 	//}
 
-	this.fileExists(file.name, parent, async (err, exists, existsUUID) => {
+	fileExists(self, file.name, parent, async (err, exists, existsUUID) => {
 		if(err){
 			deleteTempFile()
 
@@ -213,15 +280,15 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 				return cameraUploadCallback("api error")
 			}
 			else{
-				return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+				return self.spawnToast(language.get(self.state.lang, "apiRequestError"))
 			}
 		}
 
 		if(exists){
-			//return this.spawnToast(language.get(this.state.lang, "fileUploadFileAlreadyExists", true, ["__NAME__"], [file.name]))
+			//return spawnToast(language.get(self.state.lang, "fileUploadFileAlreadyExists", true, ["__NAME__"], [file.name]))
 		
 			if(typeof cameraUploadCallback !== "function"){
-				this.spawnToast(language.get(this.state.lang, "updatingFile", true, ["__NAME__"], [file.name]))
+				spawnToast(language.get(self.state.lang, "updatingFile", true, ["__NAME__"], [file.name]))
 			}
 
 			return setTimeout(async () => {
@@ -229,7 +296,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 
 				try{
 					var res = await utils.apiRequest("POST", "/v1/file/archive", {
-						apiKey: this.state.userAPIKey,
+						apiKey: self.state.userAPIKey,
 						uuid: existsUUID,
 						updateUUID: updateUUID
 					})
@@ -241,7 +308,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 						return cameraUploadCallback("api error")
 					}
 					else{
-						return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+						return spawnToast(language.get(self.state.lang, "apiRequestError"))
 					}
 				}
 			
@@ -252,11 +319,11 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 						return cameraUploadCallback(res.message)
 					}
 					else{
-						return this.spawnToast(res.message)
+						return spawnToast(res.message)
 					}
 				}
 
-				return this.queueFileUpload(file, updateUUID, cameraUploadCallback)
+				return queueFileUpload(self, file, updateUUID, cameraUploadCallback)
 			})
 		}
 
@@ -296,13 +363,13 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 			mime,
 			key,
 			lastModified: fileLastModified
-		}), this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+		}), self.state.userMasterKeys[self.state.userMasterKeys.length - 1])
 
 		let firstDone = false
 		let doFirst = true
 		let markedAsDone = false
 		let chunksUploaded = 0
-		let uploadVersion = this.state.currentFileVersion
+		let uploadVersion = self.state.currentFileVersion
 
 		delete window.customVariables.stoppedUploads[uuid]
     	delete window.customVariables.stoppedUploadsDone[uuid]
@@ -317,7 +384,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 
 			isAddedToState = true
 
-			let currentUploads = this.state.uploads
+			let currentUploads = self.state.uploads
 
 			currentUploads[uuid] = {
 				uuid,
@@ -328,7 +395,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 				name: name 
 			}
 
-			window.customVariables.uploads[uuid] = {
+			uploads[uuid] = {
 				uuid,
 				size,
 				chunks: fileChunks,
@@ -337,11 +404,11 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 				name: name 
 			}
 
-			return this.setState({
+			return self.setState({
 				uploads: currentUploads,
-				uploadsCount: (this.state.uploadsCount + 1)
+				uploadsCount: (self.state.uploadsCount + 1)
 			}, () => {
-				this.forceUpdate()
+				self.forceUpdate()
 			})
 		}
 
@@ -353,16 +420,16 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 			isRemovedFromState = true
 
 			try{
-				let currentUploads = this.state.uploads
+				let currentUploads = self.state.uploads
 
 				delete currentUploads[uuid]
-				delete window.customVariables.uploads[uuid]
+				delete uploads[uuid]
 
-				this.setState({
+				self.setState({
 					uploads: currentUploads,
-					uploadsCount: (this.state.uploadsCount - 1)
+					uploadsCount: (self.state.uploadsCount - 1)
 				}, () => {
-					this.forceUpdate()
+					self.forceUpdate()
 				})
 			}
 			catch(e){
@@ -380,16 +447,11 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 
 		const setProgress = (progress) => {
 			try{
-				let currentUploads = this.state.uploads
+				uploads[uuid].progress = progress
 
-				currentUploads[uuid].progress = progress
-				window.customVariables.uploads[uuid].progress = progress
+				window.$("#uploads-progress-" + uuid).html(uploads[uuid].progress >= 100 ? language.get(self.state.lang, "transfersFinishing") : uploads[uuid].progress == 0 ? language.get(self.state.lang, "transfersQueued") : uploads[uuid].progress + "%")
 
-				return this.setState({
-					uploads: currentUploads
-				}, () => {
-					this.forceUpdate()
-				})
+				return true
 			}
 			catch(e){
 				return console.log(e)
@@ -398,16 +460,9 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 
 		const setLoaded = (moreLoaded) => {
 			try{
-				let currentUploads = this.state.uploads
+				uploads[uuid].loaded += moreLoaded
 
-				currentUploads[uuid].loaded += moreLoaded
-				window.customVariables.uploads[uuid].loaded += moreLoaded
-
-				return this.setState({
-					uploads: currentUploads
-				}, () => {
-					this.forceUpdate()
-				})
+				return true
 			}
 			catch(e){
 				return console.log(e)
@@ -423,7 +478,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 				clearInterval(uploadInterval)
 
 				window.customVariables.uploadSemaphore.release()
-				window.customVariables.currentUploadThreads -= 1
+				currentUploadThreads -= 1
 		
 				removeFromState()
 				deleteTempFile()
@@ -435,7 +490,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 						return cameraUploadCallback("stopped")
 					}
 					else{
-						return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+						return spawnToast(language.get(self.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
 					}
 				}
 				else{
@@ -452,7 +507,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 					clearInterval(uploadInterval)
 
 					window.customVariables.uploadSemaphore.release()
-					window.customVariables.currentUploadThreads -= 1
+					currentUploadThreads -= 1
 		
 					removeFromState()
 					deleteTempFile()
@@ -464,7 +519,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 							return cameraUploadCallback("stopped")
 						}
 						else{
-							return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+							return spawnToast(language.get(self.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
 						}
 					}
 					else{
@@ -487,8 +542,8 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 								doFirst = false
 							}
 		
-							if(window.customVariables.currentUploadThreads < window.customVariables.maxUploadThreads){
-								window.customVariables.currentUploadThreads += 1
+							if(currentUploadThreads < maxUploadThreads){
+								currentUploadThreads += 1
 		
 								offset += chunkSizeToUse
 								currentIndex += 1
@@ -496,20 +551,22 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 								let thisIndex = currentIndex
 		
 								let chunk = file.fileEntry.slice(offset, (offset + chunkSizeToUse))
-		
+
 								let fileReader = new FileReader()
-		
-								fileReader.onload = async () => {
+
+								fileReader.onload = () => {
 									let arrayBuffer = fileReader.result
+
+									fileReader = null
 		
-									chunk = undefined
+									chunk = null
 		
-									workers.encryptData(uuid, thisIndex, key, arrayBuffer, this.state.currentFileVersion, (err, encrypted) => {
+									return workers.encryptData(uuid, thisIndex, key, arrayBuffer, self.state.currentFileVersion, (err, encrypted) => {
 										if(err){
 											console.log(err)
 		
 											window.customVariables.uploadSemaphore.release()
-											window.customVariables.currentUploadThreads -= 1
+											currentUploadThreads -= 1
 	
 											removeFromState()
 											deleteTempFile()
@@ -521,7 +578,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 												return cameraUploadCallback("failed")
 											}
 											else{
-												return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+												return spawnToast(language.get(self.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
 											}
 										}
 
@@ -530,7 +587,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 										arrayBuffer = null
 		
 										let queryParams = new URLSearchParams({
-											apiKey: this.state.userAPIKey,
+											apiKey: self.state.userAPIKey,
 											uuid: uuid,
 											name: nameEnc,
 											nameHashed: nameH,
@@ -546,7 +603,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 											version: uploadVersion
 										}).toString()
 		
-										this.uploadChunk(uuid, file, queryParams, blob, 0, 1000000, async (err, res, parsedQueryParams) => {
+										return uploadChunk(uuid, file, queryParams, blob, 0, 1000000, async (err, res, parsedQueryParams) => {
 											res = null
 											parsedQueryParams = null
 
@@ -554,7 +611,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 												console.log(err)
 		
 												window.customVariables.uploadSemaphore.release()
-												window.customVariables.currentUploadThreads -= 1
+												currentUploadThreads -= 1
 		
 												removeFromState()
 												deleteTempFile()
@@ -567,7 +624,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 															return cameraUploadCallback("stopped")
 														}
 														else{
-															return this.spawnToast(language.get(this.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
+															return spawnToast(language.get(self.state.lang, "uploadStopped", true, ["__NAME__"], [name]))
 														}
 													}
 													else{
@@ -590,24 +647,29 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 														return cameraUploadCallback("quota exceeded")
 													}
 													else{
-														return this.spawnToast(language.get(this.state.lang, "uploadStorageExceeded", true, ["__NAME__"], [name]))
+														return spawnToast(language.get(self.state.lang, "uploadStorageExceeded", true, ["__NAME__"], [name]))
 													}
 												}
 												else{
 													if(typeof cameraUploadCallback == "function"){
-														return cameraUploadCallback("failed")
+														try{
+															return cameraUploadCallback("failed - " + err.toString())
+														}
+														catch(e){
+															return cameraUploadCallback(err)
+														}
 													}
 													else{
-														return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+														return spawnToast(language.get(self.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
 													}
 												}
 											}
 		
-											if(typeof window.customVariables.uploads[uuid] !== "undefined"){
+											if(typeof uploads[uuid] !== "undefined"){
 												setLoaded(blob.length)
 		
 												try{
-													let progress = ((window.customVariables.uploads[uuid].loaded / window.customVariables.uploads[uuid].size) * 100).toFixed(2)
+													let progress = ((uploads[uuid].loaded / uploads[uuid].size) * 100).toFixed(2)
 		
 													if(progress >= 100){
 														progress = 100
@@ -620,7 +682,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 												}
 											}
 		
-											window.customVariables.currentUploadThreads -= 1
+											currentUploadThreads -= 1
 											firstDone = true
 											blob = null
 											chunksUploaded += 1
@@ -647,10 +709,10 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 																	}).then((blob) => {
 																		fr = null
 
-																		compressThumbnailImg(blob).then((compressed) => {
+																		return compressThumbnailImg(blob).then((compressed) => {
 																			blob = null
 
-																			writeThumbnail({
+																			return writeThumbnail({
 																				uuid
 																			}, compressed).then((thumbURL) => {
 																				thumbURL = null
@@ -670,6 +732,10 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 
 																		return reject(err)
 																	})
+
+																	fr = null
+
+																	return true
 																}
 
 																fr.onerror = (err) => {
@@ -686,7 +752,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 														}
 													}
 		
-													this.markUploadAsDone(uuid, uploadKey, 0, 1000000, (err) => {
+													return markUploadAsDone(uuid, uploadKey, 0, 1000000, (err) => {
 														if(err){
 															console.log(err)
 		
@@ -697,11 +763,11 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 																return cameraUploadCallback("failed")
 															}
 															else{
-																return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
+																return spawnToast(language.get(self.state.lang, "fileUploadFailed", true, ["__NAME__"], [name]))
 															}
 														}
 		
-														utils.checkIfItemParentIsBeingShared(parent, "file", {
+														return utils.checkIfItemParentIsBeingShared(parent, "file", {
 															uuid,
 															name,
 															size: parseInt(size),
@@ -714,7 +780,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 				
 																window.customVariables.reloadContentAfterUploadTimeout = setTimeout(() => {
 																	if(utils.currentParentFolder() == parent || utils.currentParentFolder() == "recent"){
-																		this.updateItemList(false)
+																		updateItemList(self, false)
 																	}
 																}, 1000)
 															}
@@ -723,7 +789,7 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 																cameraUploadCallback(null)
 															}
 															else{
-																this.spawnToast(language.get(this.state.lang, "fileUploadDone", true, ["__NAME__"], [name]))
+																spawnToast(language.get(self.state.lang, "fileUploadDone", true, ["__NAME__"], [name]))
 															}
 		
 															deleteTempFile()
@@ -738,6 +804,8 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 								}
 		
 								fileReader.onerror = (err) => {
+									fileReader = null
+
 									window.customVariables.uploadSemaphore.release()
 									window.customVariables.currentUploadThreads -= 1
 		
@@ -747,18 +815,19 @@ export async function queueFileUpload(file, passedUpdateUUID = undefined, camera
 									deleteTempFile()
 		
 									window.customVariables.stoppedUploads[uuid] = true
+
+									err = null
+									chunk = null
 		
 									if(typeof cameraUploadCallback == "function"){
 										return cameraUploadCallback("could not read")
 									}
 									else{
-										return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
+										return spawnToast(language.get(self.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
 									}
 								}
-		
-								fileReader.readAsArrayBuffer(chunk)
 
-								chunk = null
+								return fileReader.readAsArrayBuffer(chunk)
 							}
 						}
 					}

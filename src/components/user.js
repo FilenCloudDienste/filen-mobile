@@ -3,8 +3,8 @@ import * as workers from "../utils/workers"
 
 const utils = require("../utils/utils")
 
-export async function updateUserKeys(cb){
-    if(!this.state.isLoggedIn){
+export async function updateUserKeys(self, cb){
+    if(!self.state.isLoggedIn){
         return false
     }
 
@@ -15,9 +15,9 @@ export async function updateUserKeys(cb){
     const updateUserKeypair = async (pub, priv, callback) => {
         try{
             var res = await utils.apiRequest("POST", "/v1/user/keyPair/update", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 publicKey: pub,
-                privateKey: await utils.encryptMetadata(priv, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+                privateKey: await utils.encryptMetadata(priv, self.state.userMasterKeys[self.state.userMasterKeys.length - 1])
             })
         }
         catch(e){
@@ -54,9 +54,9 @@ export async function updateUserKeys(cb){
     const setUserKeypair = async (pub, priv, callback) => {
         try{
             var res = await utils.apiRequest("POST", "/v1/user/keyPair/set", {
-                apiKey: this.state.userAPIKey,
+                apiKey: self.state.userAPIKey,
                 publicKey: pub,
-                privateKey: await utils.encryptMetadata(priv, this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+                privateKey: await utils.encryptMetadata(priv, self.state.userMasterKeys[self.state.userMasterKeys.length - 1])
             })
         }
         catch(e){
@@ -93,7 +93,7 @@ export async function updateUserKeys(cb){
     const updatePubAndPrivKey = async () => {
         try{
             var res = await utils.apiRequest("POST", "/v1/user/keyPair/info", {
-                apiKey: this.state.userAPIKey
+                apiKey: self.state.userAPIKey
             })
         }
         catch(e){
@@ -119,10 +119,10 @@ export async function updateUserKeys(cb){
         if(res.data.publicKey.length > 16 && res.data.privateKey.length > 16){
             let privKey = ""
 
-            for(let i = 0; i < this.state.userMasterKeys.length; i++){
+            for(let i = 0; i < self.state.userMasterKeys.length; i++){
                 if(privKey.length == 0){
                     try{
-                        let decrypted = await utils.decryptMetadata(res.data.privateKey, this.state.userMasterKeys[i])
+                        let decrypted = await utils.decryptMetadata(res.data.privateKey, self.state.userMasterKeys[i])
 
                         if(typeof decrypted == "string"){
                             if(decrypted.length > 16){
@@ -153,7 +153,7 @@ export async function updateUserKeys(cb){
                     return console.log(e)
                 }
 
-                this.setState({
+                self.setState({
                     userPublicKey: res.data.publicKey,
                     userPrivateKey: privKey
                 })
@@ -216,8 +216,8 @@ export async function updateUserKeys(cb){
 
     try{
         var res = await utils.apiRequest("POST", "/v1/user/masterKeys", {
-            apiKey: this.state.userAPIKey,
-            masterKeys: await utils.encryptMetadata(this.state.userMasterKeys.join("|"), this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+            apiKey: self.state.userAPIKey,
+            masterKeys: await utils.encryptMetadata(self.state.userMasterKeys.join("|"), self.state.userMasterKeys[self.state.userMasterKeys.length - 1])
         })
     }
     catch(e){
@@ -242,10 +242,10 @@ export async function updateUserKeys(cb){
 
     let newKeys = ""
 
-    for(let i = 0; i < this.state.userMasterKeys.length; i++){
+    for(let i = 0; i < self.state.userMasterKeys.length; i++){
         try{
             if(newKeys.length == 0){
-                let decrypted = await utils.decryptMetadata(res.data.keys, this.state.userMasterKeys[i])
+                let decrypted = await utils.decryptMetadata(res.data.keys, self.state.userMasterKeys[i])
 
                 if(typeof decrypted == "string"){
                     if(decrypted.length > 16){
@@ -275,7 +275,7 @@ export async function updateUserKeys(cb){
             return console.log(e)
         }
 
-        this.setState({
+        self.setState({
             userMasterKeys: newKeys.split("|")
         }, () => {
             window.customVariables.userMasterKeys = newKeys.split("|")
@@ -296,8 +296,8 @@ export async function updateUserKeys(cb){
     }
 }
 
-export async function updateUserUsage(){
-    if(!this.state.isLoggedIn){
+export async function updateUserUsage(self){
+    if(!self.state.isLoggedIn){
         return false
     }
 
@@ -307,7 +307,7 @@ export async function updateUserUsage(){
 
     try{
         var res = await utils.apiRequest("POST", "/v1/user/usage", {
-            apiKey: this.state.userAPIKey
+            apiKey: self.state.userAPIKey
         })
     }
     catch(e){
@@ -326,9 +326,9 @@ export async function updateUserUsage(){
 
     let storageUsedPercent = ((res.data.storage / res.data.max) * 100).toFixed(2)
 
-    return this.setState({
+    return self.setState({
         userStorageUsagePercentage: storageUsedPercent,
-        userStorageUsageMenuText: language.get(this.state.lang, "userStorageUsageMenuText", false, ["__MAX__", "__PERCENTAGE__"], [utils.formatBytes(res.data.max), storageUsedPercent]) + " (" + utils.formatBytes(res.data.storage) + ")",
+        userStorageUsageMenuText: language.get(self.state.lang, "userStorageUsageMenuText", false, ["__MAX__", "__PERCENTAGE__"], [utils.formatBytes(res.data.max), storageUsedPercent]) + " (" + utils.formatBytes(res.data.storage) + ")",
 		userCurrentStorageUsage: res.data.storage,
 		userMaxStorage: res.data.max,
         userFiles: res.data.uploads,

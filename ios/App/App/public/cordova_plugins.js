@@ -10,11 +10,27 @@
         ]
         },
       {
+          "id": "cordova-plugin-advanced-http.http",
+          "file": "plugins/cordova-plugin-advanced-http/www/advanced-http.js",
+          "pluginId": "cordova-plugin-advanced-http",
+        "clobbers": [
+          "cordova.plugin.http"
+        ]
+        },
+      {
           "id": "cordova-plugin-file-opener2.FileOpener2",
           "file": "plugins/cordova-plugin-file-opener2/www/plugins.FileOpener2.js",
           "pluginId": "cordova-plugin-file-opener2",
         "clobbers": [
           "cordova.plugins.fileOpener2"
+        ]
+        },
+      {
+          "id": "cordova-plugin-screen-orientation.screenorientation",
+          "file": "plugins/cordova-plugin-screen-orientation/www/screenorientation.js",
+          "pluginId": "cordova-plugin-screen-orientation",
+        "clobbers": [
+          "cordova.plugins.screenorientation"
         ]
         },
       {
@@ -165,6 +181,71 @@
         ]
         },
       {
+          "id": "cordova-plugin-advanced-http.cookie-handler",
+          "file": "plugins/cordova-plugin-advanced-http/www/cookie-handler.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.dependency-validator",
+          "file": "plugins/cordova-plugin-advanced-http/www/dependency-validator.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.error-codes",
+          "file": "plugins/cordova-plugin-advanced-http/www/error-codes.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.global-configs",
+          "file": "plugins/cordova-plugin-advanced-http/www/global-configs.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.helpers",
+          "file": "plugins/cordova-plugin-advanced-http/www/helpers.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.js-util",
+          "file": "plugins/cordova-plugin-advanced-http/www/js-util.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.local-storage-store",
+          "file": "plugins/cordova-plugin-advanced-http/www/local-storage-store.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.lodash",
+          "file": "plugins/cordova-plugin-advanced-http/www/lodash.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.messages",
+          "file": "plugins/cordova-plugin-advanced-http/www/messages.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.ponyfills",
+          "file": "plugins/cordova-plugin-advanced-http/www/ponyfills.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.public-interface",
+          "file": "plugins/cordova-plugin-advanced-http/www/public-interface.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.tough-cookie",
+          "file": "plugins/cordova-plugin-advanced-http/www/umd-tough-cookie.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
+          "id": "cordova-plugin-advanced-http.url-util",
+          "file": "plugins/cordova-plugin-advanced-http/www/url-util.js",
+          "pluginId": "cordova-plugin-advanced-http"
+        },
+      {
           "id": "cordova-plugin-file.fileSystems",
           "file": "plugins/cordova-plugin-file/www/fileSystems.js",
           "pluginId": "cordova-plugin-file"
@@ -210,10 +291,12 @@
     module.exports.metadata =
     // TOP OF METADATA
     {
+      "cordova-plugin-advanced-http": "3.2.2",
       "cordova-plugin-file": "6.0.2",
       "cordova-plugin-file-opener2": "3.0.5",
       "cordova-plugin-fingerprint-aio": "4.0.2",
       "cordova-plugin-mediapicker-dmcsdk": "2.4.7",
+      "cordova-plugin-screen-orientation": "3.0.2",
       "cordova-plugin-simple-file-chooser": "2.2.1"
     };
     // BOTTOM OF METADATA

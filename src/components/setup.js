@@ -10,23 +10,28 @@ import { modalController, popoverController, actionSheetController, loadingContr
 import * as language from "../utils/language"
 import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
 import * as workers from "../utils/workers"
+import * as storage from "./storage"
+import { initSocket } from "./socket"
+import { updateUserKeys, updateUserUsage } from "./user"
+import { routeTo } from "./router"
+import { showLogin } from "./login"
+import { hideMainSearchbar } from "./search"
+import { clearSelectedItems } from "./items"
 
-const localforage = require("localforage")
-
-export function setupListeners(){
+export function setupListeners(self){
     if(Capacitor.isNative){
         App.addListener("backButton", async (e) => {
             let goBackHistory = true
 
             if(this.state.searchbarOpen){
-                this.hideMainSearchbar(false)
+                hideMainSearchbar(self, false)
 
                 goBackHistory = false
             }
 
             let isModalActive = await modalController.getTop()
 
-            if(isModalActive && this.state.isLoggedIn){
+            if(isModalActive && self.state.isLoggedIn){
                 window.customFunctions.dismissModal()
 
                 goBackHistory = false
@@ -34,7 +39,7 @@ export function setupListeners(){
 
             let isPopoverActive = await popoverController.getTop()
 
-            if(isPopoverActive && this.state.isLoggedIn){
+            if(isPopoverActive && self.state.isLoggedIn){
                 window.customFunctions.dismissPopover()
 
                 goBackHistory = false
@@ -42,7 +47,7 @@ export function setupListeners(){
 
             let isActionSheetActive = await actionSheetController.getTop()
 
-            if(isActionSheetActive && this.state.isLoggedIn){
+            if(isActionSheetActive && self.state.isLoggedIn){
                 window.customFunctions.dismissActionSheet()
 
                 goBackHistory = false
@@ -58,15 +63,15 @@ export function setupListeners(){
                 }
             }
 
-            if(this.state.selectedItems > 0 && this.state.isLoggedIn){
-                this.clearSelectedItems()
+            if(self.state.selectedItems > 0 && self.state.isLoggedIn){
+                clearSelectedItems(self)
 
                 goBackHistory = false
             }
 
             let isAlertActive = await alertController.getTop()
 
-            if(isAlertActive && this.state.isLoggedIn){
+            if(isAlertActive && self.state.isLoggedIn){
                 window.customFunctions.dismissAlert()
 
                 goBackHistory = false
@@ -105,10 +110,10 @@ export function setupListeners(){
     }
 }
 
-export async function setupStatusbar(type = "normal"){
+export async function setupStatusbar(self, type = "normal"){
     if(Capacitor.isNative){
         if(type == "normal"){
-            if(this.state.darkMode){
+            if(self.state.darkMode){
                 if(!isPlatform("ios")){
                     StatusBar.setBackgroundColor({
                         color: "#121212"
@@ -140,7 +145,7 @@ export async function setupStatusbar(type = "normal"){
             }
         }
         else if(type == "modal"){
-            if(this.state.darkMode){
+            if(self.state.darkMode){
                 if(!isPlatform("ios")){
                     StatusBar.setBackgroundColor({
                         color: "#1E1E1E"
@@ -187,7 +192,7 @@ export async function setupStatusbar(type = "normal"){
             }
         }
         else if(type == "login/register"){
-            if(this.state.darkMode){
+            if(self.state.darkMode){
                 if(!isPlatform("ios")){
                     StatusBar.setBackgroundColor({
                         color: "#121212"
@@ -227,7 +232,9 @@ export async function setupStatusbar(type = "normal"){
     }
 }
 
-export async function doSetup(){
+export async function doSetup(self){
+    window.customVariables.isWritingToStorage = false
+
     try{
         var networkStatus = await Network.getStatus()
     }
@@ -314,15 +321,15 @@ export async function doSetup(){
     }
 
     try{
-        var getLang = await workers.localforageGetItem("lang")
-        var getDarkMode = await workers.localforageGetItem("darkMode")
+        var getLang = await storage.get("lang")
+        var getDarkMode = await storage.get("darkMode")
 
         if(getLang !== null){
-            this.setState({
+            self.setState({
                 lang: getLang,
                 mainToolbarTitle: language.get(getLang, "cloudDrives")
             }, () => {
-                this.forceUpdate()
+                self.forceUpdate()
             })
     
             window.customVariables.lang = getLang
@@ -335,11 +342,11 @@ export async function doSetup(){
                 defaultLang = deviceLang
             }
     
-            this.setState({
+            self.setState({
                 lang: defaultLang,
                 mainToolbarTitle: language.get(defaultLang, "cloudDrives")
             }, () => {
-                this.forceUpdate()
+                self.forceUpdate()
             })
     
             window.customVariables.lang = defaultLang
@@ -348,77 +355,76 @@ export async function doSetup(){
         if(getDarkMode == null){
             document.body.classList.toggle("dark", true)
     
-            this.setState({
+            self.setState({
                 darkMode: true
             }, () => {
-                this.forceUpdate()
+                self.forceUpdate()
             })
         }
         else{
             if(getDarkMode == "true"){
                 document.body.classList.toggle("dark", true)
     
-                this.setState({
+                self.setState({
                     darkMode: true
                 }, () => {
-                    this.forceUpdate()
+                    self.forceUpdate()
                 })
             }
             else{
                 document.body.classList.toggle("dark", false)
     
-                this.setState({
+                self.setState({
                     darkMode: false
                 }, () => {
-                    this.forceUpdate()
+                    self.forceUpdate()
                 })
             }
         }
     
-        this.setupStatusbar()
+        setupStatusbar(self)
 
-        var getIsLoggedIn = await workers.localforageGetItem("isLoggedIn")
+        var getIsLoggedIn = await storage.get("isLoggedIn")
 
         if(getIsLoggedIn == null){
-            return this.showLogin()
+            return showLogin(self)
         }
         else{
             if(getIsLoggedIn !== "true"){
-                return this.showLogin()
+                return showLogin(self)
             }
         }
 
-        var getUserEmail = await workers.localforageGetItem("userEmail")
+        var getUserEmail = await storage.get("userEmail")
 
         if(typeof getUserEmail !== "string"){
-            return this.showLogin()
+            return showLogin(self)
         }
 
         window.customVariables.userEmail = getUserEmail
 
-        var getUserAPIKey = await workers.localforageGetItem("userAPIKey")
-        var getUserMasterKeys = await workers.localforageGetItem("userMasterKeys")
-        var getUserPublicKey = await workers.localforageGetItem("userPublicKey")
-        var getUserPrivateKey = await workers.localforageGetItem("userPrivateKey")
-        var getSettings = await workers.localforageGetItem("settings@" + getUserEmail)
+        var getUserAPIKey = await storage.get("userAPIKey")
+        var getUserMasterKeys = await storage.get("userMasterKeys")
+        var getUserPublicKey = await storage.get("userPublicKey")
+        var getUserPrivateKey = await storage.get("userPrivateKey")
+        var getSettings = await storage.get("settings@" + getUserEmail)
         
-        var getOfflineSavedFiles = await workers.localforageGetItem("offlineSavedFiles@" + getUserEmail)
-        var getAPICache = await workers.localforageGetItem("apiCache@" + getUserEmail)
-        var getCachedFiles = await workers.localforageGetItem("cachedFiles@" + getUserEmail)
-        var getCachedFolders = await workers.localforageGetItem("cachedFolders@" + getUserEmail)
-        var getCachedMetadata = await workers.localforageGetItem("cachedMetadata@" + getUserEmail)
-        var getThumbnailCache = await workers.localforageGetItem("thumbnailCache@" + getUserEmail)
-        var getGetThumbnailErrors = await workers.localforageGetItem("getThumbnailErrors@" + getUserEmail)
-        var getCachedAPIItemListRequests = await workers.localforageGetItem("cachedAPIItemListRequests@" + getUserEmail)
-        var getItemsCache = await workers.localforageGetItem("itemsCache@" + getUserEmail)
-        var getFolderSizeCache = await workers.localforageGetItem("folderSizeCache@" + getUserEmail)
+        var getOfflineSavedFiles = await storage.get("offlineSavedFiles@" + getUserEmail)
+        var getAPICache = await storage.get("apiCache@" + getUserEmail)
+        var getCachedFiles = await storage.get("cachedFiles@" + getUserEmail)
+        var getCachedFolders = await storage.get("cachedFolders@" + getUserEmail)
+        var getCachedMetadata = await storage.get("cachedMetadata@" + getUserEmail)
+        var getThumbnailCache = await storage.get("thumbnailCache@" + getUserEmail)
+        var getGetThumbnailErrors = await storage.get("getThumbnailErrors@" + getUserEmail)
+        var getItemsCache = await storage.get("itemsCache@" + getUserEmail)
+        var getFolderSizeCache = await storage.get("folderSizeCache@" + getUserEmail)
     }
     catch(e){
         return console.log(e)
     }
 
     if(getIsLoggedIn == null){
-        return this.showLogin()
+        return showLogin(self)
     }
     else{
         if(getIsLoggedIn == "true"){
@@ -527,7 +533,7 @@ export async function doSetup(){
                 }
             }
 
-            this.setState({
+            self.setState({
                 userAPIKey: getUserAPIKey,
                 userEmail: getUserEmail,
                 userMasterKeys: await workers.JSONParseWorker(getUserMasterKeys),
@@ -536,7 +542,7 @@ export async function doSetup(){
                 isLoggedIn: true,
                 settings: settings
             }, () => {
-                this.forceUpdate()
+                self.forceUpdate()
             })
 
             window.customVariables.userMasterKeys = await workers.JSONParseWorker(getUserMasterKeys)
@@ -583,19 +589,12 @@ export async function doSetup(){
                 window.customVariables.getThumbnailErrors = await workers.JSONParseWorker(getGetThumbnailErrors)
             }
 
-            /*if(getAPICache == null){
+            if(getAPICache == null){
                 window.customVariables.apiCache = {}
             }
             else{
                 window.customVariables.apiCache = await workers.JSONParseWorker(getAPICache)
-            }*/
-
-            /*if(getCachedAPIItemListRequests == null){
-                window.customVariables.cachedAPIItemListRequests = {}
             }
-            else{
-                window.customVariables.cachedAPIItemListRequests = await workers.JSONParseWorker(getCachedAPIItemListRequests)
-            }*/
 
             if(getItemsCache == null){
                 window.customVariables.itemsCache = {}
@@ -605,7 +604,7 @@ export async function doSetup(){
             }
 
             try{
-                let getCameraUpload = await workers.localforageGetItem("cameraUpload@" + getUserEmail)
+                let getCameraUpload = await storage.get("cameraUpload@" + getUserEmail)
     
                 if(getCameraUpload){
                     window.customVariables.cameraUpload = await workers.JSONParseWorker(getCameraUpload)
@@ -623,7 +622,7 @@ export async function doSetup(){
             }
         }
         else{
-            return this.showLogin()
+            return showLogin(self)
         }
     }
 
@@ -635,32 +634,33 @@ export async function doSetup(){
         await window.customFunctions.fetchUserInfo()
 
         await new Promise((resolve) => {
-            this.updateUserKeys(() => {
+            updateUserKeys(self, () => {
                 resolve()
             })
         })
     }
 
-    if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
-		return window.customFunctions.logoutUser()
-	}
+    try{
+        if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1] !== "string"){
+            return window.customFunctions.logoutUser()
+        }
+    
+        if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1].length <= 16){
+            return window.customFunctions.logoutUser()
+        }
+    }
+    catch(e){
+        console.log(e)
 
-	if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
-		return window.customFunctions.logoutUser()
-	}
+        return window.customFunctions.logoutUser()
+    }
 
-    this.updateUserUsage()
-
-    /*clearInterval(window.customVariables.keyUpdateInterval)
-
-    window.customVariables.keyUpdateInterval = setInterval(() => {
-        this.updateUserKeys()
-    }, 60000)*/
+    updateUserUsage(self)
 
     clearInterval(window.customVariables.usageUpdateInterval)
 
     window.customVariables.usageUpdateInterval = setInterval(() => {
-        this.updateUserUsage()
+        updateUserUsage(self)
     }, 30000)
 
     clearInterval(window.customVariables.getNetworkInfoInterval)
@@ -672,7 +672,7 @@ export async function doSetup(){
     }, 60000)
 
     if(networkStatus.connected){
-        this.initSocket()
+        initSocket(self)
     
         window.customFunctions.checkVersion()
     }
@@ -686,5 +686,5 @@ export async function doSetup(){
         }
     }, 1000)
 
-    return this.routeTo("/base")
+    return routeTo(self, "/base")
 }

@@ -6,7 +6,8 @@ import * as workers from "../utils/workers"
 import { isPlatform } from "@ionic/react"
 import { Toast } from "@capacitor/toast"
 import { Camera, CameraResultType, CameraSource, CameraDirection } from "@capacitor/camera"
-import { Keyboard } from "@capacitor/keyboard"
+import { queueFileUpload } from "./upload";
+import { updateItemList, dirExists } from "./items";
 
 const utils = require("../utils/utils")
 const chooser = require("cordova-plugin-simple-file-chooser/www/chooser")
@@ -46,20 +47,20 @@ export async function spawnToast(message, duration = 3000){
     }
 }
 
-export async function spawnMoveToast(callback){
+export async function spawnMoveToast(self, callback){
     let toast = await toastController.create({
-        message: language.get(this.state.lang, "selectDestination"),
+        message: language.get(self.state.lang, "selectDestination"),
         animated: false,
         buttons: [
             {
-                text: language.get(this.state.lang, "cancel"),
+                text: language.get(self.state.lang, "cancel"),
                 role: "cancel",
                 handler: () => {
                     return callback(true)
                 }
             },
             {
-                text: language.get(this.state.lang, "moveItem"),
+                text: language.get(self.state.lang, "moveItem"),
                 handler: () => {
                     return callback(false, utils.currentParentFolder())
                 }
@@ -70,7 +71,7 @@ export async function spawnMoveToast(callback){
     return toast.present()
 }
 
-export async function spawnRenamePrompt(item, callback){
+export async function spawnRenamePrompt(self, item, callback){
     let name = item.name
 
     if(item.type == "file"){
@@ -85,14 +86,14 @@ export async function spawnRenamePrompt(item, callback){
 
     window.$("#main-searchbar").find("input").blur()
 
-    this.setState({
+    self.setState({
         mainSearchbarDisabled: true
     }, () => {
-        this.forceUpdate()
+        self.forceUpdate()
     })
 
     let alert = await alertController.create({
-        header: item.type == "file" ? language.get(this.state.lang, "renameFile") : language.get(this.state.lang, "renameFolder"),
+        header: item.type == "file" ? language.get(self.state.lang, "renameFile") : language.get(self.state.lang, "renameFolder"),
         inputs: [
             {
                 type: "text",
@@ -107,14 +108,14 @@ export async function spawnRenamePrompt(item, callback){
         ],
         buttons: [
             {
-                text: language.get(this.state.lang, "cancel"),
+                text: language.get(self.state.lang, "cancel"),
                 role: "cancel",
                 handler: () => {
                     return callback(true)
                 }
             },
             {
-                text: language.get(this.state.lang, "alertOkButton"),
+                text: language.get(self.state.lang, "alertOkButton"),
                 handler: (inputs) => {
                     return callback(false, inputs['rename-item-input'])
                 }
@@ -125,10 +126,10 @@ export async function spawnRenamePrompt(item, callback){
     await alert.present()
 
     alert.onWillDismiss(async () => {
-        this.setState({
+        self.setState({
             mainSearchbarDisabled: false
         }, () => {
-            this.forceUpdate()
+            self.forceUpdate()
         })
     })
 
@@ -150,7 +151,7 @@ export async function spawnRenamePrompt(item, callback){
     return true
 }
 
-export async function mainFabAction(){
+export async function mainFabAction(self){
     let hasInternet = false
     let fabButtons = []
 
@@ -166,7 +167,7 @@ export async function mainFabAction(){
 
     if(!hasInternet){
         fabButtons.push({
-            text: language.get(this.state.lang, "cancel"),
+            text: language.get(self.state.lang, "cancel"),
             icon: Ionicons.close,
             handler: () => {
                 return actionSheet.dismiss()
@@ -182,16 +183,16 @@ export async function mainFabAction(){
     }
 
     let parent = utils.currentParentFolder()
-    let folderCreateBtnText = language.get(this.state.lang, "fabCreateFolder")
-    let folderCreateNewFolderNameText = language.get(this.state.lang, "newFolderName")
-    let folderCreatePlaceholderText = language.get(this.state.lang, "newFolderNamePlaceholder")
-    let folderCreateInvalidNameText = language.get(this.state.lang, "invalidFolderName")
+    let folderCreateBtnText = language.get(self.state.lang, "fabCreateFolder")
+    let folderCreateNewFolderNameText = language.get(self.state.lang, "newFolderName")
+    let folderCreatePlaceholderText = language.get(self.state.lang, "newFolderNamePlaceholder")
+    let folderCreateInvalidNameText = language.get(self.state.lang, "invalidFolderName")
 
     if(parent == "base"){
-        folderCreateBtnText = language.get(this.state.lang, "fabCreateDrive")
-        folderCreateNewFolderNameText = language.get(this.state.lang, "newDriveName")
-        folderCreatePlaceholderText = language.get(this.state.lang, "newDriveNamePlaceholder")
-        folderCreateInvalidNameText = language.get(this.state.lang, "invalidDriveName")
+        folderCreateBtnText = language.get(self.state.lang, "fabCreateDrive")
+        folderCreateNewFolderNameText = language.get(self.state.lang, "newDriveName")
+        folderCreatePlaceholderText = language.get(self.state.lang, "newDriveNamePlaceholder")
+        folderCreateInvalidNameText = language.get(self.state.lang, "invalidDriveName")
     }
 
     fabButtons.push({
@@ -214,21 +215,21 @@ export async function mainFabAction(){
                 ],
                 buttons: [
                     {
-                        text: language.get(this.state.lang, "cancel"),
+                        text: language.get(self.state.lang, "cancel"),
                         role: "cancel",
                         handler: () => {
                             return false
                         }
                     },
                     {
-                        text: language.get(this.state.lang, "alertOkButton"),
+                        text: language.get(self.state.lang, "alertOkButton"),
                         handler: async (inputs) => {
-                            if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
-                                return this.spawnToast("No encryption keys found, try restarting the app")
+                            if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1] !== "string"){
+                                return spawnToast("No encryption keys found, try restarting the app")
                             }
                         
-                            if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
-                                return this.spawnToast("No encryption keys found, try restarting the app")
+                            if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1].length <= 16){
+                                return spawnToast("No encryption keys found, try restarting the app")
                             }
 
                             let name = inputs['new-folder-name-input']
@@ -236,15 +237,15 @@ export async function mainFabAction(){
                             name = name.replace(/\s*$/, "")
 
                             if(utils.fileNameValidationRegex(name)){
-                                return this.spawnToast(folderCreateInvalidNameText)
+                                return spawnToast(folderCreateInvalidNameText)
                             }
 
                             if(!name || typeof name !== "string"){
-                                return this.spawnToast(folderCreateInvalidNameText)
+                                return spawnToast(folderCreateInvalidNameText)
                             }
 
                             if(name.length <= 0){
-                                return this.spawnToast(folderCreateInvalidNameText)
+                                return spawnToast(folderCreateInvalidNameText)
                             }
                             
                             let folderParent = null
@@ -261,39 +262,39 @@ export async function mainFabAction(){
 
                             loading.present()
 
-                            this.dirExists(name, folderParent, async (err, exists, existsUUID) => {
+                            return dirExists(self, name, folderParent, async (err, exists, existsUUID) => {
                                 if(err){
                                     console.log(err)
 
                                     loading.dismiss()
                 
-                                    return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                                    return spawnToast(language.get(self.state.lang, "apiRequestError"))
                                 }
                 
                                 if(exists){
                                     loading.dismiss()
                 
-                                    return this.spawnToast(language.get(this.state.lang, "folderNameAlreadyExistsCreate", true, ["__NAME__"], [name]))
+                                    return spawnToast(language.get(self.state.lang, "folderNameAlreadyExistsCreate", true, ["__NAME__"], [name]))
                                 }
 
                                 try{
                                     if(parent == "base"){
                                         var res = await utils.apiRequest("POST", "/v1/dir/create", {
-                                            apiKey: this.state.userAPIKey,
+                                            apiKey: self.state.userAPIKey,
                                             uuid: folderUUID,
                                             name: await utils.encryptMetadata(JSON.stringify({
                                                 name: name
-                                            }), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
+                                            }), self.state.userMasterKeys[self.state.userMasterKeys.length - 1]),
                                             nameHashed: utils.hashFn(name.toLowerCase())
                                         })
                                     }
                                     else{
                                         var res = await utils.apiRequest("POST", "/v1/dir/sub/create", {
-                                            apiKey: this.state.userAPIKey,
+                                            apiKey: self.state.userAPIKey,
                                             uuid: folderUUID,
                                             name: await utils.encryptMetadata(JSON.stringify({
                                                 name: name
-                                            }), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
+                                            }), self.state.userMasterKeys[self.state.userMasterKeys.length - 1]),
                                             nameHashed: utils.hashFn(name.toLowerCase()),
                                             parent: folderParent
                                         })
@@ -304,7 +305,7 @@ export async function mainFabAction(){
 
                                     loading.dismiss()
                 
-                                    return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+                                    return spawnToast(language.get(self.state.lang, "apiRequestError"))
                                 }
 
                                 if(!res.status){
@@ -312,7 +313,7 @@ export async function mainFabAction(){
 
                                     loading.dismiss()
 
-                                    return this.spawnToast(res.message)
+                                    return spawnToast(res.message)
                                 }
 
                                 if(parent !== "base"){
@@ -322,24 +323,24 @@ export async function mainFabAction(){
                                     }, () => {
                                         loading.dismiss()
 
-                                        this.spawnToast(language.get(this.state.lang, "folderCreated", true, ["__NAME__"], [name]))
+                                        spawnToast(language.get(self.state.lang, "folderCreated", true, ["__NAME__"], [name]))
 
                                         clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
                                         window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-                                            this.updateItemList()
+                                            updateItemList(self)
                                         }, 500)
                                     })
                                 }
                                 else{
                                     loading.dismiss()
 
-                                    this.spawnToast(language.get(this.state.lang, "driveCreated", true, ["__NAME__"], [name]))
+                                    spawnToast(language.get(self.state.lang, "driveCreated", true, ["__NAME__"], [name]))
 
                                     clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
                                     window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-                                        this.updateItemList()
+                                        updateItemList(self)
                                     }, 500)
                                 }
                             })
@@ -362,18 +363,18 @@ export async function mainFabAction(){
 
     if(parent !== "base"){
         fabButtons.push({
-            text: language.get(this.state.lang, "fabCreateTextFile"),
+            text: language.get(self.state.lang, "fabCreateTextFile"),
             icon: Ionicons.createOutline,
             handler: async () => {
                 let alert = await alertController.create({
-                    header: language.get(this.state.lang, "fabCreateTextFile"),
+                    header: language.get(self.state.lang, "fabCreateTextFile"),
                     inputs: [
                         {
                             type: "text",
                             id: "new-text-file-name-input",
                             name: "new-text-file-name-input",
                             value: ".txt",
-                            placeholder: language.get(this.state.lang, "fabCreateTextFilePlaceholder"),
+                            placeholder: language.get(self.state.lang, "fabCreateTextFilePlaceholder"),
                             attributes: {
                                 autoCapitalize: "off",
                                 autoComplete: "off"
@@ -382,23 +383,23 @@ export async function mainFabAction(){
                     ],
                     buttons: [
                         {
-                            text: language.get(this.state.lang, "cancel"),
+                            text: language.get(self.state.lang, "cancel"),
                             role: "cancel",
                             handler: () => {
                                 return false
                             }
                         },
                         {
-                            text: language.get(this.state.lang, "fabCreateBtn"),
+                            text: language.get(self.state.lang, "fabCreateBtn"),
                             handler: async (inputs) => {
                                 window.customFunctions.isIndexEmpty()
     
-                                if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
-                                    return this.spawnToast("No encryption keys found, try restarting the app")
+                                if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1] !== "string"){
+                                    return spawnToast("No encryption keys found, try restarting the app")
                                 }
                             
-                                if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
-                                    return this.spawnToast("No encryption keys found, try restarting the app")
+                                if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1].length <= 16){
+                                    return spawnToast("No encryption keys found, try restarting the app")
                                 }
     
                                 let name = inputs['new-text-file-name-input']
@@ -406,15 +407,15 @@ export async function mainFabAction(){
                                 name = name.replace(/\s*$/, "")
     
                                 if(utils.fileNameValidationRegex(name)){
-                                    return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
+                                    return spawnToast(language.get(self.state.lang, "fabCreateTextFileInvalidName"))
                                 }
     
                                 if(!name || typeof name !== "string"){
-                                    return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
+                                    return spawnToast(language.get(self.state.lang, "fabCreateTextFileInvalidName"))
                                 }
     
                                 if(name.length <= 0){
-                                    return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
+                                    return spawnToast(language.get(self.state.lang, "fabCreateTextFileInvalidName"))
                                 }
     
                                 let ext = name.split(".")
@@ -423,7 +424,7 @@ export async function mainFabAction(){
                                 let fileType = utils.getFilePreviewType(ext)
     
                                 if(!["code", "text"].includes(fileType)){
-                                    return this.spawnToast(language.get(this.state.lang, "fabCreateTextFileInvalidName"))
+                                    return spawnToast(language.get(self.state.lang, "fabCreateTextFileInvalidName"))
                                 }
     
                                 let uploadParent = ""
@@ -431,14 +432,14 @@ export async function mainFabAction(){
                                 if(utils.currentParentFolder() == "base"){
                                     let defaultFolderUUID = undefined
                     
-                                    for(let i = 0; i < this.state.itemList.length; i++){
-                                        if(this.state.itemList[i].isDefault){
-                                            defaultFolderUUID = this.state.itemList[i].uuid
+                                    for(let i = 0; i < self.state.itemList.length; i++){
+                                        if(self.state.itemList[i].isDefault){
+                                            defaultFolderUUID = self.state.itemList[i].uuid
                                         }
                                     }
                     
                                     if(typeof defaultFolderUUID !== "undefined"){
-                                        this.routeTo("/base/" + defaultFolderUUID)
+                                        self.routeTo("/base/" + defaultFolderUUID)
                                     }
     
                                     uploadParent = defaultFolderUUID
@@ -473,7 +474,7 @@ export async function mainFabAction(){
         })
     
         fabButtons.push({
-            text: language.get(this.state.lang, "fabTakeImage"),
+            text: language.get(self.state.lang, "fabTakeImage"),
             icon: Ionicons.camera,
             handler: async () => {
                 window.customFunctions.isIndexEmpty()
@@ -482,20 +483,20 @@ export async function mainFabAction(){
                     return false
                 }
     
-                if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1] !== "string"){
-                    return this.spawnToast("No encryption keys found, try restarting the app")
+                if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1] !== "string"){
+                    return spawnToast("No encryption keys found, try restarting the app")
                 }
             
-                if(typeof this.state.userMasterKeys[this.state.userMasterKeys.length - 1].length <= 16){
-                    return this.spawnToast("No encryption keys found, try restarting the app")
+                if(typeof self.state.userMasterKeys[self.state.userMasterKeys.length - 1].length <= 16){
+                    return spawnToast("No encryption keys found, try restarting the app")
                 }
     
                 if(Capacitor.isNative){
-                    if(this.state.settings.onlyWifi){
-                        let networkStatus = this.state.networkStatus
+                    if(self.state.settings.onlyWifi){
+                        let networkStatus = self.state.networkStatus
             
                         if(networkStatus.connectionType !== "wifi"){
-                            return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                            return spawnToast(language.get(self.state.lang, "onlyWifiError"))
                         }
                     }
                 }
@@ -503,14 +504,14 @@ export async function mainFabAction(){
                 if(utils.currentParentFolder() == "base"){
                     let defaultFolderUUID = undefined
     
-                    for(let i = 0; i < this.state.itemList.length; i++){
-                        if(this.state.itemList[i].isDefault){
-                            defaultFolderUUID = this.state.itemList[i].uuid
+                    for(let i = 0; i < self.state.itemList.length; i++){
+                        if(self.state.itemList[i].isDefault){
+                            defaultFolderUUID = self.state.itemList[i].uuid
                         }
                     }
     
                     if(typeof defaultFolderUUID !== "undefined"){
-                        this.routeTo("/base/" + defaultFolderUUID)
+                        self.routeTo("/base/" + defaultFolderUUID)
                     }
                 }
     
@@ -534,7 +535,7 @@ export async function mainFabAction(){
                 workers.convertBase64ToArrayBuffer(image.base64String, async (err, arrayBuffer) => {
                     let fileObject = {}
     
-                    fileObject.name = language.get(this.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpg"
+                    fileObject.name = language.get(self.state.lang, "photo") + "_" + new Date().toDateString().split(" ").join("_") + "_" + utils.unixTimestamp() + ".jpg"
                     
                     try{
                         var blob = await workers.newBlob(arrayBuffer, {
@@ -558,25 +559,28 @@ export async function mainFabAction(){
                     fileObject.fileEntry = blob
                     fileObject.type = "image/jpeg"
                     fileObject.lastModified = new Date()
+
+                    blob = null
+                    arrayBuffer = null
     
-                    return this.queueFileUpload(fileObject)
+                    return queueFileUpload(self, fileObject)
                 })
             }
         })
     
         if(isPlatform("ios")){
             fabButtons.push({
-                text: language.get(this.state.lang, "fabUploadFromGallery"),
+                text: language.get(self.state.lang, "fabUploadFromGallery"),
                 icon: Ionicons.cloudUpload,
                 handler: async () => {
                     window.customFunctions.isIndexEmpty()
     
                     if(Capacitor.isNative){
-                        if(this.state.settings.onlyWifi){
-                            let networkStatus = this.state.networkStatus
+                        if(self.state.settings.onlyWifi){
+                            let networkStatus = self.state.networkStatus
                 
                             if(networkStatus.connectionType !== "wifi"){
-                                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                                return spawnToast(language.get(self.state.lang, "onlyWifiError"))
                             }
                         }
                     }
@@ -584,14 +588,14 @@ export async function mainFabAction(){
                     if(utils.currentParentFolder() == "base"){
                         let defaultFolderUUID = undefined
         
-                        for(let i = 0; i < this.state.itemList.length; i++){
-                            if(this.state.itemList[i].isDefault){
-                                defaultFolderUUID = this.state.itemList[i].uuid
+                        for(let i = 0; i < self.state.itemList.length; i++){
+                            if(self.state.itemList[i].isDefault){
+                                defaultFolderUUID = self.state.itemList[i].uuid
                             }
                         }
         
                         if(typeof defaultFolderUUID !== "undefined"){
-                            this.routeTo("/base/" + defaultFolderUUID)
+                            self.routeTo("/base/" + defaultFolderUUID)
                         }
                     }
         
@@ -603,7 +607,7 @@ export async function mainFabAction(){
                                 selectMode: 101,
                                 maxSelectCount: 50,
                                 maxSelectSize: 99999999999999999,
-                                convertHeic: (this.state.settings.convertHeic ? 1 : 0)
+                                convertHeic: (self.state.settings.convertHeic ? 1 : 0)
                             }, (files) => {
                                 return resolve(files)
                             }, (err) => {
@@ -677,12 +681,12 @@ export async function mainFabAction(){
                                 })
                             })
     
-                            window.customFunctions.queueFileUpload(fileObj)
+                            queueFileUpload(self, fileObj)
                         }
                         catch(e){
                             console.log(e)
     
-                            this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], ["file"]))
+                            spawnToast(language.get(self.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], ["file"]))
                         }
     
                         window.customVariables.fsCopySemaphore.release()
@@ -694,17 +698,17 @@ export async function mainFabAction(){
         }
     
         fabButtons.push({
-            text: language.get(this.state.lang, "fabUploadFiles"),
+            text: language.get(self.state.lang, "fabUploadFiles"),
             icon: Ionicons.cloudUpload,
             handler: async () => {
                 window.customFunctions.isIndexEmpty()
     
                 if(Capacitor.isNative){
-                    if(this.state.settings.onlyWifi){
-                        let networkStatus = this.state.networkStatus
+                    if(self.state.settings.onlyWifi){
+                        let networkStatus = self.state.networkStatus
             
                         if(networkStatus.connectionType !== "wifi"){
-                            return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                            return spawnToast(language.get(self.state.lang, "onlyWifiError"))
                         }
                     }
                 }
@@ -712,14 +716,14 @@ export async function mainFabAction(){
                 if(utils.currentParentFolder() == "base"){
                     let defaultFolderUUID = undefined
     
-                    for(let i = 0; i < this.state.itemList.length; i++){
-                        if(this.state.itemList[i].isDefault){
-                            defaultFolderUUID = this.state.itemList[i].uuid
+                    for(let i = 0; i < self.state.itemList.length; i++){
+                        if(self.state.itemList[i].isDefault){
+                            defaultFolderUUID = self.state.itemList[i].uuid
                         }
                     }
     
                     if(typeof defaultFolderUUID !== "undefined"){
-                        this.routeTo("/base/" + defaultFolderUUID)
+                        self.routeTo("/base/" + defaultFolderUUID)
                     }
                 }
     
@@ -799,22 +803,24 @@ export async function mainFabAction(){
                             })
                         })
     
-                        window.customFunctions.queueFileUpload(fileObj)
+                        queueFileUpload(self, fileObj)
                     }
                     catch(e){
                         console.log(e)
     
-                        this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], ["file"]))
+                        spawnToast(language.get(self.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], ["file"]))
                     }
     
                     window.customVariables.fsCopySemaphore.release()
                 }
+
+                return true
             }
         })
     }
 
     fabButtons.push({
-        text: language.get(this.state.lang, "cancel"),
+        text: language.get(self.state.lang, "cancel"),
         icon: Ionicons.close,
         handler: () => {
             return actionSheet.dismiss()

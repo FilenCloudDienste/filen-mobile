@@ -4,12 +4,13 @@ import { modalController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons'
 import { isPlatform } from "@ionic/react"
 import { SplashScreen } from "@capacitor/splash-screen"
+import { setupStatusbar } from "./setup"
 
 const utils = require("../utils/utils")
 
-export async function showLogin(){
-    let appLang = this.state.lang
-    let appDarkMode = this.state.darkMode
+export async function showLogin(self){
+    let appLang = self.state.lang
+    let appDarkMode = self.state.darkMode
     let modalId = "login-modal-" + utils.generateRandomClassName()
 
     customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -71,10 +72,10 @@ export async function showLogin(){
 
     await modal.present()
 
-    this.setupStatusbar("login/register")
+    setupStatusbar(self, "login/register")
 
 	modal.onDidDismiss().then(() => {
-        this.setupStatusbar()
+        setupStatusbar(self)
     })
 
     if(Capacitor.isNative && window.customVariables.isDocumentReady){

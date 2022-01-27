@@ -108,21 +108,43 @@ export function backgroundAPIRequest(method, endpoint, data = {}){
 			return console.log("Request failed")
 		}
 
-		workers.fetchWithTimeoutJSONWorker(getAPIServer() + endpoint, {
+		return fetchWithTimeout(180000, fetch(getAPIServer() + endpoint, {
 			method: method.toUpperCase(),
-			cache: "no-cache",
+			body: JSON.stringify(data),
 			headers: {
 				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(data)
-		}, 180000).then((obj) => {
-			window.customVariables.cachedAPIItemListRequests[cacheKey] = obj
+			}
+		})).then((response) => {
+			if(response.status !== 200){
+				response = null
+				
+				return setTimeout(() => {
+					doRequest((tries + 1), maxTries)
+				}, 1000)
+			}
 
-			return window.customFunctions.saveAPICache()
+			return response.json().then((obj) => {
+				window.customVariables.cachedAPIItemListRequests[cacheKey] = obj
+
+				obj = null
+				response = null
+
+				return window.customFunctions.saveAPICache()
+			}).catch((err) => {
+				console.log(err)
+
+				response = null
+
+				return setTimeout(() => {
+					doRequest((tries + 1), maxTries)
+				}, 1000)
+			})
 		}).catch((err) => {
 			console.log(err)
 
-			return doRequest((tries + 1), maxTries)
+			return setTimeout(() => {
+				doRequest((tries + 1), maxTries)
+			}, 1000)
 		})
 	}
 
@@ -180,25 +202,55 @@ export function apiRequest(method, endpoint, data = {}){
 				return reject(new Error("Request failed"))
 			}
 
-			workers.fetchWithTimeoutJSONWorker(getAPIServer() + endpoint, {
+			return fetchWithTimeout(180000, fetch(getAPIServer() + endpoint, {
 				method: method.toUpperCase(),
-				cache: "no-cache",
+				body: JSON.stringify(data),
 				headers: {
 					"Content-Type": "application/json"
-				},
-				body: JSON.stringify(data)
-			}, 180000).then((obj) => {
-				if(endpoint == "/v1/dir/content"
-				|| endpoint == "/v1/user/baseFolders"
-				|| endpoint == "/v1/user/shared/in"
-				|| endpoint == "/v1/user/shared/out"
-				|| endpoint == "/v1/user/keyPair/info"){
-					window.customVariables.apiCache[cacheKey] = obj
+				}
+			})).then((response) => {
+				if(response.status !== 200){
+					if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
+						return resolve(window.customVariables.apiCache[cacheKey])
+					}
 
-					window.customFunctions.saveAPICache()
+					response = null
+
+					return setTimeout(() => {
+						doRequest((tries + 1), maxTries)
+					}, 1000)
 				}
 
-				return resolve(obj)
+				return response.json().then((obj) => {
+					if(endpoint == "/v1/dir/content"
+					|| endpoint == "/v1/user/baseFolders"
+					|| endpoint == "/v1/user/shared/in"
+					|| endpoint == "/v1/user/shared/out"
+					|| endpoint == "/v1/user/keyPair/info"){
+						window.customVariables.apiCache[cacheKey] = obj
+
+						window.customFunctions.saveAPICache()
+					}
+
+					resolve(obj)
+
+					obj = null
+					response = null
+
+					return true
+				}).catch((err) => {
+					console.log(err)
+
+					if(typeof window.customVariables.apiCache[cacheKey] !== "undefined"){
+						return resolve(window.customVariables.apiCache[cacheKey])
+					}
+
+					response = null
+
+					return setTimeout(() => {
+						doRequest((tries + 1), maxTries)
+					}, 1000)
+				})
 			}).catch((err) => {
 				console.log(err)
 
@@ -206,7 +258,9 @@ export function apiRequest(method, endpoint, data = {}){
 					return resolve(window.customVariables.apiCache[cacheKey])
 				}
 
-				return doRequest((tries + 1), maxTries)
+				return setTimeout(() => {
+					doRequest((tries + 1), maxTries)
+				}, 1000)
 			})
 		}
 
@@ -1940,6 +1994,10 @@ export function uInt8ArrayConcat(arrays){
       result.set(array, length);
       length += array.length;
     }
+
+	totalLength = null
+	length = null
+	arrays = null
   
     return result;
 }
@@ -2686,4 +2744,42 @@ export function fileOrFolderNameValid(name){
 	}
   
 	return false
+}
+
+export function readAs(method, input){
+    return new Promise((resolve, reject) => {
+		let reader = new FileReader()
+
+		reader.onload = () => {
+			return resolve(reader.result)
+		}
+
+        reader.onloadend = () => {
+			return reader = null
+		}
+
+		reader.onerror = (err) => {
+			return reject(err)
+		}
+
+		if(method.toLowerCase() == "arraybuffer"){
+			return reader.readAsArrayBuffer(input)
+		}
+		else if(method.toLowerCase() == "text"){
+			return reader.readAsText(input)
+		}
+		else if(method.toLowerCase() == "dataurl"){
+			return reader.readAsDataURL(input)
+		}
+
+		return reject("Invalid method")
+    })
+}
+
+export function sleep(ms){
+	return new Promise((resolve) => {
+		return setTimeout(() => {
+			return resolve()
+		}, ms)
+	})
 }

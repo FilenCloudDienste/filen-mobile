@@ -3,23 +3,30 @@ import { loadingController, modalController } from "@ionic/core"
 import * as Ionicons from 'ionicons/icons'
 import { isPlatform } from "@ionic/react"
 import { App } from "@capacitor/app"
+import { setupStatusbar } from "./setup"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 
-export async function openSettingsModal(){
+export async function openSettingsModal(self){
     let isDeviceOnline = window.customFunctions.isDeviceOnline()
-    let appLang = this.state.lang
-    let appDarkMode = this.state.darkMode
-    let appSettings = this.state.settings
-    let appState = this.state
-    let deviceInfo = await App.getInfo()
+    let appLang = self.state.lang
+    let appDarkMode = self.state.darkMode
+    let appSettings = self.state.settings
+    let appState = self.state
     let modalId = "settings-modal-" + utils.generateRandomClassName()
+
+    try{
+        var deviceInfo = await App.getInfo()
+    }
+    catch(e){
+        return console.log(e)
+    }
 
     let biometricAuthEnabled = false
 
-    if(typeof this.state.settings.biometricPINCode !== "undefined"){
-        if(this.state.settings.biometricPINCode.length == 4){
+    if(typeof self.state.settings.biometricPINCode !== "undefined"){
+        if(self.state.settings.biometricPINCode.length == 4){
             biometricAuthEnabled = true
         }
     }
@@ -33,7 +40,7 @@ export async function openSettingsModal(){
     
         try{
             var res = await utils.apiRequest("POST", "/v1/user/get/settings", {
-                apiKey: this.state.userAPIKey
+                apiKey: self.state.userAPIKey
             })
         }
         catch(e){
@@ -41,7 +48,7 @@ export async function openSettingsModal(){
     
             loading.dismiss()
     
-            return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+            return self.spawnToast(language.get(self.state.lang, "apiRequestError"))
         }
     
         if(!res.status){
@@ -49,7 +56,7 @@ export async function openSettingsModal(){
     
             console.log(res.message)
     
-            return this.spawnToast(res.message)
+            return self.spawnToast(res.message)
         }
     
         loading.dismiss()
@@ -287,13 +294,13 @@ export async function openSettingsModal(){
 
     await modal.present()
 
-    this.setupStatusbar("modal")
+    setupStatusbar(self, "modal")
 
     try{
         let sModal = await modalController.getTop()
 
         sModal.onDidDismiss().then(() => {
-            this.setupStatusbar()
+            setupStatusbar(self)
         })
     }
     catch(e){

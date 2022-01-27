@@ -4,9 +4,9 @@ import * as Ionicons from "ionicons/icons"
 
 const utils = require("../utils/utils")
 
-export async function showRegister(){
-    let appLang = this.state.lang
-    let appDarkMode = this.state.darkMode
+export async function showRegister(self){
+    let appLang = self.state.lang
+    let appDarkMode = self.state.darkMode
     let modalId = "register-modal-" + utils.generateRandomClassName()
 
     let tosPrivacy = language.get(appLang, "registerTOSInfo")

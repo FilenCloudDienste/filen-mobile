@@ -1,10 +1,10 @@
-export function setMainSearchTerm(term){
-    this.setState({
+export function setMainSearchTerm(self, term){
+    self.setState({
         mainSearchTerm: term
     })
 
     if(term.trim() == "" && window.customVariables.itemList.length > 0){
-        return this.setState({
+        return self.setState({
             itemList: window.customVariables.itemList
         })
     }
@@ -19,20 +19,22 @@ export function setMainSearchTerm(term){
         }
     }
 
-    return this.setState({
+    return self.setState({
         itemList: items
     })
 }
 
-export function hideMainSearchbar(event){
-    this.setState({
+export function hideMainSearchbar(self, event){
+    self.setState({
         searchbarOpen: false,
         mainSearchTerm: ""
     })
 
     if(window.customVariables.itemList.length > 0){
-        this.setState({
+        self.setState({
             itemList: window.customVariables.itemList
         })
     }
+
+    return true
 }

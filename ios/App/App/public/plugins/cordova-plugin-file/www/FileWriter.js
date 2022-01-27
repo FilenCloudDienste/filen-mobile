@@ -113,6 +113,13 @@ FileWriter.prototype.write = function (data, isPendingBlobReadResult) {
         fileReader.onload = function () {
             // Call this method again, with the arraybuffer as argument
             FileWriter.prototype.write.call(that, this.result, true /* isPendingBlobReadResult */);
+
+            this.result = null
+            that = null
+            data = null
+            fileReader = null
+
+            return true
         };
         fileReader.onerror = function () {
             // DONE state
@@ -130,6 +137,12 @@ FileWriter.prototype.write = function (data, isPendingBlobReadResult) {
             if (typeof that.onwriteend === 'function') {
                 that.onwriteend(new ProgressEvent('writeend', {'target': that}));
             }
+
+            that = null
+            data = null
+            fileReader = null
+
+            return false
         };
 
         // WRITING state
@@ -152,6 +165,8 @@ FileWriter.prototype.write = function (data, isPendingBlobReadResult) {
 
     // Throw an exception if we are already writing a file
     if (this.readyState === FileWriter.WRITING && !isPendingBlobReadResult) {
+        data = null
+
         throw new FileError(FileError.INVALID_STATE_ERR);
     }
 
@@ -171,6 +186,8 @@ FileWriter.prototype.write = function (data, isPendingBlobReadResult) {
         function (r) {
             // If DONE (cancelled), then don't do anything
             if (me.readyState === FileWriter.DONE) {
+                data = null
+
                 return;
             }
 
@@ -192,11 +209,17 @@ FileWriter.prototype.write = function (data, isPendingBlobReadResult) {
             if (typeof me.onwriteend === 'function') {
                 me.onwriteend(new ProgressEvent('writeend', {'target': me}));
             }
+
+            data = null
+
+            return true
         },
         // Error callback
         function (e) {
             // If DONE (cancelled), then don't do anything
             if (me.readyState === FileWriter.DONE) {
+                data = null
+
                 return;
             }
 
@@ -215,7 +238,13 @@ FileWriter.prototype.write = function (data, isPendingBlobReadResult) {
             if (typeof me.onwriteend === 'function') {
                 me.onwriteend(new ProgressEvent('writeend', {'target': me}));
             }
+
+            data = null
+
+            return false
         }, 'File', 'write', [this.localURL, data, this.position, isBinary]);
+
+    return true
 };
 
 /**

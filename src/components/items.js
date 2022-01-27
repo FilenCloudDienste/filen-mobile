@@ -5,24 +5,27 @@ import { Capacitor } from "@capacitor/core"
 import { isPlatform } from "@ionic/react"
 import { SplashScreen } from "@capacitor/splash-screen"
 import { Keyboard } from "@capacitor/keyboard"
-import { Filesystem, FilesystemDirectory } from "@capacitor/filesystem"
 import { Haptics, HapticsImpactStyle } from "@capacitor/haptics"
 import { Media } from "@capacitor-community/media"
 import { Mediastore } from "@agorapulse/capacitor-mediastore"
 import { Base64 } from "js-base64"
 import * as workers from "../utils/workers"
+import { queueFileDownload, downloadPreview } from "./download"
+import { fileExists } from "./upload"
+import { setupStatusbar } from "./setup"
+import { spawnToast, spawnMoveToast, spawnRenamePrompt } from "./spawn"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require("safe-area-insets")
 const Hammer = require("hammerjs")
 
-export async function updateItemList(showLoader = true, bypassItemsCache = false, isFollowUpRequest = false, windowLocationHref = undefined, callStack = 0){
-	if(!this.state.isLoggedIn){
-		return this.showLogin()
+export async function updateItemList(self, showLoader = true, bypassItemsCache = false, isFollowUpRequest = false, windowLocationHref = undefined, callStack = 0){
+	if(!self.state.isLoggedIn){
+		return self.showLogin()
 	}
 	
-	if(this.state.userAPIKey.length <= 16){
-		return this.showLogin()
+	if(self.state.userAPIKey.length <= 16){
+		return self.showLogin()
 	}
 
 	if(showLoader){
@@ -45,7 +48,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 	let isDeviceOnline = window.customFunctions.isDeviceOnline()
 
-	this.setState({
+	self.setState({
         searchbarOpen: false,
         mainSearchTerm: ""
     })
@@ -60,12 +63,12 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 	if(typeof window.customVariables.itemsCache[window.location.href] == "object" && !bypassItemsCache){
 		if(callStack == 0 && isDeviceOnline){
-			this.updateItemList(false, true, true, window.location.href, 1)
+			updateItemList(self, false, true, true, window.location.href, 1)
 		}
 
 		let items = window.customVariables.itemsCache[window.location.href]
 
-		if(!this.state.settings.showThumbnails){
+		if(!self.state.settings.showThumbnails){
 			let itemsWithoutThumbnails = []
 	
 			for(let i = 0; i < items.length; i++){
@@ -82,7 +85,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		if(parent == "recent"){
 			items = utils.orderItemsByType(items, "dateDesc")
 		}
-		else if(parent == this.state.settings.cameraUpload.parent && window.customVariables.orderBy == "nameAsc"){
+		else if(parent == self.state.settings.cameraUpload.parent && window.customVariables.orderBy == "nameAsc"){
 			items = utils.orderItemsByType(items, "dateAsc")
 		}
 		else{
@@ -99,7 +102,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			delete window.customVariables.scrollToIndex[parent]
 		}
 
-		let counter = this.state.itemListChangeCounter
+		let counter = self.state.itemListChangeCounter
 
 		var stateObj = {
 			itemList: items,
@@ -107,8 +110,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			itemListChangeCounter: (counter + 1)
 		}
 	
-		return this.setState(stateObj, () => {
-			this.forceUpdate()
+		return self.setState(stateObj, () => {
+			self.forceUpdate()
 
 			setTimeout(window.customFunctions.saveCachedItems, 1000)
 
@@ -119,10 +122,6 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			}
 
 			for(let i = 0; i < items.length; i++){
-				if(i < 32){
-					this.genThumbnail(items[i], i)
-				}
-
 				if(typeof requestedFolderSizes[items[i].uuid] == "undefined" && items[i].type !== "file"){
 					requestedFolderSizes[items[i].uuid] = true
 	
@@ -155,31 +154,31 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	if(!isDeviceOnline){
 		window.customFunctions.dismissLoader()
 
-		let counter = this.state.itemListChangeCounter
+		let counter = self.state.itemListChangeCounter
 
-		return this.setState({
+		return self.setState({
 			itemList: [],
 			showMainSkeletonPlaceholder: false,
 			itemListChangeCounter: (counter + 1),
 			scrollToIndex: 0
 		}, () => {
-			this.forceUpdate()
+			self.forceUpdate()
 		})
 
 		/*if(!bypassItemsCache){
-			return this.setState({
+			return self.setState({
 				itemList: [],
 				showMainSkeletonPlaceholder: false
 			}, () => {
-				this.forceUpdate()
+				self.forceUpdate()
 			})
 		}
 	
 		let alert = await alertController.create({
 			header: "",
 			subHeader: "",
-			message: language.get(this.state.lang, "apiRequestError"),
-			buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+			message: language.get(self.state.lang, "apiRequestError"),
+			buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 		})
 
 		return alert.present()*/
@@ -192,7 +191,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	if(parent == "base"){
 		try{
 			var res = await utils.apiRequest("POST", "/v1/user/baseFolders", {
-				apiKey: this.state.userAPIKey
+				apiKey: self.state.userAPIKey
 			})
 		}
 		catch(e){
@@ -203,8 +202,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			let alert = await alertController.create({
 				header: "",
 				subHeader: "",
-				message: language.get(this.state.lang, "apiRequestError"),
-				buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+				message: language.get(self.state.lang, "apiRequestError"),
+				buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 			})
 	
 			return alert.present()
@@ -222,8 +221,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			let alert = await alertController.create({
 				header: "",
 				subHeader: "",
-				message: language.get(this.state.lang, "apiRequestError"),
-				buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+				message: language.get(self.state.lang, "apiRequestError"),
+				buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 			})
 	
 			return alert.present()
@@ -232,7 +231,11 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		for(let i = 0; i < res.data.folders.length; i++){
 			let folder = res.data.folders[i]
 
-			let folderName = await utils.decryptFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+			if(showLoader){
+				loading.message = language.get(self.state.lang, "decryptingItems", true, ["__COUNT__", "__TOTAL__"], [i, res.data.folders.length])
+			}
+
+			let folderName = await utils.decryptFolderName(folder.name, self.state.userMasterKeys, folder.uuid)
 			let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
 
 			let item = {
@@ -264,7 +267,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	else if(parent == "recent"){
 		try{
 			var res = await utils.apiRequest("POST", "/v1/user/recent", {
-				apiKey: this.state.userAPIKey
+				apiKey: self.state.userAPIKey
 			})
 		}
 		catch(e){
@@ -275,8 +278,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			let alert = await alertController.create({
 				header: "",
 				subHeader: "",
-				message: language.get(this.state.lang, "apiRequestError"),
-				buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+				message: language.get(self.state.lang, "apiRequestError"),
+				buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 			})
 	
 			return alert.present()
@@ -294,8 +297,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			let alert = await alertController.create({
 				header: "",
 				subHeader: "",
-				message: language.get(this.state.lang, "apiRequestError"),
-				buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+				message: language.get(self.state.lang, "apiRequestError"),
+				buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 			})
 	
 			return alert.present()
@@ -304,7 +307,11 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		for(let i = 0; i < res.data.length; i++){
 			let file = res.data[i]
 
-			let metadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+			if(showLoader){
+				loading.message = language.get(self.state.lang, "decryptingItems", true, ["__COUNT__", "__TOTAL__"], [i, res.data.length])
+			}
+
+			let metadata = await utils.decryptFileMetadata(file.metadata, self.state.userMasterKeys, file.uuid)
 			let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
 			let offline = false
@@ -346,7 +353,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	else{
 		if(routeEx[1] == "shared-in"){
 			try{
-				var usrPrivKey = await window.crypto.subtle.importKey("pkcs8", utils._base64ToArrayBuffer(this.state.userPrivateKey), {
+				var usrPrivKey = await window.crypto.subtle.importKey("pkcs8", utils._base64ToArrayBuffer(self.state.userPrivateKey), {
 					name: "RSA-OAEP",
 					hash: "SHA-512"
 				}, true, ["decrypt"])
@@ -359,8 +366,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				let alert = await alertController.create({
 					header: "",
 					subHeader: "",
-					message: language.get(this.state.lang, "unknownDeviceError"),
-					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+					message: language.get(self.state.lang, "unknownDeviceError"),
+					buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 				})
 		
 				return alert.present()
@@ -368,7 +375,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 			try{
 				var res = await utils.apiRequest("POST", "/v1/user/shared/in", {
-					apiKey: this.state.userAPIKey,
+					apiKey: self.state.userAPIKey,
 					uuid: parent,
 					folders: JSON.stringify(["shred-in"]),
 					page: 1,
@@ -383,8 +390,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				let alert = await alertController.create({
 					header: "",
 					subHeader: "",
-					message: language.get(this.state.lang, "apiRequestError"),
-					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+					message: language.get(self.state.lang, "apiRequestError"),
+					buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 				})
 		
 				return alert.present()
@@ -402,15 +409,23 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				let alert = await alertController.create({
 					header: "",
 					subHeader: "",
-					message: language.get(this.state.lang, "apiRequestError"),
-					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+					message: language.get(self.state.lang, "apiRequestError"),
+					buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 				})
 		
 				return alert.present()
 			}
 
+			let decrypted = 0
+
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
+
+				decrypted += 1
+
+				if(showLoader){
+					loading.message = language.get(self.state.lang, "decryptingItems", true, ["__COUNT__", "__TOTAL__"], [decrypted, (res.data.folders.length + res.data.uploads.length)])
+				}
 
 				let folderName = await utils.decryptFolderNamePrivateKey(folder.metadata, usrPrivKey, folder.uuid)
 				let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
@@ -443,6 +458,12 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 
 			for(let i = 0; i < res.data.uploads.length; i++){
 				let file = res.data.uploads[i]
+
+				decrypted += 1
+
+				if(showLoader){
+					loading.message = language.get(self.state.lang, "decryptingItems", true, ["__COUNT__", "__TOTAL__"], [decrypted, (res.data.folders.length + res.data.uploads.length)])
+				}
 
 				let decryptedMetadata = await utils.decryptFileMetadataPrivateKey(file.metadata, usrPrivKey, file.uuid)
 				let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
@@ -485,12 +506,12 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		else if(routeEx[1] == "shared-out"){
 			try{
 				var res = await utils.apiRequest("POST", "/v1/user/shared/out", {
-					apiKey: this.state.userAPIKey,
+					apiKey: self.state.userAPIKey,
 					uuid: parent,
 					folders: JSON.stringify(["default"]),
 					page: 1,
 					app: "true",
-					receiverId: this.state.currentReceiverId
+					receiverId: self.state.currentReceiverId
 				})
 			}
 			catch(e){
@@ -501,8 +522,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				let alert = await alertController.create({
 					header: "",
 					subHeader: "",
-					message: language.get(this.state.lang, "apiRequestError"),
-					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+					message: language.get(self.state.lang, "apiRequestError"),
+					buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 				})
 		
 				return alert.present()
@@ -520,17 +541,25 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				let alert = await alertController.create({
 					header: "",
 					subHeader: "",
-					message: language.get(this.state.lang, "apiRequestError"),
-					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+					message: language.get(self.state.lang, "apiRequestError"),
+					buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 				})
 		
 				return alert.present()
 			}
 
+			let decrypted = 0
+
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
 
-				let folderName = await utils.decryptFolderName(folder.metadata, this.state.userMasterKeys, folder.uuid)
+				decrypted += 1
+
+				if(showLoader){
+					loading.message = language.get(self.state.lang, "decryptingItems", true, ["__COUNT__", "__TOTAL__"], [decrypted, (res.data.folders.length + res.data.uploads.length)])
+				}
+
+				let folderName = await utils.decryptFolderName(folder.metadata, self.state.userMasterKeys, folder.uuid)
 				let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
 
 				let item = {
@@ -563,7 +592,13 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			for(let i = 0; i < res.data.uploads.length; i++){
 				let file = res.data.uploads[i]
 
-				let metadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+				decrypted += 1
+
+				if(showLoader){
+					loading.message = language.get(self.state.lang, "decryptingItems", true, ["__COUNT__", "__TOTAL__"], [decrypted, (res.data.folders.length + res.data.uploads.length)])
+				}
+
+				let metadata = await utils.decryptFileMetadata(file.metadata, self.state.userMasterKeys, file.uuid)
 				let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
 				let offline = false
@@ -605,7 +640,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		else{
 			try{
 				var res = await utils.apiRequest("POST", "/v1/dir/content", {
-					apiKey: this.state.userAPIKey,
+					apiKey: self.state.userAPIKey,
 					uuid: parent,
 					folders: JSON.stringify(["default"]),
 					page: 1,
@@ -620,8 +655,8 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				let alert = await alertController.create({
 					header: "",
 					subHeader: "",
-					message: language.get(this.state.lang, "apiRequestError"),
-					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+					message: language.get(self.state.lang, "apiRequestError"),
+					buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 				})
 		
 				return alert.present()
@@ -635,17 +670,25 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 				let alert = await alertController.create({
 					header: "",
 					subHeader: "",
-					message: language.get(this.state.lang, "apiRequestError"),
-					buttons: [language.get(this.state.lang, "alertOkButton").toUpperCase()]
+					message: language.get(self.state.lang, "apiRequestError"),
+					buttons: [language.get(self.state.lang, "alertOkButton").toUpperCase()]
 				})
 		
 				return alert.present()
 			}
 
+			let decrypted = 0
+
 			for(let i = 0; i < res.data.folders.length; i++){
 				let folder = res.data.folders[i]
 
-				let folderName = await utils.decryptFolderName(folder.name, this.state.userMasterKeys, folder.uuid)
+				decrypted += 1
+
+				if(showLoader){
+					loading.message = language.get(self.state.lang, "decryptingItems", true, ["__COUNT__", "__TOTAL__"], [decrypted, (res.data.folders.length + res.data.uploads.length)])
+				}
+
+				let folderName = await utils.decryptFolderName(folder.name, self.state.userMasterKeys, folder.uuid)
 				let uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
 
 				let item = {
@@ -676,7 +719,13 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 			for(let i = 0; i < res.data.uploads.length; i++){
 				let file = res.data.uploads[i]
 
-				let metadata = await utils.decryptFileMetadata(file.metadata, this.state.userMasterKeys, file.uuid)
+				decrypted += 1
+
+				if(showLoader){
+					loading.message = language.get(self.state.lang, "decryptingItems", true, ["__COUNT__", "__TOTAL__"], [decrypted, (res.data.folders.length + res.data.uploads.length)])
+				}
+
+				let metadata = await utils.decryptFileMetadata(file.metadata, self.state.userMasterKeys, file.uuid)
 				let uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
 
 				let offline = false
@@ -717,7 +766,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		}
 	}
 
-	if(!this.state.settings.showThumbnails){
+	if(!self.state.settings.showThumbnails){
 		let itemsWithoutThumbnails = []
 
 		for(let i = 0; i < items.length; i++){
@@ -734,7 +783,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	if(parent == "recent"){
 		items = utils.orderItemsByType(items, "dateDesc")
 	}
-	else if(parent == this.state.settings.cameraUpload.parent){
+	else if(parent == self.state.settings.cameraUpload.parent){
 		items = utils.orderItemsByType(items, "dateAsc")
 	}
 	else{
@@ -760,7 +809,7 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		delete window.customVariables.scrollToIndex[parent]
 	}
 
-	let counter = this.state.itemListChangeCounter
+	let counter = self.state.itemListChangeCounter
 
 	var stateObj = {
 		itemList: items,
@@ -776,18 +825,14 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 		}
 	}
 
-	return this.setState(stateObj, () => {
-		this.forceUpdate()
+	return self.setState(stateObj, () => {
+		self.forceUpdate()
 
 		window.customFunctions.saveCachedItems()
 		window.customFunctions.saveItemsCache()
 		window.customFunctions.dismissLoader()
 
 		for(let i = 0; i < items.length; i++){
-			if(i < 32){
-				this.genThumbnail(items[i], i)
-			}
-
 			if(typeof requestedFolderSizes[items[i].uuid] == "undefined" && items[i].type !== "file"){
 				requestedFolderSizes[items[i].uuid] = true
 
@@ -817,15 +862,9 @@ export async function updateItemList(showLoader = true, bypassItemsCache = false
 	})
 }
 
-export async function refreshMainList(event){
-    await this.updateItemList()
-
-    return event.detail.complete()
-}
-
-export function selectItem(type, index){
-    let items = this.state.itemList
-    let selectedItems = this.state.selectedItems
+export function selectItem(self, type, index){
+    let items = self.state.itemList
+    let selectedItems = self.state.selectedItems
 
     if(type){
         if(!items[index].selected){
@@ -844,36 +883,36 @@ export function selectItem(type, index){
         }
     }
 
-    return this.setState({
+    return self.setState({
         itemList: items,
         selectedItems
     }, () => {
-		this.forceUpdate()
+		self.forceUpdate()
 	})
 }
 
-export function clearSelectedItems(){
-    let items = this.state.itemList
+export function clearSelectedItems(self){
+    let items = self.state.itemList
 
     for(let i = 0; i < items.length; i++){
         items[i].selected = false
     }
 
-    return this.setState({
+    return self.setState({
         itemList: items,
         selectedItems: 0
     }, () => {
-		this.forceUpdate()
+		self.forceUpdate()
 	})
 }
 
-export async function selectItemsAction(event){
+export async function selectItemsAction(self, event){
     event.persist()
 
-	let appLang = this.state.lang
+	let appLang = self.state.lang
 	let customElementId = utils.generateRandomClassName()
-	let selectedItemsDoesNotContainFolder = utils.selectedItemsDoesNotContainFolder(this.state.itemList)
-	let selectedItemsContainsDefaultFolder = utils.selectedItemsContainsDefaultFolder(this.state.itemList)
+	let selectedItemsDoesNotContainFolder = utils.selectedItemsDoesNotContainFolder(self.state.itemList)
+	let selectedItemsContainsDefaultFolder = utils.selectedItemsContainsDefaultFolder(self.state.itemList)
 
 	let isDeviceOnline = window.customFunctions.isDeviceOnline()
 
@@ -957,7 +996,7 @@ export async function selectItemsAction(event){
     return popover.present()
 }
 
-export async function previewItem(item, lastModalPreviewType = undefined, isOuterPreview = false){
+export async function previewItem(self, item, lastModalPreviewType = undefined, isOuterPreview = false){
 	if(!window.customFunctions.isDeviceOnline()){
 		if(typeof window.customVariables.offlineSavedFiles[item.uuid] !== "undefined" && typeof lastModalPreviewType == "undefined"){
 			return window.customFunctions.openOfflineFile(item)
@@ -972,11 +1011,11 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 	}
 
 	if(Capacitor.isNative && typeof lastModalPreviewType == "undefined"){
-        if(this.state.settings.onlyWifi){
-            let networkStatus = this.state.networkStatus
+        if(self.state.settings.onlyWifi){
+            let networkStatus = self.state.networkStatus
 
             if(networkStatus.connectionType !== "wifi"){
-                return this.spawnToast(language.get(this.state.lang, "onlyWifiError"))
+                return spawnToast(language.get(self.state.lang, "onlyWifiError"))
             }
         }
 	}
@@ -1018,7 +1057,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 	
 			loading.present()
 
-			return this.queueFileDownload(item, true, () => {
+			return queueFileDownload(self, item, true, () => {
 				loading.dismiss()
 
 				window.customFunctions.openOfflineFile(item)
@@ -1030,7 +1069,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				window.customFunctions.dismissModal()
 			}
 
-			return this.spawnItemActionSheet(item)
+			return spawnItemActionSheet(self, item)
 		}
 
 		if(item.size > ((1024 * 1024) * 128)){
@@ -1038,7 +1077,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				window.customFunctions.dismissModal()
 			}
 
-			return this.spawnItemActionSheet(item)
+			return spawnItemActionSheet(self, item)
 		}
 
 		const gotPreviewData = async (dataArray) => {
@@ -1179,23 +1218,26 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				`
 			}
 
+			blob = null
+			dataArray = null
+
 			if(previewModalContent.length <= 8){
 				if(typeof lastModalPreviewType !== "undefined"){
 					window.customFunctions.dismissModal()
 				}
 
-				return this.spawnItemActionSheet(item)
+				return spawnItemActionSheet(self, item)
 			}
 
 			const setupBars = async () => {
 				if(previewType == "image" || previewType == "video" || previewType == "audio"){
-					this.setupStatusbar("image/video")
+					setupStatusbar(self, "image/video")
 
 					try{
 						let modal = await modalController.getTop()
 	
 						modal.onDidDismiss().then(() => {
-							this.setupStatusbar()
+							setupStatusbar(self)
 						})
 					}
 					catch(e){
@@ -1203,13 +1245,13 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 					}
 				}
 				else{
-					this.setupStatusbar("modal")
+					setupStatusbar(self, "modal")
 
 					try{
 						let modal = await modalController.getTop()
 	
 						modal.onDidDismiss().then(() => {
-							this.setupStatusbar()
+							setupStatusbar(self)
 						})
 					}
 					catch(e){
@@ -1225,7 +1267,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 					return false
 				}
 
-				let itemList = this.state.itemList
+				let itemList = self.state.itemList
 
 				const getPrevOrNextItem = (type) => {
 					let step = 1
@@ -1335,7 +1377,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 
 							let scrollTo = 0
 
-							if(this.state.settings.gridModeEnabled){
+							if(self.state.settings.gridModeEnabled){
 								scrollTo = Math.floor(nextItem.listIndex / 2)
 
 								if(scrollTo <= 0){
@@ -1346,11 +1388,11 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 								scrollTo = nextItem.listIndex
 							}
 
-							this.setState({
+							self.setState({
 								scrollToIndex: scrollTo
 							})
 
-							return this.previewItem(nextItem.item, lastPreviewType)
+							return previewItem(self, nextItem.item, lastPreviewType)
 						}
 						else{
 							let prevItem = getPrevOrNextItem("prev")
@@ -1361,7 +1403,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 
 							let scrollTo = 0
 
-							if(this.state.settings.gridModeEnabled){
+							if(self.state.settings.gridModeEnabled){
 								scrollTo = Math.floor(prevItem.listIndex / 2)
 
 								if(scrollTo <= 0){
@@ -1372,11 +1414,11 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 								scrollTo = prevItem.listIndex
 							}
 
-							this.setState({
+							self.setState({
 								scrollToIndex: scrollTo
 							})
 
-							return this.previewItem(prevItem.item, lastPreviewType)
+							return previewItem(self, prevItem.item, lastPreviewType)
 						}
 					}
 					else{
@@ -1492,7 +1534,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				catch(e){
 					window.customFunctions.dismissModal()
 
-					return this.spawnItemActionSheet(item)
+					return self.spawnItemActionSheet(item)
 				}
 
 				currentModal.innerHTML = previewModalContent
@@ -1527,6 +1569,17 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 
 				if(Capacitor.isNative){
 					Keyboard.hide()
+				}
+
+				try{
+					modal.onDidDismiss(() => {
+						if(typeof window.customVariables.currentPreviewURL !== "undefined"){
+							window.customVariables.urlCreator.revokeObjectURL(window.customVariables.currentPreviewURL)
+						}
+					})
+				}
+				catch(e){
+					console.log(e)
 				}
 
 				if(previewType == "image" || previewType == "video" || previewType == "audio"){
@@ -1569,7 +1622,7 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 		window.customVariables.isGettingPreviewData = true
 		window.customVariables.stopGettingPreviewData = false
 
-		this.downloadPreview(item, (chunksDone) => {
+		downloadPreview(item, (chunksDone) => {
 			//console.log(chunksDone)
 		}, (err, dataArray) => {
 			window.customVariables.isGettingPreviewData = false
@@ -1580,26 +1633,28 @@ export async function previewItem(item, lastModalPreviewType = undefined, isOute
 				if(err !== "stopped"){
 					console.log(err)
 
-					return this.spawnToast(language.get(this.state.lang, "fileNoPreviewAvailable", true, ["__NAME__"], [item.name]))
+					return spawnToast(language.get(self.state.lang, "fileNoPreviewAvailable", true, ["__NAME__"], [item.name]))
 				}
 				else{
 					return false
 				}
 			}
 
-			return gotPreviewData(dataArray)
+			gotPreviewData(dataArray)
+
+			return dataArray = null
 		})
 	}
 }
 
-export async function dirExists(name, parent, callback){
+export async function dirExists(self, name, parent, callback){
 	if(parent == null){
 		parent = "base"
 	}
 
 	try{
 		var res = await utils.apiRequest("POST", "/v1/dir/exists", {
-			apiKey: this.state.userAPIKey,
+			apiKey: self.state.userAPIKey,
 			parent,
 			nameHashed: utils.hashFn(name.toLowerCase())
 		})
@@ -1615,14 +1670,14 @@ export async function dirExists(name, parent, callback){
 	return callback(null, res.data.exists, res.data.uuid)
 }
 
-export async function moveFolder(folder, destination, showLoader){
+export async function moveFolder(self, folder, destination, showLoader){
 	if(folder.parent == destination){
-		return this.spawnToast(language.get(this.state.lang, "moveFileOrFolderSameDestination"))
+		return spawnToast(language.get(self.state.lang, "moveFileOrFolderSameDestination"))
 	}
 
 	if(utils.currentParentFolder() == "base"){
 		if(folder.uuid == "default" || folder.name.toLowerCase() == "filen sync"){
-			return this.spawnToast(language.get(this.state.lang, "thisFolderCannotBeMoved")) 
+			return spawnToast(language.get(self.state.lang, "thisFolderCannotBeMoved")) 
 		}
 	}
 
@@ -1635,13 +1690,13 @@ export async function moveFolder(folder, destination, showLoader){
 		loading.present()
 	}
 
-	this.dirExists(folder.name, destination, async (err, exists, existsUUID) => {
+	return dirExists(self, folder.name, destination, async (err, exists, existsUUID) => {
 		if(err){
 			if(showLoader){
 				loading.dismiss()
 			}
 
-			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+			return spawnToast(language.get(self.state.lang, "apiRequestError"))
 		}
 
 		if(exists){
@@ -1649,12 +1704,12 @@ export async function moveFolder(folder, destination, showLoader){
 				loading.dismiss()
 			}
 
-			return this.spawnToast(language.get(this.state.lang, "folderMoveAlreadyExistsHere", true, ["__NAME__"], [folder.name]))
+			return spawnToast(language.get(self.state.lang, "folderMoveAlreadyExistsHere", true, ["__NAME__"], [folder.name]))
 		}
 
 		try{
 			var res = await utils.apiRequest("POST", "/v1/dir/move", {
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				uuid: folder.uuid,
 				folderUUID: destination
 			})
@@ -1664,7 +1719,7 @@ export async function moveFolder(folder, destination, showLoader){
 				loading.dismiss()
 			}
 
-			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+			return spawnToast(language.get(self.state.lang, "apiRequestError"))
 		}
 
 		if(!res.status){
@@ -1672,10 +1727,10 @@ export async function moveFolder(folder, destination, showLoader){
 				loading.dismiss()
 			}
 
-			return this.spawnToast(res.message)
+			return spawnToast(res.message)
 		}
 
-		utils.checkIfItemParentIsBeingShared(destination, "folder", {
+		return utils.checkIfItemParentIsBeingShared(destination, "folder", {
 			name: folder.name,
 			uuid: folder.uuid
 		}, () => {
@@ -1683,13 +1738,13 @@ export async function moveFolder(folder, destination, showLoader){
 				loading.dismiss()
 			}
 
-			this.spawnToast(language.get(this.state.lang, "folderMoved", true, ["__NAME__"], [folder.name]))
+			spawnToast(language.get(self.state.lang, "folderMoved", true, ["__NAME__"], [folder.name]))
 
 			clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
 			window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
 				if(utils.currentParentFolder() == destination){
-					this.updateItemList()
+					updateItemList(self)
 				}
 			}, 500)
 
@@ -1698,13 +1753,13 @@ export async function moveFolder(folder, destination, showLoader){
 	})
 }
 
-export async function moveFile(file, destination, showLoader){
+export async function moveFile(self, file, destination, showLoader){
 	if(file.parent == destination){
-		return this.spawnToast(language.get(this.state.lang, "moveFileOrFolderSameDestination"))
+		return spawnToast(language.get(self.state.lang, "moveFileOrFolderSameDestination"))
 	}
 
 	if(destination == "trash" || destination == "base" || destination == "shared-in" || destination == "shared-out"){
-		return this.spawnToast(language.get(this.state.lang, "cannotMoveFileHere"))
+		return spawnToast(language.get(self.state.lang, "cannotMoveFileHere"))
 	}
 
 	if(showLoader){
@@ -1716,13 +1771,13 @@ export async function moveFile(file, destination, showLoader){
 		loading.present()
 	}
 
-	this.fileExists(file.name, destination, async (err, exists, existsUUID) => {
+	return fileExists(self, file.name, destination, async (err, exists, existsUUID) => {
 		if(err){
 			if(showLoader){
 				loading.dismiss()
 			}
 
-			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+			return spawnToast(language.get(self.state.lang, "apiRequestError"))
 		}
 
 		if(exists){
@@ -1730,12 +1785,12 @@ export async function moveFile(file, destination, showLoader){
 				loading.dismiss()
 			}
 
-			return this.spawnToast(language.get(this.state.lang, "fileMoveAlreadyExistsHere", true, ["__NAME__"], [file.name]))
+			return spawnToast(language.get(self.state.lang, "fileMoveAlreadyExistsHere", true, ["__NAME__"], [file.name]))
 		}
 
 		try{
 			var res = await utils.apiRequest("POST", "/v1/file/move", {
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				fileUUID: file.uuid,
 				folderUUID: destination
 			})
@@ -1745,7 +1800,7 @@ export async function moveFile(file, destination, showLoader){
 				loading.dismiss()
 			}
 
-			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+			return spawnToast(language.get(self.state.lang, "apiRequestError"))
 		}
 
 		if(!res.status){
@@ -1753,10 +1808,10 @@ export async function moveFile(file, destination, showLoader){
 				loading.dismiss()
 			}
 
-			return this.spawnToast(res.message)
+			return spawnToast(res.message)
 		}
 
-		utils.checkIfItemParentIsBeingShared(destination, "file", {
+		return utils.checkIfItemParentIsBeingShared(destination, "file", {
 			uuid: file.uuid,
 			name: file.name,
 			size: parseInt(file.size),
@@ -1768,13 +1823,13 @@ export async function moveFile(file, destination, showLoader){
 				loading.dismiss()
 			}
 
-			this.spawnToast(language.get(this.state.lang, "fileMoved", true, ["__NAME__"], [file.name]))
+			spawnToast(language.get(self.state.lang, "fileMoved", true, ["__NAME__"], [file.name]))
 
 			clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
 			window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
 				if(utils.currentParentFolder() == destination){
-					this.updateItemList()
+					updateItemList(self)
 				}
 			}, 500)
 
@@ -1783,31 +1838,31 @@ export async function moveFile(file, destination, showLoader){
 	})
 }
 
-export function moveItem(item){
-	this.spawnMoveToast((cancelled, destination) => {
+export function moveItem(self, item){
+	return self.spawnMoveToast((cancelled, destination) => {
 		if(cancelled){
 			return false
 		}
 
 		if(item.type == "file"){
-			return this.moveFile(item, destination, true)
+			return moveFile(self, item, destination, true)
 		}
 		else{
-			return this.moveFolder(item, destination, true)
+			return moveFolder(self, item, destination, true)
 		}
 	})
 }
 
-export async function renameItem(item){
+export async function renameItem(self, item){
 	let parent = utils.currentParentFolder()
 
 	if(parent == "base"){
 		if(item.uuid == "default" || item.name.toLowerCase() == "filen sync"){
-			return this.spawnToast(language.get(this.state.lang, "cannotRenameItem", true, ["__NAME__"], [item.name]))
+			return spawnToast(language.get(self.state.lang, "cannotRenameItem", true, ["__NAME__"], [item.name]))
 		}
 	}
 
-	this.spawnRenamePrompt(item, async (cancelled, newName) => {
+	return spawnRenamePrompt(self, item, async (cancelled, newName) => {
 		if(cancelled){
 			return false
 		}
@@ -1827,13 +1882,13 @@ export async function renameItem(item){
 			if(utils.fileNameValidationRegex(newName)){
 				loading.dismiss()
 
-				return this.spawnToast(language.get(this.state.lang, "invalidFileName"))
+				return spawnToast(language.get(self.state.lang, "invalidFileName"))
 			}
 
 			if(newName.length >= 250){
 				loading.dismiss()
 
-				return this.spawnToast(language.get(this.state.lang, "invalidFileName"))
+				return spawnToast(language.get(self.state.lang, "invalidFileName"))
 			}
 
 			let nameEx = item.name.split(".")
@@ -1844,20 +1899,20 @@ export async function renameItem(item){
 				renameWithDot = true
 			}
 
-			this.fileExists(newName, parent, async (err, exists, existsUUID) => {
+			return fileExists(self, newName, parent, async (err, exists, existsUUID) => {
 				if(err){
 					console.log(err)
 
 					loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+					return spawnToast(language.get(self.state.lang, "apiRequestError"))
 				}
 
 				if(exists){
 					if(item.uuid !== existsUUID){
 						loading.dismiss()
 
-						return this.spawnToast(language.get(this.state.lang, "fileRenameAlreadyExists", true, ["__NAME__"], [newName]))
+						return spawnToast(language.get(self.state.lang, "fileRenameAlreadyExists", true, ["__NAME__"], [newName]))
 					}
 				}
 
@@ -1867,7 +1922,7 @@ export async function renameItem(item){
 
 				try{
 					var res = await utils.apiRequest("POST", "/v1/file/rename", {
-						apiKey: this.state.userAPIKey,
+						apiKey: self.state.userAPIKey,
 						uuid: item.uuid,
 						name: await utils.encryptMetadata(newName, item.key),
 						nameHashed: utils.hashFn(newName.toLowerCase()),
@@ -1877,7 +1932,7 @@ export async function renameItem(item){
 							mime: item.mime,
 							key: item.key,
 							lastModified: item.lastModified
-						}), this.state.userMasterKeys[this.state.userMasterKeys.length - 1])
+						}), self.state.userMasterKeys[self.state.userMasterKeys.length - 1])
 					})
 				}
 				catch(e){
@@ -1885,16 +1940,16 @@ export async function renameItem(item){
 
 					loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+					return spawnToast(language.get(self.state.lang, "apiRequestError"))
 				}
 
 				if(!res.status){
 					loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "couldNotRenameFile"))
+					return spawnToast(language.get(self.state.lang, "couldNotRenameFile"))
 				}
 
-				utils.checkIfItemIsBeingSharedForRename("file", item.uuid, {
+				return utils.checkIfItemIsBeingSharedForRename("file", item.uuid, {
 					name: newName,
 					size: parseInt(item.size),
 					mime: item.mime,
@@ -1902,7 +1957,7 @@ export async function renameItem(item){
 				}, () => {
 					loading.dismiss()
 
-					this.spawnToast(language.get(this.state.lang, "fileRenamed", true, ["__NAME__", "__TO__"], [item.name, newName]))
+					spawnToast(language.get(self.state.lang, "fileRenamed", true, ["__NAME__", "__TO__"], [item.name, newName]))
 
 					delete window.customVariables.cachedFiles[item.uuid]
 
@@ -1910,34 +1965,9 @@ export async function renameItem(item){
 
 					window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
 						if(utils.currentParentFolder() == parent){
-							this.updateItemList()
+							updateItemList(self)
 						}
 					}, 500)
-
-					/*if(typeof window.customVariables.offlineSavedFiles !== "undefined" && Capacitor.isNative){
-						this.getDownloadDir(true, item.uuid, async (err, dirObj) => {
-							if(err){
-								console.log(err)
-
-								return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
-							}
-
-							try{
-								await Filesystem.rename({
-									from: dirObj + "/" + item.name,
-									to: dirObj + "/" +  newName,
-									directory: dirObj.directory
-								})
-							}
-							catch(e){
-								console.log(err)
-
-								return this.spawnToast(language.get(this.state.lang, "couldNotRenameFileLocally"))
-							}
-
-							return console.log("File renamed locally")
-						})
-					}*/
 
 					return true
 				})
@@ -1947,37 +1977,37 @@ export async function renameItem(item){
 			if(utils.fileNameValidationRegex(newName)){
 				loading.dismiss()
 
-				return this.spawnToast(language.get(this.state.lang, "invalidFolderName"))
+				return spawnToast(language.get(self.state.lang, "invalidFolderName"))
 			}
 
 			if(newName.length >= 250){
 				loading.dismiss()
 
-				return this.spawnToast(language.get(this.state.lang, "invalidFolderName"))
+				return spawnToast(language.get(self.state.lang, "invalidFolderName"))
 			}
 
-			this.dirExists(newName, parent, async (err, exists, existsUUID) => {
+			return dirExists(newName, parent, async (err, exists, existsUUID) => {
 				if(err){
 					loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+					return spawnToast(language.get(self.state.lang, "apiRequestError"))
 				}
 
 				if(exists){
 					if(item.uuid !== existsUUID){
 						loading.dismiss()
 
-						return this.spawnToast(language.get(this.state.lang, "folderRenameAlreadyExists", true, ["__NAME__"], [newName]))
+						return spawnToast(language.get(self.state.lang, "folderRenameAlreadyExists", true, ["__NAME__"], [newName]))
 					}
 				}
 
 				try{
 					var res = await utils.apiRequest("POST", "/v1/dir/rename", {
-						apiKey: this.state.userAPIKey,
+						apiKey: self.state.userAPIKey,
 						uuid: item.uuid,
 						name: await utils.encryptMetadata(JSON.stringify({
 							name: newName,
-						}), this.state.userMasterKeys[this.state.userMasterKeys.length - 1]),
+						}), self.state.userMasterKeys[self.state.userMasterKeys.length - 1]),
 						nameHashed: utils.hashFn(newName.toLowerCase())
 					})
 				}
@@ -1986,21 +2016,21 @@ export async function renameItem(item){
 
 					loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+					return spawnToast(language.get(self.state.lang, "apiRequestError"))
 				}
 
 				if(!res.status){
 					loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "couldNotRenameFolder"))
+					return spawnToast(language.get(self.state.lang, "couldNotRenameFolder"))
 				}
 
-				utils.checkIfItemIsBeingSharedForRename("folder", item.uuid, {
+				return utils.checkIfItemIsBeingSharedForRename("folder", item.uuid, {
 					name: newName
 				}, () => {
 					loading.dismiss()
 
-					this.spawnToast(language.get(this.state.lang, "folderRenamed", true, ["__NAME__", "__TO__"], [item.name, newName]))
+					spawnToast(language.get(self.state.lang, "folderRenamed", true, ["__NAME__", "__TO__"], [item.name, newName]))
 
 					delete window.customVariables.cachedFolders[item.uuid]
 
@@ -2008,7 +2038,7 @@ export async function renameItem(item){
 
 					window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
 						if(utils.currentParentFolder() == parent){
-							this.updateItemList()
+							updateItemList(self)
 						}
 					}, 500)
 
@@ -2019,50 +2049,50 @@ export async function renameItem(item){
 	})
 }
 
-export async function moveSelectedItems(){
-	let items = await this.getSelectedItems()
+export async function moveSelectedItems(self){
+	let items = await getSelectedItems(self)
 
 	window.customFunctions.dismissPopover()
 	window.customFunctions.unselectAllItems()
 
-	this.spawnMoveToast((cancelled, destination) => {
+	return spawnMoveToast(self, (cancelled, destination) => {
 		if(cancelled){
 			return false
 		}
 
 		for(let i = 0; i < items.length; i++){
 			if(items[i].type == "file"){
-				this.moveFile(items[i], destination, true)
+				moveFile(self, items[i], destination, true)
 			}
 			else{
-				this.moveFolder(items[i], destination, true)
+				moveFolder(self, items[i], destination, true)
 			}
 		}
 	})
 }
 
-export async function trashSelectedItems(){
-	let items = await this.getSelectedItems()
+export async function trashSelectedItems(self){
+	let items = await getSelectedItems(self)
 
 	window.customFunctions.dismissPopover()
 	window.customFunctions.unselectAllItems()
 
 	let alert = await alertController.create({
-		header: language.get(this.state.lang, "trashItemHeader"),
-		message: language.get(this.state.lang, "trashItemsConfirmMessage", true, ["__COUNT__"], [items.length]),
+		header: language.get(self.state.lang, "trashItemHeader"),
+		message: language.get(self.state.lang, "trashItemsConfirmMessage", true, ["__COUNT__"], [items.length]),
 		buttons: [
 			{
-				text: language.get(this.state.lang, "cancel"),
+				text: language.get(self.state.lang, "cancel"),
 				role: "cancel",
 				handler: () => {
 					return false
 				}
 			},
 			{
-				text: language.get(this.state.lang, "alertOkButton"),
+				text: language.get(self.state.lang, "alertOkButton"),
 				handler: () => {
-					items.forEach((item) => {
-						this.trashItem(item, false)
+					return items.forEach((item) => {
+						trashItem(self, item, false)
 					})
 				}
 			}
@@ -2072,28 +2102,28 @@ export async function trashSelectedItems(){
 	return alert.present()
 }
 
-export async function restoreSelectedItems(){
-	let items = await this.getSelectedItems()
+export async function restoreSelectedItems(self){
+	let items = await getSelectedItems(self)
 
 	window.customFunctions.dismissPopover()
 	window.customFunctions.unselectAllItems()
 
 	let alert = await alertController.create({
-		header: language.get(this.state.lang, "restoreItemsHeader"),
-		message: language.get(this.state.lang, "restoreItemsConfirmMessage", true, ["__COUNT__"], [items.length]),
+		header: language.get(self.state.lang, "restoreItemsHeader"),
+		message: language.get(self.state.lang, "restoreItemsConfirmMessage", true, ["__COUNT__"], [items.length]),
 		buttons: [
 			{
-				text: language.get(this.state.lang, "cancel"),
+				text: language.get(self.state.lang, "cancel"),
 				role: "cancel",
 				handler: () => {
 					return false
 				}
 			},
 			{
-				text: language.get(this.state.lang, "alertOkButton"),
+				text: language.get(self.state.lang, "alertOkButton"),
 				handler: () => {
-					items.forEach((item) => {
-						this.restoreItem(item, false)
+					return items.forEach((item) => {
+						restoreItem(self, item, false)
 					})
 				}
 			}
@@ -2103,9 +2133,9 @@ export async function restoreSelectedItems(){
 	return alert.present()
 }
 
-export function getSelectedItems(){
+export function getSelectedItems(self){
 	return new Promise((resolve, reject) => {
-		let items = this.state.itemList.filter((item) => {
+		let items = self.state.itemList.filter((item) => {
 			return item.selected === true
 		})
 
@@ -2113,7 +2143,7 @@ export function getSelectedItems(){
 	})
 }
 
-export async function restoreItem(item, showLoader){
+export async function restoreItem(self, item, showLoader){
 	if(showLoader){
 		var loading = await loadingController.create({
 			message: "",
@@ -2124,7 +2154,7 @@ export async function restoreItem(item, showLoader){
 	}
 
 	if(item.type == "file"){
-		this.fileExists(item.name, item.parent, async (err, exists, existsUUID) => {
+		return fileExists(self, item.name, item.parent, async (err, exists, existsUUID) => {
 			if(err){
 				console.log(err)
 		
@@ -2132,7 +2162,7 @@ export async function restoreItem(item, showLoader){
 					loading.dismiss()
 				}
 		
-				return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+				return spawnToast(language.get(self.state.lang, "apiRequestError"))
 			}
 
 			if(exists){
@@ -2140,12 +2170,12 @@ export async function restoreItem(item, showLoader){
 					loading.dismiss()
 				}
 		
-				return this.spawnToast(language.get(this.state.lang, "fileExistsAtRestoreDestination", true, ["__NAME__"], [item.name]))
+				return spawnToast(language.get(self.state.lang, "fileExistsAtRestoreDestination", true, ["__NAME__"], [item.name]))
 			}
 
 			try{
 				var res = await utils.apiRequest("POST", "/v1/file/restore", {
-					apiKey: this.state.userAPIKey,
+					apiKey: self.state.userAPIKey,
 					uuid: item.uuid
 				})
 			}
@@ -2156,7 +2186,7 @@ export async function restoreItem(item, showLoader){
 					loading.dismiss()
 				}
 		
-				return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+				return spawnToast(language.get(self.state.lang, "apiRequestError"))
 			}
 		
 			if(!res.status){
@@ -2164,7 +2194,7 @@ export async function restoreItem(item, showLoader){
 					loading.dismiss()
 				}
 		
-				return this.spawnToast(language.get(this.state.lang, "couldNotRestoreItem", true, ["__NAME__"], [item.name]))
+				return spawnToast(language.get(self.state.lang, "couldNotRestoreItem", true, ["__NAME__"], [item.name]))
 			}
 		
 			if(showLoader){
@@ -2174,14 +2204,14 @@ export async function restoreItem(item, showLoader){
 			clearTimeout(window.customVariables.reloadAfterActionTimeout)
 		
 			window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-				this.updateItemList()
+				updateItemList(self)
 			}, 500)
 		
-			return this.spawnToast(language.get(this.state.lang, "itemRestored", true, ["__NAME__"], [item.name]))
+			return spawnToast(language.get(self.state.lang, "itemRestored", true, ["__NAME__"], [item.name]))
 		})
 	}
 	else{
-		this.dirExists(item.name, item.parent, async (err, exists, existsUUID) => {
+		return dirExists(self, item.name, item.parent, async (err, exists, existsUUID) => {
 			if(err){
 				console.log(err)
 		
@@ -2189,7 +2219,7 @@ export async function restoreItem(item, showLoader){
 					loading.dismiss()
 				}
 		
-				return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+				return spawnToast(language.get(self.state.lang, "apiRequestError"))
 			}
 
 			if(exists){
@@ -2197,12 +2227,12 @@ export async function restoreItem(item, showLoader){
 					loading.dismiss()
 				}
 		
-				return this.spawnToast(language.get(this.state.lang, "folderExistsAtRestoreDestination", true, ["__NAME__"], [item.name]))
+				return spawnToast(language.get(self.state.lang, "folderExistsAtRestoreDestination", true, ["__NAME__"], [item.name]))
 			}
 
 			try{
 				var res = await utils.apiRequest("POST", "/v1/dir/restore", {
-					apiKey: this.state.userAPIKey,
+					apiKey: self.state.userAPIKey,
 					uuid: item.uuid
 				})
 			}
@@ -2213,7 +2243,7 @@ export async function restoreItem(item, showLoader){
 					loading.dismiss()
 				}
 		
-				return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+				return spawnToast(language.get(self.state.lang, "apiRequestError"))
 			}
 		
 			if(!res.status){
@@ -2221,7 +2251,7 @@ export async function restoreItem(item, showLoader){
 					loading.dismiss()
 				}
 		
-				return this.spawnToast(language.get(this.state.lang, "couldNotRestoreItem", true, ["__NAME__"], [item.name]))
+				return spawnToast(language.get(self.state.lang, "couldNotRestoreItem", true, ["__NAME__"], [item.name]))
 			}
 		
 			if(showLoader){
@@ -2231,18 +2261,18 @@ export async function restoreItem(item, showLoader){
 			clearTimeout(window.customVariables.reloadAfterActionTimeout)
 		
 			window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-				this.updateItemList()
+				updateItemList(self)
 			}, 500)
 		
-			return this.spawnToast(language.get(this.state.lang, "itemRestored", true, ["__NAME__"], [item.name]))
+			return spawnToast(language.get(self.state.lang, "itemRestored", true, ["__NAME__"], [item.name]))
 		})
 	}
 }
 
-export async function trashItem(item, showLoader){
+export async function trashItem(self, item, showLoader){
 	if(utils.currentParentFolder() == "base"){
 		if(item.uuid == "default" || item.name.toLowerCase() == "filen sync"){
-			return this.spawnToast(language.get(this.state.lang, "cannotTrashItem", true, ["__NAME__"], [item.name]))
+			return spawnToast(language.get(self.state.lang, "cannotTrashItem", true, ["__NAME__"], [item.name]))
 		}
 	}
 
@@ -2258,13 +2288,13 @@ export async function trashItem(item, showLoader){
 	try{
 		if(item.type == "file"){
 			var res = await utils.apiRequest("POST", "/v1/file/trash", {
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				uuid: item.uuid
 			})
 		}
 		else{
 			var res = await utils.apiRequest("POST", "/v1/dir/trash", {
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				uuid: item.uuid
 			})
 		}
@@ -2276,7 +2306,7 @@ export async function trashItem(item, showLoader){
 			loading.dismiss()
 		}
 
-		return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+		return spawnToast(language.get(self.state.lang, "apiRequestError"))
 	}
 
 	if(!res.status){
@@ -2284,7 +2314,7 @@ export async function trashItem(item, showLoader){
 			loading.dismiss()
 		}
 
-		return this.spawnToast(language.get(this.state.lang, "couldNotTrashItem", true, ["__NAME__"], [item.name]))
+		return spawnToast(language.get(self.state.lang, "couldNotTrashItem", true, ["__NAME__"], [item.name]))
 	}
 
 	if(showLoader){
@@ -2294,15 +2324,15 @@ export async function trashItem(item, showLoader){
 	clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
 	window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-		this.updateItemList()
+		updateItemList(self)
 	}, 500)
 
-	return this.spawnToast(language.get(this.state.lang, "itemTrashed", true, ["__NAME__"], [item.name]))
+	return spawnToast(language.get(self.state.lang, "itemTrashed", true, ["__NAME__"], [item.name]))
 }
 
-export async function shareItemWithEmail(email, uuid, type, callback){
-	if(email == this.state.userEmail){
-		return callback(language.get(this.state.lang, "cannotShareWithSelf"))
+export async function shareItemWithEmail(self, email, uuid, type, callback){
+	if(email == self.state.userEmail){
+		return callback(language.get(self.state.lang, "cannotShareWithSelf"))
 	}
 
 	let loading = await loadingController.create({
@@ -2334,13 +2364,13 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 	if(userPubKey == null){
 		loading.dismiss()
 
-		return callback(language.get(this.state.lang, "shareItemUserNotFound", true, ["__EMAIL__"], [email]))
+		return callback(language.get(self.state.lang, "shareItemUserNotFound", true, ["__EMAIL__"], [email]))
 	}
 
 	if(userPubKey.length <= 1){
 		loading.dismiss()
 
-		return callback(language.get(this.state.lang, "shareItemUserNotFound", true, ["__EMAIL__"], [email]))
+		return callback(language.get(self.state.lang, "shareItemUserNotFound", true, ["__EMAIL__"], [email]))
 	}
 
 	try{
@@ -2359,7 +2389,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		if(typeof window.customVariables.cachedFiles[uuid] == "undefined"){
 			loading.dismiss()
 
-			return callback(language.get(this.state.lang, "shareItemFileNotFound", true, ["__NAME__"], [uuid]))
+			return callback(language.get(self.state.lang, "shareItemFileNotFound", true, ["__NAME__"], [uuid]))
 		}
 
 		let fileName = window.customVariables.cachedFiles[uuid].name
@@ -2385,7 +2415,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 
 		try{
 			var res = await utils.apiRequest("POST", "/v1/share", {
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				uuid,
 				parent: "none",
 				email,
@@ -2412,7 +2442,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 	else{
 		try{
 			var res = await utils.apiRequest("POST", "/v1/download/dir", {
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				uuid
 			})
 		}
@@ -2436,11 +2466,11 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		if((files.length + folders.length) > 10000){
 			loading.dismiss()
 
-			return callback(language.get(this.state.lang, "shareTooBigForApp"))
+			return callback(language.get(self.state.lang, "shareTooBigForApp"))
 		}
 
 		for(let i = 0; i < files.length; i++){
-			let metadata = await utils.decryptFileMetadata(files[i].metadata, this.state.userMasterKeys, files[i].uuid)
+			let metadata = await utils.decryptFileMetadata(files[i].metadata, self.state.userMasterKeys, files[i].uuid)
 
 			if(metadata.key.length > 0){
 				shareItems.push({
@@ -2459,7 +2489,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 		}
 
 		for(let i = 0; i < folders.length; i++){
-			let dirName = await utils.decryptFolderName(folders[i].name, this.state.userMasterKeys, folders[i].uuid)
+			let dirName = await utils.decryptFolderName(folders[i].name, self.state.userMasterKeys, folders[i].uuid)
 
 			if(dirName.length > 0){
 				shareItems.push({
@@ -2477,7 +2507,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 
 		const shareItemRequest = async (data, tries, maxTries, cb) => {
 			if(tries >= maxTries){
-				return cb(language.get(this.state.lang, "apiRequestError"))
+				return cb(language.get(self.state.lang, "apiRequestError"))
 			}
 
 			try{
@@ -2523,7 +2553,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 			}
 
 			shareItemRequest({
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				uuid: item.uuid,
 				parent: item.parent,
 				email: email,
@@ -2539,7 +2569,7 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 				window.customVariables.shareItemSemaphore.release()
 				itemsShared += 1
 
-				loading.message = language.get(this.state.lang, "sharedItemsCount", true, ["__SHARED__", "__TOTAL__"], [itemsShared, shareItems.length])
+				loading.message = language.get(self.state.lang, "sharedItemsCount", true, ["__SHARED__", "__TOTAL__"], [itemsShared, shareItems.length])
 
 				if(itemsShared == shareItems.length){
 					loading.dismiss()
@@ -2551,20 +2581,20 @@ export async function shareItemWithEmail(email, uuid, type, callback){
 	}
 }
 
-export async function shareSelectedItems(){
-	let items = await this.getSelectedItems()
+export async function shareSelectedItems(self){
+	let items = await getSelectedItems(self)
 
 	window.customFunctions.dismissPopover()
 	window.customFunctions.unselectAllItems()
 
 	let alert = await alertController.create({
-        header: language.get(this.state.lang, "shareItems"),
+        header: language.get(self.state.lang, "shareItems"),
         inputs: [
             {
                 type: "text",
                 id: "share-items-email-input",
 				name: "share-items-email-input",
-				placeholder: language.get(this.state.lang, "receiverEmail"),
+				placeholder: language.get(self.state.lang, "receiverEmail"),
 				attributes: {
 					autoCapitalize: "off",
 					autoComplete: "off"
@@ -2573,14 +2603,14 @@ export async function shareSelectedItems(){
         ],
         buttons: [
             {
-                text: language.get(this.state.lang, "cancel"),
+                text: language.get(self.state.lang, "cancel"),
                 role: "cancel",
                 handler: () => {
                     return false
                 }
             },
             {
-                text: language.get(this.state.lang, "alertOkButton"),
+                text: language.get(self.state.lang, "alertOkButton"),
                 handler: async (inputs) => {
 					let email = inputs['share-items-email-input']
 
@@ -2590,24 +2620,26 @@ export async function shareSelectedItems(){
 						let item = items[i]
 
 						if(item.type == "folder" && item.uuid == "default"){
-							this.spawnToast(language.get(this.state.lang, "cannotShareDefaultFolder"))
+							spawnToast(language.get(self.state.lang, "cannotShareDefaultFolder"))
 						}
 						else{
-							this.shareItemWithEmail(email, item.uuid, item.type, (err) => {
+							shareItemWithEmail(self, email, item.uuid, item.type, (err) => {
 								if(err){
 									console.log(err)
 	
-									this.spawnToast(err.toString())
+									spawnToast(err.toString())
 								}
 	
 								itemsShared += 1
 	
 								if(itemsShared >= items.length){
-									return this.spawnToast(language.get(this.state.lang, "itemsShared", true, ["__COUNT__", "__EMAIL__"], [items.length, email]))
+									return spawnToast(language.get(self.state.lang, "itemsShared", true, ["__COUNT__", "__EMAIL__"], [items.length, email]))
 								}
 							})
 						}
 					}
+
+					return true
                 }
             }
         ]
@@ -2624,19 +2656,19 @@ export async function shareSelectedItems(){
 	return true
 }
 
-export async function shareItem(item){
+export async function shareItem(self, item){
 	if(item.type == "folder" && item.uuid == "default"){
-		return this.spawnToast(language.get(this.state.lang, "cannotShareDefaultFolder"))
+		return spawnToast(language.get(self.state.lang, "cannotShareDefaultFolder"))
 	}
 
 	let alert = await alertController.create({
-        header: item.type == "file" ? language.get(this.state.lang, "shareFile") : language.get(this.state.lang, "shareFolder"),
+        header: item.type == "file" ? language.get(self.state.lang, "shareFile") : language.get(self.state.lang, "shareFolder"),
         inputs: [
             {
                 type: "text",
                 id: "share-item-email-input",
 				name: "share-item-email-input",
-				placeholder: language.get(this.state.lang, "receiverEmail"),
+				placeholder: language.get(self.state.lang, "receiverEmail"),
 				attributes: {
 					autoCapitalize: "off",
 					autoComplete: "off"
@@ -2645,25 +2677,25 @@ export async function shareItem(item){
         ],
         buttons: [
             {
-                text: language.get(this.state.lang, "cancel"),
+                text: language.get(self.state.lang, "cancel"),
                 role: "cancel",
                 handler: () => {
                     return false
                 }
             },
             {
-                text: language.get(this.state.lang, "alertOkButton"),
+                text: language.get(self.state.lang, "alertOkButton"),
                 handler: (inputs) => {
 					let email = inputs['share-item-email-input']
 
-                    this.shareItemWithEmail(email, item.uuid, item.type, (err) => {
+                    return shareItemWithEmail(self, email, item.uuid, item.type, (err) => {
 						if(err){
 							console.log(err)
 
-							return this.spawnToast(err.toString())
+							return spawnToast(err.toString())
 						}
 
-						return this.spawnToast(language.get(this.state.lang, "itemShared", true, ["__NAME__", "__WITH__"], [item.name, email]))
+						return spawnToast(language.get(self.state.lang, "itemShared", true, ["__NAME__", "__WITH__"], [item.name, email]))
 					})
                 }
             }
@@ -2681,9 +2713,9 @@ export async function shareItem(item){
 	return true
 }
 
-export async function openPublicLinkModal(item){
+export async function openPublicLinkModal(self, item){
 	if(item.uuid == "default"){
-		return this.spawnToast(language.get(this.state.lang, "cannotCreatePublicLinkFolder"))
+		return spawnToast(language.get(self.state.lang, "cannotCreatePublicLinkFolder"))
 	}
 
 	let loading = await loadingController.create({
@@ -2696,7 +2728,7 @@ export async function openPublicLinkModal(item){
 	if(item.type == "file"){
 		try{
 			var res = await utils.apiRequest("POST", "/v1/link/status", {
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				fileUUID: item.uuid
 			})
 		}
@@ -2705,7 +2737,7 @@ export async function openPublicLinkModal(item){
 	
 			loading.dismiss()
 	
-			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+			return spawnToast(language.get(self.state.lang, "apiRequestError"))
 		}
 	
 		if(!res.status){
@@ -2713,13 +2745,13 @@ export async function openPublicLinkModal(item){
 	
 			loading.dismiss()
 	
-			return this.spawnToast(res.message)
+			return spawnToast(res.message)
 		}
 	
 		loading.dismiss()
 	
-		let appLang = this.state.lang
-		let appDarkMode = this.state.darkMode
+		let appLang = self.state.lang
+		let appDarkMode = self.state.darkMode
 		let modalId = "public-link-modal-" + utils.generateRandomClassName()
 	
 		customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -2815,13 +2847,13 @@ export async function openPublicLinkModal(item){
 	
 		await modal.present()
 
-		this.setupStatusbar("modal")
+		setupStatusbar(self, "modal")
 
 		try{
 			let sModal = await modalController.getTop()
 
 			sModal.onDidDismiss().then(() => {
-				this.setupStatusbar()
+				setupStatusbar(self)
 			})
 		}
 		catch(e){
@@ -2833,7 +2865,7 @@ export async function openPublicLinkModal(item){
 	else{
 		try{
 			var res = await utils.apiRequest("POST", "/v1/dir/link/status", {
-				apiKey: this.state.userAPIKey,
+				apiKey: self.state.userAPIKey,
 				uuid: item.uuid
 			})
 		}
@@ -2842,7 +2874,7 @@ export async function openPublicLinkModal(item){
 	
 			loading.dismiss()
 	
-			return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+			return spawnToast(language.get(self.state.lang, "apiRequestError"))
 		}
 	
 		if(!res.status){
@@ -2850,14 +2882,14 @@ export async function openPublicLinkModal(item){
 	
 			loading.dismiss()
 	
-			return this.spawnToast(res.message)
+			return spawnToast(res.message)
 		}
 	
 		loading.dismiss()
 	
-		let appLang = this.state.lang
-		let appDarkMode = this.state.darkMode
-		let appUserMasterKeys = this.state.userMasterKeys
+		let appLang = self.state.lang
+		let appDarkMode = self.state.darkMode
+		let appUserMasterKeys = self.state.userMasterKeys
 		let modalId = "public-link-modal-" + utils.generateRandomClassName()
 
 		let linkKey = await utils.decryptFolderLinkKey(res.data.key, appUserMasterKeys)
@@ -2955,13 +2987,13 @@ export async function openPublicLinkModal(item){
 	
 		await modal.present()
 
-		this.setupStatusbar("modal")
+		setupStatusbar(self, "modal")
 
 		try{
 			let sModal = await modalController.getTop()
 
 			sModal.onDidDismiss().then(() => {
-				this.setupStatusbar()
+				setupStatusbar(self)
 			})
 		}
 		catch(e){
@@ -2972,13 +3004,13 @@ export async function openPublicLinkModal(item){
 	}
 }
 
-export function makeItemAvailableOffline(offline, item, openAfterDownload = false){
+export function makeItemAvailableOffline(self, offline, item, openAfterDownload = false){
 	if(!offline){
-		window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory + "/offlineFiles/" + item.uuid, (resolved) => {
-			resolved.remove(() => {
+		return window.resolveLocalFileSystemURL(window.cordova.file.dataDirectory + "/offlineFiles/" + item.uuid, (resolved) => {
+			return resolved.remove(() => {
 				delete window.customVariables.offlineSavedFiles[item.uuid]
 
-				let items = this.state.itemList
+				let items = self.state.itemList
 				let windowItems = window.customVariables.itemList
 
 				for(let i = 0; i < items.length; i++){
@@ -2993,7 +3025,7 @@ export function makeItemAvailableOffline(offline, item, openAfterDownload = fals
 					}
 				}
 
-				this.setState({
+				self.setState({
 					itemList: items
 				})
 
@@ -3003,26 +3035,26 @@ export function makeItemAvailableOffline(offline, item, openAfterDownload = fals
 					window.customVariables.cachedFiles[item.uuid].offline = false
 				}
 
-				this.spawnToast(language.get(this.state.lang, "fileDeletedFromOfflineStorage", true, ["__NAME__"], [item.name]))
+				spawnToast(language.get(self.state.lang, "fileDeletedFromOfflineStorage", true, ["__NAME__"], [item.name]))
 
 				window.customFunctions.saveOfflineSavedFiles()
 
-				return this.forceUpdate()
+				return self.forceUpdate()
 			}, (err) => {
 				console.log(err)
 	
-				return this.spawnToast(language.get(this.state.lang, "couldNotDeleteDownloadedFile", true, ["__NAME__"], [item.name]))
+				return spawnToast(language.get(self.state.lang, "couldNotDeleteDownloadedFile", true, ["__NAME__"], [item.name]))
 			})
 		}, (err) => {
 			console.log(err)
 	
-			return this.spawnToast(language.get(this.state.lang, "couldNotGetDownloadDir"))
+			return spawnToast(language.get(self.state.lang, "couldNotGetDownloadDir"))
 		})
 	}
 	else{
 		let nItem = item
 
-		return this.queueFileDownload(nItem, true, () => {
+		return queueFileDownload(self, nItem, true, () => {
 			if(openAfterDownload){
 				window.customFunctions.openOfflineFile(nItem)
 			}
@@ -3030,7 +3062,7 @@ export function makeItemAvailableOffline(offline, item, openAfterDownload = fals
 	}
 }
 
-export async function removeSharedInItem(item, showLoader){
+export async function removeSharedInItem(self, item, showLoader){
 	if(showLoader){
 		var loading = await loadingController.create({
 			message: "",
@@ -3042,7 +3074,7 @@ export async function removeSharedInItem(item, showLoader){
 
 	try{
 		var res = await utils.apiRequest("POST", "/v1/user/shared/item/in/remove", {
-			apiKey: this.state.userAPIKey,
+			apiKey: self.state.userAPIKey,
 			uuid: item.uuid,
 			receiverId: 0
 		})
@@ -3054,7 +3086,7 @@ export async function removeSharedInItem(item, showLoader){
 			loading.dismiss()
 		}
 
-		return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+		return spawnToast(language.get(self.state.lang, "apiRequestError"))
 	}
 
 	if(!res.status){
@@ -3064,7 +3096,7 @@ export async function removeSharedInItem(item, showLoader){
 			loading.dismiss()
 		}
 
-		return this.spawnToast(res.message)
+		return spawnToast(res.message)
 	}
 
 	if(showLoader){
@@ -3074,13 +3106,13 @@ export async function removeSharedInItem(item, showLoader){
 	clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
 	window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-		this.updateItemList()
+		updateItemList(self)
 	}, 500)
 
-	return this.spawnToast(language.get(this.state.lang, "itemRemovedFromSharedIn", true, ["__NAME__"], [item.name]))
+	return spawnToast(language.get(self.state.lang, "itemRemovedFromSharedIn", true, ["__NAME__"], [item.name]))
 }
 
-export async function stopSharingItem(item, showLoader){
+export async function stopSharingItem(self, item, showLoader){
 	if(showLoader){
 		var loading = await loadingController.create({
 			message: "",
@@ -3092,7 +3124,7 @@ export async function stopSharingItem(item, showLoader){
 
 	try{
 		var res = await utils.apiRequest("POST", "/v1/user/shared/item/out/remove", {
-			apiKey: this.state.userAPIKey,
+			apiKey: self.state.userAPIKey,
 			uuid: item.uuid,
 			receiverId: item.receiverId
 		})
@@ -3104,7 +3136,7 @@ export async function stopSharingItem(item, showLoader){
 			loading.dismiss()
 		}
 
-		return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+		return spawnToast(language.get(self.state.lang, "apiRequestError"))
 	}
 
 	if(!res.status){
@@ -3114,7 +3146,7 @@ export async function stopSharingItem(item, showLoader){
 			loading.dismiss()
 		}
 
-		return this.spawnToast(res.message)
+		return spawnToast(res.message)
 	}
 
 	if(showLoader){
@@ -3124,14 +3156,14 @@ export async function stopSharingItem(item, showLoader){
 	clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
 	window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-		this.updateItemList()
+		updateItemList(self)
 	}, 500)
 
-	return this.spawnToast(language.get(this.state.lang, "itemStoppedSharing", true, ["__NAME__"], [item.name]))
+	return spawnToast(language.get(self.state.lang, "itemStoppedSharing", true, ["__NAME__"], [item.name]))
 }
 
-export async function removeSelectedItemsFromSharedIn(){
-	let items = await this.getSelectedItems()
+export async function removeSelectedItemsFromSharedIn(self){
+	let items = await getSelectedItems(self)
 
 	window.customFunctions.dismissPopover()
 	window.customFunctions.unselectAllItems()
@@ -3139,14 +3171,14 @@ export async function removeSelectedItemsFromSharedIn(){
 	for(let i = 0; i < items.length; i++){
 		let item = items[i]
 
-		this.removeSharedInItem(item, false)
+		removeSharedInItem(self, item, false)
 	}
 
 	return true
 }
 
-export async function stopSharingSelectedItems(){
-	let items = await this.getSelectedItems()
+export async function stopSharingSelectedItems(self){
+	let items = await getSelectedItems(self)
 
 	window.customFunctions.dismissPopover()
 	window.customFunctions.unselectAllItems()
@@ -3154,31 +3186,14 @@ export async function stopSharingSelectedItems(){
 	for(let i = 0; i < items.length; i++){
 		let item = items[i]
 
-		this.stopSharingItem(item, false)
+		stopSharingItem(self, item, false)
 	}
 
 	return true
 }
 
-export async function downloadSelectedItems(){
-	let items = await this.getSelectedItems()
-
-	window.customFunctions.dismissPopover()
-	window.customFunctions.unselectAllItems()
-
-	for(let i = 0; i < items.length; i++){
-		let item = items[i]
-
-		if(item.type == "file"){
-			this.queueFileDownload(item)
-		}
-	}
-
-	return true
-}
-
-export async function storeSelectedItemsOffline(){
-	let items = await this.getSelectedItems()
+export async function downloadSelectedItems(self){
+	let items = await getSelectedItems(self)
 
 	window.customFunctions.dismissPopover()
 	window.customFunctions.unselectAllItems()
@@ -3187,20 +3202,37 @@ export async function storeSelectedItemsOffline(){
 		let item = items[i]
 
 		if(item.type == "file"){
-			this.queueFileDownload(item, true)
+			queueFileDownload(self, item)
 		}
 	}
 
 	return true
 }
 
-export async function colorItem(item){
+export async function storeSelectedItemsOffline(self){
+	let items = await getSelectedItems(self)
+
+	window.customFunctions.dismissPopover()
+	window.customFunctions.unselectAllItems()
+
+	for(let i = 0; i < items.length; i++){
+		let item = items[i]
+
+		if(item.type == "file"){
+			queueFileDownload(self, item, true)
+		}
+	}
+
+	return true
+}
+
+export async function colorItem(self, item){
 	if(item.uuid == "default"){
-		return this.spawnToast(language.get(this.state.lang, "thisFolderCannotBeColored")) 
+		return spawnToast(language.get(self.state.lang, "thisFolderCannotBeColored")) 
 	}
 
-	let appLang = this.state.lang
-	let appDarkMode = this.state.darkMode
+	let appLang = self.state.lang
+	let appDarkMode = self.state.darkMode
 	let modalId = "color-item-modal-" + utils.generateRandomClassName()
 
 	customElements.define(modalId, class ModalContent extends HTMLElement {
@@ -3242,13 +3274,13 @@ export async function colorItem(item){
 
 	await modal.present()
 
-	this.setupStatusbar("modal")
+	setupStatusbar(self, "modal")
 
 	try{
 		let sModal = await modalController.getTop()
 
 		sModal.onDidDismiss().then(() => {
-			this.setupStatusbar()
+			setupStatusbar(self)
 		})
 	}
 	catch(e){
@@ -3258,7 +3290,7 @@ export async function colorItem(item){
 	return true
 }
 
-export async function favoriteItemRequest(item, value, showLoader = true){
+export async function favoriteItemRequest(self, item, value, showLoader = true){
 	if(showLoader){
 		var loading = await loadingController.create({
 			message: "",
@@ -3270,7 +3302,7 @@ export async function favoriteItemRequest(item, value, showLoader = true){
 
 	try{
 		var res = await utils.apiRequest("POST", "/v1/item/favorite", {
-			apiKey: this.state.userAPIKey,
+			apiKey: self.state.userAPIKey,
 			uuid: item.uuid,
 			type: item.type,
 			value
@@ -3284,7 +3316,7 @@ export async function favoriteItemRequest(item, value, showLoader = true){
 		}
 
 		return {
-			err: language.get(this.state.lang, "apiRequestError")
+			err: language.get(self.state.lang, "apiRequestError")
 		}
 	}
 
@@ -3309,15 +3341,15 @@ export async function favoriteItemRequest(item, value, showLoader = true){
 	}
 }
 
-export async function favoriteItem(item, value, showLoader = true){
+export async function favoriteItem(self, item, value, showLoader = true){
 	if(item.uuid == "default" || item.uuid == null){
 		return false
 	}
 
-	let req = await this.favoriteItemRequest(item, value, showLoader)
+	let req = await favoriteItemRequest(self, item, value, showLoader)
 
 	if(req.err){
-		this.spawnToast(req.err)
+		spawnToast(req.err)
 
 		return false
 	}
@@ -3327,12 +3359,12 @@ export async function favoriteItem(item, value, showLoader = true){
 			clearTimeout(window.customVariables.reloadAfterActionTimeout)
 
 			window.customVariables.reloadAfterActionTimeout = setTimeout(() => {
-				this.updateItemList()
+				updateItemList(self)
 			}, 500)
 		}
 	}
 
-	let items = this.state.itemList
+	let items = self.state.itemList
 
 	for(let i = 0; i < items.length; i++){
 		if(items[i].uuid == item.uuid){
@@ -3342,16 +3374,16 @@ export async function favoriteItem(item, value, showLoader = true){
 
 	window.customVariables.itemList = items
 
-	this.setState({
+	self.setState({
 		itemList: items
 	}, () => {
-		this.forceUpdate()
+		self.forceUpdate()
 	})
 
 	return true
 }
 
-export async function spawnItemActionSheet(item){
+export async function spawnItemActionSheet(self, item){
 	window.$("#main-searchbar").find("input").blur()
 
 	let isDeviceOnline = window.customFunctions.isDeviceOnline()
@@ -3364,12 +3396,12 @@ export async function spawnItemActionSheet(item){
 	let canSaveToGallery = false
 
 	if(isPlatform("ios")){
-		if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mp4", "mov", "hevc"].includes(ext)){
+		if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mp4", "mov", "hevc"].includes(ext) && item.size <= (1024 * 1024 * 32)){
 			canSaveToGallery = true
 		}
 	}
 	else{
-		if(["jpg", "jpeg", "png", "gif", "mp4", "mov"].includes(ext)){
+		if(["jpg", "jpeg", "png", "gif", "mp4", "mov"].includes(ext) && item.size <= (1024 * 1024 * 32)){
 			canSaveToGallery = true
 		}
 	}
@@ -3382,17 +3414,17 @@ export async function spawnItemActionSheet(item){
 	let options = {}
 
 	options['removeFromShared'] = {
-		text: language.get(this.state.lang, "removeFromShared"),
+		text: language.get(self.state.lang, "removeFromShared"),
 		icon: Ionicons.stopCircleOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
-			this.removeSharedInItem(item, false)
+			removeSharedInItem(self, item, false)
 		}
 	}
 
 	options['cancel'] = {
-		text: language.get(this.state.lang, "cancel"),
+		text: language.get(self.state.lang, "cancel"),
 		icon: Ionicons.closeOutline,
 		handler: async () => {
 			return actionSheet.dismiss()
@@ -3400,88 +3432,88 @@ export async function spawnItemActionSheet(item){
 	}
 
 	options['stopSharing'] = {
-		text: language.get(this.state.lang, "stopSharing"),
+		text: language.get(self.state.lang, "stopSharing"),
 		icon: Ionicons.stopCircleOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
-			this.stopSharingItem(item, false)
+			stopSharingItem(self, item, false)
 		}
 	}
 
 	options['restore'] = {
-		text: language.get(this.state.lang, "restoreItem"),
+		text: language.get(self.state.lang, "restoreItem"),
 		icon: Ionicons.bagAddOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
-			return this.restoreItem(item, false)
+			return restoreItem(self, item, false)
 		}
 	}
 
 	options['publicLink'] = {
-		text: language.get(this.state.lang, "itemPublicLink"),
+		text: language.get(self.state.lang, "itemPublicLink"),
 		icon: Ionicons.linkOutline,
 		handler: async () => {
 			await window.customFunctions.dismissModal()
 			await window.customFunctions.dismissActionSheet()
 
-			return this.openPublicLinkModal(item)
+			return openPublicLinkModal(self, item)
 		}
 	}
 
 	options['share'] = {
-		text: language.get(this.state.lang, "shareItem"),
+		text: language.get(self.state.lang, "shareItem"),
 		icon: Ionicons.shareSocialOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
-			return this.shareItem(item)
+			return shareItem(self, item)
 		}
 	}
 
 	options['move'] = {
-		text: language.get(this.state.lang, "moveItem"),
+		text: language.get(self.state.lang, "moveItem"),
 		icon: Ionicons.moveOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
-			return this.moveItem(item)
+			return moveItem(self, item)
 		}
 	}
 
 	options['rename'] = {
-		text: language.get(this.state.lang, "renameItem"),
+		text: language.get(self.state.lang, "renameItem"),
 		icon: Ionicons.textOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
-			return this.renameItem(item)
+			return renameItem(self, item)
 		}
 	}
 
 	options['color'] = {
-		text: language.get(this.state.lang, "colorItem"),
+		text: language.get(self.state.lang, "colorItem"),
 		icon: Ionicons.colorFillOutline,
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
-			return this.colorItem(item)
+			return colorItem(self, item)
 		}
 	}
 
 	options['trash'] = {
-		text: language.get(this.state.lang, "trashItem"),
+		text: language.get(self.state.lang, "trashItem"),
 		icon: Ionicons.trashOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
-			return this.trashItem(item, false)
+			return trashItem(self, item, false)
 		}
 	}
 
 	options['versions'] = {
-		text: language.get(this.state.lang, "itemVersions"),
+		text: language.get(self.state.lang, "itemVersions"),
 		icon: Ionicons.timeOutline,
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
@@ -3491,16 +3523,16 @@ export async function spawnItemActionSheet(item){
 	}
 
 	options['download'] = {
-		text: language.get(this.state.lang, "downloadItem"),
+		text: language.get(self.state.lang, "downloadItem"),
 		icon: Ionicons.downloadOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			if(isPlatform("ios")){
-				return this.queueFileDownload(item)
+				return queueFileDownload(self, item)
 			}
 
-			this.queueFileDownload(item, true, undefined, false, async (err, downloadedPath) => {
+			queueFileDownload(self, item, true, undefined, false, async (err, downloadedPath) => {
 				if(err){
 					return console.log(err)
 				}
@@ -3510,7 +3542,7 @@ export async function spawnItemActionSheet(item){
 						path: downloadedPath,
 						filename: item.name
 					}).then(() => {
-						this.spawnToast(language.get(this.state.lang, "fileDownloadDone", true, ["__NAME__"], [item.name]))
+						spawnToast(language.get(self.state.lang, "fileDownloadDone", true, ["__NAME__"], [item.name]))
 					
 						resolved.remove(() => {
 							console.log(item.name + " downloaded")
@@ -3520,10 +3552,10 @@ export async function spawnItemActionSheet(item){
 					}).catch((err) => {
 						console.log(err)
 
-						return this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [item.name]))
+						return spawnToast(language.get(self.state.lang, "fileDownloadError", true, ["__NAME__"], [item.name]))
 					})
 				}, (err) => {
-					this.spawnToast(language.get(this.state.lang, "fileDownloadError", true, ["__NAME__"], [item.name]))
+					spawnToast(language.get(self.state.lang, "fileDownloadError", true, ["__NAME__"], [item.name]))
 								
 					return console.log(err)
 				})
@@ -3532,12 +3564,12 @@ export async function spawnItemActionSheet(item){
 	}
 
 	options['saveToGallery'] = {
-		text: language.get(this.state.lang, "saveToGallery"),
+		text: language.get(self.state.lang, "saveToGallery"),
 		icon: Ionicons.imageOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
-			this.queueFileDownload(item, true, undefined, false, async (err, downloadedPath, doDelete) => {
+			queueFileDownload(self, item, true, undefined, false, async (err, downloadedPath, doDelete) => {
 				if(err){
 					return console.log(err)
 				}
@@ -3572,7 +3604,7 @@ export async function spawnItemActionSheet(item){
 
 					loading.dismiss()
 
-					return this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+					return spawnToast(language.get(self.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 				}
 
 				let savePayload = {
@@ -3586,7 +3618,7 @@ export async function spawnItemActionSheet(item){
 				window.resolveLocalFileSystemURL(downloadedPath, (resolved) => {
 					if(previewType == "video"){
 						Media.saveVideo(savePayload).then(() => {
-							this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
+							spawnToast(language.get(self.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 							if(doDelete){
 								resolved.remove(() => {
@@ -3598,7 +3630,7 @@ export async function spawnItemActionSheet(item){
 								})
 							}
 						}).catch((err) => {
-							this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+							spawnToast(language.get(self.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 
 							loading.dismiss()
 
@@ -3608,7 +3640,7 @@ export async function spawnItemActionSheet(item){
 					else{
 						if(ext == "gif"){
 							Media.saveGif(savePayload).then(() => {
-								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
+								spawnToast(language.get(self.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 								if(doDelete){
 									resolved.remove(() => {
@@ -3620,14 +3652,14 @@ export async function spawnItemActionSheet(item){
 									})
 								}
 							}).catch((err) => {
-								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+								spawnToast(language.get(self.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 								
 								return console.log(err)
 							})
 						}
 						else{
 							Media.savePhoto(savePayload).then(() => {
-								this.spawnToast(language.get(this.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
+								spawnToast(language.get(self.state.lang, "fileSavedToGallery", true, ["__NAME__"], [item.name]))
 
 								if(doDelete){
 									resolved.remove(() => {
@@ -3639,7 +3671,7 @@ export async function spawnItemActionSheet(item){
 									})
 								}
 							}).catch((err) => {
-								this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+								spawnToast(language.get(self.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 
 								loading.dismiss()
 
@@ -3648,7 +3680,7 @@ export async function spawnItemActionSheet(item){
 						}
 					}
 				}, (err) => {
-					this.spawnToast(language.get(this.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
+					spawnToast(language.get(self.state.lang, "fileSavedToGalleryError", true, ["__NAME__"], [item.name]))
 							
 					loading.dismiss()
 
@@ -3659,22 +3691,22 @@ export async function spawnItemActionSheet(item){
 	}
 
 	options['offline'] = {
-		text: item.offline ? language.get(this.state.lang, "removeItemFromOffline") : language.get(this.state.lang, "makeItemAvailableOffline"),
+		text: item.offline ? language.get(self.state.lang, "removeItemFromOffline") : language.get(self.state.lang, "makeItemAvailableOffline"),
 		icon: Ionicons.saveOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 
 			if(item.offline){
-				return this.makeItemAvailableOffline(false, item, false)
+				return makeItemAvailableOffline(self, false, item, false)
 			}
 			else{
-				return this.makeItemAvailableOffline(true, item, false)
+				return makeItemAvailableOffline(self, true, item, false)
 			}
 		}
 	}
 
 	options['favorite'] = {
-		text: item.favorited == 1 ? language.get(this.state.lang, "unfavorite") : language.get(this.state.lang, "favorite"),
+		text: item.favorited == 1 ? language.get(self.state.lang, "unfavorite") : language.get(self.state.lang, "favorite"),
 		icon: Ionicons.starOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
@@ -3684,33 +3716,33 @@ export async function spawnItemActionSheet(item){
 			}
 
 			if(item.favorited == 1){
-				return this.favoriteItem(item, 0)
+				return favoriteItem(self, item, 0)
 			}
 			else{
-				return this.favoriteItem(item, 1)
+				return favoriteItem(self, item, 1)
 			}
 		}
 	}
 
 	options['deletePermanently'] ={
-		text: language.get(this.state.lang, "deletePermanently"),
+		text: language.get(self.state.lang, "deletePermanently"),
 		icon: Ionicons.trashBinOutline,
 		handler: async () => {
 			window.customFunctions.dismissActionSheet()
 			
 			let alert = await alertController.create({
-				header: language.get(this.state.lang, "deletePermanently"),
-				message: language.get(this.state.lang, "deletePermanentlyConfirmation", true, ["__NAME__"], [item.name]),
+				header: language.get(self.state.lang, "deletePermanently"),
+				message: language.get(self.state.lang, "deletePermanentlyConfirmation", true, ["__NAME__"], [item.name]),
 				buttons: [
 					{
-						text: language.get(this.state.lang, "cancel"),
+						text: language.get(self.state.lang, "cancel"),
 						role: "cancel",
 						handler: () => {
 							return false
 						}
 					},
 					{
-						text: language.get(this.state.lang, "alertOkButton"),
+						text: language.get(self.state.lang, "alertOkButton"),
 						handler: async () => {
 							let loading = await loadingController.create({
 								message: "",
@@ -3739,7 +3771,7 @@ export async function spawnItemActionSheet(item){
 				
 								loading.dismiss()
 				
-								return this.spawnToast(language.get(this.state.lang, "apiRequestError"))
+								return spawnToast(language.get(self.state.lang, "apiRequestError"))
 							}
 				
 							loading.dismiss()
@@ -3747,24 +3779,24 @@ export async function spawnItemActionSheet(item){
 							if(!res.status){
 								console.log(res.message)
 				
-								return this.spawnToast(res.message)
+								return spawnToast(res.message)
 							}
 
 							let itemList = []
 
-							for(let i = 0; i < this.state.itemList.length; i++){
-								if(this.state.itemList[i].uuid !== item.uuid){
-									itemList.push(this.state.itemList[i])
+							for(let i = 0; i < self.state.itemList.length; i++){
+								if(self.state.itemList[i].uuid !== item.uuid){
+									itemList.push(self.state.itemList[i])
 								}
 							}
 
-							this.setState({
+							self.setState({
 								itemList: itemList
 							}, () => {
-								this.forceUpdate()
+								self.forceUpdate()
 							})
 				
-							return this.spawnToast(language.get(this.state.lang, "itemDeletedPermanently", true, ["__NAME__"], [item.name]))
+							return spawnToast(language.get(self.state.lang, "itemDeletedPermanently", true, ["__NAME__"], [item.name]))
 						}
 					}
 				]
@@ -3775,13 +3807,13 @@ export async function spawnItemActionSheet(item){
 	}
 
 	options['edit'] = {
-		text: language.get(this.state.lang, "edit"),
+		text: language.get(self.state.lang, "edit"),
 		icon: Ionicons.createOutline,
 		handler: async () => {
 			await window.customFunctions.dismissActionSheet()
 
 			let loading = await loadingController.create({
-				message: "", //language.get(this.state.lang, "loadingPreview")
+				message: "", //language.get(self.state.lang, "loadingPreview")
 				backdropDismiss: true,
 				showBackdrop: false
 			})
@@ -3800,7 +3832,7 @@ export async function spawnItemActionSheet(item){
 			window.customVariables.isGettingPreviewData = true
 			window.customVariables.stopGettingPreviewData = false
 	
-			this.downloadPreview(item, (chunksDone) => {
+			downloadPreview(item, (chunksDone) => {
 				//console.log(chunksDone)
 			}, (err, dataArray) => {
 				window.customVariables.isGettingPreviewData = false
@@ -3811,7 +3843,7 @@ export async function spawnItemActionSheet(item){
 					if(err !== "stopped"){
 						console.log(err)
 	
-						return this.spawnToast(language.get(this.state.lang, "fileNoPreviewAvailable", true, ["__NAME__"], [item.name]))
+						return spawnToast(language.get(self.state.lang, "fileNoPreviewAvailable", true, ["__NAME__"], [item.name]))
 					}
 					else{
 						return false
@@ -3824,7 +3856,7 @@ export async function spawnItemActionSheet(item){
 	}
 
 	options['deviceOffline'] = {
-		text: language.get(this.state.lang, "deviceOfflineAS"),
+		text: language.get(self.state.lang, "deviceOfflineAS"),
 		icon: Ionicons.cloudOfflineOutline,
 		handler: async () => {
 			return window.customFunctions.dismissActionSheet()
@@ -3973,12 +4005,12 @@ export async function spawnItemActionSheet(item){
 	/*
 	conditional
 	...(!isPlatform("ioss") ? [{
-		text: language.get(this.state.lang, "downloadItem"),
+		text: language.get(self.state.lang, "downloadItem"),
 		icon: Ionicons.download,
 		handler: () => {
 			window.customFunctions.dismissModal()
 
-			return this.queueFileDownload(item)
+			return queueFileDownload(self, item)
 		}
 	}] : [])
 	*/

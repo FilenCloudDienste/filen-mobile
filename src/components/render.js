@@ -1,6 +1,6 @@
-import React from 'react'
-import { IonSkeletonText, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonApp, IonButton, IonMenu, IonMenuButton, IonButtons, IonText } from '@ionic/react'
-import { List } from 'react-virtualized'
+import React from "react"
+import { IonSkeletonText, IonSearchbar, IonAvatar, IonProgressBar, IonBadge, IonRefresher, IonRefresherContent, IonFab, IonFabButton, IonIcon, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonThumbnail, IonApp, IonButton, IonMenu, IonMenuButton, IonButtons, IonText } from "@ionic/react"
+import { List } from "react-virtualized"
 import { isPlatform } from "@ionic/react"
 import { loadingController } from "@ionic/core"
 
@@ -21,18 +21,23 @@ import * as language from "../utils/language"
 import { FaHdd } from "react-icons/fa"
 
 import Hammer from "rc-hammerjs"
-import { routeTo } from './router';
+import { routeTo, routeToFolder, goBack } from './router';
+import { genThumbnail } from "./download"
+import { queueFileUpload } from "./upload"
+import { selectItem, selectItemsAction, clearSelectedItems, previewItem, spawnItemActionSheet } from "./items"
+import { setMainSearchTerm, hideMainSearchbar } from "./search"
+import { spawnToast, mainFabAction, mainMenuPopover } from "./spawn"
 
 const utils = require("../utils/utils")
 const safeAreaInsets = require('safe-area-insets')
 
-export function rowRenderer({ index, style }){
-    if(this.state.settings.gridModeEnabled){
+export function rowRenderer(self, index, style){
+    if(self.state.settings.gridModeEnabled){
         let startFromIndex = 0
         let gridItemsPerRow = 2
         let indexesToLoop = []
 
-        if(this.state.itemList.length == 1){
+        if(self.state.itemList.length == 1){
             indexesToLoop = [0]
         }
         else{
@@ -45,23 +50,33 @@ export function rowRenderer({ index, style }){
             }
         }
 
+        indexesToLoop.filter((el) => {
+            if(typeof self.state.itemList[el] == "undefined"){
+                return false
+            }
+
+            return true
+        }).map((index) => {
+            genThumbnail(self.state.itemList[index], self)
+        })
+
         return (
             <IonItem key={index} style={style} className="background-transparent full-width">
                 <div style={{
                     width: "100%",
-                    height: this.state.gridItemHeight,
+                    height: self.state.gridItemHeight,
                     display: "flex"
                 }}>
                     {
                         indexesToLoop.filter((el) => {
-                            if(typeof this.state.itemList[el] == "undefined"){
+                            if(typeof self.state.itemList[el] == "undefined"){
                                 return false
                             }
 
                             return true
                         }).map((currentIndex) => {
                             return (
-                                <Hammer key={currentIndex} onPress={() => this.selectItem(true, currentIndex)} options={{
+                                <Hammer key={currentIndex} onPress={() => selectItem(self, true, currentIndex)} options={{
                                     recognizers: {
                                         press: {
                                             time: 500,
@@ -70,50 +85,50 @@ export function rowRenderer({ index, style }){
                                     }
                                 }} >
                                     <div style={{
-                                        width: this.state.gridItemWidth,
+                                        width: self.state.gridItemWidth,
                                         marginRight: "10px",
                                         marginBottom: "10px",
-                                        background: (this.state.darkMode ? "transparent" : "transparent"),
+                                        background: (self.state.darkMode ? "transparent" : "transparent"),
                                         borderRadius: "5px",
-                                        border: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                        border: "1px solid " + (self.state.darkMode ? "#1e1e1e" : "lightgray")
                                     }}>
                                         <div style={{
                                             width: "100%",
-                                            height: this.state.gridItemHeight - 45 + "px",
+                                            height: self.state.gridItemHeight - 45 + "px",
                                             padding: "0px",
                                             backgroundClip: "content-box",
                                             zIndex: "101"
                                         }} onClick={() => {
-                                            if(this.state.itemList[currentIndex].selected){
-                                                if(this.state.selectedItems > 0){
-                                                    this.selectItem(false, currentIndex)
+                                            if(self.state.itemList[currentIndex].selected){
+                                                if(self.state.selectedItems > 0){
+                                                    selectItem(self, false, currentIndex)
                                                 }
                                                 else{
-                                                    this.selectItem(true, currentIndex)
+                                                    selectItem(self, true, currentIndex)
                                                 }
                                             }
                                             else{
-                                                if(this.state.selectedItems > 0){
-                                                    this.selectItem(true, currentIndex)
+                                                if(self.state.selectedItems > 0){
+                                                    selectItem(self, true, currentIndex)
                                                 }
                                                 else{
-                                                    this.state.itemList[currentIndex].type == "file" ? this.previewItem(this.state.itemList[currentIndex]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[currentIndex], currentIndex, window.location.href.split("/").slice(-1)[0])
+                                                    self.state.itemList[currentIndex].type == "file" ? previewItem(self, self.state.itemList[currentIndex]) : self.state.currentHref.indexOf("trash") == -1 && routeToFolder(self, self.state.itemList[currentIndex], currentIndex, window.location.href.split("/").slice(-1)[0])
                                                 }
                                             }
                                         } }>
                                             {
-                                                this.state.itemList[currentIndex].type == "folder" ? (
+                                                self.state.itemList[currentIndex].type == "folder" ? (
                                                     <div style={{
                                                         width: "100%",
                                                         height: "100%",
                                                         backgroundColor: "transparent",
-                                                        lineHeight: this.state.gridItemHeight - 45 + "px",
+                                                        lineHeight: self.state.gridItemHeight - 45 + "px",
                                                         textAlign: "center",
                                                         border: "none",
                                                         borderRadius: "0px",
                                                         outline: "none",
                                                         zIndex: "101",
-                                                        borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                        borderBottom: "1px solid " + (self.state.darkMode ? "#1e1e1e" : "lightgray")
                                                     }}>
                                                         <div style={{
                                                             display: "inline-block",
@@ -122,22 +137,22 @@ export function rowRenderer({ index, style }){
                                                             textAlign: "left"
                                                         }}>
                                                             {
-                                                                this.state.itemList[currentIndex].isBase ? (
+                                                                self.state.itemList[currentIndex].isBase ? (
                                                                     <FaHdd style={{
                                                                         fontSize: "50pt",
-                                                                        color: utils.getFolderColorStyle(this.state.itemList[currentIndex].color, true)
+                                                                        color: utils.getFolderColorStyle(self.state.itemList[currentIndex].color, true)
                                                                     }} />
                                                                 ) : (
                                                                     <IonIcon icon={Ionicons.folderSharp} style={{
                                                                         fontSize: "50pt",
-                                                                        color: utils.getFolderColorStyle(this.state.itemList[currentIndex].color, true),
+                                                                        color: utils.getFolderColorStyle(self.state.itemList[currentIndex].color, true),
                                                                     }}></IonIcon>
                                                                 )
                                                             }
                                                         </div>
                                                     </div>
                                                 )
-                                                : typeof this.state.itemList[currentIndex].thumbnail == "string" ? (
+                                                : typeof self.state.itemList[currentIndex].thumbnail == "string" ? (
                                                     <div style={{
                                                         width: "100%",
                                                         height: "100%",
@@ -151,21 +166,21 @@ export function rowRenderer({ index, style }){
                                                         borderTopLeftRadius: "5px",
                                                         outline: "none",
                                                         zIndex: "101",
-                                                        backgroundImage: "url(" + this.state.itemList[currentIndex].thumbnail + ")",
-                                                        borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
-                                                    }} id={"item-thumbnail-" + this.state.itemList[currentIndex].uuid}></div>
+                                                        backgroundImage: "url(" + self.state.itemList[currentIndex].thumbnail + ")",
+                                                        borderBottom: "1px solid " + (self.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                    }} id={"item-thumbnail-" + self.state.itemList[currentIndex].uuid}></div>
                                                 ) : (
                                                     <div style={{
                                                         width: "100%",
                                                         height: "100%",
                                                         backgroundColor: "transparent",
-                                                        lineHeight: this.state.gridItemHeight - 45 + "px",
+                                                        lineHeight: self.state.gridItemHeight - 45 + "px",
                                                         textAlign: "center",
                                                         border: "none",
                                                         borderRadius: "0px",
                                                         outline: "none",
                                                         zIndex: "101",
-                                                        borderBottom: "1px solid " + (this.state.darkMode ? "#1e1e1e" : "lightgray")
+                                                        borderBottom: "1px solid " + (self.state.darkMode ? "#1e1e1e" : "lightgray")
                                                     }}>
                                                         <div style={{
                                                             display: "inline-block",
@@ -174,7 +189,7 @@ export function rowRenderer({ index, style }){
                                                             textAlign: "left",
                                                             overflow: "hidden"
                                                         }}>
-                                                            <img src={utils.getFileIconFromName(this.state.itemList[currentIndex].name)} width="55"></img>
+                                                            <img src={utils.getFileIconFromName(self.state.itemList[currentIndex].name)} width="55"></img>
                                                         </div>
                                                     </div>
                                                 )
@@ -184,7 +199,7 @@ export function rowRenderer({ index, style }){
                                             width: "100%",
                                             marginTop: "6px"
                                         }} onClick={() => {
-                                            this.state.itemList[currentIndex].selected ? this.selectItem(false, currentIndex) : this.spawnItemActionSheet(this.state.itemList[currentIndex])
+                                            self.state.itemList[currentIndex].selected ? selectItem(self, false, currentIndex) : spawnItemActionSheet(self, self.state.itemList[currentIndex])
                                         }}>
                                             <div style={{
                                                 width: "81%",
@@ -193,19 +208,19 @@ export function rowRenderer({ index, style }){
                                                 fontSize: "10pt",
                                                 paddingTop: "2px"
                                             }} className="overflow-ellipsis">
-                                                {this.state.itemList[currentIndex].name}
+                                                {self.state.itemList[currentIndex].name}
                                             </div>
                                             <div style={{
                                                 width: "14%",
                                                 float: "right"
                                             }}>
                                                 {
-                                                    this.state.itemList[currentIndex].selected ? (
+                                                    self.state.itemList[currentIndex].selected ? (
                                                         <IonButtons style={{
                                                             marginTop: "-14px",
                                                             marginLeft: "-16px"
                                                         }}>
-                                                            <IonButton slot="end" onClick={() => this.selectItem(false, currentIndex)}>
+                                                            <IonButton slot="end" onClick={() => selectItem(self, false, currentIndex)}>
                                                                 <IonIcon slot="icon-only" icon={Ionicons.checkbox} />
                                                             </IonButton>
                                                         </IonButtons>
@@ -234,7 +249,7 @@ export function rowRenderer({ index, style }){
         )
     }
 
-    if(this.state.showMainSkeletonPlaceholder){
+    if(self.state.showMainSkeletonPlaceholder){
         return (
             <IonItem key={index} type="button" button lines="none" style={style}>
                 <IonThumbnail className="outer-thumbnail" slot="start">
@@ -252,24 +267,24 @@ export function rowRenderer({ index, style }){
         )
     }
     else{
-        let startContent = this.state.selectedItems > 0 ? (
-            <IonThumbnail slot="start" onClick={() => this.selectItem(true, index)} style={{
+        let startContent = self.state.selectedItems > 0 ? (
+            <IonThumbnail slot="start" onClick={() => selectItem(self, true, index)} style={{
                 border: "none",
                 "--border": "none",
                 overflow: "hidden",
-                padding: (this.state.itemList[index].type == "folder" ? "0px" : "7px")
+                padding: (self.state.itemList[index].type == "folder" ? "0px" : "7px")
             }}>
                 {
-                    this.state.itemList[index].type == "folder" ? (
+                    self.state.itemList[index].type == "folder" ? (
                         <div>
                             <img src="assets/images/folder.svg" style={{
                                 display: "none"
                             }}></img>
                             {
-                                this.state.itemList[index].isBase ? (
+                                self.state.itemList[index].isBase ? (
                                     <FaHdd style={{
                                         fontSize: "30pt",
-                                        color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                        color: utils.getFolderColorStyle(self.state.itemList[index].color, true),
                                         position: "absolute",
                                         marginTop: "6px",
                                         marginLeft: "5px"
@@ -277,7 +292,7 @@ export function rowRenderer({ index, style }){
                                 ) : (
                                     <IonIcon icon={Ionicons.folderSharp} style={{
                                         fontSize: "30pt",
-                                        color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                        color: utils.getFolderColorStyle(self.state.itemList[index].color, true),
                                         position: "absolute",
                                         marginTop: "6px",
                                         marginLeft: "5px"
@@ -298,29 +313,29 @@ export function rowRenderer({ index, style }){
                             outline: "none",
                             zIndex: "101",
                             borderRadius: "5px",
-                            backgroundImage: "url(" + (typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)) + ")",
-                        }} id={"item-thumbnail-" + this.state.itemList[index].uuid}></div>
+                            backgroundImage: "url(" + (typeof self.state.itemList[index].thumbnail == "string" ? self.state.itemList[index].thumbnail : utils.getFileIconFromName(self.state.itemList[index].name)) + ")",
+                        }} id={"item-thumbnail-" + self.state.itemList[index].uuid}></div>
                     )
                 }
             </IonThumbnail>
         ) : (
-            <IonThumbnail slot="start" onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])} style={{
+            <IonThumbnail slot="start" onClick={() => self.state.itemList[index].type == "file" ? previewItem(self, self.state.itemList[index]) : self.state.currentHref.indexOf("trash") == -1 && routeToFolder(self, self.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])} style={{
                 border: "none",
                 "--border": "none",
                 overflow: "hidden",
-                padding: (this.state.itemList[index].type == "folder" ? "0px" : "7px")
+                padding: (self.state.itemList[index].type == "folder" ? "0px" : "7px")
             }}>
                 {
-                    this.state.itemList[index].type == "folder" ? (
+                    self.state.itemList[index].type == "folder" ? (
                         <div>
                             <img src="assets/images/folder.svg" style={{
                                 display: "none"
                             }}></img>
                             {
-                                this.state.itemList[index].isBase ? (
+                                self.state.itemList[index].isBase ? (
                                     <FaHdd style={{
                                         fontSize: "30pt",
-                                        color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                        color: utils.getFolderColorStyle(self.state.itemList[index].color, true),
                                         position: "absolute",
                                         marginTop: "6px",
                                         marginLeft: "5px"
@@ -328,7 +343,7 @@ export function rowRenderer({ index, style }){
                                 ) : (
                                     <IonIcon icon={Ionicons.folderSharp} style={{
                                         fontSize: "30pt",
-                                        color: utils.getFolderColorStyle(this.state.itemList[index].color, true),
+                                        color: utils.getFolderColorStyle(self.state.itemList[index].color, true),
                                         position: "absolute",
                                         marginTop: "6px",
                                         marginLeft: "5px"
@@ -349,25 +364,25 @@ export function rowRenderer({ index, style }){
                             outline: "none",
                             zIndex: "101",
                             borderRadius: "5px",
-                            backgroundImage: "url(" + (typeof this.state.itemList[index].thumbnail == "string" ? this.state.itemList[index].thumbnail : utils.getFileIconFromName(this.state.itemList[index].name)) + ")",
-                        }} id={"item-thumbnail-" + this.state.itemList[index].uuid}></div>
+                            backgroundImage: "url(" + (typeof self.state.itemList[index].thumbnail == "string" ? self.state.itemList[index].thumbnail : utils.getFileIconFromName(self.state.itemList[index].name)) + ")",
+                        }} id={"item-thumbnail-" + self.state.itemList[index].uuid}></div>
                     )
                 }
             </IonThumbnail>
         )
 
-        let itemLabel = this.state.itemList[index].selected ? (
-            <IonLabel onClick={() => this.selectItem(false, index) }>
+        let itemLabel = self.state.itemList[index].selected ? (
+            <IonLabel onClick={() => selectItem(self, false, index) }>
                 {
-                    this.state.itemList[index].type == "folder" ? (
+                    self.state.itemList[index].type == "folder" ? (
                         <div>
-                            <h2>{this.state.itemList[index].name}</h2>
+                            <h2>{self.state.itemList[index].name}</h2>
                             <p style={{
-                                color: this.state.darkMode ? "gray" : "black",
+                                color: self.state.darkMode ? "gray" : "black",
                                 fontSize: "9pt"
                             }}>
                                 {
-                                    this.state.itemList[index].favorited == 1 && (
+                                    self.state.itemList[index].favorited == 1 && (
                                         <IonIcon icon={Ionicons.star} style={{
                                             marginRight: "5px",
                                             fontWeight: "bold"
@@ -377,29 +392,29 @@ export function rowRenderer({ index, style }){
                                 {
                                     window.location.href.indexOf("shared-in") !== -1 && (
                                         <div>
-                                            {this.state.itemList[index].sharerEmail}, 
+                                            {self.state.itemList[index].sharerEmail}, 
                                         </div>
                                     )
                                 }
                                 {
                                     window.location.href.indexOf("shared-out") !== -1 && (
                                         <div>
-                                            {this.state.itemList[index].receiverEmail}, 
+                                            {self.state.itemList[index].receiverEmail}, 
                                         </div>
                                     )
                                 }
-                                {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
+                                {(self.state.itemList[index].size >= 0 ? utils.formatBytes(self.state.itemList[index].size) : "N/A")}, {self.state.itemList[index].date}
                             </p>
                         </div>
                     ) : (
                         <div>
-                            <h2>{this.state.itemList[index].name}</h2>
+                            <h2>{self.state.itemList[index].name}</h2>
                             <p style={{
-                                color: this.state.darkMode ? "gray" : "black",
+                                color: self.state.darkMode ? "gray" : "black",
                                 fontSize: "9pt"
                             }}>
                                 {
-                                    this.state.itemList[index].offline && (
+                                    self.state.itemList[index].offline && (
                                         <IonIcon icon={Ionicons.checkmark} style={{
                                             color: "darkgreen",
                                             marginRight: "5px",
@@ -408,7 +423,7 @@ export function rowRenderer({ index, style }){
                                     )
                                 }
                                 {
-                                    this.state.itemList[index].favorited == 1 && (
+                                    self.state.itemList[index].favorited == 1 && (
                                         <IonIcon icon={Ionicons.star} style={{
                                             marginRight: "5px",
                                             fontWeight: "bold"
@@ -418,36 +433,36 @@ export function rowRenderer({ index, style }){
                                 {
                                     window.location.href.indexOf("shared-in") !== -1 && (
                                         <div>
-                                            {this.state.itemList[index].sharerEmail}, 
+                                            {self.state.itemList[index].sharerEmail}, 
                                         </div>
                                     )
                                 }
                                 {
                                     window.location.href.indexOf("shared-out") !== -1 && (
                                         <div>
-                                            {this.state.itemList[index].receiverEmail}, 
+                                            {self.state.itemList[index].receiverEmail}, 
                                         </div>
                                     )
                                 }
-                                {utils.formatBytes(this.state.itemList[index].size)}, {this.state.itemList[index].date}
+                                {utils.formatBytes(self.state.itemList[index].size)}, {self.state.itemList[index].date}
                             </p>
                         </div>
                     )
                 }
             </IonLabel>
         ) : (
-            this.state.selectedItems > 0 ? (
-                <IonLabel onClick={() => this.selectItem(true, index) }>
+            self.state.selectedItems > 0 ? (
+                <IonLabel onClick={() => selectItem(self, true, index) }>
                     {
-                        this.state.itemList[index].type == "folder" ? (
+                        self.state.itemList[index].type == "folder" ? (
                             <div>
-                                <h2>{this.state.itemList[index].name}</h2>
+                                <h2>{self.state.itemList[index].name}</h2>
                                 <p style={{
-                                    color: this.state.darkMode ? "gray" : "black",
+                                    color: self.state.darkMode ? "gray" : "black",
                                     fontSize: "9pt"
                                 }}>
                                     {
-                                        this.state.itemList[index].favorited == 1 && (
+                                        self.state.itemList[index].favorited == 1 && (
                                             <IonIcon icon={Ionicons.star} style={{
                                                 marginRight: "5px"
                                             }}></IonIcon>
@@ -456,29 +471,29 @@ export function rowRenderer({ index, style }){
                                     {
                                         window.location.href.indexOf("shared-in") !== -1 && (
                                             <div>
-                                                {this.state.itemList[index].sharerEmail}, 
+                                                {self.state.itemList[index].sharerEmail}, 
                                             </div>
                                         )
                                     }
                                     {
                                         window.location.href.indexOf("shared-out") !== -1 && (
                                             <div>
-                                                {this.state.itemList[index].receiverEmail}, 
+                                                {self.state.itemList[index].receiverEmail}, 
                                             </div>
                                         )
                                     }
-                                    {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
+                                    {(self.state.itemList[index].size >= 0 ? utils.formatBytes(self.state.itemList[index].size) : "N/A")}, {self.state.itemList[index].date}
                                 </p>
                             </div>
                         ) : (
                             <div>
-                                <h2>{this.state.itemList[index].name}</h2>
+                                <h2>{self.state.itemList[index].name}</h2>
                                 <p style={{
-                                    color: this.state.darkMode ? "gray" : "black",
+                                    color: self.state.darkMode ? "gray" : "black",
                                     fontSize: "9pt"
                                 }}>
                                     {
-                                        this.state.itemList[index].offline && (
+                                        self.state.itemList[index].offline && (
                                             <IonIcon icon={Ionicons.checkmark} style={{
                                                 color: "darkgreen",
                                                 marginRight: "5px",
@@ -487,7 +502,7 @@ export function rowRenderer({ index, style }){
                                         )
                                     }
                                     {
-                                        this.state.itemList[index].favorited == 1 && (
+                                        self.state.itemList[index].favorited == 1 && (
                                             <IonIcon icon={Ionicons.star} style={{
                                                 marginRight: "5px"
                                             }}></IonIcon>
@@ -496,35 +511,35 @@ export function rowRenderer({ index, style }){
                                     {
                                         window.location.href.indexOf("shared-in") !== -1 && (
                                             <span>
-                                                {this.state.itemList[index].sharerEmail},&nbsp;
+                                                {self.state.itemList[index].sharerEmail},&nbsp;
                                             </span>
                                         )
                                     }
                                     {
                                         window.location.href.indexOf("shared-out") !== -1 && (
                                             <span>
-                                                {this.state.itemList[index].receiverEmail},&nbsp;
+                                                {self.state.itemList[index].receiverEmail},&nbsp;
                                             </span>
                                         )
                                     }
-                                    {utils.formatBytes(this.state.itemList[index].size)}, {this.state.itemList[index].date}
+                                    {utils.formatBytes(self.state.itemList[index].size)}, {self.state.itemList[index].date}
                                 </p>
                             </div>
                         )
                     }
                 </IonLabel>
             ) : (
-                <IonLabel onClick={() => this.state.itemList[index].type == "file" ? this.previewItem(this.state.itemList[index]) : this.state.currentHref.indexOf("trash") == -1 && this.routeToFolder(this.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])}>
+                <IonLabel onClick={() => self.state.itemList[index].type == "file" ? previewItem(self, self.state.itemList[index]) : self.state.currentHref.indexOf("trash") == -1 && routeToFolder(self, self.state.itemList[index], index, window.location.href.split("/").slice(-1)[0])}>
                     {
-                        this.state.itemList[index].type == "folder" ? (
+                        self.state.itemList[index].type == "folder" ? (
                             <div>
-                                <h2>{this.state.itemList[index].name}</h2>
+                                <h2>{self.state.itemList[index].name}</h2>
                                 <p style={{
-                                    color: this.state.darkMode ? "gray" : "black",
+                                    color: self.state.darkMode ? "gray" : "black",
                                     fontSize: "9pt"
                                 }}>
                                     {
-                                        this.state.itemList[index].favorited == 1 && (
+                                        self.state.itemList[index].favorited == 1 && (
                                             <IonIcon icon={Ionicons.star} style={{
                                                 marginRight: "5px"
                                             }}></IonIcon>
@@ -533,29 +548,29 @@ export function rowRenderer({ index, style }){
                                     {
                                         window.location.href.indexOf("shared-in") !== -1 && (
                                             <span>
-                                                {this.state.itemList[index].sharerEmail},&nbsp;
+                                                {self.state.itemList[index].sharerEmail},&nbsp;
                                             </span>
                                         )
                                     }
                                     {
                                         window.location.href.indexOf("shared-out") !== -1 && (
                                             <span>
-                                                {this.state.itemList[index].receiverEmail},&nbsp;
+                                                {self.state.itemList[index].receiverEmail},&nbsp;
                                             </span>
                                         )
                                     }
-                                    {(this.state.itemList[index].size >= 0 ? utils.formatBytes(this.state.itemList[index].size) : "N/A")}, {this.state.itemList[index].date}
+                                    {(self.state.itemList[index].size >= 0 ? utils.formatBytes(self.state.itemList[index].size) : "N/A")}, {self.state.itemList[index].date}
                                 </p>
                             </div>
                         ) : (
                             <div>
-                                <h2>{this.state.itemList[index].name}</h2>
+                                <h2>{self.state.itemList[index].name}</h2>
                                 <p style={{
-                                    color: this.state.darkMode ? "gray" : "black",
+                                    color: self.state.darkMode ? "gray" : "black",
                                     fontSize: "9pt"
                                 }}>
                                     {
-                                        this.state.itemList[index].offline && (
+                                        self.state.itemList[index].offline && (
                                             <IonIcon icon={Ionicons.checkmarkOutline} style={{
                                                 color: "darkgreen",
                                                 marginRight: "5px",
@@ -564,7 +579,7 @@ export function rowRenderer({ index, style }){
                                         )
                                     }
                                     {
-                                        this.state.itemList[index].favorited == 1 && (
+                                        self.state.itemList[index].favorited == 1 && (
                                             <IonIcon icon={Ionicons.star} style={{
                                                 marginRight: "5px"
                                             }}></IonIcon>
@@ -573,18 +588,18 @@ export function rowRenderer({ index, style }){
                                     {
                                         window.location.href.indexOf("shared-in") !== -1 && (
                                             <span>
-                                                {this.state.itemList[index].sharerEmail},&nbsp;
+                                                {self.state.itemList[index].sharerEmail},&nbsp;
                                             </span>
                                         )
                                     }
                                     {
                                         window.location.href.indexOf("shared-out") !== -1 && (
                                             <span>
-                                                {this.state.itemList[index].receiverEmail},&nbsp;
+                                                {self.state.itemList[index].receiverEmail},&nbsp;
                                             </span>
                                         )
                                     }
-                                    {utils.formatBytes(this.state.itemList[index].size)}, {this.state.itemList[index].date}
+                                    {utils.formatBytes(self.state.itemList[index].size)}, {self.state.itemList[index].date}
                                 </p>
                             </div>
                         )
@@ -593,15 +608,15 @@ export function rowRenderer({ index, style }){
             )
         )
 
-        let endContent = this.state.itemList[index].selected ? (
+        let endContent = self.state.itemList[index].selected ? (
             <IonButtons>
-                <IonButton slot="end" onClick={() => this.selectItem(false, index)}>
+                <IonButton slot="end" onClick={() => selectItem(self, false, index)}>
                     <IonIcon slot="icon-only" icon={Ionicons.checkbox} />
                 </IonButton>
             </IonButtons>
         ) : (
             <IonButtons>
-                <IonButton slot="end" onClick={() => this.spawnItemActionSheet(this.state.itemList[index])} style={{
+                <IonButton slot="end" onClick={() => spawnItemActionSheet(self, self.state.itemList[index])} style={{
                     fontSize: "8pt"
                 }}>
                     <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
@@ -609,8 +624,10 @@ export function rowRenderer({ index, style }){
             </IonButtons>
         )
 
+        genThumbnail(self.state.itemList[index], self)
+
         return (
-            <Hammer key={index} onPress={() => this.selectItem(true, index)} options={{
+            <Hammer key={index} onPress={() => selectItem(self, true, index)} options={{
                 recognizers: {
                     press: {
                         time: 500,
@@ -618,7 +635,7 @@ export function rowRenderer({ index, style }){
                     }
                 }
             }} style={style}>
-                <IonItem type="button" button lines="none" className={this.state.itemList[index].selected ? (this.state.darkMode ? "item-selected-dark-mode" : "item-selected-light-mode") : "item-not-activated-mode"}>
+                <IonItem type="button" button lines="none" className={self.state.itemList[index].selected ? (self.state.darkMode ? "item-selected-dark-mode" : "item-selected-light-mode") : "item-not-activated-mode"}>
                     {startContent}
                     {itemLabel}
                     {endContent}
@@ -628,50 +645,50 @@ export function rowRenderer({ index, style }){
     }
 }
 
-export function render(){
-    let showShareLinks = (typeof this.state.userPublicKey == "string" && typeof this.state.userPrivateKey == "string" && typeof this.state.userMasterKeys == "object") && (this.state.userPublicKey.length > 16 && this.state.userPrivateKey.length > 16 && this.state.userMasterKeys.length > 0)
+export function render(self){
+    let showShareLinks = (typeof self.state.userPublicKey == "string" && typeof self.state.userPrivateKey == "string" && typeof self.state.userMasterKeys == "object") && (self.state.userPublicKey.length > 16 && self.state.userPrivateKey.length > 16 && self.state.userMasterKeys.length > 0)
 
-    let mainToolbar = this.state.selectedItems > 0 ? (
+    let mainToolbar = self.state.selectedItems > 0 ? (
         <IonToolbar style={{
-            "--background": this.state.darkMode ? "#121212" : "white"
+            "--background": self.state.darkMode ? "#121212" : "white"
         }}>
             <IonButtons slot="start">
-                <IonButton onClick={() => this.clearSelectedItems()}>
+                <IonButton onClick={() => clearSelectedItems(self)}>
                     <IonIcon slot="icon-only" icon={Ionicons.arrowBack} />
                 </IonButton>
               </IonButtons>
-            <IonTitle>{this.state.selectedItems} item{this.state.selectedItems == 1 ? "" : "s"}</IonTitle>
+            <IonTitle>{self.state.selectedItems} item{self.state.selectedItems == 1 ? "" : "s"}</IonTitle>
             <IonButtons slot="end">
                 {
-                    window.location.href.indexOf("base") !== -1 && !utils.selectedItemsContainsDefaultFolder(this.state.itemList) && this.state.isDeviceOnline && (
+                    window.location.href.indexOf("base") !== -1 && !utils.selectedItemsContainsDefaultFolder(self.state.itemList) && self.state.isDeviceOnline && (
                         <IonButton onClick={() => window.customFunctions.shareSelectedItems()}>
                             <IonIcon slot="icon-only" icon={Ionicons.shareSocial} />
                         </IonButton>
                     )
                 }
                 {
-                    window.location.href.indexOf("base") !== -1 && utils.selectedItemsDoesNotContainFolder(this.state.itemList) && this.state.isDeviceOnline && (
+                    window.location.href.indexOf("base") !== -1 && utils.selectedItemsDoesNotContainFolder(self.state.itemList) && self.state.isDeviceOnline && (
                         <IonButton onClick={() => window.customFunctions.downloadSelectedItems()}>
                             <IonIcon slot="icon-only" icon={Ionicons.cloudDownload} />
                         </IonButton>
                     )
                 }
-                <IonButton onClick={this.selectItemsAction}>
+                <IonButton onClick={(e) => selectItemsAction(self, e)}>
                     <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
                 </IonButton>
               </IonButtons>
         </IonToolbar>
     ) : (
-        this.state.searchbarOpen ? (
+        self.state.searchbarOpen ? (
             <IonToolbar style={{
-                "--background": this.state.darkMode ? "#121212" : "white"
+                "--background": self.state.darkMode ? "#121212" : "white"
             }}>
                 <IonButtons slot="start">
-                    <IonButton onClick={this.hideMainSearchbar}>
+                    <IonButton onClick={(e) => hideMainSearchbar(self, e)}>
                         <IonIcon slot="icon-only" icon={Ionicons.arrowBack} />
                     </IonButton>
                 </IonButtons>
-                <IonSearchbar id="main-searchbar" ref={(el) => el !== null && setTimeout(() => /* el.setFocus() */ {}, 100)} type="search" inputmode="search" value={this.state.mainSearchTerm} onInput={() => {
+                <IonSearchbar id="main-searchbar" ref={(el) => el !== null && setTimeout(() => /* el.setFocus() */ {}, 100)} type="search" inputmode="search" value={self.state.mainSearchTerm} onInput={() => {
                     let term = document.getElementById("main-searchbar").value
 
                     if(typeof term == "string"){
@@ -682,31 +699,31 @@ export function render(){
                                 clearTimeout(window.customVariables.mainSearchbarTimeout)
             
                                 window.customVariables.mainSearchbarTimeout = setTimeout(() => {
-                                    this.setMainSearchTerm(term)
+                                    setMainSearchTerm(self, term)
                                 }, 500)
                             }
                         }
                         else{
                             clearTimeout(window.customVariables.mainSearchbarTimeout)
         
-                            this.setMainSearchTerm("")
+                            setMainSearchTerm(self, "")
                         }
                     }
                     else{
                         clearTimeout(window.customVariables.mainSearchbarTimeout)
         
-                        this.setMainSearchTerm("")
+                        setMainSearchTerm(self, "")
                     }
                 }}></IonSearchbar>
             </IonToolbar>
         ) : (
             <IonToolbar style={{
-                "--background": this.state.darkMode ? "#121212" : "white"
+                "--background": self.state.darkMode ? "#121212" : "white"
             }}>
                 {
-                    this.state.showMainToolbarBackButton ? (
+                    self.state.showMainToolbarBackButton ? (
                         <IonButtons slot="start">
-                            <IonButton onClick={this.goBack}>
+                            <IonButton onClick={() => goBack(self)}>
                                 <IonIcon slot="icon-only" icon={Ionicons.arrowBack} />
                             </IonButton>
                         </IonButtons>
@@ -716,16 +733,16 @@ export function render(){
                         </IonMenuButton>
                     )
                 }
-                <IonTitle>{this.state.mainToolbarTitle}</IonTitle>
+                <IonTitle>{self.state.mainToolbarTitle}</IonTitle>
                 <IonButtons slot="secondary">
-                    <IonButton onClick={() => this.setState({ searchbarOpen: true })}>
+                    <IonButton onClick={() => self.setState({ searchbarOpen: true })}>
                         <IonIcon slot="icon-only" icon={Ionicons.search} />
                     </IonButton>
                     {
-                        this.state.isDeviceOnline && (
+                        self.state.isDeviceOnline && (
                             <IonMenuButton menu="transfersMenu">
                                 {
-                                    (this.state.uploadsCount + this.state.downloadsCount) > 0 && (
+                                    (self.state.uploadsCount + self.state.downloadsCount) > 0 && (
                                         <IonBadge color="danger" style={{
                                             position: "absolute",
                                             borderRadius: "50%",
@@ -734,7 +751,7 @@ export function render(){
                                             zIndex: "1001",
                                             fontSize: "7pt"
                                         }}>
-                                            {(this.state.uploadsCount + this.state.downloadsCount)}
+                                            {(self.state.uploadsCount + self.state.downloadsCount)}
                                         </IonBadge>
                                     )
                                 }
@@ -742,7 +759,7 @@ export function render(){
                             </IonMenuButton>
                         )
                     }
-                    <IonButton onClick={this.mainMenuPopover}>
+                    <IonButton onClick={(e) => mainMenuPopover(e)}>
                         <IonIcon slot="icon-only" icon={Ionicons.ellipsisVertical} />
                     </IonButton>
                 </IonButtons>
@@ -753,7 +770,7 @@ export function render(){
     let bottomFab = undefined
     let bottomFabStyle = {
         marginBottom: "0px",
-        visibility: (this.state.hideMainFab ? "hidden" : "visible")
+        visibility: (self.state.hideMainFab ? "hidden" : "visible")
     }
 
     let showMainFab = false
@@ -767,11 +784,11 @@ export function render(){
         }
     }
 
-    if(!this.state.isDeviceOnline){
+    if(!self.state.isDeviceOnline){
         showMainFab = false
     }
 
-    if(window.location.href.indexOf("trash") !== -1 && this.state.itemList.length > 0){
+    if(window.location.href.indexOf("trash") !== -1 && self.state.itemList.length > 0){
         bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => window.customFunctions.emptyTrash()}>
                         <IonFabButton color="danger">
                             <IonIcon icon={Ionicons.trash} />
@@ -779,12 +796,12 @@ export function render(){
                     </IonFab>
     }
     else if(showMainFab){
-        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={() => {
-            this.hideMainSearchbar()
+        bottomFab = <IonFab vertical="bottom" style={bottomFabStyle} horizontal="end" slot="fixed" onClick={(e) => {
+            hideMainSearchbar(self, e)
 
-            this.mainFabAction()
+            mainFabAction(self)
         }}>
-                        <IonFabButton color={this.state.darkMode ? "dark" : "light"}>
+                        <IonFabButton color={self.state.darkMode ? "dark" : "light"}>
                             <IonIcon icon={Ionicons.add} />
                         </IonFabButton>
                     </IonFab>
@@ -799,25 +816,25 @@ export function render(){
     let currentShowingTransfers = 0
     let isShowingMoreInfo = false
 
-    let transfersUploads = Object.keys(this.state.uploads).map((key) => {
+    let transfersUploads = Object.keys(self.state.uploads).map((key) => {
         if(maxShowingTransfers > currentShowingTransfers){
             currentShowingTransfers += 1
 
             return (
                 <IonItem lines="none" key={key}>
                     <IonIcon slot="start" icon={Ionicons.arrowUp}></IonIcon>
-                    <IonLabel>{this.state.uploads[key].name}</IonLabel>
-                    <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
+                    <IonLabel>{self.state.uploads[key].name}</IonLabel>
+                    <IonBadge color={self.state.darkMode ? "dark" : "light"} slot="end" id={"uploads-progress-" + key}>
                         {
-                            this.state.uploads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") : this.state.uploads[key].progress == 0 ? language.get(this.state.lang, "transfersQueued") : this.state.uploads[key].progress + "%"
+                            self.state.uploads[key].progress >= 100 ? language.get(self.state.lang, "transfersFinishing") : self.state.uploads[key].progress == 0 ? language.get(self.state.lang, "transfersQueued") : self.state.uploads[key].progress + "%"
                         }
                     </IonBadge>
                     {
-                        this.state.uploads[key].progress < 100 && (
+                        self.state.uploads[key].progress < 100 && (
                             <IonBadge color="danger" slot="end" onClick={() => {
-                                return window.customVariables.stoppedUploads[this.state.uploads[key].uuid] = true
+                                return window.customVariables.stoppedUploads[self.state.uploads[key].uuid] = true
                             }}>
-                                {language.get(this.state.lang, "transferStop")}
+                                {language.get(self.state.lang, "transferStop")}
                             </IonBadge>
                         )
                     }
@@ -830,32 +847,32 @@ export function render(){
 
                 return (
                     <IonItem lines="none" key={key}>
-                        {language.get(this.state.lang, "transfersMore", true, ["__COUNT__"], [((Object.keys(this.state.uploads).length + Object.keys(this.state.downloads).length) - maxShowingTransfers)])}
+                        {language.get(self.state.lang, "transfersMore", true, ["__COUNT__"], [((Object.keys(self.state.uploads).length + Object.keys(self.state.downloads).length) - maxShowingTransfers)])}
                     </IonItem>
                 )
             }
         }
     })
 
-    let transfersDownloads = Object.keys(this.state.downloads).map((key) => {
+    let transfersDownloads = Object.keys(self.state.downloads).map((key) => {
         if(maxShowingTransfers > currentShowingTransfers){
             currentShowingTransfers += 1
 
             return (
                 <IonItem lines="none" key={key}>
                     <IonIcon slot="start" icon={Ionicons.arrowDown}></IonIcon>
-                    <IonLabel>{this.state.downloads[key].name}</IonLabel>
-                    <IonBadge color={this.state.darkMode ? "dark" : "light"} slot="end">
+                    <IonLabel>{self.state.downloads[key].name}</IonLabel>
+                    <IonBadge color={self.state.darkMode ? "dark" : "light"} slot="end" id={"downloads-progress-" + key}>
                         {
-                            this.state.downloads[key].progress >= 100 ? language.get(this.state.lang, "transfersFinishing") + " " + this.state.downloads[key].chunksWritten + "/" + this.state.downloads[key].chunks : this.state.downloads[key].progress == 0 ? language.get(this.state.lang, "transfersQueued") : this.state.downloads[key].progress + "%"
+                            self.state.downloads[key].progress >= 100 ? language.get(self.state.lang, "transfersFinishing") + " " + self.state.downloads[key].chunksWritten + "/" + self.state.downloads[key].chunks : self.state.downloads[key].progress == 0 ? language.get(self.state.lang, "transfersQueued") : self.state.downloads[key].progress + "%"
                         }
                     </IonBadge>
                     {
-                        this.state.downloads[key].progress < 100 && (
+                        self.state.downloads[key].progress < 100 && (
                             <IonBadge color="danger" slot="end" onClick={() => {        
-                                return window.customVariables.stoppedDownloads[this.state.downloads[key].uuid] = true
+                                return window.customVariables.stoppedDownloads[self.state.downloads[key].uuid] = true
                             }}>
-                                {language.get(this.state.lang, "transferStop")}
+                                {language.get(self.state.lang, "transferStop")}
                             </IonBadge>
                         )
                     }
@@ -868,14 +885,14 @@ export function render(){
 
                 return (
                     <IonItem lines="none" key={key}>
-                        {language.get(this.state.lang, "transfersMore", true, ["__COUNT__"], [((Object.keys(this.state.uploads).length + Object.keys(this.state.downloads).length) - maxShowingTransfers)])}
+                        {language.get(self.state.lang, "transfersMore", true, ["__COUNT__"], [((Object.keys(self.state.uploads).length + Object.keys(self.state.downloads).length) - maxShowingTransfers)])}
                     </IonItem>
                 )
             }
         }
     })
 
-    if(this.state.isLoggedIn){
+    if(self.state.isLoggedIn){
         return (
             <IonApp>
                 <IonPage>
@@ -884,65 +901,65 @@ export function render(){
                             padding: "15px",
                             alignItems: "center",
                             textAlign: "center",
-                            background: this.state.darkMode ? "#1E1E1E" : "white"
+                            background: self.state.darkMode ? "#1E1E1E" : "white"
                         }}>
                             <IonAvatar style={{
                                 margin: "0px auto",
                                 marginTop: safeAreaInsets.top + "px"
                             }} onClick={() => {
-                                if(!this.state.isDeviceOnline){
+                                if(!self.state.isDeviceOnline){
                                     return false
                                 }
 
                                 return document.getElementById("avatar-input-dummy").click()
                             }}>
-                                <img src={typeof this.state.cachedUserInfo.avatarURL == "undefined" ? "assets/img/icon.png" : this.state.cachedUserInfo.avatarURL} />
+                                <img src={typeof self.state.cachedUserInfo.avatarURL == "undefined" ? "assets/img/icon.png" : self.state.cachedUserInfo.avatarURL} />
                             </IonAvatar>
                             <br />
                             <IonText style={{
-                                color: this.state.darkMode ? "white" : "black"
+                                color: self.state.darkMode ? "white" : "black"
                             }}>
-                                {this.state.userEmail}
+                                {self.state.userEmail}
                             </IonText>
                             <br />
                             <br />
-                            <IonProgressBar color="primary" value={(this.state.userStorageUsagePercentage / 100)}></IonProgressBar>
+                            <IonProgressBar color="primary" value={(self.state.userStorageUsagePercentage / 100)}></IonProgressBar>
                             <div style={{
                                 width: "100%",
-                                color: this.state.darkMode ? "white" : "black",
+                                color: self.state.darkMode ? "white" : "black",
                                 marginTop: "10px"
                             }}>
                                 <div style={{
                                     float: "left",
                                     fontSize: "10pt"
                                 }}>
-                                    {this.state.userStorageUsageMenuText}
+                                    {self.state.userStorageUsageMenuText}
                                 </div>
                             </div>
                         </IonHeader>
                         <IonContent style={{
-                            "--background": this.state.darkMode ? "#1E1E1E" : "white"
+                            "--background": self.state.darkMode ? "#1E1E1E" : "white"
                         }} fullscreen={true}>
                             <IonList>
                                 {
-                                    this.state.isDeviceOnline && (
+                                    self.state.isDeviceOnline && (
                                         <IonItem button lines="none" onClick={() => {
                                             window.customFunctions.hideSidebarMenu()
                                             
                                             return window.customFunctions.openEventsModal()
                                         }}>
                                             <IonIcon slot="start" icon={Ionicons.informationCircleOutline}></IonIcon>
-                                            <IonLabel>{language.get(this.state.lang, "events")}</IonLabel>
+                                            <IonLabel>{language.get(self.state.lang, "events")}</IonLabel>
                                         </IonItem>
                                     )
                                 }
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
                                     
-                                    return this.routeTo("/trash")
+                                    return routeTo(self, "/trash")
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.trash}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "trash")}</IonLabel>
+                                    <IonLabel>{language.get(self.state.lang, "trash")}</IonLabel>
                                 </IonItem>
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
@@ -950,7 +967,7 @@ export function render(){
                                     return window.customFunctions.openSettingsModal()
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.settings}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "settings")}</IonLabel>
+                                    <IonLabel>{language.get(self.state.lang, "settings")}</IonLabel>
                                 </IonItem>
                                 {/*<IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
@@ -958,7 +975,7 @@ export function render(){
                                     return window.customFunctions.openEncryptionModal()
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.lockClosed}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "encryption")}</IonLabel>
+                                    <IonLabel>{language.get(self.state.lang, "encryption")}</IonLabel>
                                 </IonItem>*/}
                                 <IonItem button lines="none" onClick={() => {
                                     window.customFunctions.hideSidebarMenu()
@@ -966,7 +983,7 @@ export function render(){
                                     return window.customFunctions.openHelpModal()
                                 }}>
                                     <IonIcon slot="start" icon={Ionicons.help}></IonIcon>
-                                    <IonLabel>{language.get(this.state.lang, "help")}</IonLabel>
+                                    <IonLabel>{language.get(self.state.lang, "help")}</IonLabel>
                                 </IonItem>
                             </IonList>
                         </IonContent>
@@ -975,22 +992,22 @@ export function render(){
                         <IonHeader className="ion-no-border">
                             <IonToolbar>
                                 <IonTitle>
-                                    {language.get(this.state.lang, "transfersMenuTitle")} {(this.state.uploadsCount + this.state.downloadsCount) > 0 ? "(" + (this.state.uploadsCount + this.state.downloadsCount) + ")" : ""}
+                                    {language.get(self.state.lang, "transfersMenuTitle")} {(self.state.uploadsCount + self.state.downloadsCount) > 0 ? "(" + (self.state.uploadsCount + self.state.downloadsCount) + ")" : ""}
                                 </IonTitle>
                             </IonToolbar>
                         </IonHeader>
                         <IonContent style={{
-                            "--background": this.state.darkMode ? "#1E1E1E" : "white"
+                            "--background": self.state.darkMode ? "#1E1E1E" : "white"
                         }} fullscreen={true}>
                             {
-                                (this.state.uploadsCount + this.state.downloadsCount) > 0 ? (
+                                (self.state.uploadsCount + self.state.downloadsCount) > 0 ? (
                                     <IonList>
                                         {transfersUploads}
                                         {transfersDownloads}
                                     </IonList>
                                 ) : (
                                     <IonList>
-                                        <IonItem lines="none">{language.get(this.state.lang, "transfersMenuNoTransfers")}</IonItem>
+                                        <IonItem lines="none">{language.get(self.state.lang, "transfersMenuNoTransfers")}</IonItem>
                                     </IonList>
                                 )
                             }
@@ -1001,20 +1018,20 @@ export function render(){
                             {mainToolbar}
                         </IonHeader>
                         <IonContent style={{
-                            width: this.state.windowWidth + "px",
-                            height: this.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 40 : 0) - safeAreaInsets.bottom + "px",
-                            "--background": this.state.darkMode ? "" : "white", //#1E1E1E darkmode
+                            width: self.state.windowWidth + "px",
+                            height: self.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 40 : 0) - safeAreaInsets.bottom + "px",
+                            "--background": self.state.darkMode ? "" : "white", //#1E1E1E darkmode
                             outline: "none",
                             border: "none"
                         }} fullscreen={true}>
                             {bottomFab}
-                            <IonRefresher slot="fixed" id="refresher" disabled={this.state.refresherEnabled ? false : true} onIonRefresh={() => {
+                            <IonRefresher slot="fixed" id="refresher" disabled={self.state.refresherEnabled ? false : true} onIonRefresh={() => {
                                 return window.customFunctions.refresherPulled()
                             }}>
                                 <IonRefresherContent></IonRefresherContent>
                             </IonRefresher>
                             {
-                                this.state.itemList.length == 0 && this.state.mainSearchTerm.trim().length > 0 ? (
+                                self.state.itemList.length == 0 && self.state.mainSearchTerm.trim().length > 0 ? (
                                     <div style={{
                                         position: "absolute",
                                         left: "50%",
@@ -1025,22 +1042,22 @@ export function render(){
                                         <center>
                                             <IonIcon icon={Ionicons.searchSharp} style={{
                                                 fontSize: "65pt",
-                                                color: this.state.darkMode ? "white" : "gray"
+                                                color: self.state.darkMode ? "white" : "gray"
                                             }}></IonIcon>
                                             <br />
                                             <br />
                                             <div style={{
                                                 width: "75%"
                                             }}>
-                                                {language.get(this.state.lang, "nothingFoundSearch", true, ["__TERM__"], [this.state.mainSearchTerm])}
+                                                {language.get(self.state.lang, "nothingFoundSearch", true, ["__TERM__"], [self.state.mainSearchTerm])}
                                             </div>
                                         </center>
                                     </div>
                                 ) : (
-                                    this.state.itemList.length == 0 && !this.state.searchbarOpen ? (
+                                    self.state.itemList.length == 0 && !self.state.searchbarOpen ? (
                                         <div>
                                             {
-                                                !this.state.isDeviceOnline ? (
+                                                !self.state.isDeviceOnline ? (
                                                     <div style={{
                                                         position: "absolute",
                                                         left: "50%",
@@ -1051,18 +1068,18 @@ export function render(){
                                                         <center>
                                                             <IonIcon icon={Ionicons.cloudOfflineOutline} style={{
                                                                 fontSize: "65pt",
-                                                                color: this.state.darkMode ? "white" : "gray"
+                                                                color: self.state.darkMode ? "white" : "gray"
                                                             }}></IonIcon>
                                                             <br />
                                                             <br />
                                                             <div style={{
                                                                 width: "75%"
                                                             }}>
-                                                                {language.get(this.state.lang, "deviceOfflineAS")}
+                                                                {language.get(self.state.lang, "deviceOfflineAS")}
                                                             </div>
                                                         </center>
                                                     </div>
-                                                ) : this.state.currentHref.indexOf("base") !== -1 ? (
+                                                ) : self.state.currentHref.indexOf("base") !== -1 ? (
                                                     <div style={{
                                                         position: "absolute",
                                                         left: "50%",
@@ -1073,18 +1090,18 @@ export function render(){
                                                         <center>
                                                             <IonIcon icon={Ionicons.folderOpen} style={{
                                                                 fontSize: "65pt",
-                                                                color: this.state.darkMode ? "white" : "gray"
+                                                                color: self.state.darkMode ? "white" : "gray"
                                                             }}></IonIcon>
                                                             <br />
                                                             <br />
                                                             <div style={{
                                                                 width: "75%"
                                                             }}>
-                                                                {language.get(this.state.lang, "nothingInThisFolderYetPlaceholder")}
+                                                                {language.get(self.state.lang, "nothingInThisFolderYetPlaceholder")}
                                                             </div>
                                                         </center>
                                                     </div>
-                                                ) : this.state.currentHref.indexOf("shared") !== -1 ? (
+                                                ) : self.state.currentHref.indexOf("shared") !== -1 ? (
                                                     <div style={{
                                                         position: "absolute",
                                                         left: "50%",
@@ -1095,18 +1112,18 @@ export function render(){
                                                         <center>
                                                             <IonIcon icon={Ionicons.folderOpen} style={{
                                                                 fontSize: "65pt",
-                                                                color: this.state.darkMode ? "white" : "gray"
+                                                                color: self.state.darkMode ? "white" : "gray"
                                                             }}></IonIcon>
                                                             <br />
                                                             <br />
                                                             <div style={{
                                                                 width: "75%"
                                                             }}>
-                                                                {language.get(this.state.lang, "folderHasNoContentsPlaceholder")}
+                                                                {language.get(self.state.lang, "folderHasNoContentsPlaceholder")}
                                                             </div>
                                                         </center>
                                                     </div>
-                                                ) : this.state.currentHref.indexOf("trash") !== -1 ? (
+                                                ) : self.state.currentHref.indexOf("trash") !== -1 ? (
                                                     <div style={{
                                                         position: "absolute",
                                                         left: "50%",
@@ -1117,19 +1134,19 @@ export function render(){
                                                         <center>
                                                             <IonIcon icon={Ionicons.trash} style={{
                                                                 fontSize: "65pt",
-                                                                color: this.state.darkMode ? "white" : "gray"
+                                                                color: self.state.darkMode ? "white" : "gray"
                                                             }}></IonIcon>
                                                             <br />
                                                             <br />
                                                             <div style={{
                                                                 width: "75%"
                                                             }}>
-                                                                {language.get(this.state.lang, "trashEmptyPlaceholder")}
+                                                                {language.get(self.state.lang, "trashEmptyPlaceholder")}
                                                             </div>
                                                         </center>
                                                     </div>
                                                 ) : (
-                                                    this.state.currentHref.indexOf("links") !== -1 ? (
+                                                    self.state.currentHref.indexOf("links") !== -1 ? (
                                                         <div style={{
                                                             position: "absolute",
                                                             left: "50%",
@@ -1140,19 +1157,19 @@ export function render(){
                                                             <center>
                                                                 <IonIcon icon={Ionicons.link} style={{
                                                                     fontSize: "65pt",
-                                                                    color: this.state.darkMode ? "white" : "gray"
+                                                                    color: self.state.darkMode ? "white" : "gray"
                                                                 }}></IonIcon>
                                                                 <br />
                                                                 <br />
                                                                 <div style={{
                                                                     width: "75%"
                                                                 }}>
-                                                                    {language.get(this.state.lang, "linksEmptyPlaceholder")}
+                                                                    {language.get(self.state.lang, "linksEmptyPlaceholder")}
                                                                 </div>
                                                             </center>
                                                         </div>
                                                     ) : (
-                                                        this.state.currentHref.indexOf("favorites") !== -1 ? (
+                                                        self.state.currentHref.indexOf("favorites") !== -1 ? (
                                                             <div style={{
                                                                 position: "absolute",
                                                                 left: "50%",
@@ -1163,14 +1180,14 @@ export function render(){
                                                                 <center>
                                                                     <IonIcon icon={Ionicons.star} style={{
                                                                         fontSize: "65pt",
-                                                                        color: this.state.darkMode ? "white" : "gray"
+                                                                        color: self.state.darkMode ? "white" : "gray"
                                                                     }}></IonIcon>
                                                                     <br />
                                                                     <br />
                                                                     <div style={{
                                                                         width: "75%"
                                                                     }}>
-                                                                        {language.get(this.state.lang, "noFavorites")}
+                                                                        {language.get(self.state.lang, "noFavorites")}
                                                                     </div>
                                                                 </center>
                                                             </div>
@@ -1185,14 +1202,14 @@ export function render(){
                                                                 <center>
                                                                     <IonIcon icon={Ionicons.folderOpen} style={{
                                                                         fontSize: "65pt",
-                                                                        color: this.state.darkMode ? "white" : "gray"
+                                                                        color: self.state.darkMode ? "white" : "gray"
                                                                     }}></IonIcon>
                                                                     <br />
                                                                     <br />
                                                                     <div style={{
                                                                         width: "75%"
                                                                     }}>
-                                                                        {language.get(this.state.lang, "nothingInThisFolderYetPlaceholder")}
+                                                                        {language.get(self.state.lang, "nothingInThisFolderYetPlaceholder")}
                                                                     </div>
                                                                 </center>
                                                             </div>
@@ -1202,17 +1219,19 @@ export function render(){
                                             }
                                         </div>
                                     ) : (
-                                        this.state.settings.gridModeEnabled ? (
+                                        self.state.settings.gridModeEnabled ? (
                                             <>
                                                 <List 
                                                     id="main-virtual-list"
-                                                    height={this.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 45 : 0) - safeAreaInsets.bottom}
-                                                    width={this.state.windowWidth}
-                                                    rowCount={Math.round(this.state.itemList.length / 2)}
-                                                    rowHeight={this.state.gridItemHeight}
+                                                    height={self.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 45 : 0) - safeAreaInsets.bottom}
+                                                    width={self.state.windowWidth}
+                                                    rowCount={Math.round(self.state.itemList.length / 2)}
+                                                    rowHeight={self.state.gridItemHeight}
                                                     overscanRowCount={8}
-                                                    rowRenderer={this.rowRenderer}
-                                                    scrollToIndex={this.state.scrollToIndex}
+                                                    rowRenderer={({ index, style }) => {
+                                                        return rowRenderer(self, index, style)
+                                                    }}
+                                                    scrollToIndex={self.state.scrollToIndex}
                                                     scrollToAlignment="center"
                                                     onScroll={() => window.customFunctions.itemListScrolling()}
                                                     style={{
@@ -1221,17 +1240,15 @@ export function render(){
                                                     }}
                                                     onRowsRendered={({startIndex, stopIndex}) => {
                                                         startIndex = Math.floor(startIndex / 2)
-                                                        stopIndex = Math.floor(stopIndex * 2)
+                                                        stopIndex = Math.floor(stopIndex * 2 + 4)
 
                                                         let inView = {}
 
                                                         for(let index = startIndex; index < stopIndex; index++){
                                                             if(index >= 0){
-                                                                if(typeof this.state.itemList[index] !== "undefined"){
-                                                                    inView[this.state.itemList[index].uuid] = true
-                                                                    window.customVariables.thumbnailsInView[this.state.itemList[index].uuid] = true
-
-                                                                    this.genThumbnail(this.state.itemList[index], index)
+                                                                if(typeof self.state.itemList[index] !== "undefined"){
+                                                                    inView[self.state.itemList[index].uuid] = true
+                                                                    window.customVariables.thumbnailsInView[self.state.itemList[index].uuid] = true
                                                                 }
                                                             }
                                                         }
@@ -1251,13 +1268,15 @@ export function render(){
                                             <>
                                                 <List 
                                                     id="main-virtual-list"
-                                                    height={this.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 45 : 0) - safeAreaInsets.bottom}
-                                                    width={this.state.windowWidth}
-                                                    rowCount={this.state.itemList.length}
+                                                    height={self.state.windowHeight - 56 - 57 - (isPlatform("ios") ? 45 : 0) - safeAreaInsets.bottom}
+                                                    width={self.state.windowWidth}
+                                                    rowCount={self.state.itemList.length}
                                                     rowHeight={72}
                                                     overscanRowCount={8}
-                                                    rowRenderer={this.rowRenderer}
-                                                    scrollToIndex={this.state.scrollToIndex}
+                                                    rowRenderer={({ index, style }) => {
+                                                        return rowRenderer(self, index, style)
+                                                    }}
+                                                    scrollToIndex={self.state.scrollToIndex}
                                                     scrollToAlignment="center"
                                                     onScroll={() => window.customFunctions.itemListScrolling()}
                                                     style={{
@@ -1272,11 +1291,9 @@ export function render(){
 
                                                         for(let index = startIndex; index < stopIndex; index++){
                                                             if(index >= 0){
-                                                                if(typeof this.state.itemList[index] !== "undefined"){
-                                                                    inView[this.state.itemList[index].uuid] = true
-                                                                    window.customVariables.thumbnailsInView[this.state.itemList[index].uuid] = true
-
-                                                                    this.genThumbnail(this.state.itemList[index], index)
+                                                                if(typeof self.state.itemList[index] !== "undefined"){
+                                                                    inView[self.state.itemList[index].uuid] = true
+                                                                    window.customVariables.thumbnailsInView[self.state.itemList[index].uuid] = true
                                                                 }
                                                             }
                                                         }
@@ -1321,7 +1338,7 @@ export function render(){
                                     fileObject.fileEntry = files[i]
                                     fileObject.tempFileEntry = undefined
 
-                                    this.queueFileUpload(fileObject)
+                                    queueFileUpload(fileObject)
                                 }
 
                                 document.getElementById("file-input-dummy").value = ""
@@ -1348,7 +1365,7 @@ export function render(){
                                 let file = files[0]
 
                                 if(file.size >= ((1024 * 1024) * 2.99)){
-                                    return this.spawnToast(language.get(this.state.lang, "avatarTooLarge"))
+                                    return spawnToast(language.get(self.state.lang, "avatarTooLarge"))
                                 }
 
                                 let loading = await loadingController.create({
@@ -1391,7 +1408,7 @@ export function render(){
                                         fileReader.onerror = (err) => {
                                             reject(err)
     
-                                            return this.spawnToast(language.get(this.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
+                                            return spawnToast(language.get(self.state.lang, "fileUploadCouldNotReadFile", true, ["__NAME__"], [file.name]))
                                         }
     
                                         fileReader.readAsBinaryString(file)
@@ -1402,14 +1419,14 @@ export function render(){
 
                                     loading.dismiss()
 
-                                    return this.spawnToast(language.get(this.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
+                                    return spawnToast(language.get(self.state.lang, "fileUploadFailed", true, ["__NAME__"], [file.name]))
                                 }
 
                                 loading.dismiss()
 
                                 await window.customFunctions.fetchUserInfo()
 
-                                this.spawnToast(language.get(this.state.lang, "avatarUploaded"))
+                                spawnToast(language.get(self.state.lang, "avatarUploaded"))
 
                                 document.getElementById("avatar-input-dummy").value = ""
 
@@ -1418,12 +1435,12 @@ export function render(){
                         </IonContent>
                     </div>
                     <IonToolbar style={{
-                        "--background": (this.state.darkMode ? "" : "#F0F0F0"),
+                        "--background": (self.state.darkMode ? "" : "#F0F0F0"),
                         paddingBottom: safeAreaInsets.bottom + "px"
                     }}>
                         <IonButtons>
                             <IonButton onClick={() => {
-                                return routeTo("/base")
+                                return routeTo(self, "/base")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
                                 "--ripple-color": "transparent",
@@ -1435,7 +1452,7 @@ export function render(){
                                 showShareLinks && (
                                     <>
                                         <IonButton onClick={() => {
-                                            return routeTo("/shared-in")
+                                            return routeTo(self, "/shared-in")
                                         }} style={{
                                             width: (showShareLinks ? "16.66%" : "25%"),
                                             "--ripple-color": "transparent",
@@ -1444,7 +1461,7 @@ export function render(){
                                             <IonIcon slot="icon-only" icon={Ionicons.folder} />
                                         </IonButton>
                                         <IonButton onClick={() => {
-                                            return routeTo("/shared-out")
+                                            return routeTo(self, "/shared-out")
                                         }} style={{
                                             width: (showShareLinks ? "16.66%" : "25%"),
                                             "--ripple-color": "transparent",
@@ -1456,7 +1473,7 @@ export function render(){
                                 )
                             }
                             <IonButton onClick={() => {
-                                return routeTo("/links")
+                                return routeTo(self, "/links")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
                                 "--ripple-color": "transparent",
@@ -1465,7 +1482,7 @@ export function render(){
                                 <IonIcon slot="icon-only" icon={Ionicons.link} />
                             </IonButton>
                             <IonButton onClick={() => {
-                                return routeTo("/favorites")
+                                return routeTo(self, "/favorites")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
                                 "--ripple-color": "transparent",
@@ -1474,7 +1491,7 @@ export function render(){
                                 <IonIcon slot="icon-only" icon={Ionicons.star} />
                             </IonButton>
                             <IonButton onClick={() => {
-                                return routeTo("/recent")
+                                return routeTo(self, "/recent")
                             }} style={{
                                 width: (showShareLinks ? "16.66%" : "25%"),
                                 "--ripple-color": "transparent",
