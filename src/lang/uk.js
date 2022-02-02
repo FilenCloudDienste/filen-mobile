@@ -371,6 +371,7 @@ translations['uk']['advanced'] = "Додаткові"
 translations['uk']['transfersMore'] = "І ще __COUNT__ .."
 translations['uk']['filesIgnored'] = "Файли ігноруються"
 translations['uk']['onlyUseWifiForUploads'] = "Використовувати тільки Wi-Fi для завантаження"
+translations['uk']['decryptingItems'] = "Розшифровка __COUNT__/__TOTAL__.."
 
 module.exports = {
     translations
