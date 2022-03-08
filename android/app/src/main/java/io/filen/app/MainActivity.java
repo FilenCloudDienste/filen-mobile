@@ -1,46 +1,23 @@
 package io.filen.app;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.webkit.ValueCallback;
+import com.facebook.react.ReactActivity;
+import org.devio.rn.splashscreen.SplashScreen;
 
-import com.getcapacitor.BridgeActivity;
-import com.getcapacitor.Plugin;
+public class MainActivity extends ReactActivity {
 
-import java.util.ArrayList;
-
-import com.getcapacitor.community.media.MediaPlugin;
-import de.mindlib.sendIntent.SendIntent;
-
-public class MainActivity extends BridgeActivity {
   @Override
-  public void onCreate(Bundle savedInstanceState) {
-      super.onCreate(savedInstanceState);
-
-      registerPlugin(MediaPlugin.class);
-      registerPlugin(SendIntent.class);
+  protected void onCreate(Bundle savedInstanceState) {
+    SplashScreen.show(this);
+    super.onCreate(savedInstanceState);
   }
 
+  /**
+   * Returns the name of the main component registered from JavaScript. This is used to schedule
+   * rendering of the component.
+   */
   @Override
-  protected void onNewIntent(Intent intent) {
-      super.onNewIntent(intent);
-      String action = intent.getAction();
-      String type = intent.getType();
-      if (Intent.ACTION_SEND.equals(action) && type != null) {
-          bridge.getActivity().setIntent(intent);
-          bridge.eval("window.dispatchEvent(new Event('sendIntentReceived'))", new ValueCallback<String>() {
-              @Override
-              public void onReceiveValue(String s) {
-              }
-          });
-      }
-      else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
-          bridge.getActivity().setIntent(intent);
-          bridge.eval("window.dispatchEvent(new Event('sendIntentReceived'))", new ValueCallback<String>() {
-              @Override
-              public void onReceiveValue(String s) {
-              }
-          });
-      }
+  protected String getMainComponentName() {
+    return "Filen";
   }
 }

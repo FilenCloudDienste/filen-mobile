@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-The latest release version of filen-app is currently being supported with security updates
+The latest release version of filen-mobile is currently being supported with security updates
 
 ## Reporting a Vulnerability
 

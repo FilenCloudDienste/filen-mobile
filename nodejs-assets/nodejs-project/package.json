@@ -1,0 +1,18 @@
+{
+  "name": "nodejs-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "crypto-api-v1": "^1.0.0",
+    "crypto-js": "^4.1.1",
+    "js-crypto-key-utils": "^1.0.4",
+    "uuidv4": "^6.2.12"
+  }
+}

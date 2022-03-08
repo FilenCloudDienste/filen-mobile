@@ -1,0 +1,325 @@
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { View, DeviceEventEmitter, Platform } from "react-native"
+import { storage } from "../lib/storage"
+import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
+import { TopBar } from "./TopBar"
+import { ItemList } from "./ItemList"
+import { loadItems, sortItems } from "../lib/services/items"
+import { getMasterKeys, getParent, getRouteURL, calcPhotosGridSize } from "../lib/helpers"
+import { useStore } from "../lib/state"
+import { useMountedState } from "react-use"
+import { SheetManager } from "react-native-actions-sheet"
+import { previewItem } from "../lib/services/items"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
+
+export const MainScreen = ({ navigation, route }) => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const dimensions = useStore(state => state.dimensions)
+    const cachedItemsRef = useRef(storage.getString("loadItemsCache:" + getRouteURL(route)))
+    const [items, setItems] = useState(typeof cachedItemsRef.current !== "undefined" ? JSON.parse(cachedItemsRef.current) : [])
+    const [searchTerm, setSearchTerm] = useState("")
+    const [loadDone, setLoadDone] = useState(typeof cachedItemsRef.current !== "undefined" ? true : false)
+    const setNavigation = useStore(state => state.setNavigation)
+    const setRoute = useStore(state => state.setRoute)
+    const masterKeys = getMasterKeys()
+    const isMounted = useMountedState()
+    const setCurrentActionSheetItem = useStore(state => state.setCurrentActionSheetItem)
+    const setCurrentItems = useStore(state => state.setCurrentItems)
+    const itemsRef = useRef([])
+    const setItemsSelectedCount = useStore(state => state.setItemsSelectedCount)
+    const setInsets = useStore(state => state.setInsets)
+    const insets = useSafeAreaInsets()
+    const [progress, setProgress] = useState({ itemsDone: 0, totalItems: 1 })
+    const selectedCountRef = useRef(0)
+    const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
+    const [itemsBeforeSearch, setItemsBeforeSearch] = useState([])
+    const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
+
+    const updateItemThumbnail = useCallback((item, path) => {
+        if(typeof path !== "string"){
+            return false
+        }
+
+        if(path.length < 4){
+            return false
+        }
+    
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: (path.indexOf("file://") == -1 ? "file://" + path : path)} : mapItem))
+        }
+    })
+    
+    const selectItem = useCallback((item) => {
+        if(getRouteURL(route).indexOf("photos") !== -1){
+            if(calcPhotosGridSize(photosGridSize) >= 6){
+                return false
+            }
+        }
+
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: true} : mapItem))
+        }
+    })
+    
+    const unselectItem = useCallback((item) => {
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: false} : mapItem))
+        }
+    })
+
+    const unselectAllItems = useCallback(() => {
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.selected ? {...mapItem, selected: false} : mapItem))
+        }
+    })
+
+    const selectAllItems = useCallback(() => {
+        if(getRouteURL(route).indexOf("photos") !== -1){
+            if(calcPhotosGridSize(photosGridSize) >= 6){
+                return false
+            }
+        }
+
+        if(isMounted()){
+            setItems(items => items.map(mapItem => !mapItem.selected ? {...mapItem, selected: true} : mapItem))
+        }
+    })
+
+    const removeItem = useCallback((uuid) => {
+        if(isMounted()){
+            setItems(items => items.filter(mapItem => mapItem.uuid !== uuid && mapItem))
+        }
+    })
+
+    const markOffline = useCallback((uuid, value) => {
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, offline: value} : mapItem))
+        }
+    })
+
+    const markFavorite = useCallback((uuid, value) => {
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, favorited: value} : mapItem))
+        }
+    })
+
+    const changeFolderColor = useCallback((uuid, color) => {
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, color} : mapItem))
+        }
+    })
+
+    const changeItemName = useCallback((uuid, name) => {
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, name} : mapItem))
+        }
+    })
+
+    const addItem = useCallback((item, parent) => {
+        const currentParent = getParent(route)
+
+        if(isMounted() && (currentParent == parent || (item.offline && parent == "offline"))){
+            setItems(items => sortItems({ items: [...items, item], passedRoute: route }))
+        }
+    })
+
+    const changeWholeItem = useCallback((item, uuid) => {
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? item : mapItem))
+        }
+    })
+
+    const reloadList = useCallback((parent) => {
+        const currentParent = getParent(route)
+
+        if(isMounted() && currentParent == parent){
+            fetchItemList({ bypassCache: true, callStack: 1 })
+        }
+    })
+
+    const updateFolderSize = useCallback((uuid, size) => {
+        if(isMounted()){
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, size} : mapItem))
+        }
+    })
+
+    useEffect(() => {
+        if(isMounted()){
+            if(searchTerm.length == 0){
+                if(itemsBeforeSearch.length > 0){
+                    setItems(itemsBeforeSearch)
+                    setItemsBeforeSearch([])
+                }
+            }
+            else{
+                if(itemsBeforeSearch.length == 0){
+                    setItemsBeforeSearch(items)
+    
+                    var filtered = items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
+                }
+                else{
+                    var filtered = itemsBeforeSearch.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
+                }
+    
+                setItems(filtered)
+            }
+        }
+    }, [searchTerm])
+
+    useEffect(() => {
+        setCurrentItems(items)
+
+        itemsRef.current = items
+        global.items = items
+        global.setItems = setItems
+
+        const selected = items.filter(item => item.selected && [1]).length
+
+        selectedCountRef.current = selected
+
+        setItemsSelectedCount(selectedCountRef.current)
+    }, [items])
+
+    useEffect(() => {
+        const deviceListener = DeviceEventEmitter.addListener("event", (data) => {
+            const navigationRoutes = navigation.getState().routes
+            const isListenerActive = (navigationRoutes[navigationRoutes.length - 1].key == route.key)
+
+            if(data.type == "thumbnail-generated"){
+                updateItemThumbnail(data.data, data.data.path)
+            }
+            else if(data.type == "item-onpress" && isListenerActive){
+                if(data.data.selected){
+                    unselectItem(data.data)
+                }
+                else{
+                    if(selectedCountRef.current > 0){
+                        selectItem(data.data)
+                    }
+                    else{
+                        global.currentReceiverId = data.data.receiverId
+
+                        const routeURL = getRouteURL(route)
+
+                        if(data.data.type == "folder" && routeURL.indexOf("trash") == -1){
+                            useStore.setState({ showNavigationAnimation: true })
+
+                            navigation.push("MainScreen", {
+                                parent: routeURL + "/" + data.data.uuid
+                            })
+                        }
+                        else{
+                            previewItem({ item: data.data })
+                        }
+                    }
+                }
+            }
+            else if(data.type == "item-onlongpress" && isListenerActive){
+                selectItem(data.data)
+            }
+            else if(data.type == "open-item-actionsheet" && isListenerActive){
+                setCurrentActionSheetItem(data.data)
+    
+                SheetManager.show("ItemActionSheet")
+            }
+            else if(data.type == "unselect-all-items" && isListenerActive){
+                unselectAllItems()
+            }
+            else if(data.type == "select-all-items" && isListenerActive){
+                selectAllItems()
+            }
+            else if(data.type == "select-item" && isListenerActive){
+                selectItem(data.data)
+            }
+            else if(data.type == "remove-item"){
+                removeItem(data.data.uuid)
+            }
+            else if(data.type == "add-item"){
+                addItem(data.data.item, data.data.parent)
+            }
+            else if(data.type == "mark-item-offline"){
+                if(!data.data.value && getRouteURL(route).indexOf("offline") !== -1){
+                    removeItem(data.data.uuid)
+                }
+                else{
+                    markOffline(data.data.uuid, data.data.value)
+                }
+            }
+            else if(data.type == "mark-item-favorite"){
+                if(!data.data.value && getRouteURL(route).indexOf("favorites") !== -1){
+                    removeItem(data.data.uuid)
+                }
+                else{
+                    markFavorite(data.data.uuid, data.data.value)
+                }
+            }
+            else if(data.type == "change-folder-color"){
+                changeFolderColor(data.data.uuid, data.data.color)
+            }
+            else if(data.type == "change-item-name"){
+                changeItemName(data.data.uuid, data.data.name)
+            }
+            else if(data.type == "change-whole-item"){
+                changeWholeItem(data.data.item, data.data.uuid)
+            }
+            else if(data.type == "reload-list"){
+                reloadList(data.data.parent)
+            }
+            else if(data.type == "remove-public-link"){
+                if(getRouteURL(route).indexOf("links") !== -1){
+                    removeItem(data.data.uuid)
+                }
+            }
+            else if(data.type == "folder-size"){
+                updateFolderSize(data.data.uuid, data.data.size)
+            }
+        })
+
+        setIsDeviceReady(true)
+
+        return () => {
+            deviceListener.remove()
+        }
+    }, [])
+
+    const fetchItemList = useCallback(async ({ bypassCache = false, callStack = 0 }) => {
+        return loadItems({
+            parent: getParent(route),
+            setItems,
+            masterKeys,
+            setLoadDone,
+            navigation,
+            isMounted,
+            bypassCache,
+            route,
+            setProgress,
+            callStack
+        })
+    })
+
+    useEffect(() => {
+        setNavigation(navigation)
+        setRoute(route)
+        setInsets(insets)
+        fetchItemList({ bypassCache: false })
+
+        global.fetchItemList = fetchItemList
+    }, [])
+
+    const showHomeTabBar = (["shared-in", "shared-out", "links", "recents", "offline", "favorites"].includes(getParent(route)))
+
+    return (
+        <View style={{
+            height: "100%",
+            width: "100%",
+            backgroundColor: darkMode ? "black" : "white"
+        }}>
+            <TopBar navigation={navigation} route={route} setLoadDone={setLoadDone} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            <View style={{
+                height: route?.params?.parent?.indexOf("photos") !== -1 ? (dimensions.screen.height - (Platform.OS == "android" ? 171 : 175)) : Math.floor(dimensions.screen.height - (Platform.OS == "ios" ? (showHomeTabBar ? 255 : 220) : (showHomeTabBar ? 250 : 215)))
+            }}>
+                <ItemList navigation={navigation} route={route} items={items} setItems={setItems} showLoader={!loadDone} loadDone={loadDone} searchTerm={searchTerm} isMounted={isMounted} fetchItemList={fetchItemList} progress={progress} setProgress={setProgress} />
+            </View>
+        </View>
+    )
+}
