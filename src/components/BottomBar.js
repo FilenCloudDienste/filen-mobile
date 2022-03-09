@@ -44,7 +44,50 @@ export const BottomBar = ({ navigation, route }) => {
         }
     }
 
-    const canOpenBottomAddActionSheet = (currentScreenName == "MainScreen" && !isOfflineScreen && !isTrashScreen && !isFavoritesScreen && !isPhotosScreen && !isRecentsScreen && routeURL.indexOf("shared-in") == -1 && parent !== "shared-out" && parent !== "links")
+    const canOpenBottomAddActionSheet = currentScreenName == "MainScreen"
+        && !isOfflineScreen 
+        && !isTrashScreen 
+        && !isFavoritesScreen 
+        && !isPhotosScreen 
+        && !isRecentsScreen 
+        && routeURL.indexOf("shared-in") == -1 
+        && parent !== "shared-out" 
+        && parent !== "links"
+
+    const showCloud = isBaseScreen 
+        && !isRecentsScreen 
+        && !isTrashScreen 
+        && !isSharedScreen 
+        && currentScreenName !== "SettingsAccountScreen" 
+        && currentScreenName !== "LanguageScreen" 
+        && currentScreenName !== "SettingsAdvancedScreen" 
+        && currentScreenName !== "CameraUploadScreen" 
+        && currentScreenName !== "SettingsScreen" 
+        && currentScreenName !== "TransfersScreen" 
+        && currentScreenName !== "EventsScreen" 
+        && currentScreenName !== "EventsInfoScreen"
+        && currentScreenName !== "GDPRScreen"
+        && currentScreenName !== "InviteScreen"
+        && currentScreenName !== "TwoFactorScreen"
+        && currentScreenName !== "ChangeEmailPasswordScreen"
+    
+    const showSettings = currentScreenName == "SettingsScreen" 
+        || currentScreenName == "LanguageScreen" 
+        || currentScreenName == "SettingsAccountScreen" 
+        || currentScreenName == "SettingsAdvancedScreen" 
+        || currentScreenName == "CameraUploadScreen" 
+        || currentScreenName == "EventsScreen" 
+        || currentScreenName == "EventsInfoScreen" 
+        || isTrashScreen
+        || currentScreenName == "GDPRScreen"
+        || currentScreenName == "InviteScreen"
+        || currentScreenName == "TwoFactorScreen"
+        || currentScreenName == "ChangeEmailPasswordScreen"
+    
+    const showHome = isSharedScreen
+        || isRecentsScreen 
+        || isFavoritesScreen  
+        || isOfflineScreen
 
     return (
         <View style={{
@@ -73,9 +116,9 @@ export const BottomBar = ({ navigation, route }) => {
                     }))
                 })
             }}>
-                <Ionicon name={isSharedScreen || isRecentsScreen || isFavoritesScreen  || isOfflineScreen? "home" : "home-outline"} size={22} color={isSharedScreen || isRecentsScreen || isFavoritesScreen || isOfflineScreen ? "#0A84FF" : (darkMode ? "gray" : "gray")} />
+                <Ionicon name={showHome ? "home" : "home-outline"} size={22} color={showHome ? "#0A84FF" : (darkMode ? "gray" : "gray")} />
                 <Text style={{
-                    color: isSharedScreen || isRecentsScreen || isFavoritesScreen || isOfflineScreen ? "#0A84FF" : (darkMode ? "gray" : "gray"),
+                    color: showHome ? "#0A84FF" : (darkMode ? "gray" : "gray"),
                     fontSize: 10,
                     marginTop: 3
                 }}>{i18n(lang, "home")}</Text>
@@ -98,9 +141,9 @@ export const BottomBar = ({ navigation, route }) => {
                     }))
                 })
             }}>
-                <Ionicon name={isBaseScreen && !isRecentsScreen && !isTrashScreen && !isSharedScreen && currentScreenName !== "SettingsAccountScreen" && currentScreenName !== "LanguageScreen" && currentScreenName !== "SettingsAdvancedScreen" && currentScreenName !== "CameraUploadScreen" && currentScreenName !== "SettingsScreen" && currentScreenName !== "TransfersScreen" && currentScreenName !== "EventsScreen" && currentScreenName !== "EventsInfoScreen" ? "cloud" : "cloud-outline"} size={22} color={isBaseScreen && !isRecentsScreen && !isTrashScreen && !isSharedScreen && currentScreenName !== "SettingsAccountScreen" && currentScreenName !== "LanguageScreen" && currentScreenName !== "SettingsAdvancedScreen" && currentScreenName !== "SettingsScreen" && currentScreenName !== "TransfersScreen" && currentScreenName !== "CameraUploadScreen" && currentScreenName !== "EventsScreen" && currentScreenName !== "EventsInfoScreen" ? "#0A84FF" : (darkMode ? "gray" : "gray")} />
+                <Ionicon name={showCloud ? "cloud" : "cloud-outline"} size={22} color={showCloud ? "#0A84FF" : (darkMode ? "gray" : "gray")} />
                 <Text style={{
-                    color: isBaseScreen && !isRecentsScreen && !isTrashScreen && !isSharedScreen && currentScreenName !== "SettingsAccountScreen" && currentScreenName !== "LanguageScreen" && currentScreenName !== "SettingsAdvancedScreen" && currentScreenName !== "CameraUploadScreen" && currentScreenName !== "SettingsScreen" && currentScreenName !== "TransfersScreen" && currentScreenName !== "EventsScreen" && currentScreenName !== "EventsInfoScreen" ? "#0A84FF" : (darkMode ? "gray" : "gray"),
+                    color: showCloud ? "#0A84FF" : (darkMode ? "gray" : "gray"),
                     fontSize: 10,
                     marginTop: 3
                 }}>{i18n(lang, "cloud")}</Text>
@@ -120,21 +163,19 @@ export const BottomBar = ({ navigation, route }) => {
                 alignItems: "center",
                 width: "20%"
             }} onPress={() => {
-                if(!isPhotosScreen){
-                    navigationAnimation({ enable: false }).then(() => {
-                        navigation.current.dispatch(CommonActions.reset({
-                            index: 0,
-                            routes: [
-                                {
-                                    name: "MainScreen",
-                                    params: {
-                                        parent: "photos"
-                                    }
+                navigationAnimation({ enable: false }).then(() => {
+                    navigation.current.dispatch(CommonActions.reset({
+                        index: 0,
+                        routes: [
+                            {
+                                name: "MainScreen",
+                                params: {
+                                    parent: "photos"
                                 }
-                            ]
-                        }))
-                    })
-                }
+                            }
+                        ]
+                    }))
+                })
             }}>
                 <Ionicon name={isPhotosScreen ? "image" : "image-outline"} size={22} color={isPhotosScreen ? "#0A84FF" : (darkMode ? "gray" : "gray")} />
                 <Text style={{
@@ -147,22 +188,20 @@ export const BottomBar = ({ navigation, route }) => {
                 alignItems: "center",
                 width: "20%",
             }} onPress={() => {
-                if(currentScreenName !== "SettingsScreen"){
-                    navigationAnimation({ enable: false }).then(() => {
-                        navigation.current.dispatch(CommonActions.reset({
-                            index: 0,
-                            routes: [
-                                {
-                                    name: "SettingsScreen"
-                                }
-                            ]
-                        }))
-                    })
-                }
+                navigationAnimation({ enable: false }).then(() => {
+                    navigation.current.dispatch(CommonActions.reset({
+                        index: 0,
+                        routes: [
+                            {
+                                name: "SettingsScreen"
+                            }
+                        ]
+                    }))
+                })
             }}>
-                <Ionicon name={currentScreenName == "SettingsScreen" || currentScreenName == "LanguageScreen" || currentScreenName == "SettingsAccountScreen" || currentScreenName == "SettingsAdvancedScreen" || currentScreenName == "CameraUploadScreen" || currentScreenName == "EventsScreen" || currentScreenName == "EventsInfoScreen" || isTrashScreen ? "settings" : "settings-outline"} size={22} color={currentScreenName == "SettingsScreen" || currentScreenName == "LanguageScreen" || currentScreenName == "SettingsAccountScreen" || currentScreenName == "SettingsAdvancedScreen" || currentScreenName == "CameraUploadScreen" || currentScreenName == "EventsScreen" || currentScreenName == "EventsInfoScreen" || isTrashScreen ? "#0A84FF" : (darkMode ? "gray" : "gray")} />
+                <Ionicon name={showSettings ? "settings" : "settings-outline"} size={22} color={showSettings ? "#0A84FF" : (darkMode ? "gray" : "gray")} />
                 <Text style={{
-                    color: currentScreenName == "SettingsScreen" || currentScreenName == "LanguageScreen" || currentScreenName == "SettingsAccountScreen" || currentScreenName == "SettingsAdvancedScreen" || currentScreenName == "CameraUploadScreen" || currentScreenName == "EventsScreen" || currentScreenName == "EventsInfoScreen" || isTrashScreen ? "#0A84FF" : (darkMode ? "gray" : "gray"),
+                    color: showSettings ? "#0A84FF" : (darkMode ? "gray" : "gray"),
                     fontSize: 10,
                     marginTop: 3
                 }}>{i18n(lang, "settings")}</Text>

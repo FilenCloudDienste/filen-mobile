@@ -1866,4 +1866,114 @@ export const fetchFolderSize = ({ folder, routeURL }) => {
             return resolve(response.data.size)
         }).catch(reject)  
     })
-} 
+}
+
+export const deleteAllFilesAndFolders = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/delete/all",
+            data: {
+                apiKey: getAPIKey()
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve()
+        }).catch(reject)  
+    })
+}
+
+export const deleteAllVersionedFiles = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/versions/delete",
+            data: {
+                apiKey: getAPIKey()
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve()
+        }).catch(reject)  
+    })
+}
+
+export const deleteAccount = ({ twoFactorKey = "XXXXXX" }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/account/delete",
+            data: {
+                apiKey: getAPIKey(),
+                twoFactorKey
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve()
+        }).catch(reject)  
+    })
+}
+
+export const redeemCode = ({ code }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/code/redeem",
+            data: {
+                apiKey: getAPIKey(),
+                code
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve()
+        }).catch(reject)  
+    })
+}
+
+export const fetchGDPRInfo = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/gdpr/download",
+            data: {
+                apiKey: getAPIKey()
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data)
+        }).catch(reject)  
+    })
+}
+
+export const getAccount = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/get/account",
+            data: {
+                apiKey: getAPIKey()
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data)
+        }).catch(reject)  
+    })
+}

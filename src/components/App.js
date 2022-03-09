@@ -22,7 +22,7 @@ import { enableScreens } from "react-native-screens"
 import { generateItemThumbnail } from "../lib/services/items"
 import { TransfersIndicator } from "./TransfersIndicator"
 import { TransfersScreen } from "./TransfersScreen"
-import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, ConfirmRemoveFromSharedInDialog, ConfirmStopSharingDialog, CreateTextFileDialog } from "./Dialogs"
+import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, ConfirmRemoveFromSharedInDialog, ConfirmStopSharingDialog, CreateTextFileDialog, RedeemCodeDialog } from "./Dialogs"
 import Toast from "react-native-toast-notifications"
 import { startBackgroundTimer, stopBackgroundTimer } from "../lib/background"
 import NetInfo from "@react-native-community/netinfo"
@@ -42,6 +42,8 @@ import { ForgotPasswordScreen } from "./ForgotPasswordScreen"
 import { ResendConfirmationScreen } from "./ResendConfirmationScreen"
 import BackgroundFetch from "react-native-background-fetch"
 import Ionicon from "react-native-vector-icons/Ionicons"
+import { GDPRScreen } from "./GDPRScreen"
+import { InviteScreen } from "./InviteScreen"
 
 NetInfo.configure({
     reachabilityUrl: "https://api.filen.io",
@@ -414,10 +416,20 @@ export const App = () => {
                                             headerShown: false,
                                             animation: showNavigationAnimation ? "default" : "none"
                                         }}></Stack.Screen>
+                                        <Stack.Screen name="GDPRScreen" component={GDPRScreen} options={{
+                                            title: "GDPRScreen",
+                                            headerShown: false,
+                                            animation: showNavigationAnimation ? "default" : "none"
+                                        }}></Stack.Screen>
+                                        <Stack.Screen name="InviteScreen" component={InviteScreen} options={{
+                                            title: "InviteScreen",
+                                            headerShown: false,
+                                            animation: showNavigationAnimation ? "default" : "none"
+                                        }}></Stack.Screen>
                                     </Stack.Navigator>
                                     <>
                                         {
-                                            setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen"].includes(currentScreenName) && (
+                                            setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen"].includes(currentScreenName) && (
                                                 <View style={{
                                                     position: "relative",
                                                     width: "100%",
@@ -468,6 +480,7 @@ export const App = () => {
                     {
                         nodeJSAlive && (
                             <>
+                                <RedeemCodeDialog navigation={navigationRef} />
                                 <ConfirmStopSharingDialog navigation={navigationRef} />
                                 <ConfirmRemoveFromSharedInDialog navigation={navigationRef} />
                                 <ConfirmPermanentDeleteDialog navigation={navigationRef} />

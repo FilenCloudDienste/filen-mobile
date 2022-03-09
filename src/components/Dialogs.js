@@ -4,10 +4,10 @@ import { useStore } from "../lib/state"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { getParent, fileAndFolderNameValidation } from "../lib/helpers"
-import { createFolder, folderExists, fileExists, renameFile, renameFolder, deleteItemPermanently, removeSharedInItem, stopSharingItem } from "../lib/api"
+import { createFolder, folderExists, fileExists, renameFile, renameFolder, deleteItemPermanently, removeSharedInItem, stopSharingItem, redeemCode } from "../lib/api"
 import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Keyboard } from "react-native"
 
 export const RenameDialog = () => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -68,6 +68,8 @@ export const RenameDialog = () => {
             <Dialog.Button label={i18n(lang, "rename")} disabled={buttonsDisabled} onPress={() => {
                 setButtonsDisabled(true)
                 setRenameDialogVisible(false)
+
+                Keyboard.dismiss()
 
                 useStore.setState({ fullscreenLoadingModalVisible: true })
 
@@ -232,6 +234,8 @@ export const CreateFolderDialog = () => {
             <Dialog.Button label={i18n(lang, "create")} disabled={buttonsDisabled} onPress={() => {
                 setButtonsDisabled(true)
                 setCreateFolderDialogVisible(false)
+
+                Keyboard.dismiss()
 
                 useStore.setState({ fullscreenLoadingModalVisible: true })
 
@@ -512,6 +516,81 @@ export const CreateTextFileDialog = () => {
                 setTextEditorParent("")
                 setTextEditorState("new")
                 setTextEditorModalVisible(true)
+            }} />
+        </Dialog.Container>
+    )
+}
+
+export const RedeemCodeDialog = () => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const redeemCodeDialogVisible = useStore(state => state.redeemCodeDialogVisible)
+    const setRedeemCodeDialogVisible = useStore(state => state.setRedeemCodeDialogVisible)
+    const [value, setValue] = useState("")
+    const inputRef = useRef()
+    const [buttonsDisabled, setButtonsDisabled] = useState(false)
+    const [lang, setLang] = useMMKVString("lang", storage)
+
+    useEffect(() => {
+        setButtonsDisabled(false)
+
+        if(!redeemCodeDialogVisible){
+            setTimeout(() => {
+                setValue("")
+            }, 250)
+        }
+
+        if(redeemCodeDialogVisible){
+            setTimeout(() => {
+                inputRef.current.focus()
+            }, 250)
+        }
+    }, [redeemCodeDialogVisible])
+
+    return (
+        <Dialog.Container
+            visible={redeemCodeDialogVisible}
+            useNativeDriver={false}
+            onRequestClose={() => setRedeemCodeDialogVisible(false)}
+            onBackdropPress={() => {
+                if(!buttonsDisabled){
+                    setRedeemCodeDialogVisible(false)
+                }
+            }}
+        >
+            <Dialog.Title>{i18n(lang, "redeemACode")}</Dialog.Title>
+            <Dialog.Input placeholder={i18n(lang, "code")} value={value} autoFocus={true} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
+            <Dialog.Button label={i18n(lang, "cancel")} disabled={buttonsDisabled} onPress={() => setRedeemCodeDialogVisible(false)} />
+            <Dialog.Button label={i18n(lang, "redeem")} disabled={buttonsDisabled} onPress={() => {
+                setButtonsDisabled(true)
+                setRedeemCodeDialogVisible(false)
+
+                Keyboard.dismiss()
+
+                useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                const code = value.trim()
+
+                redeemCode({ code }).then(() => {
+                    setButtonsDisabled(false)
+
+                    DeviceEventEmitter.emit("event", {
+                        type: "reload-account-info"
+                    })
+
+                    DeviceEventEmitter.emit("event", {
+                        type: "reload-account-usage"
+                    })
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: i18n(lang, "codeRedeemSuccess", true, ["__CODE__"], [code]) })
+                }).catch((err) => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: err.toString() })
+                })
             }} />
         </Dialog.Container>
     )

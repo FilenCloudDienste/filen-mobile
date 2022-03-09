@@ -98,6 +98,8 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setAppState: (appState) => set({ appState }),
 	isAuthing: false,
 	setIsAuthing: (isAuthing) => set({ isAuthing }),
+	redeemCodeDialogVisible: false,
+	setRedeemCodeDialogVisible: (redeemCodeDialogVisible) => set({ redeemCodeDialogVisible }),
 })))
 
 export const navigationAnimation = ({ enable = true }) => {

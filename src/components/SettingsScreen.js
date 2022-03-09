@@ -1,5 +1,5 @@
 import React from "react"
-import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView } from "react-native"
+import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
@@ -132,13 +132,15 @@ export const SettingsHeader = ({ navigation, route, navigationEnabled = true }) 
                 navigation.dispatch(StackActions.push("SettingsAccountScreen"))
             })
         }}>
-            <View>
+            <TouchableOpacity onPress={() => {
+                console.log("change avatar")
+            }}>
                 <FastImage source={require("../assets/images/appstore.png")} style={{
                     width: 50,
                     height: 50,
                     borderRadius: 50
                 }} />
-            </View>
+            </TouchableOpacity>
             <View style={{
                 width: "79%",
                 paddingLeft: 15
