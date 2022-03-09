@@ -100,6 +100,10 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setIsAuthing: (isAuthing) => set({ isAuthing }),
 	redeemCodeDialogVisible: false,
 	setRedeemCodeDialogVisible: (redeemCodeDialogVisible) => set({ redeemCodeDialogVisible }),
+	deleteAccountTwoFactorDialogVisible: false,
+	setDeleteAccountTwoFactorDialogVisible: (deleteAccountTwoFactorDialogVisible) => set({ deleteAccountTwoFactorDialogVisible }),
+	disable2FATwoFactorDialogVisible: false,
+	setDisable2FATwoFactorDialogVisible: (disable2FATwoFactorDialogVisible) => set({ disable2FATwoFactorDialogVisible }),
 })))
 
 export const navigationAnimation = ({ enable = true }) => {

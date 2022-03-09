@@ -422,6 +422,8 @@ PODS:
     - React-RCTImage
   - RNShareMenu (5.0.5):
     - React
+  - RNSVG (12.3.0):
+    - React-Core
   - RNVectorIcons (9.0.0):
     - React-Core
   - SDWebImage (5.11.1):
@@ -522,6 +524,7 @@ DEPENDENCIES:
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNShareMenu (from `../node_modules/react-native-share-menu`)
+  - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -674,6 +677,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNShareMenu:
     :path: "../node_modules/react-native-share-menu"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
   Yoga:
@@ -759,6 +764,7 @@ SPEC CHECKSUMS:
   RNPermissions: bcd846e8f5a7f39e921cc7ca7172e2de0e698b6f
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   RNShareMenu: c69282e50ac439737a86949a55c7b023b90027c8
+  RNSVG: 302bfc9905bd8122f08966dc2ce2d07b7b52b9f8
   RNVectorIcons: 4143ba35feebab8fdbe6bc43d1e776b393d47ac8
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815

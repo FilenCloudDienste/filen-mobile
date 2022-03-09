@@ -1977,3 +1977,59 @@ export const getAccount = () => {
         }).catch(reject)  
     })
 }
+
+export const getSettings = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/get/settings",
+            data: {
+                apiKey: getAPIKey()
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data)
+        }).catch(reject)  
+    })
+}
+
+export const enable2FA = ({ code = "XXXXXX" }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/settings/2fa/enable",
+            data: {
+                apiKey: getAPIKey(),
+                code
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve()
+        }).catch(reject)  
+    })
+}
+
+export const disable2FA = ({ code = "XXXXXX" }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/settings/2fa/disable",
+            data: {
+                apiKey: getAPIKey(),
+                code
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve()
+        }).catch(reject)  
+    })
+}

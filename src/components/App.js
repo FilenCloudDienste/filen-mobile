@@ -22,7 +22,7 @@ import { enableScreens } from "react-native-screens"
 import { generateItemThumbnail } from "../lib/services/items"
 import { TransfersIndicator } from "./TransfersIndicator"
 import { TransfersScreen } from "./TransfersScreen"
-import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, ConfirmRemoveFromSharedInDialog, ConfirmStopSharingDialog, CreateTextFileDialog, RedeemCodeDialog } from "./Dialogs"
+import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, ConfirmRemoveFromSharedInDialog, ConfirmStopSharingDialog, CreateTextFileDialog, RedeemCodeDialog, DeleteAccountTwoFactorDialog, Disable2FATwoFactorDialog } from "./Dialogs"
 import Toast from "react-native-toast-notifications"
 import { startBackgroundTimer, stopBackgroundTimer } from "../lib/background"
 import NetInfo from "@react-native-community/netinfo"
@@ -44,6 +44,7 @@ import BackgroundFetch from "react-native-background-fetch"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import { GDPRScreen } from "./GDPRScreen"
 import { InviteScreen } from "./InviteScreen"
+import { TwoFactorScreen } from "./TwoFactorScreen"
 
 NetInfo.configure({
     reachabilityUrl: "https://api.filen.io",
@@ -426,10 +427,15 @@ export const App = () => {
                                             headerShown: false,
                                             animation: showNavigationAnimation ? "default" : "none"
                                         }}></Stack.Screen>
+                                        <Stack.Screen name="TwoFactorScreen" component={TwoFactorScreen} options={{
+                                            title: "TwoFactorScreen",
+                                            headerShown: false,
+                                            animation: showNavigationAnimation ? "default" : "none"
+                                        }}></Stack.Screen>
                                     </Stack.Navigator>
                                     <>
                                         {
-                                            setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen"].includes(currentScreenName) && (
+                                            setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen"].includes(currentScreenName) && (
                                                 <View style={{
                                                     position: "relative",
                                                     width: "100%",
@@ -480,6 +486,8 @@ export const App = () => {
                     {
                         nodeJSAlive && (
                             <>
+                                <Disable2FATwoFactorDialog navigation={navigationRef} />
+                                <DeleteAccountTwoFactorDialog navigation={navigationRef} />
                                 <RedeemCodeDialog navigation={navigationRef} />
                                 <ConfirmStopSharingDialog navigation={navigationRef} />
                                 <ConfirmRemoveFromSharedInDialog navigation={navigationRef} />

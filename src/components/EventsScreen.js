@@ -34,7 +34,7 @@ export const EventsInfoScreen = ({ navigation, route }) => {
                 setIsLoading(false)
             })
         }).catch((err) => {
-            setIsLoading(false)
+            console.log(err)
 
             showToast({ message: err.toString() })
         })

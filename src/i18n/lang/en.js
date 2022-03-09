@@ -298,5 +298,9 @@ export const en = {
     inviteCount: "People invited",
     inviteInfo: "Invite friends and family to Filen! You and the person you refer receive 10 GB of storage permanently. This applies to every person you refer.",
     inviteInfo2: "When someone clicks your referral link Filen saves a cookie in their browser which stays there for 30 days. That means you will still get the bonus when the person does not sign up directly.",
-    shareRefLinkMessage: "Sign up to Filen's fully end to end encrypted cloud storage using my link and get 10 GB of storage for free!"
+    shareRefLinkMessage: "Sign up to Filen's fully end to end encrypted cloud storage using my link and get 10 GB of storage for free!",
+    disable2FAInfo: "Disabling Two Factor Authentication is not recommended as it makes your account more vulnerable.",
+    twoFactorEnabledSuccess: "Two Factor Authentication enabled",
+    twoFactorDisabledSuccess: "Two Factor Authentication disabled",
+    disable: "Disable"
 }

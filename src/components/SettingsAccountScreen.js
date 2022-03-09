@@ -1,20 +1,35 @@
-import React from "react"
-import { View, Text, Platform, ScrollView, TouchableOpacity, Alert } from "react-native"
+import React, { useState, useEffect } from "react"
+import { View, Text, Platform, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import { i18n } from "../i18n/i18n"
 import { SettingsGroup, SettingsButtonLinkHighlight } from "./SettingsScreen"
 import { navigationAnimation } from "../lib/state"
-import { deleteAccount, deleteAllFilesAndFolders, deleteAllVersionedFiles } from "../lib/api"
+import { deleteAccount, deleteAllFilesAndFolders, deleteAllVersionedFiles, getSettings } from "../lib/api"
 import { useStore } from "../lib/state"
 import { showToast } from "./Toasts"
 import { StackActions } from "@react-navigation/native"
+import { logout } from "../lib/auth/logout"
 
 export const SettingsAccountScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const setRedeemCodeDialogVisible = useStore(state => state.setRedeemCodeDialogVisible)
+    const setDeleteAccountTwoFactorDialogVisible = useStore(state => state.setDeleteAccountTwoFactorDialogVisible)
+    const [accountSettings, setAccountSettings] = useState({})
+    const [isLoading, setIsLoading] = useState(true)
+
+    useEffect(() => {
+        getSettings().then((settings) => {
+            setAccountSettings(settings)
+            setIsLoading(false)
+        }).catch((err) => {
+            console.log(err)
+
+            showToast({ message: err.toString() })
+        })
+    }, [])
 
     return (
         <>
@@ -44,37 +59,35 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                 width: "100%",
                 backgroundColor: darkMode ? "black" : "white"
             }}>
-                <SettingsGroup marginTop={15}>
-                    <SettingsButtonLinkHighlight onPress={() => {
-                        navigationAnimation({ enable: true }).then(() => {
-                            navigation.dispatch(StackActions.push("LanguageScreen"))
-                        })
-                    }} title={i18n(lang, "changeEmailPassword")} />
-                    <SettingsButtonLinkHighlight onPress={() => {
-                        navigationAnimation({ enable: true }).then(() => {
-                            navigation.dispatch(StackActions.push("LanguageScreen"))
-                        })
-                    }} title={i18n(lang, "enable2FA")} />
-                    <SettingsButtonLinkHighlight onPress={() => {
-                        navigationAnimation({ enable: true }).then(() => {
-                            navigation.dispatch(StackActions.push("GDPRScreen"))
-                        })
-                    }} title={i18n(lang, "showGDPR")} />
-                </SettingsGroup>
-                <SettingsGroup>
-                    <SettingsButtonLinkHighlight onPress={() => {
-                        Alert.alert(i18n(lang, "deleteAllFiles"), i18n(lang, "deleteAllFilesInfo"), [
-                            {
-                                text: i18n(lang, "cancel"),
-                                onPress: () => {
-                                    return false
-                                },
-                                style: "cancel"
-                            },
-                            {
-                                text: i18n(lang, "ok"),
-                                onPress: () => {
-                                    Alert.alert(i18n(lang, "deleteAllFiles"), i18n(lang, "areYouReallySure"), [
+                {
+                    isLoading ? (
+                        <ActivityIndicator size={"small"} color={darkMode ? "white" : "black"} style={{
+                            marginTop: "70%"
+                        }} />
+                    ) : (
+                        <>
+                            <SettingsGroup marginTop={15}>
+                                <SettingsButtonLinkHighlight onPress={() => {
+                                    navigationAnimation({ enable: true }).then(() => {
+                                        navigation.dispatch(StackActions.push("LanguageScreen"))
+                                    })
+                                }} title={i18n(lang, "changeEmailPassword")} />
+                                <SettingsButtonLinkHighlight onPress={() => {
+                                    navigationAnimation({ enable: true }).then(() => {
+                                        navigation.dispatch(StackActions.push("TwoFactorScreen", {
+                                            accountSettings
+                                        }))
+                                    })
+                                }} title={i18n(lang, accountSettings.twoFactorEnabled ? "disable2FA" : "enable2FA")} />
+                                <SettingsButtonLinkHighlight onPress={() => {
+                                    navigationAnimation({ enable: true }).then(() => {
+                                        navigation.dispatch(StackActions.push("GDPRScreen"))
+                                    })
+                                }} title={i18n(lang, "showGDPR")} />
+                            </SettingsGroup>
+                            <SettingsGroup>
+                                <SettingsButtonLinkHighlight onPress={() => {
+                                    Alert.alert(i18n(lang, "deleteAllFiles"), i18n(lang, "deleteAllFilesInfo"), [
                                         {
                                             text: i18n(lang, "cancel"),
                                             onPress: () => {
@@ -85,18 +98,35 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                                         {
                                             text: i18n(lang, "ok"),
                                             onPress: () => {
-                                                useStore.setState({ fullscreenLoadingModalVisible: true })
+                                                Alert.alert(i18n(lang, "deleteAllFiles"), i18n(lang, "areYouReallySure"), [
+                                                    {
+                                                        text: i18n(lang, "cancel"),
+                                                        onPress: () => {
+                                                            return false
+                                                        },
+                                                        style: "cancel"
+                                                    },
+                                                    {
+                                                        text: i18n(lang, "ok"),
+                                                        onPress: () => {
+                                                            useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                                                deleteAllFilesAndFolders().then(() => {
-                                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+                                                            deleteAllFilesAndFolders().then(() => {
+                                                                useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                                    showToast({ message: i18n(lang, "deleteAllFilesSuccess") })
-                                                }).catch((err) => {
-                                                    console.log(err)
+                                                                showToast({ message: i18n(lang, "deleteAllFilesSuccess") })
+                                                            }).catch((err) => {
+                                                                console.log(err)
 
-                                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+                                                                useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                                    showToast({ message: err.toString() })
+                                                                showToast({ message: err.toString() })
+                                                            })
+                                                        },
+                                                        style: "default"
+                                                    }
+                                                ], {
+                                                    cancelable: true
                                                 })
                                             },
                                             style: "default"
@@ -104,26 +134,9 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                                     ], {
                                         cancelable: true
                                     })
-                                },
-                                style: "default"
-                            }
-                        ], {
-                            cancelable: true
-                        })
-                    }} title={i18n(lang, "deleteAllFiles")} />
-                    <SettingsButtonLinkHighlight onPress={() => {
-                        Alert.alert(i18n(lang, "deleteAllVersionedFiles"), i18n(lang, "deleteAllVersionedFilesInfo"), [
-                            {
-                                text: i18n(lang, "cancel"),
-                                onPress: () => {
-                                    return false
-                                },
-                                style: "cancel"
-                            },
-                            {
-                                text: i18n(lang, "ok"),
-                                onPress: () => {
-                                    Alert.alert(i18n(lang, "deleteAllVersionedFiles"), i18n(lang, "areYouReallySure"), [
+                                }} title={i18n(lang, "deleteAllFiles")} />
+                                <SettingsButtonLinkHighlight onPress={() => {
+                                    Alert.alert(i18n(lang, "deleteAllVersionedFiles"), i18n(lang, "deleteAllVersionedFilesInfo"), [
                                         {
                                             text: i18n(lang, "cancel"),
                                             onPress: () => {
@@ -134,18 +147,35 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                                         {
                                             text: i18n(lang, "ok"),
                                             onPress: () => {
-                                                useStore.setState({ fullscreenLoadingModalVisible: true })
+                                                Alert.alert(i18n(lang, "deleteAllVersionedFiles"), i18n(lang, "areYouReallySure"), [
+                                                    {
+                                                        text: i18n(lang, "cancel"),
+                                                        onPress: () => {
+                                                            return false
+                                                        },
+                                                        style: "cancel"
+                                                    },
+                                                    {
+                                                        text: i18n(lang, "ok"),
+                                                        onPress: () => {
+                                                            useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                                                deleteAllVersionedFiles().then(() => {
-                                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+                                                            deleteAllVersionedFiles().then(() => {
+                                                                useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                                    showToast({ message: i18n(lang, "deleteAllVersionedFilesSuccess") })
-                                                }).catch((err) => {
-                                                    console.log(err)
+                                                                showToast({ message: i18n(lang, "deleteAllVersionedFilesSuccess") })
+                                                            }).catch((err) => {
+                                                                console.log(err)
 
-                                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+                                                                useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                                    showToast({ message: err.toString() })
+                                                                showToast({ message: err.toString() })
+                                                            })
+                                                        },
+                                                        style: "default"
+                                                    }
+                                                ], {
+                                                    cancelable: true
                                                 })
                                             },
                                             style: "default"
@@ -153,36 +183,19 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                                     ], {
                                         cancelable: true
                                     })
-                                },
-                                style: "default"
-                            }
-                        ], {
-                            cancelable: true
-                        })
-                    }} title={i18n(lang, "deleteAllVersionedFiles")} />
-                </SettingsGroup>
-                <SettingsGroup>
-                    <SettingsButtonLinkHighlight onPress={() => setRedeemCodeDialogVisible(true)} title={i18n(lang, "redeemACode")} />
-                    <SettingsButtonLinkHighlight onPress={() => {
-                        navigationAnimation({ enable: true }).then(() => {
-                            navigation.dispatch(StackActions.push("InviteScreen"))
-                        })
-                    }} title={i18n(lang, "invite")} />
-                </SettingsGroup>
-                <SettingsGroup>
-                    <SettingsButtonLinkHighlight onPress={() => {
-                        Alert.alert(i18n(lang, "deleteAccount"), i18n(lang, "deleteAccountInfo"), [
-                            {
-                                text: i18n(lang, "cancel"),
-                                onPress: () => {
-                                    return false
-                                },
-                                style: "cancel"
-                            },
-                            {
-                                text: i18n(lang, "ok"),
-                                onPress: () => {
-                                    Alert.alert(i18n(lang, "deleteAccount"), i18n(lang, "areYouReallySure"), [
+                                }} title={i18n(lang, "deleteAllVersionedFiles")} />
+                            </SettingsGroup>
+                            <SettingsGroup>
+                                <SettingsButtonLinkHighlight onPress={() => setRedeemCodeDialogVisible(true)} title={i18n(lang, "redeemACode")} />
+                                <SettingsButtonLinkHighlight onPress={() => {
+                                    navigationAnimation({ enable: true }).then(() => {
+                                        navigation.dispatch(StackActions.push("InviteScreen"))
+                                    })
+                                }} title={i18n(lang, "invite")} />
+                            </SettingsGroup>
+                            <SettingsGroup>
+                                <SettingsButtonLinkHighlight onPress={() => {
+                                    Alert.alert(i18n(lang, "deleteAccount"), i18n(lang, "deleteAccountInfo"), [
                                         {
                                             text: i18n(lang, "cancel"),
                                             onPress: () => {
@@ -193,22 +206,62 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                                         {
                                             text: i18n(lang, "ok"),
                                             onPress: () => {
-                                                
+                                                Alert.alert(i18n(lang, "deleteAccount"), i18n(lang, "areYouReallySure"), [
+                                                    {
+                                                        text: i18n(lang, "cancel"),
+                                                        onPress: () => {
+                                                            return false
+                                                        },
+                                                        style: "cancel"
+                                                    },
+                                                    {
+                                                        text: i18n(lang, "ok"),
+                                                        onPress: () => {
+                                                            useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                                                            getSettings().then((settings) => {
+                                                                if(settings.twoFactorEnabled){
+                                                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                                                    return setDeleteAccountTwoFactorDialogVisible(true)
+                                                                }
+
+                                                                deleteAccount({ twoFactorKey: "XXXXXX" }).then(() => {
+                                                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                                                    logout({ navigation })
+                                                                }).catch((err) => {
+                                                                    console.log(err)
+
+                                                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                                                    showToast({ message: err.toString() })
+                                                                })
+                                                            }).catch((err) => {
+                                                                console.log(err)
+
+                                                                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                                                showToast({ message: err.toString() })
+                                                            })
+                                                        },
+                                                        style: "default"
+                                                    }
+                                                ], {
+                                                    cancelable: true
+                                                })
                                             },
                                             style: "default"
                                         }
                                     ], {
                                         cancelable: true
                                     })
-                                },
-                                style: "default"
-                            }
-                        ], {
-                            cancelable: true
-                        })
-                    }} title={i18n(lang, "deleteAccount")} />
-                </SettingsGroup>
-                <View style={{ height: 25 }}></View>
+                                }} title={i18n(lang, "deleteAccount")} />
+                            </SettingsGroup>
+                            <View style={{ height: 25 }}></View>
+                        </>
+                    )
+                }
             </ScrollView>
         </>
     )

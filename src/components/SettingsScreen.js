@@ -133,6 +133,10 @@ export const SettingsHeader = ({ navigation, route, navigationEnabled = true }) 
             })
         }}>
             <TouchableOpacity onPress={() => {
+                if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                    return showToast({ message: i18n(lang, "deviceOffline") })
+                }
+                
                 console.log("change avatar")
             }}>
                 <FastImage source={require("../assets/images/appstore.png")} style={{

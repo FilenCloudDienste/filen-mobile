@@ -4,12 +4,13 @@ import { useStore } from "../lib/state"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { getParent, fileAndFolderNameValidation } from "../lib/helpers"
-import { createFolder, folderExists, fileExists, renameFile, renameFolder, deleteItemPermanently, removeSharedInItem, stopSharingItem, redeemCode } from "../lib/api"
+import { createFolder, folderExists, fileExists, renameFile, renameFolder, deleteItemPermanently, removeSharedInItem, stopSharingItem, redeemCode, deleteAccount, disable2FA } from "../lib/api"
 import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Keyboard } from "react-native"
+import { logout } from "../lib/auth/logout"
 
-export const RenameDialog = () => {
+export const RenameDialog = ({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [value, setValue] = useState("")
     const inputRef = useRef()
@@ -191,7 +192,7 @@ export const RenameDialog = () => {
     )
 }
 
-export const CreateFolderDialog = () => {
+export const CreateFolderDialog = ({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const createFolderDialogVisible = useStore(state => state.createFolderDialogVisible)
     const setCreateFolderDialogVisible = useStore(state => state.setCreateFolderDialogVisible)
@@ -289,7 +290,7 @@ export const CreateFolderDialog = () => {
     )
 }
 
-export const ConfirmPermanentDeleteDialog = () => {
+export const ConfirmPermanentDeleteDialog = ({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const confirmPermanentDeleteDialogVisible = useStore(state => state.confirmPermanentDeleteDialogVisible)
     const setConfirmPermanentDeleteDialogVisible = useStore(state => state.setConfirmPermanentDeleteDialogVisible)
@@ -349,7 +350,7 @@ export const ConfirmPermanentDeleteDialog = () => {
     )
 }
 
-export const ConfirmRemoveFromSharedInDialog = () => {
+export const ConfirmRemoveFromSharedInDialog = ({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const removeFromSharedInDialogVisible = useStore(state => state.removeFromSharedInDialogVisible)
     const setRemoveFromSharedInDialogVisible = useStore(state => state.setRemoveFromSharedInDialogVisible)
@@ -407,7 +408,7 @@ export const ConfirmRemoveFromSharedInDialog = () => {
     )
 }
 
-export const ConfirmStopSharingDialog = () => {
+export const ConfirmStopSharingDialog = ({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const stopSharingDialogVisible = useStore(state => state.stopSharingDialogVisible)
     const setStopSharingDialogVisible = useStore(state => state.setStopSharingDialogVisible)
@@ -465,7 +466,7 @@ export const ConfirmStopSharingDialog = () => {
     )
 }
 
-export const CreateTextFileDialog = () => {
+export const CreateTextFileDialog = ({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const createTextFileDialogVisible = useStore(state => state.createTextFileDialogVisible)
     const setCreateTextFileDialogVisible = useStore(state => state.setCreateTextFileDialogVisible)
@@ -521,7 +522,7 @@ export const CreateTextFileDialog = () => {
     )
 }
 
-export const RedeemCodeDialog = () => {
+export const RedeemCodeDialog = ({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const redeemCodeDialogVisible = useStore(state => state.redeemCodeDialogVisible)
     const setRedeemCodeDialogVisible = useStore(state => state.setRedeemCodeDialogVisible)
@@ -570,6 +571,10 @@ export const RedeemCodeDialog = () => {
 
                 const code = value.trim()
 
+                if(code.length == 0){
+                    return false
+                }
+
                 redeemCode({ code }).then(() => {
                     setButtonsDisabled(false)
 
@@ -584,6 +589,148 @@ export const RedeemCodeDialog = () => {
                     useStore.setState({ fullscreenLoadingModalVisible: false })
 
                     showToast({ message: i18n(lang, "codeRedeemSuccess", true, ["__CODE__"], [code]) })
+                }).catch((err) => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: err.toString() })
+                })
+            }} />
+        </Dialog.Container>
+    )
+}
+
+export const DeleteAccountTwoFactorDialog = ({ navigation }) => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const deleteAccountTwoFactorDialogVisible = useStore(state => state.deleteAccountTwoFactorDialogVisible)
+    const setDeleteAccountTwoFactorDialogVisible = useStore(state => state.setDeleteAccountTwoFactorDialogVisible)
+    const [value, setValue] = useState("")
+    const inputRef = useRef()
+    const [buttonsDisabled, setButtonsDisabled] = useState(false)
+    const [lang, setLang] = useMMKVString("lang", storage)
+
+    useEffect(() => {
+        setButtonsDisabled(false)
+
+        if(!deleteAccountTwoFactorDialogVisible){
+            setTimeout(() => {
+                setValue("")
+            }, 250)
+        }
+
+        if(deleteAccountTwoFactorDialogVisible){
+            setTimeout(() => {
+                inputRef.current.focus()
+            }, 250)
+        }
+    }, [deleteAccountTwoFactorDialogVisible])
+
+    return (
+        <Dialog.Container
+            visible={deleteAccountTwoFactorDialogVisible}
+            useNativeDriver={false}
+            onRequestClose={() => setDeleteAccountTwoFactorDialogVisible(false)}
+            onBackdropPress={() => {
+                if(!buttonsDisabled){
+                    setDeleteAccountTwoFactorDialogVisible(false)
+                }
+            }}
+        >
+            <Dialog.Title>{i18n(lang, "deleteAccount")}</Dialog.Title>
+            <Dialog.Input placeholder={i18n(lang, "code")} value={value} autoFocus={true} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
+            <Dialog.Button label={i18n(lang, "cancel")} disabled={buttonsDisabled} onPress={() => setDeleteAccountTwoFactorDialogVisible(false)} />
+            <Dialog.Button label={i18n(lang, "delete")} disabled={buttonsDisabled} onPress={() => {
+                setButtonsDisabled(true)
+                setDeleteAccountTwoFactorDialogVisible(false)
+
+                Keyboard.dismiss()
+
+                useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                const twoFactorKey = value.trim()
+
+                if(twoFactorKey.length == 0){
+                    return false
+                }
+
+                deleteAccount({ twoFactorKey }).then(() => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    logout({ navigation })
+                }).catch((err) => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: err.toString() })
+                })
+            }} />
+        </Dialog.Container>
+    )
+}
+
+export const Disable2FATwoFactorDialog = ({ navigation }) => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const disable2FATwoFactorDialogVisible = useStore(state => state.disable2FATwoFactorDialogVisible)
+    const setDisable2FATwoFactorDialogVisible = useStore(state => state.setDisable2FATwoFactorDialogVisible)
+    const [value, setValue] = useState("")
+    const inputRef = useRef()
+    const [buttonsDisabled, setButtonsDisabled] = useState(false)
+    const [lang, setLang] = useMMKVString("lang", storage)
+
+    useEffect(() => {
+        setButtonsDisabled(false)
+
+        if(!disable2FATwoFactorDialogVisible){
+            setTimeout(() => {
+                setValue("")
+            }, 250)
+        }
+
+        if(disable2FATwoFactorDialogVisible){
+            setTimeout(() => {
+                inputRef.current.focus()
+            }, 250)
+        }
+    }, [disable2FATwoFactorDialogVisible])
+
+    return (
+        <Dialog.Container
+            visible={disable2FATwoFactorDialogVisible}
+            useNativeDriver={false}
+            onRequestClose={() => setDisable2FATwoFactorDialogVisible(false)}
+            onBackdropPress={() => {
+                if(!buttonsDisabled){
+                    setDisable2FATwoFactorDialogVisible(false)
+                }
+            }}
+        >
+            <Dialog.Title>{i18n(lang, "disable2FA")}</Dialog.Title>
+            <Dialog.Input placeholder={i18n(lang, "code")} value={value} autoFocus={true} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
+            <Dialog.Button label={i18n(lang, "cancel")} disabled={buttonsDisabled} onPress={() => setDisable2FATwoFactorDialogVisible(false)} />
+            <Dialog.Button label={i18n(lang, "disable")} disabled={buttonsDisabled} onPress={() => {
+                setButtonsDisabled(true)
+                setDisable2FATwoFactorDialogVisible(false)
+
+                Keyboard.dismiss()
+
+                useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                const code = value.trim()
+
+                if(code.length == 0){
+                    return false
+                }
+
+                disable2FA({ code }).then(() => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: i18n(lang, "twoFactorDisabledSuccess") })
                 }).catch((err) => {
                     setButtonsDisabled(false)
 

@@ -20,8 +20,6 @@ export const GDPRScreen = ({ navigation, route }) => {
         }).catch((err) => {
             console.log(err)
 
-            setIsLoading(false)
-
             showToast({ message: err.toString() })
         })
     }, [])
