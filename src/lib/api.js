@@ -2033,3 +2033,70 @@ export const disable2FA = ({ code = "XXXXXX" }) => {
         }).catch(reject)  
     })
 }
+
+export const getAuthInfo = ({ email }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/auth/info",
+            data: {
+                email
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve({
+                authVersion: response.data.authVersion,
+                salt: response.data.salt
+            })
+        }).catch(reject)  
+    })
+}
+
+export const changeEmail = ({ email, emailRepeat, password, authVersion }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/settings/email/change",
+            data: {
+                apiKey: getAPIKey(),
+                email,
+                emailRepeat,
+                password,
+                authVersion
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve()
+        }).catch(reject)  
+    })
+}
+
+export const changePassword = ({ password, passwordRepeat, currentPassword, authVersion, salt, masterKeys }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/settings/email/change",
+            data: {
+                apiKey: getAPIKey(),
+                password,
+                passwordRepeat,
+                currentPassword,
+                authVersion,
+                salt,
+                masterKeys
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data)
+        }).catch(reject)  
+    })
+}

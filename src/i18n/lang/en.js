@@ -302,5 +302,15 @@ export const en = {
     disable2FAInfo: "Disabling Two Factor Authentication is not recommended as it makes your account more vulnerable.",
     twoFactorEnabledSuccess: "Two Factor Authentication enabled",
     twoFactorDisabledSuccess: "Two Factor Authentication disabled",
-    disable: "Disable"
+    disable: "Disable",
+    currentEmailPlaceholder: "Current email address",
+    newEmailPlaceholder: "New email address",
+    confirmNewEmailPlaceholder: "Confirm new email address",
+    emailChangeSuccessConfirm: "Please confirm the email sent to your current email address",
+    currentPasswordPlaceholder: "Current password",
+    invalidFields: "Please fill out all fields correctly",
+    emailsNotMatching: "Email addresses are not matching",
+    passwordsNotMatching: "Passwords not matching",
+    invalidMasterKeys: "Invalid master keys, please try re-logging",
+    passwordChangedSuccess: "Password changed successfully"
 }

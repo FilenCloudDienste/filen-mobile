@@ -285,7 +285,7 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
                     return (
                         <View style={{
                             width: "100%",
-                            height: Math.floor(dimensions.screen.height - 255),
+                            height: Math.floor(dimensions.screen.height - 250),
                             justifyContent: "center",
                             alignItems: "center",
                             alignContent: "center"
@@ -294,12 +294,12 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
                                 !loadDone ? (
                                     <View>
                                         <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
-                                        <Text style={{
+                                        {/*<Text style={{
                                             color: darkMode ? "white" : "black",
                                             marginTop: 15
                                         }}>
                                             {i18n(lang, "loadingItemList")}
-                                        </Text>
+                                        </Text>*/}
                                     </View>
                                 ) : (
                                     <ListEmpty route={route} searchTerm={searchTerm} />

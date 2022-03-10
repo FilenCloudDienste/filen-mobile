@@ -45,6 +45,7 @@ import Ionicon from "react-native-vector-icons/Ionicons"
 import { GDPRScreen } from "./GDPRScreen"
 import { InviteScreen } from "./InviteScreen"
 import { TwoFactorScreen } from "./TwoFactorScreen"
+import { ChangeEmailPasswordScreen } from "./ChangeEmailPasswordScreen"
 
 NetInfo.configure({
     reachabilityUrl: "https://api.filen.io",
@@ -432,10 +433,15 @@ export const App = () => {
                                             headerShown: false,
                                             animation: showNavigationAnimation ? "default" : "none"
                                         }}></Stack.Screen>
+                                        <Stack.Screen name="ChangeEmailPasswordScreen" component={ChangeEmailPasswordScreen} options={{
+                                            title: "ChangeEmailPasswordScreen",
+                                            headerShown: false,
+                                            animation: showNavigationAnimation ? "default" : "none"
+                                        }}></Stack.Screen>
                                     </Stack.Navigator>
                                     <>
                                         {
-                                            setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen"].includes(currentScreenName) && (
+                                            setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen", "ChangeEmailPasswordScreen"].includes(currentScreenName) && (
                                                 <View style={{
                                                     position: "relative",
                                                     width: "100%",

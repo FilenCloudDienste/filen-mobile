@@ -13,6 +13,7 @@ import { StackActions } from "@react-navigation/native"
 import { getMasterKeys, decryptFileMetadata, decryptFolderName } from "../lib/helpers"
 import striptags from "striptags"
 import { ListEmpty } from "./ListEmpty"
+import { useMountedState } from "react-use"
 
 export const EventsInfoScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -20,6 +21,7 @@ export const EventsInfoScreen = ({ navigation, route }) => {
     const [eventInfo, setEventInfo] = useState(undefined)
     const [isLoading, setIsLoading] = useState(true)
     const [eventText, setEventText] = useState("")
+    const isMounted = useMountedState()
 
     const uuid = route?.params?.uuid
 
@@ -27,12 +29,16 @@ export const EventsInfoScreen = ({ navigation, route }) => {
         setIsLoading(true)
 
         fetchEventInfo({ uuid }).then((info) => {
-            setEventInfo(info)
+            if(isMounted()){
+                setEventInfo(info)
 
-            getEventText({ item: info, masterKeys: getMasterKeys(), lang }).then((text) => {
-                setEventText(text)
-                setIsLoading(false)
-            })
+                getEventText({ item: info, masterKeys: getMasterKeys(), lang }).then((text) => {
+                    if(isMounted()){
+                        setEventText(text)
+                        setIsLoading(false)
+                    }
+                })
+            }
         }).catch((err) => {
             console.log(err)
 
@@ -364,22 +370,24 @@ export const EventsScreen = ({ navigation, route }) => {
     const [refreshing, setRefreshing] = useState(false)
     const dimensions = useStore(state => state.dimensions)
     const [masterKeys, setMasterKeys] = useState(getMasterKeys())
+    const isMounted = useMountedState()
 
     const getEvents = useCallback((lastId) => {
         setIsLoading(true)
         
         fetchEvents({ lastId, filter }).then((data) => {
-            setIsLoading(false)
-            setRefreshing(false)
+            if(isMounted()){
+                setIsLoading(false)
+                setRefreshing(false)
 
-            const newEvents = data.events
-            const limit = data.limit
+                const newEvents = data.events
+                const limit = data.limit
 
-            setEvents([...events, ...newEvents])
-            setLimit(limit)
+                setEvents([...events, ...newEvents])
+                setLimit(limit)
+            }
         }).catch((err) => {
-            setIsLoading(false)
-            setRefreshing(false)
+            console.log(err)
 
             showToast({ message: err.toString() })
         })

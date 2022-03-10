@@ -11,6 +11,8 @@ import { useStore } from "../lib/state"
 import { showToast } from "./Toasts"
 import { StackActions } from "@react-navigation/native"
 import { logout } from "../lib/auth/logout"
+import { formatBytes } from "../lib/helpers"
+import { useMountedState } from "react-use"
 
 export const SettingsAccountScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -19,11 +21,14 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
     const setDeleteAccountTwoFactorDialogVisible = useStore(state => state.setDeleteAccountTwoFactorDialogVisible)
     const [accountSettings, setAccountSettings] = useState({})
     const [isLoading, setIsLoading] = useState(true)
+    const isMounted = useMountedState()
 
     useEffect(() => {
         getSettings().then((settings) => {
-            setAccountSettings(settings)
-            setIsLoading(false)
+            if(isMounted()){
+                setAccountSettings(settings)
+                setIsLoading(false)
+            }
         }).catch((err) => {
             console.log(err)
 
@@ -69,7 +74,7 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                             <SettingsGroup marginTop={15}>
                                 <SettingsButtonLinkHighlight onPress={() => {
                                     navigationAnimation({ enable: true }).then(() => {
-                                        navigation.dispatch(StackActions.push("LanguageScreen"))
+                                        navigation.dispatch(StackActions.push("ChangeEmailPasswordScreen"))
                                     })
                                 }} title={i18n(lang, "changeEmailPassword")} />
                                 <SettingsButtonLinkHighlight onPress={() => {
@@ -86,7 +91,7 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                                 }} title={i18n(lang, "showGDPR")} />
                             </SettingsGroup>
                             <SettingsGroup>
-                                <SettingsButtonLinkHighlight onPress={() => {
+                                <SettingsButtonLinkHighlight rightText={formatBytes(accountSettings.storageUsed)} onPress={() => {
                                     Alert.alert(i18n(lang, "deleteAllFiles"), i18n(lang, "deleteAllFilesInfo"), [
                                         {
                                             text: i18n(lang, "cancel"),
@@ -135,7 +140,7 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                                         cancelable: true
                                     })
                                 }} title={i18n(lang, "deleteAllFiles")} />
-                                <SettingsButtonLinkHighlight onPress={() => {
+                                <SettingsButtonLinkHighlight rightText={formatBytes(accountSettings.versionedStorage)} onPress={() => {
                                     Alert.alert(i18n(lang, "deleteAllVersionedFiles"), i18n(lang, "deleteAllVersionedFilesInfo"), [
                                         {
                                             text: i18n(lang, "cancel"),

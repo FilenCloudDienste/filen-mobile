@@ -8,17 +8,21 @@ import { showToast } from "./Toasts"
 import { getAccount } from "../lib/api"
 import { SettingsGroup } from "./SettingsScreen"
 import Clipboard from "@react-native-clipboard/clipboard"
+import { useMountedState } from "react-use"
 
 export const InviteScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [isLoading, setIsLoading] = useState(true)
     const [accountData, setAccountData] = useState({})
+    const isMounted = useMountedState()
 
     useEffect(() => {
         getAccount().then((data) => {
-            setAccountData(data)
-            setIsLoading(false)
+            if(isMounted()){
+                setAccountData(data)
+                setIsLoading(false)
+            }
         }).catch((err) => {
             console.log(err)
 

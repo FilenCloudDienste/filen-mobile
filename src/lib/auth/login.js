@@ -10,6 +10,54 @@ import { Keyboard } from "react-native"
 
 const CryptoJS = require("crypto-js")
 
+export const generatePasswordAndMasterKeysBasedOnAuthVersion = ({ rawPassword, authVersion, salt }) => {
+    return new Promise(async (resolve, reject) => {
+        let derivedPassword = ""
+        let derivedMasterKeys = undefined
+
+        if(authVersion == 1){
+            try{
+                derivedPassword = await global.nodeThread.hashPassword({ password: rawPassword })
+                derivedMasterKeys = await global.nodeThread.hashFn({ string: rawPassword })
+            }
+            catch(e){
+                return reject(e.toString())
+            }
+        }
+        else if(authVersion == 2){
+            try{
+                const derivedKey = await global.nodeThread.deriveKeyFromPassword({
+                    password: rawPassword,
+                    salt,
+                    iterations: 200000,
+                    hash: "SHA-512",
+                    bitLength: 512,
+                    returnHex: true
+                })
+    
+                derivedMasterKeys = derivedKey.substring(0, (derivedKey.length / 2))
+                derivedPassword = derivedKey.substring((derivedKey.length / 2), derivedKey.length)
+                derivedPassword = CryptoJS.SHA512(derivedPassword).toString()
+            }
+            catch(e){
+                console.log(e)
+    
+                useStore.setState({ fullscreenLoadingModalVisible: false })
+    
+                return reject(e.toString())
+            }
+        }
+        else{
+            return reject("Invalid auth version")
+        }
+
+        return resolve({
+            derivedMasterKeys,
+            derivedPassword
+        })
+    })
+}
+
 export const login = async ({ email, password, twoFactorKey, setEmail, setPassword, setTwoFactorKey, setShowTwoFactorField, navigation, setSetupDone }) => {
     useStore.setState({ fullscreenLoadingModalVisible: true })
 
@@ -79,46 +127,18 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
     let salt = authInfo.data.salt
     let authVersion = authInfo.data.authVersion
 
-    if(authVersion == 1){
-        try{
-            passwordToSend = await global.nodeThread.hashPassword({ password })
-            masterKey = await global.nodeThread.hashFn({ string: password })
-        }
-        catch(e){
-            console.log(e)
+    try{
+        const { derivedPassword, derivedMasterKeys } = await generatePasswordAndMasterKeysBasedOnAuthVersion({ rawPassword: password, authVersion, salt })
 
-            useStore.setState({ fullscreenLoadingModalVisible: false })
-
-            return showToast({ message: e.toString() })
-        }
+        masterKey = derivedMasterKeys
+        passwordToSend = derivedPassword
     }
-    else if(authVersion == 2){
-        try{
-            let derivedKey = await global.nodeThread.deriveKeyFromPassword({
-                password,
-                salt,
-                iterations: 200000,
-                hash: "SHA-512",
-                bitLength: 512,
-                returnHex: true
-            })
+    catch(e){
+        console.log(e)
 
-            masterKey = derivedKey.substring(0, (derivedKey.length / 2))
-            passwordToSend = derivedKey.substring((derivedKey.length / 2), derivedKey.length)
-            passwordToSend = CryptoJS.SHA512(passwordToSend).toString()
-        }
-        catch(e){
-            console.log(e)
-
-            useStore.setState({ fullscreenLoadingModalVisible: false })
-
-            return showToast({ message: e.toString() })
-        }
-    }
-    else{
         useStore.setState({ fullscreenLoadingModalVisible: false })
 
-        return showToast({ message: "Invalid auth version" })
+        return showToast({ message: e.toString() })
     }
 
     try{

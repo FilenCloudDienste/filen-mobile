@@ -301,6 +301,12 @@ export const uInt8ArrayConcatAsync = (arrays) => {
     })
 }
 
+export const generateRandomString = (length = 32) => {
+    return new Promise((resolve, reject) => {
+        global.nodeThread.generateRandomString({ charLength: length }).then(resolve).catch(reject)
+    })
+}
+
 export function generateRandomClassName(length = 16){
     let result = ""
     let characters = "abcdefghijklmnopqrstuvwxyz"

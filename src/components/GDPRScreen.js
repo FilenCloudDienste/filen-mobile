@@ -6,17 +6,20 @@ import Ionicon from "react-native-vector-icons/Ionicons"
 import { i18n } from "../i18n/i18n"
 import { showToast } from "./Toasts"
 import { fetchGDPRInfo } from "../lib/api"
+import { useMountedState } from "react-use"
 
 export const GDPRScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [gdpr, setGdpr] = useState("")
     const [isLoading, setIsLoading] = useState(true)
-
+    const isMounted = useMountedState()
     useEffect(() => {
         fetchGDPRInfo().then((info) => {
-            setGdpr(JSON.stringify(info, null, 2))
-            setIsLoading(false)
+            if(isMounted()){
+                setGdpr(JSON.stringify(info, null, 2))
+                setIsLoading(false)
+            }
         }).catch((err) => {
             console.log(err)
 
