@@ -15,6 +15,7 @@ export const BottomBar = ({ navigation, route }) => {
     const currentRoutes = useStore(state => state.currentRoutes)
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(state => state.netInfo)
+    const setBottomBarHeight = useStore(state => state.setBottomBarHeight)
 
     const parent = getParent(route)
     const routeURL = getRouteURL(route)
@@ -97,7 +98,7 @@ export const BottomBar = ({ navigation, route }) => {
             justifyContent: "space-between",
             borderTopColor: getColor(darkMode, "primaryBorder"),
             borderTopWidth: 0
-        }}>
+        }} onLayout={(e) => setBottomBarHeight(e.nativeEvent.layout.height)}>
             <Pressable style={{
                 alignItems: "center",
                 width: "20%",

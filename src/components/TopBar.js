@@ -87,6 +87,7 @@ export const TopBar = ({ navigation, route, setLoadDone, searchTerm, setSearchTe
     const [lang, setLang] = useMMKVString("lang", storage)
     const [showTextClearButton, setShowTextClearButton] = useState(false)
     const [title, setTitle] = useState(getTopBarTitle({ route, lang }))
+    const setTopBarHeight = useStore(state => state.setTopBarHeight)
 
     const parent = getParent(route)
     const routeURL = getRouteURL(route)
@@ -124,7 +125,7 @@ export const TopBar = ({ navigation, route, setLoadDone, searchTerm, setSearchTe
     })
 
     return (
-        <>
+        <View onLayout={(e) => setTopBarHeight(e.nativeEvent.layout.height)}>
             <View style={{
                 height: showHomeTabBar ? 75 : isMainScreen && !isPhotosScreen ? 80 : 35,
                 borderBottomColor: getColor(darkMode, "primaryBorder"),
@@ -430,6 +431,6 @@ export const TopBar = ({ navigation, route, setLoadDone, searchTerm, setSearchTe
                     </View>
                 )
             }
-        </>
+        </View>
     )
 }

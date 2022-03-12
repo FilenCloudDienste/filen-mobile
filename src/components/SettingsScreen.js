@@ -1,5 +1,5 @@
 import React from "react"
-import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity } from "react-native"
+import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
@@ -45,14 +45,24 @@ export const SettingsButtonLinkHighlight = ({ onPress, title, rightText }) => {
                 }}>
                     {
                         typeof rightText !== "undefined" && (
-                            <Text style={{
-                                color: "gray",
-                                paddingTop: Platform.OS == "android" ? 3 : 4,
-                                paddingRight: 10,
-                                fontSize: 13
-                            }}>
-                                {rightText}
-                            </Text>
+                            <>
+                                {
+                                    rightText == "ActivityIndicator" ? (
+                                        <ActivityIndicator size={"small"} color={darkMode ? "white" : "gray"} style={{
+                                            marginRight: 5
+                                        }} />
+                                    ) : (
+                                        <Text style={{
+                                            color: "gray",
+                                            paddingTop: Platform.OS == "android" ? 3 : 4,
+                                            paddingRight: 10,
+                                            fontSize: 13
+                                        }}>
+                                            {rightText}
+                                        </Text>
+                                    )
+                                }
+                            </>
                         )
                     }
                     <Ionicon name="chevron-forward-outline" size={22} color="gray" style={{

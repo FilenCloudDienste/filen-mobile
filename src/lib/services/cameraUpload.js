@@ -81,7 +81,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -98,7 +100,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -110,7 +114,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -127,7 +133,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -139,7 +147,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -152,7 +162,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 return false
             }
             else{
-                return setTimeout(runCameraUpload, cameraUploadTimeout)
+                return setTimeout(() => {
+                    runCameraUpload({ maxQueue, runOnce, callback })
+                }, cameraUploadTimeout)
             }
         }
     }
@@ -176,7 +188,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -213,7 +227,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -245,7 +261,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 return false
             }
             else{
-                return setTimeout(runCameraUpload, cameraUploadTimeout)
+                return setTimeout(() => {
+                    runCameraUpload({ maxQueue, runOnce, callback })
+                }, cameraUploadTimeout)
             }
         }
     }
@@ -263,7 +281,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 return false
             }
             else{
-                return setTimeout(runCameraUpload, cameraUploadTimeout)
+                return setTimeout(() => {
+                    runCameraUpload({ maxQueue, runOnce, callback })
+                }, cameraUploadTimeout)
             }
         }
     }
@@ -278,7 +298,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -290,7 +312,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(runCameraUpload, cameraUploadTimeout)
+            return setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
         }
     }
 
@@ -411,7 +435,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         return true
     }
     else{
-        //return setTimeout(runCameraUpload, uploads.length > 0 ? 1 : cameraUploadTimeout)
+        //return setTimeout(() => {
+        //    runCameraUpload({ maxQueue, runOnce, callback })
+        //}, cameraUploadTimeout)
     }
 }
 

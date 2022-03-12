@@ -571,7 +571,7 @@ export const CameraUploadChooseFolderToast = ({ message, navigation }) => {
                         //storage.set("cameraUploadUploadedIds:" + storage.getString("email"), "{}")
                         //storage.set("cameraUploadFetchNewAssetsTimeout", 0)
                         //storage.set("cachedCameraUploadAssets:" + storage.getString("email"), "[]")
-                        storage.set("cameraUploadEnabled:" + storage.getString("email"), true)
+                        //storage.set("cameraUploadEnabled:" + storage.getString("email"), true)
                     }
                     catch(e){
                         console.log(e)

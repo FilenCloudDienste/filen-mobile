@@ -1,30 +1,41 @@
-import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize } from "../api"
+import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize, fetchAllStoredItems } from "../api"
 import { storage } from "../storage"
-import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail } from "../helpers"
+import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate } from "../helpers"
 import striptags from "striptags"
 import { downloadWholeFileFSStream, getDownloadPath, queueFileDownload } from "../download"
 import RNFS from "react-native-fs"
 import { DeviceEventEmitter, Platform } from "react-native"
 import { useStore } from "../state"
 import FileViewer from "react-native-file-viewer"
-import { Image } from "react-native-compressor"
 import { getOfflineList, removeFromOfflineStorage, changeItemNameInOfflineList, getItemOfflinePath } from "./offline"
 import { showToast } from "../../components/Toasts"
 import { i18n } from "../../i18n/i18n"
+import ImageResizer from "react-native-image-resizer"
+import { StackActions } from "@react-navigation/native"
+import { navigationAnimation } from "../state"
 
 let isGeneratingThumbnailForItemUUID = {}
+const cachedItemMetadataInJS = {}
+const cachedItemThumbnailPathsInJS = {}
 
 export const buildFolder = async ({ folder, name = "", masterKeys = undefined, sharedIn = false, privateKey = undefined, email = undefined, routeURL }) => {
-    const uploadDate = (new Date(folder.timestamp * 1000)).toString().split(" ")
-    
-    if(!sharedIn){
-        if(typeof masterKeys !== "undefined" && typeof folder.name !== "undefined"){
-            name = await decryptFolderName(masterKeys, folder.name, folder.uuid)
-        }
+    const cacheKey = "folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
+
+    if(typeof cachedItemMetadataInJS[cacheKey] !== "undefined"){
+        name = cachedItemMetadataInJS[cacheKey]
     }
     else{
-        if(typeof privateKey !== "undefined" && typeof folder.metadata !== "undefined"){
-            name = await decryptFolderNamePrivateKey(privateKey, folder.metadata, folder.uuid)
+        if(!sharedIn){
+            if(typeof masterKeys !== "undefined" && typeof folder.name !== "undefined"){
+                name = await decryptFolderName(masterKeys, folder.name, folder.uuid)
+                cachedItemMetadataInJS[cacheKey] = name
+            }
+        }
+        else{
+            if(typeof privateKey !== "undefined" && typeof folder.metadata !== "undefined"){
+                name = await decryptFolderNamePrivateKey(privateKey, folder.metadata, folder.uuid)
+                cachedItemMetadataInJS[cacheKey] = name
+            }
         }
     }
 
@@ -33,7 +44,7 @@ export const buildFolder = async ({ folder, name = "", masterKeys = undefined, s
         type: "folder",
         uuid: folder.uuid,
         name: striptags(name),
-        date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
+        date: simpleDate(folder.timestamp),
         timestamp: folder.timestamp,
         parent: folder.parent || "base",
         receiverId: typeof folder.receiverId == "number" ? folder.receiverId : 0,
@@ -51,33 +62,46 @@ export const buildFolder = async ({ folder, name = "", masterKeys = undefined, s
 }
 
 export const buildFile = async ({ file, metadata = undefined, masterKeys = undefined, sharedIn = false, privateKey = undefined, email = undefined, routeURL }) => {
-    const uploadDate = (new Date(file.timestamp * 1000)).toString().split(" ")
+    const cacheKey = "file:" + file.uuid + ":" + file.metadata + ":" + sharedIn.toString()
 
-    if(!sharedIn){
-        if(typeof masterKeys !== "undefined" && typeof file.metadata !== "undefined"){
-            metadata = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
-        }
+    if(typeof cachedItemMetadataInJS[cacheKey] !== "undefined"){
+        metadata = cachedItemMetadataInJS[cacheKey]
     }
     else{
-        if(typeof privateKey !== "undefined" && typeof file.metadata !== "undefined"){
-            metadata = await decryptFileMetadataPrivateKey(file.metadata, privateKey, file.uuid)
+        if(!sharedIn){
+            if(typeof masterKeys !== "undefined" && typeof file.metadata !== "undefined"){
+                metadata = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
+                cachedItemMetadataInJS[cacheKey] = metadata
+            }
+        }
+        else{
+            if(typeof privateKey !== "undefined" && typeof file.metadata !== "undefined"){
+                metadata = await decryptFileMetadataPrivateKey(file.metadata, privateKey, file.uuid)
+                cachedItemMetadataInJS[cacheKey] = metadata
+            }
         }
     }
 
     let thumbnailCachePath = undefined
     const thumbnailCacheKey = getThumbnailCacheKey({ uuid: file.uuid }).cacheKey
 
-    if(canCompressThumbnail(getFileExt(striptags(metadata.name)))){
-        try{
-            var thumbnailCache = storage.getString(thumbnailCacheKey)
-        }
-        catch(e){
-            //console.log(e)
-        }
-
-        if(typeof thumbnailCache == "string"){
-            if(thumbnailCache.length > 0){
-                thumbnailCachePath = thumbnailCache
+    if(typeof cachedItemThumbnailPathsInJS[thumbnailCacheKey] !== "undefined"){
+        thumbnailCachePath = cachedItemThumbnailPathsInJS[thumbnailCacheKey]
+    }
+    else{
+        if(canCompressThumbnail(getFileExt(metadata.name))){
+            try{
+                var thumbnailCache = storage.getString(thumbnailCacheKey)
+            }
+            catch(e){
+                //console.log(e)
+            }
+    
+            if(typeof thumbnailCache == "string"){
+                if(thumbnailCache.length > 0){
+                    thumbnailCachePath = thumbnailCache
+                    cachedItemThumbnailPathsInJS[thumbnailCacheKey] = thumbnailCache
+                }
             }
         }
     }
@@ -87,23 +111,24 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
         type: "file",
         uuid: file.uuid,
         name: striptags(metadata.name),
-        mime: striptags(metadata.mime),
-        size: parseInt(file.size),
-        key: striptags(metadata.key),
+        mime: metadata.mime,
+        size: typeof file.size == "number" ? file.size : typeof file.chunks_size == "number" ? file.chunks_size : 0,
+        key: metadata.key,
         lastModified: parseInt(typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp),
+        lastModifiedSort: parseFloat(typeof metadata.lastModified == "number" ? metadata.lastModified + "." + file.uuid.replace(/\D/g, "") : file.timestamp + "." + file.uuid.replace(/\D/g, "")),
         bucket: file.bucket,
         region: file.region,
         parent: file.parent || "base",
         rm: file.rm,
         chunks: file.chunks,
-        date: uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4],
-        timestamp: parseInt(file.timestamp),
+        date: simpleDate(file.timestamp),
+        timestamp: file.timestamp,
         receiverId: typeof file.receiverId == "number" ? file.receiverId : 0,
         receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,
         sharerId: typeof file.sharerId == "number" ? file.sharerId : 0,
         sharerEmail: typeof file.sharerEmail == "string" ? file.sharerEmail : undefined,
         offline: typeof email !== "undefined" ? (storage.getBoolean(email + ":offlineItems:" + file.uuid) ? true : false) : false,
-        version: parseInt(file.version),
+        version: file.version,
         favorited: file.favorited,
         thumbnail: thumbnailCachePath,
         selected: false
@@ -122,7 +147,7 @@ export const sortItems = ({ items, passedRoute = undefined }) => {
 
     if(routeURL.indexOf("photos") !== -1){
         return items.sort((a, b) => {
-            return b.lastModified > a.lastModified
+            return b.lastModifiedSort > a.lastModifiedSort
         })
     }
 
@@ -137,16 +162,6 @@ export const sortItems = ({ items, passedRoute = undefined }) => {
 }
 
 export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLoadDone, bypassCache = false, isFollowUpRequest = false, callStack = 0, navigation, isMounted, route, setProgress }) => {
-    const updateProgress = (done, total) => {
-        return false
-
-        if(typeof isMounted == "function"){
-            if(isMounted() && typeof setProgress == "function"){
-                setProgress({ itemsDone: done, totalItems: total })
-            }
-        }
-    }
-
     try{
         var email = storage.getString("email")
 
@@ -240,10 +255,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        updateProgress(0, response.data.folders.length)
-
-        let done = 0
-
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
 
@@ -257,10 +268,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-
-            done += 1
-
-            updateProgress(done, response.data.folders.length)
 		}
     }
     else if(parent == "recents"){
@@ -285,10 +292,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        updateProgress(0, response.data.length)
-
-        let done = 0
-
         for(let i = 0; i < response.data.length; i++){
             let file = response.data[i]
             
@@ -302,10 +305,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-
-            done += 1
-
-            updateProgress(done, response.data.length)
         }
     }
     else if(routeURL.indexOf("shared-in") !== -1){
@@ -343,10 +342,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        updateProgress(0, (response.data.folders.length + response.data.uploads.length))
-
-        let done = 0
-
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
 			
@@ -360,10 +355,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-
-            done += 1
-
-            updateProgress(done, (response.data.folders.length + response.data.uploads.length))
 		}
 
         for(let i = 0; i < response.data.uploads.length; i++){
@@ -379,10 +370,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-
-            done += 1
-
-            updateProgress(done, (response.data.folders.length + response.data.uploads.length))
         }
     }
     else if(routeURL.indexOf("shared-out") !== -1){
@@ -421,10 +408,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        updateProgress(0, (response.data.folders.length + response.data.uploads.length))
-
-        let done = 0
-
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
 
@@ -440,10 +423,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-
-            done += 1
-
-            updateProgress(done, (response.data.folders.length + response.data.uploads.length))
 		}
 
         for(let i = 0; i < response.data.uploads.length; i++){
@@ -459,14 +438,10 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-
-            done += 1
-
-            updateProgress(done, (response.data.folders.length + response.data.uploads.length))
         }
     }
     else if(parent == "photos"){
-        try{
+        /*try{
             var cameraUploadParent = storage.getString("cameraUploadFolderUUID:" + email)
         }
         catch(e){
@@ -516,6 +491,32 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                         //console.log(e)
                     }
                 }
+            }
+        }*/
+
+        try{
+            var { files } = await fetchAllStoredItems({ filesOnly: true, maxSize: ((1024 * 1024) * 128), includeTrash: false, includeVersioned: false })
+        }
+        catch(e){
+            console.log(e)
+
+            return false
+        }
+
+        for(let i = 0; i < files.length; i++){
+            let file = files[i]
+
+            let item = await buildFile({ file, masterKeys, email })
+
+            if(canCompressThumbnail(getFileExt(item.name))){
+                items.push(item)
+            }
+
+			try{
+                storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
+            }
+            catch(e){
+                //console.log(e)
             }
         }
     }
@@ -571,8 +572,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                                     let newItem = items[i]
             
                                     if(offlineFilesInfo[prop].isVersioned){
-                                        const uploadDate = (new Date(offlineFilesInfo[prop].versionedInfo.timestamp * 1000)).toString().split(" ")
-
                                         newItem.uuid = offlineFilesInfo[prop].versionedUUID
                                         newItem.region = offlineFilesInfo[prop].versionedInfo.region
                                         newItem.bucket = offlineFilesInfo[prop].versionedInfo.bucket
@@ -580,7 +579,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                                         newItem.timestamp = offlineFilesInfo[prop].versionedInfo.timestamp
                                         newItem.rm = offlineFilesInfo[prop].versionedInfo.rm
                                         newItem.thumbnail = undefined
-                                        newItem.date = uploadDate[1] + " " + uploadDate[2] + " " + uploadDate[3] + " " + uploadDate[4]
+                                        newItem.date = simpleDate(offlineFilesInfo[prop].versionedInfo.timestamp)
                                     }
 
                                     newItem.offline = true
@@ -687,10 +686,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        updateProgress(0, (response.data.folders.length + response.data.uploads.length))
-
-        let done = 0
-
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
 			
@@ -704,10 +699,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-
-            done += 1
-
-            updateProgress(done, (response.data.folders.length + response.data.uploads.length))
 		}
 
         for(let i = 0; i < response.data.uploads.length; i++){
@@ -723,10 +714,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-
-            done += 1
-
-            updateProgress(done, (response.data.folders.length + response.data.uploads.length))
         }
     }
 
@@ -805,7 +792,7 @@ export const getFolderSizeFromCache = ({ folder, routeURL }) => {
 }
 
 export const getThumbnailCacheKey = ({ uuid }) => {
-    const width = 512, height = 512, quality = 0.7, thumbnailVersion = "2.0.4"
+    const width = 512, height = 512, quality = 100, thumbnailVersion = "2.0.6"
     const cacheKey = "thumbnailCache:" + uuid + ":" + width + ":" + height + ":" + quality + ":" + thumbnailVersion
 
     return {
@@ -899,23 +886,15 @@ export const generateItemThumbnail = ({ item }) => {
                 downloadWholeFileFSStream({
                     file: item
                 }).then((path) => {
-                    Image.compress(path, {
-                        compressionMethod: "manual",
-                        maxWidth: width,
-                        maxHeight: height,
-                        quality,
-                        input: "uri",
-                        output: "jpg",
-                        returnableOutputType: "uri"
-                    }).then((compressed) => {
-                        RNFS.moveFile(compressed, dest).then(() => {
+                    ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
+                        RNFS.moveFile(compressed.uri, dest).then(() => {
                             try{
                                 storage.set(cacheKey, dest)
                             }
                             catch(e){
                                 console.log(e)
                             }
-        
+
                             global.cachedThumbnailPaths[item.uuid] = dest
             
                             DeviceEventEmitter.emit("event", {
@@ -957,7 +936,7 @@ export const generateItemThumbnail = ({ item }) => {
     })
 }
 
-export const previewItem = async ({ item, setCurrentActionSheetItem = true }) => {
+export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }) => {
     const previewType = getFilePreviewType(getFileExt(item.name))
 
     if(!["image", "video", "text", "code", "pdf", "doc", "audio"].includes(previewType)){
@@ -1047,9 +1026,16 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true }) =>
                         useStore.setState({ currentActionSheetItem: item })
                     }
 
-                    useStore.setState({ textViewerModalContent: content })
-                    useStore.setState({ textViewerModalType: previewType })
-                    useStore.setState({ textViewerModalVisible: true })
+                    useStore.setState({
+                        textEditorState: "view",
+                        textEditorParent: item.parent,
+                        createTextFileDialogName: item.name,
+                        textEditorText: content
+                    })
+														
+					navigationAnimation({ enable: true }).then(() => {
+                        navigation.dispatch(StackActions.push("TextEditorScreen"))
+                    })
                 }).catch((err) => {
                     console.log(err)
                 })

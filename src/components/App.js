@@ -17,7 +17,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context"
 import { SettingsScreen } from "./SettingsScreen"
 import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet } from "./ActionSheets"
 import { useStore } from "../lib/state"
-import { FullscreenLoadingModal, ImageViewerModal, TextViewerModal, VideoViewerModal, TextEditorModal } from "./Modals"
+import { FullscreenLoadingModal } from "./Modals"
 import { enableScreens } from "react-native-screens"
 import { generateItemThumbnail } from "../lib/services/items"
 import { TransfersIndicator } from "./TransfersIndicator"
@@ -46,6 +46,7 @@ import { GDPRScreen } from "./GDPRScreen"
 import { InviteScreen } from "./InviteScreen"
 import { TwoFactorScreen } from "./TwoFactorScreen"
 import { ChangeEmailPasswordScreen } from "./ChangeEmailPasswordScreen"
+import { TextEditorScreen } from "./TextEditorScreen"
 
 NetInfo.configure({
     reachabilityUrl: "https://api.filen.io",
@@ -90,6 +91,7 @@ export const App = () => {
     const setAppState = useStore(state => state.setAppState)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [nodeJSAlive, setNodeJSAlive] = useState(true)
+    const setContentHeight = useStore(state => state.setContentHeight)
 
     useEffect(() => {
         SplashScreen.hide()
@@ -212,7 +214,11 @@ export const App = () => {
 
     useEffect(() => {
         if(isLoggedIn && cameraUploadEnabled && setupDone){
-            runCameraUpload()
+            runCameraUpload({
+                maxQueue: 10,
+                runOnce: false,
+                callback: undefined
+            })
         }
     }, [isLoggedIn, cameraUploadEnabled, setupDone])
 
@@ -338,155 +344,165 @@ export const App = () => {
                             height: "100%",
                             width: "100%"
                         }}>
-                            {
-                                nodeJSAlive ? (
-                                    <>
-                                        <Stack.Navigator initialRouteName={isLoggedIn ? (setupDone ? "MainScreen" : "SetupScreen") : "LoginScreen"} ini>
-                                        <Stack.Screen name="SetupScreen" component={SetupScreen} options={{
-                                            title: "SetupScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="LoginScreen" options={{
-                                            title: "LoginScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}>{(props) => <LoginScreen {...props} setSetupDone={setSetupDone} />}</Stack.Screen>
-                                        <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{
-                                            title: "RegisterScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{
-                                            title: "ForgotPasswordScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="ResendConfirmationScreen" component={ResendConfirmationScreen} options={{
-                                            title: "ResendConfirmationScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="MainScreen" initialParams={{ parent: "recents" }} component={MainScreen} options={{
-                                            title: "MainScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{
-                                            title: "SettingsScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="TransfersScreen" component={TransfersScreen} options={{
-                                            title: "TransfersScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="CameraUploadScreen" component={CameraUploadScreen} options={{
-                                            title: "CameraUploadScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="BiometricAuthScreen" component={BiometricAuthScreen} options={{
-                                            title: "BiometricAuthScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none",
-                                            gestureEnabled: false
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="LanguageScreen" component={LanguageScreen} options={{
-                                            title: "LanguageScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="SettingsAdvancedScreen" component={SettingsAdvancedScreen} options={{
-                                            title: "SettingsAdvancedScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="SettingsAccountScreen" component={SettingsAccountScreen} options={{
-                                            title: "SettingsAccountScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="EventsScreen" component={EventsScreen} options={{
-                                            title: "EventsScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="EventsInfoScreen" component={EventsInfoScreen} options={{
-                                            title: "EventsInfoScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="GDPRScreen" component={GDPRScreen} options={{
-                                            title: "GDPRScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="InviteScreen" component={InviteScreen} options={{
-                                            title: "InviteScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="TwoFactorScreen" component={TwoFactorScreen} options={{
-                                            title: "TwoFactorScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                        <Stack.Screen name="ChangeEmailPasswordScreen" component={ChangeEmailPasswordScreen} options={{
-                                            title: "ChangeEmailPasswordScreen",
-                                            headerShown: false,
-                                            animation: showNavigationAnimation ? "default" : "none"
-                                        }}></Stack.Screen>
-                                    </Stack.Navigator>
-                                    <>
-                                        {
-                                            setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen", "ChangeEmailPasswordScreen"].includes(currentScreenName) && (
-                                                <View style={{
-                                                    position: "relative",
-                                                    width: "100%",
-                                                    bottom: 0,
-                                                    height: 50
-                                                }}>
-                                                    <BottomBar navigation={navigationRef} currentScreenName={currentScreenName} />
-                                                </View>
-                                            )
-                                        }
-                                    </>
-                                    </>
-                                ) : (
-                                    <View style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        justifyContent: "center",
-                                        alignItems: "center"
-                                    }}>
-                                        <Ionicon name="information-circle-outline" size={70} color={darkMode ? "white" : "black"} />
-                                        <Text style={{
-                                            color: darkMode ? "white" : "black",
-                                            marginTop: 5,
-                                            width: "70%",
-                                            textAlign: "center"
+                            <View style={{
+                                width: "100%",
+                                height: "100%"
+                            }} onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}>
+                                {
+                                    nodeJSAlive ? (
+                                        <>
+                                            <Stack.Navigator initialRouteName={isLoggedIn ? (setupDone ? "MainScreen" : "SetupScreen") : "LoginScreen"} ini>
+                                            <Stack.Screen name="SetupScreen" component={SetupScreen} options={{
+                                                title: "SetupScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="LoginScreen" options={{
+                                                title: "LoginScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}>{(props) => <LoginScreen {...props} setSetupDone={setSetupDone} />}</Stack.Screen>
+                                            <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{
+                                                title: "RegisterScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{
+                                                title: "ForgotPasswordScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="ResendConfirmationScreen" component={ResendConfirmationScreen} options={{
+                                                title: "ResendConfirmationScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="MainScreen" initialParams={{ parent: "recents" }} component={MainScreen} options={{
+                                                title: "MainScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{
+                                                title: "SettingsScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="TransfersScreen" component={TransfersScreen} options={{
+                                                title: "TransfersScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="CameraUploadScreen" component={CameraUploadScreen} options={{
+                                                title: "CameraUploadScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="BiometricAuthScreen" component={BiometricAuthScreen} options={{
+                                                title: "BiometricAuthScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none",
+                                                gestureEnabled: false
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="LanguageScreen" component={LanguageScreen} options={{
+                                                title: "LanguageScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="SettingsAdvancedScreen" component={SettingsAdvancedScreen} options={{
+                                                title: "SettingsAdvancedScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="SettingsAccountScreen" component={SettingsAccountScreen} options={{
+                                                title: "SettingsAccountScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="EventsScreen" component={EventsScreen} options={{
+                                                title: "EventsScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="EventsInfoScreen" component={EventsInfoScreen} options={{
+                                                title: "EventsInfoScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="GDPRScreen" component={GDPRScreen} options={{
+                                                title: "GDPRScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="InviteScreen" component={InviteScreen} options={{
+                                                title: "InviteScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="TwoFactorScreen" component={TwoFactorScreen} options={{
+                                                title: "TwoFactorScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="ChangeEmailPasswordScreen" component={ChangeEmailPasswordScreen} options={{
+                                                title: "ChangeEmailPasswordScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                            <Stack.Screen name="TextEditorScreen" component={TextEditorScreen} options={{
+                                                title: "TextEditorScreen",
+                                                headerShown: false,
+                                                animation: showNavigationAnimation ? "default" : "none"
+                                            }}></Stack.Screen>
+                                        </Stack.Navigator>
+                                        <>
+                                            {
+                                                setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen", "ChangeEmailPasswordScreen"].includes(currentScreenName) && (
+                                                    <View style={{
+                                                        position: "relative",
+                                                        width: "100%",
+                                                        bottom: 0,
+                                                        height: 50
+                                                    }}>
+                                                        <BottomBar navigation={navigationRef} currentScreenName={currentScreenName} />
+                                                    </View>
+                                                )
+                                            }
+                                        </>
+                                        </>
+                                    ) : (
+                                        <View style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            justifyContent: "center",
+                                            alignItems: "center"
                                         }}>
-                                            {i18n(lang, "nodeJSProcessDied")}
-                                        </Text>
-                                    </View>
-                                )
-                            }
-                            {
-                                nodeJSAlive && (
-                                    <>
-                                        <TransfersIndicator navigation={navigationRef} />
-                                        <TopBarActionSheet navigation={navigationRef} />
-                                        <BottomBarAddActionSheet navigation={navigationRef} />
-                                        <ItemActionSheet navigation={navigationRef} />
-                                        <FolderColorActionSheet navigation={navigationRef} />
-                                        <PublicLinkActionSheet navigation={navigationRef} />
-                                        <ShareActionSheet navigation={navigationRef} />
-                                        <FileVersionsActionSheet navigation={navigationRef} />
-                                    </>
-                                )
-                            }
+                                            <Ionicon name="information-circle-outline" size={70} color={darkMode ? "white" : "black"} />
+                                            <Text style={{
+                                                color: darkMode ? "white" : "black",
+                                                marginTop: 5,
+                                                width: "70%",
+                                                textAlign: "center"
+                                            }}>
+                                                {i18n(lang, "nodeJSProcessDied")}
+                                            </Text>
+                                        </View>
+                                    )
+                                }
+                                {
+                                    nodeJSAlive && (
+                                        <>
+                                            <TransfersIndicator navigation={navigationRef} />
+                                            <TopBarActionSheet navigation={navigationRef} />
+                                            <BottomBarAddActionSheet navigation={navigationRef} />
+                                            <ItemActionSheet navigation={navigationRef} />
+                                            <FolderColorActionSheet navigation={navigationRef} />
+                                            <PublicLinkActionSheet navigation={navigationRef} />
+                                            <ShareActionSheet navigation={navigationRef} />
+                                            <FileVersionsActionSheet navigation={navigationRef} />
+                                        </>
+                                    )
+                                }
+                            </View>
                         </SafeAreaView>
                     </SafeAreaProvider>
                     {
@@ -501,10 +517,6 @@ export const App = () => {
                                 <RenameDialog navigation={navigationRef} />
                                 <CreateFolderDialog navigation={navigationRef} />
                                 <FullscreenLoadingModal navigation={navigationRef} />
-                                <ImageViewerModal navigation={navigationRef} />
-                                <TextViewerModal navigation={navigationRef} />
-                                <VideoViewerModal navigation={navigationRef} />
-                                <TextEditorModal navigation={navigationRef} />
                                 <CreateTextFileDialog navigation={navigationRef} />
                             </>
                         )

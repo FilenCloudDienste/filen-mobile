@@ -301,6 +301,24 @@ export const uInt8ArrayConcatAsync = (arrays) => {
     })
 }
 
+export const simpleDate = (timestamp) => {
+    const date = new Date(timestamp * 1000)
+
+    return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
+}
+
+export const normalizePhotosRange = (range) => {
+    if(typeof range !== "string"){
+        return "all"
+    }
+
+    if(!["years", "months", "days", "all"].includes(range)){
+        return "all"
+    }
+
+    return range
+}
+
 export const generateRandomString = (length = 32) => {
     return new Promise((resolve, reject) => {
         global.nodeThread.generateRandomString({ charLength: length }).then(resolve).catch(reject)

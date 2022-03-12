@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, Dimensions, Pressable } from "react-native"
+import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, Dimensions, Pressable, Platform } from "react-native"
 import FastImage from "react-native-fast-image"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import { getImageForItem } from "../assets/thumbnails"
@@ -58,7 +58,7 @@ export class ListItem extends Component {
                                 <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: (item.thumbnail.indexOf("file://") == -1 ? "file://" + item.thumbnail : item.thumbnail) } : getImageForItem(item)} style={{
                                     width: 30,
                                     height: 30,
-                                    marginTop: item.type == "folder" ? 1 : 2,
+                                    marginTop: item.type == "folder" ? 1 : 4,
                                     marginLeft: 2,
                                     borderRadius: 5
                                 }} />
@@ -374,6 +374,73 @@ export class PhotosItem extends Component {
                     )
                 }
             </Pressable>
+        )
+    }
+}
+
+export class PhotosRangeItem extends Component {
+    shouldComponentUpdate(nextProps){
+        return !isEqual(this.props, nextProps)
+    }
+
+    render(){
+        const { item, index, darkMode } = this.props
+
+        const imageWidthAndHeight = Math.floor(window.width - 30)
+
+        return (
+            <TouchableOpacity activeOpacity={0.6} key={index.toString()} style={{
+                height: imageWidthAndHeight,
+                width: imageWidthAndHeight,
+                paddingLeft: 30,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 25
+            }} onPress={() => this.props.photosRangeItemClick(item)}>
+                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: (item.thumbnail.indexOf("file://") == -1 ? "file://" + item.thumbnail : item.thumbnail) } : getImageForItem(item)} style={{
+                    width: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
+                    height: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
+                    zIndex: 2,
+                    borderRadius: typeof item.thumbnail !== "undefined" ? 15 : 0
+                }} />
+                <Text style={{
+                    color: "white",
+                    position: "absolute",
+                    zIndex: 100,
+                    top: 15,
+                    left: 30,
+                    fontWeight: "bold",
+                    fontSize: 22
+                }}>
+                    {item.title}
+                </Text>
+                {
+                    typeof item.remainingItems == "number" && item.remainingItems > 1 && (
+                        <View style={{
+                            backgroundColor: "rgba(34, 34, 34, 0.8)",
+                            width: "auto",
+                            height: "auto",
+                            borderRadius: 15,
+                            position: "absolute",
+                            zIndex: 100,
+                            padding: 5,
+                            paddingLeft: 10,
+                            top: 15,
+                            right: 0,
+                            flexDirection: "row"
+                        }} pointerEvents="box-none">
+                            <Text style={{
+                                color: "white",
+                                fontSize: 15
+                            }}>{item.remainingItems}</Text>
+                            <Ionicon name="chevron-forward-outline" size={16} color="white" style={{
+                                marginTop: Platform.OS == "android" ? 2.25 : 0.5,
+                                marginLeft: 2
+                            }} />
+                        </View>
+                    )
+                }
+            </TouchableOpacity>
         )
     }
 }

@@ -112,8 +112,10 @@ export const InviteScreen = ({ navigation, route }) => {
                                                 {i18n(lang, "inviteCount")}
                                             </Text>
                                         </View>
-                                        <Text>
-                                            {accountData.referCount}/{accountData.refLimit}
+                                        <Text style={{
+                                            color: darkMode ? "white" : "black"
+                                        }}>
+                                            {accountData.referCount > accountData.refLimit ? accountData.refLimit : accountData.referCount}/{accountData.refLimit}
                                         </Text>
                                     </View>
                                 </View>

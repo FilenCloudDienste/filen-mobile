@@ -189,9 +189,6 @@ export const CameraUploadScreen = ({ navigation, route }) => {
                             cancelable: true
                         })
                     }} />
-                    <SettingsButtonLinkHighlight title="trigger upload" onPress={() => {
-                        runCameraUpload()
-                    }} />
                 </SettingsGroup>
                 <View style={{ height: 25 }}></View>
             </ScrollView>

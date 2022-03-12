@@ -41,6 +41,7 @@
 		"react-native-device-info": "^8.4.9",
 		"react-native-dialog": "^9.2.1",
 		"react-native-document-picker": "^8.0.0",
+		"react-native-exif": "^0.5.0",
 		"react-native-fast-image": "^8.5.11",
 		"react-native-file-access": "^2.2.2",
 		"react-native-file-viewer": "^2.1.5",

@@ -14,6 +14,7 @@ export const GDPRScreen = ({ navigation, route }) => {
     const [gdpr, setGdpr] = useState("")
     const [isLoading, setIsLoading] = useState(true)
     const isMounted = useMountedState()
+    
     useEffect(() => {
         fetchGDPRInfo().then((info) => {
             if(isMounted()){

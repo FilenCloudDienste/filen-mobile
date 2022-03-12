@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react"
-import { View, DeviceEventEmitter, Platform } from "react-native"
+import { View, DeviceEventEmitter, Platform, InteractionManager } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { TopBar } from "./TopBar"
@@ -11,6 +11,7 @@ import { useMountedState } from "react-use"
 import { SheetManager } from "react-native-actions-sheet"
 import { previewItem } from "../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { StackActions } from "@react-navigation/native"
 
 export const MainScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -34,6 +35,9 @@ export const MainScreen = ({ navigation, route }) => {
     const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
     const [itemsBeforeSearch, setItemsBeforeSearch] = useState([])
     const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
+    const bottomBarHeight = useStore(state => state.bottomBarHeight)
+    const topBarHeight = useStore(state => state.topBarHeight)
+    const contentHeight = useStore(state => state.contentHeight)
 
     const updateItemThumbnail = useCallback((item, path) => {
         if(typeof path !== "string"){
@@ -204,12 +208,12 @@ export const MainScreen = ({ navigation, route }) => {
                         if(data.data.type == "folder" && routeURL.indexOf("trash") == -1){
                             useStore.setState({ showNavigationAnimation: true })
 
-                            navigation.push("MainScreen", {
+                            navigation.dispatch(StackActions.push("MainScreen", {
                                 parent: routeURL + "/" + data.data.uuid
-                            })
+                            }))
                         }
                         else{
-                            previewItem({ item: data.data })
+                            previewItem({ item: data.data, navigation })
                         }
                     }
                 }
@@ -230,6 +234,9 @@ export const MainScreen = ({ navigation, route }) => {
             }
             else if(data.type == "select-item" && isListenerActive){
                 selectItem(data.data)
+            }
+            else if(data.type == "unselect-item" && isListenerActive){
+                unselectItem(data.data)
             }
             else if(data.type == "remove-item"){
                 removeItem(data.data.uuid)
@@ -301,7 +308,10 @@ export const MainScreen = ({ navigation, route }) => {
         setNavigation(navigation)
         setRoute(route)
         setInsets(insets)
-        fetchItemList({ bypassCache: false })
+        
+        InteractionManager.runAfterInteractions(() => {
+            fetchItemList({ bypassCache: false })
+        })
 
         global.fetchItemList = fetchItemList
     }, [])
@@ -316,7 +326,7 @@ export const MainScreen = ({ navigation, route }) => {
         }}>
             <TopBar navigation={navigation} route={route} setLoadDone={setLoadDone} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             <View style={{
-                height: route?.params?.parent?.indexOf("photos") !== -1 ? (dimensions.screen.height - (Platform.OS == "android" ? 171 : 175)) : Math.floor(dimensions.screen.height - (Platform.OS == "ios" ? (showHomeTabBar ? 255 : 220) : (showHomeTabBar ? 250 : 215)))
+                height: getRouteURL(route).indexOf("photos") !== -1 ? (contentHeight - 40 - bottomBarHeight + 30) : (contentHeight - topBarHeight - bottomBarHeight + 30)
             }}>
                 <ItemList navigation={navigation} route={route} items={items} setItems={setItems} showLoader={!loadDone} loadDone={loadDone} searchTerm={searchTerm} isMounted={isMounted} fetchItemList={fetchItemList} progress={progress} setProgress={setProgress} />
             </View>

@@ -488,7 +488,6 @@ export const ItemActionSheet = ({ navigation, route }) => {
 	const [isDeviceOnline, setIsDeviceOnline] = useState(false)
 	const [canDownload, setCanDownload] = useState(false)
 	const [canEdit, setCanEdit] = useState(false)
-	const setTextEditorModalVisible = useStore(state => state.setTextEditorModalVisible)
 	const setTextEditorState = useStore(state => state.setTextEditorState)
 	const setTextEditorText = useStore(state => state.setTextEditorText)
 	const setCreateTextFileDialogName = useStore(state => state.setCreateTextFileDialogName)
@@ -593,10 +592,10 @@ export const ItemActionSheet = ({ navigation, route }) => {
 											await SheetManager.hide("ItemActionSheet")
 
 											DeviceEventEmitter.emit("event", {
-												type: "select-item",
+												type: currentActionSheetItem.selected ? "unselect-item" : "select-item",
 												data: currentActionSheetItem
 											})
-										}} icon="checkmark-circle-outline" text={i18n(lang, "select")} />
+										}} icon="checkmark-circle-outline" text={i18n(lang, currentActionSheetItem.selected ? "unselect" : "select")} />
 									)
 								}
 								{
@@ -668,7 +667,10 @@ export const ItemActionSheet = ({ navigation, route }) => {
 														setTextEditorParent(currentActionSheetItem.parent)
 														setCreateTextFileDialogName(currentActionSheetItem.name)
 														setTextEditorText(data)
-														setTextEditorModalVisible(true)
+														
+														navigationAnimation({ enable: true }).then(() => {
+															navigation.dispatch(StackActions.push("TextEditorScreen"))
+														})
 													}).catch((err) => {
 														console.log(err)
 

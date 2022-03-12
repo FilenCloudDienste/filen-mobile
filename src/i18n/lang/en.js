@@ -312,5 +312,17 @@ export const en = {
     emailsNotMatching: "Email addresses are not matching",
     passwordsNotMatching: "Passwords not matching",
     invalidMasterKeys: "Invalid master keys, please try re-logging",
-    passwordChangedSuccess: "Password changed successfully"
+    passwordChangedSuccess: "Password changed successfully",
+    photosRange_years: "Years",
+    photosRange_months: "Months",
+    photosRange_days: "Days",
+    photosRange_all: "All photos",
+    logout: "Logout",
+    clearCachesDirectory: "Clear cache directory",
+    clearCachesDirectoryInfo: "Clearing the cache directory will free up storage space on your device",
+    clearCachesDirectoryCleared: "Cache directory cleared",
+    clearTempDirectory: "Clear temporary directory",
+    clearTempDirectoryInfo: "Clearing the temporary directory will free up storage space on your device",
+    clearTempDirectoryCleared: "Temporary directory cleared",
+    unselect: "Unselect"
 }

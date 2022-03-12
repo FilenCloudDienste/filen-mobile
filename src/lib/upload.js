@@ -8,7 +8,7 @@ import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter } from "react-native"
 import { getDownloadPath } from "./download"
 import { getThumbnailCacheKey } from "./services/items"
-import { Image } from "react-native-compressor"
+import ImageResizer from "react-native-image-resizer"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -528,16 +528,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
 
                     const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid })
 
-                    Image.compress(tempPath, {
-                        compressionMethod: "auto",
-                        maxWidth: width,
-                        maxHeight: height,
-                        quality,
-                        input: "uri",
-                        output: "jpg",
-                        returnableOutputType: "uri"
-                    }).then((compressed) => {
-                        RNFS.moveFile(compressed, dest).then(() => {
+                    ImageResizer.createResizedImage(tempPath, width, height, "JPEG", quality).then((compressed) => {
+                        RNFS.moveFile(compressed.uri, dest).then(() => {
                             try{
                                 storage.set(cacheKey, dest)
                             }

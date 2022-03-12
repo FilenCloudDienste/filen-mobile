@@ -312,6 +312,8 @@ PODS:
     - React-Core
   - react-native-document-picker (8.0.0):
     - React-Core
+  - react-native-exif (0.5.0):
+    - React
   - react-native-file-access (2.2.2):
     - React-Core
     - ZIPFoundation (< 0.9.12)
@@ -492,6 +494,7 @@ DEPENDENCIES:
   - "react-native-cameraroll (from `../node_modules/@react-native-community/cameraroll`)"
   - react-native-compressor (from `../node_modules/react-native-compressor`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - react-native-exif (from `../node_modules/react-native-exif`)
   - react-native-file-access (from `../node_modules/react-native-file-access`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
@@ -613,6 +616,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-compressor"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
+  react-native-exif:
+    :path: "../node_modules/react-native-exif"
   react-native-file-access:
     :path: "../node_modules/react-native-file-access"
   react-native-image-picker:
@@ -732,6 +737,7 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 2957f2bce63ae896a848fbe0d5352c1bd4d20866
   react-native-compressor: 4bb16f68ac8d8c59e1e97a0eb3948492b80a820a
   react-native-document-picker: 429972f7ece4463aa5bcdd789622b3a674a3c5d1
+  react-native-exif: c43e7c18af8bfa133c79145671a0f036e413468e
   react-native-file-access: 1aa99af4eb8dec75a33d6c2b95b04d0768433132
   react-native-image-picker: 4e6008ad8c2321622affa2c85432a5ebd02d480c
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f

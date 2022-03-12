@@ -200,6 +200,26 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
                             </SettingsGroup>
                             <SettingsGroup>
                                 <SettingsButtonLinkHighlight onPress={() => {
+                                    Alert.alert(i18n(lang, "logout"), i18n(lang, "areYouReallySure"), [
+                                        {
+                                            text: i18n(lang, "cancel"),
+                                            onPress: () => {
+                                                return false
+                                            },
+                                            style: "cancel"
+                                        },
+                                        {
+                                            text: i18n(lang, "ok"),
+                                            onPress: () => logout({ navigation }),
+                                            style: "default"
+                                        }
+                                    ], {
+                                        cancelable: true
+                                    })
+                                }} title={i18n(lang, "logout")} />
+                            </SettingsGroup>
+                            <SettingsGroup>
+                                <SettingsButtonLinkHighlight onPress={() => {
                                     Alert.alert(i18n(lang, "deleteAccount"), i18n(lang, "deleteAccountInfo"), [
                                         {
                                             text: i18n(lang, "cancel"),

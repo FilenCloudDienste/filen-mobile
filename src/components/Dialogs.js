@@ -489,7 +489,7 @@ export const CreateTextFileDialog = ({ navigation }) => {
         if(createTextFileDialogVisible){
             setTimeout(() => {
                 inputRef.current.focus()
-                inputRef.current.setNativeProps({ selection: { start: 0, end: 0 } })
+                //inputRef.current.setNativeProps({ selection: { start: 0, end: 0 } })
             }, 250)
         }
     }, [createTextFileDialogVisible])
@@ -504,7 +504,7 @@ export const CreateTextFileDialog = ({ navigation }) => {
             }}
         >
             <Dialog.Title>{i18n(lang, "createTextFile")}</Dialog.Title>
-            <Dialog.Input placeholder={i18n(lang, "fileName")} value={value} selection={{ start: 0, end: 0 }} autoFocus={true} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
+            <Dialog.Input placeholder={i18n(lang, "fileName")} value={value} autoFocus={true} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
             <Dialog.Button label={i18n(lang, "cancel")} onPress={() => setCreateTextFileDialogVisible(false)} />
             <Dialog.Button label={i18n(lang, "create")} onPress={() => {
                 if(value.length == 0){

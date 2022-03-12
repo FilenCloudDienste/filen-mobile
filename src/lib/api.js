@@ -2100,3 +2100,29 @@ export const changePassword = ({ password, passwordRepeat, currentPassword, auth
         }).catch(reject)  
     })
 }
+
+export const fetchAllStoredItems = ({ lastLength = 0, filesOnly, maxSize, includeTrash, includeVersioned  }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/get/all/index",
+            data: {
+                apiKey: getAPIKey(),
+                lastLength,
+                filesOnly: filesOnly ? 1 : 0,
+                maxSize: typeof maxSize == "number" ? maxSize : 0,
+                includeTrash: includeTrash ? 1 : 0,
+                includeVersioned: includeVersioned ? 1 : 0
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve({
+                files: response.data.uploads,
+                folders: response.data.folders
+            })
+        }).catch(reject)  
+    })
+}

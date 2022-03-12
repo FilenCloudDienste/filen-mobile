@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, Alert } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -10,10 +10,53 @@ import { showToast } from "./Toasts"
 import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import DeviceInfo from "react-native-device-info"
+import { formatBytes } from "../lib/helpers"
+
+export const calculateFolderSize = async (folderPath, size = 0) => {
+    const dirList = await RNFS.readDir(folderPath)
+  
+    dirList.map(async (item) => {
+        if(item.isDirectory()){
+            size = await calculateFolderSize(folderPath + "/" + item.name, size)
+        }
+        else{
+            size = size + item.size
+        }
+    })
+  
+    return size
+}
 
 export const SettingsAdvancedScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
+    const [thumbnailCacheLocalFolderSize, setThumbnailCacheLocalFolderSize] = useState(0)
+    const [cachesLocalFolderSize, setCachesLocalFolderSize] = useState(0)
+    const [tempLocalFolderSize, setTempLocalFolderSize] = useState(0)
+    const [isCalculatingFolderSizes, setIsCalculatingFolderSizes] = useState(true)
+
+    const calculateFolderSizes = useCallback(() => {
+        setIsCalculatingFolderSizes(true)
+
+        getDownloadPath({ type: "thumbnail" }).then((thumbnailCachePath) => {
+            calculateFolderSize(thumbnailCachePath).then((thumbnailCacheSize) => {
+                setThumbnailCacheLocalFolderSize(thumbnailCacheSize)
+
+                calculateFolderSize(RNFS.CachesDirectoryPath).then((cachesSize) => {
+                    setCachesLocalFolderSize(cachesSize)
+
+                    calculateFolderSize(RNFS.TemporaryDirectoryPath).then((tempSize) => {
+                        setTempLocalFolderSize(tempSize)
+                        setIsCalculatingFolderSizes(false)
+                    })
+                })
+            })
+        })
+    })
+
+    useEffect(() => {
+        calculateFolderSizes()
+    }, [])
 
     return (
         <>
@@ -44,7 +87,7 @@ export const SettingsAdvancedScreen = ({ navigation, route }) => {
                 backgroundColor: darkMode ? "black" : "white"
             }}>
                 <SettingsGroup>
-                    <SettingsButtonLinkHighlight title={i18n(lang, "clearThumbnailCache")} onPress={() => {
+                    <SettingsButtonLinkHighlight title={i18n(lang, "clearThumbnailCache")} rightText={isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(thumbnailCacheLocalFolderSize)} onPress={() => {
                         Alert.alert(i18n(lang, "clearThumbnailCache"), i18n(lang, "clearThumbnailCacheInfo"), [
                             {
                                 text: i18n(lang, "cancel"),
@@ -89,9 +132,10 @@ export const SettingsAdvancedScreen = ({ navigation, route }) => {
                                                     }
                                                 }
 
+                                                global.cachedThumbnailPaths = {}
+
                                                 try{
-                                                    var thumbPath = await getDownloadPath({ type: "thumbnail" })
-                                                    var dirList = await RNFS.readDir(thumbPath.slice(0, (thumbPath.length - 1)))
+                                                    var dirList = await RNFS.readDir(await getDownloadPath({ type: "thumbnail" }))
 
                                                     for(let i = 0; i < dirList.length; i++){
                                                         await RNFS.unlink(dirList[i].path)
@@ -101,11 +145,119 @@ export const SettingsAdvancedScreen = ({ navigation, route }) => {
                                                     console.log(e)
                                                 }
 
-                                                setTimeout(() => {
-                                                    showToast({ message: i18n(lang, "thumbnailCacheCleared") })
+                                                showToast({ message: i18n(lang, "thumbnailCacheCleared") })
 
-                                                    useStore.setState({ fullscreenLoadingModalVisible: false })
-                                                }, 2000)
+                                                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                                calculateFolderSizes()
+                                            },
+                                            style: "default"
+                                        }
+                                    ], {
+                                        cancelable: true
+                                    })
+                                },
+                                style: "default"
+                            }
+                        ], {
+                            cancelable: true
+                        })
+                    }} />
+                    <SettingsButtonLinkHighlight title={i18n(lang, "clearCachesDirectory")} rightText={isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(cachesLocalFolderSize)} onPress={() => {
+                        Alert.alert(i18n(lang, "clearCachesDirectory"), i18n(lang, "clearCachesDirectoryInfo"), [
+                            {
+                                text: i18n(lang, "cancel"),
+                                onPress: () => {
+                                    return false
+                                },
+                                style: "cancel"
+                            },
+                            {
+                                text: i18n(lang, "ok"),
+                                onPress: () => {
+                                    Alert.alert(i18n(lang, "clearCachesDirectory"), i18n(lang, "areYouReallySure"), [
+                                        {
+                                            text: i18n(lang, "cancel"),
+                                            onPress: () => {
+                                                return false
+                                            },
+                                            style: "cancel"
+                                        },
+                                        {
+                                            text: i18n(lang, "ok"),
+                                            onPress: async () => {
+                                                useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                                                try{
+                                                    var dirList = await RNFS.readDir(RNFS.CachesDirectoryPath)
+
+                                                    for(let i = 0; i < dirList.length; i++){
+                                                        await RNFS.unlink(dirList[i].path)
+                                                    }
+                                                }
+                                                catch(e){
+                                                    console.log(e)
+                                                }
+
+                                                showToast({ message: i18n(lang, "clearCachesDirectoryCleared") })
+
+                                                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                                calculateFolderSizes()
+                                            },
+                                            style: "default"
+                                        }
+                                    ], {
+                                        cancelable: true
+                                    })
+                                },
+                                style: "default"
+                            }
+                        ], {
+                            cancelable: true
+                        })
+                    }} />
+                    <SettingsButtonLinkHighlight title={i18n(lang, "clearTempDirectory")} rightText={isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(tempLocalFolderSize)} onPress={() => {
+                        Alert.alert(i18n(lang, "clearTempDirectory"), i18n(lang, "clearTempDirectoryInfo"), [
+                            {
+                                text: i18n(lang, "cancel"),
+                                onPress: () => {
+                                    return false
+                                },
+                                style: "cancel"
+                            },
+                            {
+                                text: i18n(lang, "ok"),
+                                onPress: () => {
+                                    Alert.alert(i18n(lang, "clearTempDirectory"), i18n(lang, "areYouReallySure"), [
+                                        {
+                                            text: i18n(lang, "cancel"),
+                                            onPress: () => {
+                                                return false
+                                            },
+                                            style: "cancel"
+                                        },
+                                        {
+                                            text: i18n(lang, "ok"),
+                                            onPress: async () => {
+                                                useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                                                try{
+                                                    var dirList = await RNFS.readDir(RNFS.TemporaryDirectoryPath)
+
+                                                    for(let i = 0; i < dirList.length; i++){
+                                                        await RNFS.unlink(dirList[i].path)
+                                                    }
+                                                }
+                                                catch(e){
+                                                    console.log(e)
+                                                }
+
+                                                showToast({ message: i18n(lang, "clearTempDirectoryCleared") })
+
+                                                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                                calculateFolderSizes()
                                             },
                                             style: "default"
                                         }
