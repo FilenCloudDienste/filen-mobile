@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -8,7 +8,7 @@ import { showToast } from "./Toasts"
 import { fetchGDPRInfo } from "../lib/api"
 import { useMountedState } from "react-use"
 
-export const GDPRScreen = ({ navigation, route }) => {
+export const GDPRScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [gdpr, setGdpr] = useState("")
@@ -73,4 +73,4 @@ export const GDPRScreen = ({ navigation, route }) => {
             </ScrollView>
         </>
     )
-}
+})

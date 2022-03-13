@@ -15,15 +15,15 @@ import { getParent } from "../lib/helpers"
 export const TextEditorScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const textEditorText = useStore(state => state.textEditorText)
-    const textEditorState = useStore(state => state.textEditorState)
-    const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+    const textEditorText = useStore(useCallback(state => state.textEditorText))
+    const textEditorState = useStore(useCallback(state => state.textEditorState))
+    const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
     const inputRef = useRef()
     const [value, setValue] = useState("")
     const [initialValue, setInitialValue] = useState("")
-    const createTextFileDialogName = useStore(state => state.createTextFileDialogName)
-    const dimensions = useStore(state => state.dimensions)
-    const textEditorParent = useStore(state => state.textEditorParent)
+    const createTextFileDialogName = useStore(useCallback(state => state.createTextFileDialogName))
+    const dimensions = useStore(useCallback(state => state.dimensions))
+    const textEditorParent = useStore(useCallback(state => state.textEditorParent))
     const [offset, setOffset] = useState(0)
 
     const fileName = textEditorState == "edit" ? createTextFileDialogName : currentActionSheetItem.name

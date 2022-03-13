@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react"
+import React, { useEffect, useState, useCallback, useRef, memo } from "react"
 import { View, Text, ScrollView, TouchableHighlight, DeviceEventEmitter, Platform, ActivityIndicator, Switch, TextInput, TouchableOpacity, Share } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import { storage } from "../lib/storage"
@@ -27,7 +27,7 @@ import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../lib/style/colors"
 import { navigationAnimation } from "../lib/state"
 
-export const ActionButton = ({ onPress, icon, text, color }) => {
+export const ActionButton = memo(({ onPress, icon, text, color }) => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
 	return (
@@ -74,15 +74,15 @@ export const ActionButton = ({ onPress, icon, text, color }) => {
 			</View>
 		</TouchableHighlight>
 	)
-}
+})
 
-export const BottomBarAddActionSheet = ({ navigation, route }) => {
+export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-	const currentRoutes = useStore(state => state.currentRoutes)
+	const currentRoutes = useStore(useCallback(state => state.currentRoutes))
 	const insets = useSafeAreaInsets()
-	const setCreateFolderDialogVisible = useStore(state => state.setCreateFolderDialogVisible)
+	const setCreateFolderDialogVisible = useStore(useCallback(state => state.setCreateFolderDialogVisible))
 	const [lang, setLang] = useMMKVString("lang", storage)
-	const setCreateTextFileDialogVisible = useStore(state => state.setCreateTextFileDialogVisible)
+	const setCreateTextFileDialogVisible = useStore(useCallback(state => state.setCreateTextFileDialogVisible))
 
     return (
         <ActionSheet id="BottomBarAddActionSheet" gestureEnabled={true} containerStyle={{
@@ -234,14 +234,14 @@ export const BottomBarAddActionSheet = ({ navigation, route }) => {
 			</View>
         </ActionSheet>
     )
-}
+})
 
-export const TopBarActionSheet = ({ navigation }) => {
+export const TopBarActionSheet = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 	const insets = useSafeAreaInsets()
 	const [itemViewMode, setItemViewMode] = useMMKVString("itemViewMode", storage)
 	const [lang, setLang] = useMMKVString("lang", storage)
-	const currentRoutes = useStore(state => state.currentRoutes)
+	const currentRoutes = useStore(useCallback(state => state.currentRoutes))
 	const [routeURL, setRouteURL] = useState("")
 	const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
 	const [canShowListViewStyle, setCanShowListViewStyle] = useState(false)
@@ -354,11 +354,11 @@ export const TopBarActionSheet = ({ navigation }) => {
           	</View>
         </ActionSheet>
     )
-}
+})
 
-export const ItemActionSheetItemHeader = ({ navigation, route }) => {
+export const ItemActionSheetItemHeader = memo(({ navigation, route }) => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+	const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
 	const [email, setEmail] = useMMKVString("email", storage)
 	const [lang, setLang] = useMMKVString("lang", storage)
     const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + email, storage)
@@ -453,9 +453,9 @@ export const ItemActionSheetItemHeader = ({ navigation, route }) => {
 			</View>
 		</View>
 	)
-}
+})
 
-export const ActionSheetIndicator = () => {
+export const ActionSheetIndicator = memo(() => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
 	return (
@@ -470,28 +470,28 @@ export const ActionSheetIndicator = () => {
 			zIndex: 2
 		}}></View>
 	)
-}
+})
 
-export const ItemActionSheet = ({ navigation, route }) => {
+export const ItemActionSheet = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 	const insets = useSafeAreaInsets()
-	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
-	const setRenameDialogVisible = useStore(state => state.setRenameDialogVisible)
+	const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
+	const setRenameDialogVisible = useStore(useCallback(state => state.setRenameDialogVisible))
 	const [lang, setLang] = useMMKVString("lang", storage)
 	const [canSaveToGallery, setCanSaveToGallery] = useState(false)
 	const [itemListParent, setItemListParent] = useState("")
 	const [routeURL, setRouteURL] = useState("")
-	const setConfirmPermanentDeleteDialogVisible = useStore(state => state.setConfirmPermanentDeleteDialogVisible)
-	const setRemoveFromSharedInDialogVisible = useStore(state => state.setRemoveFromSharedInDialogVisible)
-	const setStopSharingDialogVisible = useStore(state => state.setStopSharingDialogVisible)
-	const netInfo = useStore(state => state.netInfo)
+	const setConfirmPermanentDeleteDialogVisible = useStore(useCallback(state => state.setConfirmPermanentDeleteDialogVisible))
+	const setRemoveFromSharedInDialogVisible = useStore(useCallback(state => state.setRemoveFromSharedInDialogVisible))
+	const setStopSharingDialogVisible = useStore(useCallback(state => state.setStopSharingDialogVisible))
+	const netInfo = useStore(useCallback(state => state.netInfo))
 	const [isDeviceOnline, setIsDeviceOnline] = useState(false)
 	const [canDownload, setCanDownload] = useState(false)
 	const [canEdit, setCanEdit] = useState(false)
-	const setTextEditorState = useStore(state => state.setTextEditorState)
-	const setTextEditorText = useStore(state => state.setTextEditorText)
-	const setCreateTextFileDialogName = useStore(state => state.setCreateTextFileDialogName)
-	const setTextEditorParent = useStore(state => state.setTextEditorParent)
+	const setTextEditorState = useStore(useCallback(state => state.setTextEditorState))
+	const setTextEditorText = useStore(useCallback(state => state.setTextEditorText))
+	const setCreateTextFileDialogName = useStore(useCallback(state => state.setCreateTextFileDialogName))
+	const setTextEditorParent = useStore(useCallback(state => state.setTextEditorParent))
 	const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
 
 	const can = useCallback(() => {
@@ -962,13 +962,13 @@ export const ItemActionSheet = ({ navigation, route }) => {
           	</ScrollView>
         </ActionSheet>
     )
-}
+})
 
-export const FolderColorActionSheet = ({ navigation, route }) => {
+export const FolderColorActionSheet = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 	const insets = useSafeAreaInsets()
 	const [lang, setLang] = useMMKVString("lang", storage)
-	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+	const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
 	const [buttonsDisabled, setButtonsDisabled] = useState(false)
 
 	const availableFolderColors = getAvailableFolderColors()
@@ -1037,13 +1037,13 @@ export const FolderColorActionSheet = ({ navigation, route }) => {
           	</View>
         </ActionSheet>
     )
-}
+})
 
-export const PublicLinkActionSheet = ({ navigation, route }) => {
+export const PublicLinkActionSheet = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 	const insets = useSafeAreaInsets()
 	const [lang, setLang] = useMMKVString("lang", storage)
-	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+	const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
 	const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [publicLinkExists, setPublicLinkExists] = useState(false)
@@ -1058,7 +1058,7 @@ export const PublicLinkActionSheet = ({ navigation, route }) => {
 	const [linkKey, setLinkKey] = useState("")
 	const [progress, setProgress] = useState({itemsDone: 0, totalItems: 1})
 	const [type, setType] = useState(true)
-	const reRenderPublicLinkActionSheet = useStore(state => state.reRenderPublicLinkActionSheet)
+	const reRenderPublicLinkActionSheet = useStore(useCallback(state => state.reRenderPublicLinkActionSheet))
 	const [pickerValue, setPickerValue] = useState("never")
 
 	const resetState = useCallback(() => {
@@ -1559,18 +1559,18 @@ export const PublicLinkActionSheet = ({ navigation, route }) => {
           	</View>
         </ActionSheet>
     )
-}
+})
 
-export const ShareActionSheet = ({ navigation, route }) => {
+export const ShareActionSheet = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 	const insets = useSafeAreaInsets()
 	const [lang, setLang] = useMMKVString("lang", storage)
-	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+	const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
 	const [buttonsDisabled, setButtonsDisabled] = useState(false)
 	const [email, setEmail] = useState("")
 	const [isLoading, setIsLoading] = useState(false)
 	const [progress, setProgress] = useState({ itemsDone: 0, totalItems: 1 })
-	const reRenderShareActionSheet = useStore(state => state.reRenderShareActionSheet)
+	const reRenderShareActionSheet = useStore(useCallback(state => state.reRenderShareActionSheet))
 	const inputRef = useRef()
 
 	useEffect(() => {
@@ -1735,17 +1735,17 @@ export const ShareActionSheet = ({ navigation, route }) => {
           	</View>
         </ActionSheet>
     )
-}
+})
 
-export const FileVersionsActionSheet = ({ navigation, route }) => {
+export const FileVersionsActionSheet = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 	const insets = useSafeAreaInsets()
 	const [lang, setLang] = useMMKVString("lang", storage)
-	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+	const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
 	const [versionData, setVersionData] = useState([])
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
-	const reRenderFileVersionsActionSheet = useStore(state => state.reRenderFileVersionsActionSheet)
+	const reRenderFileVersionsActionSheet = useStore(useCallback(state => state.reRenderFileVersionsActionSheet))
 
 	const fetchVersions = useCallback(() => {
 		if(typeof currentActionSheetItem !== "undefined"){
@@ -1960,4 +1960,4 @@ export const FileVersionsActionSheet = ({ navigation, route }) => {
           	</View>
         </ActionSheet>
     )
-}
+})

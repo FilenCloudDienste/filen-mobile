@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -12,7 +12,7 @@ import { useStore } from "../lib/state"
 import { encryptMetadata, generateRandomString, getMasterKeys } from "../lib/helpers"
 import { logout } from "../lib/auth/logout"
 
-export const ChangeEmailPasswordScreen = ({ navigation, route }) => {
+export const ChangeEmailPasswordScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [emailCurrentPassword, setEmailCurrentPassword] = useState("")
@@ -529,4 +529,4 @@ export const ChangeEmailPasswordScreen = ({ navigation, route }) => {
             </ScrollView>
         </KeyboardAvoidingView>
     )
-}
+})

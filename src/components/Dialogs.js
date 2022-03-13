@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useCallback, memo } from "react"
 import Dialog from "react-native-dialog"
 import { useStore } from "../lib/state"
 import { storage } from "../lib/storage"
@@ -10,14 +10,14 @@ import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Keyboard } from "react-native"
 import { logout } from "../lib/auth/logout"
 
-export const RenameDialog = ({ navigation }) => {
+export const RenameDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [value, setValue] = useState("")
     const inputRef = useRef()
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
-    const renameDialogVisible = useStore(state => state.renameDialogVisible)
-    const setRenameDialogVisible = useStore(state => state.setRenameDialogVisible)
-    const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+    const renameDialogVisible = useStore(useCallback(state => state.renameDialogVisible))
+    const setRenameDialogVisible = useStore(useCallback(state => state.setRenameDialogVisible))
+    const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
     const [lang, setLang] = useMMKVString("lang", storage)
     const [ext, setExt] = useState("")
 
@@ -190,12 +190,12 @@ export const RenameDialog = ({ navigation }) => {
             }} />
         </Dialog.Container>
     )
-}
+})
 
-export const CreateFolderDialog = ({ navigation }) => {
+export const CreateFolderDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const createFolderDialogVisible = useStore(state => state.createFolderDialogVisible)
-    const setCreateFolderDialogVisible = useStore(state => state.setCreateFolderDialogVisible)
+    const createFolderDialogVisible = useStore(useCallback(state => state.createFolderDialogVisible))
+    const setCreateFolderDialogVisible = useStore(useCallback(state => state.setCreateFolderDialogVisible))
     const [value, setValue] = useState("Untitled folder")
     const inputRef = useRef()
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
@@ -288,15 +288,15 @@ export const CreateFolderDialog = ({ navigation }) => {
             }} />
         </Dialog.Container>
     )
-}
+})
 
-export const ConfirmPermanentDeleteDialog = ({ navigation }) => {
+export const ConfirmPermanentDeleteDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const confirmPermanentDeleteDialogVisible = useStore(state => state.confirmPermanentDeleteDialogVisible)
-    const setConfirmPermanentDeleteDialogVisible = useStore(state => state.setConfirmPermanentDeleteDialogVisible)
+    const confirmPermanentDeleteDialogVisible = useStore(useCallback(state => state.confirmPermanentDeleteDialogVisible))
+    const setConfirmPermanentDeleteDialogVisible = useStore(useCallback(state => state.setConfirmPermanentDeleteDialogVisible))
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+    const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
 
     useEffect(() => {
         setButtonsDisabled(false)
@@ -348,15 +348,15 @@ export const ConfirmPermanentDeleteDialog = ({ navigation }) => {
             }
         </>
     )
-}
+})
 
-export const ConfirmRemoveFromSharedInDialog = ({ navigation }) => {
+export const ConfirmRemoveFromSharedInDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const removeFromSharedInDialogVisible = useStore(state => state.removeFromSharedInDialogVisible)
-    const setRemoveFromSharedInDialogVisible = useStore(state => state.setRemoveFromSharedInDialogVisible)
+    const removeFromSharedInDialogVisible = useStore(useCallback(state => state.removeFromSharedInDialogVisible))
+    const setRemoveFromSharedInDialogVisible = useStore(useCallback(state => state.setRemoveFromSharedInDialogVisible))
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+    const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
 
     useEffect(() => {
         setButtonsDisabled(false)
@@ -406,15 +406,15 @@ export const ConfirmRemoveFromSharedInDialog = ({ navigation }) => {
             }
         </>
     )
-}
+})
 
-export const ConfirmStopSharingDialog = ({ navigation }) => {
+export const ConfirmStopSharingDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const stopSharingDialogVisible = useStore(state => state.stopSharingDialogVisible)
-    const setStopSharingDialogVisible = useStore(state => state.setStopSharingDialogVisible)
+    const stopSharingDialogVisible = useStore(useCallback(state => state.stopSharingDialogVisible))
+    const setStopSharingDialogVisible = useStore(useCallback(state => state.setStopSharingDialogVisible))
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+    const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
 
     useEffect(() => {
         setButtonsDisabled(false)
@@ -464,20 +464,20 @@ export const ConfirmStopSharingDialog = ({ navigation }) => {
             }
         </>
     )
-}
+})
 
-export const CreateTextFileDialog = ({ navigation }) => {
+export const CreateTextFileDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const createTextFileDialogVisible = useStore(state => state.createTextFileDialogVisible)
-    const setCreateTextFileDialogVisible = useStore(state => state.setCreateTextFileDialogVisible)
+    const createTextFileDialogVisible = useStore(useCallback(state => state.createTextFileDialogVisible))
+    const setCreateTextFileDialogVisible = useStore(useCallback(state => state.setCreateTextFileDialogVisible))
     const [value, setValue] = useState(".txt")
     const inputRef = useRef()
     const [lang, setLang] = useMMKVString("lang", storage)
-    const setTextEditorModalVisible = useStore(state => state.setTextEditorModalVisible)
-	const setTextEditorState = useStore(state => state.setTextEditorState)
-	const setTextEditorText = useStore(state => state.setTextEditorText)
-    const setCreateTextFileDialogName = useStore(state => state.setCreateTextFileDialogName)
-    const setTextEditorParent = useStore(state => state.setTextEditorParent)
+    const setTextEditorModalVisible = useStore(useCallback(state => state.setTextEditorModalVisible))
+	const setTextEditorState = useStore(useCallback(state => state.setTextEditorState))
+	const setTextEditorText = useStore(useCallback(state => state.setTextEditorText))
+    const setCreateTextFileDialogName = useStore(useCallback(state => state.setCreateTextFileDialogName))
+    const setTextEditorParent = useStore(useCallback(state => state.setTextEditorParent))
 
     useEffect(() => {
         if(!createTextFileDialogVisible){
@@ -520,12 +520,12 @@ export const CreateTextFileDialog = ({ navigation }) => {
             }} />
         </Dialog.Container>
     )
-}
+})
 
-export const RedeemCodeDialog = ({ navigation }) => {
+export const RedeemCodeDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const redeemCodeDialogVisible = useStore(state => state.redeemCodeDialogVisible)
-    const setRedeemCodeDialogVisible = useStore(state => state.setRedeemCodeDialogVisible)
+    const redeemCodeDialogVisible = useStore(useCallback(state => state.redeemCodeDialogVisible))
+    const setRedeemCodeDialogVisible = useStore(useCallback(state => state.setRedeemCodeDialogVisible))
     const [value, setValue] = useState("")
     const inputRef = useRef()
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
@@ -599,12 +599,12 @@ export const RedeemCodeDialog = ({ navigation }) => {
             }} />
         </Dialog.Container>
     )
-}
+})
 
-export const DeleteAccountTwoFactorDialog = ({ navigation }) => {
+export const DeleteAccountTwoFactorDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const deleteAccountTwoFactorDialogVisible = useStore(state => state.deleteAccountTwoFactorDialogVisible)
-    const setDeleteAccountTwoFactorDialogVisible = useStore(state => state.setDeleteAccountTwoFactorDialogVisible)
+    const deleteAccountTwoFactorDialogVisible = useStore(useCallback(state => state.deleteAccountTwoFactorDialogVisible))
+    const setDeleteAccountTwoFactorDialogVisible = useStore(useCallback(state => state.setDeleteAccountTwoFactorDialogVisible))
     const [value, setValue] = useState("")
     const inputRef = useRef()
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
@@ -670,12 +670,12 @@ export const DeleteAccountTwoFactorDialog = ({ navigation }) => {
             }} />
         </Dialog.Container>
     )
-}
+})
 
-export const Disable2FATwoFactorDialog = ({ navigation }) => {
+export const Disable2FATwoFactorDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const disable2FATwoFactorDialogVisible = useStore(state => state.disable2FATwoFactorDialogVisible)
-    const setDisable2FATwoFactorDialogVisible = useStore(state => state.setDisable2FATwoFactorDialogVisible)
+    const disable2FATwoFactorDialogVisible = useStore(useCallback(state => state.disable2FATwoFactorDialogVisible))
+    const setDisable2FATwoFactorDialogVisible = useStore(useCallback(state => state.setDisable2FATwoFactorDialogVisible))
     const [value, setValue] = useState("")
     const inputRef = useRef()
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
@@ -741,4 +741,4 @@ export const Disable2FATwoFactorDialog = ({ navigation }) => {
             }} />
         </Dialog.Container>
     )
-}
+})

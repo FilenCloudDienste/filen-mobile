@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState, useRef } from "react"
+import React, { useEffect, useCallback, useState, useRef, memo } from "react"
 import { View, Text, TouchableOpacity, Dimensions, Animated, AppState } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -12,7 +12,7 @@ import { CommonActions } from "@react-navigation/native"
 const window = Dimensions.get("window")
 let canGoBack = false
 
-export const PINCodeRow = ({ numbers, updatePinCode, promptBiometrics }) => {
+export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const biometricAuthScreenState = useStore(state => state.biometricAuthScreenState)
 
@@ -104,9 +104,9 @@ export const PINCodeRow = ({ numbers, updatePinCode, promptBiometrics }) => {
             }
         </View>
     )
-}
+})
 
-export const BiometricAuthScreen = ({ navigation, route }) => {
+export const BiometricAuthScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [email, setEmail] = useMMKVString("email", storage)
@@ -377,4 +377,4 @@ export const BiometricAuthScreen = ({ navigation, route }) => {
             <PINCodeRow updatePinCode={updatePinCode} promptBiometrics={promptBiometrics} />
         </View>
     )
-}
+})

@@ -14,6 +14,8 @@ import ImageResizer from "react-native-image-resizer"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../state"
 
+const isEqual = require("react-fast-compare")
+
 let isGeneratingThumbnailForItemUUID = {}
 const cachedItemMetadataInJS = {}
 const cachedItemThumbnailPathsInJS = {}
@@ -225,7 +227,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             items = items = sortItems({ items, passedRoute: route })
 
             if(isMounted()){
-                setItems(items)
+                setItems(prev => isEqual(prev, items) ? prev : items)
                 setLoadDone(true)
             }
         }
@@ -441,7 +443,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         }
     }
     else if(parent == "photos"){
-        /*try{
+        try{
             var cameraUploadParent = storage.getString("cameraUploadFolderUUID:" + email)
         }
         catch(e){
@@ -492,9 +494,9 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     }
                 }
             }
-        }*/
+        }
 
-        try{
+        /*try{
             var { files } = await fetchAllStoredItems({ filesOnly: true, maxSize: ((1024 * 1024) * 128), includeTrash: false, includeVersioned: false })
         }
         catch(e){
@@ -518,7 +520,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             catch(e){
                 //console.log(e)
             }
-        }
+        }*/
     }
     else if(parent == "offline"){
         try{
@@ -728,7 +730,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
     if(getParent(route) == parent){
         if(isMounted()){
-            setItems(items)
+            setItems(prev => isEqual(prev, items) ? prev : items)
             setLoadDone(true)
         }
     }

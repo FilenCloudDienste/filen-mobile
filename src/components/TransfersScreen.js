@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useCallback } from "react"
 import { View, ScrollView, Text, TouchableOpacity } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -13,10 +13,10 @@ const isEqual = require("react-fast-compare")
 export const TransfersScreen = ({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const uploadsCount = useStore(state => Object.keys(state.uploads).length)
-    const downloadsCount = useStore(state => Object.keys(state.downloads).length)
-    const uploads = useStore(state => state.uploads, (current, next) => !isEqual(current, next))
-    const downloads = useStore(state => state.downloads, (current, next) => !isEqual(current, next))
+    const uploadsCount = useStore(useCallback(state => Object.keys(state.uploads).length))
+    const downloadsCount = useStore(useCallback(state => Object.keys(state.downloads).length))
+    const uploads = useStore(useCallback(state => state.uploads), (current, next) => !isEqual(current, next))
+    const downloads = useStore(useCallback(state => state.downloads), (current, next) => !isEqual(current, next))
 
     return (
         <View style={{

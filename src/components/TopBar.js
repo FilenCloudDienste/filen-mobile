@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, memo } from "react"
 import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Pressable, Platform } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -10,84 +10,84 @@ import { getParent, getRouteURL } from "../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../lib/style/colors"
 
-export const getTopBarTitle = ({ route, lang = "en" }) => {
-    let title = "Cloud"
-    const parent = getParent(route)
-
-    const isMainScreen = (route.name == "MainScreen")
-    const isTransfersScreen = (route.name == "TransfersScreen")
-    const isSettingsScreen = (route.name == "SettingsScreen")
-    const isBaseScreen = (parent.indexOf("base") !== -1)
-    const isRecentsScreen = (parent.indexOf("recents") !== -1)
-    const isTrashScreen = (parent.indexOf("trash") !== -1)
-    const isSharedInScreen = (parent.indexOf("shared-in") !== -1)
-    const isSharedOutScreen = (parent.indexOf("shared-out") !== -1)
-    const isPublicLinksScreen = (parent.indexOf("links") !== -1)
-    const isOfflineScreen = (parent.indexOf("offline") !== -1)
-    const isFavoritesScreen = (parent.indexOf("favorites") !== -1)
-    const isPhotosScreen = (parent.indexOf("photos") !== -1)
-
-    if(isTransfersScreen){
-        title = i18n(lang, "transfers")
-    }
-    else if(isSettingsScreen){
-        title = i18n(lang, "settings")
-    }
-    else if(isRecentsScreen){
-        title = i18n(lang, "home")
-    }
-    else if(isTrashScreen){
-        title = i18n(lang, "trash")
-    }
-    else if(isSharedInScreen){
-        title = i18n(lang, "home")
-    }
-    else if(isSharedOutScreen){
-        title = i18n(lang, "home")
-    }
-    else if(isPublicLinksScreen){
-        title = i18n(lang, "home")
-    }
-    else if(isFavoritesScreen){
-        title = i18n(lang, "home")
-    }
-    else if(isOfflineScreen){
-        title = i18n(lang, "home")
-    }
-    else if(isPhotosScreen){
-        title = i18n(lang, "photos")
-    }
-    else{
-        if(parent == "base"){
-            title = i18n(lang, "cloud")
+export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSearchTerm }) => {
+    const getTopBarTitle = useCallback(({ route, lang = "en" }) => {
+        let title = "Cloud"
+        const parent = getParent(route)
+    
+        const isMainScreen = (route.name == "MainScreen")
+        const isTransfersScreen = (route.name == "TransfersScreen")
+        const isSettingsScreen = (route.name == "SettingsScreen")
+        const isBaseScreen = (parent.indexOf("base") !== -1)
+        const isRecentsScreen = (parent.indexOf("recents") !== -1)
+        const isTrashScreen = (parent.indexOf("trash") !== -1)
+        const isSharedInScreen = (parent.indexOf("shared-in") !== -1)
+        const isSharedOutScreen = (parent.indexOf("shared-out") !== -1)
+        const isPublicLinksScreen = (parent.indexOf("links") !== -1)
+        const isOfflineScreen = (parent.indexOf("offline") !== -1)
+        const isFavoritesScreen = (parent.indexOf("favorites") !== -1)
+        const isPhotosScreen = (parent.indexOf("photos") !== -1)
+    
+        if(isTransfersScreen){
+            title = i18n(lang, "transfers")
+        }
+        else if(isSettingsScreen){
+            title = i18n(lang, "settings")
+        }
+        else if(isRecentsScreen){
+            title = i18n(lang, "home")
+        }
+        else if(isTrashScreen){
+            title = i18n(lang, "trash")
+        }
+        else if(isSharedInScreen){
+            title = i18n(lang, "home")
+        }
+        else if(isSharedOutScreen){
+            title = i18n(lang, "home")
+        }
+        else if(isPublicLinksScreen){
+            title = i18n(lang, "home")
+        }
+        else if(isFavoritesScreen){
+            title = i18n(lang, "home")
+        }
+        else if(isOfflineScreen){
+            title = i18n(lang, "home")
+        }
+        else if(isPhotosScreen){
+            title = i18n(lang, "photos")
         }
         else{
-            try{
-                var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent))
-            }
-            catch(e){
-                //console.log(e)
-            }
-    
-            if(typeof folderCache == "object"){
-                title = folderCache.name
-            }
-            else{
+            if(parent == "base"){
                 title = i18n(lang, "cloud")
             }
+            else{
+                try{
+                    var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent))
+                }
+                catch(e){
+                    //console.log(e)
+                }
+        
+                if(typeof folderCache == "object"){
+                    title = folderCache.name
+                }
+                else{
+                    title = i18n(lang, "cloud")
+                }
+            }
         }
-    }
-
-    return title
-}
-
-export const TopBar = ({ navigation, route, setLoadDone, searchTerm, setSearchTerm }) => {
+    
+        return title
+    })
+    
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const itemsSelectedCount = useStore(state => state.itemsSelectedCount)
+    const itemsSelectedCount = useStore(useCallback(state => state.itemsSelectedCount))
     const [lang, setLang] = useMMKVString("lang", storage)
     const [showTextClearButton, setShowTextClearButton] = useState(false)
     const [title, setTitle] = useState(getTopBarTitle({ route, lang }))
-    const setTopBarHeight = useStore(state => state.setTopBarHeight)
+    const setTopBarHeight = useStore(useCallback(state => state.setTopBarHeight))
 
     const parent = getParent(route)
     const routeURL = getRouteURL(route)
@@ -433,4 +433,4 @@ export const TopBar = ({ navigation, route, setLoadDone, searchTerm, setSearchTe
             }
         </View>
     )
-}
+})

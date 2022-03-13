@@ -93,7 +93,9 @@ export const useStore = create(subscribeWithSelector(set => ({
 	bottomBarHeight: 80,
 	setBottomBarHeight: (bottomBarHeight) => set({ bottomBarHeight }),
 	contentHeight: 850,
-	setContentHeight: (contentHeight) => set({ contentHeight })
+	setContentHeight: (contentHeight) => set({ contentHeight }),
+	itemListLastScrollIndex: 0,
+	setItemListLastScrollIndex: (itemListLastScrollIndex) => set({ itemListLastScrollIndex }),
 })))
 
 export const navigationAnimation = ({ enable = true }) => {
@@ -124,5 +126,36 @@ export const navigationAnimation = ({ enable = true }) => {
 		})
 
 		useStore.setState({ showNavigationAnimation: enable })
+	})
+}
+
+export const waitForStateUpdate = (key, value) => {
+	return new Promise((resolve, reject) => {
+		let unsub = undefined
+		let resolved = false
+
+		const callback = () => {
+			if(typeof unsub == "function"){
+				unsub()
+			}
+
+			if(resolved){
+				return false
+			}
+
+			resolved = true
+
+			return resolve()
+		}
+
+		if(useStore.getState()[key] == value){
+			return callback()
+		}
+
+		unsub = useStore.subscribe(state => state[key], () => {
+			return callback()
+		})
+
+		useStore.setState({ [key]: value })
 	})
 }

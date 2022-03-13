@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, Component } from "react"
+import React, { useEffect, useState, useCallback, Component, memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -15,7 +15,7 @@ import striptags from "striptags"
 import { ListEmpty } from "./ListEmpty"
 import { useMountedState } from "react-use"
 
-export const EventsInfoScreen = ({ navigation, route }) => {
+export const EventsInfoScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [eventInfo, setEventInfo] = useState(undefined)
@@ -101,7 +101,7 @@ export const EventsInfoScreen = ({ navigation, route }) => {
             </ScrollView>
         </>
     )
-}
+})
 
 export const eventTypes = (lang = "en") => {
     return {
@@ -360,7 +360,7 @@ export class EventRow extends Component {
     }
 }
 
-export const EventsScreen = ({ navigation, route }) => {
+export const EventsScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [events, setEvents] = useState([])
@@ -368,7 +368,7 @@ export const EventsScreen = ({ navigation, route }) => {
     const [filter, setFilter] = useState("all")
     const [limit, setLimit] = useState(0)
     const [refreshing, setRefreshing] = useState(false)
-    const dimensions = useStore(state => state.dimensions)
+    const dimensions = useStore(useCallback(state => state.dimensions))
     const [masterKeys, setMasterKeys] = useState(getMasterKeys())
     const isMounted = useMountedState()
 
@@ -494,4 +494,4 @@ export const EventsScreen = ({ navigation, route }) => {
             </View>
         </>
     )
-}
+})

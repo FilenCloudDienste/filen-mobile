@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback, memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -14,11 +14,11 @@ import { logout } from "../lib/auth/logout"
 import { formatBytes } from "../lib/helpers"
 import { useMountedState } from "react-use"
 
-export const SettingsAccountScreen = ({ navigation, route }) => {
+export const SettingsAccountScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const setRedeemCodeDialogVisible = useStore(state => state.setRedeemCodeDialogVisible)
-    const setDeleteAccountTwoFactorDialogVisible = useStore(state => state.setDeleteAccountTwoFactorDialogVisible)
+    const setRedeemCodeDialogVisible = useStore(useCallback(state => state.setRedeemCodeDialogVisible))
+    const setDeleteAccountTwoFactorDialogVisible = useStore(useCallback(state => state.setDeleteAccountTwoFactorDialogVisible))
     const [accountSettings, setAccountSettings] = useState({})
     const [isLoading, setIsLoading] = useState(true)
     const isMounted = useMountedState()
@@ -290,4 +290,4 @@ export const SettingsAccountScreen = ({ navigation, route }) => {
             </ScrollView>
         </>
     )
-}
+})

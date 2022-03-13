@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, Alert } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -27,7 +27,7 @@ export const calculateFolderSize = async (folderPath, size = 0) => {
     return size
 }
 
-export const SettingsAdvancedScreen = ({ navigation, route }) => {
+export const SettingsAdvancedScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [thumbnailCacheLocalFolderSize, setThumbnailCacheLocalFolderSize] = useState(0)
@@ -287,4 +287,4 @@ export const SettingsAdvancedScreen = ({ navigation, route }) => {
             </ScrollView>
         </>
     )
-}
+})

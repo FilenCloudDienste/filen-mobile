@@ -1,4 +1,4 @@
-import React from "react"
+import React, { memo } from "react"
 import { getRouteURL } from "../lib/helpers"
 import { Text, View } from "react-native"
 import Ionicon from "react-native-vector-icons/Ionicons"
@@ -6,7 +6,7 @@ import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { i18n } from "../i18n/i18n"
 
-export const ListEmpty = ({ route, searchTerm = "" }) => {
+export const ListEmpty = memo(({ route, searchTerm = "" }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
 
@@ -154,4 +154,4 @@ export const ListEmpty = ({ route, searchTerm = "" }) => {
             }
         </View>
     )
-}
+})

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useCallback } from "react"
 import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -116,7 +116,7 @@ export const SettingsHeader = ({ navigation, route, navigationEnabled = true }) 
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [email, setEmail] = useMMKVString("email", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const netInfo = useStore(state => state.netInfo)
+    const netInfo = useStore(useCallback(state => state.netInfo))
 
     return (
         <Pressable style={{
@@ -212,8 +212,8 @@ export const SettingsScreen = ({ navigation, route }) => {
     const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + email, storage)
     const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + email, storage)
     const [biometricPinAuth, setBiometricPinAuth] = useMMKVBoolean("biometricPinAuth:" + email, storage)
-    const setBiometricAuthScreenState = useStore(state => state.setBiometricAuthScreenState)
-    const netInfo = useStore(state => state.netInfo)
+    const setBiometricAuthScreenState = useStore(useCallback(state => state.setBiometricAuthScreenState))
+    const netInfo = useStore(useCallback(state => state.netInfo))
 
     return (
         <ScrollView style={{

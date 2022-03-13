@@ -1,9 +1,9 @@
-import React from "react"
+import React, { memo } from "react"
 import { View, ActivityIndicator } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean } from "react-native-mmkv"
 
-export const SetupScreen = ({ navigation, route }) => {
+export const SetupScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
     return (
@@ -15,4 +15,4 @@ export const SetupScreen = ({ navigation, route }) => {
             <ActivityIndicator size={"small"} color={darkMode ? "white" : "black"} />
         </View>
     )
-}
+})

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, memo } from "react"
 import { Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -6,7 +6,7 @@ import { i18n } from "../i18n/i18n"
 import { register } from "../lib/auth/register"
 import { navigationAnimation } from "../lib/state"
 
-export const RegisterScreen = ({ navigation, route }) => {
+export const RegisterScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [email, setEmail] = useState("")
@@ -140,4 +140,4 @@ export const RegisterScreen = ({ navigation, route }) => {
             </TouchableOpacity>
         </KeyboardAvoidingView>
     )
-}
+})

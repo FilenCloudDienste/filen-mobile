@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useCallback, memo } from "react"
 import { Text, View, Pressable } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -10,12 +10,15 @@ import { getParent, getRouteURL } from "../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../lib/style/colors"
 
-export const BottomBar = ({ navigation, route }) => {
+export const BottomBar = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const currentRoutes = useStore(state => state.currentRoutes)
+    const [email, setEmail] = useMMKVString("email", storage)
+    const currentRoutes = useStore(useCallback(state => state.currentRoutes))
     const [lang, setLang] = useMMKVString("lang", storage)
-    const netInfo = useStore(state => state.netInfo)
-    const setBottomBarHeight = useStore(state => state.setBottomBarHeight)
+    const netInfo = useStore(useCallback(state => state.netInfo))
+    const setBottomBarHeight = useStore(useCallback(state => state.setBottomBarHeight))
+    const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + email, storage)
+    const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
 
     const parent = getParent(route)
     const routeURL = getRouteURL(route)
@@ -103,6 +106,9 @@ export const BottomBar = ({ navigation, route }) => {
                 alignItems: "center",
                 width: "20%",
             }} onPress={() => {
+                setPhotosRange("all")
+                setItemListLastScrollIndex(0)
+                
                 navigationAnimation({ enable: false }).then(() => {
                     navigation.current.dispatch(CommonActions.reset({
                         index: 0,
@@ -128,6 +134,9 @@ export const BottomBar = ({ navigation, route }) => {
                 alignItems: "center",
                 width: "20%",
             }} onPress={() => {
+                setPhotosRange("all")
+                setItemListLastScrollIndex(0)
+
                 navigationAnimation({ enable: false }).then(() => {
                     navigation.current.dispatch(CommonActions.reset({
                         index: 0,
@@ -164,6 +173,9 @@ export const BottomBar = ({ navigation, route }) => {
                 alignItems: "center",
                 width: "20%"
             }} onPress={() => {
+                setPhotosRange("all")
+                setItemListLastScrollIndex(0)
+
                 navigationAnimation({ enable: false }).then(() => {
                     navigation.current.dispatch(CommonActions.reset({
                         index: 0,
@@ -209,4 +221,4 @@ export const BottomBar = ({ navigation, route }) => {
             </Pressable>
         </View>
     )
-}
+})

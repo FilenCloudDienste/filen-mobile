@@ -403,21 +403,30 @@ export class PhotosRangeItem extends Component {
                     zIndex: 2,
                     borderRadius: typeof item.thumbnail !== "undefined" ? 15 : 0
                 }} />
-                <Text style={{
-                    color: "white",
+                <View style={{
+                    backgroundColor: "rgba(34, 34, 34, 0.5)",
                     position: "absolute",
                     zIndex: 100,
                     top: 15,
                     left: 30,
-                    fontWeight: "bold",
-                    fontSize: 22
+                    zIndex: 100,
+                    padding: 5,
+                    paddingLeft: 10,
+                    paddingRight: 10,
+                    borderRadius: 15
                 }}>
-                    {item.title}
-                </Text>
+                    <Text style={{
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: 20
+                    }}>
+                        {item.title}
+                    </Text>
+                </View>
                 {
                     typeof item.remainingItems == "number" && item.remainingItems > 1 && (
                         <View style={{
-                            backgroundColor: "rgba(34, 34, 34, 0.8)",
+                            backgroundColor: "rgba(34, 34, 34, 0.7)",
                             width: "auto",
                             height: "auto",
                             borderRadius: 15,

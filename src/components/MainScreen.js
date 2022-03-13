@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from "react"
-import { View, DeviceEventEmitter, Platform, InteractionManager } from "react-native"
+import React, { useState, useEffect, useCallback, useRef, memo } from "react"
+import { View, DeviceEventEmitter, InteractionManager } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { TopBar } from "./TopBar"
@@ -13,31 +13,31 @@ import { previewItem } from "../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StackActions } from "@react-navigation/native"
 
-export const MainScreen = ({ navigation, route }) => {
+export const MainScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const dimensions = useStore(state => state.dimensions)
-    const cachedItemsRef = useRef(storage.getString("loadItemsCache:" + getRouteURL(route)))
-    const [items, setItems] = useState(typeof cachedItemsRef.current !== "undefined" ? JSON.parse(cachedItemsRef.current) : [])
+    const [routeURL, setRouteURL] = useState(useCallback(getRouteURL(route)))
+    const [cachedItemsRef, setCachedItemsRef] = useState(useCallback(storage.getString("loadItemsCache:" + routeURL)))
+    const [items, setItems] = useState(typeof cachedItemsRef !== "undefined" ? JSON.parse(cachedItemsRef) : [])
     const [searchTerm, setSearchTerm] = useState("")
-    const [loadDone, setLoadDone] = useState(typeof cachedItemsRef.current !== "undefined" ? true : false)
-    const setNavigation = useStore(state => state.setNavigation)
-    const setRoute = useStore(state => state.setRoute)
-    const masterKeys = getMasterKeys()
+    const [loadDone, setLoadDone] = useState(typeof cachedItemsRef !== "undefined" ? true : false)
+    const setNavigation = useStore(useCallback(state => state.setNavigation))
+    const setRoute = useStore(useCallback(state => state.setRoute))
+    const [masterKeys, setMasterKeys] = useState(useCallback(getMasterKeys()))
     const isMounted = useMountedState()
-    const setCurrentActionSheetItem = useStore(state => state.setCurrentActionSheetItem)
-    const setCurrentItems = useStore(state => state.setCurrentItems)
+    const setCurrentActionSheetItem = useStore(useCallback(state => state.setCurrentActionSheetItem))
+    const setCurrentItems = useStore(useCallback(state => state.setCurrentItems))
     const itemsRef = useRef([])
-    const setItemsSelectedCount = useStore(state => state.setItemsSelectedCount)
-    const setInsets = useStore(state => state.setInsets)
+    const setItemsSelectedCount = useStore(useCallback(state => state.setItemsSelectedCount))
+    const setInsets = useStore(useCallback(state => state.setInsets))
     const insets = useSafeAreaInsets()
     const [progress, setProgress] = useState({ itemsDone: 0, totalItems: 1 })
     const selectedCountRef = useRef(0)
-    const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
+    const setIsDeviceReady = useStore(useCallback(state => state.setIsDeviceReady))
     const [itemsBeforeSearch, setItemsBeforeSearch] = useState([])
     const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
-    const bottomBarHeight = useStore(state => state.bottomBarHeight)
-    const topBarHeight = useStore(state => state.topBarHeight)
-    const contentHeight = useStore(state => state.contentHeight)
+    const bottomBarHeight = useStore(useCallback(state => state.bottomBarHeight))
+    const topBarHeight = useStore(useCallback(state => state.topBarHeight))
+    const contentHeight = useStore(useCallback(state => state.contentHeight))
 
     const updateItemThumbnail = useCallback((item, path) => {
         if(typeof path !== "string"){
@@ -289,18 +289,20 @@ export const MainScreen = ({ navigation, route }) => {
         }
     }, [])
 
-    const fetchItemList = useCallback(async ({ bypassCache = false, callStack = 0 }) => {
-        return loadItems({
-            parent: getParent(route),
-            setItems,
-            masterKeys,
-            setLoadDone,
-            navigation,
-            isMounted,
-            bypassCache,
-            route,
-            setProgress,
-            callStack
+    const fetchItemList = useCallback(({ bypassCache = false, callStack = 0 }) => {
+        return new Promise((resolve, reject) => {
+            loadItems({
+                parent: getParent(route),
+                setItems,
+                masterKeys,
+                setLoadDone,
+                navigation,
+                isMounted,
+                bypassCache,
+                route,
+                setProgress,
+                callStack
+            }).then(resolve).catch(reject)
         })
     })
 
@@ -310,13 +312,11 @@ export const MainScreen = ({ navigation, route }) => {
         setInsets(insets)
         
         InteractionManager.runAfterInteractions(() => {
-            fetchItemList({ bypassCache: false })
+            fetchItemList({ bypassCache: false }).catch((err) => console.log(err))
         })
 
         global.fetchItemList = fetchItemList
     }, [])
-
-    const showHomeTabBar = (["shared-in", "shared-out", "links", "recents", "offline", "favorites"].includes(getParent(route)))
 
     return (
         <View style={{
@@ -326,10 +326,10 @@ export const MainScreen = ({ navigation, route }) => {
         }}>
             <TopBar navigation={navigation} route={route} setLoadDone={setLoadDone} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             <View style={{
-                height: getRouteURL(route).indexOf("photos") !== -1 ? (contentHeight - 40 - bottomBarHeight + 30) : (contentHeight - topBarHeight - bottomBarHeight + 30)
+                height: routeURL.indexOf("photos") !== -1 ? (contentHeight - 40 - bottomBarHeight + 30) : (contentHeight - topBarHeight - bottomBarHeight + 30)
             }}>
                 <ItemList navigation={navigation} route={route} items={items} setItems={setItems} showLoader={!loadDone} loadDone={loadDone} searchTerm={searchTerm} isMounted={isMounted} fetchItemList={fetchItemList} progress={progress} setProgress={setProgress} />
             </View>
         </View>
     )
-}
+})

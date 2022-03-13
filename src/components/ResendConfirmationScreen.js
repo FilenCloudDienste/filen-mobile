@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, memo } from "react"
 import { Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -8,7 +8,7 @@ import { useStore } from "../lib/state"
 import { showToast } from "./Toasts"
 import { Keyboard } from "react-native"
 
-export const ResendConfirmationScreen = ({ navigation, route }) => {
+export const ResendConfirmationScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [email, setEmail] = useState("")
@@ -124,4 +124,4 @@ export const ResendConfirmationScreen = ({ navigation, route }) => {
             </TouchableOpacity>
         </KeyboardAvoidingView>
     )
-}
+})

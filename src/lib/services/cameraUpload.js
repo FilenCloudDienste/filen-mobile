@@ -435,9 +435,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         return true
     }
     else{
-        //return setTimeout(() => {
-        //    runCameraUpload({ maxQueue, runOnce, callback })
-        //}, cameraUploadTimeout)
+        return setTimeout(() => {
+            runCameraUpload({ maxQueue, runOnce, callback })
+        }, cameraUploadTimeout)
     }
 }
 

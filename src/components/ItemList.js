@@ -1,111 +1,24 @@
-import React, { useState, useRef, useCallback, useEffect } from "react"
+import React, { useState, useRef, useCallback, useEffect, memo } from "react"
 import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { canCompressThumbnail, getFileExt, getParent, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange } from "../lib/helpers"
 import { ListItem, GridItem, PhotosItem, PhotosRangeItem } from "./Item"
-import { useStore } from "../lib/state"
+import { useStore, waitForStateUpdate } from "../lib/state"
 import { i18n } from "../i18n/i18n"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import { navigationAnimation } from "../lib/state"
 import { StackActions } from "@react-navigation/native"
 import { ListEmpty } from "./ListEmpty"
 
-export const generateItemsForItemList = (items, range, lang = "en") => {
-    range = normalizePhotosRange(range)
-
-    if(range == "all"){
-        return items
-    }
-
-    let sortedItems = []
-
-    if(range == "years"){
-        const occupied = {}
-
-        for(let i = 0; i < items.length; i++){
-            const itemDate = new Date(items[i].lastModified * 1000)
-            const itemYear = itemDate.getFullYear()
-
-            if(typeof occupied[itemYear] == "undefined"){
-                occupied[itemYear] = {
-                    ...items[i],
-                    title: itemYear,
-                    remainingItems: 1
-                }
-            }
-            else{
-                occupied[itemYear].remainingItems = occupied[itemYear].remainingItems + 1
-            }
-        }
-
-        for(let prop in occupied){
-            sortedItems.push(occupied[prop])
-        }
-
-        sortedItems = sortedItems.reverse()
-    }
-    else if(range == "months"){
-        const occupied = {}
-
-        for(let i = 0; i < items.length; i++){
-            const itemDate = new Date(items[i].lastModified * 1000)
-            const itemYear = itemDate.getFullYear()
-            const itemMonth = itemDate.getMonth()
-
-            if(typeof occupied[itemYear + ":" + itemMonth] == "undefined"){
-                occupied[itemYear + ":" + itemMonth] = {
-                    ...items[i],
-                    title: i18n(lang, "month_" + itemMonth) + " " + itemYear,
-                    remainingItems: 1
-                }
-            }
-            else{
-                occupied[itemYear + ":" + itemMonth].remainingItems = occupied[itemYear + ":" + itemMonth].remainingItems + 1
-            }
-        }
-
-        for(let prop in occupied){
-            sortedItems.push(occupied[prop])
-        }
-    }
-    else if(range == "days"){
-        const occupied = {}
-
-        for(let i = 0; i < items.length; i++){
-            const itemDate = new Date(items[i].lastModified * 1000)
-            const itemYear = itemDate.getFullYear()
-            const itemMonth = itemDate.getMonth()
-            const itemDay = itemDate.getDate()
-
-            if(typeof occupied[itemYear + ":" + itemMonth + ":" + itemDay] == "undefined"){
-                occupied[itemYear + ":" + itemMonth + ":" + itemDay] = {
-                    ...items[i],
-                    title: itemDay + ". " + i18n(lang, "monthShort_" + itemMonth) + " " + itemYear,
-                    remainingItems: 1
-                }
-            }
-            else{
-                occupied[itemYear + ":" + itemMonth + ":" + itemDay].remainingItems = occupied[itemYear + ":" + itemMonth + ":" + itemDay].remainingItems + 1
-            }
-        }
-
-        for(let prop in occupied){
-            sortedItems.push(occupied[prop])
-        }
-    }
-    
-    return sortedItems
-}
-
-export const ItemList = ({ navigation, route, items, showLoader, setItems, searchTerm, isMounted, fetchItemList, progress, setProgress, loadDone }) => {
+export const ItemList = memo(({ navigation, route, items, showLoader, setItems, searchTerm, isMounted, fetchItemList, progress, setProgress, loadDone }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [refreshing, setRefreshing] = useState(false)
     const [itemViewMode, setItemViewMode] = useMMKVString("itemViewMode", storage)
-    const dimensions = useStore(state => state.dimensions)
+    const dimensions = useStore(useCallback(state => state.dimensions))
     const [lang, setLang] = useMMKVString("lang", storage)
-    const cameraUploadTotal = useStore(state => state.cameraUploadTotal)
-    const cameraUploadUploaded = useStore(state => state.cameraUploadUploaded)
+    const cameraUploadTotal = useStore(useCallback(state => state.cameraUploadTotal))
+    const cameraUploadUploaded = useStore(useCallback(state => state.cameraUploadUploaded))
     const [email, setEmail] = useMMKVString("email", storage)
     const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + email, storage)
     const [scrollDate, setScrollDate] = useState("")
@@ -115,9 +28,104 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
     const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + email, storage)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + email, storage)
     const itemListRef = useRef()
+    const itemListLastScrollIndex = useStore(useCallback(state => state.itemListLastScrollIndex))
+    const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
 
     const parent = getParent(route)
     const routeURL = getRouteURL(route)
+
+    const generateItemsForItemList = useCallback((items, range, lang = "en") => {
+        range = normalizePhotosRange(range)
+    
+        if(range == "all"){
+            return items
+        }
+    
+        let sortedItems = []
+    
+        if(range == "years"){
+            const occupied = {}
+    
+            for(let i = 0; i < items.length; i++){
+                const itemDate = new Date(items[i].lastModified * 1000)
+                const itemYear = itemDate.getFullYear()
+                const occKey = itemYear
+    
+                if(typeof occupied[occKey] == "undefined"){
+                    occupied[occKey] = {
+                        ...items[i],
+                        title: itemYear,
+                        remainingItems: 0,
+                        including: []
+                    }
+                }
+    
+                occupied[occKey].remainingItems = occupied[occKey].remainingItems + 1
+                occupied[occKey].including.push(items[i].uuid)
+            }
+    
+            for(let prop in occupied){
+                sortedItems.push(occupied[prop])
+            }
+    
+            sortedItems = sortedItems.reverse()
+        }
+        else if(range == "months"){
+            const occupied = {}
+    
+            for(let i = 0; i < items.length; i++){
+                const itemDate = new Date(items[i].lastModified * 1000)
+                const itemYear = itemDate.getFullYear()
+                const itemMonth = itemDate.getMonth()
+                const occKey = itemYear + ":" + itemMonth
+    
+                if(typeof occupied[occKey] == "undefined"){
+                    occupied[occKey] = {
+                        ...items[i],
+                        title: i18n(lang, "month_" + itemMonth) + " " + itemYear,
+                        remainingItems: 0,
+                        including: []
+                    }
+                }
+    
+                occupied[occKey].remainingItems = occupied[occKey].remainingItems + 1
+                occupied[occKey].including.push(items[i].uuid)
+            }
+    
+            for(let prop in occupied){
+                sortedItems.push(occupied[prop])
+            }
+        }
+        else if(range == "days"){
+            const occupied = {}
+    
+            for(let i = 0; i < items.length; i++){
+                const itemDate = new Date(items[i].lastModified * 1000)
+                const itemYear = itemDate.getFullYear()
+                const itemMonth = itemDate.getMonth()
+                const itemDay = itemDate.getDate()
+                const occKey = itemYear + ":" + itemMonth + ":" + itemDay
+    
+                if(typeof occupied[occKey] == "undefined"){
+                    occupied[occKey] = {
+                        ...items[i],
+                        title: itemDay + ". " + i18n(lang, "monthShort_" + itemMonth) + " " + itemYear,
+                        remainingItems: 0,
+                        including: []
+                    }
+                }
+    
+                occupied[occKey].remainingItems = occupied[occKey].remainingItems + 1
+                occupied[occKey].including.push(items[i].uuid)
+            }
+    
+            for(let prop in occupied){
+                sortedItems.push(occupied[prop])
+            }
+        }
+        
+        return sortedItems
+    })
 
     const getThumbnail = useCallback(({ item }) => {
         if(item.type == "file"){
@@ -131,6 +139,10 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
     })
 
     const onViewableItemsChangedRef = useRef(useCallback(({ viewableItems }) => {
+        if(typeof viewableItems[0] == "object"){
+            setItemListLastScrollIndex(viewableItems[0].index)
+        }
+
         const visible = {}
 
         for(let i = 0; i < viewableItems.length; i++){
@@ -162,36 +174,41 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
     })
 
     const photosRangeItemClick = useCallback((item) => {
-        setPhotosRange("all")
+        const currentRangeSelection = normalizePhotosRange(photosRange)
+        let nextRangeSelection = "all"
 
-        setTimeout(async () => {
-            const itemsForIndexLoop = generateItemsForItemList(items, "all", lang)
-            let index = 0
+        if(currentRangeSelection == "years"){
+            nextRangeSelection = "months"
+        }
+        else if(currentRangeSelection == "months"){
+            nextRangeSelection = "days"
+        }
+        else if(currentRangeSelection == "days"){
+            nextRangeSelection = "all"
+        }
+        else{
+            nextRangeSelection = "all"
+        }
 
-            for(let i = 0; i < itemsForIndexLoop.length; i++){
+        const itemsForIndexLoop = generateItemsForItemList(items, nextRangeSelection, lang)
+        let scrollToIndex = 0
+
+        for(let i = 0; i < itemsForIndexLoop.length; i++){
+            if(nextRangeSelection == "all"){
                 if(itemsForIndexLoop[i].uuid == item.uuid){
-                    index = i
+                    scrollToIndex = i
                 }
             }
+            else{
+                if(itemsForIndexLoop[i].including.includes(item.uuid)){
+                    scrollToIndex = i
+                }
+            }
+        }
 
-            await new Promise((resolve) => {
-                const wait = setInterval(() => {
-                    if(items.length >= index){
-                        clearInterval(wait)
-                        
-                        setTimeout(() => {
-                            itemListRef.current.scrollToIndex({
-                                index: Math.floor(index / calcPhotosGridSize(photosGridSize)),
-                                animated: true,
-                                viewPosition: 0.5
-                            })
-
-                            return resolve()
-                        }, 1)
-                    }
-                }, 10)
-            })
-        }, 1)
+        waitForStateUpdate("itemListLastScrollIndex", scrollToIndex).then(() => {
+            setPhotosRange(nextRangeSelection)
+        })
     })
 
     const renderItem = useCallback(({ item, index, viewMode }) => {
@@ -366,8 +383,8 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
                                                 <TouchableOpacity onPress={() => {
                                                     let gridSize = calcPhotosGridSize(photosGridSize)
                     
-                                                    if(photosGridSize >= 16){
-                                                        gridSize = 16
+                                                    if(photosGridSize >= 10){
+                                                        gridSize = 10
                                                     }
                                                     else{
                                                         gridSize = gridSize + 1
@@ -375,7 +392,7 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
                     
                                                     setPhotosGridSize(gridSize)
                                                 }}>
-                                                    <Ionicon name="remove-outline" size={24} color={photosGridSize >= 16 ? "gray" : "white"} />
+                                                    <Ionicon name="remove-outline" size={24} color={photosGridSize >= 10 ? "gray" : "white"} />
                                                 </TouchableOpacity>
                                                 <Text style={{
                                                     color: "gray",
@@ -387,8 +404,8 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
                                                 }} onPress={() => {
                                                     let gridSize = calcPhotosGridSize(photosGridSize)
                     
-                                                    if(photosGridSize <= 2){
-                                                        gridSize = 2
+                                                    if(photosGridSize <= 1){
+                                                        gridSize = 1
                                                     }
                                                     else{
                                                         gridSize = gridSize - 1
@@ -396,7 +413,7 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
                     
                                                     setPhotosGridSize(gridSize)
                                                 }}>
-                                                    <Ionicon name="add-outline" size={24} color={photosGridSize <= 2 ? "gray" : "white"} />
+                                                    <Ionicon name="add-outline" size={24} color={photosGridSize <= 1 ? "gray" : "white"} />
                                                 </TouchableOpacity>
                                             </View>
                                         )
@@ -425,11 +442,15 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
                                                         height: "auto",
                                                         paddingTop: 5,
                                                         paddingBottom: 5,
-                                                        paddingLeft: 15,
-                                                        paddingRight: 15,
+                                                        paddingLeft: 10,
+                                                        paddingRight: 10,
                                                         borderRadius: 15,
                                                         marginLeft: index == 0 ? 0 : 10
-                                                    }} onPress={() => setPhotosRange(key)}>
+                                                    }} onPress={() => {
+                                                        waitForStateUpdate("itemListLastScrollIndex", 0).then(() => {
+                                                            setPhotosRange(key)
+                                                        })
+                                                    }}>
                                                         <Text style={{
                                                             color: "white"
                                                         }}>
@@ -457,6 +478,7 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
                 initialNumToRender={32}
                 ref={itemListRef}
                 removeClippedSubviews={true}
+                initialScrollIndex={normalizePhotosRange(photosRange) == "all" ? Math.floor(itemListLastScrollIndex / calcPhotosGridSize(photosGridSize)) : itemListLastScrollIndex}
                 numColumns={routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : itemViewMode == "grid" ? 2 : 1}
                 getItemLayout={(data, index) => ({ length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor(dimensions.window.width - 5))) : (itemViewMode == "grid" ? (Math.floor(dimensions.window.width / 2) - 19 + 40) : (55))), offset: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor(dimensions.window.width - 5))) : (itemViewMode == "grid" ? (Math.floor(dimensions.window.width / 2) - 19 + 40) : (55))) * index, index })}
                 ListEmptyComponent={() => {
@@ -516,4 +538,4 @@ export const ItemList = ({ navigation, route, items, showLoader, setItems, searc
             />
         </View>
     )
-}
+})

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from "react"
+import React, { useEffect, useCallback, useState, memo } from "react"
 import { View, Text, Switch, Platform, ScrollView, TouchableOpacity, Alert } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -12,7 +12,7 @@ import { runCameraUpload } from "../lib/services/cameraUpload"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../lib/permissions"
 import { getColor } from "../lib/style/colors"
 
-export const CameraUploadScreen = ({ navigation, route }) => {
+export const CameraUploadScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [email, setEmail] = useMMKVString("email", storage)
@@ -194,4 +194,4 @@ export const CameraUploadScreen = ({ navigation, route }) => {
             </ScrollView>
         </>
     )
-}
+})

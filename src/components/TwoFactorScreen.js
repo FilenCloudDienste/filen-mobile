@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useCallback, memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, Pressable, TextInput, Keyboard, Alert, KeyboardAvoidingView } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -11,14 +11,14 @@ import QRCode from "react-native-qrcode-svg"
 import { useStore } from "../lib/state"
 import { enable2FA } from "../lib/api"
 
-export const TwoFactorScreen = ({ navigation, route }) => {
+export const TwoFactorScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [enabled, setEnabled] = useState(route.params.accountSettings.enabled)
     const [accountSettings, setAccountSettings] = useState(route.params.accountSettings)
-    const dimensions = useStore(state => state.dimensions)
+    const dimensions = useStore(useCallback(state => state.dimensions))
     const [twoFactorKey, setTwoFactorKey] = useState("")
-    const setDisable2FATwoFactorDialogVisible = useStore(state => state.setDisable2FATwoFactorDialogVisible)
+    const setDisable2FATwoFactorDialogVisible = useStore(useCallback(state => state.setDisable2FATwoFactorDialogVisible))
 
     return (
         <KeyboardAvoidingView behavior="padding">
@@ -252,4 +252,4 @@ export const TwoFactorScreen = ({ navigation, route }) => {
             </ScrollView>
         </KeyboardAvoidingView>
     )
-}
+})

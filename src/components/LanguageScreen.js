@@ -1,4 +1,4 @@
-import React from "react"
+import React, { memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -6,7 +6,7 @@ import Ionicon from "react-native-vector-icons/Ionicons"
 import { i18n } from "../i18n/i18n"
 import { SettingsGroup, SettingsButtonLinkHighlight } from "./SettingsScreen"
 
-export const LanguageScreen = ({ navigation, route }) => {
+export const LanguageScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
 
@@ -47,4 +47,4 @@ export const LanguageScreen = ({ navigation, route }) => {
             </ScrollView>
         </>
     )
-}
+})

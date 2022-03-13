@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Pressable, Share } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -10,7 +10,7 @@ import { SettingsGroup } from "./SettingsScreen"
 import Clipboard from "@react-native-clipboard/clipboard"
 import { useMountedState } from "react-use"
 
-export const InviteScreen = ({ navigation, route }) => {
+export const InviteScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [isLoading, setIsLoading] = useState(true)
@@ -204,4 +204,4 @@ export const InviteScreen = ({ navigation, route }) => {
             </ScrollView>
         </>
     )
-}
+})

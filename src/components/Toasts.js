@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback, memo } from "react"
 import { View, Text, Platform, TouchableOpacity } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -113,7 +113,7 @@ export const hideAllToasts = () => {
     return global.toast.hideAll()
 }
 
-export const NormalToast = ({ message }) => {
+export const NormalToast = memo(({ message }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
     return (
@@ -127,11 +127,11 @@ export const NormalToast = ({ message }) => {
             </Text>
         </View>
     )
-}
+})
 
-export const MoveToast = ({ message }) => {
+export const MoveToast = memo(({ message }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+    const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
 
@@ -296,13 +296,13 @@ export const MoveToast = ({ message }) => {
             </View>
         </View>
     )
-}
+})
 
-export const UploadToast = ({ message }) => {
+export const UploadToast = memo(({ message }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const currentShareItems = useStore(state => state.currentShareItems)
-    const setCurrentShareItems = useStore(state => state.setCurrentShareItems)
+    const currentShareItems = useStore(useCallback(state => state.currentShareItems))
+    const setCurrentShareItems = useStore(useCallback(state => state.setCurrentShareItems))
     const [items, setItems] = useState([])
 
     useEffect(() => {
@@ -476,9 +476,9 @@ export const UploadToast = ({ message }) => {
             }
         </>
     )
-}
+})
 
-export const CameraUploadChooseFolderToast = ({ message, navigation }) => {
+export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
 
@@ -604,4 +604,4 @@ export const CameraUploadChooseFolderToast = ({ message, navigation }) => {
             </View>
         </View>
     )
-}
+})

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, memo } from "react"
 import { ActivityIndicator, TouchableOpacity, View } from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean } from "react-native-mmkv"
 import { StackActions } from "@react-navigation/native"
@@ -10,14 +9,13 @@ import AnimatedProgressWheel from "react-native-progress-wheel"
 
 const isEqual = require("react-fast-compare")
 
-export const TransfersIndicator = ({ navigation }) => {
-    const insets = useSafeAreaInsets()
+export const TransfersIndicator = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const uploadsCount = useStore(state => Object.keys(state.uploads).length)
-    const downloadsCount = useStore(state => Object.keys(state.downloads).length)
+    const uploadsCount = useStore(useCallback(state => Object.keys(state.uploads).length))
+    const downloadsCount = useStore(useCallback(state => Object.keys(state.downloads).length))
     const [visible, setVisible] = useState(false)
-    const uploads = useStore(state => state.uploads, (current, next) => !isEqual(current, next))
-    const downloads = useStore(state => state.downloads, (current, next) => !isEqual(current, next))
+    const uploads = useStore(useCallback(state => state.uploads), (current, next) => !isEqual(current, next))
+    const downloads = useStore(useCallback(state => state.downloads), (current, next) => !isEqual(current, next))
     const [progress, setProgress] = useState(0)
 
     useEffect(() => {
@@ -68,7 +66,7 @@ export const TransfersIndicator = ({ navigation }) => {
             borderRadius: 50,
             backgroundColor: darkMode ? "#171717" : "lightgray",
             position: "absolute",
-            bottom: insets.bottom + 60,
+            bottom: 60,
             right: 10,
             zIndex: 999999,
             display: visible ? "flex" : "none"
@@ -101,4 +99,4 @@ export const TransfersIndicator = ({ navigation }) => {
             </View>
         </TouchableOpacity>
     )
-}
+})

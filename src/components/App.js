@@ -1,6 +1,6 @@
 import "../lib/globals"
 import "../lib/node"
-import React, { useState, useEffect, Fragment, useCallback } from "react"
+import React, { useState, useEffect, Fragment, useCallback, memo } from "react"
 import { Dimensions, SafeAreaView, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState, Text } from "react-native"
 import { setup } from "../lib/setup"
 import { storage } from "../lib/storage"
@@ -71,27 +71,27 @@ DeviceEventEmitter.addListener("event", (data) => {
     }
 })
 
-export const App = () => {
+export const App = memo(() => {
     const [isLoggedIn, setIsLoggedIn] = useMMKVBoolean("isLoggedIn", storage)
-    const setDimensions = useStore(state => state.setDimensions)
+    const setDimensions = useStore(useCallback(state => state.setDimensions))
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [setupDone, setSetupDone] = useState(false)
     const [currentScreenName, setCurrentScreenName] = useState("MainScreen")
-    const setCurrentRoutes = useStore(state => state.setCurrentRoutes)
-    const toastBottomOffset = useStore(state => state.toastBottomOffset)
-    const toastTopOffset = useStore(state => state.toastTopOffset)
-    const uploadsCount = useStore(state => Object.keys(state.uploads).length)
-    const downloadsCount = useStore(state => Object.keys(state.downloads).length)
-    const setNetInfo = useStore(state => state.setNetInfo)
-    const showNavigationAnimation = useStore(state => state.showNavigationAnimation)
+    const setCurrentRoutes = useStore(useCallback(state => state.setCurrentRoutes))
+    const toastBottomOffset = useStore(useCallback(state => state.toastBottomOffset))
+    const toastTopOffset = useStore(useCallback(state => state.toastTopOffset))
+    const uploadsCount = useStore(useCallback(state => Object.keys(state.uploads).length))
+    const downloadsCount = useStore(useCallback(state => Object.keys(state.downloads).length))
+    const setNetInfo = useStore(useCallback(state => state.setNetInfo))
+    const showNavigationAnimation = useStore(useCallback(state => state.showNavigationAnimation))
     const [email, setEmail] = useMMKVString("email", storage)
     const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + email, storage)
-    const setBiometricAuthScreenState = useStore(state => state.setBiometricAuthScreenState)
-    const setCurrentShareItems = useStore(state => state.setCurrentShareItems)
-    const setAppState = useStore(state => state.setAppState)
+    const setBiometricAuthScreenState = useStore(useCallback(state => state.setBiometricAuthScreenState))
+    const setCurrentShareItems = useStore(useCallback(state => state.setCurrentShareItems))
+    const setAppState = useStore(useCallback(state => state.setAppState))
     const [lang, setLang] = useMMKVString("lang", storage)
     const [nodeJSAlive, setNodeJSAlive] = useState(true)
-    const setContentHeight = useStore(state => state.setContentHeight)
+    const setContentHeight = useStore(useCallback(state => state.setContentHeight))
 
     useEffect(() => {
         SplashScreen.hide()
@@ -528,4 +528,4 @@ export const App = () => {
             }} />
         </>
     )
-}
+})
