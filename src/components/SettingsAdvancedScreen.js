@@ -11,6 +11,7 @@ import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import DeviceInfo from "react-native-device-info"
 import { formatBytes } from "../lib/helpers"
+import { memoryCache } from "../lib/memoryCache"
 
 export const calculateFolderSize = async (folderPath, size = 0) => {
     const dirList = await RNFS.readDir(folderPath)
@@ -132,7 +133,11 @@ export const SettingsAdvancedScreen = memo(({ navigation, route }) => {
                                                     }
                                                 }
 
-                                                global.cachedThumbnailPaths = {}
+                                                memoryCache.cache.forEach((value, key) => {
+                                                    if(key.indexOf("thumbnailCache:") !== -1 || key.indexOf("cachedThumbnailPaths:") !== -1){
+                                                        memoryCache.delete(key)
+                                                    }
+                                                })
 
                                                 try{
                                                     var dirList = await RNFS.readDir(await getDownloadPath({ type: "thumbnail" }))

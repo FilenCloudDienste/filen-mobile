@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react"
 import { View, DeviceEventEmitter, InteractionManager } from "react-native"
 import { storage } from "../lib/storage"
-import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "./TopBar"
 import { ItemList } from "./ItemList"
 import { loadItems, sortItems } from "../lib/services/items"
@@ -15,6 +15,7 @@ import { StackActions } from "@react-navigation/native"
 
 export const MainScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const [email, setEmail] = useMMKVString("email", storage)
     const [routeURL, setRouteURL] = useState(useCallback(getRouteURL(route)))
     const [cachedItemsRef, setCachedItemsRef] = useState(useCallback(storage.getString("loadItemsCache:" + routeURL)))
     const [items, setItems] = useState(typeof cachedItemsRef !== "undefined" ? JSON.parse(cachedItemsRef) : [])
@@ -38,6 +39,8 @@ export const MainScreen = memo(({ navigation, route }) => {
     const bottomBarHeight = useStore(useCallback(state => state.bottomBarHeight))
     const topBarHeight = useStore(useCallback(state => state.topBarHeight))
     const contentHeight = useStore(useCallback(state => state.contentHeight))
+    const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
+    const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + email, storage)
 
     const updateItemThumbnail = useCallback((item, path) => {
         if(typeof path !== "string"){
@@ -316,6 +319,11 @@ export const MainScreen = memo(({ navigation, route }) => {
         })
 
         global.fetchItemList = fetchItemList
+
+        return () => {
+            setPhotosRange("all")
+            setItemListLastScrollIndex(0)
+        }
     }, [])
 
     return (

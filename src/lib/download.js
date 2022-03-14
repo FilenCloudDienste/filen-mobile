@@ -9,6 +9,7 @@ import { showToast } from "../components/Toasts"
 import BackgroundTimer from "react-native-background-timer"
 import { addItemToOfflineList } from "./services/offline"
 import { getItemOfflinePath } from "./services/offline"
+import DeviceInfo from "react-native-device-info"
 
 const cachedGetDownloadPath = {}
 const downloadSemaphore = new Semaphore(3)
@@ -160,6 +161,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
         if(typeof currentDownloads[file.uuid] == "undefined"){
             currentDownloads[file.uuid] = {
+                id: Math.random().toString().slice(3),
                 file,
                 chunksDone: 0,
                 loaded: 0,
@@ -418,6 +420,15 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
 export const downloadWholeFileFSStream = ({ file, path = undefined, progressCallback = undefined, maxChunks = Infinity }) => {
     return new Promise(async (resolve, reject) => {
+        try{
+            if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
+                return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
+            }
+        }
+        catch(e){
+            return reject(e)
+        }
+
         if(typeof path == "undefined"){
             path = RNFS.TemporaryDirectoryPath + (RNFS.TemporaryDirectoryPath.slice(-1) == "/" ? "" : "/") + file.name + "_" + file.uuid + "." + getFileExt(file.name)
         }

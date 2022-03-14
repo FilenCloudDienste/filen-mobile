@@ -1,60 +1,27 @@
+import { fetchUserInfo, fetchUserUsage } from "../api"
 import { storage } from "../storage"
-import { apiRequest } from "../api"
-import { getAPIKey } from "../helpers"
+import { useStore } from "../state"
 
-const apiKey = getAPIKey()
+export const updateUserUsage = () => {
+    const netInfo = useStore.getState().netInfo
 
-export const updateUsage = () => {
-    apiRequest({
-        method: "POST",
-        endpoint: "/v1/user/usage",
-        data: {
-            apiKey
-        }
-    }).then((response) => {
-        if(response.status){
-            const storageUsedPercent = ((response.data.storage / response.data.max) * 100).toFixed(2)
-
-            try{
-                storage.set("storageUsedPercent", storageUsedPercent)
-                storage.set("storageUsage", response.data.storage)
-                storage.set("maxStorage", response.data.max)
-                storage.set("filesCount", response.data.uploads)
-                storage.set("foldersCount", response.data.folders)
-                storage.set("twoFactorEnabled", response.data.twoFactorEnabled)
-            }
-            catch(e){
-                console.log(e)
-            }
-        }
-    }).catch((err) => {
-        return console.log(err)
-    })
+    if(netInfo.isConnected && netInfo.isInternetReachable){
+        fetchUserUsage().then((usage) => {
+            storage.set("userUsage:" + storage.getString("email"), JSON.stringify(usage))
+        }).catch((err) => {
+            console.log(err)
+        })
+    }
 }
 
-export const fetchUserInfo = () => {
-    return new Promise((resolve, reject) => {
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/user/info",
-            data: {
-                apiKey
-            }
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
-            }
+export const updateUserInfo = () => {
+    const netInfo = useStore.getState().netInfo
 
-            try{
-                storage.set("userInfo", JSON.stringify(response.data))
-            }
-            catch(e){
-                console.log(e)
-            }
-
-            return resolve(response.data)
+    if(netInfo.isConnected && netInfo.isInternetReachable){
+        fetchUserInfo().then((info) => {
+            storage.set("userInfo:" + storage.getString("email"), JSON.stringify(info))
         }).catch((err) => {
-            return reject(err)
+            console.log(err)
         })
-    })
+    }
 }

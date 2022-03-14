@@ -324,5 +324,6 @@ export const en = {
     clearTempDirectory: "Clear temporary directory",
     clearTempDirectoryInfo: "Clearing the temporary directory will free up storage space on your device",
     clearTempDirectoryCleared: "Temporary directory cleared",
-    unselect: "Unselect"
+    unselect: "Unselect",
+    deviceOutOfStorage: "Your device is out of storage"
 }

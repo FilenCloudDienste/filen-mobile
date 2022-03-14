@@ -1,10 +1,10 @@
-import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize, fetchAllStoredItems } from "../api"
+import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize } from "../api"
 import { storage } from "../storage"
 import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate } from "../helpers"
 import striptags from "striptags"
 import { downloadWholeFileFSStream, getDownloadPath, queueFileDownload } from "../download"
 import RNFS from "react-native-fs"
-import { DeviceEventEmitter, Platform } from "react-native"
+import { DeviceEventEmitter } from "react-native"
 import { useStore } from "../state"
 import FileViewer from "react-native-file-viewer"
 import { getOfflineList, removeFromOfflineStorage, changeItemNameInOfflineList, getItemOfflinePath } from "./offline"
@@ -13,30 +13,31 @@ import { i18n } from "../../i18n/i18n"
 import ImageResizer from "react-native-image-resizer"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../state"
+import { memoryCache } from "../memoryCache"
 
 const isEqual = require("react-fast-compare")
 
 let isGeneratingThumbnailForItemUUID = {}
-const cachedItemMetadataInJS = {}
-const cachedItemThumbnailPathsInJS = {}
 
 export const buildFolder = async ({ folder, name = "", masterKeys = undefined, sharedIn = false, privateKey = undefined, email = undefined, routeURL }) => {
-    const cacheKey = "folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
+    const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
 
-    if(typeof cachedItemMetadataInJS[cacheKey] !== "undefined"){
-        name = cachedItemMetadataInJS[cacheKey]
+    if(memoryCache.has(cacheKey)){
+        name = memoryCache.get(cacheKey)
     }
     else{
         if(!sharedIn){
             if(typeof masterKeys !== "undefined" && typeof folder.name !== "undefined"){
                 name = await decryptFolderName(masterKeys, folder.name, folder.uuid)
-                cachedItemMetadataInJS[cacheKey] = name
+                
+                memoryCache.set(cacheKey, name)
             }
         }
         else{
             if(typeof privateKey !== "undefined" && typeof folder.metadata !== "undefined"){
                 name = await decryptFolderNamePrivateKey(privateKey, folder.metadata, folder.uuid)
-                cachedItemMetadataInJS[cacheKey] = name
+                
+                memoryCache.set(cacheKey, name)
             }
         }
     }
@@ -64,22 +65,24 @@ export const buildFolder = async ({ folder, name = "", masterKeys = undefined, s
 }
 
 export const buildFile = async ({ file, metadata = undefined, masterKeys = undefined, sharedIn = false, privateKey = undefined, email = undefined, routeURL }) => {
-    const cacheKey = "file:" + file.uuid + ":" + file.metadata + ":" + sharedIn.toString()
+    const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn.toString()
 
-    if(typeof cachedItemMetadataInJS[cacheKey] !== "undefined"){
-        metadata = cachedItemMetadataInJS[cacheKey]
+    if(memoryCache.has(cacheKey)){
+        metadata = memoryCache.get(cacheKey)
     }
     else{
         if(!sharedIn){
             if(typeof masterKeys !== "undefined" && typeof file.metadata !== "undefined"){
                 metadata = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
-                cachedItemMetadataInJS[cacheKey] = metadata
+
+                memoryCache.set(cacheKey, metadata)
             }
         }
         else{
             if(typeof privateKey !== "undefined" && typeof file.metadata !== "undefined"){
                 metadata = await decryptFileMetadataPrivateKey(file.metadata, privateKey, file.uuid)
-                cachedItemMetadataInJS[cacheKey] = metadata
+                
+                memoryCache.set(cacheKey, metadata)
             }
         }
     }
@@ -87,8 +90,8 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
     let thumbnailCachePath = undefined
     const thumbnailCacheKey = getThumbnailCacheKey({ uuid: file.uuid }).cacheKey
 
-    if(typeof cachedItemThumbnailPathsInJS[thumbnailCacheKey] !== "undefined"){
-        thumbnailCachePath = cachedItemThumbnailPathsInJS[thumbnailCacheKey]
+    if(memoryCache.has(thumbnailCacheKey)){
+        thumbnailCachePath = memoryCache.get(thumbnailCacheKey)
     }
     else{
         if(canCompressThumbnail(getFileExt(metadata.name))){
@@ -102,7 +105,8 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
             if(typeof thumbnailCache == "string"){
                 if(thumbnailCache.length > 0){
                     thumbnailCachePath = thumbnailCache
-                    cachedItemThumbnailPathsInJS[thumbnailCacheKey] = thumbnailCache
+                    
+                    memoryCache.set(thumbnailCacheKey, thumbnailCache)
                 }
             }
         }
@@ -189,9 +193,11 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     let isDeviceOnline = true //TODO
     const routeURL = getRouteURL(route)
     const cacheKey = "loadItemsCache:" + routeURL
+    const cacheKeyLastResponse = "loadItemsCache:lastResponse:" + routeURL
 
     try{
-        var cache = JSON.parse(storage.getString(cacheKey))
+        var cacheRaw = storage.getString(cacheKey)
+        var cache = JSON.parse(cacheRaw)
     }
     catch(e){
         //console.log(e)
@@ -223,13 +229,11 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
         items = cache
 
-        if(getParent(route) == parent){
+        if(getParent(route) == parent && isMounted()){
             items = items = sortItems({ items, passedRoute: route })
 
-            if(isMounted()){
-                setItems(prev => isEqual(prev, items) ? prev : items)
-                setLoadDone(true)
-            }
+            setItems(prev => isEqual(prev, items) ? prev : items)
+            setLoadDone(true)
         }
 
         return true
@@ -256,6 +260,14 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             return false
         }
+
+        const responseString = JSON.stringify(response.data)
+
+        if(storage.getString(cacheKeyLastResponse) == responseString){
+            return false
+        }
+
+        storage.set(cacheKeyLastResponse, responseString)
 
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
@@ -293,6 +305,14 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             return false
         }
+
+        const responseString = JSON.stringify(response.data)
+
+        if(storage.getString(cacheKeyLastResponse) == responseString){
+            return false
+        }
+
+        storage.set(cacheKeyLastResponse, responseString)
 
         for(let i = 0; i < response.data.length; i++){
             let file = response.data[i]
@@ -334,6 +354,14 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             return false
         }
+
+        const responseString = JSON.stringify(response.data)
+
+        if(storage.getString(cacheKeyLastResponse) == responseString){
+            return false
+        }
+
+        storage.set(cacheKeyLastResponse, responseString)
 
         try{
             var privateKey = storage.getString("privateKey")
@@ -400,6 +428,14 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             return false
         }
+
+        const responseString = JSON.stringify(response.data)
+
+        if(storage.getString(cacheKeyLastResponse) == responseString){
+            return false
+        }
+
+        storage.set(cacheKeyLastResponse, responseString)
 
         try{
             var privateKey = storage.getString("privateKey")
@@ -476,6 +512,14 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         
                     return false
                 }
+
+                const responseString = JSON.stringify(response.data)
+
+                if(storage.getString(cacheKeyLastResponse) == responseString){
+                    return false
+                }
+
+                storage.set(cacheKeyLastResponse, responseString)
         
                 for(let i = 0; i < response.data.uploads.length; i++){
                     let file = response.data.uploads[i]
@@ -688,6 +732,14 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
+        const responseString = JSON.stringify(response.data)
+
+        if(storage.getString(cacheKeyLastResponse) == responseString){
+            return false
+        }
+
+        storage.set(cacheKeyLastResponse, responseString)
+
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
 			
@@ -728,11 +780,9 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         //console.log(e)
     }
 
-    if(getParent(route) == parent){
-        if(isMounted()){
-            setItems(prev => isEqual(prev, items) ? prev : items)
-            setLoadDone(true)
-        }
+    if(getParent(route) == parent && isMounted()){
+        setItems(prev => isEqual(prev, items) ? prev : items)
+        setLoadDone(true)
     }
 
     return true
@@ -815,12 +865,12 @@ export const generateItemThumbnail = ({ item }) => {
         return false
     }
 
-    if(typeof global.cachedThumbnailPaths[item.uuid] !== "undefined"){
+    if(memoryCache.has("cachedThumbnailPaths:" + item.uuid)){
         DeviceEventEmitter.emit("event", {
             type: "thumbnail-generated",
             data: {
                 uuid: item.uuid,
-                path: global.cachedThumbnailPaths[item.uuid]
+                path: memoryCache.get("cachedThumbnailPaths:" + item.uuid)
             }
         })
 
@@ -838,7 +888,7 @@ export const generateItemThumbnail = ({ item }) => {
 
     if(typeof cache == "string"){
         if(cache.length > 0){
-            global.cachedThumbnailPaths[item.uuid] = cache
+            memoryCache.set("cachedThumbnailPaths:" + item.uuid, cache)
 
             DeviceEventEmitter.emit("event", {
                 type: "thumbnail-generated",
@@ -897,7 +947,7 @@ export const generateItemThumbnail = ({ item }) => {
                                 console.log(e)
                             }
 
-                            global.cachedThumbnailPaths[item.uuid] = dest
+                            memoryCache.set("cachedThumbnailPaths:" + item.uuid, dest)
             
                             DeviceEventEmitter.emit("event", {
                                 type: "thumbnail-generated",

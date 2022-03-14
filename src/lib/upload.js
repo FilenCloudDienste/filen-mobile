@@ -102,6 +102,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
 
         if(typeof currentUploads[name] == "undefined"){
             currentUploads[name] = {
+                id: Math.random().toString().slice(3),
                 file: {
                     name,
                     size,

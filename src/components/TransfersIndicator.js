@@ -9,6 +9,8 @@ import AnimatedProgressWheel from "react-native-progress-wheel"
 
 const isEqual = require("react-fast-compare")
 
+const transfers = {}
+
 export const TransfersIndicator = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const uploadsCount = useStore(useCallback(state => Object.keys(state.uploads).length))
@@ -33,13 +35,20 @@ export const TransfersIndicator = memo(({ navigation }) => {
             let chunksDone = 0
 
             for(let prop in uploads){
-                chunks = chunks + uploads[prop].file.chunks
-                chunksDone = chunksDone + uploads[prop].chunksDone
+                if(typeof transfers['upload:' + uploads[prop].id] == "undefined"){
+                    transfers['upload:' + uploads[prop].id] = uploads[prop]
+                }
             }
 
             for(let prop in downloads){
-                chunks = chunks + downloads[prop].file.chunks
-                chunksDone = chunksDone + downloads[prop].chunksDone
+                if(typeof transfers['download:' + downloads[prop].id] == "undefined"){
+                    transfers['download:' + downloads[prop].id] = downloads[prop]
+                }
+            }
+
+            for(let prop in transfers){
+                chunks = chunks + transfers[prop].file.chunks
+                chunksDone = chunksDone + transfers[prop].chunksDone
             }
 
             let prog = Math.round((chunksDone / chunks) * 100)

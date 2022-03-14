@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect, memo } from "react"
 import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import { canCompressThumbnail, getFileExt, getParent, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange } from "../lib/helpers"
+import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange } from "../lib/helpers"
 import { ListItem, GridItem, PhotosItem, PhotosRangeItem } from "./Item"
 import { useStore, waitForStateUpdate } from "../lib/state"
 import { i18n } from "../i18n/i18n"
@@ -21,7 +21,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const cameraUploadUploaded = useStore(useCallback(state => state.cameraUploadUploaded))
     const [email, setEmail] = useMMKVString("email", storage)
     const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + email, storage)
-    const [scrollDate, setScrollDate] = useState("")
+    const [scrollDate, setScrollDate] = useState(typeof items == "object" && items.length > 0 ? calcCameraUploadCurrentDate(items[0].lastModified, items[items.length - 1].lastModified, lang) : "")
     const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
     const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + email, storage)
     const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + email, storage)
@@ -30,9 +30,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const itemListRef = useRef()
     const itemListLastScrollIndex = useStore(useCallback(state => state.itemListLastScrollIndex))
     const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
-
-    const parent = getParent(route)
-    const routeURL = getRouteURL(route)
+    const [routeURL, setRouteURL] = useState(useCallback(getRouteURL(route)))
 
     const generateItemsForItemList = useCallback((items, range, lang = "en") => {
         range = normalizePhotosRange(range)
@@ -494,12 +492,6 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                 !loadDone ? (
                                     <View>
                                         <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
-                                        {/*<Text style={{
-                                            color: darkMode ? "white" : "black",
-                                            marginTop: 15
-                                        }}>
-                                            {i18n(lang, "loadingItemList")}
-                                        </Text>*/}
                                     </View>
                                 ) : (
                                     <ListEmpty route={route} searchTerm={searchTerm} />
@@ -519,8 +511,13 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                             setRefreshing(true)
         
                             if(typeof fetchItemList == "function"){
-                                await new Promise((resolve) => setTimeout(resolve, 500))
-                                await fetchItemList({ bypassCache: true, callStack: 1 })
+                                try{
+                                    await new Promise((resolve) => setTimeout(resolve, 500))
+                                    await fetchItemList({ bypassCache: true, callStack: 1 })
+                                }
+                                catch(e){
+                                    console.log(e)
+                                }
 
                                 setRefreshing(false)
                             }

@@ -17,8 +17,6 @@ export const BottomBar = memo(({ navigation, route }) => {
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
     const setBottomBarHeight = useStore(useCallback(state => state.setBottomBarHeight))
-    const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + email, storage)
-    const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
 
     const parent = getParent(route)
     const routeURL = getRouteURL(route)
@@ -106,9 +104,6 @@ export const BottomBar = memo(({ navigation, route }) => {
                 alignItems: "center",
                 width: "20%",
             }} onPress={() => {
-                setPhotosRange("all")
-                setItemListLastScrollIndex(0)
-                
                 navigationAnimation({ enable: false }).then(() => {
                     navigation.current.dispatch(CommonActions.reset({
                         index: 0,
@@ -134,9 +129,6 @@ export const BottomBar = memo(({ navigation, route }) => {
                 alignItems: "center",
                 width: "20%",
             }} onPress={() => {
-                setPhotosRange("all")
-                setItemListLastScrollIndex(0)
-
                 navigationAnimation({ enable: false }).then(() => {
                     navigation.current.dispatch(CommonActions.reset({
                         index: 0,
@@ -173,9 +165,6 @@ export const BottomBar = memo(({ navigation, route }) => {
                 alignItems: "center",
                 width: "20%"
             }} onPress={() => {
-                setPhotosRange("all")
-                setItemListLastScrollIndex(0)
-
                 navigationAnimation({ enable: false }).then(() => {
                     navigation.current.dispatch(CommonActions.reset({
                         index: 0,

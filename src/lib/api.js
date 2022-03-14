@@ -2126,3 +2126,43 @@ export const fetchAllStoredItems = ({ lastLength = 0, filesOnly, maxSize, includ
         }).catch(reject)  
     })
 }
+
+export const fetchUserInfo = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/info",
+            data: {
+                apiKey: getAPIKey()
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data)
+        }).catch((err) => {
+            return reject(err)
+        })
+    })
+}
+
+export const fetchUserUsage = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/user/usage",
+            data: {
+                apiKey: getAPIKey()
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data)
+        }).catch((err) => {
+            return reject(err)
+        })
+    })
+}

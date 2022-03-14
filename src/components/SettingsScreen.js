@@ -1,7 +1,7 @@
-import React, { useCallback } from "react"
+import React, { useCallback, useEffect, memo } from "react"
 import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native"
 import { storage } from "../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVString, useMMKVObject } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import FastImage from "react-native-fast-image"
 import { formatBytes } from "../lib/helpers"
@@ -12,8 +12,9 @@ import { useStore } from "../lib/state"
 import { showToast } from "./Toasts"
 import { getColor } from "../lib/style/colors"
 import { hasBiometricPermissions } from "../lib/permissions"
+import { updateUserUsage, updateUserInfo } from "../lib/user/info"
 
-export const SettingsButtonLinkHighlight = ({ onPress, title, rightText }) => {
+export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
     return (
@@ -72,9 +73,9 @@ export const SettingsButtonLinkHighlight = ({ onPress, title, rightText }) => {
             </View>
         </TouchableHighlight>
     )
-}
+})
 
-export const SettingsButton = ({ title, rightComponent }) => {
+export const SettingsButton = memo(({ title, rightComponent }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
     return (
@@ -110,13 +111,18 @@ export const SettingsButton = ({ title, rightComponent }) => {
             </View>
         </View>
     )
-}
+})
 
-export const SettingsHeader = ({ navigation, route, navigationEnabled = true }) => {
+export const SettingsHeader = memo(({ navigation, route, navigationEnabled = true }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [email, setEmail] = useMMKVString("email", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
+    const [userInfo, setUserInfo] = useMMKVObject("userInfo:" + email, storage)
+
+    useEffect(() => {
+        updateUserInfo()
+    }, [])
 
     return (
         <Pressable style={{
@@ -149,7 +155,7 @@ export const SettingsHeader = ({ navigation, route, navigationEnabled = true }) 
                 
                 console.log("change avatar")
             }}>
-                <FastImage source={require("../assets/images/appstore.png")} style={{
+                <FastImage source={typeof userInfo !== "undefined" && userInfo.avatarURL.indexOf("https://down.") !== -1 ? { uri: userInfo.avatarURL } : require("../assets/images/appstore.png")} style={{
                     width: 50,
                     height: 50,
                     borderRadius: 50
@@ -171,15 +177,20 @@ export const SettingsHeader = ({ navigation, route, navigationEnabled = true }) 
                     fontSize: 12,
                     marginTop: 1
                 }} numberOfLines={1}>
-                    {i18n(lang, "settingsHeaderUsage", true, ["__USAGE__", "__MAX__", "__PERCENT__"], [formatBytes(storage.getNumber("storageUsage")), formatBytes(storage.getNumber("maxStorage")), storage.getNumber("storageUsedPercent")])}
+                    {
+                        typeof userInfo !== "undefined" ?
+                            i18n(lang, "settingsHeaderUsage", true, ["__USAGE__", "__MAX__", "__PERCENT__"], [formatBytes(userInfo.storageUsed), formatBytes(userInfo.maxStorage), (isNaN((userInfo.storageUsed / userInfo.maxStorage * 100)) ? 0 : ((userInfo.storageUsed / userInfo.maxStorage * 100) >= 100) ? 100 : (userInfo.storageUsed / userInfo.maxStorage * 100).toFixed(2))])
+                        :
+                            i18n(lang, "settingsHeaderUsage", true, ["__USAGE__", "__MAX__", "__PERCENT__"], [formatBytes(0), formatBytes(0), 0])
+                    }
                 </Text>
             </View>
             <Ionicon name="chevron-forward-outline" size={22} color={navigationEnabled ? "gray" : "transparent"} />
         </Pressable>
     )
-}
+})
 
-export const SettingsGroup = (props) => {
+export const SettingsGroup = memo((props) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
     return (
@@ -200,9 +211,9 @@ export const SettingsGroup = (props) => {
             </View>
         </View>
     )
-}
+})
 
-export const SettingsScreen = ({ navigation, route }) => {
+export const SettingsScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [email, setEmail] = useMMKVString("email", storage)
@@ -235,6 +246,10 @@ export const SettingsScreen = ({ navigation, route }) => {
             </SettingsGroup>
             <SettingsGroup>
                 <SettingsButtonLinkHighlight onPress={() => {
+                    if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                        return showToast({ message: i18n(lang, "deviceOffline") })
+                    }
+
                     navigationAnimation({ enable: true }).then(() => {
                         navigation.dispatch(StackActions.push("MainScreen", {
                             parent: "trash"
@@ -242,6 +257,10 @@ export const SettingsScreen = ({ navigation, route }) => {
                     })
                 }} title={i18n(lang, "trash")} />
                 <SettingsButtonLinkHighlight onPress={() => {
+                    if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                        return showToast({ message: i18n(lang, "deviceOffline") })
+                    }
+
                     navigationAnimation({ enable: true }).then(() => {
                         navigation.dispatch(StackActions.push("TransfersScreen"))
                     })
@@ -258,6 +277,10 @@ export const SettingsScreen = ({ navigation, route }) => {
             </SettingsGroup>
             <SettingsGroup>
                 <SettingsButtonLinkHighlight onPress={() => {
+                    if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                        return showToast({ message: i18n(lang, "deviceOffline") })
+                    }
+
                     navigationAnimation({ enable: true }).then(() => {
                         navigation.dispatch(StackActions.push("CameraUploadScreen"))
                     })
@@ -350,4 +373,4 @@ export const SettingsScreen = ({ navigation, route }) => {
             <View style={{ height: 75 }}></View>
         </ScrollView>
     )
-}
+})

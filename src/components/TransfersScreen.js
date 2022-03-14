@@ -1,4 +1,4 @@
-import React, { useCallback } from "react"
+import React, { useCallback, memo } from "react"
 import { View, ScrollView, Text, TouchableOpacity } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -10,7 +10,7 @@ import { getColor } from "../lib/style/colors"
 
 const isEqual = require("react-fast-compare")
 
-export const TransfersScreen = ({ navigation, route }) => {
+export const TransfersScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const uploadsCount = useStore(useCallback(state => Object.keys(state.uploads).length))
@@ -68,7 +68,7 @@ export const TransfersScreen = ({ navigation, route }) => {
                                                         uploads[prop].chunksDone == 0 ? (
                                                             <>{i18n(lang, "queued")}</>
                                                         ) : (
-                                                            <>{!isNaN(Math.round((uploads[prop].chunksDone / uploads[prop].file.chunks) * 100)) ? Math.round((uploads[prop].chunksDone / uploads[prop].file.chunks) * 100) : 0}%</>
+                                                            <>{!isNaN(Math.round((uploads[prop].chunksDone / uploads[prop].file.chunks) * 100)) ? (Math.round((uploads[prop].chunksDone / uploads[prop].file.chunks) * 100) >= 100 ? 100 : Math.round((uploads[prop].chunksDone / uploads[prop].file.chunks) * 100)) : 0}%</>
                                                         )
                                                     }
                                                 </Text>
@@ -255,4 +255,4 @@ export const TransfersScreen = ({ navigation, route }) => {
             </ScrollView>
         </View>
     )
-}
+})
