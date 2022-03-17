@@ -47,7 +47,9 @@ export const storage = {
 
         return res
     },
-    getAllKeys: mmkv.getAllKeys(),
+    getAllKeys: () => {
+        return mmkv.getAllKeys()
+    },
     delete: (key) => {
         try{
             mmkv.delete(key)

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react"
-import { View, Text, Platform, TouchableOpacity, TextInput, KeyboardAvoidingView, Dimensions } from "react-native"
+import React, { useState, useEffect, useRef, useCallback, memo } from "react"
+import { View, Text, Platform, TouchableOpacity, TextInput, KeyboardAvoidingView, Keyboard, Alert } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
@@ -12,7 +12,7 @@ import { useStore } from "../lib/state"
 import { getColor } from "../lib/style/colors"
 import { getParent } from "../lib/helpers"
 
-export const TextEditorScreen = ({ navigation, route }) => {
+export const TextEditorScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const textEditorText = useStore(useCallback(state => state.textEditorText))
@@ -25,6 +25,9 @@ export const TextEditorScreen = ({ navigation, route }) => {
     const dimensions = useStore(useCallback(state => state.dimensions))
     const textEditorParent = useStore(useCallback(state => state.textEditorParent))
     const [offset, setOffset] = useState(0)
+    const setTextEditorState = useStore(useCallback(state => state.setTextEditorState))
+    const [textEditorActive, setTextEditorActive] = useState(false)
+    const [textEditorFocused, setTextEditorFocused] = useState(false)
 
     const fileName = textEditorState == "edit" ? createTextFileDialogName : currentActionSheetItem.name
 
@@ -127,99 +130,100 @@ export const TextEditorScreen = ({ navigation, route }) => {
             setValue("")
             setInitialValue("")
         }
-
-        setTimeout(() => {
-            //if(textEditorState == "edit"){
-            //    inputRef.current.focus()
-            //}
-        }, 500)
     }, [])
 
     return (
         <View onLayout={(e) => setOffset(dimensions.window.height - e.nativeEvent.layout.height)}>
+            <View style={{
+                height: 35,
+                paddingLeft: 15,
+                paddingRight: 15,
+                backgroundColor: darkMode ? "black" : "white",
+                borderBottomColor: getColor(darkMode, "primaryBorder"),
+                borderBottomWidth: 1
+            }}>
+                <View style={{
+                    justifyContent: "space-between",
+                    flexDirection: "row"
+                }}>
+                    <View style={{
+                        marginLeft: 0,
+                        width: "70%",
+                        flexDirection: "row"
+                    }}>
+                        <TouchableOpacity onPress={() => close()}>
+                            <Ionicon name="chevron-back-outline" size={21} color={darkMode ? "white" : "black"} style={{
+                                marginTop: Platform.OS == "android" ? 4 : 2.5
+                            }}></Ionicon>
+                        </TouchableOpacity>
+                        <Text style={{
+                            fontSize: 20,
+                            color: darkMode ? "white" : "black",
+                            marginLeft: 10
+                        }} numberOfLines={1}>{fileName}</Text>
+                    </View>
+                    {
+                        textEditorState == "edit" && (
+                            <View style={{
+                                alignItems: "flex-start",
+                                flexDirection: "row"
+                            }}>
+                                {
+                                    textEditorFocused && (
+                                        <TouchableOpacity onPress={() => Keyboard.dismiss()} style={{
+                                            marginRight: initialValue !== value ? 25 : 0
+                                        }}>
+                                            <Ionicon name="chevron-down-outline" size={21} color={darkMode ? "white" : "black"} style={{
+                                                marginTop: 5
+                                            }}></Ionicon>
+                                        </TouchableOpacity>
+                                    )
+                                }
+                                {
+                                    initialValue !== value && (
+                                        <TouchableOpacity onPress={() => save()}>
+                                            <Ionicon name="save-outline" size={21} color={darkMode ? "white" : "black"} style={{
+                                                marginTop: 5
+                                            }}></Ionicon>
+                                        </TouchableOpacity>
+                                    )
+                                }
+                            </View>
+                        )
+                    }
+                </View>
+            </View>
             <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={offset} style={{
                 backgroundColor: darkMode ? "black" : "white"
             }}>
-                <View style={{
-                    height: 35,
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    backgroundColor: darkMode ? "black" : "white",
-                    borderBottomColor: getColor(darkMode, "primaryBorder"),
-                    borderBottomWidth: 1
-                }}>
-                    <View style={{
-                        justifyContent: "space-between",
-                        flexDirection: "row"
-                    }}>
-                        <View style={{
-                            marginLeft: 0,
-                            width: "75%",
-                            flexDirection: "row"
-                        }}>
-                            <TouchableOpacity onPress={() => close()}>
-                                <Ionicon name="chevron-back-outline" size={21} color={darkMode ? "white" : "black"} style={{
-                                    marginTop: Platform.OS == "android" ? 4 : 2.5
-                                }}></Ionicon>
-                            </TouchableOpacity>
-                            <Text style={{
-                                fontSize: 20,
-                                color: darkMode ? "white" : "black",
-                                marginLeft: 10
-                            }} numberOfLines={1}>{fileName}</Text>
-                        </View>
-                        {
-                            textEditorState == "edit" ? (
-                                <View style={{
-                                    alignItems: "flex-start",
-                                    flexDirection: "row"
-                                }}>
-                                    <TouchableOpacity onPress={() => save()}>
-                                        <Ionicon name="save-outline" size={21} color={darkMode ? "white" : "black"} style={{
-                                            marginTop: 5
-                                        }}></Ionicon>
-                                    </TouchableOpacity>
-                                </View>
-                            ) : (
-                                <View style={{
-                                    alignItems: "flex-start",
-                                    flexDirection: "row"
-                                }}>
-                                    <TouchableOpacity onPress={() => {
-                                        useStore.setState({
-                                            textEditorState: "edit",
-                                            textEditorParent: currentActionSheetItem.parent,
-                                            createTextFileDialogName: currentActionSheetItem.name
-                                        })
-                                    }}>
-                                        <Ionicon name="create-outline" size={21} color={darkMode ? "white" : "black"} style={{
-                                            marginTop: 5
-                                        }}></Ionicon>
-                                    </TouchableOpacity>
-                                </View>
-                            )
-                        }
-                    </View>
-                </View>
                 <TextInput
                     ref={inputRef}
                     value={value}
-                    onChangeText={(e) => setValue(e)}
+                    onChangeText={(e) => {
+                        setValue(e)
+                        setTextEditorState("edit")
+                    }}
+                    onFocus={() => {
+                        setTextEditorActive(true)
+                        setTextEditorState("edit")
+                        setTextEditorFocused(true)
+                    }}
+                    onBlur={() => {
+                        setTextEditorFocused(false)
+                    }}
                     multiline={true}
                     numberOfLines={10}
                     textAlign="left"
                     textAlignVertical="top"
-                    textContentType="name"
                     autoFocus={false}
                     autoCapitalize="none"
                     autoCorrect={false}
                     autoComplete="off"
                     spellCheck={false}
-                    focusable={textEditorState == "edit"}
-                    editable={textEditorState == "edit"}
                     keyboardType="default"
                     underlineColorAndroid="transparent"
                     placeholder={i18n(lang, "textEditorPlaceholder")}
+                    selection={textEditorActive ? undefined : { start: 0 }}
                     placeholderTextColor={darkMode ? "white" : "black"}
                     style={{
                         width: "100%",
@@ -228,10 +232,11 @@ export const TextEditorScreen = ({ navigation, route }) => {
                         backgroundColor: darkMode ? "black" : "white",
                         paddingLeft: 15,
                         paddingRight: 15,
-                        paddingTop: 10
+                        paddingTop: 10,
+                        paddingBottom: 0
                     }}
                 />
             </KeyboardAvoidingView>
         </View>
     )
-}
+})

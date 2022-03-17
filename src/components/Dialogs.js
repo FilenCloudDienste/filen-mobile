@@ -4,7 +4,7 @@ import { useStore } from "../lib/state"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { getParent, fileAndFolderNameValidation } from "../lib/helpers"
-import { createFolder, folderExists, fileExists, renameFile, renameFolder, deleteItemPermanently, removeSharedInItem, stopSharingItem, redeemCode, deleteAccount, disable2FA } from "../lib/api"
+import { createFolder, folderExists, fileExists, renameFile, renameFolder, deleteItemPermanently, removeSharedInItem, stopSharingItem, redeemCode, deleteAccount, disable2FA, bulkShare } from "../lib/api"
 import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Keyboard } from "react-native"
@@ -731,6 +731,78 @@ export const Disable2FATwoFactorDialog = memo(({ navigation }) => {
                     useStore.setState({ fullscreenLoadingModalVisible: false })
 
                     showToast({ message: i18n(lang, "twoFactorDisabledSuccess") })
+                }).catch((err) => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: err.toString() })
+                })
+            }} />
+        </Dialog.Container>
+    )
+})
+
+export const BulkShareDialog = memo(({ navigation }) => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const bulkShareDialogVisible = useStore(useCallback(state => state.bulkShareDialogVisible))
+    const setBulkShareDialogVisible = useStore(useCallback(state => state.setBulkShareDialogVisible))
+    const [value, setValue] = useState("")
+    const inputRef = useRef()
+    const [buttonsDisabled, setButtonsDisabled] = useState(false)
+    const [lang, setLang] = useMMKVString("lang", storage)
+    const currentBulkItems = useStore(useCallback(state => state.currentBulkItems))
+
+    useEffect(() => {
+        setButtonsDisabled(false)
+
+        if(!bulkShareDialogVisible){
+            setTimeout(() => {
+                setValue("")
+            }, 250)
+        }
+
+        if(bulkShareDialogVisible){
+            setTimeout(() => {
+                inputRef.current.focus()
+            }, 250)
+        }
+    }, [bulkShareDialogVisible])
+
+    return (
+        <Dialog.Container
+            visible={bulkShareDialogVisible}
+            useNativeDriver={false}
+            onRequestClose={() => setBulkShareDialogVisible(false)}
+            onBackdropPress={() => {
+                if(!buttonsDisabled){
+                    setBulkShareDialogVisible(false)
+                }
+            }}
+        >
+            <Dialog.Title>{i18n(lang, "shareSelectedItems")}</Dialog.Title>
+            <Dialog.Input placeholder={i18n(lang, "sharePlaceholder")} value={value} autoFocus={true} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
+            <Dialog.Button label={i18n(lang, "cancel")} disabled={buttonsDisabled} onPress={() => setBulkShareDialogVisible(false)} />
+            <Dialog.Button label={i18n(lang, "share")} disabled={buttonsDisabled} onPress={() => {
+                setButtonsDisabled(true)
+                setBulkShareDialogVisible(false)
+
+                Keyboard.dismiss()
+
+                useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                const email = value.trim()
+
+                if(email.length == 0){
+                    return false
+                }
+
+                bulkShare({ email, items: currentBulkItems }).then(() => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: i18n(lang, "sharedWithSuccessBulk", true, ["__EMAIL__", "__COUNT__"], [email, currentBulkItems.length]) })
                 }).catch((err) => {
                     setButtonsDisabled(false)
 

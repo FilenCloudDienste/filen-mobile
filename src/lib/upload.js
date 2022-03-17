@@ -1,4 +1,4 @@
-import { getUploadServer, getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getParent, getFileParentPath, getFileExt, canCompressThumbnail } from "./helpers"
+import { getUploadServer, getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileParentPath, getFileExt, canCompressThumbnail } from "./helpers"
 import RNFS from "react-native-fs"
 import { useStore } from "./state"
 import { fileExists, markUploadAsDone, archiveFile, checkIfItemParentIsShared } from "./api"
@@ -9,6 +9,7 @@ import { DeviceEventEmitter } from "react-native"
 import { getDownloadPath } from "./download"
 import { getThumbnailCacheKey } from "./services/items"
 import ImageResizer from "react-native-image-resizer"
+import striptags from "striptags"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -82,7 +83,20 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         versionedUUID: undefined
     }
 
-    const name = pickedFile.name
+    let generatedFileName = ""
+
+    if(pickedFile.name.indexOf(".") !== -1){
+		let fileNameEx = pickedFile.name.split(".")
+		let lowerCaseFileEnding = fileNameEx[fileNameEx.length - 1].toLowerCase()
+		
+		fileNameEx.pop()
+		
+		const fileNameWithLowerCaseEnding = fileNameEx.join(".") + "." + lowerCaseFileEnding
+
+        generatedFileName = striptags(fileNameWithLowerCaseEnding)
+	}
+
+    const name = generatedFileName
     const size = pickedFile.size
     const mime = pickedFile.type || ""
 

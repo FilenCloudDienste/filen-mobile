@@ -96,6 +96,10 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setContentHeight: (contentHeight) => set({ contentHeight }),
 	itemListLastScrollIndex: 0,
 	setItemListLastScrollIndex: (itemListLastScrollIndex) => set({ itemListLastScrollIndex }),
+	currentBulkItems: 0,
+	setCurrentBulkItems: (currentBulkItems) => set({ currentBulkItems }),
+	bulkShareDialogVisible: false,
+	setBulkShareDialogVisible: (bulkShareDialogVisible) => set({ bulkShareDialogVisible }),
 })))
 
 export const navigationAnimation = ({ enable = true }) => {

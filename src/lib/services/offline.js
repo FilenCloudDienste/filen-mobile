@@ -2,6 +2,7 @@ import { storage } from "../storage"
 import { getDownloadPath } from "../download"
 import RNFS from "react-native-fs"
 import { getFileExt } from "../helpers"
+import { DeviceEventEmitter } from "react-native"
 
 export const getOfflineList = () => {
     return new Promise((resolve, reject) => {
@@ -200,7 +201,7 @@ export const getItemOfflinePath = (offlinePath, item) => {
 }
 
 export const removeFromOfflineStorage = ({ item }) => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         getDownloadPath({ type: "offline" }).then(async (path) => {
             path = getItemOfflinePath(path, item)
 
@@ -213,7 +214,17 @@ export const removeFromOfflineStorage = ({ item }) => {
                 console.log(e)
             }
 
-            removeItemFromOfflineList({ item }).then(resolve).catch(reject)
+            removeItemFromOfflineList({ item }).then(() => {
+                DeviceEventEmitter.emit("event", {
+                    type: "mark-item-offline",
+                    data: {
+                        uuid: item.uuid,
+                        value: false
+                    }
+                })
+
+                return resolve()
+            }).catch(reject)
         }).catch(reject)
     })
 }

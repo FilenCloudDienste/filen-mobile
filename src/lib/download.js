@@ -80,6 +80,16 @@ export const getDownloadPath = ({ type = "temp" }) => {
                     return resolve(path + "/")
                 }).catch(reject)
             }
+            else if(type == "misc"){
+                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const path = root + "misc"
+
+                RNFS.mkdir(path).then(() => {
+                    cachedGetDownloadPath[cacheKey] = path + "/"
+
+                    return resolve(path + "/")
+                }).catch(reject)
+            }
             else if(type == "download"){
                 return resolve(RNFS.DownloadDirectoryPath + (RNFS.DownloadDirectoryPath.slice(-1) == "/" ? "" : "/"))
             }
@@ -89,7 +99,7 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 return resolve(RNFS.TemporaryDirectoryPath + (RNFS.TemporaryDirectoryPath.slice(-1) == "/" ? "" : "/"))
             }
             else if(type == "thumbnail"){
-                const root = RNFS.LibraryDirectoryPath + (RNFS.LibraryDirectoryPath.slice(-1) == "/" ? "" : "/") + "NoCloud/"
+                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
                 const path = root + "thumbnailCache"
 
                 RNFS.mkdir(path).then(() => {
@@ -99,8 +109,18 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 }).catch(reject)
             }
             else if(type == "offline"){
-                const root = RNFS.LibraryDirectoryPath + (RNFS.LibraryDirectoryPath.slice(-1) == "/" ? "" : "/") + "NoCloud/"
+                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
                 const path = root + "offlineFiles"
+
+                RNFS.mkdir(path).then(() => {
+                    cachedGetDownloadPath[cacheKey] = path + "/"
+
+                    return resolve(path + "/")
+                }).catch(reject)
+            }
+            else if(type == "misc"){
+                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const path = root + "misc"
 
                 RNFS.mkdir(path).then(() => {
                     cachedGetDownloadPath[cacheKey] = path + "/"

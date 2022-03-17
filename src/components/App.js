@@ -15,14 +15,14 @@ import { SetupScreen } from "./SetupScreen"
 import { BottomBar } from "./BottomBar"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { SettingsScreen } from "./SettingsScreen"
-import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet } from "./ActionSheets"
+import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet, ProfilePictureActionSheet } from "./ActionSheets"
 import { useStore } from "../lib/state"
 import { FullscreenLoadingModal } from "./Modals"
 import { enableScreens } from "react-native-screens"
 import { generateItemThumbnail } from "../lib/services/items"
 import { TransfersIndicator } from "./TransfersIndicator"
 import { TransfersScreen } from "./TransfersScreen"
-import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, ConfirmRemoveFromSharedInDialog, ConfirmStopSharingDialog, CreateTextFileDialog, RedeemCodeDialog, DeleteAccountTwoFactorDialog, Disable2FATwoFactorDialog } from "./Dialogs"
+import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, ConfirmRemoveFromSharedInDialog, ConfirmStopSharingDialog, CreateTextFileDialog, RedeemCodeDialog, DeleteAccountTwoFactorDialog, Disable2FATwoFactorDialog, BulkShareDialog } from "./Dialogs"
 import Toast from "react-native-toast-notifications"
 import { startBackgroundTimer, stopBackgroundTimer } from "../lib/background"
 import NetInfo from "@react-native-community/netinfo"
@@ -499,6 +499,7 @@ export const App = memo(() => {
                                             <PublicLinkActionSheet navigation={navigationRef} />
                                             <ShareActionSheet navigation={navigationRef} />
                                             <FileVersionsActionSheet navigation={navigationRef} />
+                                            <ProfilePictureActionSheet navigation={navigationRef} />
                                         </>
                                     )
                                 }
@@ -518,6 +519,7 @@ export const App = memo(() => {
                                 <CreateFolderDialog navigation={navigationRef} />
                                 <FullscreenLoadingModal navigation={navigationRef} />
                                 <CreateTextFileDialog navigation={navigationRef} />
+                                <BulkShareDialog navigation={navigationRef} />
                             </>
                         )
                     }

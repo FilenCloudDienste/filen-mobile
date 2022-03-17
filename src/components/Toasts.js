@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, memo } from "react"
-import { View, Text, Platform, TouchableOpacity } from "react-native"
+import { View, Text, Platform, TouchableOpacity, DeviceEventEmitter } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { useStore, navigationAnimation } from "../lib/state"
 import { getParent, getFilenameFromPath } from "../lib/helpers"
-import { moveFile, moveFolder, folderExists, fileExists } from "../lib/api"
+import { moveFile, moveFolder, folderExists, fileExists, bulkMove } from "../lib/api"
 import { i18n } from "../i18n/i18n"
 import { CommonActions } from "@react-navigation/native"
 import ReactNativeBlobUtil from "react-native-blob-util"
@@ -51,6 +51,24 @@ export const showToast = ({ type = "normal", message, swipeEnabled = false, dura
         hideAllToasts()
         
         var toastId = global.toast.show(<MoveToast message={message} />, {
+            type: "custom",
+            style: {
+                backgroundColor: darkMode ? "#171717" : "lightgray",
+                borderRadius: 10
+            },
+            swipeEnabled,
+            duration: 86400000,
+            animationType,
+            animationDuration,
+            placement
+        })
+
+        moveToastId = toastId
+    }
+    else if(type == "moveBulk"){
+        hideAllToasts()
+        
+        var toastId = global.toast.show(<MoveBulkToast message={message} />, {
             type: "custom",
             style: {
                 backgroundColor: darkMode ? "#171717" : "lightgray",
@@ -134,6 +152,12 @@ export const MoveToast = memo(({ message }) => {
     const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
+
+    useEffect(() => {
+        DeviceEventEmitter.emit("event", {
+            type: "unselect-all-items"
+        })
+    }, [])
 
     return (
         <View style={{
@@ -599,6 +623,123 @@ export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
                         color: darkMode ? "white" : "black"
                     }}>
                         {i18n(lang, "choose")}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    )
+})
+
+export const MoveBulkToast = memo(({ message }) => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
+    const [buttonsDisabled, setButtonsDisabled] = useState(false)
+    const [lang, setLang] = useMMKVString("lang", storage)
+    const currentBulkItems = useStore(useCallback(state => state.currentBulkItems))
+
+    useEffect(() => {
+        DeviceEventEmitter.emit("event", {
+            type: "unselect-all-items"
+        })
+    }, [])
+
+    return (
+        <View style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+            height: "100%",
+            zIndex: 99999
+        }}>
+            <View style={{
+                width: "50%"
+            }}>
+                <Text style={{
+                    color: "white"
+                }} numberOfLines={1}>
+                    {message}
+                </Text>
+            </View>
+            <View style={{
+                flexDirection: "row",
+                height: "100%"
+            }}>
+                <TouchableOpacity underlayColor={"transparent"} hitSlop={{
+                    right: 20,
+                    left: 20,
+                    top: 10,
+                    bottom: 10
+                }} style={{
+                    borderStartColor: "red",
+                    height: "100%"
+                }} onPress={() => {
+                    if(buttonsDisabled){
+                        return false
+                    }
+
+                    hideAllToasts()
+                }}>
+                    <Text style={{
+                        color: "white",
+                        fontWeight: "bold"
+                    }}>
+                        {i18n(lang, "cancel")}
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity underlayColor={"transparent"} hitSlop={{
+                    right: 20,
+                    left: 20,
+                    top: 10,
+                    bottom: 10
+                }} style={{
+                    marginLeft: 20
+                }} onPress={() => {
+                    if(buttonsDisabled){
+                        return false
+                    }
+
+                    if(currentBulkItems.length == 0){
+                        hideAllToasts()
+
+                        return false
+                    }
+
+                    const parent = getParent()
+
+                    if(parent.length <= 32 && currentBulkItems.filter(item => item.type == "file").length >= 1){
+                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+
+                        return false
+                    }
+
+                    if(currentActionSheetItem.parent == parent){
+                        showToast({ message: i18n(lang, "moveSameParentFolder") })
+
+                        return false
+                    }
+
+                    setButtonsDisabled(true)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                    bulkMove({ items: currentBulkItems, parent }).then(() => {
+                        setButtonsDisabled(false)
+
+                        useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                        hideAllToasts()
+
+                        showToast({ message: i18n(lang, "itemsMoved", true, ["__COUNT__"], [currentBulkItems.length]) })
+                    }).catch((err) => {
+                        console.log(err)
+
+                        showToast({ message: err.toString() })
+                    })
+                }}>
+                    <Text style={{
+                        color: "white"
+                    }}>
+                        {i18n(lang, "move")}
                     </Text>
                 </TouchableOpacity>
             </View>

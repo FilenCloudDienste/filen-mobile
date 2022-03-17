@@ -4,7 +4,7 @@ import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import FastImage from "react-native-fast-image"
-import { formatBytes } from "../lib/helpers"
+import { formatBytes, getFilenameFromPath, getAPIKey, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer } from "../lib/helpers"
 import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../lib/state"
@@ -12,7 +12,12 @@ import { useStore } from "../lib/state"
 import { showToast } from "./Toasts"
 import { getColor } from "../lib/style/colors"
 import { hasBiometricPermissions } from "../lib/permissions"
-import { updateUserUsage, updateUserInfo } from "../lib/user/info"
+import { updateUserInfo } from "../lib/user/info"
+import RNFS from "react-native-fs"
+import { getDownloadPath } from "../lib/download"
+import { hasStoragePermissions } from "../lib/permissions"
+import { launchImageLibrary } from "react-native-image-picker"
+import { SheetManager } from "react-native-actions-sheet"
 
 export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -119,10 +124,64 @@ export const SettingsHeader = memo(({ navigation, route, navigationEnabled = tru
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
     const [userInfo, setUserInfo] = useMMKVObject("userInfo:" + email, storage)
+    const [userAvatarCached, setUserAvatarCached] = useMMKVString("userAvatarCached:" + email, storage)
+
+    const cacheUserAvatar = useCallback(() => {
+        if(typeof userInfo !== "undefined"){
+            if(userInfo.avatarURL.indexOf("https://down.") !== -1){
+                const avatarName = getFilenameFromPath(userInfo.avatarURL)
+
+                if((userAvatarCached || "").indexOf(avatarName) == -1){
+                    hasStoragePermissions().then(() => {
+                        getDownloadPath({ type: "misc" }).then(async (path) => {
+                            const avatarPath = path + avatarName
+        
+                            try{
+                                if((await RNFS.exists(avatarPath))){
+                                    await RNFS.unlink(avatarPath)
+                                }
+                            }
+                            catch(e){
+                                //console.log(e)
+                            }
+        
+                            RNFS.downloadFile({
+                                fromUrl: userInfo.avatarURL,
+                                toFile: avatarPath
+                            }).promise.then(async () => {
+                                try{
+                                    if(typeof userAvatarCached == "string"){
+                                        if((await RNFS.exists(userAvatarCached))){
+                                            await RNFS.unlink(userAvatarCached)
+                                        }
+                                    }
+                                }
+                                catch(e){
+                                    //console.log(e)
+                                }
+
+                                setUserAvatarCached(avatarPath)
+                            }).catch((err) => {
+                                console.log(err)
+                            })
+                        }).catch((err) => {
+                            console.log(err)
+                        })
+                    }).catch((err) => {
+                        console.log(err)
+                    })
+                }
+            }
+        }
+    })
 
     useEffect(() => {
         updateUserInfo()
     }, [])
+
+    useEffect(() => {
+        cacheUserAvatar()
+    }, [userInfo])
 
     return (
         <Pressable style={{
@@ -153,9 +212,9 @@ export const SettingsHeader = memo(({ navigation, route, navigationEnabled = tru
                     return showToast({ message: i18n(lang, "deviceOffline") })
                 }
                 
-                console.log("change avatar")
+                SheetManager.show("ProfilePictureActionSheet")
             }}>
-                <FastImage source={typeof userInfo !== "undefined" && userInfo.avatarURL.indexOf("https://down.") !== -1 ? { uri: userInfo.avatarURL } : require("../assets/images/appstore.png")} style={{
+                <FastImage source={typeof userAvatarCached == "string" && userAvatarCached.length > 4 ? ({ uri: (userAvatarCached.indexOf("file://") == -1 ? "file://" + userAvatarCached : userAvatarCached) }) : (typeof userInfo !== "undefined" && userInfo.avatarURL.indexOf("https://down.") !== -1 ? { uri: userInfo.avatarURL } : require("../assets/images/appstore.png"))} style={{
                     width: 50,
                     height: 50,
                     borderRadius: 50

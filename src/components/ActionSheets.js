@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef, memo } from "react"
-import { View, Text, ScrollView, TouchableHighlight, DeviceEventEmitter, Platform, ActivityIndicator, Switch, TextInput, TouchableOpacity, Share } from "react-native"
+import { View, Text, ScrollView, TouchableHighlight, DeviceEventEmitter, Platform, ActivityIndicator, Switch, TextInput, TouchableOpacity, Share, Alert } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -11,14 +11,14 @@ import { pickMultiple } from "react-native-document-picker"
 import { launchCamera, launchImageLibrary } from "react-native-image-picker"
 import { useStore } from "../lib/state"
 import { queueFileDownload, downloadWholeFileFSStream } from "../lib/download"
-import { getFileExt, getFolderColor, formatBytes, getAvailableFolderColors, getMasterKeys, decryptFolderLinkKey, getParent, getRouteURL, decryptFileMetadata, getFilePreviewType, calcPhotosGridSize } from "../lib/helpers"
+import { getFileExt, getFolderColor, formatBytes, getAvailableFolderColors, getMasterKeys, decryptFolderLinkKey, getParent, getRouteURL, decryptFileMetadata, getFilePreviewType, calcPhotosGridSize, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey } from "../lib/helpers"
 import { queueFileUpload } from "../lib/upload"
 import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import CameraRoll from "@react-native-community/cameraroll"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../lib/permissions"
-import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink, getPublicKeyFromEmail, shareItemToUser, trashItem, restoreItem, fileExists, folderExists, fetchFileVersionData, restoreArchivedFile } from "../lib/api"
+import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink, getPublicKeyFromEmail, shareItemToUser, trashItem, restoreItem, fileExists, folderExists, fetchFileVersionData, restoreArchivedFile, bulkFavorite, bulkTrash, bulkDeletePermanently, bulkRestore, bulkStopSharing, bulkRemoveSharedIn } from "../lib/api"
 import Clipboard from "@react-native-clipboard/clipboard"
 import { previewItem } from "../lib/services/items"
 import { removeFromOfflineStorage } from "../lib/services/offline"
@@ -26,6 +26,7 @@ import RNFS from "react-native-fs"
 import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../lib/style/colors"
 import { navigationAnimation } from "../lib/state"
+import { updateUserInfo } from "../lib/user/info"
 
 export const ActionButton = memo(({ onPress, icon, text, color }) => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -120,6 +121,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 											maxHeight: 999999999,
 											videoQuality: "high",
 											cameraType: "back",
+											quality: 1,
 											includeBase64: false,
 											includeExtra: true,
 											saveToPhotos: false
@@ -161,35 +163,51 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 										await SheetManager.hide("BottomBarAddActionSheet")
 		
 										setTimeout(() => {
-											launchImageLibrary({
-												mediaType: "mixed",
-												selectionLimit: 0,
-												includeBase64: false,
-												includeExtra: true
-											}).then((response) => {
-												const parent = getParent()
-
-												if(parent.length < 16){
-													return false
-												}
-
-												if(typeof response.assets !== "undefined"){
-													for(let i = 0; i < response.assets.length; i++){
-														if(typeof response.assets[i].fileName == "string" && typeof response.assets[i].uri == "string" && typeof response.assets[i].timestamp == "string"){
-															queueFileUpload({
-																pickedFile: {
-																	name: i18n(lang, "photo") + "_" + new Date(response.assets[i].timestamp).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(response.assets[i].fileName),
-																	size: response.assets[i].fileSize,
-																	type: response.assets[i].type,
-																	uri: response.assets[i].uri
-																},
-																parent
-															})
+											hasPhotoLibraryPermissions().then(() => {
+												hasStoragePermissions().then(() => {
+													launchImageLibrary({
+														mediaType: "mixed",
+														selectionLimit: 0,
+														includeBase64: false,
+														includeExtra: true,
+														quality: 1,
+														videoQuality: "high",
+														maxWidth: 999999999,
+														maxHeight: 999999999
+													}).then((response) => {
+														const parent = getParent()
+		
+														if(parent.length < 16){
+															return false
 														}
-													}
-												}
+		
+														if(typeof response.assets !== "undefined"){
+															for(let i = 0; i < response.assets.length; i++){
+																if(typeof response.assets[i].fileName == "string" && typeof response.assets[i].uri == "string" && typeof response.assets[i].timestamp == "string"){
+																	queueFileUpload({
+																		pickedFile: {
+																			name: i18n(lang, "photo") + "_" + new Date(response.assets[i].timestamp).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(response.assets[i].fileName),
+																			size: response.assets[i].fileSize,
+																			type: response.assets[i].type,
+																			uri: response.assets[i].uri
+																		},
+																		parent
+																	})
+																}
+															}
+														}
+													}).catch((err) => {
+														console.log(err)
+													})
+												}).catch((err) => {
+													console.log(err)
+
+													showToast({ message: err.toString() })
+												})
 											}).catch((err) => {
 												console.log(err)
+
+												showToast({ message: err.toString() })
 											})
 										}, 500)
 									}} icon="image-outline" text={i18n(lang, "uploadFromGallery")} />
@@ -199,32 +217,38 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 								await SheetManager.hide("BottomBarAddActionSheet")
 
 								setTimeout(() => {
-									pickMultiple({
-										allowMultiSelection: true,
-										copyTo: "cachesDirectory"
-									}).then((response) => {
-										const parent = getParent()
-
-										if(parent.length < 16){
-											return false
-										}
-
-										for(let i = 0; i < response.length; i++){
-											if(typeof response[i].name == "string" && typeof response[i].uri == "string"){
-												queueFileUpload({
-													pickedFile: {
-														name: response[i].name,
-														size: response[i].size,
-														type: response[i].type,
-														uri: "file:///" + response[i].fileCopyUri.replace("file:/", "").replace("file://", "").replace("file:", ""),
-														clearCache: true
-													},
-													parent
-												})
+									hasStoragePermissions().then(() => {
+										pickMultiple({
+											allowMultiSelection: true,
+											copyTo: "cachesDirectory"
+										}).then((response) => {
+											const parent = getParent()
+	
+											if(parent.length < 16){
+												return false
 											}
-										}
+	
+											for(let i = 0; i < response.length; i++){
+												if(typeof response[i].name == "string" && typeof response[i].uri == "string"){
+													queueFileUpload({
+														pickedFile: {
+															name: response[i].name,
+															size: response[i].size,
+															type: response[i].type,
+															uri: "file:///" + response[i].fileCopyUri.replace("file:/", "").replace("file://", "").replace("file:", ""),
+															clearCache: true
+														},
+														parent
+													})
+												}
+											}
+										}).catch((err) => {
+											console.log(err)
+										})
 									}).catch((err) => {
 										console.log(err)
+
+										showToast({ message: err.toString() })
 									})
 								}, 500)
 							}} icon="cloud-upload-outline" text={i18n(lang, "uploadFiles")} />
@@ -248,20 +272,155 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 	const [canShowSelectAllItems, setCanShowSelectAllItems] = useState(false)
 	const [canShowUnselectAllItems, setCanShowUnselectAllItems] = useState(false)
 	const [canShowTransfersButton, setCanShowTransfersButton] = useState(false)
+	const itemsSelectedCount = useStore(useCallback(state => state.itemsSelectedCount))
+	const [canShowBulkItemsActions, setCanShowBulkItemsActions] = useState(false)
+	const [canShowMoveItems, setCanShowMoveItems] = useState(false)
+	const currentItems = useStore(useCallback(state => state.currentItems))
+	const [canShowSaveToGallery, setCanShowSaveToGallery] = useState(false)
+	const [canShowShare, setCanShowShare] = useState(false)
+	const [canShowTrash, setCanShowTrash] = useState(false)
+	const [canShowRemoveOffline, setCanShowRemoveOffline] = useState(false)
+	const [canShowRemoveFavorite, setCanShowRemoveFavorite] = useState(false)
+	const setCurrentBulkItems = useStore(useCallback(state => state.setCurrentBulkItems))
+	const setBulkShareDialogVisible = useStore(useCallback(state => state.setBulkShareDialogVisible))
+	const [canShowAddFavorite, setCanShowAddFavorite] = useState(false)
+	const [canShowRemoveSharedIn, setCanShowRemoveSharedIn] = useState(false)
+	const [canShowStopSharing, setCanShowStopSharing] = useState(false)
+
+	const maxBulkActionsItemsCount = 100
+	const minBulkActionsItemCount = 2
+
+	const doesSelectedItemsContainOfflineStoredItems = useCallback(() => {
+		if(!Array.isArray(currentItems)){
+			return false
+		}
+
+		return currentItems.filter(item => item.offline && item.selected).length > 0 ? true : false
+	})
+
+	const doesSelectedItemsContainFavoritedItems = useCallback(() => {
+		if(!Array.isArray(currentItems)){
+			return false
+		}
+
+		return currentItems.filter(item => item.favorited && item.selected).length > 0 ? true : false
+
+		return false
+	})
+
+	const doesSelectedItemsContainUnmovableItems = useCallback(() => {
+		if(!Array.isArray(currentItems)){
+			return false
+		}
+
+		return currentItems.filter(item => (item.isDefault || item.isSync) && item.selected).length > 0 ? true : false
+	})
+
+	const doesSelecteditemsContainGallerySaveableItems = useCallback(() => {
+		if(!Array.isArray(currentItems)){
+			return false
+		}
+
+		let extArray = []
+
+		if(Platform.OS == "ios"){
+			extArray = ["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"]
+		}
+		else{
+			extArray = ["jpg", "jpeg", "png", "gif", "mov", "mp4"]
+		}
+
+		return currentItems.filter(item => item.selected && extArray.includes(getFileExt(item.name))).length > 0 ? true : false
+	})
+
+	const updateBulkItems = useCallback(() => {
+		const bulkItems = []
+
+		for(let i = 0; i < currentItems.length; i++){
+			if(currentItems[i].selected){
+				bulkItems.push(currentItems[i])
+			}
+		}
+
+		setCurrentBulkItems(bulkItems)
+
+		return bulkItems
+	})
 
 	const can = useCallback(() => {
 		setCanShowTransfersButton(true)
 		setCanShowSelectAllItems(true)
 		setCanShowUnselectAllItems(true)
 		setCanShowListViewStyle(true)
+		setCanShowBulkItemsActions(true)
+		setCanShowMoveItems(true)
+		setCanShowSaveToGallery(true)
+		setCanShowShare(true)
+		setCanShowTrash(true)
+		setCanShowRemoveOffline(true)
+		setCanShowRemoveFavorite(true)
+		setCanShowAddFavorite(true)
+		setCanShowRemoveSharedIn(true)
+		setCanShowStopSharing(true)
 
 		if(routeURL.indexOf("photos") !== -1){
 			setCanShowListViewStyle(false)
+			setCanShowMoveItems(false)
 
 			if(calcPhotosGridSize(photosGridSize) >= 6){
 				setCanShowSelectAllItems(false)
 				setCanShowUnselectAllItems(false)
 			}
+		}
+
+		if(routeURL.indexOf("transfers") !== -1){
+			setCanShowBulkItemsActions(false)
+		}
+
+		if(routeURL.indexOf("settings") !== -1){
+			setCanShowBulkItemsActions(false)
+		}
+
+		if(doesSelecteditemsContainGallerySaveableItems()){
+			setCanShowSaveToGallery(true)
+		}
+		else{
+			setCanShowSaveToGallery(false)
+		}
+
+		if(doesSelectedItemsContainOfflineStoredItems()){
+			setCanShowRemoveOffline(true)
+		}
+		else{
+			setCanShowRemoveOffline(false)
+		}
+
+		if(doesSelectedItemsContainFavoritedItems()){
+			setCanShowRemoveFavorite(true)
+		}
+		else{
+			setCanShowRemoveFavorite(false)
+		}
+
+		if(doesSelectedItemsContainUnmovableItems()){
+			setCanShowMoveItems(false)
+		}
+
+		if(routeURL.indexOf("shared-in") !== -1){
+			setCanShowShare(false)
+			setCanShowTrash(false)
+			setCanShowMoveItems(false)
+			setCanShowRemoveOffline(false)
+			setCanShowRemoveFavorite(false)
+			setCanShowAddFavorite(false)
+		}
+
+		if(routeURL.indexOf("shared-in") == -1){
+			setCanShowRemoveSharedIn(false)
+		}
+
+		if(routeURL.indexOf("shared-out") == -1){
+			setCanShowStopSharing(false)
 		}
 	})
 
@@ -280,6 +439,10 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 	useEffect(() => {
 		can()
 	}, [routeURL])
+
+	useEffect(() => {
+		can()
+	}, [currentItems])
 
 	useEffect(() => {
 		updateRouteURL()
@@ -307,7 +470,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 				{
 					canShowSelectAllItems && (
 						<ActionButton onPress={async () => {
-							await SheetManager.hide("TopBarActionSheet")
+							//await SheetManager.hide("TopBarActionSheet")
 		
 							DeviceEventEmitter.emit("event", {
 								type: "select-all-items"
@@ -326,17 +489,363 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 						}} icon="remove-outline" text={i18n(lang, "unselectAll")} />
 					)
 				}
+				<>
+					{
+						routeURL.indexOf("trash") !== -1 && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount ? (
+							<>
+								<ActionButton onPress={async () => {
+									await SheetManager.hide("TopBarActionSheet")
+				
+									useStore.setState({ fullscreenLoadingModalVisible: true })
+
+									const items = updateBulkItems()
+
+									bulkRestore({ items }).then(() => {
+										useStore.setState({ fullscreenLoadingModalVisible: false })
+
+										showToast({ message: i18n(lang, "restoreSelectedItemsSuccess", true, ["__COUNT__"], [items.length]) })
+									}).catch((err) => {
+										console.log(err)
+
+										useStore.setState({ fullscreenLoadingModalVisible: false })
+
+										showToast({ message: err.toString() })
+									})
+								}} icon="refresh-outline" text={i18n(lang, "restore")} />
+								<ActionButton onPress={async () => {
+									await SheetManager.hide("TopBarActionSheet")
+				
+									Alert.alert(i18n(lang, "deleteSelectedItemsPermanently"), i18n(lang, "deleteSelectedItemsPermanentlyWarning"), [
+										{
+											text: i18n(lang, "cancel"),
+											onPress: () => {
+												return false
+											},
+											style: "cancel"
+										},
+										{
+											text: i18n(lang, "ok"),
+											onPress: () => {
+												useStore.setState({ fullscreenLoadingModalVisible: true })
+
+												const items = updateBulkItems()
+
+												bulkDeletePermanently({ items }).then(() => {
+													useStore.setState({ fullscreenLoadingModalVisible: false })
+
+													showToast({ message: i18n(lang, "deleteSelectedItemsPermanentlySuccess", true, ["__COUNT__"], [items.length]) })
+												}).catch((err) => {
+													console.log(err)
+
+													useStore.setState({ fullscreenLoadingModalVisible: false })
+
+													showToast({ message: err.toString() })
+												})
+											},
+											style: "default"
+										}
+									], {
+										cancelable: true
+									})
+								}} icon="close-circle-outline" text={i18n(lang, "deletePermanently")} />
+							</>
+						) : (
+							<>
+								{
+									canShowBulkItemsActions && canShowShare && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+						
+											updateBulkItems()
+
+											setBulkShareDialogVisible(true)
+										}} icon="share-social-outline" text={i18n(lang, "share")} />
+									)
+								}
+								{
+									routeURL.indexOf("recents") == -1 && canShowBulkItemsActions && canShowMoveItems && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+
+											updateBulkItems()
+						
+											showToast({ type: "moveBulk", message: i18n(lang, "moveItems") })
+										}} icon="move-outline" text={i18n(lang, "move")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && canShowAddFavorite && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+
+											useStore.setState({ fullscreenLoadingModalVisible: true })
+
+											bulkFavorite({ value: 1, items: updateBulkItems() }).then(() => {
+												useStore.setState({ fullscreenLoadingModalVisible: false })
+
+												showToast({ message: i18n(lang, "selectedItemsMarkedAsFavorite") })
+											}).catch((err) => {
+												console.log(err)
+
+												useStore.setState({ fullscreenLoadingModalVisible: false })
+
+												showToast({ message: toString() })
+											})
+										}} icon="heart" text={i18n(lang, "favorite")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && canShowRemoveFavorite && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+
+											useStore.setState({ fullscreenLoadingModalVisible: true })
+
+											bulkFavorite({ value: 0, items: updateBulkItems() }).then(() => {
+												useStore.setState({ fullscreenLoadingModalVisible: false })
+
+												showToast({ message: i18n(lang, "selectedItemsRemovedAsFavorite") })
+											}).catch((err) => {
+												console.log(err)
+
+												useStore.setState({ fullscreenLoadingModalVisible: false })
+
+												showToast({ message: toString() })
+											})
+										}} icon="heart-outline" text={i18n(lang, "unfavorite")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && canShowSaveToGallery && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+						
+											useStore.setState({ fullscreenLoadingModalVisible: false })
+
+											hasStoragePermissions().then(() => {
+												hasPhotoLibraryPermissions().then(async () => {
+													let extArray = []
+
+													if(Platform.OS == "ios"){
+														extArray = ["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"]
+													}
+													else{
+														extArray = ["jpg", "jpeg", "png", "gif", "mov", "mp4"]
+													}
+
+													updateBulkItems().forEach((item) => {
+														if(extArray.includes(getFileExt(item.name))){
+															queueFileDownload({
+																file: item,
+																saveToGalleryCallback: (path) => {
+																	CameraRoll.save(path).then(() => {
+																		showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
+																	}).catch((err) => {
+																		console.log(err)
+				
+																		showToast({ message: err.toString() })
+																	})
+																}
+															})
+														}
+													})
+												}).catch((err) => {
+													console.log(err)
+
+													showToast({ message: err.toString() })
+												})
+											}).catch((err) => {
+												console.log(err)
+
+												showToast({ message: err.toString() })
+											})
+										}} icon="image-outline" text={i18n(lang, "saveToGallery")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+						
+											hasStoragePermissions().then(() => {
+												updateBulkItems().forEach((item) => {
+													if(!item.offline){
+														queueFileDownload({ file: item, storeOffline: true })
+													}
+												})
+											}).catch((err) => {
+												console.log(err)
+
+												showToast({ message: err.toString() })
+											})
+										}} icon="save-outline" text={i18n(lang, "makeAvailableOffline")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && canShowRemoveOffline && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+						
+											hasStoragePermissions().then(() => {
+												updateBulkItems().forEach((item) => {
+													if(item.offline){
+														removeFromOfflineStorage({ item }).then(() => {
+															showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [item.name]) })
+														}).catch((err) => {
+															console.log(err)
+			
+															showToast({ message: err.toString() })
+														})
+													}
+												})
+											}).catch((err) => {
+												console.log(err)
+
+												showToast({ message: err.toString() })
+											})
+										}} icon="close-circle-outline" text={i18n(lang, "removeFromOfflineStorage")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+						
+											hasStoragePermissions().then(() => {
+												updateBulkItems().forEach((item) => {
+													queueFileDownload({ file: item })
+												})
+											}).catch((err) => {
+												console.log(err)
+
+												showToast({ message: err.toString() })
+											})
+										}} icon="download-outline" text={i18n(lang, "download")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && canShowTrash && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+
+											useStore.setState({ fullscreenLoadingModalVisible: true })
+
+											bulkTrash({ items: updateBulkItems() }).then(() => {
+												useStore.setState({ fullscreenLoadingModalVisible: false })
+
+												DeviceEventEmitter.emit("event", {
+													type: "unselect-all-items"
+												})
+
+												showToast({ message: i18n(lang, "selectedItemsTrashed") })
+											}).catch((err) => {
+												console.log(err)
+
+												useStore.setState({ fullscreenLoadingModalVisible: false })
+
+												showToast({ message: toString() })
+											})
+										}} icon="trash-outline" text={i18n(lang, "trash")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && canShowStopSharing && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+
+											const items = updateBulkItems()
+
+											Alert.alert(i18n(lang, "stopSharing"), i18n(lang, "bulkStopSharingWarning", true, ["__COUNT__"], [items.length]), [
+												{
+													text: i18n(lang, "cancel"),
+													onPress: () => {
+														return false
+													},
+													style: "cancel"
+												},
+												{
+													text: i18n(lang, "ok"),
+													onPress: () => {
+														useStore.setState({ fullscreenLoadingModalVisible: true })
+
+														bulkStopSharing({ items }).then(() => {
+															useStore.setState({ fullscreenLoadingModalVisible: false })
+
+															DeviceEventEmitter.emit("event", {
+																type: "unselect-all-items"
+															})
+
+															showToast({ message: i18n(lang, "stoppedSharingSelectedItems", true, ["__COUNT__"], [items.length]) })
+														}).catch((err) => {
+															console.log(err)
+
+															useStore.setState({ fullscreenLoadingModalVisible: false })
+
+															showToast({ message: toString() })
+														})
+													},
+													style: "default"
+												}
+											], {
+												cancelable: true
+											})
+										}} icon="close-circle-outline" text={i18n(lang, "stopSharing")} />
+									)
+								}
+								{
+									canShowBulkItemsActions && canShowRemoveSharedIn && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+										<ActionButton onPress={async () => {
+											await SheetManager.hide("TopBarActionSheet")
+
+											const items = updateBulkItems()
+
+											Alert.alert(i18n(lang, "stopSharing"), i18n(lang, "bulkRemoveSharedInWarning", true, ["__COUNT__"], [items.length]), [
+												{
+													text: i18n(lang, "cancel"),
+													onPress: () => {
+														return false
+													},
+													style: "cancel"
+												},
+												{
+													text: i18n(lang, "ok"),
+													onPress: () => {
+														useStore.setState({ fullscreenLoadingModalVisible: true })
+
+														bulkRemoveSharedIn({ items }).then(() => {
+															useStore.setState({ fullscreenLoadingModalVisible: false })
+
+															DeviceEventEmitter.emit("event", {
+																type: "unselect-all-items"
+															})
+
+															showToast({ message: i18n(lang, "bulkRemoveSharedInSuccess", true, ["__COUNT__"], [items.length]) })
+														}).catch((err) => {
+															console.log(err)
+
+															useStore.setState({ fullscreenLoadingModalVisible: false })
+
+															showToast({ message: toString() })
+														})
+													},
+													style: "default"
+												}
+											], {
+												cancelable: true
+											})
+										}} icon="close-circle-outline" text={i18n(lang, "remove")} />
+									)
+								}
+							</>
+						)
+					}
+				</>
 				{
 					canShowListViewStyle && (
 						<ActionButton onPress={async () => {
 							await SheetManager.hide("TopBarActionSheet")
-		
-							if(itemViewMode !== "grid"){
-								setItemViewMode("grid")
-							}
-							else{
-								setItemViewMode("list")
-							}
+
+							setItemViewMode(itemViewMode !== "grid" ? "grid" : "list")
 						}} icon={itemViewMode !== "grid" ? "grid-outline" : "list-outline"} text={itemViewMode !== "grid" ? i18n(lang, "gridView") : i18n(lang, "listView")} />
 					)
 				}
@@ -630,7 +1139,6 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 													queueFileDownload({
 														file: currentActionSheetItem,
 														saveToGalleryCallback: (path) => {
-	
 															CameraRoll.save(path).then(() => {
 																showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
 															}).catch((err) => {
@@ -710,15 +1218,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 											await SheetManager.hide("ItemActionSheet")
 		
 											hasStoragePermissions().then(() => {
-												removeFromOfflineStorage({ item: currentActionSheetItem }).then(async () => {
-													DeviceEventEmitter.emit("event", {
-														type: "mark-item-offline",
-														data: {
-															uuid: currentActionSheetItem.uuid,
-															value: false
-														}
-													})
-
+												removeFromOfflineStorage({ item: currentActionSheetItem }).then(() => {
 													showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
 												}).catch((err) => {
 													console.log(err)
@@ -1958,6 +2458,163 @@ export const FileVersionsActionSheet = memo(({ navigation, route }) => {
 					)
 				}
           	</View>
+        </ActionSheet>
+    )
+})
+
+export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+	const insets = useSafeAreaInsets()
+	const [lang, setLang] = useMMKVString("lang", storage)
+
+	const uploadAvatarImage = useCallback((base64) => {
+		useStore.setState({ fullscreenLoadingModalVisible: true })
+
+		const binaryString = convertUint8ArrayToBinaryString(base64ToArrayBuffer(base64))
+
+		if(typeof binaryString !== "string"){
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+
+			return showToast({ message: i18n(lang, "avatarInvalidImage") })
+		}
+
+		if(binaryString.length > ((1024 * 1024) * 2.99)){
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+
+			return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
+		}
+				
+		fetch(getAPIServer() + "/v1/user/avatar/upload/" + getAPIKey(), {
+			method: "POST",
+			body: binaryString
+		}).then((response) => {
+			response.json().then((json) => {
+				useStore.setState({ fullscreenLoadingModalVisible: false })
+
+				if(!json.status){
+					return showToast({ message: response.message })
+				}
+
+				updateUserInfo()
+
+				showToast({ message: i18n(lang, "avatarUploaded") })
+			}).catch((err) => {
+				console.log(err)
+
+				useStore.setState({ fullscreenLoadingModalVisible: false })
+
+				showToast({ message: err.toString() })
+			})
+		}).catch((err) => {
+			console.log(err)
+
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+
+			showToast({ message: err.toString() })
+		})
+	})
+
+    return (
+        <ActionSheet id="ProfilePictureActionSheet" gestureEnabled={true} containerStyle={{
+			backgroundColor: darkMode ? "#171717" : "white",
+			borderTopLeftRadius: 15,
+			borderTopRightRadius: 15
+		}} indicatorStyle={{
+			display: "none"
+		}}>
+          	<View style={{
+				paddingBottom: (insets.bottom + 25)
+			}}>
+				<ActionSheetIndicator />
+				<View style={{ height: 15 }}></View>
+				<ActionButton onPress={async () => {
+					await SheetManager.hide("ProfilePictureActionSheet")
+
+					setTimeout(() => {
+						hasCameraPermissions().then(() => {
+							launchCamera({
+								maxWidth: 999999999,
+								maxHeight: 999999999,
+								videoQuality: "low",
+								cameraType: "back",
+								quality: 0.2,
+								includeBase64: true,
+								includeExtra: false,
+								saveToPhotos: false,
+								mediaType: "photo"
+							}).then((response) => {
+								if(typeof response.assets == "undefined"){
+									return false
+								}
+			
+								if(!Array.isArray(response.assets)){
+									return false
+								}
+			
+								if(typeof response.assets[0] == "undefined"){
+									return false
+								}
+			
+								const image = response.assets[0]
+
+								uploadAvatarImage(image.base64)
+							}).catch((err) => {
+								console.log(err)
+							})
+						}).catch((err) => {
+							console.log(err)
+
+							showToast({ message: err.toString() })
+						})
+					}, 500)
+				}} icon="camera-outline" text={i18n(lang, "takePhotoAndUpload")} />
+				<ActionButton onPress={async () => {
+					await SheetManager.hide("ProfilePictureActionSheet")
+
+					setTimeout(() => {
+						hasPhotoLibraryPermissions().then(() => {
+							hasStoragePermissions().then(() => {
+								launchImageLibrary({
+									mediaType: "photo",
+									selectionLimit: 1,
+									includeBase64: true,
+									includeExtra: true,
+									quality: 0.8,
+									videoQuality: "low",
+									maxWidth: 999999999,
+									maxHeight: 999999999
+								}).then((response) => {
+									if(typeof response.assets == "undefined"){
+										return false
+									}
+				
+									if(!Array.isArray(response.assets)){
+										return false
+									}
+				
+									if(typeof response.assets[0] == "undefined"){
+										return false
+									}
+				
+									const image = response.assets[0]
+				
+									uploadAvatarImage(image.base64)
+								}).catch((err) => {
+									console.log(err)
+								})
+							}).catch((err) => {
+								console.log(err)
+
+								showToast({ message: err.toString() })
+							})
+						}).catch((err) => {
+							console.log(err)
+
+							showToast({ message: err.toString() })
+						})
+					}, 500)
+				}} icon="image-outline" text={i18n(lang, "uploadFromGallery")} />
+			</View>
         </ActionSheet>
     )
 })

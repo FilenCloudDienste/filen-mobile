@@ -113,23 +113,11 @@ export const SettingsAdvancedScreen = memo(({ navigation, route }) => {
                                             onPress: async () => {
                                                 useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                                                let keys = []
-
-                                                try{
-                                                    keys = storage.getAllKeys()
-                                                }
-                                                catch(e){
-                                                    console.log(e)
-                                                }
+                                                const keys = storage.getAllKeys()
             
                                                 for(let i = 0; i < keys.length; i++){
                                                     if(keys[i].indexOf("thumbnailCache:") !== -1){
-                                                        try{
-                                                            storage.delete(keys[i])
-                                                        }
-                                                        catch(e){
-                                                            console.log(e)
-                                                        }
+                                                        storage.delete(keys[i])
                                                     }
                                                 }
 

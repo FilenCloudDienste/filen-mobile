@@ -7,12 +7,12 @@ export const hasWritePermissions = () => {
     return new Promise((resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE).then((status) => {
-                if([RESULTS.GRANTED, RESULTS.LIMITED].includes(status)){
+                if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
                 }
 
                 request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE).then((requestStatus) => {
-                    if([RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatus)){
+                    if([RESULTS.GRANTED].includes(requestStatus)){
                         return resolve(true)
                     }
 
@@ -30,12 +30,12 @@ export const hasReadPermissions = () => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE).then((status) => {
-                if([RESULTS.GRANTED, RESULTS.LIMITED].includes(status)){
+                if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
                 }
 
                 request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE).then((requestStatus) => {
-                    if([RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatus)){
+                    if([RESULTS.GRANTED].includes(requestStatus)){
                         return resolve(true)
                     }
 
@@ -52,13 +52,13 @@ export const hasReadPermissions = () => {
 export const hasCameraPermissions = () => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
-            check([PERMISSIONS.ANDROID.CAMERA, PERMISSIONS.ANDROID.RECORD_AUDIO]).then((statuses) => {
-                if([RESULTS.GRANTED, RESULTS.LIMITED].includes(statuses[PERMISSIONS.ANDROID.CAMERA]) && [RESULTS.GRANTED, RESULTS.LIMITED].includes(statuses[PERMISSIONS.ANDROID.RECORD_AUDIO])){
+            check(PERMISSIONS.ANDROID.CAMERA).then((status) => {
+                if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
                 }
 
-                requestMultiple([PERMISSIONS.ANDROID.CAMERA, PERMISSIONS.ANDROID.RECORD_AUDIO]).then((requestStatuses) => {
-                    if([RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatuses[PERMISSIONS.ANDROID.CAMERA]) && [RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatuses[PERMISSIONS.ANDROID.RECORD_AUDIO])){
+                request(PERMISSIONS.ANDROID.CAMERA).then((requestStatus) => {
+                    if([RESULTS.GRANTED].includes(requestStatus)){
                         return resolve(true)
                     }
 
@@ -67,13 +67,13 @@ export const hasCameraPermissions = () => {
             }).catch(reject)
         }
         else{
-            check([PERMISSIONS.IOS.CAMERA, PERMISSIONS.IOS.MICROPHONE]).then((statuses) => {
-                if([RESULTS.GRANTED, RESULTS.LIMITED].includes(statuses[PERMISSIONS.IOS.CAMERA]) && [RESULTS.GRANTED, RESULTS.LIMITED].includes(statuses[PERMISSIONS.IOS.MICROPHONE])){
+            check(PERMISSIONS.IOS.CAMERA).then((status) => {
+                if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
                 }
 
-                requestMultiple([PERMISSIONS.IOS.CAMERA, PERMISSIONS.IOS.RECORD_AUDIO]).then((requestStatuses) => {
-                    if([RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatuses[PERMISSIONS.IOS.CAMERA]) && [RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatuses[PERMISSIONS.IOS.MICROPHONE])){
+                request(PERMISSIONS.IOS.CAMERA).then((requestStatus) => {
+                    if([RESULTS.GRANTED].includes(requestStatus)){
                         return resolve(true)
                     }
 
@@ -91,12 +91,12 @@ export const hasBiometricPermissions = () => {
         }
         else{
             check(PERMISSIONS.IOS.FACE_ID).then((status) => {
-                if([RESULTS.GRANTED, RESULTS.LIMITED].includes(status)){
+                if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
                 }
 
                 request(PERMISSIONS.IOS.FACE_ID).then((requestStatus) => {
-                    if([RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatus)){
+                    if([RESULTS.GRANTED].includes(requestStatus)){
                         return resolve(true)
                     }
 
@@ -114,12 +114,12 @@ export const hasPhotoLibraryPermissions = () => {
         }
         else{
             check([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((statuses) => {
-                if([RESULTS.GRANTED, RESULTS.LIMITED].includes(statuses[PERMISSIONS.IOS.PHOTO_LIBRARY]) && [RESULTS.GRANTED, RESULTS.LIMITED].includes(statuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY])){
+                if([RESULTS.GRANTED].includes(statuses[PERMISSIONS.IOS.PHOTO_LIBRARY]) && [RESULTS.GRANTED].includes(statuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY])){
                     return resolve(true)
                 }
 
                 requestMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((requestStatuses) => {
-                    if([RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY]) && [RESULTS.GRANTED, RESULTS.LIMITED].includes(requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY])){
+                    if([RESULTS.GRANTED].includes(requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY]) && [RESULTS.GRANTED].includes(requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY])){
                         return resolve(true)
                     }
     

@@ -261,13 +261,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        const responseString = JSON.stringify(response.data)
+        /*const responseString = JSON.stringify(response.data)
 
         if(storage.getString(cacheKeyLastResponse) == responseString){
             return false
         }
 
-        storage.set(cacheKeyLastResponse, responseString)
+        storage.set(cacheKeyLastResponse, responseString)*/
 
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
@@ -306,13 +306,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        const responseString = JSON.stringify(response.data)
+        /*const responseString = JSON.stringify(response.data)
 
         if(storage.getString(cacheKeyLastResponse) == responseString){
             return false
         }
 
-        storage.set(cacheKeyLastResponse, responseString)
+        storage.set(cacheKeyLastResponse, responseString)*/
 
         for(let i = 0; i < response.data.length; i++){
             let file = response.data[i]
@@ -355,13 +355,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        const responseString = JSON.stringify(response.data)
+        /*const responseString = JSON.stringify(response.data)
 
         if(storage.getString(cacheKeyLastResponse) == responseString){
             return false
         }
 
-        storage.set(cacheKeyLastResponse, responseString)
+        storage.set(cacheKeyLastResponse, responseString)*/
 
         try{
             var privateKey = storage.getString("privateKey")
@@ -429,13 +429,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        const responseString = JSON.stringify(response.data)
+        /*const responseString = JSON.stringify(response.data)
 
         if(storage.getString(cacheKeyLastResponse) == responseString){
             return false
         }
 
-        storage.set(cacheKeyLastResponse, responseString)
+        storage.set(cacheKeyLastResponse, responseString)*/
 
         try{
             var privateKey = storage.getString("privateKey")
@@ -513,13 +513,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     return false
                 }
 
-                const responseString = JSON.stringify(response.data)
+                /*const responseString = JSON.stringify(response.data)
 
                 if(storage.getString(cacheKeyLastResponse) == responseString){
                     return false
                 }
 
-                storage.set(cacheKeyLastResponse, responseString)
+                storage.set(cacheKeyLastResponse, responseString)*/
         
                 for(let i = 0; i < response.data.uploads.length; i++){
                     let file = response.data.uploads[i]
@@ -732,13 +732,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        const responseString = JSON.stringify(response.data)
+        /*const responseString = JSON.stringify(response.data)
 
         if(storage.getString(cacheKeyLastResponse) == responseString){
             return false
         }
 
-        storage.set(cacheKeyLastResponse, responseString)
+        storage.set(cacheKeyLastResponse, responseString)*/
 
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
@@ -844,7 +844,7 @@ export const getFolderSizeFromCache = ({ folder, routeURL }) => {
 }
 
 export const getThumbnailCacheKey = ({ uuid }) => {
-    const width = 512, height = 512, quality = 100, thumbnailVersion = "2.0.6"
+    const width = 512, height = 512, quality = 80, thumbnailVersion = "2.0.7"
     const cacheKey = "thumbnailCache:" + uuid + ":" + width + ":" + height + ":" + quality + ":" + thumbnailVersion
 
     return {
@@ -940,13 +940,7 @@ export const generateItemThumbnail = ({ item }) => {
                 }).then((path) => {
                     ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
                         RNFS.moveFile(compressed.uri, dest).then(() => {
-                            try{
-                                storage.set(cacheKey, dest)
-                            }
-                            catch(e){
-                                console.log(e)
-                            }
-
+                            storage.set(cacheKey, dest)
                             memoryCache.set("cachedThumbnailPaths:" + item.uuid, dest)
             
                             DeviceEventEmitter.emit("event", {

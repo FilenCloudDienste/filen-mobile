@@ -41,6 +41,7 @@ export const MainScreen = memo(({ navigation, route }) => {
     const contentHeight = useStore(useCallback(state => state.contentHeight))
     const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + email, storage)
+    const netInfo = useStore(useCallback(state => state.netInfo))
 
     const updateItemThumbnail = useCallback((item, path) => {
         if(typeof path !== "string"){
@@ -314,9 +315,11 @@ export const MainScreen = memo(({ navigation, route }) => {
         setRoute(route)
         setInsets(insets)
         
-        InteractionManager.runAfterInteractions(() => {
-            fetchItemList({ bypassCache: false }).catch((err) => console.log(err))
-        })
+        if(netInfo.isConnected && netInfo.isInternetReachable){
+            InteractionManager.runAfterInteractions(() => {
+                fetchItemList({ bypassCache: false }).catch((err) => console.log(err))
+            })
+        }
 
         global.fetchItemList = fetchItemList
 

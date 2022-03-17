@@ -1,5 +1,7 @@
 import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName } from "./helpers"
 import { storage } from "./storage"
+import { i18n } from "../i18n/i18n"
+import { DeviceEventEmitter } from "react-native"
 
 export const apiRequest = ({ method, endpoint, data }) => {
     return new Promise((resolve, reject) => {
@@ -2164,5 +2166,268 @@ export const fetchUserUsage = () => {
         }).catch((err) => {
             return reject(err)
         })
+    })
+}
+
+export const bulkMove = ({ items, parent }) => {
+    return new Promise(async (resolve, reject) => {
+        for(let i = 0; i < items.length; i++){
+            const item = items[i]
+
+            if(item.type == "file"){
+                try{
+                    let res = await fileExists({
+                        name: item.name,
+                        parent
+                    })
+
+                    if(!res.exists){
+                        await moveFile({
+                            file: item,
+                            parent
+                        })
+                    }
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+            else{
+                try{
+                    let res = await folderExists({
+                        name: item.name,
+                        parent
+                    })
+
+                    if(!res.exists){
+                        await moveFolder({
+                            folder: item,
+                            parent
+                        })
+                    }
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+        }
+
+        return resolve()
+    })
+}
+
+export const bulkFavorite = ({ value, items }) => {
+    return new Promise(async (resolve, reject) => {
+        for(let i = 0; i < items.length; i++){
+            const item = items[i]
+
+            if(value !== item.favorited){
+                try{
+                    await favoriteItem({
+                        item,
+                        value
+                    })
+    
+                    DeviceEventEmitter.emit("event", {
+                        type: "mark-item-favorite",
+                        data: {
+                            uuid: item.uuid,
+                            value: value == 1 ? true : false
+                        }
+                    })
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+        }
+
+        return resolve()
+    })
+}
+
+export const bulkTrash = ({ items }) => {
+    return new Promise(async (resolve, reject) => {
+        for(let i = 0; i < items.length; i++){
+            const item = items[i]
+
+            try{
+                await trashItem({ item })
+
+                DeviceEventEmitter.emit("event", {
+                    type: "remove-item",
+                    data: {
+                        uuid: item.uuid
+                    }
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return resolve()
+    })
+}
+
+export const bulkShare = ({ email, items }) => {
+    return new Promise((resolve, reject) => {
+        getPublicKeyFromEmail({ email }).then(async (publicKey) => {
+            if(typeof publicKey !== "string"){
+                return reject(i18n(storage.getString("lang"), "shareUserNotFound"))
+            }
+
+            if(publicKey.length < 16){
+                return reject(i18n(storage.getString("lang"), "shareUserNotFound"))
+            }
+
+            for(let i = 0; i < items.length; i++){
+                const item = items[i]
+
+                try{
+                    await shareItemToUser({
+                        item,
+                        publicKey,
+                        email
+                    })
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+
+            return resolve()
+        }).catch((err) => {
+            console.log(err)
+
+            return reject(i18n(storage.getString("lang"), "shareUserNotFound"))
+        })
+    })
+}
+
+export const bulkDeletePermanently = ({ items }) => {
+    return new Promise(async (resolve, reject) => {
+        for(let i = 0; i < items.length; i++){
+            const item = items[i]
+
+            try{
+                await deleteItemPermanently({ item })
+
+                DeviceEventEmitter.emit("event", {
+                    type: "remove-item",
+                    data: {
+                        uuid: item.uuid
+                    }
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return resolve()
+    })
+}
+
+export const bulkRestore = ({ items }) => {
+    return new Promise(async (resolve, reject) => {
+        for(let i = 0; i < items.length; i++){
+            const item = items[i]
+
+            if(item.type == "file"){
+                try{
+                    let res = await fileExists({
+                        name: item.name,
+                        parent: item.parent
+                    })
+
+                    if(!res.exists){
+                        await restoreItem({ item })
+
+                        DeviceEventEmitter.emit("event", {
+                            type: "remove-item",
+                            data: {
+                                uuid: item.uuid
+                            }
+                        })
+                    }
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+            else{
+                try{
+                    let res = await folderExists({
+                        name: item.name,
+                        parent: item.parent
+                    })
+
+                    if(!res.exists){
+                        await restoreItem({ item })
+
+                        DeviceEventEmitter.emit("event", {
+                            type: "remove-item",
+                            data: {
+                                uuid: item.uuid
+                            }
+                        })
+                    }
+                }
+                catch(e){
+                    console.log(e)
+                }
+            }
+        }
+
+        return resolve()
+    })
+}
+
+export const bulkStopSharing = ({ items }) => {
+    return new Promise(async (resolve, reject) => {
+        for(let i = 0; i < items.length; i++){
+            const item = items[i]
+
+            try{
+                await stopSharingItem({ item })
+
+                DeviceEventEmitter.emit("event", {
+                    type: "remove-item",
+                    data: {
+                        uuid: item.uuid
+                    }
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return resolve()
+    })
+}
+
+export const bulkRemoveSharedIn = ({ items }) => {
+    return new Promise(async (resolve, reject) => {
+        for(let i = 0; i < items.length; i++){
+            const item = items[i]
+
+            try{
+                await removeSharedInItem({ item })
+
+                DeviceEventEmitter.emit("event", {
+                    type: "remove-item",
+                    data: {
+                        uuid: item.uuid
+                    }
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+
+        return resolve()
     })
 }
