@@ -100,6 +100,8 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setCurrentBulkItems: (currentBulkItems) => set({ currentBulkItems }),
 	bulkShareDialogVisible: false,
 	setBulkShareDialogVisible: (bulkShareDialogVisible) => set({ bulkShareDialogVisible }),
+	itemsSortBy: false,
+	setItemsSortBy: (itemsSortBy) => set({ itemsSortBy }),
 })))
 
 export const navigationAnimation = ({ enable = true }) => {

@@ -42,6 +42,8 @@ export const MainScreen = memo(({ navigation, route }) => {
     const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + email, storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
+    const itemsSortBy = useStore(useCallback(state => state.itemsSortBy))
+    const [initialized, setInitialized] = useState(false)
 
     const updateItemThumbnail = useCallback((item, path) => {
         if(typeof path !== "string"){
@@ -152,7 +154,7 @@ export const MainScreen = memo(({ navigation, route }) => {
     })
 
     useEffect(() => {
-        if(isMounted()){
+        if(isMounted() && initialized){
             if(searchTerm.length == 0){
                 if(itemsBeforeSearch.length > 0){
                     setItems(itemsBeforeSearch)
@@ -175,20 +177,57 @@ export const MainScreen = memo(({ navigation, route }) => {
     }, [searchTerm])
 
     useEffect(() => {
+        if(isMounted() && initialized){
+            const sorted = sortItems({ items, passedRoute: route })
+
+            setItems(sorted)
+        }
+    }, [itemsSortBy])
+
+    useEffect(() => {
         setCurrentItems(items)
 
         itemsRef.current = items
         global.items = items
         global.setItems = setItems
 
-        const selected = items.filter(item => item.selected && [1]).length
+        const selected = items.filter(item => item.selected).length
 
         selectedCountRef.current = selected
 
         setItemsSelectedCount(selectedCountRef.current)
     }, [items])
 
+    const fetchItemList = useCallback(({ bypassCache = false, callStack = 0 }) => {
+        return new Promise((resolve, reject) => {
+            loadItems({
+                parent: getParent(route),
+                setItems,
+                masterKeys,
+                setLoadDone,
+                navigation,
+                isMounted,
+                bypassCache,
+                route,
+                setProgress,
+                callStack
+            }).then(resolve).catch(reject)
+        })
+    })
+
     useEffect(() => {
+        setNavigation(navigation)
+        setRoute(route)
+        setInsets(insets)
+        
+        if(netInfo.isConnected && netInfo.isInternetReachable){
+            InteractionManager.runAfterInteractions(() => {
+                fetchItemList({ bypassCache: false }).catch((err) => console.log(err))
+            })
+        }
+
+        global.fetchItemList = fetchItemList
+
         const deviceListener = DeviceEventEmitter.addListener("event", (data) => {
             const navigationRoutes = navigation.getState().routes
             const isListenerActive = (navigationRoutes[navigationRoutes.length - 1].key == route.key)
@@ -287,43 +326,11 @@ export const MainScreen = memo(({ navigation, route }) => {
         })
 
         setIsDeviceReady(true)
+        setInitialized(true)
 
         return () => {
             deviceListener.remove()
-        }
-    }, [])
-
-    const fetchItemList = useCallback(({ bypassCache = false, callStack = 0 }) => {
-        return new Promise((resolve, reject) => {
-            loadItems({
-                parent: getParent(route),
-                setItems,
-                masterKeys,
-                setLoadDone,
-                navigation,
-                isMounted,
-                bypassCache,
-                route,
-                setProgress,
-                callStack
-            }).then(resolve).catch(reject)
-        })
-    })
-
-    useEffect(() => {
-        setNavigation(navigation)
-        setRoute(route)
-        setInsets(insets)
-        
-        if(netInfo.isConnected && netInfo.isInternetReachable){
-            InteractionManager.runAfterInteractions(() => {
-                fetchItemList({ bypassCache: false }).catch((err) => console.log(err))
-            })
-        }
-
-        global.fetchItemList = fetchItemList
-
-        return () => {
+            
             setPhotosRange("all")
             setItemListLastScrollIndex(0)
         }

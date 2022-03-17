@@ -15,7 +15,7 @@ import { SetupScreen } from "./SetupScreen"
 import { BottomBar } from "./BottomBar"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { SettingsScreen } from "./SettingsScreen"
-import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet, ProfilePictureActionSheet } from "./ActionSheets"
+import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet, ProfilePictureActionSheet, SortByActionSheet } from "./ActionSheets"
 import { useStore } from "../lib/state"
 import { FullscreenLoadingModal } from "./Modals"
 import { enableScreens } from "react-native-screens"
@@ -500,6 +500,7 @@ export const App = memo(() => {
                                             <ShareActionSheet navigation={navigationRef} />
                                             <FileVersionsActionSheet navigation={navigationRef} />
                                             <ProfilePictureActionSheet navigation={navigationRef} />
+                                            <SortByActionSheet navigation={navigationRef} />
                                         </>
                                     )
                                 }

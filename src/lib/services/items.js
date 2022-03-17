@@ -161,7 +161,7 @@ export const sortItems = ({ items, passedRoute = undefined }) => {
         items = items
     }
     else{
-        items = orderItemsByType(items, "nameAsc")
+        items = orderItemsByType(items, useStore.getState().itemsSortBy)
     }
 
     return items

@@ -468,6 +468,15 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 				<ActionSheetIndicator />
 				<View style={{ height: 15 }}></View>
 				{
+					routeURL.indexOf("photos") == -1 && routeURL.indexOf("recents") == -1 && (
+						<ActionButton onPress={async () => {
+							await SheetManager.hide("TopBarActionSheet")
+		
+							SheetManager.show("SortByActionSheet")
+						}} icon="funnel-outline" text={i18n(lang, "sortBy")} />
+					)
+				}
+				{
 					canShowSelectAllItems && (
 						<ActionButton onPress={async () => {
 							//await SheetManager.hide("TopBarActionSheet")
@@ -2614,6 +2623,81 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 						})
 					}, 500)
 				}} icon="image-outline" text={i18n(lang, "uploadFromGallery")} />
+			</View>
+        </ActionSheet>
+    )
+})
+
+export const SortByActionSheet = memo(({ navigation, route }) => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+	const insets = useSafeAreaInsets()
+	const [lang, setLang] = useMMKVString("lang", storage)
+	const [showASCDESC, setShowASCDESC] = useState(false)
+	const [sortBy, setSortBy] = useState("")
+	const setItemsSortBy = useStore(useCallback(state => state.setItemsSortBy))
+
+	useEffect(() => {
+		if(sortBy.indexOf("Asc") !== -1 || sortBy.indexOf("Desc") !== -1){
+			setItemsSortBy(sortBy)
+		}
+	}, [sortBy])
+
+    return (
+        <ActionSheet id="SortByActionSheet" gestureEnabled={true} containerStyle={{
+			backgroundColor: darkMode ? "#171717" : "white",
+			borderTopLeftRadius: 15,
+			borderTopRightRadius: 15
+		}} indicatorStyle={{
+			display: "none"
+		}} onBeforeShow={() => {
+			setShowASCDESC(false)
+			setSortBy("")
+		}}>
+          	<View style={{
+				paddingBottom: (insets.bottom + 25)
+			}}>
+				<ActionSheetIndicator />
+				<View style={{ height: 15 }}></View>
+				{
+					showASCDESC ? (
+						<>
+							<ActionButton onPress={() => {
+								setSortBy(prev => prev.indexOf("Asc") == -1 ? prev + "Asc" : prev)
+
+								SheetManager.hide("SortByActionSheet")
+							}} icon="arrow-up-outline" text={i18n(lang, "ascending")} />
+							<ActionButton onPress={() => {
+								setSortBy(prev => prev.indexOf("Desc") == -1 ? prev + "Desc" : prev)
+
+								SheetManager.hide("SortByActionSheet")
+							}} icon="arrow-down-outline" text={i18n(lang, "descending")} />
+						</>
+					) : (
+						<>
+							<ActionButton onPress={() => {
+								setSortBy("name")
+								setShowASCDESC(true)
+							}} icon="text-outline" text={i18n(lang, "sortByName")} />
+							<ActionButton onPress={() => {
+								setSortBy("size")
+								setShowASCDESC(true)
+							}} icon="barbell-outline" text={i18n(lang, "sortBySize")} />
+							<ActionButton onPress={() => {
+								setSortBy("date")
+								setShowASCDESC(true)
+							}} icon="time-outline" text={i18n(lang, "sortByDate")} />
+							<ActionButton onPress={() => {
+								setSortBy("type")
+								setShowASCDESC(true)
+							}} icon="albums-outline" text={i18n(lang, "sortByType")} />
+							<ActionButton onPress={() => {
+								setItemsSortBy("nameAsc")
+
+								SheetManager.hide("SortByActionSheet")
+							}} icon="refresh-outline" text={i18n(lang, "reset")} />
+						</>
+					)
+				}
 			</View>
         </ActionSheet>
     )

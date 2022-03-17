@@ -353,5 +353,13 @@ export const en = {
     stoppedSharingSelectedItems: "Stopped sharing __COUNT__ items",
     bulkStopSharingWarning: "Are you sure you want to stop sharing __COUNT__ items? The other party will not be able to access them anymore!",
     bulkRemoveSharedInWarning: "Are you sure you want to remove __COUNT__ shared items? You will no longer be able to access them!",
-    bulkRemoveSharedInSuccess: "Removed __COUNT__ items from incoming shares"
+    bulkRemoveSharedInSuccess: "Removed __COUNT__ items from incoming shares",
+    sortBy: "Sort by",
+    sortByName: "name",
+    sortBySize: "Size",
+    sortByDate: "Date",
+    sortByType: "Type",
+    ascending: "Ascending",
+    descending: "Descending",
+    reset: "Reset"
 }

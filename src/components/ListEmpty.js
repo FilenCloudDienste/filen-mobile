@@ -11,6 +11,8 @@ export const ListEmpty = memo(({ route, searchTerm = "" }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
+    const [email, setEmail] = useMMKVString("email", storage)
+    const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + email, storage)
 
     const routeURL = getRouteURL(route)
     const currentScreenName = route.name
@@ -40,13 +42,29 @@ export const ListEmpty = memo(({ route, searchTerm = "" }) => {
                                     {
                                         routeURL.indexOf("photos") !== -1 && (
                                             <>
-                                                <Ionicon name="image-outline" size={70} color={darkMode ? "gray" : "gray"} />
-                                                <Text style={{
-                                                    color: "gray",
-                                                    marginTop: 5
-                                                }}>
-                                                    {i18n(lang, "noImagesUploadedYet")}
-                                                </Text>
+                                                {
+                                                    typeof cameraUploadFolderUUID == "string" && cameraUploadFolderUUID.length > 16 ? (
+                                                        <>
+                                                            <Ionicon name="image-outline" size={70} color={darkMode ? "gray" : "gray"} />
+                                                            <Text style={{
+                                                                color: "gray",
+                                                                marginTop: 5
+                                                            }}>
+                                                                {i18n(lang, "noImagesUploadedYet")}
+                                                            </Text>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Ionicon name="image-outline" size={70} color={darkMode ? "gray" : "gray"} />
+                                                            <Text style={{
+                                                                color: "gray",
+                                                                marginTop: 5
+                                                            }}>
+                                                                {i18n(lang, "cameraUploadNotEnabled")}
+                                                            </Text>
+                                                        </>
+                                                    )
+                                                }
                                             </>
                                         )
                                     }
