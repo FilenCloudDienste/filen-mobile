@@ -235,9 +235,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         return showToast({ message: i18n(storage.getString("lang"), "alreadyDownloadingFile", true, ["__NAME__"], [file.name]) })
     }
 
-    await downloadSemaphore.acquire()
-
     addToState()
+
+    await downloadSemaphore.acquire()
 
     try{
         var downloadPath = await getDownloadPath({ type: (storeOffline ? "offline" : "download") })
@@ -304,10 +304,10 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     })
 
                     if(isOfflineUpdate){
-                        showToast({ message: i18n(storage.getString("lang"), "fileStoredOfflineUpdate", true, ["__NAME__"], [file.name]) })
+                        //showToast({ message: i18n(storage.getString("lang"), "fileStoredOfflineUpdate", true, ["__NAME__"], [file.name]) })
                     }
                     else{
-                        showToast({ message: i18n(storage.getString("lang"), "fileStoredOffline", true, ["__NAME__"], [file.name]) })
+                        //showToast({ message: i18n(storage.getString("lang"), "fileStoredOffline", true, ["__NAME__"], [file.name]) })
                     }
 
                     callOptionalCallback(null, offlinePath)
@@ -343,7 +343,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         RNFS.unlink(path).then(() => {
                             removeFromState()
 
-                            showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
+                            //showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
 
                             callOptionalCallback(null, "")
     
@@ -380,7 +380,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     RNFS.moveFile(path, filePath).then(() => {
                         removeFromState()
 
-                        showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
+                        //showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
 
                         callOptionalCallback(null, filePath)
         
@@ -409,7 +409,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 RNFS.moveFile(path, filePath).then(() => {
                     removeFromState()
 
-                    showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
+                    //showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
 
                     callOptionalCallback(null, filePath)
     

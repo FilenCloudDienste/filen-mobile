@@ -17,7 +17,8 @@ import { memoryCache } from "../memoryCache"
 
 const isEqual = require("react-fast-compare")
 
-let isGeneratingThumbnailForItemUUID = {}
+const isGeneratingThumbnailForItemUUID = {}
+const isCheckingThumbnailForItemUUID = {}
 
 export const buildFolder = async ({ folder, name = "", masterKeys = undefined, sharedIn = false, privateKey = undefined, email = undefined, routeURL }) => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
@@ -569,6 +570,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     else if(parent == "offline"){
         try{
             var list = await getOfflineList()
+            var offlinePath = await getDownloadPath({ type: "offline" })
         }
         catch(e){
             console.log(e)
@@ -581,7 +583,25 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             file.offline = true
 
-            items.push(file)
+            const itemOfflinePath = getItemOfflinePath(offlinePath, file)
+
+            try{
+                const exists = await RNFS.exists(itemOfflinePath)
+
+                if(!exists){
+                    await removeFromOfflineStorage({ item: file })
+
+                    queueFileDownload({ file, storeOffline: true })
+                }
+                else{
+                    items.push(file)
+                }
+            }
+            catch(e){
+                console.log(e)
+
+                items.push(file)
+            }
         }
 
         const offlineFilesToFetchInfo = items.map(item => item.uuid)
@@ -856,12 +876,75 @@ export const getThumbnailCacheKey = ({ uuid }) => {
     }
 }
 
-export const generateItemThumbnail = ({ item }) => {
+export const checkItemThumbnail = ({ item }) => {
+    if(typeof item.thumbnail !== "string"){
+        return false
+    }
+
+    //if(typeof global.visibleItems[item.uuid] == "undefined"){
+    //    return false
+    //}
+
+    if(typeof isCheckingThumbnailForItemUUID[item.uuid] !== "undefined"){
+        return false
+    }
+
+    isCheckingThumbnailForItemUUID[item.uuid] = true
+
+    const { cacheKey } = getThumbnailCacheKey({ uuid: item.uuid })
+
+    try{
+        var cache = storage.getString(cacheKey)
+    }
+    catch(e){
+        //console.log(e)
+    }
+
+    if(typeof cache !== "string"){
+        return false
+    }
+
+    getDownloadPath({ type: "thumbnail" }).then((path) => {
+        RNFS.exists(path + cache).then((exists) => {
+            if(!exists){
+                delete isCheckingThumbnailForItemUUID[item.uuid]
+
+                const netInfo = useStore.getState().netInfo 
+    
+                if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                    return false
+                }
+    
+                storage.delete(cacheKey)
+                memoryCache.delete("cachedThumbnailPaths:" + item.uuid)
+    
+                let thumbItem = item
+    
+                thumbItem.thumbnail = undefined
+    
+                global.visibleItems[thumbItem.uuid] = true
+                delete isGeneratingThumbnailForItemUUID[thumbItem.uuid]
+    
+                void generateItemThumbnail({ item: thumbItem, skipInViewCheck: true })
+            }
+        }).catch((err) => {
+            console.log(err)
+
+            delete isCheckingThumbnailForItemUUID[item.uuid]
+        })
+    }).catch((err) => {
+        console.log(err)
+
+        delete isCheckingThumbnailForItemUUID[item.uuid]
+    })
+}
+
+export const generateItemThumbnail = ({ item, skipInViewCheck = false }) => {
     if(typeof item.thumbnail == "string"){
         return false
     }
 
-    if(typeof global.visibleItems[item.uuid] == "undefined"){
+    if(typeof global.visibleItems[item.uuid] == "undefined" && !skipInViewCheck){
         return false
     }
 
@@ -902,9 +985,9 @@ export const generateItemThumbnail = ({ item }) => {
         }
     }
 
-    const appState = useStore.getState() 
+    const netInfo = useStore.getState().netInfo 
 
-    if(!appState.netInfo.isConnected || !appState.netInfo.isInternetReachable){
+    if(!netInfo.isConnected || !netInfo.isInternetReachable){
         return false
     }
 
@@ -940,14 +1023,14 @@ export const generateItemThumbnail = ({ item }) => {
                 }).then((path) => {
                     ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
                         RNFS.moveFile(compressed.uri, dest).then(() => {
-                            storage.set(cacheKey, dest)
-                            memoryCache.set("cachedThumbnailPaths:" + item.uuid, dest)
+                            storage.set(cacheKey, item.uuid + ".jpg")
+                            memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
             
                             DeviceEventEmitter.emit("event", {
                                 type: "thumbnail-generated",
                                 data: {
                                     uuid: item.uuid,
-                                    path: dest
+                                    path: item.uuid + ".jpg"
                                 }
                             })
     

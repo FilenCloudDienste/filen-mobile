@@ -100,7 +100,7 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setCurrentBulkItems: (currentBulkItems) => set({ currentBulkItems }),
 	bulkShareDialogVisible: false,
 	setBulkShareDialogVisible: (bulkShareDialogVisible) => set({ bulkShareDialogVisible }),
-	itemsSortBy: false,
+	itemsSortBy: "nameAsc",
 	setItemsSortBy: (itemsSortBy) => set({ itemsSortBy }),
 })))
 

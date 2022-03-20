@@ -98,7 +98,7 @@ export const BottomBar = memo(({ navigation, route }) => {
             flexDirection: "row",
             justifyContent: "space-between",
             borderTopColor: getColor(darkMode, "primaryBorder"),
-            borderTopWidth: 0
+            borderTopWidth: 1
         }} onLayout={(e) => setBottomBarHeight(e.nativeEvent.layout.height)}>
             <Pressable style={{
                 alignItems: "center",

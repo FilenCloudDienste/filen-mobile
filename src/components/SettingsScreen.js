@@ -4,7 +4,7 @@ import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import FastImage from "react-native-fast-image"
-import { formatBytes, getFilenameFromPath, getAPIKey, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer } from "../lib/helpers"
+import { formatBytes, getFilenameFromPath } from "../lib/helpers"
 import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../lib/state"
@@ -16,7 +16,6 @@ import { updateUserInfo } from "../lib/user/info"
 import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import { hasStoragePermissions } from "../lib/permissions"
-import { launchImageLibrary } from "react-native-image-picker"
 import { SheetManager } from "react-native-actions-sheet"
 
 export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText }) => {
@@ -170,6 +169,21 @@ export const SettingsHeader = memo(({ navigation, route, navigationEnabled = tru
                     }).catch((err) => {
                         console.log(err)
                     })
+                }
+                else{
+                    if((userAvatarCached || "").length > 4){
+                        RNFS.exists((userAvatarCached || "")).then((exists) => {
+                            if(!exists){
+                                setUserAvatarCached("")
+
+                                setTimeout(() => {
+                                    cacheUserAvatar()
+                                }, 500)
+                            }
+                        }).catch((err) => {
+                            console.log(err)
+                        })
+                    }
                 }
             }
         }
@@ -429,7 +443,7 @@ export const SettingsScreen = memo(({ navigation, route }) => {
                     })
                 }} title={i18n(lang, "advanced")} />
             </SettingsGroup>
-            <View style={{ height: 75 }}></View>
+            <View style={{ height: 25 }}></View>
         </ScrollView>
     )
 })

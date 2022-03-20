@@ -264,6 +264,7 @@ export const en = {
     noOfflineFilesYet: "No offline files yet",
     noEventsYet: "No events yet",
     noSearchFound: 'Nothing found matching "__TERM__"',
+    noItemsInTrash: "No items in the trash",
     clearThumbnailCache: "Clear thumbnail cache",
     clearThumbnailCacheInfo: "Clearing the thumbnail cache will free up device storage and delete old thumbnails which are not used anymore, but it will also slow down future thumbnail loads because the app will need to cache all thumbnails again",
     thumbnailCacheCleared: "Thumbnail cache cleared",
@@ -361,5 +362,8 @@ export const en = {
     sortByType: "Type",
     ascending: "Ascending",
     descending: "Descending",
-    reset: "Reset"
+    reset: "Reset",
+    ongoing: "Ongoing",
+    finished: "Finished",
+    noFinishedTransfers: "No transfers finished yet"
 }

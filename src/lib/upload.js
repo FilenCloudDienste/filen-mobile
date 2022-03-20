@@ -630,7 +630,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     removeFromState()
     clearInterval(stopInterval)
 
-    showToast({ message: i18n(lang, "fileUploaded", true, ["__NAME__"], [name]) })
+    //showToast({ message: i18n(lang, "fileUploaded", true, ["__NAME__"], [name]) })
 
     if(typeof cameraUploadCallback == "function"){
         cameraUploadCallback(null, item)

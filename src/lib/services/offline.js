@@ -84,11 +84,15 @@ export const addItemToOfflineList = ({ item }) => {
             return reject(e)
         }
 
+        let offlineItem = item
+
+        offlineItem.selected = false
+
         let newList = [...offlineList]
         let exists = false
 
         for(let i = 0; i < newList.length; i++){
-            if(newList[i].uuid == item.uuid){
+            if(newList[i].uuid == offlineItem.uuid){
                 exists = true
             }
         }
@@ -97,12 +101,12 @@ export const addItemToOfflineList = ({ item }) => {
             return resolve()
         }
 
-        item.offline = true
+        offlineItem.offline = true
 
-        newList.push(item)
+        newList.push(offlineItem)
 
         try{
-            storage.set(email + ":offlineItems:" + item.uuid, true)
+            storage.set(email + ":offlineItems:" + offlineItem.uuid, true)
         }
         catch(e){
             //console.log(e)

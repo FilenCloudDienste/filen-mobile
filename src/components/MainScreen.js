@@ -55,7 +55,7 @@ export const MainScreen = memo(({ navigation, route }) => {
         }
     
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: (path.indexOf("file://") == -1 ? "file://" + path : path)} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem))
         }
     })
     

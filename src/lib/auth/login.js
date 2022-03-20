@@ -207,7 +207,7 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
 
     try{
         storage.set("apiKey", res.data.apiKey)
-        storage.set("email", email),
+        storage.set("email", email)
         storage.set("masterKeys", JSON.stringify([masterKey]))
         storage.set("authVersion", authVersion)
         storage.set("isLoggedIn", true)

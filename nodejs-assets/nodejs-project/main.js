@@ -360,7 +360,7 @@ const generateKeypair = () => {
     })
 }
 
-const hashPassword = (password) => {
+const hashPassword = (password) => { //old deprecated
     return CryptoApi.hash("sha512", CryptoApi.hash("sha384", CryptoApi.hash("sha256", CryptoApi.hash("sha1", password)))) + CryptoApi.hash("sha512", CryptoApi.hash("md5", CryptoApi.hash("md4", CryptoApi.hash("md2", (password)))))
 }
 
@@ -413,6 +413,35 @@ const encryptAndUploadChunk = (base64, key, url, timeout) => {
                     return reject(e)
                 }
             }).catch(reject)
+        }).catch(reject)
+    })
+}
+
+const uploadAvatar = (base64, url, timeout) => {
+    return new Promise((resolve, reject) => {
+        try{
+            var data = convertUint8ArrayToBinaryString(base64ToArrayBuffer(base64))
+        }
+        catch(e){
+            return reject(e)
+        }
+    
+        axios({
+            method: "post",
+            url,
+            data,
+            timeout,
+            headers: {
+                "User-Agent": "filen-mobile"
+            }
+        }).then((res) => {
+            return resolve(res)
+            try{
+                return resolve(res.data)
+            }
+            catch(e){
+                return reject(e)
+            }
         }).catch(reject)
     })
 }
@@ -654,6 +683,21 @@ rn_bridge.channel.on("message", (message) => {
             id: request.id,
             type: request.type,
             response: "pong"
+        })
+    }
+    else if(request.type == "uploadAvatar"){
+        uploadAvatar(request.base64, request.url, request.timeout).then((res) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                response: res
+            })
+        }).catch((err) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                err: err.toString()
+            })
         })
     }
     else{

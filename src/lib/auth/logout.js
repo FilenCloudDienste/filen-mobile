@@ -4,6 +4,7 @@ import { StackActions } from "@react-navigation/native"
 export const logout = ({ navigation }) => {
     try{
         storage.delete("apiKey")
+        storage.delete("apiKey")
         storage.delete("email"),
         storage.delete("masterKeys")
         storage.delete("authVersion")

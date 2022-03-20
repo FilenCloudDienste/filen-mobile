@@ -6,9 +6,12 @@ import { getImageForItem } from "../assets/thumbnails"
 import { formatBytes, getFolderColor, calcPhotosGridSize } from "../lib/helpers"
 import { i18n } from "../i18n/i18n"
 import { getColor } from "../lib/style/colors"
+import RNFS from "react-native-fs"
 
 const isEqual = require("react-fast-compare")
 const window = Dimensions.get("window")
+
+const thumbnailPath = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 
 export class ListItem extends Component {
     shouldComponentUpdate(nextProps){
@@ -34,7 +37,7 @@ export class ListItem extends Component {
                 })
             }}>
                 <View style={{
-                    backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "gray" : "white"),
+                    backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
                     width: "100%",
                     height: 55,
                     flexDirection: "row",
@@ -55,12 +58,19 @@ export class ListItem extends Component {
                                     paddingTop: 2
                                 }} />
                             ) : (
-                                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: (item.thumbnail.indexOf("file://") == -1 ? "file://" + item.thumbnail : item.thumbnail) } : getImageForItem(item)} style={{
+                                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + thumbnailPath + item.thumbnail } : getImageForItem(item)} style={{
                                     width: 30,
                                     height: 30,
                                     marginTop: item.type == "folder" ? 1 : 4,
                                     marginLeft: 2,
                                     borderRadius: 5
+                                }} onError={() => {
+                                    if(typeof item.thumbnail == "string"){
+                                        DeviceEventEmitter.emit("event", {
+                                            type: "check-thumbnail",
+                                            item
+                                        })
+                                    }
                                 }} />
                             )
                         }
@@ -157,7 +167,7 @@ export class GridItem extends Component {
         return (
             <Pressable key={index.toString()} style={{
                 margin: 2,
-                backgroundColor: darkMode ? "black" : "white",
+                backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
                 borderRadius: 5,
                 height: Math.floor(window.width / 2) - 19 + 40,
                 width: Math.floor(window.width / 2) - 19,
@@ -189,11 +199,18 @@ export class GridItem extends Component {
                             item.type == "folder" ? (
                                 <Ionicon name="folder" size={40} color={getFolderColor(item.color)} />
                             ) : (
-                                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: (item.thumbnail.indexOf("file://") == -1 ? "file://" + item.thumbnail : item.thumbnail) } : getImageForItem(item)} style={{
+                                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + thumbnailPath + item.thumbnail } : getImageForItem(item)} style={{
                                     width: item.type == "folder" ? 35 : typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
                                     height: item.type == "folder" ? 35 : typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
                                     borderTopLeftRadius: 4,
                                     borderTopRightRadius: 4
+                                }} onError={() => {
+                                    if(typeof item.thumbnail == "string"){
+                                        DeviceEventEmitter.emit("event", {
+                                            type: "check-thumbnail",
+                                            item
+                                        })
+                                    }
                                 }} />
                             )
                         }
@@ -288,7 +305,7 @@ export class PhotosItem extends Component {
     render(){
         const { item, index, darkMode } = this.props
 
-        const imageWidthAndHeight = Math.floor(window.width / calcPhotosGridSize(this.props.photosGridSize)) - 2
+        const imageWidthAndHeight = Math.floor(window.width / calcPhotosGridSize(this.props.photosGridSize)) - 1
 
         return (
             <Pressable key={index.toString()} style={{
@@ -308,10 +325,17 @@ export class PhotosItem extends Component {
                     data: item
                 })
             }}>
-                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: (item.thumbnail.indexOf("file://") == -1 ? "file://" + item.thumbnail : item.thumbnail) } : getImageForItem(item)} style={{
+                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + thumbnailPath + item.thumbnail } : getImageForItem(item)} style={{
                     width: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
                     height: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
                     zIndex: 2
+                }} onError={() => {
+                    if(typeof item.thumbnail == "string"){
+                        DeviceEventEmitter.emit("event", {
+                            type: "check-thumbnail",
+                            item
+                        })
+                    }
                 }} />
                 {
                     calcPhotosGridSize(this.props.photosGridSize) <= 5 && (
@@ -397,11 +421,18 @@ export class PhotosRangeItem extends Component {
                 justifyContent: "center",
                 marginBottom: 25
             }} onPress={() => this.props.photosRangeItemClick(item)}>
-                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: (item.thumbnail.indexOf("file://") == -1 ? "file://" + item.thumbnail : item.thumbnail) } : getImageForItem(item)} style={{
+                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + thumbnailPath + item.thumbnail } : getImageForItem(item)} style={{
                     width: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
                     height: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
                     zIndex: 2,
                     borderRadius: typeof item.thumbnail !== "undefined" ? 15 : 0
+                }} onError={() => {
+                    if(typeof item.thumbnail == "string"){
+                        DeviceEventEmitter.emit("event", {
+                            type: "check-thumbnail",
+                            item
+                        })
+                    }
                 }} />
                 <View style={{
                     backgroundColor: "rgba(34, 34, 34, 0.5)",

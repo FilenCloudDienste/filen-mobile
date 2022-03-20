@@ -160,6 +160,19 @@ export const ListEmpty = memo(({ route, searchTerm = "" }) => {
                                         )
                                     }
                                     {
+                                        routeURL.indexOf("trash") !== -1 && (
+                                            <>
+                                                <Ionicon name="trash-outline" size={70} color={darkMode ? "gray" : "gray"} />
+                                                <Text style={{
+                                                    color: "gray",
+                                                    marginTop: 5
+                                                }}>
+                                                    {i18n(lang, "noItemsInTrash")}
+                                                </Text>
+                                            </>
+                                        )
+                                    }
+                                    {
                                         currentScreenName == "EventsScreen" && (
                                             <>
                                                 <Ionicon name="alert-circle-outline" size={70} color={darkMode ? "gray" : "gray"} />

@@ -123,15 +123,23 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         }
         
         return sortedItems
-    })
+    }, [items, photosRange, lang])
 
     const getThumbnail = useCallback(({ item }) => {
         if(item.type == "file"){
-            if(canCompressThumbnail(getFileExt(item.name)) && typeof item.thumbnail !== "string"){
-                DeviceEventEmitter.emit("event", {
-                    type: "generate-thumbnail",
-                    item
-                })
+            if(canCompressThumbnail(getFileExt(item.name))){
+                if(typeof item.thumbnail !== "string"){
+                    DeviceEventEmitter.emit("event", {
+                        type: "generate-thumbnail",
+                        item
+                    })
+                }
+                else{
+                    //DeviceEventEmitter.emit("event", {
+                    //    type: "check-thumbnail",
+                    //    item
+                    //})
+                }
             }
         }
     })
@@ -338,7 +346,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                         {
                             scrollDate.length > 0 && items.length > 0 && normalizePhotosRange(photosRange) == "all" && (
                                 <View style={{
-                                    backgroundColor: "rgba(34, 34, 34, 0.6)",
+                                    backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(34, 34, 34, 0.5)",
                                     width: "auto",
                                     height: "auto",
                                     borderRadius: 15,
@@ -364,7 +372,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                     {
                                         normalizePhotosRange(photosRange) == "all" && (
                                             <View style={{
-                                                backgroundColor: "rgba(34, 34, 34, 0.6)",
+                                                backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(34, 34, 34, 0.5)",
                                                 width: "auto",
                                                 height: "auto",
                                                 borderRadius: 15,
@@ -417,7 +425,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                         )
                                     }
                                     <View style={{
-                                        backgroundColor: "rgba(34, 34, 34, 0.7)",
+                                        backgroundColor: darkMode ? "rgba(34, 34, 34, 0.7)" : "rgba(34, 34, 34, 0.3)",
                                         width: "auto",
                                         height: "auto",
                                         borderRadius: 15,
@@ -445,6 +453,10 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         borderRadius: 15,
                                                         marginLeft: index == 0 ? 0 : 10
                                                     }} onPress={() => {
+                                                        DeviceEventEmitter.emit("event", {
+                                                            type: "unselect-all-items"
+                                                        })
+
                                                         waitForStateUpdate("itemListLastScrollIndex", 0).then(() => {
                                                             setPhotosRange(key)
                                                         })

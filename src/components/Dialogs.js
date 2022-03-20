@@ -797,6 +797,10 @@ export const BulkShareDialog = memo(({ navigation }) => {
                     return false
                 }
 
+                if(email == storage.getString("email")){
+                    return false
+                }
+
                 bulkShare({ email, items: currentBulkItems }).then(() => {
                     setButtonsDisabled(false)
 

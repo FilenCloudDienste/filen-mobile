@@ -326,7 +326,25 @@ global.nodeThread = {
                 })
             })
 		})
-    }
+    },
+    uploadAvatar: ({ base64, url, timeout }) => {
+        const id = currentId += 1
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+                resolves[id] = resolve
+                rejects[id] = reject
+
+                return nodejs.channel.send({
+                    id,
+                    type: "uploadAvatar",
+                    base64,
+                    url,
+                    timeout
+                })
+            })
+		})
+    },
 }
 
 nodejs.channel.addListener("message", (message) => {

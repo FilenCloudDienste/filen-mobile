@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, Component, memo } from "react"
+import React, { useEffect, useState, useCallback, Component, memo, useRef } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -298,7 +298,7 @@ export class EventRow extends Component {
 
         return (
             <View key={index} style={{
-                height: "auto",
+                height: 35,
                 width: "100%",
                 paddingLeft: 15,
                 paddingRight: 15,
@@ -328,7 +328,7 @@ export class EventRow extends Component {
                             justifyContent: "space-between",
                             paddingLeft: 10,
                             paddingRight: 10,
-                            paddingTop: 10,
+                            paddingTop: 9,
                             paddingBottom: 10
                         }}>
                             <Text style={{
@@ -339,7 +339,8 @@ export class EventRow extends Component {
                                 {this.state.eventText}
                             </Text>
                             <View style={{
-                                flexDirection: "row"
+                                flexDirection: "row",
+                                paddingTop: 2
                             }}>
                                 <Text style={{
                                     color: "gray",
@@ -371,6 +372,11 @@ export const EventsScreen = memo(({ navigation, route }) => {
     const dimensions = useStore(useCallback(state => state.dimensions))
     const [masterKeys, setMasterKeys] = useState(getMasterKeys())
     const isMounted = useMountedState()
+    const [topHeight, setTopHeight] = useState(0)
+    const bottomBarHeight = useStore(useCallback(state => state.bottomBarHeight))
+    const contentHeight = useStore(useCallback(state => state.contentHeight))
+    const onEndReachedCalledDuringMomentum = useRef(false)
+    const lastEventId = useRef(0)
 
     const getEvents = useCallback((lastId) => {
         setIsLoading(true)
@@ -383,8 +389,14 @@ export const EventsScreen = memo(({ navigation, route }) => {
                 const newEvents = data.events
                 const limit = data.limit
 
-                setEvents([...events, ...newEvents])
+                setEvents(prev => [...prev, ...newEvents])
                 setLimit(limit)
+
+                newEvents.map(event => console.log(event.id))
+
+                console.log("last id", newEvents[newEvents.length - 1].id)
+                
+                lastEventId.current = newEvents[newEvents.length - 1].id
             }
         }).catch((err) => {
             console.log(err)
@@ -396,7 +408,7 @@ export const EventsScreen = memo(({ navigation, route }) => {
     useEffect(() => {
         setEvents([])
 
-        getEvents(0)
+        getEvents(lastEventId.current)
     }, [])
 
     return (
@@ -405,7 +417,7 @@ export const EventsScreen = memo(({ navigation, route }) => {
                 flexDirection: "row",
                 justifyContent: "flex-start",
                 backgroundColor: darkMode ? "black" : "white"
-            }}>
+            }} onLayout={(e) => setTopHeight(e.nativeEvent.layout.height)}>
                 <TouchableOpacity style={{
                     marginTop: Platform.OS == "ios" ? 17 : 4,
                     marginLeft: 15,
@@ -423,7 +435,7 @@ export const EventsScreen = memo(({ navigation, route }) => {
                 </Text>
             </View>
             <View style={{
-                height: Math.floor(dimensions.screen.height - 140),
+                height: Math.floor(contentHeight - topHeight - bottomBarHeight + 31),
                 width: "100%",
                 backgroundColor: darkMode ? "black" : "white",
                 paddingTop: 15
@@ -432,16 +444,26 @@ export const EventsScreen = memo(({ navigation, route }) => {
                     data={events}
                     keyExtractor={(item, index) => index}
                     key="events"
-                    windowSize={8}
+                    windowSize={10}
                     initialNumToRender={32}
                     removeClippedSubviews={true}
                     numColumns={1}
                     renderItem={({ item, index }) => <EventRow item={item} index={index} darkMode={darkMode} lang={lang} navigation={navigation} masterKeys={masterKeys} />}
+                    onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}
+                    onEndReachedThreshold={0.1}
                     onEndReached={() => {
-                        if(limit == events.length && limit > 0 && events.length > 0){
-                            getEvents(events[events.length - 1].id)
+                        if(limit <= events.length && limit > 0 && events.length > 0 && !onEndReachedCalledDuringMomentum.current){
+                            onEndReachedCalledDuringMomentum.current = true
+
+                            console.log("called")
+
+                            getEvents(lastEventId.current)
                         }
                     }}
+                    onen
+                    getItemLayout={(data, index) => (
+                        {length: 45, offset: 45 * index, index}
+                    )}
                     ListEmptyComponent={() => {
                         return (
                             <View style={{
@@ -489,8 +511,19 @@ export const EventsScreen = memo(({ navigation, route }) => {
                         height: "100%",
                         width: "100%"
                     }}
+                    ListFooterComponent={
+                        isLoading ? (
+                            <></>
+                        ) : (
+                            <View style={{
+                                height: 50,
+                                marginTop: 15
+                            }}>
+                                <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
+                            </View>
+                        )
+                    }
                 />
-                <View style={{ height: 25 }}></View>
             </View>
         </>
     )

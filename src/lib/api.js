@@ -1784,7 +1784,7 @@ export const fetchEvents = ({ lastId = 0, filter = "all" }) => {
             data: {
                 apiKey: getAPIKey(),
                 filter,
-                id: lastId
+                id: parseInt(lastId)
             }
         }).then((response) => {
             if(!response.status){

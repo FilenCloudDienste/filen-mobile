@@ -6,10 +6,9 @@ import { StackActions } from "@react-navigation/native"
 import { useStore } from "../lib/state"
 import { navigationAnimation } from "../lib/state"
 import AnimatedProgressWheel from "react-native-progress-wheel"
+import { memoryCache } from "../lib/memoryCache"
 
 const isEqual = require("react-fast-compare")
-
-const transfers = {}
 
 export const TransfersIndicator = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -31,6 +30,8 @@ export const TransfersIndicator = memo(({ navigation }) => {
 
     useEffect(() => {
         if((uploadsCount + downloadsCount) > 0){
+            const transfers = memoryCache.get("transfers") || {}
+            
             let chunks = 0
             let chunksDone = 0
 
@@ -46,9 +47,27 @@ export const TransfersIndicator = memo(({ navigation }) => {
                 }
             }
 
+            memoryCache.set("transfers", transfers)
+
+            let prevTransfersDoneCount = 0
+
             for(let prop in transfers){
-                chunks = chunks + transfers[prop].file.chunks
-                chunksDone = chunksDone + transfers[prop].chunksDone
+                if(transfers[prop].chunksDone >= transfers[prop].file.chunks){
+                    prevTransfersDoneCount += 1
+                }
+            }
+
+            for(let prop in transfers){
+                if(prevTransfersDoneCount >= Object.keys(transfers).length){
+                    chunks = chunks + transfers[prop].file.chunks
+                    chunksDone = chunksDone + transfers[prop].chunksDone
+                }
+                else{
+                    if(transfers[prop].chunksDone < transfers[prop].file.chunks){
+                        chunks = chunks + transfers[prop].file.chunks
+                        chunksDone = chunksDone + transfers[prop].chunksDone
+                    }
+                }
             }
 
             let prog = Math.round((chunksDone / chunks) * 100)
@@ -95,7 +114,7 @@ export const TransfersIndicator = memo(({ navigation }) => {
             }}>
                 <AnimatedProgressWheel
                     size={50} 
-                    width={5}
+                    width={4}
                     color={progress > 0 ? "#0A84FF" : darkMode ? "#171717" : "lightgray"}
                     progress={progress}
                     backgroundColor={darkMode ? "#171717" : "lightgray"}

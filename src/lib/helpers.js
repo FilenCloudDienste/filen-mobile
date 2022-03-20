@@ -9,6 +9,14 @@ import { i18n } from "../i18n/i18n"
 const textDecoder = new encoding.TextDecoder()
 const textEncoder = new encoding.TextEncoder()
 
+export const base64Decode = (str) => {
+    return base64.decode(str)
+}
+
+export const base64Encode = (str) => {
+    return base64.encode(str)
+}
+
 export const getAPIServer = () => {
     const servers = [
         "https://api.filen.io",

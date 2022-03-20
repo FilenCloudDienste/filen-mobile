@@ -11,7 +11,7 @@ import { pickMultiple } from "react-native-document-picker"
 import { launchCamera, launchImageLibrary } from "react-native-image-picker"
 import { useStore } from "../lib/state"
 import { queueFileDownload, downloadWholeFileFSStream } from "../lib/download"
-import { getFileExt, getFolderColor, formatBytes, getAvailableFolderColors, getMasterKeys, decryptFolderLinkKey, getParent, getRouteURL, decryptFileMetadata, getFilePreviewType, calcPhotosGridSize, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey } from "../lib/helpers"
+import { getFileExt, getFolderColor, formatBytes, getAvailableFolderColors, getMasterKeys, decryptFolderLinkKey, getParent, getRouteURL, decryptFileMetadata, getFilePreviewType, calcPhotosGridSize, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey, base64Decode } from "../lib/helpers"
 import { queueFileUpload } from "../lib/upload"
 import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
@@ -27,6 +27,7 @@ import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../lib/style/colors"
 import { navigationAnimation } from "../lib/state"
 import { updateUserInfo } from "../lib/user/info"
+import ReactNativeBlobUtil from "react-native-blob-util"
 
 export const ActionButton = memo(({ onPress, icon, text, color }) => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -468,7 +469,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 				<ActionSheetIndicator />
 				<View style={{ height: 15 }}></View>
 				{
-					routeURL.indexOf("photos") == -1 && routeURL.indexOf("recents") == -1 && (
+					routeURL.indexOf("photos") == -1 && routeURL.indexOf("recents") == -1 && currentItems.length > 0 && (
 						<ActionButton onPress={async () => {
 							await SheetManager.hide("TopBarActionSheet")
 		
@@ -477,7 +478,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 					)
 				}
 				{
-					canShowSelectAllItems && (
+					canShowSelectAllItems && currentItems.length > 0 && (
 						<ActionButton onPress={async () => {
 							//await SheetManager.hide("TopBarActionSheet")
 		
@@ -488,7 +489,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 					)
 				}
 				{
-					canShowUnselectAllItems && (
+					canShowUnselectAllItems && currentItems.length > 0 && itemsSelectedCount > 0 && (
 						<ActionButton onPress={async () => {
 							await SheetManager.hide("TopBarActionSheet")
 		
@@ -512,7 +513,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 									bulkRestore({ items }).then(() => {
 										useStore.setState({ fullscreenLoadingModalVisible: false })
 
-										showToast({ message: i18n(lang, "restoreSelectedItemsSuccess", true, ["__COUNT__"], [items.length]) })
+										//showToast({ message: i18n(lang, "restoreSelectedItemsSuccess", true, ["__COUNT__"], [items.length]) })
 									}).catch((err) => {
 										console.log(err)
 
@@ -542,7 +543,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 												bulkDeletePermanently({ items }).then(() => {
 													useStore.setState({ fullscreenLoadingModalVisible: false })
 
-													showToast({ message: i18n(lang, "deleteSelectedItemsPermanentlySuccess", true, ["__COUNT__"], [items.length]) })
+													//showToast({ message: i18n(lang, "deleteSelectedItemsPermanentlySuccess", true, ["__COUNT__"], [items.length]) })
 												}).catch((err) => {
 													console.log(err)
 
@@ -592,7 +593,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 											bulkFavorite({ value: 1, items: updateBulkItems() }).then(() => {
 												useStore.setState({ fullscreenLoadingModalVisible: false })
 
-												showToast({ message: i18n(lang, "selectedItemsMarkedAsFavorite") })
+												//showToast({ message: i18n(lang, "selectedItemsMarkedAsFavorite") })
 											}).catch((err) => {
 												console.log(err)
 
@@ -613,7 +614,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 											bulkFavorite({ value: 0, items: updateBulkItems() }).then(() => {
 												useStore.setState({ fullscreenLoadingModalVisible: false })
 
-												showToast({ message: i18n(lang, "selectedItemsRemovedAsFavorite") })
+												//showToast({ message: i18n(lang, "selectedItemsRemovedAsFavorite") })
 											}).catch((err) => {
 												console.log(err)
 
@@ -648,7 +649,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 																file: item,
 																saveToGalleryCallback: (path) => {
 																	CameraRoll.save(path).then(() => {
-																		showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
+																		//showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
 																	}).catch((err) => {
 																		console.log(err)
 				
@@ -672,7 +673,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 									)
 								}
 								{
-									canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+									routeURL.indexOf("offline") == -1 && canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
 										<ActionButton onPress={async () => {
 											await SheetManager.hide("TopBarActionSheet")
 						
@@ -699,7 +700,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 												updateBulkItems().forEach((item) => {
 													if(item.offline){
 														removeFromOfflineStorage({ item }).then(() => {
-															showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [item.name]) })
+															//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [item.name]) })
 														}).catch((err) => {
 															console.log(err)
 			
@@ -746,7 +747,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 													type: "unselect-all-items"
 												})
 
-												showToast({ message: i18n(lang, "selectedItemsTrashed") })
+												//showToast({ message: i18n(lang, "selectedItemsTrashed") })
 											}).catch((err) => {
 												console.log(err)
 
@@ -784,7 +785,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 																type: "unselect-all-items"
 															})
 
-															showToast({ message: i18n(lang, "stoppedSharingSelectedItems", true, ["__COUNT__"], [items.length]) })
+															//showToast({ message: i18n(lang, "stoppedSharingSelectedItems", true, ["__COUNT__"], [items.length]) })
 														}).catch((err) => {
 															console.log(err)
 
@@ -828,7 +829,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 																type: "unselect-all-items"
 															})
 
-															showToast({ message: i18n(lang, "bulkRemoveSharedInSuccess", true, ["__COUNT__"], [items.length]) })
+															//showToast({ message: i18n(lang, "bulkRemoveSharedInSuccess", true, ["__COUNT__"], [items.length]) })
 														}).catch((err) => {
 															console.log(err)
 
@@ -1149,7 +1150,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 														file: currentActionSheetItem,
 														saveToGalleryCallback: (path) => {
 															CameraRoll.save(path).then(() => {
-																showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
+																//showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
 															}).catch((err) => {
 																console.log(err)
 		
@@ -1228,7 +1229,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 		
 											hasStoragePermissions().then(() => {
 												removeFromOfflineStorage({ item: currentActionSheetItem }).then(() => {
-													showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
+													//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
 												}).catch((err) => {
 													console.log(err)
 	
@@ -1291,7 +1292,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 		
 												useStore.setState({ fullscreenLoadingModalVisible: false })
 		
-												showToast({ message: i18n(lang, value == 1 ? "itemFavorited" : "itemUnfavorited", true, ["__NAME__"], [currentActionSheetItem.name]) })
+												//showToast({ message: i18n(lang, value == 1 ? "itemFavorited" : "itemUnfavorited", true, ["__NAME__"], [currentActionSheetItem.name]) })
 											}).catch((err) => {
 												console.log(err)
 		
@@ -1346,7 +1347,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 
 												useStore.setState({ fullscreenLoadingModalVisible: false })
 
-												showToast({ message: i18n(lang, "itemTrashed", true, ["__NAME__"], [currentActionSheetItem.name]) })
+												//showToast({ message: i18n(lang, "itemTrashed", true, ["__NAME__"], [currentActionSheetItem.name]) })
 											}).catch(async (err) => {
 												console.log(err)
 
@@ -2165,6 +2166,10 @@ export const ShareActionSheet = memo(({ navigation, route }) => {
 											if(buttonsDisabled){
 												return false
 											}
+
+											if(email == storage.getString("email")){
+												return false
+											}
 		
 											setButtonsDisabled(true)
 											setIsLoading(true)
@@ -2476,42 +2481,31 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 	const insets = useSafeAreaInsets()
 	const [lang, setLang] = useMMKVString("lang", storage)
 
-	const uploadAvatarImage = useCallback((base64) => {
+	const allowedTypes = [
+		"image/jpg",
+		"image/png",
+		"image/jpeg"
+	]
+
+	const uploadAvatarImage = useCallback((uri) => {
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		const binaryString = convertUint8ArrayToBinaryString(base64ToArrayBuffer(base64))
+		RNFS.readFile(uri, "base64").then((base64) => {
+			ReactNativeBlobUtil.fetch("POST", getAPIServer() + "/v1/user/avatar/upload/" + getAPIKey(), {}, convertUint8ArrayToBinaryString(base64ToArrayBuffer(base64))).then((response) => {
+				const json = response.json()
 
-		if(typeof binaryString !== "string"){
-			useStore.setState({ fullscreenLoadingModalVisible: false })
-
-			return showToast({ message: i18n(lang, "avatarInvalidImage") })
-		}
-
-		if(binaryString.length > ((1024 * 1024) * 2.99)){
-			useStore.setState({ fullscreenLoadingModalVisible: false })
-
-			return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
-		}
-				
-		fetch(getAPIServer() + "/v1/user/avatar/upload/" + getAPIKey(), {
-			method: "POST",
-			body: binaryString
-		}).then((response) => {
-			response.json().then((json) => {
 				useStore.setState({ fullscreenLoadingModalVisible: false })
-
+		
 				if(!json.status){
-					return showToast({ message: response.message })
+					return showToast({ message: json.message })
 				}
 
 				updateUserInfo()
-
-				showToast({ message: i18n(lang, "avatarUploaded") })
 			}).catch((err) => {
 				console.log(err)
-
+	
 				useStore.setState({ fullscreenLoadingModalVisible: false })
-
+	
 				showToast({ message: err.toString() })
 			})
 		}).catch((err) => {
@@ -2546,8 +2540,8 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 								maxHeight: 999999999,
 								videoQuality: "low",
 								cameraType: "back",
-								quality: 0.2,
-								includeBase64: true,
+								quality: 0.25,
+								includeBase64: false,
 								includeExtra: false,
 								saveToPhotos: false,
 								mediaType: "photo"
@@ -2566,7 +2560,17 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 			
 								const image = response.assets[0]
 
-								uploadAvatarImage(image.base64)
+								if(!allowedTypes.includes(image.type)){
+									return showToast({ message: i18n(lang, "avatarInvalidImage") })
+								}
+
+								if(image.fileSize > ((1024 * 1024) * 2.99)){
+									useStore.setState({ fullscreenLoadingModalVisible: false })
+						
+									return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
+								}
+
+								uploadAvatarImage(image.uri)
 							}).catch((err) => {
 								console.log(err)
 							})
@@ -2586,28 +2590,38 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 								launchImageLibrary({
 									mediaType: "photo",
 									selectionLimit: 1,
-									includeBase64: true,
-									includeExtra: true,
-									quality: 0.8,
+									includeBase64: false,
+									includeExtra: false,
+									quality: 0.25,
 									videoQuality: "low",
 									maxWidth: 999999999,
 									maxHeight: 999999999
 								}).then((response) => {
 									if(typeof response.assets == "undefined"){
-										return false
+										return showToast({ message: i18n(lang, "avatarInvalidImage") })
 									}
 				
 									if(!Array.isArray(response.assets)){
-										return false
+										return showToast({ message: i18n(lang, "avatarInvalidImage") })
 									}
 				
 									if(typeof response.assets[0] == "undefined"){
-										return false
+										return showToast({ message: i18n(lang, "avatarInvalidImage") })
 									}
 				
 									const image = response.assets[0]
-				
-									uploadAvatarImage(image.base64)
+
+									if(!allowedTypes.includes(image.type)){
+										return showToast({ message: i18n(lang, "avatarInvalidImage") })
+									}
+
+									if(image.fileSize > ((1024 * 1024) * 2.99)){
+										useStore.setState({ fullscreenLoadingModalVisible: false })
+							
+										return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
+									}
+
+									uploadAvatarImage(image.uri)
 								}).catch((err) => {
 									console.log(err)
 								})

@@ -19,7 +19,7 @@ import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColo
 import { useStore } from "../lib/state"
 import { FullscreenLoadingModal } from "./Modals"
 import { enableScreens } from "react-native-screens"
-import { generateItemThumbnail } from "../lib/services/items"
+import { generateItemThumbnail, checkItemThumbnail } from "../lib/services/items"
 import { TransfersIndicator } from "./TransfersIndicator"
 import { TransfersScreen } from "./TransfersScreen"
 import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, ConfirmRemoveFromSharedInDialog, ConfirmStopSharingDialog, CreateTextFileDialog, RedeemCodeDialog, DeleteAccountTwoFactorDialog, Disable2FATwoFactorDialog, BulkShareDialog } from "./Dialogs"
@@ -68,6 +68,9 @@ const navigationRef = createNavigationContainerRef()
 DeviceEventEmitter.addListener("event", (data) => {
     if(data.type == "generate-thumbnail"){
         void generateItemThumbnail({ item: data.item })
+    }
+    else if(data.type == "check-thumbnail"){
+        void checkItemThumbnail({ item: data.item })
     }
 })
 
@@ -168,9 +171,9 @@ export const App = memo(() => {
             requiresBatteryNotLow: true,
             stopOnTerminate: false,
             startOnBoot: true,
-            enableHeadless: true
+            enableHeadless: false
         }, (taskId) => {
-            console.log("BG fetch running:", taskId)
+            console.log("[" + Platform.OS + "] BG fetch running:", taskId)
 
             runCameraUpload({
                 runOnce: true,
@@ -180,13 +183,13 @@ export const App = memo(() => {
                 }
             })
         }, (taskId) => {
-            console.log("BG fetch timeout:", taskId)
+            console.log("[" + Platform.OS + "] BG fetch timeout:", taskId)
 
             BackgroundFetch.finish(taskId)
         }).then((status) => {
-            console.log("BG fetch init status:", status)
+            console.log("[" + Platform.OS + "] BG fetch init status:", status)
         }).catch((err) => {
-            console.log("BG fetch init error:", err)
+            console.log("[" + Platform.OS + "] BG fetch init error:", err)
         })
     })
 
@@ -225,9 +228,9 @@ export const App = memo(() => {
     useEffect(() => {
         initBackgroundFetch()
 
-        global.nodeThread.pingPong(() => {
-            setNodeJSAlive(false)
-        })
+        //global.nodeThread.pingPong(() => {
+        //    setNodeJSAlive(false)
+        //})
 
         NetInfo.fetch().then((state) => {
             setNetInfo(state)

@@ -3,7 +3,7 @@ import { View, Text, Platform, TouchableOpacity, DeviceEventEmitter } from "reac
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { useStore, navigationAnimation } from "../lib/state"
-import { getParent, getFilenameFromPath } from "../lib/helpers"
+import { getParent, getFilenameFromPath, getRouteURL } from "../lib/helpers"
 import { moveFile, moveFolder, folderExists, fileExists, bulkMove } from "../lib/api"
 import { i18n } from "../i18n/i18n"
 import { CommonActions } from "@react-navigation/native"
@@ -224,6 +224,12 @@ export const MoveToast = memo(({ message }) => {
 
                     if(currentActionSheetItem.parent == parent){
                         showToast({ message: i18n(lang, "moveSameParentFolder") })
+
+                        return false
+                    }
+
+                    if(getRouteURL().indexOf("shared-in") !== -1){
+                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
                         return false
                     }
@@ -714,6 +720,12 @@ export const MoveBulkToast = memo(({ message }) => {
 
                     if(currentActionSheetItem.parent == parent){
                         showToast({ message: i18n(lang, "moveSameParentFolder") })
+
+                        return false
+                    }
+
+                    if(getRouteURL().indexOf("shared-in") !== -1){
+                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
                         return false
                     }

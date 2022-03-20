@@ -81,7 +81,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     
         return title
     })
-    
+
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const itemsSelectedCount = useStore(useCallback(state => state.itemsSelectedCount))
     const [lang, setLang] = useMMKVString("lang", storage)
