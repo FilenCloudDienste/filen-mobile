@@ -11,7 +11,7 @@ import RNFS from "react-native-fs"
 const isEqual = require("react-fast-compare")
 const window = Dimensions.get("window")
 
-const thumbnailPath = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
+const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 
 export class ListItem extends Component {
     shouldComponentUpdate(nextProps){
@@ -58,7 +58,7 @@ export class ListItem extends Component {
                                     paddingTop: 2
                                 }} />
                             ) : (
-                                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + thumbnailPath + item.thumbnail } : getImageForItem(item)} style={{
+                                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)} style={{
                                     width: 30,
                                     height: 30,
                                     marginTop: item.type == "folder" ? 1 : 4,
@@ -199,19 +199,75 @@ export class GridItem extends Component {
                             item.type == "folder" ? (
                                 <Ionicon name="folder" size={40} color={getFolderColor(item.color)} />
                             ) : (
-                                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + thumbnailPath + item.thumbnail } : getImageForItem(item)} style={{
-                                    width: item.type == "folder" ? 35 : typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
-                                    height: item.type == "folder" ? 35 : typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
-                                    borderTopLeftRadius: 4,
-                                    borderTopRightRadius: 4
-                                }} onError={() => {
-                                    if(typeof item.thumbnail == "string"){
-                                        DeviceEventEmitter.emit("event", {
-                                            type: "check-thumbnail",
-                                            item
-                                        })
+                                <>
+                                    <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)} style={{
+                                        width: item.type == "folder" ? 35 : typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
+                                        height: item.type == "folder" ? 35 : typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
+                                        borderTopLeftRadius: 4,
+                                        borderTopRightRadius: 4
+                                    }} onError={() => {
+                                        if(typeof item.thumbnail == "string"){
+                                            DeviceEventEmitter.emit("event", {
+                                                type: "check-thumbnail",
+                                                item
+                                            })
+                                        }
+                                    }} />
+                                    {
+                                        item.favorited == 1 && (
+                                            <Ionicon name="heart" size={19} color={"white"} style={{
+                                                position: "absolute",
+                                                bottom: 3,
+                                                left: 3,
+                                                zIndex: 100
+                                            }} />
+                                        )
                                     }
-                                }} />
+                                    {
+                                        item.offline && (
+                                            <>
+                                                <Ionicon name="arrow-down-circle" size={18} color={"green"} style={{
+                                                    position: "absolute",
+                                                    top: 3,
+                                                    right: 2.8,
+                                                    zIndex: 100
+                                                }} />
+                                                <View style={{
+                                                    position: "absolute",
+                                                    top: 3,
+                                                    right: 3,
+                                                    width: 19,
+                                                    height: 19,
+                                                    borderRadius: 19,
+                                                    zIndex: 10,
+                                                    backgroundColor: "white"
+                                                }}></View>
+                                            </>
+                                        )
+                                    }
+                                    {
+                                        item.selected && (
+                                            <>
+                                                <Ionicon name="checkmark-circle" size={18} color="#0A84FF" style={{
+                                                    position: "absolute",
+                                                    bottom: 2.5,
+                                                    right: 2.8,
+                                                    zIndex: 100
+                                                }} />
+                                                <View style={{
+                                                    position: "absolute",
+                                                    bottom: 3,
+                                                    right: 3,
+                                                    width: 19,
+                                                    height: 19,
+                                                    borderRadius: 19,
+                                                    zIndex: 10,
+                                                    backgroundColor: "white"
+                                                }}></View>
+                                            </>
+                                        )
+                                    }
+                                </>
                             )
                         }
                     </View>
@@ -242,40 +298,6 @@ export class GridItem extends Component {
                                 fontSize: 10,
                                 paddingTop: 1
                             }} numberOfLines={1}>
-                                {
-                                    item.offline && (
-                                        <>
-                                            <Ionicon name="arrow-down-circle" size={11} color={"green"} />
-                                            <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                        </>
-                                    )
-                                }
-                                {
-                                    item.favorited == 1 && (
-                                        <>
-                                            <Ionicon name="heart" size={11} color={darkMode ? "white" : "black"} />
-                                            <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                        </>
-                                    )
-                                }
-                                {this.props.hideSizes ? formatBytes(0) : formatBytes(item.size)}
-                                {
-                                    typeof item.sharerEmail == "string" && (
-                                        <>
-                                            <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                            <Text>{item.sharerEmail}</Text>
-                                        </>
-                                    )
-                                }
-                                {
-                                    typeof item.receiverEmail == "string" && (
-                                        <>
-                                            <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                            <Text>{item.receiverEmail}</Text>
-                                        </>
-                                    )
-                                }
-                                &nbsp;&nbsp;&#8226;&nbsp;&nbsp;
                                 {item.date}
                             </Text>
                         </View>
@@ -325,7 +347,7 @@ export class PhotosItem extends Component {
                     data: item
                 })
             }}>
-                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + thumbnailPath + item.thumbnail } : getImageForItem(item)} style={{
+                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)} style={{
                     width: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
                     height: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
                     zIndex: 2
@@ -421,7 +443,7 @@ export class PhotosRangeItem extends Component {
                 justifyContent: "center",
                 marginBottom: 25
             }} onPress={() => this.props.photosRangeItemClick(item)}>
-                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + thumbnailPath + item.thumbnail } : getImageForItem(item)} style={{
+                <FastImage source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)} style={{
                     width: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
                     height: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? imageWidthAndHeight : 40,
                     zIndex: 2,
@@ -435,7 +457,7 @@ export class PhotosRangeItem extends Component {
                     }
                 }} />
                 <View style={{
-                    backgroundColor: "rgba(34, 34, 34, 0.5)",
+                    backgroundColor: darkMode ? "rgba(34, 34, 34, 0.5)" : "rgba(128, 128, 128, 0.6)",
                     position: "absolute",
                     zIndex: 100,
                     top: 15,
@@ -457,7 +479,7 @@ export class PhotosRangeItem extends Component {
                 {
                     typeof item.remainingItems == "number" && item.remainingItems > 1 && (
                         <View style={{
-                            backgroundColor: "rgba(34, 34, 34, 0.7)",
+                            backgroundColor: darkMode ? "rgba(34, 34, 34, 0.7)" : "rgba(128, 128, 128, 0.7)",
                             width: "auto",
                             height: "auto",
                             borderRadius: 15,

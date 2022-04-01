@@ -386,7 +386,7 @@ export const UploadToast = memo(({ message }) => {
                     }}>
                         <View>
                             <Text style={{
-                                color: darkMode ? "black" : "white"
+                                color: darkMode ? "white" : "black"
                             }}>
                                 {i18n(lang, "cameraUploadChooseFolder")}
                             </Text>
@@ -404,7 +404,7 @@ export const UploadToast = memo(({ message }) => {
                                 setCurrentShareItems(undefined)
                             }}>
                                 <Text style={{
-                                    color: "white"
+                                    color: darkMode ? "white" : "black"
                                 }}>
                                     {i18n(lang, "cancel")}
                                 </Text>
@@ -495,7 +495,7 @@ export const UploadToast = memo(({ message }) => {
                                 hideAllToasts()
                             }}>
                                 <Text style={{
-                                    color: "white"
+                                    color: darkMode ? "white" : "black"
                                 }}>
                                     {i18n(lang, "upload")}
                                 </Text>
@@ -596,12 +596,12 @@ export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
                     }
 
                     try{
-                        storage.set("cameraUploadFolderUUID:" + storage.getString("email"), parent)
-                        storage.set("cameraUploadFolderName:" + storage.getString("email"), folderName)
-                        //storage.set("cameraUploadUploadedIds:" + storage.getString("email"), "{}")
+                        storage.set("cameraUploadFolderUUID:" + storage.getNumber("userId"), parent)
+                        storage.set("cameraUploadFolderName:" + storage.getNumber("userId"), folderName)
+                        //storage.set("cameraUploadUploadedIds:" + storage.getNumber("userId"), "{}")
                         //storage.set("cameraUploadFetchNewAssetsTimeout", 0)
-                        //storage.set("cachedCameraUploadAssets:" + storage.getString("email"), "[]")
-                        //storage.set("cameraUploadEnabled:" + storage.getString("email"), true)
+                        //storage.set("cachedCameraUploadAssets:" + storage.getNumber("userId"), "[]")
+                        //storage.set("cameraUploadEnabled:" + storage.getNumber("userId"), true)
                     }
                     catch(e){
                         console.log(e)

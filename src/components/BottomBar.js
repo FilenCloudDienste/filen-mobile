@@ -12,7 +12,6 @@ import { getColor } from "../lib/style/colors"
 
 export const BottomBar = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [email, setEmail] = useMMKVString("email", storage)
     const currentRoutes = useStore(useCallback(state => state.currentRoutes))
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(useCallback(state => state.netInfo))

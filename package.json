@@ -72,6 +72,7 @@
 		"react-native-syntax-highlighter": "^2.1.0",
 		"react-native-toast-notifications": "^3.2.3",
 		"react-native-vector-icons": "^9.0.0",
+		"react-native-version-check": "^3.4.2",
 		"react-use": "^17.3.2",
 		"striptags": "^3.2.0",
 		"text-encoding": "^0.7.0",

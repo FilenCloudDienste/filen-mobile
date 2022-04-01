@@ -8,6 +8,8 @@ import { showToast } from "./Toasts"
 import { fetchGDPRInfo } from "../lib/api"
 import { useMountedState } from "react-use"
 
+const striptags = require("striptags")
+
 export const GDPRScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
@@ -66,7 +68,7 @@ export const GDPRScreen = memo(({ navigation, route }) => {
                             color: darkMode ? "white" : "black",
                             padding: 22
                         }}>
-                            {gdpr}    
+                            {striptags(gdpr)}    
                         </Text>
                     )
                 }

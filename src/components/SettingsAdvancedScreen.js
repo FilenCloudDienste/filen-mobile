@@ -119,6 +119,23 @@ export const SettingsAdvancedScreen = memo(({ navigation, route }) => {
                                                     if(keys[i].indexOf("thumbnailCache:") !== -1){
                                                         storage.delete(keys[i])
                                                     }
+
+                                                    if(keys[i].indexOf("loadItemsCache:") !== -1){
+                                                        let cache = []
+
+                                                        try{
+                                                            cache = JSON.parse(storage.getString(keys[i]))
+                                                        }
+                                                        catch(e){
+                                                            console.log(e)
+                                                        }
+
+                                                        for(let x = 0; x < cache.length; x++){
+                                                            cache[x]['thumbnail'] = undefined
+                                                        }
+
+                                                        storage.set(keys[i], JSON.stringify(cache))
+                                                    }
                                                 }
 
                                                 memoryCache.cache.forEach((value, key) => {
@@ -267,11 +284,11 @@ export const SettingsAdvancedScreen = memo(({ navigation, route }) => {
                 </SettingsGroup>
                 <View style={{
                     marginTop: 15,
-                    justifyContent: "center",
-                    alignItems: "center"
+                    paddingLeft: 17
                 }}>
                     <Text style={{
-                        color: darkMode ? "white" : "black"
+                        color: darkMode ? "gray" : "gray",
+                        fontSize: 11
                     }}>
                         {i18n(lang, "version")} {DeviceInfo.getVersion()}
                     </Text>

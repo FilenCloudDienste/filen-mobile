@@ -3,17 +3,17 @@ import { storage } from "../storage"
 export const clearPhotosList = () => {
     return new Promise((resolve, reject) => {
         try{
-            var email = storage.getString("email")
+            var userId = storage.getString("userId")
 
-            if(typeof email !== "string"){
-                return reject("email in storage !== string")
+            if(typeof userId !== "number"){
+                return reject("userId in storage !== number")
             }
 
-            if(email.length < 1){
-                return reject("email in storage invalid length")
+            if(userId == 0){
+                return reject("userId in storage invalid length")
             }
 
-            storage.delete("photos:" + email)
+            storage.delete("photos:" + userId)
         }
         catch(e){
             return reject(e)
@@ -26,17 +26,17 @@ export const clearPhotosList = () => {
 export const getPhotosList = () => {
     return new Promise((resolve, reject) => {
         try{
-            var email = storage.getString("email")
+            var userId = storage.getString("userId")
 
-            if(typeof email !== "string"){
-                return reject("email in storage !== string")
+            if(typeof userId !== "number"){
+                return reject("userId in storage !== number")
             }
 
-            if(email.length < 1){
-                return reject("email in storage invalid length")
+            if(userId == 0){
+                return reject("userId in storage invalid length")
             }
 
-            var list = storage.getString("photos:" + email)
+            var list = storage.getString("photos:" + userId)
         }
         catch(e){
             return reject(e)
@@ -64,17 +64,17 @@ export const getPhotosList = () => {
 export const savePhotosList = ({ list }) => {
     return new Promise(async (resolve, reject) => {
         try{
-            var email = storage.getString("email")
+            var userId = storage.getString("userId")
 
-            if(typeof email !== "string"){
-                return reject("email in storage !== string")
+            if(typeof userId !== "number"){
+                return reject("userId in storage !== number")
             }
 
-            if(email.length < 1){
-                return reject("email in storage invalid length")
+            if(userId == 0){
+                return reject("userId in storage invalid length")
             }
 
-            storage.set("photos:" + email, JSON.stringify(list))
+            storage.set("photos:" + userId, JSON.stringify(list))
         }
         catch(e){
             return reject(e)
@@ -87,14 +87,14 @@ export const savePhotosList = ({ list }) => {
 export const addItemToPhotosList = ({ item }) => {
     return new Promise(async (resolve, reject) => {
         try{
-            var email = storage.getString("email")
+            var userId = storage.getString("userId")
 
-            if(typeof email !== "string"){
-                return reject("email in storage !== string")
+            if(typeof userId !== "number"){
+                return reject("userId in storage !== number")
             }
 
-            if(email.length < 1){
-                return reject("email in storage invalid length")
+            if(userId == 0){
+                return reject("userId in storage invalid length")
             }
             
             var list = await getPhotosList()
@@ -132,14 +132,14 @@ export const addItemToPhotosList = ({ item }) => {
 export const removeItemFromPhotosList = ({ item }) => {
     return new Promise(async (resolve, reject) => {
         try{
-            var email = storage.getString("email")
+            var userId = storage.getString("userId")
 
-            if(typeof email !== "string"){
-                return reject("email in storage !== string")
+            if(typeof userId !== "number"){
+                return reject("userId in storage !== number")
             }
 
-            if(email.length < 1){
-                return reject("email in storage invalid length")
+            if(userId == 0){
+                return reject("userId in storage invalid length")
             }
 
             var list = await getPhotosList()

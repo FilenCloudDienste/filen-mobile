@@ -2,6 +2,9 @@ import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMe
 import { storage } from "./storage"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter } from "react-native"
+import { updateLoadItemsCache, removeLoadItemsCache, emptyTrashLoadItemsCache } from "./services/items"
+import { logout } from "./auth/logout"
+import { useStore } from "./state"
 
 export const apiRequest = ({ method, endpoint, data }) => {
     return new Promise((resolve, reject) => {
@@ -24,13 +27,28 @@ export const apiRequest = ({ method, endpoint, data }) => {
                     "/v1/user/shared/out",
                     "/v1/user/recent",
                     "/v1/user/keyPair/info",
-                    "/v1/dir/size"
+                    "/v1/user/keyPair/update",
+                    "/v1/user/keyPair/set",
+                    "/v1/dir/size",
+                    "/v1/user/masterKeys"
                 ].includes(endpoint)){
                     try{
                         storage.set(cacheKey, JSON.stringify(res))
                     }
                     catch(e){
                         //console.log(e)
+                    }
+                }
+
+                if(!res.status){
+                    if(typeof res.message == "string"){
+                        if(res.message.toLowerCase().indexOf("invalid api key") !== -1){
+                            const navigation = useStore.getState().navigation
+
+                            if(typeof navigation !== "undefined"){
+                                return logout({ navigation })
+                            }
+                        }
                     }
                 }
 
@@ -1028,7 +1046,13 @@ export const renameFile = ({ file, name }) => {
                             lastModified: file.lastModified
                         }
                     }).then(() => {
-                        return resolve()
+                        updateLoadItemsCache({
+                            item: file,
+                            prop: "name",
+                            value: name
+                        }).then(() => {
+                            return resolve()
+                        })
                     }).catch(reject)
                 }).catch(reject)
             }).catch(reject)
@@ -1063,7 +1087,13 @@ export const renameFolder = ({ folder, name }) => {
                             name
                         }
                     }).then(() => {
-                        return resolve()
+                        updateLoadItemsCache({
+                            item: folder,
+                            prop: "name",
+                            value: name
+                        }).then(() => {
+                            return resolve()
+                        })
                     }).catch(reject)
                 }).catch(reject)
             }).catch(reject)
@@ -1212,7 +1242,21 @@ export const favoriteItem = ({ item, value }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            DeviceEventEmitter.emit("event", {
+                type: "mark-item-favorite",
+                data: {
+                    uuid: item.uuid,
+                    value: value == 1 ? true : false
+                }
+            })
+
+            updateLoadItemsCache({
+                item,
+                prop: "favorited",
+                value
+            }).then(() => {
+                return resolve()
+            })
         }).catch(reject)
     })
 }
@@ -1635,7 +1679,18 @@ export const trashItem = ({ item }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            removeLoadItemsCache({
+                item
+            }).then(() => {
+                DeviceEventEmitter.emit("event", {
+                    type: "remove-item",
+                    data: {
+                        uuid: item.uuid
+                    }
+                })
+
+                return resolve()
+            })
         }).catch(reject)
     })
 }
@@ -1654,7 +1709,12 @@ export const restoreItem = ({ item }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            removeLoadItemsCache({
+                item,
+                routeURL: "trash"
+            }).then(() => {
+                return resolve()
+            })
         }).catch(reject)
     })
 }
@@ -1673,7 +1733,18 @@ export const deleteItemPermanently = ({ item }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            removeLoadItemsCache({
+                item
+            }).then(() => {
+                DeviceEventEmitter.emit("event", {
+                    type: "remove-item",
+                    data: {
+                        uuid: item.uuid
+                    }
+                })
+
+                return resolve()
+            })
         }).catch(reject)
     })
 }
@@ -1693,7 +1764,19 @@ export const stopSharingItem = ({ item }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            removeLoadItemsCache({
+                item,
+                routeURL: "shared-out"
+            }).then(() => {
+                DeviceEventEmitter.emit("event", {
+                    type: "remove-item",
+                    data: {
+                        uuid: item.uuid
+                    }
+                })
+
+                return resolve()
+            })
         }).catch(reject)
     })
 }
@@ -1713,7 +1796,19 @@ export const removeSharedInItem = ({ item }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            removeLoadItemsCache({
+                item,
+                routeURL: "shared-in"
+            }).then(() => {
+                DeviceEventEmitter.emit("event", {
+                    type: "remove-item",
+                    data: {
+                        uuid: item.uuid
+                    }
+                })
+
+                return resolve()
+            })
         }).catch(reject)  
     })
 }
@@ -2083,7 +2178,7 @@ export const changePassword = ({ password, passwordRepeat, currentPassword, auth
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
-            endpoint: "/v1/user/settings/email/change",
+            endpoint: "/v1/user/settings/password/change",
             data: {
                 apiKey: getAPIKey(),
                 password,
@@ -2227,14 +2322,6 @@ export const bulkFavorite = ({ value, items }) => {
                         item,
                         value
                     })
-    
-                    DeviceEventEmitter.emit("event", {
-                        type: "mark-item-favorite",
-                        data: {
-                            uuid: item.uuid,
-                            value: value == 1 ? true : false
-                        }
-                    })
                 }
                 catch(e){
                     console.log(e)
@@ -2253,13 +2340,6 @@ export const bulkTrash = ({ items }) => {
 
             try{
                 await trashItem({ item })
-
-                DeviceEventEmitter.emit("event", {
-                    type: "remove-item",
-                    data: {
-                        uuid: item.uuid
-                    }
-                })
             }
             catch(e){
                 console.log(e)
@@ -2429,5 +2509,89 @@ export const bulkRemoveSharedIn = ({ items }) => {
         }
 
         return resolve()
+    })
+}
+
+export const folderPresent = ({ uuid }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/dir/present",
+            data: {
+                apiKey: getAPIKey(),
+                uuid
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data)
+        }).catch((err) => {
+            return reject(err)
+        })
+    })
+}
+
+export const filePresent = ({ uuid }) => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/file/present",
+            data: {
+                apiKey: getAPIKey(),
+                uuid
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data)
+        }).catch((err) => {
+            return reject(err)
+        })
+    })
+}
+
+export const emptyTrash = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/trash/empty",
+            data: {
+                apiKey: getAPIKey()
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            emptyTrashLoadItemsCache().then(() => {
+                return resolve()
+            })
+        }).catch((err) => {
+            return reject(err)
+        })
+    })
+}
+
+export const getLatestVersion = () => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/currentVersions",
+            data: {
+                platform: "mobile"
+            }
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(response.data.mobile)
+        }).catch((err) => {
+            return reject(err)
+        })
     })
 }

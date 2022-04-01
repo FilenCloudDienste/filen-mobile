@@ -1,5 +1,5 @@
 import React, { useCallback, memo, useEffect, useState } from "react"
-import { View, ScrollView, Text, TouchableOpacity } from "react-native"
+import { View, Text, TouchableOpacity, Platform, FlatList } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { useStore } from "../lib/state"
@@ -8,15 +8,22 @@ import { i18n } from "../i18n/i18n"
 import { getColor } from "../lib/style/colors"
 import { memoryCache } from "../lib/memoryCache"
 import { useMountedState } from "react-use"
+import BackgroundTimer from "react-native-background-timer"
+import { SheetManager } from "react-native-actions-sheet"
 
 export const TransfersScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const [sortedTransfers, setSortedTransfers] = useState({})
+    const [sortedTransfers, setSortedTransfers] = useState([])
     const isMounted = useMountedState()
     const [currentView, setCurrentView] = useState("ongoing")
     const [ongoingTransfers, setOngoingTransfers] = useState(0)
     const [finishedTransfers, setFinishedTransfers] = useState(0)
+    const [ongoingTransfersList, setOngoingTransfersList] = useState([])
+    const [finishedTransfersList, setFinishedTransfersList] = useState([])
+    const bottomBarHeight = useStore(useCallback(state => state.bottomBarHeight))
+    const topBarHeight = useStore(useCallback(state => state.topBarHeight))
+    const contentHeight = useStore(useCallback(state => state.contentHeight))
 
     const updateTransfers = useCallback(() => {
         if(isMounted()){
@@ -60,15 +67,34 @@ export const TransfersScreen = memo(({ navigation, route }) => {
             setOngoingTransfers(ongoing)
             setFinishedTransfers(finished)
 
+            const finishedList = []
+            const ongoingList = []
+
             if(sortedTransfers.length > 0){
+                //const sorted = sortedTransfers.sort((a, b) => {
+                //    return a.done > b.done
+                //})
+
                 const sorted = sortedTransfers.sort((a, b) => {
-                    return a.done > b.done
+                    return (isNaN(Math.round((a.transfer.chunksDone / a.transfer.file.chunks) * 100)) ? 0 : Math.round((a.transfer.chunksDone / a.transfer.file.chunks) * 100)) < (isNaN(Math.round((b.transfer.chunksDone / b.transfer.file.chunks) * 100)) ? 0 : Math.round((b.transfer.chunksDone / b.transfer.file.chunks) * 100))
                 })
     
                 setSortedTransfers(sorted)
+
+                for(let i = 0; i < sorted.length; i++){
+                    if(sorted[i].done){
+                        finishedList.push(sorted[i])
+                    }
+                    else{
+                        ongoingList.push(sorted[i])
+                    }
+                }
             }
 
-            setTimeout(updateTransfers, 100)
+            setFinishedTransfersList(finishedList)
+            setOngoingTransfersList(ongoingList)
+
+            BackgroundTimer.setTimeout(updateTransfers, 100)
         }
     })
 
@@ -83,24 +109,49 @@ export const TransfersScreen = memo(({ navigation, route }) => {
         }}>
             <View style={{
                 flexDirection: "row",
-                justifyContent: "flex-start",
+                justifyContent: "space-between",
                 backgroundColor: darkMode ? "black" : "white"
             }}>
-                <TouchableOpacity style={{
-                    marginTop: Platform.OS == "ios" ? 16 : 3,
-                    marginLeft: 15,
-                }} onPress={() => navigation.goBack()}>
-                    <Ionicon name="chevron-back" size={24} color={darkMode ? "white" : "black"}></Ionicon>
-                </TouchableOpacity>
-                <Text style={{
-                    color: darkMode ? "white" : "black",
-                    fontWeight: "bold",
-                    fontSize: 22,
-                    marginLeft: 10,
-                    marginTop: Platform.OS == "ios" ? 15 : 0
+                <View style={{
+                    flexDirection: "row"
                 }}>
-                    {i18n(lang, "transfers")}
-                </Text>
+                    <TouchableOpacity style={{
+                        marginTop: Platform.OS == "ios" ? 16 : 3,
+                        marginLeft: 15,
+                    }} onPress={() => navigation.goBack()}>
+                        <Ionicon name="chevron-back" size={24} color={darkMode ? "white" : "black"}></Ionicon>
+                    </TouchableOpacity>
+                    <Text style={{
+                        color: darkMode ? "white" : "black",
+                        fontWeight: "bold",
+                        fontSize: 22,
+                        marginLeft: 10,
+                        marginTop: Platform.OS == "ios" ? 15 : 0
+                    }}>
+                        {i18n(lang, "transfers")}
+                    </Text>
+                </View>
+                <TouchableOpacity hitSlop={{
+                    top: 10,
+                    right: 10,
+                    left: 10,
+                    bottom: 10
+                }} style={{
+                    alignItems: "flex-end",
+                    flexDirection: "row",
+                    backgroundColor: "transparent",
+                    height: "100%",
+                    paddingLeft: 0,
+                    paddingRight: 15
+                }} onPress={() => SheetManager.show("TopBarActionSheet")}>
+                    {
+                        ongoingTransfers > 0 && (
+                            <View>
+                                <Ionicon name="ellipsis-horizontal-sharp" size={24} color={darkMode ? "white" : "black"}></Ionicon>
+                            </View>
+                        )
+                    }
+                </TouchableOpacity>
             </View>
             <View style={{
                 height: "auto",
@@ -110,13 +161,15 @@ export const TransfersScreen = memo(({ navigation, route }) => {
                 marginTop: 20
             }}>
                 <TouchableOpacity style={{
-                    borderBottomWidth: currentView == "ongoing" ? 1.5 : 1,
+                    borderBottomWidth: currentView == "ongoing" ? Platform.OS == "ios" ? 1.5 : 2 : 1,
                     borderBottomColor: currentView == "ongoing" ? "#0A84FF" : getColor(darkMode, "primaryBorder"),
                     height: 27,
                     paddingLeft: 15,
                     paddingRight: 15,
                     width: "50%",
                     alignItems: "center"
+                }} hitSlop={{
+                    top: 20
                 }} onPress={() => setCurrentView("ongoing")}>
                     <Text style={{
                         color: currentView == "ongoing" ? "#0A84FF" : "gray",
@@ -127,13 +180,15 @@ export const TransfersScreen = memo(({ navigation, route }) => {
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={{
-                    borderBottomWidth: currentView == "finished" ? 1.5 : 1,
+                    borderBottomWidth: currentView == "finished" ? Platform.OS == "ios" ? 1.5 : 2 : 1,
                     borderBottomColor: currentView == "finished" ? "#0A84FF" : getColor(darkMode, "primaryBorder"),
                     height: 27,
                     paddingLeft: 15,
                     paddingRight: 15,
                     width: "50%",
                     alignItems: "center"
+                }} hitSlop={{
+                    top: 20
                 }} onPress={() => setCurrentView("finished")}>
                     <Text style={{
                         color: currentView == "finished" ? "#0A84FF" : "gray",
@@ -144,186 +199,297 @@ export const TransfersScreen = memo(({ navigation, route }) => {
                     </Text>
                 </TouchableOpacity>
             </View>
-            <ScrollView style={{
+            <View style={{
                 width: "100%",
-                height: "100%"
+                height: (contentHeight - topBarHeight - bottomBarHeight - 14)
             }}>
                 {
-                    Object.keys(sortedTransfers).length > 0 && (
-                        <>
-                            {
-                                currentView == "ongoing" && sortedTransfers.map((transfer) => {
-                                    return transfer.done ? null : (
-                                        <View key={transfer.id} style={{
-                                            width: "100%",
-                                            height: 40,
-                                            paddingTop: 10,
-                                            paddingBottom: 10,
-                                            paddingLeft: 15,
-                                            paddingRight: 15,
+                    currentView == "ongoing" && (
+                        <FlatList
+                            data={ongoingTransfersList}
+                            keyExtractor={(item, index) => index}
+                            key="ongoing"
+                            windowSize={10}
+                            initialNumToRender={32}
+                            removeClippedSubviews={true}
+                            numColumns={1}
+                            renderItem={({ item, index }) => {
+                                const transfer = item
+                                
+                                return (
+                                    <View key={index} style={{
+                                        width: "100%",
+                                        height: 40,
+                                        paddingTop: 10,
+                                        paddingBottom: 10,
+                                        paddingLeft: 15,
+                                        paddingRight: 15,
+                                        flexDirection: "row",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        borderBottomColor: getColor(darkMode, "primaryBorder"),
+                                        borderBottomWidth: 1
+                                    }}>
+                                        <View style={{
                                             flexDirection: "row",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            borderBottomColor: getColor(darkMode, "primaryBorder"),
-                                            borderBottomWidth: 1
+                                            width: "50%"
                                         }}>
-                                            <View style={{
-                                                flexDirection: "row"
+                                            <Ionicon name={transfer.transfer.paused ? "pause-circle-outline" : transfer.type == "upload" ? "arrow-up-outline" : "arrow-down-outline"} size={20} color={darkMode ? "white" : "black"} />
+                                            <Text style={{
+                                                color: darkMode ? "white" : "black",
+                                                marginLeft: 10,
+                                                paddingTop: 2
+                                            }} numberOfLines={1}>
+                                                {transfer.transfer.file.name}{transfer.transfer.file.name}{transfer.transfer.file.name}{transfer.transfer.file.name}{transfer.transfer.file.name}{transfer.transfer.file.name}
+                                            </Text>
+                                        </View>
+                                        <View style={{
+                                            marginLeft: 20
+                                        }}>
+                                            <Text style={{
+                                                color: darkMode ? "white" : "black"
                                             }}>
-                                                <Ionicon name={transfer.transfer.paused ? "pause-circle-outline" : transfer.type == "upload" ? "arrow-up-outline" : "arrow-down-outline"} size={20} color={darkMode ? "white" : "black"} />
-                                                <Text style={{
-                                                    color: darkMode ? "white" : "black",
-                                                    marginLeft: 10,
-                                                    width: "45%",
-                                                    paddingTop: 2
-                                                }} numberOfLines={1}>
-                                                    {transfer.transfer.file.name}
-                                                </Text>
-                                            </View>
-                                            <View>
-                                                <Text style={{
-                                                    color: darkMode ? "white" : "black"
-                                                }}>
-                                                    {
-                                                        transfer.transfer.chunksDone == 0 ? (
-                                                            <>{i18n(lang, "queued")}</>
-                                                        ) : (
-                                                            <>{!isNaN(Math.round((transfer.transfer.chunksDone / transfer.transfer.file.chunks) * 100)) ? (Math.round((transfer.transfer.chunksDone / transfer.transfer.file.chunks) * 100) >= 100 ? 100 : Math.round((transfer.transfer.chunksDone / transfer.transfer.file.chunks) * 100)) : 0}%</>
-                                                        )
-                                                    }
-                                                </Text>
-                                            </View>
-                                            {
-                                                transfer.transfer.paused ? (
-                                                    <TouchableOpacity onPress={() => {
-                                                        const currentUploads = useStore.getState().sortedTransfers
-        
-                                                        if(typeof currentUploads[prop] !== "undefined"){
-                                                            currentUploads[prop].paused = false
-                                                
-                                                            useStore.setState({
-                                                                sortedTransfers: currentUploads
-                                                            })
-                                                        }
-                                                    }}>
-                                                        <Text style={{
-                                                            color: "#0A84FF"
-                                                        }}>
-                                                            {i18n(lang, "resume")}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                ) : (
-                                                    <TouchableOpacity onPress={() => {
-                                                        const currentUploads = useStore.getState().sortedTransfers
-        
-                                                        if(typeof currentUploads[prop] !== "undefined"){
-                                                            currentUploads[prop].paused = true
-                                                
-                                                            useStore.setState({
-                                                                uploads: sortedTransfers
-                                                            })
-                                                        }
-                                                    }}>
-                                                        <Text style={{
-                                                            color: "#0A84FF"
-                                                        }}>
-                                                            {i18n(lang, "pause")}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                )
-                                            }
-                                            <TouchableOpacity onPress={() => {
-                                                const currentUploads = useStore.getState().currentTransfers
+                                                {
+                                                    transfer.transfer.chunksDone == 0 ? (
+                                                        <>{i18n(lang, "queued")}</>
+                                                    ) : (
+                                                        <>{!isNaN(Math.round((transfer.transfer.chunksDone / transfer.transfer.file.chunks) * 100)) ? (Math.round((transfer.transfer.chunksDone / transfer.transfer.file.chunks) * 100) >= 100 ? 100 : Math.round((transfer.transfer.chunksDone / transfer.transfer.file.chunks) * 100)) : 0}%</>
+                                                    )
+                                                }
+                                            </Text>
+                                        </View>
+                                        {
+                                            transfer.transfer.paused ? (
+                                                <TouchableOpacity onPress={() => {
+                                                    if(transfer.type == "upload"){
+                                                        const currentUploads = useStore.getState().uploads
+                                                        let didChange = false
 
-                                                if(typeof currentUploads[prop] !== "undefined"){
-                                                    currentUploads[prop].stopped = true
-                                        
+                                                        for(let prop in currentUploads){
+                                                            if(transfer.transfer.id == currentUploads[prop].id){
+                                                                currentUploads[prop].paused = false
+                                                                didChange = true
+                                                            }
+                                                        }
+
+                                                        if(didChange){
+                                                            useStore.setState({
+                                                                uploads: currentUploads
+                                                            })
+                                                        }
+                                                    }
+                                                    else{
+                                                        const currentDownloads = useStore.getState().downloads
+                                                        let didChange = false
+    
+                                                        for(let prop in currentDownloads){
+                                                            if(transfer.transfer.id == currentDownloads[prop].id){
+                                                                currentDownloads[prop].paused = false
+                                                                didChange = true
+                                                            }
+                                                        }
+
+                                                        if(didChange){
+                                                            useStore.setState({
+                                                                downloads: currentDownloads
+                                                            })
+                                                        }
+                                                    }
+                                                }}>
+                                                    <Text style={{
+                                                        color: "#0A84FF"
+                                                    }}>
+                                                        {i18n(lang, "resume")}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            ) : (
+                                                <TouchableOpacity onPress={() => {
+                                                    if(transfer.type == "upload"){
+                                                        const currentUploads = useStore.getState().uploads
+                                                        let didChange = false
+    
+                                                        for(let prop in currentUploads){
+                                                            if(transfer.transfer.id == currentUploads[prop].id){
+                                                                currentUploads[prop].paused = true
+                                                                didChange = true
+                                                            }
+                                                        }
+
+                                                        if(didChange){
+                                                            useStore.setState({
+                                                                uploads: currentUploads
+                                                            })
+                                                        }
+                                                    }
+                                                    else{
+                                                        const currentDownloads = useStore.getState().downloads
+                                                        let didChange = false
+    
+                                                        for(let prop in currentDownloads){
+                                                            if(transfer.transfer.id == currentDownloads[prop].id){
+                                                                currentDownloads[prop].paused = true
+                                                                didChange = true
+                                                            }
+                                                        }
+
+                                                        if(didChange){
+                                                            useStore.setState({
+                                                                downloads: currentDownloads
+                                                            })
+                                                        }
+                                                    }
+                                                }}>
+                                                    <Text style={{
+                                                        color: "#0A84FF"
+                                                    }}>
+                                                        {i18n(lang, "pause")}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            )
+                                        }
+                                        <TouchableOpacity onPress={() => {
+                                            if(transfer.type == "upload"){
+                                                const currentUploads = useStore.getState().uploads
+                                                let didChange = false
+
+                                                for(let prop in currentUploads){
+                                                    if(transfer.transfer.id == currentUploads[prop].id){
+                                                        currentUploads[prop].stopped = true
+                                                        didChange = true
+                                                    }
+                                                }
+
+                                                if(didChange){
                                                     useStore.setState({
-                                                        currentTransfers: currentUploads
+                                                        uploads: currentUploads
                                                     })
                                                 }
-                                            }}>
-                                                <Text style={{
-                                                    color: "#0A84FF"
-                                                }}>
-                                                    {i18n(lang, "stop")}
-                                                </Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    )
-                                })
-                            }
-                            {
-                                currentView == "finished" && sortedTransfers.map((transfer) => {
-                                    return !transfer.done ? null : (
-                                        <View key={transfer.id} style={{
-                                            width: "100%",
-                                            height: 40,
-                                            paddingTop: 10,
-                                            paddingBottom: 10,
-                                            paddingLeft: 15,
-                                            paddingRight: 15,
-                                            flexDirection: "row",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            borderBottomColor: getColor(darkMode, "primaryBorder"),
-                                            borderBottomWidth: 1
+                                            }
+                                            else{
+                                                const currentDownloads = useStore.getState().downloads
+                                                let didChange = false
+
+                                                for(let prop in currentDownloads){
+                                                    if(transfer.transfer.id == currentDownloads[prop].id){
+                                                        currentDownloads[prop].stopped = true
+                                                        didChange = true
+                                                    }
+                                                }
+
+                                                if(didChange){
+                                                    useStore.setState({
+                                                        downloads: currentDownloads
+                                                    })
+                                                }
+                                            }
                                         }}>
-                                            <View style={{
-                                                flexDirection: "row"
+                                            <Text style={{
+                                                color: "#0A84FF"
                                             }}>
-                                                <Ionicon name={transfer.transfer.paused ? "pause-circle-outline" : transfer.type == "upload" ? "arrow-up-outline" : "arrow-down-outline"} size={20} color={darkMode ? "white" : "black"} />
-                                                <Text style={{
-                                                    color: darkMode ? "white" : "black",
-                                                    marginLeft: 10,
-                                                    width: "93%",
-                                                    paddingTop: 2
-                                                }} numberOfLines={1}>
-                                                    {transfer.transfer.file.name}
-                                                </Text>
-                                            </View>
+                                                {i18n(lang, "stop")}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )
+                            }}
+                            getItemLayout={(data, index) => (
+                                {length: 40, offset: 40 * index, index}
+                            )}
+                            style={{
+                                height: "100%",
+                                width: "100%"
+                            }}
+                            ListEmptyComponent={() => {
+                                return (
+                                    <View style={{
+                                        marginTop: "60%",
+                                        justifyContent: "center",
+                                        alignItems: "center"
+                                    }}>
+                                        <Ionicon name="repeat-outline" size={70} color="gray" />
+                                        <Text style={{
+                                            color: "gray",
+                                            marginTop: 5
+                                        }}>
+                                            {i18n(lang, "noTransfers")}
+                                        </Text>
+                                    </View>
+                                )
+                            }}
+                        />
+                    )
+                }
+                {
+                    currentView == "finished" && (
+                        <FlatList
+                            data={finishedTransfersList}
+                            keyExtractor={(item, index) => index}
+                            key="ongoing"
+                            windowSize={10}
+                            initialNumToRender={32}
+                            removeClippedSubviews={true}
+                            numColumns={1}
+                            renderItem={({ item, index }) => {
+                                const transfer = item
+                                
+                                return (
+                                    <View key={index} style={{
+                                        width: "100%",
+                                        height: 40,
+                                        paddingTop: 10,
+                                        paddingBottom: 10,
+                                        paddingLeft: 15,
+                                        paddingRight: 15,
+                                        flexDirection: "row",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        borderBottomColor: getColor(darkMode, "primaryBorder"),
+                                        borderBottomWidth: 1
+                                    }}>
+                                        <View style={{
+                                            flexDirection: "row",
+                                            width: "90%"
+                                        }}>
+                                            <Ionicon name={transfer.type == "upload" ? "arrow-up-outline" : "arrow-down-outline"} size={20} color={darkMode ? "white" : "black"} />
+                                            <Text style={{
+                                                color: darkMode ? "white" : "black",
+                                                marginLeft: 10,
+                                                paddingTop: 2
+                                            }} numberOfLines={1}>
+                                                {transfer.transfer.file.name}
+                                            </Text>
                                         </View>
-                                    )
-                                })
-                            }
-                        </>
+                                    </View>
+                                )
+                            }}
+                            getItemLayout={(data, index) => (
+                                {length: 40, offset: 40 * index, index}
+                            )}
+                            style={{
+                                height: "100%",
+                                width: "100%"
+                            }}
+                            ListEmptyComponent={() => {
+                                return (
+                                    <View style={{
+                                        marginTop: "60%",
+                                        justifyContent: "center",
+                                        alignItems: "center"
+                                    }}>
+                                        <Ionicon name="repeat-outline" size={70} color="gray" />
+                                        <Text style={{
+                                            color: "gray",
+                                            marginTop: 5
+                                        }}>
+                                            {i18n(lang, "noFinishedTransfers")}
+                                        </Text>
+                                    </View>
+                                )
+                            }}
+                        />
                     )
                 }
-                {
-                    ongoingTransfers == 0 && currentView == "ongoing" && (
-                        <View style={{
-                            marginTop: "60%",
-                            justifyContent: "center",
-                            alignItems: "center"
-                        }}>
-                            <Ionicon name="repeat-outline" size={70} color="gray" />
-                            <Text style={{
-                                color: "gray",
-                                marginTop: 5
-                            }}>
-                                {i18n(lang, "noTransfers")}
-                            </Text>
-                        </View>
-                    )
-                }
-                {
-                    finishedTransfers == 0 && currentView == "finished" && (
-                        <View style={{
-                            marginTop: "60%",
-                            justifyContent: "center",
-                            alignItems: "center"
-                        }}>
-                            <Ionicon name="repeat-outline" size={70} color="gray" />
-                            <Text style={{
-                                color: "gray",
-                                marginTop: 5
-                            }}>
-                                {i18n(lang, "noFinishedTransfers")}
-                            </Text>
-                        </View>
-                    )
-                }
-            </ScrollView>
+            </View>
         </View>
     )
 })

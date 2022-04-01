@@ -3,7 +3,7 @@ import { getRouteURL } from "../lib/helpers"
 import { Text, View } from "react-native"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import { storage } from "../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../i18n/i18n"
 import { useStore } from "../lib/state"
 
@@ -11,8 +11,8 @@ export const ListEmpty = memo(({ route, searchTerm = "" }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
-    const [email, setEmail] = useMMKVString("email", storage)
-    const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + email, storage)
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
 
     const routeURL = getRouteURL(route)
     const currentScreenName = route.name

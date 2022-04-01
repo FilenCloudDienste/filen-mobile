@@ -7,7 +7,7 @@ export const updateUserUsage = () => {
 
     if(netInfo.isConnected && netInfo.isInternetReachable){
         fetchUserUsage().then((usage) => {
-            storage.set("userUsage:" + storage.getString("email"), JSON.stringify(usage))
+            storage.set("userUsage:" + storage.getNumber("userId"), JSON.stringify(usage))
         }).catch((err) => {
             console.log(err)
         })
@@ -19,7 +19,7 @@ export const updateUserInfo = () => {
 
     if(netInfo.isConnected && netInfo.isInternetReachable){
         fetchUserInfo().then((info) => {
-            storage.set("userInfo:" + storage.getString("email"), JSON.stringify(info))
+            storage.set("userInfo:" + storage.getNumber("userId"), JSON.stringify(info))
         }).catch((err) => {
             console.log(err)
         })

@@ -1,4 +1,4 @@
-import { apiRequest } from "../api"
+import { apiRequest, fetchUserInfo } from "../api"
 import { storage } from "../storage"
 import { setup } from "../setup"
 import { logout } from "./logout"
@@ -149,7 +149,7 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
                 email,
                 password: passwordToSend,
                 twoFactorKey,
-                authInfo
+                authVersion
             }
         })
     }
@@ -206,8 +206,36 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
     }
 
     try{
+        var userInfo = await new Promise((resolve, reject) => {
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/user/info",
+                data: {
+                    apiKey: res.data.apiKey
+                }
+            }).then((response) => {
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve(response.data)
+            }).catch((err) => {
+                return reject(err)
+            })
+        })
+    }
+    catch(e){
+        console.log(e)
+
+        useStore.setState({ fullscreenLoadingModalVisible: false })
+
+        return showToast({ message: e.toString() })
+    }
+
+    try{
         storage.set("apiKey", res.data.apiKey)
         storage.set("email", email)
+        storage.set("userId", userInfo.id)
         storage.set("masterKeys", JSON.stringify([masterKey]))
         storage.set("authVersion", authVersion)
         storage.set("isLoggedIn", true)
@@ -221,6 +249,8 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
     }
 
     useStore.setState({ fullscreenLoadingModalVisible: false })
+
+    Keyboard.dismiss()
 
     navigationAnimation({ enable: true }).then(() => {
         navigation.replace("SetupScreen")

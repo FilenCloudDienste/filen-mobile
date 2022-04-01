@@ -40,7 +40,7 @@ export const TwoFactorScreen = memo(({ navigation, route }) => {
                     marginLeft: 10,
                     marginTop: Platform.OS == "ios" ? 15 : 0
                 }}>
-                    {i18n(lang, "invite")}
+                    {i18n(lang, "twoFactorAuthentication")}
                 </Text>
             </View>
             <ScrollView style={{

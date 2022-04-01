@@ -153,5 +153,7 @@ export const register = async ({ email, password, confirmPassword, setEmail, set
 
     showToast({ message: i18n(lang, "registerSuccess") })
 
+    Keyboard.dismiss()
+
     navigation.goBack()
 }

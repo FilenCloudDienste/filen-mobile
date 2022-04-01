@@ -3,11 +3,14 @@ import CameraRoll from "@react-native-community/cameraroll"
 import { Platform } from "react-native"
 import { useStore } from "../state"
 import { queueFileUpload } from "../upload"
-import { getFilenameFromPath, getFileExt } from "../helpers"
+import { getFilenameFromPath, getFileExt, Semaphore } from "../helpers"
 import RNFS from "react-native-fs"
 import { getDownloadPath } from "../download"
+import { folderPresent } from "../api"
+import BackgroundTimer from "react-native-background-timer"
 
 const cameraUploadTimeout = 1000
+const copySemaphore = new Semaphore(1)
 
 export const isCameraUploadRunning = () => {
     try{
@@ -35,13 +38,13 @@ export const setCameraUploadRunning = (val = true) => {
 
 export const disableCameraUpload = (resetFolder = false) => {
     try{
-        var email = storage.getString("email")
+        var userId = storage.getString("userId")
 
-        storage.set("cameraUploadEnabled:" + email, false)
+        storage.set("cameraUploadEnabled:" + userId, false)
 
         if(resetFolder){
-            storage.delete("cameraUploadFolderUUID:" + email)
-            storage.delete("cameraUploadFolderName:" + email)
+            storage.delete("cameraUploadFolderUUID:" + userId)
+            storage.delete("cameraUploadFolderName:" + userId)
         }
     }
     catch(e){
@@ -81,7 +84,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
@@ -100,7 +103,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
@@ -114,14 +117,14 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
     }
 
     try{
-        var email = storage.getString("email")
+        var userId = storage.getString("userId")
     }
     catch(e){
         console.log(e)
@@ -133,13 +136,13 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
     }
 
-    if(typeof email !== "string"){
+    if(typeof userId !== "number"){
         setCameraUploadRunning(false)
         callCallback(false)
 
@@ -147,14 +150,28 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
+        }
+    }
+
+    if(userId == 0){
+        setCameraUploadRunning(false)
+        callCallback(false)
+
+        if(runOnce){
+            return false
+        }
+        else{
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
     }
 
     try{
-        if(storage.getBoolean("onlyWifiUploads:" + email) && netInfo.type !== "wifi"){
+        if(storage.getBoolean("onlyWifiUploads:" + userId) && netInfo.type !== "wifi"){
             setCameraUploadRunning(false)
             callCallback(false)
 
@@ -162,7 +179,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 return false
             }
             else{
-                return setTimeout(() => {
+                return BackgroundTimer.setTimeout(() => {
                     runCameraUpload({ maxQueue, runOnce, callback })
                 }, cameraUploadTimeout)
             }
@@ -173,10 +190,10 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
 
     try{
-        var cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + email)
-        var cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + email)
+        var cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
+        var cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
         var cameraUploadFetchNewAssetsTimeout = storage.getNumber("cameraUploadFetchNewAssetsTimeout") || 0
-        var cameraUploadUploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + email) || "{}")
+        var cameraUploadUploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
     }
     catch(e){
         console.log(e)
@@ -188,7 +205,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
@@ -227,14 +244,37 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
     }
 
-    /*try{
-        //folderExists
+    let folderExists = false
+
+    try{
+        const isFolderPresent = await folderPresent({ uuid: cameraUploadFolderUUID })
+
+        if(isFolderPresent.present){
+            if(!isFolderPresent.trash){
+                folderExists = true
+            }
+        }
+    }
+    catch(e){
+        console.log(e)
+
+        setCameraUploadRunning(false)
+        callCallback(false)
+
+        if(runOnce){
+            return false
+        }
+        else{
+            return BackgroundTimer.setTimeout(() => {
+                runCameraUpload({ maxQueue, runOnce, callback })
+            }, cameraUploadTimeout)
+        }
     }
 
     if(!folderExists){
@@ -242,13 +282,13 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         disableCameraUpload(true)
 
         return false
-    }*/
+    }
 
     if(Math.floor(+new Date()) > cameraUploadFetchNewAssetsTimeout){
         try{
             var assets = await getCameraRollAssets()
 
-            storage.set("cachedCameraUploadAssets:" + email, JSON.stringify(assets))
+            storage.set("cachedCameraUploadAssets:" + userId, JSON.stringify(assets))
             storage.set("cameraUploadFetchNewAssetsTimeout", (Math.floor(+new Date()) + 30000))
         }
         catch(e){
@@ -261,7 +301,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 return false
             }
             else{
-                return setTimeout(() => {
+                return BackgroundTimer.setTimeout(() => {
                     runCameraUpload({ maxQueue, runOnce, callback })
                 }, cameraUploadTimeout)
             }
@@ -269,7 +309,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
     else{
         try{
-            var assets = JSON.parse(storage.getString("cachedCameraUploadAssets:" + email) || "[]")
+            var assets = JSON.parse(storage.getString("cachedCameraUploadAssets:" + userId) || "[]")
         }
         catch(e){
             console.log(e)
@@ -281,7 +321,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 return false
             }
             else{
-                return setTimeout(() => {
+                return BackgroundTimer.setTimeout(() => {
                     runCameraUpload({ maxQueue, runOnce, callback })
                 }, cameraUploadTimeout)
             }
@@ -298,7 +338,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
@@ -312,7 +352,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             return false
         }
         else{
-            return setTimeout(() => {
+            return BackgroundTimer.setTimeout(() => {
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
@@ -323,6 +363,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
 
     const upload = (asset) => {
         return new Promise(async (resolve, reject) => {
+            await copySemaphore.acquire()
+
             const id = getAssetId(asset)
 
             if(Platform.OS == "android"){
@@ -335,10 +377,14 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 catch(e){
                     console.log(e)
 
+                    copySemaphore.release()
+
                     return resolve()
                 }
 
                 if(typeof stat !== "object"){
+                    copySemaphore.release()
+
                     return resolve()
                 }
 
@@ -366,10 +412,14 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 catch(e){
                     console.log(e)
 
+                    copySemaphore.release()
+
                     return resolve()
                 }
 
                 if(typeof stat !== "object"){
+                    copySemaphore.release()
+
                     return resolve()
                 }
 
@@ -382,18 +432,20 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 }
             }
 
+            copySemaphore.release()
+
             queueFileUpload({
                 pickedFile: file,
                 parent: cameraUploadFolderUUID,
                 cameraUploadCallback: async (err, item) => {
                     if(!err){
                         try{
-                            const uploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + email) || "{}")
+                            const uploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
 
                             if(typeof uploadedIds[id] == "undefined"){
                                 uploadedIds[id] = true
 
-                                storage.set("cameraUploadUploadedIds:" + email, JSON.stringify(uploadedIds))
+                                storage.set("cameraUploadUploadedIds:" + userId, JSON.stringify(uploadedIds))
 
                                 useStore.setState({ cameraUploadUploaded: Object.keys(uploadedIds).length })
                             }
@@ -435,7 +487,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         return true
     }
     else{
-        return setTimeout(() => {
+        return BackgroundTimer.setTimeout(() => {
             runCameraUpload({ maxQueue, runOnce, callback })
         }, cameraUploadTimeout)
     }
@@ -443,10 +495,10 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
 
 export const getUploadName = (asset) => {
     if(Platform.OS == "ios"){
-        return new Date(asset.timestamp * 1000).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + (asset.type.indexOf("image") !== -1 ? "jpg" : "mp4")
+        return new Date(asset.timestamp * 1000).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + Math.random().toString().slice(8) + "." + (asset.type.indexOf("image") !== -1 ? "jpg" : "mp4")
     }
     else{
-        return new Date(asset.timestamp * 1000).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(getFilenameFromPath(asset.uri))
+        return new Date(asset.timestamp * 1000).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + Math.random().toString().slice(8) + "." + getFileExt(getFilenameFromPath(asset.uri))
     }
 }
 
@@ -463,9 +515,9 @@ export const convertPhAssetToAssetsLibrary = (localId, ext) => {
 export const getCameraRollAssets = () => {
     return new Promise((resolve, reject) => {
         try{
-            var email = storage.getString("email")
-            var cameraUploadIncludeImages = storage.getBoolean("cameraUploadIncludeImages:" + email)
-            var cameraUploadIncludeVideos = storage.getBoolean("cameraUploadIncludeVideos:" + email)
+            var userId = storage.getString("userId")
+            var cameraUploadIncludeImages = storage.getBoolean("cameraUploadIncludeImages:" + userId)
+            var cameraUploadIncludeVideos = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
         }
         catch(e){
             return reject(e)

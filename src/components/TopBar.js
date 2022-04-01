@@ -88,6 +88,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     const [showTextClearButton, setShowTextClearButton] = useState(false)
     const [title, setTitle] = useState(getTopBarTitle({ route, lang }))
     const setTopBarHeight = useStore(useCallback(state => state.setTopBarHeight))
+    const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
+    const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
 
     const parent = getParent(route)
     const routeURL = getRouteURL(route)
@@ -261,7 +263,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                         justifyContent: "space-between"
                     }}>
                         <TouchableOpacity style={{
-                            borderBottomWidth: isRecentsScreen ? 1.5 : 0,
+                            borderBottomWidth: isRecentsScreen ? Platform.OS == "ios" ? 1.5 : 2 : 0,
                             borderBottomColor: isRecentsScreen ? "#0A84FF" : "#171717",
                             height: 27
                         }} onPress={() => {
@@ -288,64 +290,70 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                 {i18n(lang, "recents")}
                             </Text>
                         </TouchableOpacity>
+                        {
+                            typeof privateKey == "string" && typeof publicKey == "string" && privateKey.length > 16 && publicKey.length > 16 && (
+                                <>
+                                    <TouchableOpacity style={{
+                                        borderBottomWidth: isSharedInScreen ? Platform.OS == "ios" ? 1.5 : 2 : 0,
+                                        borderBottomColor: isSharedInScreen ? "#0A84FF" : "#171717",
+                                        height: 27
+                                    }} onPress={() => {
+                                        navigationAnimation({ enable: false }).then(() => {
+                                            navigation.dispatch(CommonActions.reset({
+                                                index: 0,
+                                                routes: [
+                                                    {
+                                                        name: "MainScreen",
+                                                        params: {
+                                                            parent: "shared-in"
+                                                        }
+                                                    }
+                                                ]
+                                            }))
+                                        })
+                                    }}>
+                                        <Text style={{
+                                            color: isSharedInScreen ? "#0A84FF" : "gray",
+                                            fontWeight: "bold",
+                                            fontSize: 13,
+                                            paddingTop: 3
+                                        }}>
+                                            {i18n(lang, "sharedIn")}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={{
+                                        borderBottomWidth: isSharedOutScreen ? Platform.OS == "ios" ? 1.5 : 2 : 0,
+                                        borderBottomColor: isSharedOutScreen ? "#0A84FF" : "#171717",
+                                        height: 27
+                                    }} onPress={() => {
+                                        navigationAnimation({ enable: false }).then(() => {
+                                            navigation.dispatch(CommonActions.reset({
+                                                index: 0,
+                                                routes: [
+                                                    {
+                                                        name: "MainScreen",
+                                                        params: {
+                                                            parent: "shared-out"
+                                                        }
+                                                    }
+                                                ]
+                                            }))
+                                        })
+                                    }}>
+                                        <Text style={{
+                                            color: isSharedOutScreen ? "#0A84FF" : "gray",
+                                            fontWeight: "bold",
+                                            fontSize: 13,
+                                            paddingTop: 3
+                                        }}>
+                                            {i18n(lang, "sharedOut")}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </>
+                            )
+                        }
                         <TouchableOpacity style={{
-                            borderBottomWidth: isSharedInScreen ? 1.5 : 0,
-                            borderBottomColor: isSharedInScreen ? "#0A84FF" : "#171717",
-                            height: 27
-                        }} onPress={() => {
-                            navigationAnimation({ enable: false }).then(() => {
-                                navigation.dispatch(CommonActions.reset({
-                                    index: 0,
-                                    routes: [
-                                        {
-                                            name: "MainScreen",
-                                            params: {
-                                                parent: "shared-in"
-                                            }
-                                        }
-                                    ]
-                                }))
-                            })
-                        }}>
-                            <Text style={{
-                                color: isSharedInScreen ? "#0A84FF" : "gray",
-                                fontWeight: "bold",
-                                fontSize: 13,
-                                paddingTop: 3
-                            }}>
-                                {i18n(lang, "sharedIn")}
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={{
-                            borderBottomWidth: isSharedOutScreen ? 1.5 : 0,
-                            borderBottomColor: isSharedOutScreen ? "#0A84FF" : "#171717",
-                            height: 27
-                        }} onPress={() => {
-                            navigationAnimation({ enable: false }).then(() => {
-                                navigation.dispatch(CommonActions.reset({
-                                    index: 0,
-                                    routes: [
-                                        {
-                                            name: "MainScreen",
-                                            params: {
-                                                parent: "shared-out"
-                                            }
-                                        }
-                                    ]
-                                }))
-                            })
-                        }}>
-                            <Text style={{
-                                color: isSharedOutScreen ? "#0A84FF" : "gray",
-                                fontWeight: "bold",
-                                fontSize: 13,
-                                paddingTop: 3
-                            }}>
-                                {i18n(lang, "sharedOut")}
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={{
-                            borderBottomWidth: isPublicLinksScreen ? 1.5 : 0,
+                            borderBottomWidth: isPublicLinksScreen ? Platform.OS == "ios" ? 1.5 : 2 : 0,
                             borderBottomColor: isPublicLinksScreen ? "#0A84FF" : "#171717",
                             height: 27
                         }} onPress={() => {
@@ -373,7 +381,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={{
-                            borderBottomWidth: isFavoritesScreen ? 1.5 : 0,
+                            borderBottomWidth: isFavoritesScreen ? Platform.OS == "ios" ? 1.5 : 2 : 0,
                             borderBottomColor: isFavoritesScreen ? "#0A84FF" : "#171717",
                             height: 27
                         }} onPress={() => {
@@ -401,7 +409,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={{
-                            borderBottomWidth: isOfflineScreen ? 1.5 : 0,
+                            borderBottomWidth: isOfflineScreen ? Platform.OS == "ios" ? 1.5 : 2 : 0,
                             borderBottomColor: isOfflineScreen ? "#0A84FF" : "#171717",
                             height: 27
                         }} onPress={() => {

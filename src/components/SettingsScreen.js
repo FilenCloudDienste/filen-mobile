@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, memo } from "react"
-import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native"
+import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
 import { storage } from "../lib/storage"
-import { useMMKVBoolean, useMMKVString, useMMKVObject } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import FastImage from "react-native-fast-image"
 import { formatBytes, getFilenameFromPath } from "../lib/helpers"
@@ -17,6 +17,8 @@ import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import { hasStoragePermissions } from "../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
+
+const MISC_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
 
 export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -119,18 +121,19 @@ export const SettingsButton = memo(({ title, rightComponent }) => {
 
 export const SettingsHeader = memo(({ navigation, route, navigationEnabled = true }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [email, setEmail] = useMMKVString("email", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
-    const [userInfo, setUserInfo] = useMMKVObject("userInfo:" + email, storage)
-    const [userAvatarCached, setUserAvatarCached] = useMMKVString("userAvatarCached:" + email, storage)
+    const [userInfo, setUserInfo] = useMMKVObject("userInfo:" + userId, storage)
+    const [userAvatarCached, setUserAvatarCached] = useMMKVString("userAvatarCached:" + userId, storage)
 
     const cacheUserAvatar = useCallback(() => {
         if(typeof userInfo !== "undefined"){
             if(userInfo.avatarURL.indexOf("https://down.") !== -1){
                 const avatarName = getFilenameFromPath(userInfo.avatarURL)
 
-                if((userAvatarCached || "").indexOf(avatarName) == -1){
+                if(userAvatarCached !== avatarName){
                     hasStoragePermissions().then(() => {
                         getDownloadPath({ type: "misc" }).then(async (path) => {
                             const avatarPath = path + avatarName
@@ -150,8 +153,10 @@ export const SettingsHeader = memo(({ navigation, route, navigationEnabled = tru
                             }).promise.then(async () => {
                                 try{
                                     if(typeof userAvatarCached == "string"){
-                                        if((await RNFS.exists(userAvatarCached))){
-                                            await RNFS.unlink(userAvatarCached)
+                                        if(userAvatarCached.length > 4){
+                                            if((await RNFS.exists(MISC_BASE_PATH + userAvatarCached))){
+                                                await RNFS.unlink(MISC_BASE_PATH + userAvatarCached)
+                                            }
                                         }
                                     }
                                 }
@@ -159,7 +164,7 @@ export const SettingsHeader = memo(({ navigation, route, navigationEnabled = tru
                                     //console.log(e)
                                 }
 
-                                setUserAvatarCached(avatarPath)
+                                setUserAvatarCached(avatarName)
                             }).catch((err) => {
                                 console.log(err)
                             })
@@ -171,18 +176,26 @@ export const SettingsHeader = memo(({ navigation, route, navigationEnabled = tru
                     })
                 }
                 else{
-                    if((userAvatarCached || "").length > 4){
-                        RNFS.exists((userAvatarCached || "")).then((exists) => {
-                            if(!exists){
-                                setUserAvatarCached("")
-
-                                setTimeout(() => {
-                                    cacheUserAvatar()
-                                }, 500)
-                            }
-                        }).catch((err) => {
-                            console.log(err)
-                        })
+                    if(typeof userAvatarCached == "string"){
+                        if(userAvatarCached.length > 4){
+                            getDownloadPath({ type: "misc" }).then((path) => {
+                                const avatarPath = path + userAvatarCached
+            
+                                RNFS.exists(avatarPath).then((exists) => {
+                                    if(!exists){
+                                        setUserAvatarCached("")
+        
+                                        setTimeout(() => {
+                                            cacheUserAvatar()
+                                        }, 500)
+                                    }
+                                }).catch((err) => {
+                                    console.log(err)
+                                })
+                            }).catch((err) => {
+                                console.log(err)
+                            })
+                        }
                     }
                 }
             }
@@ -222,13 +235,17 @@ export const SettingsHeader = memo(({ navigation, route, navigationEnabled = tru
             })
         }}>
             <TouchableOpacity onPress={() => {
+                if(Platform.OS == "android"){ // @TODO fix android avatar upload
+                    return false
+                }
+
                 if(!netInfo.isConnected || !netInfo.isInternetReachable){
                     return showToast({ message: i18n(lang, "deviceOffline") })
                 }
                 
                 SheetManager.show("ProfilePictureActionSheet")
             }}>
-                <FastImage source={typeof userAvatarCached == "string" && userAvatarCached.length > 4 ? ({ uri: (userAvatarCached.indexOf("file://") == -1 ? "file://" + userAvatarCached : userAvatarCached) }) : (typeof userInfo !== "undefined" && userInfo.avatarURL.indexOf("https://down.") !== -1 ? { uri: userInfo.avatarURL } : require("../assets/images/appstore.png"))} style={{
+                <FastImage source={typeof userAvatarCached == "string" && userAvatarCached.length > 4 ? ({ uri: "file://" + MISC_BASE_PATH + userAvatarCached }) : (typeof userInfo !== "undefined" && userInfo.avatarURL.indexOf("https://down.") !== -1 ? { uri: userInfo.avatarURL } : require("../assets/images/appstore.png"))} style={{
                     width: 50,
                     height: 50,
                     borderRadius: 50
@@ -289,13 +306,13 @@ export const SettingsGroup = memo((props) => {
 export const SettingsScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const [email, setEmail] = useMMKVString("email", storage)
-    const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + email, storage)
-    const [onlyWifiDownloads, setOnlyWifiDownloads] = useMMKVBoolean("onlyWifiDownloads:" + email, storage)
-    const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + email, storage)
-    const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + email, storage)
-    const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + email, storage)
-    const [biometricPinAuth, setBiometricPinAuth] = useMMKVBoolean("biometricPinAuth:" + email, storage)
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
+    const [onlyWifiDownloads, setOnlyWifiDownloads] = useMMKVBoolean("onlyWifiDownloads:" + userId, storage)
+    const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + userId, storage)
+    const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
+    const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
+    const [biometricPinAuth, setBiometricPinAuth] = useMMKVBoolean("biometricPinAuth:" + userId, storage)
     const setBiometricAuthScreenState = useStore(useCallback(state => state.setBiometricAuthScreenState))
     const netInfo = useStore(useCallback(state => state.netInfo))
 
@@ -369,6 +386,15 @@ export const SettingsScreen = memo(({ navigation, route }) => {
                         value={onlyWifiUploads}
                     />
                 } />
+                <SettingsButton title={i18n(lang, "onlyWifiUploads")} rightComponent={
+                    <Switch
+                        trackColor={getColor(darkMode, "switchTrackColor")}
+                        thumbColor={onlyWifiUploads ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                        onValueChange={() => setOnlyWifiUploads(!onlyWifiUploads)}
+                        value={onlyWifiUploads}
+                    />
+                } />
                 <SettingsButton title={i18n(lang, "onlyWifiDownloads")} rightComponent={
                     <Switch
                         trackColor={getColor(darkMode, "switchTrackColor")}
@@ -412,19 +438,51 @@ export const SettingsScreen = memo(({ navigation, route }) => {
                         ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
                         onValueChange={() => {
                             if(biometricPinAuth){
-                                return setBiometricPinAuth(false)
+                                return Alert.alert(i18n(lang, "disableBiometricPinAuth"), i18n(lang, "disableBiometricPinAuthWarning"), [
+                                    {
+                                        text: i18n(lang, "cancel"),
+                                        onPress: () => {
+                                            setBiometricPinAuth(true)
+
+                                            return false
+                                        },
+                                        style: "cancel"
+                                    },
+                                    {
+                                        text: i18n(lang, "ok"),
+                                        onPress: () => {
+                                            Alert.alert(i18n(lang, "disableBiometricPinAuth"), i18n(lang, "areYouReallySure"), [
+                                                {
+                                                    text: i18n(lang, "cancel"),
+                                                    onPress: () => {
+                                                        setBiometricPinAuth(true)
+
+                                                        return false
+                                                    },
+                                                    style: "cancel"
+                                                },
+                                                {
+                                                    text: i18n(lang, "ok"),
+                                                    onPress: () => {
+                                                        setBiometricPinAuth(false)
+                                                    },
+                                                    style: "default"
+                                                }
+                                            ], {
+                                                cancelable: true
+                                            })
+                                        },
+                                        style: "default"
+                                    }
+                                ], {
+                                    cancelable: true
+                                })
                             }
 
-                            hasBiometricPermissions().then(() => {
-                                setBiometricAuthScreenState("setup")
+                            setBiometricAuthScreenState("setup")
 
-                                navigationAnimation({ enable: true }).then(() => {
-                                    navigation.dispatch(StackActions.push("BiometricAuthScreen"))
-                                })
-                            }).catch((err) => {
-                                showToast({ message: err.toString() })
-
-                                console.log(err)
+                            navigationAnimation({ enable: true }).then(() => {
+                                navigation.dispatch(StackActions.push("BiometricAuthScreen"))
                             })
                         }}
                         value={biometricPinAuth}

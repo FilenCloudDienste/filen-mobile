@@ -11,14 +11,14 @@ import { pickMultiple } from "react-native-document-picker"
 import { launchCamera, launchImageLibrary } from "react-native-image-picker"
 import { useStore } from "../lib/state"
 import { queueFileDownload, downloadWholeFileFSStream } from "../lib/download"
-import { getFileExt, getFolderColor, formatBytes, getAvailableFolderColors, getMasterKeys, decryptFolderLinkKey, getParent, getRouteURL, decryptFileMetadata, getFilePreviewType, calcPhotosGridSize, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey, base64Decode } from "../lib/helpers"
+import { getFileExt, getFolderColor, formatBytes, getAvailableFolderColors, getMasterKeys, decryptFolderLinkKey, getParent, getRouteURL, decryptFileMetadata, getFilePreviewType, calcPhotosGridSize, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey } from "../lib/helpers"
 import { queueFileUpload } from "../lib/upload"
 import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import CameraRoll from "@react-native-community/cameraroll"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../lib/permissions"
-import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink, getPublicKeyFromEmail, shareItemToUser, trashItem, restoreItem, fileExists, folderExists, fetchFileVersionData, restoreArchivedFile, bulkFavorite, bulkTrash, bulkDeletePermanently, bulkRestore, bulkStopSharing, bulkRemoveSharedIn } from "../lib/api"
+import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink, getPublicKeyFromEmail, shareItemToUser, trashItem, restoreItem, fileExists, folderExists, fetchFileVersionData, restoreArchivedFile, bulkFavorite, bulkTrash, bulkDeletePermanently, bulkRestore, bulkStopSharing, bulkRemoveSharedIn, emptyTrash } from "../lib/api"
 import Clipboard from "@react-native-clipboard/clipboard"
 import { previewItem } from "../lib/services/items"
 import { removeFromOfflineStorage } from "../lib/services/offline"
@@ -28,6 +28,8 @@ import { getColor } from "../lib/style/colors"
 import { navigationAnimation } from "../lib/state"
 import { updateUserInfo } from "../lib/user/info"
 import ReactNativeBlobUtil from "react-native-blob-util"
+
+const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 
 export const ActionButton = memo(({ onPress, icon, text, color }) => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -117,6 +119,8 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 								setTimeout(() => {
 									hasCameraPermissions().then(() => {
+										storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+
 										launchCamera({
 											maxWidth: 999999999,
 											maxHeight: 999999999,
@@ -138,7 +142,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 													if(typeof response.assets[i].fileName == "string" && typeof response.assets[i].uri == "string"){
 														queueFileUpload({
 															pickedFile: {
-																name: i18n(lang, "photo") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(response.assets[i].fileName),
+																name: i18n(lang, "photo") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + Math.random().toString().slice(8) + "." + getFileExt(response.assets[i].fileName),
 																size: response.assets[i].fileSize,
 																type: response.assets[i].type,
 																uri: response.assets[i].uri
@@ -166,6 +170,8 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 										setTimeout(() => {
 											hasPhotoLibraryPermissions().then(() => {
 												hasStoragePermissions().then(() => {
+													storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+
 													launchImageLibrary({
 														mediaType: "mixed",
 														selectionLimit: 0,
@@ -187,7 +193,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 																if(typeof response.assets[i].fileName == "string" && typeof response.assets[i].uri == "string" && typeof response.assets[i].timestamp == "string"){
 																	queueFileUpload({
 																		pickedFile: {
-																			name: i18n(lang, "photo") + "_" + new Date(response.assets[i].timestamp).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(response.assets[i].fileName),
+																			name: i18n(lang, "photo") + "_" + new Date(response.assets[i].timestamp).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + Math.random().toString().slice(8) + "." + getFileExt(response.assets[i].fileName),
 																			size: response.assets[i].fileSize,
 																			type: response.assets[i].type,
 																			uri: response.assets[i].uri
@@ -219,6 +225,8 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 								setTimeout(() => {
 									hasStoragePermissions().then(() => {
+										storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+
 										pickMultiple({
 											allowMultiSelection: true,
 											copyTo: "cachesDirectory"
@@ -287,6 +295,9 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 	const [canShowAddFavorite, setCanShowAddFavorite] = useState(false)
 	const [canShowRemoveSharedIn, setCanShowRemoveSharedIn] = useState(false)
 	const [canShowStopSharing, setCanShowStopSharing] = useState(false)
+	const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
+    const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
+	const [currentRouteName, setCurrentRouteName] = useState("")
 
 	const maxBulkActionsItemsCount = 100
 	const minBulkActionsItemCount = 2
@@ -423,12 +434,22 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 		if(routeURL.indexOf("shared-out") == -1){
 			setCanShowStopSharing(false)
 		}
+
+		if(typeof publicKey !== "string" || typeof publicKey !== "string"){
+			setCanShowShare(false)
+		}
+		else{
+			if(publicKey.length < 16 || privateKey.length < 16){
+				setCanShowShare(false)
+			}
+		}
 	})
 
 	const updateRouteURL = useCallback(() => {
 		if(typeof currentRoutes !== "undefined"){
 			if(typeof currentRoutes[currentRoutes.length - 1] !== "undefined"){
 				setRouteURL(getRouteURL(currentRoutes[currentRoutes.length - 1]))
+				setCurrentRouteName(currentRoutes[currentRoutes.length - 1].name)
 			}
 		}
 	})
@@ -469,81 +490,117 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 				<ActionSheetIndicator />
 				<View style={{ height: 15 }}></View>
 				{
-					routeURL.indexOf("photos") == -1 && routeURL.indexOf("recents") == -1 && currentItems.length > 0 && (
-						<ActionButton onPress={async () => {
-							await SheetManager.hide("TopBarActionSheet")
-		
-							SheetManager.show("SortByActionSheet")
-						}} icon="funnel-outline" text={i18n(lang, "sortBy")} />
+					currentRouteName == "TransfersScreen" && (
+						<>
+							<ActionButton onPress={async () => {
+								await SheetManager.hide("TopBarActionSheet")
+			
+								const currentUploads = useStore.getState().uploads
+								const currentDownloads = useStore.getState().downloads
+
+								for(let prop in currentUploads){
+									currentUploads[prop].stopped = true
+								}
+
+								for(let prop in currentDownloads){
+									currentDownloads[prop].stopped = true
+								}
+
+								useStore.setState({
+									uploads: currentUploads,
+									downloads: currentDownloads
+								})
+							}} icon="stop-circle-outline" text={i18n(lang, "stopAllTransfers")} />
+							<ActionButton onPress={async () => {
+								await SheetManager.hide("TopBarActionSheet")
+			
+								const currentUploads = useStore.getState().uploads
+								const currentDownloads = useStore.getState().downloads
+
+								for(let prop in currentUploads){
+									currentUploads[prop].paused = true
+								}
+
+								for(let prop in currentDownloads){
+									currentDownloads[prop].paused = true
+								}
+
+								useStore.setState({
+									uploads: currentUploads,
+									downloads: currentDownloads
+								})
+							}} icon="pause-circle-outline" text={i18n(lang, "pauseAllTransfers")} />
+							<ActionButton onPress={async () => {
+								await SheetManager.hide("TopBarActionSheet")
+			
+								const currentUploads = useStore.getState().uploads
+								const currentDownloads = useStore.getState().downloads
+
+								for(let prop in currentUploads){
+									currentUploads[prop].paused = false
+								}
+
+								for(let prop in currentDownloads){
+									currentDownloads[prop].paused = false
+								}
+
+								useStore.setState({
+									uploads: currentUploads,
+									downloads: currentDownloads
+								})
+							}} icon="play-circle-outline" text={i18n(lang, "resumeAllTransfers")} />
+						</>
 					)
 				}
 				{
-					canShowSelectAllItems && currentItems.length > 0 && (
-						<ActionButton onPress={async () => {
-							//await SheetManager.hide("TopBarActionSheet")
-		
-							DeviceEventEmitter.emit("event", {
-								type: "select-all-items"
-							})
-						}} icon="add-outline" text={i18n(lang, "selectAll")} />
-					)
-				}
-				{
-					canShowUnselectAllItems && currentItems.length > 0 && itemsSelectedCount > 0 && (
-						<ActionButton onPress={async () => {
-							await SheetManager.hide("TopBarActionSheet")
-		
-							DeviceEventEmitter.emit("event", {
-								type: "unselect-all-items"
-							})
-						}} icon="remove-outline" text={i18n(lang, "unselectAll")} />
-					)
-				}
-				<>
-					{
-						routeURL.indexOf("trash") !== -1 && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount ? (
+					currentRouteName !== "TransfersScreen" && (
+						<>
+							{
+								routeURL.indexOf("photos") == -1 && routeURL.indexOf("recents") == -1 && currentItems.length > 0 && (
+									<ActionButton onPress={async () => {
+										await SheetManager.hide("TopBarActionSheet")
+					
+										SheetManager.show("SortByActionSheet")
+									}} icon="funnel-outline" text={i18n(lang, "sortBy")} />
+								)
+							}
+							{
+								canShowSelectAllItems && currentItems.length > 0 && (
+									<ActionButton onPress={async () => {
+										//await SheetManager.hide("TopBarActionSheet")
+					
+										DeviceEventEmitter.emit("event", {
+											type: "select-all-items"
+										})
+									}} icon="add-outline" text={i18n(lang, "selectAll")} />
+								)
+							}
+							{
+								canShowUnselectAllItems && currentItems.length > 0 && itemsSelectedCount > 0 && (
+									<ActionButton onPress={async () => {
+										await SheetManager.hide("TopBarActionSheet")
+					
+										DeviceEventEmitter.emit("event", {
+											type: "unselect-all-items"
+										})
+									}} icon="remove-outline" text={i18n(lang, "unselectAll")} />
+								)
+							}
 							<>
-								<ActionButton onPress={async () => {
-									await SheetManager.hide("TopBarActionSheet")
-				
-									useStore.setState({ fullscreenLoadingModalVisible: true })
-
-									const items = updateBulkItems()
-
-									bulkRestore({ items }).then(() => {
-										useStore.setState({ fullscreenLoadingModalVisible: false })
-
-										//showToast({ message: i18n(lang, "restoreSelectedItemsSuccess", true, ["__COUNT__"], [items.length]) })
-									}).catch((err) => {
-										console.log(err)
-
-										useStore.setState({ fullscreenLoadingModalVisible: false })
-
-										showToast({ message: err.toString() })
-									})
-								}} icon="refresh-outline" text={i18n(lang, "restore")} />
-								<ActionButton onPress={async () => {
-									await SheetManager.hide("TopBarActionSheet")
-				
-									Alert.alert(i18n(lang, "deleteSelectedItemsPermanently"), i18n(lang, "deleteSelectedItemsPermanentlyWarning"), [
-										{
-											text: i18n(lang, "cancel"),
-											onPress: () => {
-												return false
-											},
-											style: "cancel"
-										},
-										{
-											text: i18n(lang, "ok"),
-											onPress: () => {
+								{
+									routeURL.indexOf("trash") !== -1 && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount ? (
+										<>
+											<ActionButton onPress={async () => {
+												await SheetManager.hide("TopBarActionSheet")
+							
 												useStore.setState({ fullscreenLoadingModalVisible: true })
 
 												const items = updateBulkItems()
 
-												bulkDeletePermanently({ items }).then(() => {
+												bulkRestore({ items }).then(() => {
 													useStore.setState({ fullscreenLoadingModalVisible: false })
 
-													//showToast({ message: i18n(lang, "deleteSelectedItemsPermanentlySuccess", true, ["__COUNT__"], [items.length]) })
+													//showToast({ message: i18n(lang, "restoreSelectedItemsSuccess", true, ["__COUNT__"], [items.length]) })
 												}).catch((err) => {
 													console.log(err)
 
@@ -551,323 +608,418 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 
 													showToast({ message: err.toString() })
 												})
-											},
-											style: "default"
-										}
-									], {
-										cancelable: true
-									})
-								}} icon="close-circle-outline" text={i18n(lang, "deletePermanently")} />
-							</>
-						) : (
-							<>
-								{
-									canShowBulkItemsActions && canShowShare && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
-						
-											updateBulkItems()
+											}} icon="refresh-outline" text={i18n(lang, "restore")} />
+											<ActionButton onPress={async () => {
+												await SheetManager.hide("TopBarActionSheet")
+							
+												Alert.alert(i18n(lang, "deleteSelectedItemsPermanently"), i18n(lang, "deleteSelectedItemsPermanentlyWarning"), [
+													{
+														text: i18n(lang, "cancel"),
+														onPress: () => {
+															return false
+														},
+														style: "cancel"
+													},
+													{
+														text: i18n(lang, "ok"),
+														onPress: () => {
+															useStore.setState({ fullscreenLoadingModalVisible: true })
 
-											setBulkShareDialogVisible(true)
-										}} icon="share-social-outline" text={i18n(lang, "share")} />
-									)
-								}
-								{
-									routeURL.indexOf("recents") == -1 && canShowBulkItemsActions && canShowMoveItems && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
+															const items = updateBulkItems()
 
-											updateBulkItems()
-						
-											showToast({ type: "moveBulk", message: i18n(lang, "moveItems") })
-										}} icon="move-outline" text={i18n(lang, "move")} />
-									)
-								}
-								{
-									canShowBulkItemsActions && canShowAddFavorite && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
+															bulkDeletePermanently({ items }).then(() => {
+																useStore.setState({ fullscreenLoadingModalVisible: false })
 
-											useStore.setState({ fullscreenLoadingModalVisible: true })
+																//showToast({ message: i18n(lang, "deleteSelectedItemsPermanentlySuccess", true, ["__COUNT__"], [items.length]) })
+															}).catch((err) => {
+																console.log(err)
 
-											bulkFavorite({ value: 1, items: updateBulkItems() }).then(() => {
-												useStore.setState({ fullscreenLoadingModalVisible: false })
+																useStore.setState({ fullscreenLoadingModalVisible: false })
 
-												//showToast({ message: i18n(lang, "selectedItemsMarkedAsFavorite") })
-											}).catch((err) => {
-												console.log(err)
-
-												useStore.setState({ fullscreenLoadingModalVisible: false })
-
-												showToast({ message: toString() })
-											})
-										}} icon="heart" text={i18n(lang, "favorite")} />
-									)
-								}
-								{
-									canShowBulkItemsActions && canShowRemoveFavorite && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
-
-											useStore.setState({ fullscreenLoadingModalVisible: true })
-
-											bulkFavorite({ value: 0, items: updateBulkItems() }).then(() => {
-												useStore.setState({ fullscreenLoadingModalVisible: false })
-
-												//showToast({ message: i18n(lang, "selectedItemsRemovedAsFavorite") })
-											}).catch((err) => {
-												console.log(err)
-
-												useStore.setState({ fullscreenLoadingModalVisible: false })
-
-												showToast({ message: toString() })
-											})
-										}} icon="heart-outline" text={i18n(lang, "unfavorite")} />
-									)
-								}
-								{
-									canShowBulkItemsActions && canShowSaveToGallery && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
-						
-											useStore.setState({ fullscreenLoadingModalVisible: false })
-
-											hasStoragePermissions().then(() => {
-												hasPhotoLibraryPermissions().then(async () => {
-													let extArray = []
-
-													if(Platform.OS == "ios"){
-														extArray = ["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"]
+																showToast({ message: err.toString() })
+															})
+														},
+														style: "default"
 													}
-													else{
-														extArray = ["jpg", "jpeg", "png", "gif", "mov", "mp4"]
-													}
+												], {
+													cancelable: true
+												})
+											}} icon="close-circle-outline" text={i18n(lang, "deletePermanently")} />
+										</>
+									) : (
+										<>
+											{/*
+												canShowBulkItemsActions && canShowShare && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+									
+														updateBulkItems()
 
-													updateBulkItems().forEach((item) => {
-														if(extArray.includes(getFileExt(item.name))){
-															queueFileDownload({
-																file: item,
-																saveToGalleryCallback: (path) => {
-																	CameraRoll.save(path).then(() => {
-																		//showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
+														setBulkShareDialogVisible(true)
+													}} icon="share-social-outline" text={i18n(lang, "share")} />
+												)
+											*/}
+											{
+												routeURL.indexOf("recents") == -1 && canShowBulkItemsActions && canShowMoveItems && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+
+														updateBulkItems()
+									
+														showToast({ type: "moveBulk", message: i18n(lang, "moveItems") })
+													}} icon="move-outline" text={i18n(lang, "move")} />
+												)
+											}
+											{
+												canShowBulkItemsActions && canShowAddFavorite && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+
+														useStore.setState({ fullscreenLoadingModalVisible: true })
+
+														bulkFavorite({ value: 1, items: updateBulkItems() }).then(() => {
+															useStore.setState({ fullscreenLoadingModalVisible: false })
+
+															//showToast({ message: i18n(lang, "selectedItemsMarkedAsFavorite") })
+														}).catch((err) => {
+															console.log(err)
+
+															useStore.setState({ fullscreenLoadingModalVisible: false })
+
+															showToast({ message: err.toString() })
+														})
+													}} icon="heart" text={i18n(lang, "favorite")} />
+												)
+											}
+											{
+												canShowBulkItemsActions && canShowRemoveFavorite && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+
+														useStore.setState({ fullscreenLoadingModalVisible: true })
+
+														bulkFavorite({ value: 0, items: updateBulkItems() }).then(() => {
+															useStore.setState({ fullscreenLoadingModalVisible: false })
+
+															//showToast({ message: i18n(lang, "selectedItemsRemovedAsFavorite") })
+														}).catch((err) => {
+															console.log(err)
+
+															useStore.setState({ fullscreenLoadingModalVisible: false })
+
+															showToast({ message: err.toString() })
+														})
+													}} icon="heart-outline" text={i18n(lang, "unfavorite")} />
+												)
+											}
+											{
+												canShowBulkItemsActions && canShowSaveToGallery && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+									
+														useStore.setState({ fullscreenLoadingModalVisible: false })
+
+														hasStoragePermissions().then(() => {
+															hasPhotoLibraryPermissions().then(async () => {
+																let extArray = []
+
+																if(Platform.OS == "ios"){
+																	extArray = ["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"]
+																}
+																else{
+																	extArray = ["jpg", "jpeg", "png", "gif", "mov", "mp4"]
+																}
+
+																updateBulkItems().forEach((item) => {
+																	if(extArray.includes(getFileExt(item.name))){
+																		queueFileDownload({
+																			file: item,
+																			saveToGalleryCallback: (path) => {
+																				CameraRoll.save(path).then(() => {
+																					//showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
+																				}).catch((err) => {
+																					console.log(err)
+							
+																					showToast({ message: err.toString() })
+																				})
+																			}
+																		})
+																	}
+																})
+															}).catch((err) => {
+																console.log(err)
+
+																showToast({ message: err.toString() })
+															})
+														}).catch((err) => {
+															console.log(err)
+
+															showToast({ message: err.toString() })
+														})
+													}} icon="image-outline" text={i18n(lang, "saveToGallery")} />
+												)
+											}
+											{
+												routeURL.indexOf("offline") == -1 && canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+									
+														hasStoragePermissions().then(() => {
+															updateBulkItems().forEach((item) => {
+																if(!item.offline){
+																	queueFileDownload({ file: item, storeOffline: true })
+																}
+															})
+														}).catch((err) => {
+															console.log(err)
+
+															showToast({ message: err.toString() })
+														})
+													}} icon="save-outline" text={i18n(lang, "makeAvailableOffline")} />
+												)
+											}
+											{
+												canShowBulkItemsActions && canShowRemoveOffline && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+									
+														hasStoragePermissions().then(() => {
+															updateBulkItems().forEach((item) => {
+																if(item.offline){
+																	removeFromOfflineStorage({ item }).then(() => {
+																		//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [item.name]) })
 																	}).catch((err) => {
 																		console.log(err)
-				
+						
 																		showToast({ message: err.toString() })
 																	})
 																}
 															})
-														}
-													})
-												}).catch((err) => {
-													console.log(err)
-
-													showToast({ message: err.toString() })
-												})
-											}).catch((err) => {
-												console.log(err)
-
-												showToast({ message: err.toString() })
-											})
-										}} icon="image-outline" text={i18n(lang, "saveToGallery")} />
-									)
-								}
-								{
-									routeURL.indexOf("offline") == -1 && canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
-						
-											hasStoragePermissions().then(() => {
-												updateBulkItems().forEach((item) => {
-													if(!item.offline){
-														queueFileDownload({ file: item, storeOffline: true })
-													}
-												})
-											}).catch((err) => {
-												console.log(err)
-
-												showToast({ message: err.toString() })
-											})
-										}} icon="save-outline" text={i18n(lang, "makeAvailableOffline")} />
-									)
-								}
-								{
-									canShowBulkItemsActions && canShowRemoveOffline && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
-						
-											hasStoragePermissions().then(() => {
-												updateBulkItems().forEach((item) => {
-													if(item.offline){
-														removeFromOfflineStorage({ item }).then(() => {
-															//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [item.name]) })
 														}).catch((err) => {
 															console.log(err)
-			
+
 															showToast({ message: err.toString() })
 														})
-													}
-												})
-											}).catch((err) => {
-												console.log(err)
+													}} icon="close-circle-outline" text={i18n(lang, "removeFromOfflineStorage")} />
+												)
+											}
+											{
+												canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+									
+														hasStoragePermissions().then(() => {
+															updateBulkItems().forEach((item) => {
+																queueFileDownload({ file: item })
+															})
+														}).catch((err) => {
+															console.log(err)
 
-												showToast({ message: err.toString() })
-											})
-										}} icon="close-circle-outline" text={i18n(lang, "removeFromOfflineStorage")} />
-									)
-								}
-								{
-									canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
-						
-											hasStoragePermissions().then(() => {
-												updateBulkItems().forEach((item) => {
-													queueFileDownload({ file: item })
-												})
-											}).catch((err) => {
-												console.log(err)
+															showToast({ message: err.toString() })
+														})
+													}} icon="download-outline" text={i18n(lang, "download")} />
+												)
+											}
+											{
+												canShowBulkItemsActions && canShowTrash && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
 
-												showToast({ message: err.toString() })
-											})
-										}} icon="download-outline" text={i18n(lang, "download")} />
-									)
-								}
-								{
-									canShowBulkItemsActions && canShowTrash && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
-
-											useStore.setState({ fullscreenLoadingModalVisible: true })
-
-											bulkTrash({ items: updateBulkItems() }).then(() => {
-												useStore.setState({ fullscreenLoadingModalVisible: false })
-
-												DeviceEventEmitter.emit("event", {
-													type: "unselect-all-items"
-												})
-
-												//showToast({ message: i18n(lang, "selectedItemsTrashed") })
-											}).catch((err) => {
-												console.log(err)
-
-												useStore.setState({ fullscreenLoadingModalVisible: false })
-
-												showToast({ message: toString() })
-											})
-										}} icon="trash-outline" text={i18n(lang, "trash")} />
-									)
-								}
-								{
-									canShowBulkItemsActions && canShowStopSharing && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
-
-											const items = updateBulkItems()
-
-											Alert.alert(i18n(lang, "stopSharing"), i18n(lang, "bulkStopSharingWarning", true, ["__COUNT__"], [items.length]), [
-												{
-													text: i18n(lang, "cancel"),
-													onPress: () => {
-														return false
-													},
-													style: "cancel"
-												},
-												{
-													text: i18n(lang, "ok"),
-													onPress: () => {
 														useStore.setState({ fullscreenLoadingModalVisible: true })
 
-														bulkStopSharing({ items }).then(() => {
+														bulkTrash({ items: updateBulkItems() }).then(() => {
 															useStore.setState({ fullscreenLoadingModalVisible: false })
 
 															DeviceEventEmitter.emit("event", {
 																type: "unselect-all-items"
 															})
 
-															//showToast({ message: i18n(lang, "stoppedSharingSelectedItems", true, ["__COUNT__"], [items.length]) })
+															//showToast({ message: i18n(lang, "selectedItemsTrashed") })
 														}).catch((err) => {
 															console.log(err)
 
 															useStore.setState({ fullscreenLoadingModalVisible: false })
 
-															showToast({ message: toString() })
+															showToast({ message: err.toString() })
 														})
-													},
-													style: "default"
-												}
-											], {
-												cancelable: true
-											})
-										}} icon="close-circle-outline" text={i18n(lang, "stopSharing")} />
-									)
-								}
-								{
-									canShowBulkItemsActions && canShowRemoveSharedIn && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
-										<ActionButton onPress={async () => {
-											await SheetManager.hide("TopBarActionSheet")
+													}} icon="trash-outline" text={i18n(lang, "trash")} />
+												)
+											}
+											{
+												canShowBulkItemsActions && canShowStopSharing && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
 
-											const items = updateBulkItems()
+														const items = updateBulkItems()
 
-											Alert.alert(i18n(lang, "stopSharing"), i18n(lang, "bulkRemoveSharedInWarning", true, ["__COUNT__"], [items.length]), [
-												{
-													text: i18n(lang, "cancel"),
-													onPress: () => {
-														return false
-													},
-													style: "cancel"
-												},
-												{
-													text: i18n(lang, "ok"),
-													onPress: () => {
-														useStore.setState({ fullscreenLoadingModalVisible: true })
+														Alert.alert(i18n(lang, "stopSharing"), i18n(lang, "bulkStopSharingWarning", true, ["__COUNT__"], [items.length]), [
+															{
+																text: i18n(lang, "cancel"),
+																onPress: () => {
+																	return false
+																},
+																style: "cancel"
+															},
+															{
+																text: i18n(lang, "ok"),
+																onPress: () => {
+																	useStore.setState({ fullscreenLoadingModalVisible: true })
 
-														bulkRemoveSharedIn({ items }).then(() => {
-															useStore.setState({ fullscreenLoadingModalVisible: false })
+																	bulkStopSharing({ items }).then(() => {
+																		useStore.setState({ fullscreenLoadingModalVisible: false })
 
-															DeviceEventEmitter.emit("event", {
-																type: "unselect-all-items"
-															})
+																		DeviceEventEmitter.emit("event", {
+																			type: "unselect-all-items"
+																		})
 
-															//showToast({ message: i18n(lang, "bulkRemoveSharedInSuccess", true, ["__COUNT__"], [items.length]) })
-														}).catch((err) => {
-															console.log(err)
+																		//showToast({ message: i18n(lang, "stoppedSharingSelectedItems", true, ["__COUNT__"], [items.length]) })
+																	}).catch((err) => {
+																		console.log(err)
 
-															useStore.setState({ fullscreenLoadingModalVisible: false })
+																		useStore.setState({ fullscreenLoadingModalVisible: false })
 
-															showToast({ message: toString() })
+																		showToast({ message: err.toString() })
+																	})
+																},
+																style: "default"
+															}
+														], {
+															cancelable: true
 														})
-													},
-													style: "default"
-												}
-											], {
-												cancelable: true
-											})
-										}} icon="close-circle-outline" text={i18n(lang, "remove")} />
+													}} icon="close-circle-outline" text={i18n(lang, "stopSharing")} />
+												)
+											}
+											{
+												canShowBulkItemsActions && canShowRemoveSharedIn && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton onPress={async () => {
+														await SheetManager.hide("TopBarActionSheet")
+
+														const items = updateBulkItems()
+
+														Alert.alert(i18n(lang, "stopSharing"), i18n(lang, "bulkRemoveSharedInWarning", true, ["__COUNT__"], [items.length]), [
+															{
+																text: i18n(lang, "cancel"),
+																onPress: () => {
+																	return false
+																},
+																style: "cancel"
+															},
+															{
+																text: i18n(lang, "ok"),
+																onPress: () => {
+																	useStore.setState({ fullscreenLoadingModalVisible: true })
+
+																	bulkRemoveSharedIn({ items }).then(() => {
+																		useStore.setState({ fullscreenLoadingModalVisible: false })
+
+																		DeviceEventEmitter.emit("event", {
+																			type: "unselect-all-items"
+																		})
+
+																		//showToast({ message: i18n(lang, "bulkRemoveSharedInSuccess", true, ["__COUNT__"], [items.length]) })
+																	}).catch((err) => {
+																		console.log(err)
+
+																		useStore.setState({ fullscreenLoadingModalVisible: false })
+
+																		showToast({ message: err.toString() })
+																	})
+																},
+																style: "default"
+															}
+														], {
+															cancelable: true
+														})
+													}} icon="close-circle-outline" text={i18n(lang, "remove")} />
+												)
+											}
+										</>
 									)
 								}
 							</>
-						)
-					}
-				</>
-				{
-					canShowListViewStyle && (
-						<ActionButton onPress={async () => {
-							await SheetManager.hide("TopBarActionSheet")
+							{
+								canShowListViewStyle && (
+									<ActionButton onPress={async () => {
+										await SheetManager.hide("TopBarActionSheet")
 
-							setItemViewMode(itemViewMode !== "grid" ? "grid" : "list")
-						}} icon={itemViewMode !== "grid" ? "grid-outline" : "list-outline"} text={itemViewMode !== "grid" ? i18n(lang, "gridView") : i18n(lang, "listView")} />
-					)
-				}
-				{
-					canShowTransfersButton && (
-						<ActionButton onPress={async () => {
-							await SheetManager.hide("TopBarActionSheet")
-		
-							navigationAnimation({ enable: true }).then(() => {
-								navigation.current.dispatch(StackActions.push("TransfersScreen"))
-							})
-						}} icon="repeat-outline" text={i18n(lang, "transfers")} />
+										setItemViewMode(itemViewMode !== "grid" ? "grid" : "list")
+									}} icon={itemViewMode !== "grid" ? "grid-outline" : "list-outline"} text={itemViewMode !== "grid" ? i18n(lang, "gridView") : i18n(lang, "listView")} />
+								)
+							}
+							{
+								canShowTransfersButton && (
+									<ActionButton onPress={async () => {
+										await SheetManager.hide("TopBarActionSheet")
+					
+										navigationAnimation({ enable: true }).then(() => {
+											navigation.current.dispatch(StackActions.push("TransfersScreen"))
+										})
+									}} icon="repeat-outline" text={i18n(lang, "transfers")} />
+								)
+							}
+							{
+								routeURL.indexOf("trash") !== -1 && (
+									<ActionButton onPress={async () => {
+										await SheetManager.hide("TopBarActionSheet")
+
+										Alert.alert(i18n(lang, "emptyTrash"), i18n(lang, "emptyTrashWarning"), [
+											{
+												text: i18n(lang, "cancel"),
+												onPress: () => {
+													return false
+												},
+												style: "cancel"
+											},
+											{
+												text: i18n(lang, "ok"),
+												onPress: () => {
+													Alert.alert(i18n(lang, "emptyTrash"), i18n(lang, "areYouReallySure"), [
+														{
+															text: i18n(lang, "cancel"),
+															onPress: () => {
+																return false
+															},
+															style: "cancel"
+														},
+														{
+															text: i18n(lang, "ok"),
+															onPress: () => {
+																useStore.setState({ fullscreenLoadingModalVisible: true })
+					
+																emptyTrash().then(() => {
+																	currentItems.map((item) => {
+																		DeviceEventEmitter.emit("event", {
+																			type: "remove-item",
+																			data: {
+																				uuid: item.uuid
+																			}
+																		})
+																	})
+
+																	useStore.setState({ fullscreenLoadingModalVisible: false })
+																}).catch((err) => {
+																	console.log(err)
+
+																	useStore.setState({ fullscreenLoadingModalVisible: false })
+
+																	showToast({ message: err.toString() })
+																})
+															},
+															style: "default"
+														}
+													], {
+														cancelable: true
+													})
+												},
+												style: "default"
+											}
+										], {
+											cancelable: true
+										})
+									}} icon="trash-outline" text={i18n(lang, "emptyTrash")} />
+								)
+							}
+						</>
 					)
 				}
           	</View>
@@ -878,11 +1030,11 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 export const ItemActionSheetItemHeader = memo(({ navigation, route }) => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 	const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
-	const [email, setEmail] = useMMKVString("email", storage)
+	const [userId, setUserId] = useMMKVNumber("userId", storage)
 	const [lang, setLang] = useMMKVString("lang", storage)
-    const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + email, storage)
-    const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + email, storage)
-	const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + email, storage)
+    const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + userId, storage)
+    const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
+	const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
 
 	if(typeof currentActionSheetItem == "undefined"){
 		return null
@@ -910,7 +1062,7 @@ export const ItemActionSheetItemHeader = memo(({ navigation, route }) => {
 						paddingTop: 0
 					}} />
 				) : (
-					<FastImage source={hideThumbnails ? getImageForItem(currentActionSheetItem) : typeof currentActionSheetItem.thumbnail !== "undefined" ? { uri: (currentActionSheetItem.thumbnail.indexOf("file://") == -1 ? "file://" + currentActionSheetItem.thumbnail : currentActionSheetItem.thumbnail) } : getImageForItem(currentActionSheetItem)} style={{
+					<FastImage source={hideThumbnails ? getImageForItem(currentActionSheetItem) : typeof currentActionSheetItem.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + currentActionSheetItem.uuid + ".jpg" } : getImageForItem(currentActionSheetItem)} style={{
 						width: 30,
 						height: 30,
 						marginTop: currentActionSheetItem.type == "folder" ? 1 : 2,
@@ -944,7 +1096,7 @@ export const ItemActionSheetItemHeader = memo(({ navigation, route }) => {
 					{
 						currentActionSheetItem.favorited == 1 && (
 							<>
-								<Ionicon name="heart" size={12} color={"#F6C358"} />
+								<Ionicon name="heart" size={12} color={"white"} />
 								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
 							</>
 						)
@@ -1012,15 +1164,17 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 	const setCreateTextFileDialogName = useStore(useCallback(state => state.setCreateTextFileDialogName))
 	const setTextEditorParent = useStore(useCallback(state => state.setTextEditorParent))
 	const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
+	const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
+    const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
 
 	const can = useCallback(() => {
 		if(typeof currentActionSheetItem !== "undefined"){
 			let itemAvailableOffline = false
 
 			try{
-				const email = storage.getString("email")
+				const userId = storage.getNumber("userId")
 				
-				itemAvailableOffline = (typeof email !== "undefined" ? (storage.getBoolean(email + ":offlineItems:" + currentActionSheetItem.uuid) ? true : false) : false)
+				itemAvailableOffline = (typeof userId !== "undefined" ? (storage.getBoolean(userId + ":offlineItems:" + currentActionSheetItem.uuid) ? true : false) : false)
 			}
 			catch(e){
 				//console.log(e)
@@ -1118,7 +1272,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 									)
 								}
 								{
-									isDeviceOnline && itemListParent !== "trash" && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && (
+									isDeviceOnline && itemListParent !== "trash" && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && typeof publicKey == "string" && typeof privateKey == "string" && publicKey.length > 16 && privateKey.length > 16 && (
 										<>
 											<ActionButton onPress={async () => {
 												useStore.setState({ reRenderShareActionSheet: Math.random() })
@@ -1322,12 +1476,12 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 									)
 								}
 								{
-									isDeviceOnline && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && routeURL.indexOf("photos") == -1 && (
+									!currentActionSheetItem.isSync && isDeviceOnline && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && routeURL.indexOf("photos") == -1 && (
 										<ActionButton onPress={async () => {
 											await SheetManager.hide("ItemActionSheet")
 		
 											setRenameDialogVisible(true)
-										}} icon="text-outline" text="Rename" />
+										}} icon="text-outline" text={i18n(lang, "rename")} />
 									)
 								}
 								{
@@ -1876,7 +2030,8 @@ export const PublicLinkActionSheet = memo(({ navigation, route }) => {
 											<TextInput secureTextEntry={true} placeholder={passwordPlaceholder.length > 0 ? new Array(16).join("*") : i18n(lang, "publicLinkPassword")} value={password} onChangeText={setPassword} style={{
 												width: "60%",
 												paddingLeft: 0,
-												paddingRight: 0
+												paddingRight: 0,
+												color: darkMode ? "white" : "black"
 											}} />
 											<View style={{
 												flexDirection: "row"
@@ -2155,7 +2310,8 @@ export const ShareActionSheet = memo(({ navigation, route }) => {
 							<TextInput placeholder={i18n(lang, "sharePlaceholder")} value={email} onChangeText={setEmail} ref={inputRef} style={{
 								width: "75%",
 								paddingLeft: 0,
-								paddingRight: 0
+								paddingRight: 0,
+								color: darkMode ? "white" : "black"
 							}} />
 							<View style={{
 								flexDirection: "row"
@@ -2535,6 +2691,8 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 
 					setTimeout(() => {
 						hasCameraPermissions().then(() => {
+							storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+
 							launchCamera({
 								maxWidth: 999999999,
 								maxHeight: 999999999,
@@ -2587,6 +2745,8 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 					setTimeout(() => {
 						hasPhotoLibraryPermissions().then(() => {
 							hasStoragePermissions().then(() => {
+								storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+
 								launchImageLibrary({
 									mediaType: "photo",
 									selectionLimit: 1,

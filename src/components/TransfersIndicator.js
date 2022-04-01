@@ -18,15 +18,25 @@ export const TransfersIndicator = memo(({ navigation }) => {
     const uploads = useStore(useCallback(state => state.uploads), (current, next) => !isEqual(current, next))
     const downloads = useStore(useCallback(state => state.downloads), (current, next) => !isEqual(current, next))
     const [progress, setProgress] = useState(0)
+    const currentRoutes = useStore(useCallback(state => state.currentRoutes))
+    const [currentRouteName, setCurrentRouteName] = useState("")
 
     useEffect(() => {
-        if((uploadsCount + downloadsCount) > 0){
+        if((uploadsCount + downloadsCount) > 0 && currentRouteName !== "TransfersScreen"){
             setVisible(true)
         }
         else{
             setVisible(false)
         }
     }, [uploadsCount, downloadsCount])
+
+    useEffect(() => {
+        if(typeof currentRoutes !== "undefined"){
+			if(typeof currentRoutes[currentRoutes.length - 1] !== "undefined"){
+                setCurrentRouteName(currentRoutes[currentRoutes.length - 1].name)
+			}
+		}
+    }, [currentRoutes])
 
     useEffect(() => {
         if((uploadsCount + downloadsCount) > 0){
@@ -49,24 +59,12 @@ export const TransfersIndicator = memo(({ navigation }) => {
 
             memoryCache.set("transfers", transfers)
 
-            let prevTransfersDoneCount = 0
-
             for(let prop in transfers){
-                if(transfers[prop].chunksDone >= transfers[prop].file.chunks){
-                    prevTransfersDoneCount += 1
-                }
-            }
+                const transferDone = transfers[prop].chunksDone >= transfers[prop].file.chunks ? 1 : 0
 
-            for(let prop in transfers){
-                if(prevTransfersDoneCount >= Object.keys(transfers).length){
+                if(!transferDone){
                     chunks = chunks + transfers[prop].file.chunks
                     chunksDone = chunksDone + transfers[prop].chunksDone
-                }
-                else{
-                    if(transfers[prop].chunksDone < transfers[prop].file.chunks){
-                        chunks = chunks + transfers[prop].file.chunks
-                        chunksDone = chunksDone + transfers[prop].chunksDone
-                    }
                 }
             }
 
@@ -87,6 +85,18 @@ export const TransfersIndicator = memo(({ navigation }) => {
         }
     }, [JSON.stringify(uploads), JSON.stringify(downloads), uploadsCount, downloadsCount])
 
+    useEffect(() => {
+        if((uploadsCount + downloadsCount) <= 0){
+            const transfers = memoryCache.get("transfers") || {}
+            
+            for(let prop in transfers){
+                transfers[prop].chunksDone = transfers[prop].file.chunks
+            }
+
+            memoryCache.set("transfers", transfers)
+        }
+    }, [uploadsCount, downloadsCount])
+
     return (
         <TouchableOpacity style={{
             width: 50,
@@ -99,6 +109,10 @@ export const TransfersIndicator = memo(({ navigation }) => {
             zIndex: 999999,
             display: visible ? "flex" : "none"
         }} onPress={() => {
+            if(currentRouteName == "TransfersScreen"){
+                return false
+            }
+            
             navigationAnimation({ enable: true }).then(() => {
                 navigation.current.dispatch(StackActions.push("TransfersScreen"))
             })
@@ -112,13 +126,17 @@ export const TransfersIndicator = memo(({ navigation }) => {
                     }
                 ]
             }}>
+                {/*color={progress > 0 ? "#0A84FF" : darkMode ? "#171717" : "lightgray"}
+                    progress={progress}
+                    backgroundColor={darkMode ? "#171717" : "lightgray"}
+                    containerColor={darkMode ? "#171717" : "lightgray"}*/}
                 <AnimatedProgressWheel
                     size={50} 
                     width={4}
-                    color={progress > 0 ? "#0A84FF" : darkMode ? "#171717" : "lightgray"}
+                    color="transparent"
                     progress={progress}
-                    backgroundColor={darkMode ? "#171717" : "lightgray"}
-                    containerColor={darkMode ? "#171717" : "lightgray"}
+                    backgroundColor="transparent"
+                    containerColor="transparent"
                 />
                 <ActivityIndicator size={"small"} color={darkMode ? "white" : "black"} style={{
                     position: "absolute",

@@ -10,6 +10,7 @@ import BackgroundTimer from "react-native-background-timer"
 import { addItemToOfflineList } from "./services/offline"
 import { getItemOfflinePath } from "./services/offline"
 import DeviceInfo from "react-native-device-info"
+import { clearCacheDirectories } from "./setup"
 
 const cachedGetDownloadPath = {}
 const downloadSemaphore = new Semaphore(3)
@@ -17,7 +18,7 @@ const maxThreads = 32
 
 export const downloadFileChunk = ({ region, bucket, uuid, index, key, version }) => {
     return new Promise((resolve, reject) => {
-        const maxTries = 3
+        const maxTries = 1024
         let tries = 0
         const triesTimeout = 1000
         const requestTimeout = 3600000
@@ -147,6 +148,8 @@ export const getItemDownloadName = (path, item) => {
 }
 
 export const queueFileDownload = async ({ file, storeOffline = false, optionalCallback = undefined, saveToGalleryCallback = undefined, isOfflineUpdate = false }) => {
+    let didStop = false
+
     const callOptionalCallback = (...args) => {
         if(typeof optionalCallback == "function"){
             optionalCallback(...args)
@@ -227,6 +230,16 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         return true
     }
 
+    const isStopped = () => {
+        const currentDownloads = useStore.getState().downloads
+
+        if(typeof currentDownloads[file.uuid] == "undefined"){
+            return false
+        }
+
+        return currentDownloads[file.uuid].stopped
+    }
+
     const currentDownloads = useStore.getState().downloads
 
     if(typeof currentDownloads[file.uuid] !== "undefined"){
@@ -237,7 +250,23 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
     addToState()
 
+    const stopInterval = BackgroundTimer.setInterval(async () => {
+        if(isStopped() && !didStop){
+            didStop = true
+
+            removeFromState()
+
+            BackgroundTimer.clearInterval(stopInterval)
+        }
+    }, 100)
+
     await downloadSemaphore.acquire()
+
+    if(didStop){
+        callOptionalCallback("stopped")
+
+        return false
+    }
 
     try{
         var downloadPath = await getDownloadPath({ type: (storeOffline ? "offline" : "download") })
@@ -253,7 +282,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     }
 
     try{
-        if(storage.getBoolean("onlyWifiDownloads:" + storage.getString("email")) && appState.netInfo.type !== "wifi"){
+        if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && appState.netInfo.type !== "wifi"){
             return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
         }
     }
@@ -269,6 +298,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
             updateProgress(chunksDone)
         }
     }).then(async (path) => {
+        BackgroundTimer.clearInterval(stopInterval)
+
         if(typeof saveToGalleryCallback == "function"){
             removeFromState()
 
@@ -428,6 +459,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     }).catch((err) => {
         removeFromState()
 
+        BackgroundTimer.clearInterval(stopInterval)
+
         if(err !== "stopped"){
             showToast({ message: err.toString() })
 
@@ -442,6 +475,12 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
     return new Promise(async (resolve, reject) => {
         try{
             if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
+                await clearCacheDirectories()
+            }
+
+            await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 5000))
+
+            if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
                 return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
             }
         }
@@ -455,7 +494,14 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
 
         try{
             if((await RNFS.exists(path))){
-                return resolve(path)
+                const existsStat = await RNFS.stat(path)
+
+                if(existsStat.size >= (file.size - 131072)){
+                    return resolve(path)
+                }
+                else{
+                    await RNFS.unlink(path)
+                }
             }
         }
         catch(e){
@@ -495,11 +541,9 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
         let writeIndex = 0
         let didStop = false
 
-        const stopInterval = setInterval(async () => {
+        const stopInterval = BackgroundTimer.setInterval(async () => {
             if(isStopped() && !didStop){
                 didStop = true
-
-                clearInterval(stopInterval)
 
                 try{
                     if((await RNFS.exists(path))){
@@ -509,26 +553,35 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
                 catch(e){
                     //console.log(e)
                 }
-    
-                return reject("stopped")
+
+                BackgroundTimer.clearInterval(stopInterval)
             }
-        }, 100)
+        }, 10)
 
         const download = (index) => {
             return new Promise(async (resolve, reject) => {
                 if(isPaused()){
                     await new Promise((resolve) => {
-                        const wait = setInterval(() => {
+                        const wait = BackgroundTimer.setInterval(() => {
                             if(!isPaused() || isStopped()){
-                                clearInterval(wait)
+                                BackgroundTimer.clearInterval(wait)
     
                                 return resolve()
                             }
-                        }, 250)
+                        }, 10)
                     })
                 }
     
                 if(didStop){
+                    try{
+                        if((await RNFS.exists(path))){
+                            await RNFS.unlink(path)
+                        }
+                    }
+                    catch(e){
+                        //console.log(e)
+                    }
+
                     return reject("stopped")
                 }
 
@@ -540,9 +593,9 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
                     key: file.key,
                     version: file.version
                 }).then((data) => {
-                    let writeInterval = setInterval(() => {
+                    let writeInterval = BackgroundTimer.setInterval(() => {
                         if(writeIndex == index){
-                            clearInterval(writeInterval)
+                            BackgroundTimer.clearInterval(writeInterval)
 
                             stream.write(data).then(() => {
                                 writeIndex = index + 1
@@ -559,7 +612,7 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
             })
         }
   
-        while(file.chunks > chunksDone){
+        while(file.chunks > chunksDone && typeof err == "undefined"){
             let chunksLeft = (file.chunks - chunksDone)
             let chunksToDownload = maxThreads
             
@@ -592,7 +645,7 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
 
         stream.close()
 
-        clearInterval(stopInterval)
+        BackgroundTimer.clearInterval(stopInterval)
 
         if(typeof err !== "undefined"){
             try{

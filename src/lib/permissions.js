@@ -153,3 +153,62 @@ export const hasStoragePermissions = () => {
         return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
     })
 }
+
+export const hasLocationPermissions = () => {
+    return new Promise(async (resolve, reject) => {
+        if(Platform.OS == "android"){
+            check(PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION).then((status) => {
+                if([RESULTS.GRANTED].includes(status)){
+                    return resolve(true)
+                }
+
+                request(PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION).then((requestStatus) => {
+                    if([RESULTS.GRANTED].includes(requestStatus)){
+                        return resolve(true)
+                    }
+
+                    check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).then((status) => {
+                        if([RESULTS.GRANTED].includes(status)){
+                            return resolve(true)
+                        }
+        
+                        request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION).then((requestStatus) => {
+                            if([RESULTS.GRANTED].includes(requestStatus)){
+                                return resolve(true)
+                            }
+        
+                            check(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION).then((status) => {
+                                if([RESULTS.GRANTED].includes(status)){
+                                    return resolve(true)
+                                }
+                
+                                request(PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION).then((requestStatus) => {
+                                    if([RESULTS.GRANTED].includes(requestStatus)){
+                                        return resolve(true)
+                                    }
+                
+                                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
+                                }).catch(reject)
+                            }).catch(reject)
+                        }).catch(reject)
+                    }).catch(reject)
+                }).catch(reject)
+            }).catch(reject)
+        }
+        else{
+            check(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE).then((status) => {
+                if([RESULTS.GRANTED].includes(status)){
+                    return resolve(true)
+                }
+
+                request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE).then((requestStatus) => {
+                    if([RESULTS.GRANTED].includes(requestStatus)){
+                        return resolve(true)
+                    }
+
+                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
+                }).catch(reject)
+            }).catch(reject)
+        }
+    })
+}

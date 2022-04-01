@@ -9,6 +9,8 @@ import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Keyboard } from "react-native"
 import { logout } from "../lib/auth/logout"
+import { navigationAnimation } from "../lib/state"
+import { StackActions } from "@react-navigation/native"
 
 export const RenameDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -320,8 +322,6 @@ export const ConfirmPermanentDeleteDialog = memo(({ navigation }) => {
 
                             useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                            console.log(currentActionSheetItem)
-
                             deleteItemPermanently({ item: currentActionSheetItem }).then(async () => {
                                 DeviceEventEmitter.emit("event", {
                                     type: "remove-item",
@@ -334,7 +334,7 @@ export const ConfirmPermanentDeleteDialog = memo(({ navigation }) => {
 
                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                showToast({ message: i18n(lang, "itemDeletedPermanently", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                //showToast({ message: i18n(lang, "itemDeletedPermanently", true, ["__NAME__"], [currentActionSheetItem.name]) })
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 
@@ -473,7 +473,6 @@ export const CreateTextFileDialog = memo(({ navigation }) => {
     const [value, setValue] = useState(".txt")
     const inputRef = useRef()
     const [lang, setLang] = useMMKVString("lang", storage)
-    const setTextEditorModalVisible = useStore(useCallback(state => state.setTextEditorModalVisible))
 	const setTextEditorState = useStore(useCallback(state => state.setTextEditorState))
 	const setTextEditorText = useStore(useCallback(state => state.setTextEditorText))
     const setCreateTextFileDialogName = useStore(useCallback(state => state.setCreateTextFileDialogName))
@@ -514,9 +513,12 @@ export const CreateTextFileDialog = memo(({ navigation }) => {
                 setCreateTextFileDialogVisible(false)
                 setCreateTextFileDialogName(value)
                 setTextEditorText("")
-                setTextEditorParent("")
-                setTextEditorState("new")
-                setTextEditorModalVisible(true)
+                setTextEditorParent(getParent())
+                setTextEditorState("edit")
+                                                    
+                navigationAnimation({ enable: true }).then(() => {
+                    navigation.dispatch(StackActions.push("TextEditorScreen"))
+                })
             }} />
         </Dialog.Container>
     )

@@ -10,11 +10,53 @@ import { getDownloadPath } from "./download"
 import { getThumbnailCacheKey } from "./services/items"
 import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
+import { memoryCache } from "./memoryCache"
+import { updateLoadItemsCache, addItemLoadItemsCache, buildFile } from "./services/items"
+import BackgroundTimer from "react-native-background-timer"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
 
-export const queueFileUpload = async ({ pickedFile, parent, progressCallback, cameraUploadCallback }) => {
+export const encryptAndUploadChunk = ({ base64, key, url, timeout }) => {
+    return new Promise((resolve, reject) => {
+        const maxTries = 1024
+        let currentTries = 0
+        const retryTimer = 1000
+
+        const doRequest = () => {
+            if(currentTries > maxTries){
+                return reject(new Error("Max tries reached"))
+            }
+
+            currentTries += 1
+
+            global.nodeThread.encryptAndUploadChunk({
+                base64,
+                key,
+                url,
+                timeout,
+            }).then((res) => {
+                if(!res.status){
+                    if(res.message.toLowerCase().indexOf("blacklist") !== -1){
+                        return reject(res.message)
+                    }
+
+                    return BackgroundTimer.setTimeout(doRequest, retryTimer)
+                }
+
+                return resolve(res)
+            }).catch((err) => {
+                console.log(err)
+
+                return BackgroundTimer.setTimeout(doRequest, retryTimer)
+            })
+        }
+
+        doRequest()
+    })
+}
+
+export const queueFileUpload = async ({ pickedFile, parent, progressCallback, cameraUploadCallback, routeURL = undefined }) => {
     const clearCache = async () => {
         if(typeof pickedFile.clearCache !== "undefined"){
             try{
@@ -43,7 +85,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     }
 
     try{
-        if(storage.getBoolean("onlyWifiUploads:" + storage.getString("email")) && netInfo.type !== "wifi"){
+        if(storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
             return showToast({ message: i18n(storage.getString("lang"), "onlyWifiUploads") })
         }
     }
@@ -110,6 +152,9 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     }
 
     item.chunks = fileChunks
+    item.name = name
+
+    let didStop = false
 
     const addToState = () => {
         const currentUploads = useStore.getState().uploads
@@ -201,6 +246,18 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
 
     addToState()
 
+    const stopInterval = BackgroundTimer.setInterval(() => {
+        if(isStopped() && !didStop){
+            didStop = true
+
+            BackgroundTimer.clearInterval(stopInterval)
+
+            removeFromState()
+
+            return true
+        }
+    }, 10)
+
     await uploadSemaphore.acquire()
 
     try{
@@ -219,6 +276,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     }
     catch(e){
         removeFromState()
+
+        BackgroundTimer.clearInterval(stopInterval)
 
         if(typeof cameraUploadCallback !== "function"){
             showToast({ message: e.toString() })
@@ -241,6 +300,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     }
     catch(e){
         removeFromState()
+
+        BackgroundTimer.clearInterval(stopInterval)
 
         if(typeof cameraUploadCallback !== "function"){
             showToast({ message: e.toString() })
@@ -265,6 +326,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         catch(e){
             removeFromState()
 
+            BackgroundTimer.clearInterval(stopInterval)
+
             if(typeof cameraUploadCallback !== "function"){
                 showToast({ message: e.toString() })
             }
@@ -284,6 +347,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     if(typeof masterKeys !== "object"){
         removeFromState()
 
+        BackgroundTimer.clearInterval(stopInterval)
+
         if(typeof cameraUploadCallback == "function"){
             cameraUploadCallback("invalid master keys")
         }
@@ -299,6 +364,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     if(masterKeys.length <= 0){
         removeFromState()
 
+        BackgroundTimer.clearInterval(stopInterval)
+
         if(typeof cameraUploadCallback == "function"){
             cameraUploadCallback("invalid master keys")
         }
@@ -313,6 +380,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
 
     if(typeof masterKeys[masterKeys.length - 1] !== "string"){
         removeFromState()
+
+        BackgroundTimer.clearInterval(stopInterval)
 
         if(typeof cameraUploadCallback == "function"){
             cameraUploadCallback("invalid master keys")
@@ -352,6 +421,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     catch(e){
         removeFromState()
 
+        BackgroundTimer.clearInterval(stopInterval)
+
         if(typeof cameraUploadCallback == "function"){
             cameraUploadCallback(e)
         }
@@ -373,7 +444,6 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     let chunksDone = 0
     let currentIndex = -1
     let err = undefined
-    let didStop = false
 
     const clearAfterUpload = () => {
         return new Promise(async (resolve) => {
@@ -402,13 +472,13 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         return new Promise(async (resolve, reject) => {
             if(isPaused()){
                 await new Promise((resolve) => {
-                    const wait = setInterval(() => {
+                    const wait = BackgroundTimer.setInterval(() => {
                         if(!isPaused() || isStopped()){
-                            clearInterval(wait)
+                            BackgroundTimer.clearInterval(wait)
 
                             return resolve()
                         }
-                    }, 250)
+                    }, 10)
                 })
             }
 
@@ -439,39 +509,49 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
                     return reject(e)
                 }
 
-                global.nodeThread.encryptAndUploadChunk({
-                    base64,
-                    key,
-                    url: getUploadServer() + "/v1/upload?" + queryParams,
-                    timeout: 3600000
-                }).then((res) => {
-                    if(!res.status){
-                        return reject(res.message)
+                const maxTries = 1024
+                let currentTries = 0
+                const triesTimeout = 1000
+
+                const doUpload = () => {
+                    if(currentTries >= maxTries){
+                        return reject(new Error("max tries reached for upload, returning, uuid: " + uuid + ", name: " + name))
                     }
 
-                    updateProgress((chunksDone + 1))
+                    currentTries += 1
 
-                    if(typeof progressCallback == "function"){
-                        progressCallback((chunksDone + 1), fileChunks)
-                    }
+                    encryptAndUploadChunk({
+                        base64,
+                        key,
+                        url: getUploadServer() + "/v1/upload?" + queryParams,
+                        timeout: 3600000
+                    }).then((res) => {
+                        if(typeof res !== "object"){
+                            console.log("upload res not object, uuid: " + uuid + ", name: " + name)
 
-                    return resolve(res)
-                }).catch(reject)
+                            return BackgroundTimer.setTimeout(doUpload, triesTimeout)
+                        }
+    
+                        if(!res.status){
+                            console.log(res.message)
+
+                            return BackgroundTimer.setTimeout(doUpload, triesTimeout)
+                        }
+    
+                        updateProgress((chunksDone + 1))
+    
+                        if(typeof progressCallback == "function"){
+                            progressCallback((chunksDone + 1), fileChunks)
+                        }
+    
+                        return resolve(res)
+                    }).catch(reject)
+                }
+
+                doUpload()
             }).catch(reject)
         })
     }
-
-    const stopInterval = setInterval(() => {
-        if(isStopped() && !didStop){
-            didStop = true
-
-            clearInterval(stopInterval)
-
-            removeFromState()
-
-            return true
-        }
-    }, 100)
 
     try{
         var res = await upload(0)
@@ -483,38 +563,40 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         err = e
     }
 
-    chunksDone += 1
-    currentIndex += 1
+    if(typeof err == "undefined"){
+        chunksDone += 1
+        currentIndex += 1
 
-    while(fileChunks > chunksDone && typeof err == "undefined"){
-        let chunksLeft = (fileChunks - chunksDone)
-        let chunksToUpload = maxThreads
-        
-        if(chunksLeft >= maxThreads){
-            chunksToUpload = maxThreads
-        }
-        else{
-            chunksToUpload = chunksLeft
-        }
-        
-        const uploadChunks = []
-        
-        for(let i = 0; i < chunksToUpload; i++){
-            currentIndex += 1
+        while(fileChunks > chunksDone && typeof err == "undefined"){
+            let chunksLeft = (fileChunks - chunksDone)
+            let chunksToUpload = maxThreads
+            
+            if(chunksLeft >= maxThreads){
+                chunksToUpload = maxThreads
+            }
+            else{
+                chunksToUpload = chunksLeft
+            }
+            
+            const uploadChunks = []
+            
+            for(let i = 0; i < chunksToUpload; i++){
+                currentIndex += 1
 
-            uploadChunks.push(upload(currentIndex))
-        }
-        
-        try{
-            await Promise.all(uploadChunks)
-        }
-        catch(e){
-            err = e
+                uploadChunks.push(upload(currentIndex))
+            }
+            
+            try{
+                await Promise.all(uploadChunks)
+            }
+            catch(e){
+                err = e
 
-            break
+                break
+            }
+            
+            chunksDone += uploadChunks.length
         }
-        
-        chunksDone += uploadChunks.length
     }
 
     if(typeof err == "undefined"){
@@ -524,56 +606,64 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         catch(e){
             err = e
         }
-    }
 
-    if(canCompressThumbnail(getFileExt(name))){
-        try{
-            await new Promise((resolve, reject) => {
-                getDownloadPath({ type: "thumbnail" }).then(async (dest) => {
-                    dest = dest + uuid + ".jpg"
-    
-                    try{
-                        if((await RNFS.exists(dest))){
-                            await RNFS.unlink(dest)
-                        }
-                    }
-                    catch(e){
-                        //console.log(e)
-                    }
-
-                    const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid })
-
-                    ImageResizer.createResizedImage(tempPath, width, height, "JPEG", quality).then((compressed) => {
-                        RNFS.moveFile(compressed.uri, dest).then(() => {
-                            try{
-                                storage.set(cacheKey, dest)
-                            }
-                            catch(e){
-                                console.log(e)
-                            }
+        if(canCompressThumbnail(getFileExt(name))){
+            try{
+                await new Promise((resolve, reject) => {
+                    getDownloadPath({ type: "thumbnail" }).then(async (dest) => {
+                        dest = dest + uuid + ".jpg"
         
-                            global.cachedThumbnailPaths[uuid] = dest
-            
-                            return resolve(true)
+                        try{
+                            if((await RNFS.exists(dest))){
+                                await RNFS.unlink(dest)
+                            }
+                        }
+                        catch(e){
+                            //console.log(e)
+                        }
+    
+                        const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid })
+    
+                        ImageResizer.createResizedImage(tempPath, width, height, "JPEG", quality).then((compressed) => {
+                            RNFS.moveFile(compressed.uri, dest).then(() => {
+                                storage.set(cacheKey, item.uuid + ".jpg")
+                                memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
+    
+                                return resolve()
+                            }).catch(resolve)
                         }).catch(resolve)
                     }).catch(resolve)
-                }).catch(resolve)
-            })
-        }
-        catch(e){
-            //console.log(e)
+                })
+            }
+            catch(e){
+                //console.log(e)
+            }
         }
     }
 
     await clearAfterUpload()
 
     if(typeof err !== "undefined"){
+        BackgroundTimer.clearInterval(stopInterval)
+
         if(err == "stopped"){
             if(typeof cameraUploadCallback == "function"){
                 cameraUploadCallback("stopped")
             }
 
             return true
+        }
+        else if(err.toLowerCase().indexOf("blacklist") !== -1){
+            removeFromState()
+
+            if(typeof cameraUploadCallback == "function"){
+                cameraUploadCallback(err)
+            }
+            else{
+                showToast({ message: i18n(storage.getString("lang"), "notEnoughRemoteStorage") })
+            }
+
+            return console.log(err)
         }
         else{
             removeFromState()
@@ -610,6 +700,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     catch(e){
         removeFromState()
 
+        BackgroundTimer.clearInterval(stopInterval)
+
         if(typeof cameraUploadCallback == "function"){
             cameraUploadCallback(e)
         }
@@ -620,15 +712,69 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         return console.log(e)
     }
 
-    DeviceEventEmitter.emit("event", {
-        type: "reload-list",
-        data: {
-            parent: typeof cameraUploadCallback == "function" ? "offline" : parent
-        }
+    const newItem = await buildFile({
+        file: {
+            uuid,
+            uuid,
+            name,
+            size,
+            mime,
+            key,
+            lastModified,
+            bucket: item.bucket,
+            region: item.region,
+            timestamp: item.timestamp,
+            rm,
+            chunks_size: size,
+            size,
+            parent,
+            chunks: fileChunks,
+            receiverId: undefined,
+            receiverEmail: undefined,
+            sharerId: undefined,
+            sharerEmail: undefined,
+            version: 2,
+            favorited: 0
+        },
+        metadata: {
+            uuid,
+            name,
+            size,
+            mime,
+            key,
+            lastModified
+        },
+        masterKeys,
+        email: storage.getString("email"),
+        userId: storage.getNumber("userId")
     })
 
+    if(typeof cameraUploadCallback == "function" || parent == "photos"){
+        await addItemLoadItemsCache({
+            item: newItem,
+            routeURL: "photos"
+        })
+
+        DeviceEventEmitter.emit("event", {
+            type: "add-item",
+            data: {
+                item: newItem,
+                parent: "photos"
+            }
+        })
+    }
+    else{
+        DeviceEventEmitter.emit("event", {
+            type: "reload-list",
+            data: {
+                parent
+            }
+        })
+    }
+
     removeFromState()
-    clearInterval(stopInterval)
+
+    BackgroundTimer.clearInterval(stopInterval)
 
     //showToast({ message: i18n(lang, "fileUploaded", true, ["__NAME__"], [name]) })
 

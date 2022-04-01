@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState, useRef, memo } from "react"
 import { View, Text, TouchableOpacity, Dimensions, Animated, AppState } from "react-native"
 import { storage } from "../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import { i18n } from "../i18n/i18n"
 import { useStore } from "../lib/state"
@@ -109,7 +109,7 @@ export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }) =>
 export const BiometricAuthScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const [email, setEmail] = useMMKVString("email", storage)
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
     const biometricAuthScreenState = useStore(state => state.biometricAuthScreenState)
     const [pinCode, setPinCode] = useState("")
     const [confirmPinCode, setConfirmPinCode] = useState("")
@@ -200,8 +200,8 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
             if(confirmPinCodeVisible){
                 if(newCode == confirmPinCode){
                     try{
-                        storage.set("pinCode:" + email, confirmPinCode)
-                        storage.set("biometricPinAuth:" + email, true)
+                        storage.set("pinCode:" + userId, confirmPinCode)
+                        storage.set("biometricPinAuth:" + userId, true)
                     }
                     catch(e){
                         console.log(e)
@@ -225,7 +225,7 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
                 }
                 else{
                     try{
-                        var storedPinCode = storage.getString("pinCode:" + email) || "1234567890"
+                        var storedPinCode = storage.getString("pinCode:" + userId) || "1234567890"
                     }
                     catch(e){
                         console.log(e)

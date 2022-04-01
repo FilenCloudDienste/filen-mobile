@@ -1,26 +1,25 @@
 import React, { useEffect, useCallback, useState, memo } from "react"
 import { View, Text, Switch, Platform, ScrollView, TouchableOpacity, Alert } from "react-native"
 import { storage } from "../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../lib/state"
 import { SettingsGroup, SettingsButton, SettingsButtonLinkHighlight } from "./SettingsScreen"
 import { showToast } from "./Toasts"
-import { runCameraUpload } from "../lib/services/cameraUpload"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../lib/permissions"
 import { getColor } from "../lib/style/colors"
 
 export const CameraUploadScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const [email, setEmail] = useMMKVString("email", storage)
-    const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + email, storage)
-    const [cameraUploadIncludeImages, setCameraUploadIncludeImages] = useMMKVBoolean("cameraUploadIncludeImages:" + email, storage)
-    const [cameraUploadIncludeVideos, setCameraUploadIncludeVideos] = useMMKVBoolean("cameraUploadIncludeVideos:" + email, storage)
-    const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + email, storage)
-    const [cameraUploadFolderName, setCameraUploadFolderName] = useMMKVString("cameraUploadFolderName:" + email, storage)
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + userId, storage)
+    const [cameraUploadIncludeImages, setCameraUploadIncludeImages] = useMMKVBoolean("cameraUploadIncludeImages:" + userId, storage)
+    const [cameraUploadIncludeVideos, setCameraUploadIncludeVideos] = useMMKVBoolean("cameraUploadIncludeVideos:" + userId, storage)
+    const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
+    const [cameraUploadFolderName, setCameraUploadFolderName] = useMMKVString("cameraUploadFolderName:" + userId, storage)
     const [hasPermissions, setHasPermissions] = useState(false)
 
     const chooseFolder = useCallback(() => {
@@ -169,7 +168,7 @@ export const CameraUploadScreen = memo(({ navigation, route }) => {
                                             text: i18n(lang, "ok"),
                                             onPress: () => {
                                                 try{
-                                                    storage.delete("cameraUploadUploadedIds:" + email)
+                                                    storage.delete("cameraUploadUploadedIds:" + userId)
                                                 }
                                                 catch(e){
                                                     console.log(e)

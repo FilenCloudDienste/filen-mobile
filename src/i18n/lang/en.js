@@ -365,5 +365,22 @@ export const en = {
     reset: "Reset",
     ongoing: "Ongoing",
     finished: "Finished",
-    noFinishedTransfers: "No transfers finished yet"
+    noFinishedTransfers: "No transfers finished yet",
+    emptyTrash: "Empty trash",
+    emptyTrashWarning: "Are you sure you want to empty your trash? This will delete all files and folders inside the trash permanently and cannot be undone!",
+    disableBiometricPinAuth: "Disable Biometric/PIN Auth",
+    disableBiometricPinAuthWarning: "Disabling Biometric/PIN authentication is not recommended, do you want to proceed anyways?",
+    twoFactorAuthentication: "Two Factor Authentication",
+    changeEmail: "Change email",
+    changePassword: "Change password",
+    updateNeeded: "Please update the app to enjoy the latest features and fixes!",
+    updateAvailable: "Update available",
+    updateNow: "Update now",
+    couldNotOpenAppStoreLink: "Could not open the link to the AppStore, please manually update the app",
+    notEnoughRemoteStorage: "Not enough cloud storage",
+    newPasswordPlaceholder: "New password",
+    confirmNewPasswordPlaceholder: "Confirm new password",
+    stopAllTransfers: "Stop all transfers",
+    pauseAllTransfers: "Pause all transfers",
+    resumeAllTransfers: "Resume all transfers"
 }

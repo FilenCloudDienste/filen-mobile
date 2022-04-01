@@ -4,6 +4,5 @@ global.generateThumbnailSemaphore = new Semaphore(3)
 global.items = undefined
 global.setItems = undefined
 global.fetchItemList = undefined
-global.backgroundTimerStarted = false
 global.currentReceiverId = undefined
 global.visibleItems = {}

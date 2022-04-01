@@ -120,6 +120,8 @@ export const SettingsAccountScreen = memo(({ navigation, route }) => {
                                                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
                                                                 showToast({ message: i18n(lang, "deleteAllFilesSuccess") })
+
+                                                                setAccountSettings(prev => ({ ...prev, storageUsed: 0  }))
                                                             }).catch((err) => {
                                                                 console.log(err)
 
@@ -169,6 +171,9 @@ export const SettingsAccountScreen = memo(({ navigation, route }) => {
                                                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
                                                                 showToast({ message: i18n(lang, "deleteAllVersionedFilesSuccess") })
+
+                                                                setAccountSettings(prev => ({ ...prev, storageUsed: (prev.storageUsed - prev.versionedStorage) }))
+                                                                setAccountSettings(prev => ({ ...prev, versionedStorage: 0  }))
                                                             }).catch((err) => {
                                                                 console.log(err)
 

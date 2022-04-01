@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react"
-import { View, DeviceEventEmitter, InteractionManager } from "react-native"
+import { View, DeviceEventEmitter, InteractionManager, Platform } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "./TopBar"
@@ -15,7 +15,7 @@ import { StackActions } from "@react-navigation/native"
 
 export const MainScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [email, setEmail] = useMMKVString("email", storage)
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [routeURL, setRouteURL] = useState(useCallback(getRouteURL(route)))
     const [cachedItemsRef, setCachedItemsRef] = useState(useCallback(storage.getString("loadItemsCache:" + routeURL)))
     const [items, setItems] = useState(typeof cachedItemsRef !== "undefined" ? JSON.parse(cachedItemsRef) : [])
@@ -40,7 +40,7 @@ export const MainScreen = memo(({ navigation, route }) => {
     const topBarHeight = useStore(useCallback(state => state.topBarHeight))
     const contentHeight = useStore(useCallback(state => state.contentHeight))
     const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
-    const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + email, storage)
+    const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
     const itemsSortBy = useStore(useCallback(state => state.itemsSortBy))
     const [initialized, setInitialized] = useState(false)
@@ -344,7 +344,7 @@ export const MainScreen = memo(({ navigation, route }) => {
         }}>
             <TopBar navigation={navigation} route={route} setLoadDone={setLoadDone} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             <View style={{
-                height: routeURL.indexOf("photos") !== -1 ? (contentHeight - 40 - bottomBarHeight + 30) : (contentHeight - topBarHeight - bottomBarHeight + 30)
+                height: routeURL.indexOf("photos") !== -1 ? (contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26)) : (contentHeight - topBarHeight - bottomBarHeight + 30)
             }}>
                 <ItemList navigation={navigation} route={route} items={items} setItems={setItems} showLoader={!loadDone} loadDone={loadDone} searchTerm={searchTerm} isMounted={isMounted} fetchItemList={fetchItemList} progress={progress} setProgress={setProgress} />
             </View>

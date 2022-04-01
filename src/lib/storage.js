@@ -51,13 +51,8 @@ export const storage = {
         return mmkv.getAllKeys()
     },
     delete: (key) => {
-        try{
-            mmkv.delete(key)
-            memoryCache.delete("mmkv:" + key)
-        }
-        catch(e){
-            console.log(e)
-        }
+        mmkv.delete(key)
+        memoryCache.delete("mmkv:" + key)
 
         return true
     },

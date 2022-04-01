@@ -2,14 +2,17 @@ import { storage } from "../storage"
 import { apiRequest } from "../api"
 import { logout } from "../auth/logout"
 import { getMasterKeys, encryptMetadata, getAPIKey, decryptMetadata } from "../helpers"
-
-const apiKey = getAPIKey()
-let masterKeys = getMasterKeys()
+import { showToast } from "../../components/Toasts"
 
 export const updateKeypair = ({ publicKey, privateKey, navigation }) => {
     return new Promise((resolve, reject) => {
+        let masterKeys = getMasterKeys()
+        let apiKey = getAPIKey()
+
         if(masterKeys.length == 0){
             logout({ navigation })
+
+            showToast({ message: "No master keys found - 1" })
 
             return reject("No master keys found")
         }
@@ -46,8 +49,13 @@ export const updateKeypair = ({ publicKey, privateKey, navigation }) => {
 
 export const setKeypair = ({ publicKey, privateKey, navigation }) => {
     return new Promise((resolve, reject) => {
+        let masterKeys = getMasterKeys()
+        let apiKey = getAPIKey()
+
         if(masterKeys.length == 0){
             logout({ navigation })
+
+            showToast({ message: "No master keys found - 2" })
 
             return reject("No master keys found")
         }
@@ -84,8 +92,13 @@ export const setKeypair = ({ publicKey, privateKey, navigation }) => {
 
 export const updatePublicAndPrivateKey = ({ navigation }) => {
     return new Promise((resolve, reject) => {
+        let masterKeys = getMasterKeys()
+        let apiKey = getAPIKey()
+
         if(masterKeys.length == 0){
             logout({ navigation })
+
+            showToast({ message: "No master keys found - 3" })
 
             return reject("No master keys found")
         }
@@ -152,7 +165,7 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
             }
             else{
                 try{
-                    const generatedKeypair = await global.nodeThread.generatedKeypair()
+                    const generatedKeypair = await global.nodeThread.generateKeypair()
                     const b64PubKey = generatedKeypair.publicKey
                     const b64PrivKey = generatedKeypair.privateKey
     
@@ -189,6 +202,9 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
 
 export const updateKeys = ({ navigation }) => {
     return new Promise((resolve, reject) => {
+        let masterKeys = getMasterKeys()
+        let apiKey = getAPIKey()
+
         if(masterKeys.length == 0){
             logout({ navigation })
     

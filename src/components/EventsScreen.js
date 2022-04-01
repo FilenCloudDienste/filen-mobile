@@ -393,8 +393,6 @@ export const EventsScreen = memo(({ navigation, route }) => {
                 setLimit(limit)
 
                 newEvents.map(event => console.log(event.id))
-
-                console.log("last id", newEvents[newEvents.length - 1].id)
                 
                 lastEventId.current = newEvents[newEvents.length - 1].id
             }
@@ -460,7 +458,6 @@ export const EventsScreen = memo(({ navigation, route }) => {
                             getEvents(lastEventId.current)
                         }
                     }}
-                    onen
                     getItemLayout={(data, index) => (
                         {length: 45, offset: 45 * index, index}
                     )}

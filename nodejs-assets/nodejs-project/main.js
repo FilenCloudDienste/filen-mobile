@@ -176,7 +176,26 @@ const downloadAndDecryptChunk = (url, timeout, key, version) => {
                 "User-Agent": "filen-mobile"
             }
         }).then((response) => {
-            decryptData(Buffer.from(response.data, "binary").toString("base64"), key, version).then(resolve).catch(reject)
+            if(response.status !== 200){
+                return reject("Response status: " + response.status)
+            }
+
+            try{
+                var dataBuffer = Buffer.from(response.data, "binary").toString("base64")
+            }
+            catch(e){
+                return reject(e)
+            }
+
+            if(typeof dataBuffer.length == "undefined"){
+                return reject("Undefined base64 length")
+            }
+
+            if(dataBuffer.length <= 0){
+                return reject("Undefined base64 length")
+            }
+
+            decryptData(dataBuffer, key, version).then(resolve).catch(reject)
         }).catch(reject)
     })
 }
@@ -378,6 +397,10 @@ const apiRequest = (method, url, timeout, data) => {
                 },
                 timeout
             }).then((res) => {
+                if(res.status !== 200){
+                    return reject("Response status: " + response.status)
+                }
+
                 return resolve(res.data)
             }).catch(reject)
         }
@@ -406,6 +429,10 @@ const encryptAndUploadChunk = (base64, key, url, timeout) => {
                     "User-Agent": "filen-mobile"
                 }
             }).then((res) => {
+                if(res.status !== 200){
+                    return reject("Response status: " + response.status)
+                }
+
                 try{
                     return resolve(res.data)
                 }
@@ -435,6 +462,10 @@ const uploadAvatar = (base64, url, timeout) => {
                 "User-Agent": "filen-mobile"
             }
         }).then((res) => {
+            if(res.status !== 200){
+                return reject("Response status: " + response.status)
+            }
+
             return resolve(res)
             try{
                 return resolve(res.data)
