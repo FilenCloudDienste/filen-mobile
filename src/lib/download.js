@@ -59,7 +59,7 @@ export const getDownloadPath = ({ type = "temp" }) => {
 
         if(Platform.OS == "android"){
             if(type == "temp"){
-                return resolve(RNFS.TemporaryDirectoryPath + (RNFS.TemporaryDirectoryPath.slice(-1) == "/" ? "" : "/"))
+                return resolve(RNFS.CachesDirectoryPath + (RNFS.CachesDirectoryPath.slice(-1) == "/" ? "" : "/"))
             }
             else if(type == "thumbnail"){
                 const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
@@ -97,7 +97,7 @@ export const getDownloadPath = ({ type = "temp" }) => {
         }
         else{
             if(type == "temp"){
-                return resolve(RNFS.TemporaryDirectoryPath + (RNFS.TemporaryDirectoryPath.slice(-1) == "/" ? "" : "/"))
+                return resolve(RNFS.CachesDirectoryPath + (RNFS.CachesDirectoryPath.slice(-1) == "/" ? "" : "/"))
             }
             else if(type == "thumbnail"){
                 const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
@@ -147,7 +147,7 @@ export const getItemDownloadName = (path, item) => {
     return path + item.name + "_" + item.uuid + "." + getFileExt(item.name)
 }
 
-export const queueFileDownload = async ({ file, storeOffline = false, optionalCallback = undefined, saveToGalleryCallback = undefined, isOfflineUpdate = false }) => {
+export const queueFileDownload = async ({ file, storeOffline = false, optionalCallback = undefined, saveToGalleryCallback = undefined, isOfflineUpdate = false, isPreview = false }) => {
     let didStop = false
 
     const callOptionalCallback = (...args) => {
@@ -211,7 +211,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
             })
         }
 
-        downloadSemaphore.release()
+        if(!isPreview){
+            downloadSemaphore.release()
+        }
 
         return true
     }
@@ -260,7 +262,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         }
     }, 100)
 
-    await downloadSemaphore.acquire()
+    if(!isPreview){
+        await downloadSemaphore.acquire()
+    }
 
     if(didStop){
         callOptionalCallback("stopped")
@@ -299,6 +303,12 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         }
     }).then(async (path) => {
         BackgroundTimer.clearInterval(stopInterval)
+
+        if(isPreview){
+            removeFromState()
+
+            return callOptionalCallback(null, path)
+        }
 
         if(typeof saveToGalleryCallback == "function"){
             removeFromState()
@@ -476,20 +486,22 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
         try{
             if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
                 await clearCacheDirectories()
+
+                await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 5000))
+
+                if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
+                    return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
+                }
             }
 
-            await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 5000))
-
-            if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
-                return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
-            }
+            var tempDownloadPath = await getDownloadPath({ type: "temp" })
         }
         catch(e){
             return reject(e)
         }
 
         if(typeof path == "undefined"){
-            path = RNFS.TemporaryDirectoryPath + (RNFS.TemporaryDirectoryPath.slice(-1) == "/" ? "" : "/") + file.name + "_" + file.uuid + "." + getFileExt(file.name)
+            path = tempDownloadPath + file.name + "_" + file.uuid + "." + getFileExt(file.name)
         }
 
         try{

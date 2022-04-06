@@ -31,11 +31,11 @@
 			<key>NSExtensionActivationRule</key>
 			<dict>
 				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
-				<integer>100</integer>
+				<integer>10</integer>
 				<key>NSExtensionActivationSupportsMovieWithMaxCount</key>
-				<real>100</real>
+				<integer>10</integer>
 				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
-				<real>100</real>
+				<integer>10</integer>
 				<key>NSExtensionActivationSupportsText</key>
 				<false/>
 				<key>NSExtensionActivationSupportsWebURL</key>

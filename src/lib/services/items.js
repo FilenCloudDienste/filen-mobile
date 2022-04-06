@@ -92,7 +92,7 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
 
     if(canCompressThumbnail(getFileExt(metadata.name))){
         const thumbnailCacheKey = getThumbnailCacheKey({ uuid: file.uuid }).cacheKey
-        
+
         if(memoryCache.has(thumbnailCacheKey)){
             thumbnailCachePath = memoryCache.get(thumbnailCacheKey)
         }
@@ -869,7 +869,7 @@ export const getFolderSizeFromCache = ({ folder, routeURL }) => {
     const netInfo = useStore.getState().netInfo
 
     if(Math.floor(+new Date()) > timeout && netInfo.isConnected && netInfo.isInternetReachable){
-        fetchFolderSize({ folder, routeURL }).then((size) => {
+        fetchFolderSize({ folder, routeURL }).then(async (size) => {
             try{
                 storage.set(cacheKey, size)
                 storage.set(cacheKey + ":timeout", (Math.floor(+new Date()) + 60000))
@@ -877,6 +877,12 @@ export const getFolderSizeFromCache = ({ folder, routeURL }) => {
             catch(e){
                 console.log(e)
             }
+
+            await updateLoadItemsCache({
+                item: folder,
+                prop: "size",
+                value: size
+            })
     
             DeviceEventEmitter.emit("event", {
                 type: "folder-size",
@@ -1101,15 +1107,19 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false }) => {
     }
 
     if(memoryCache.has("cachedThumbnailPaths:" + item.uuid)){
-        DeviceEventEmitter.emit("event", {
-            type: "thumbnail-generated",
-            data: {
-                uuid: item.uuid,
-                path: memoryCache.get("cachedThumbnailPaths:" + item.uuid)
-            }
+        return updateLoadItemsCache({
+            item,
+            prop: "thumbnail",
+            value: item.uuid + ".jpg"
+        }).then(() => {
+            DeviceEventEmitter.emit("event", {
+                type: "thumbnail-generated",
+                data: {
+                    uuid: item.uuid,
+                    path: memoryCache.get("cachedThumbnailPaths:" + item.uuid)
+                }
+            })
         })
-
-        return true 
     }
 
     const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid: item.uuid })
@@ -1125,15 +1135,19 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false }) => {
         if(cache.length > 0){
             memoryCache.set("cachedThumbnailPaths:" + item.uuid, cache)
 
-            DeviceEventEmitter.emit("event", {
-                type: "thumbnail-generated",
-                data: {
-                    uuid: item.uuid,
-                    path: cache
-                }
+            return updateLoadItemsCache({
+                item,
+                prop: "thumbnail",
+                value: item.uuid + ".jpg"
+            }).then(() => {
+                DeviceEventEmitter.emit("event", {
+                    type: "thumbnail-generated",
+                    data: {
+                        uuid: item.uuid,
+                        path: cache
+                    }
+                })
             })
-
-            return true
         }
     }
 
@@ -1239,6 +1253,13 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false }) => {
 }
 
 export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }) => {
+    if(item.size >= 134217728){
+        return DeviceEventEmitter.emit("event", {
+            type: "open-item-actionsheet",
+            data: item
+        })
+    }
+
     const previewType = getFilePreviewType(getFileExt(item.name))
 
     if(!["image", "video", "text", "code", "pdf", "doc", "audio"].includes(previewType)){
@@ -1355,7 +1376,25 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
     }
 
-    useStore.setState({ fullscreenLoadingModalVisible: true })
+    useStore.setState({ fullscreenLoadingModalVisible: true, fullscreenLoadingModalDismissable: true })
+
+    queueFileDownload({
+        file: item,
+        optionalCallback: (err, path) => {
+            useStore.setState({ fullscreenLoadingModalVisible: false })
+
+            if(err){
+                console.log(err)
+
+                return showToast({ message: err.toString() })
+            }
+
+            return open(path)
+        },
+        isPreview: true
+    })
+
+    /*useStore.setState({ fullscreenLoadingModalVisible: true })
 
     downloadWholeFileFSStream({
         file: item
@@ -1367,5 +1406,5 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         showToast({ message: err.toString() })
 
         console.log(err)
-    })
+    })*/
 }

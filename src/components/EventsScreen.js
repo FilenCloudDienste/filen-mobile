@@ -334,7 +334,7 @@ export class EventRow extends Component {
                             <Text style={{
                                 color: darkMode ? "white" : "black",
                                 fontSize: 13,
-                                width: "60%"
+                                width: "45%"
                             }} numberOfLines={1}>
                                 {this.state.eventText}
                             </Text>
@@ -512,12 +512,16 @@ export const EventsScreen = memo(({ navigation, route }) => {
                         isLoading ? (
                             <></>
                         ) : (
-                            <View style={{
-                                height: 50,
-                                marginTop: 15
-                            }}>
-                                <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
-                            </View>
+                            limit <= events.length && limit > 0 && events.length > 0 ? (
+                                <View style={{
+                                    height: 50,
+                                    marginTop: 15
+                                }}>
+                                    <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
+                                </View>
+                            ) : (
+                                <></>
+                            )
                         )
                     }
                 />

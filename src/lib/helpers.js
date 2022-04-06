@@ -327,6 +327,10 @@ export const normalizePhotosRange = (range) => {
     return range
 }
 
+export const randomIdUnsafe = () => {
+    return Math.random().toString().slice(3) + Math.random().toString().slice(3) + Math.random().toString().slice(3)
+}
+
 export const generateRandomString = (length = 32) => {
     return new Promise((resolve, reject) => {
         global.nodeThread.generateRandomString({ charLength: length }).then(resolve).catch(reject)

@@ -3,11 +3,12 @@ import CameraRoll from "@react-native-community/cameraroll"
 import { Platform } from "react-native"
 import { useStore } from "../state"
 import { queueFileUpload } from "../upload"
-import { getFilenameFromPath, getFileExt, Semaphore } from "../helpers"
-import RNFS from "react-native-fs"
+import { getFilenameFromPath, Semaphore, randomIdUnsafe, getFileExt } from "../helpers"
+import ReactNativeBlobUtil from "react-native-blob-util"
 import { getDownloadPath } from "../download"
-import { folderPresent } from "../api"
+import { folderPresent, reportError } from "../api"
 import BackgroundTimer from "react-native-background-timer"
+import RNFS from "react-native-fs"
 
 const cameraUploadTimeout = 1000
 const copySemaphore = new Semaphore(1)
@@ -96,6 +97,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     catch(e){
         console.log(e)
 
+        reportError(e, "cameraUpload:getIsLoggedIn")
+
         setCameraUploadRunning(false)
         callCallback(false)
 
@@ -129,6 +132,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     catch(e){
         console.log(e)
 
+        reportError(e, "cameraUpload:getUserId")
+
         setCameraUploadRunning(false)
         callCallback(false)
 
@@ -146,6 +151,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         setCameraUploadRunning(false)
         callCallback(false)
 
+        reportError("userId !== number", "cameraUpload:userId")
+
         if(runOnce){
             return false
         }
@@ -159,6 +166,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     if(userId == 0){
         setCameraUploadRunning(false)
         callCallback(false)
+
+        reportError("userId == 0", "cameraUpload:userId")
 
         if(runOnce){
             return false
@@ -187,6 +196,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
     catch(e){
         console.log(e)
+
+        reportError(e, "cameraUpload:getWifiOnlyUploads")
     }
 
     try{
@@ -197,6 +208,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
     catch(e){
         console.log(e)
+
+        reportError(e, "cameraUpload:getState")
 
         setCameraUploadRunning(false)
         callCallback(false)
@@ -264,6 +277,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     catch(e){
         console.log(e)
 
+        reportError(e, "cameraUpload:folderPresent")
+
         setCameraUploadRunning(false)
         callCallback(false)
 
@@ -294,6 +309,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         catch(e){
             console.log(e)
 
+            reportError(e, "cameraUpload:getCameraRollAssets")
+
             setCameraUploadRunning(false)
             callCallback(false)
 
@@ -313,6 +330,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         }
         catch(e){
             console.log(e)
+
+            reportError(e, "cameraUpload:getCachedCameraRollAssets")
 
             setCameraUploadRunning(false)
             callCallback(false)
@@ -366,11 +385,12 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             await copySemaphore.acquire()
 
             const id = getAssetId(asset)
+            const uploadName = getUploadName(asset)
 
             if(Platform.OS == "android"){
                 try{
                     var stat = await RNFS.stat(asset.uri)
-                    var copyPath = await getDownloadPath({ type: "temp" }) + await global.nodeThread.uuidv4()
+                    var copyPath = await getDownloadPath({ type: "temp" }) + randomIdUnsafe() + "." + getFileExt(uploadName)
                     
                     await RNFS.copyFile(asset.uri, copyPath)
                 }
@@ -379,18 +399,22 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
 
                     copySemaphore.release()
 
-                    return resolve()
+                    reportError(e, "cameraUpload:copyAndStat")
+
+                    return reject(e)
                 }
 
                 if(typeof stat !== "object"){
                     copySemaphore.release()
 
-                    return resolve()
+                    reportError("camera upload: copy path stat !== object")
+
+                    return reject("camera upload: copy path stat !== object")
                 }
 
                 var file = {
                     uri: copyPath.indexOf("file://") == -1 ? "file://" + copyPath : copyPath,
-                    name: getUploadName(asset),
+                    name: uploadName,
                     size: stat.size,
                     type: asset.type,
                     lastModified: asset.timestamp
@@ -398,7 +422,10 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             }
             else{
                 try{
-                    var copyPath = await getDownloadPath({ type: "temp" }) + await global.nodeThread.uuidv4()
+                    var copyPath = await getDownloadPath({ type: "temp" }) + randomIdUnsafe() + "." + getFileExt(uploadName)
+
+                    //todo: RN blob util supports copying raw heif/heic, make it an option
+                    //await ReactNativeBlobUtil.fs.cp(asset.uri, copyPath)
 
                     if(asset.type.indexOf("image") !== -1){
                         await RNFS.copyAssetsFileIOS(asset.uri, copyPath, 0, 0)
@@ -407,25 +434,29 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                         await RNFS.copyAssetsVideoIOS(asset.uri, copyPath)
                     }
 
-                    var stat = await RNFS.stat(copyPath)
+                    var stat = await ReactNativeBlobUtil.fs.stat(copyPath)
                 }
                 catch(e){
                     console.log(e)
 
                     copySemaphore.release()
 
-                    return resolve()
+                    reportError(e, "cameraUpload:copyAndStat")
+
+                    return reject(e)
                 }
 
                 if(typeof stat !== "object"){
                     copySemaphore.release()
 
-                    return resolve()
+                    reportError("camera upload: copy path stat !== object")
+
+                    return reject("camera upload: copy path stat !== object")
                 }
 
                 var file = {
                     uri: copyPath.indexOf("file://") == -1 ? "file://" + copyPath : copyPath,
-                    name: getUploadName(asset),
+                    name: uploadName,
                     size: stat.size,
                     type: asset.type.indexOf("image") !== -1 ? "image/jpg" : "video/mp4",
                     lastModified: asset.timestamp
@@ -437,7 +468,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             queueFileUpload({
                 pickedFile: file,
                 parent: cameraUploadFolderUUID,
-                cameraUploadCallback: async (err, item) => {
+                cameraUploadCallback: async (err) => {
                     if(!err){
                         try{
                             const uploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
@@ -453,6 +484,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                         catch(e){
                             console.log(e)
                         }
+                    }
+                    else{
+                        return reject(err)
                     }
 
                     return resolve()
@@ -494,11 +528,13 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
 }
 
 export const getUploadName = (asset) => {
+    //new Date(asset.timestamp * 1000).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + 
+
     if(Platform.OS == "ios"){
-        return new Date(asset.timestamp * 1000).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + Math.random().toString().slice(8) + "." + (asset.type.indexOf("image") !== -1 ? "jpg" : "mp4")
+        return asset.rawId.split("/").join("_").split("-").join("_") + "." + (asset.type.indexOf("image") !== -1 ? "jpg" : "mp4")
     }
     else{
-        return new Date(asset.timestamp * 1000).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + Math.random().toString().slice(8) + "." + getFileExt(getFilenameFromPath(asset.uri))
+        return getFilenameFromPath(asset.uri)
     }
 }
 
@@ -537,7 +573,7 @@ export const getCameraRollAssets = () => {
             assetType = "All"
         }
 
-        const max = 1000
+        const max = 100
         let after = undefined
         const photos = []
 
@@ -548,26 +584,35 @@ export const getCameraRollAssets = () => {
                 include: [],
                 after: cursor
             }).then((data) => {
-                data.edges.forEach((edge) => {
-                    photos.push({
-                        uri: Platform.OS == "ios" ? convertPhAssetToAssetsLibrary(edge.node.image.uri.replace("ph://", ""), edge.node.type === "image" ? "jpg" : "mov") : edge.node.image.uri,
-                        type: edge.node.type,
-                        timestamp: Math.floor(edge.node.timestamp)
+                try{
+                    data.edges.forEach((edge) => {
+                        const uri = decodeURIComponent(edge.node.image.uri)
+    
+                        photos.push({
+                            rawId: uri.replace("ph://", ""),
+                            uri: Platform.OS == "ios" ? convertPhAssetToAssetsLibrary(uri.replace("ph://", ""), edge.node.type === "image" ? "jpg" : "mov") : uri,
+                            rawURI: uri,
+                            type: edge.node.type,
+                            timestamp: Math.floor(edge.node.timestamp)
+                        })
                     })
-                })
-
-                if(data.page_info.has_next_page){
-                    after = data.page_info.end_cursor
-
-                    return get(first, after)
+    
+                    if(data.page_info.has_next_page){
+                        after = data.page_info.end_cursor
+    
+                        return get(first, after)
+                    }
+    
+                    // There is sorting bug in the RN-CameraRoll lib so we have to manually sort the fetched assets by date taken DESC
+                    const assets = photos.sort((a, b) => {
+                        return b.timestamp > a.timestamp
+                    })
+    
+                    return resolve(assets)
                 }
-
-                // There is sorting bug in the RN-CameraRoll lib so we have to manually sort the fetched assets by date taken DESC
-                const assets = photos.sort((a, b) => {
-                    return b.timestamp > a.timestamp
-                })
-
-                return resolve(assets)
+                catch(e){
+                    return reject(e)
+                }
             }).catch(reject)
         }
 

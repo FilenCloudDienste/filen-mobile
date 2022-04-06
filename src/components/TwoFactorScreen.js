@@ -10,18 +10,21 @@ import Clipboard from "@react-native-clipboard/clipboard"
 import QRCode from "react-native-qrcode-svg"
 import { useStore } from "../lib/state"
 import { enable2FA } from "../lib/api"
+import { CommonActions } from "@react-navigation/native"
 
 export const TwoFactorScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const [enabled, setEnabled] = useState(route.params.accountSettings.enabled)
+    const [enabled, setEnabled] = useState(route.params.accountSettings.twoFactorEnabled == 1 ? true : false)
     const [accountSettings, setAccountSettings] = useState(route.params.accountSettings)
     const dimensions = useStore(useCallback(state => state.dimensions))
     const [twoFactorKey, setTwoFactorKey] = useState("")
     const setDisable2FATwoFactorDialogVisible = useStore(useCallback(state => state.setDisable2FATwoFactorDialogVisible))
 
+    console.log(route.params)
+
     return (
-        <KeyboardAvoidingView behavior="padding">
+        <KeyboardAvoidingView behavior="position">
             <View style={{
                 flexDirection: "row",
                 justifyContent: "flex-start",
@@ -43,7 +46,7 @@ export const TwoFactorScreen = memo(({ navigation, route }) => {
                     {i18n(lang, "twoFactorAuthentication")}
                 </Text>
             </View>
-            <ScrollView style={{
+            <View style={{
                 height: "100%",
                 width: "100%",
                 backgroundColor: darkMode ? "black" : "white"
@@ -228,6 +231,20 @@ export const TwoFactorScreen = memo(({ navigation, route }) => {
                                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
                                                 showToast({ message: i18n(lang, "twoFactorEnabledSuccess") })
+
+                                                navigationAnimation({ enable: false }).then(() => {
+                                                    navigation.dispatch(CommonActions.reset({
+                                                        index: 1,
+                                                        routes: [
+                                                            {
+                                                                name: "SettingsScreen"
+                                                            },
+                                                            {
+                                                                name: "SettingsAccountScreen"
+                                                            }
+                                                        ]
+                                                    }))
+                                                })
                                             }).catch((err) => {
                                                 console.log(err)
 
@@ -249,7 +266,7 @@ export const TwoFactorScreen = memo(({ navigation, route }) => {
                         </>
                     )
                 }
-            </ScrollView>
+            </View>
         </KeyboardAvoidingView>
     )
 })

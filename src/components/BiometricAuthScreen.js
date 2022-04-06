@@ -8,13 +8,15 @@ import { useStore } from "../lib/state"
 import { navigationAnimation } from "../lib/state"
 import ReactNativeBiometrics from "react-native-biometrics"
 import { CommonActions } from "@react-navigation/native"
+import { SheetManager } from "react-native-actions-sheet"
+import BackgroundTimer from "react-native-background-timer"
 
 const window = Dimensions.get("window")
 let canGoBack = false
 
 export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const biometricAuthScreenState = useStore(state => state.biometricAuthScreenState)
+    const biometricAuthScreenState = useStore(useCallback(state => state.biometricAuthScreenState))
 
     const buttonWidthHeight = 70
     const buttonFontSize = 22
@@ -110,7 +112,7 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const biometricAuthScreenState = useStore(state => state.biometricAuthScreenState)
+    const biometricAuthScreenState = useStore(useCallback(state => state.biometricAuthScreenState))
     const [pinCode, setPinCode] = useState("")
     const [confirmPinCode, setConfirmPinCode] = useState("")
     const [confirmPinCodeVisible, setConfirmPinCodeVisible] = useState(false)
@@ -118,8 +120,10 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
     const [dotColor, setDotColor] = useState(headerTextColor)
     const [showingBiometrics, setShowingBiometrics] = useState(false)
     const [shakeAnimation, setShakeAnimation] = useState(new Animated.Value(0))
-    const setIsAuthing = useStore(state => state.setIsAuthing)
+    const setIsAuthing = useStore(useCallback(state => state.setIsAuthing))
     const appState = useRef(AppState.currentState)
+    const setBiometricAuthScreenVisible = useStore(useCallback(state => state.setBiometricAuthScreenVisible))
+    const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
 
     const startShake = useCallback(() => {
         Animated.sequence([
@@ -131,7 +135,7 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
             Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true })
         ]).start()
 
-        setTimeout(() => {
+        BackgroundTimer.setTimeout(() => {
             setDotColor(headerTextColor)
         }, 700)
     })
@@ -165,7 +169,7 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
                             {
                                 name: "MainScreen",
                                 params: {
-                                    parent: "recents"
+                                    parent: startOnCloudScreen ? "base" : "recents"
                                 }
                             }
                         ]
@@ -254,9 +258,9 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
         }
 
         await new Promise((resolve) => {
-            const wait = setInterval(() => {
+            const wait = BackgroundTimer.setInterval(() => {
                 if(appState.current == "active"){
-                    clearInterval(wait)
+                    BackgroundTimer.clearInterval(wait)
 
                     return resolve()
                 }
@@ -299,8 +303,24 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
 
     useEffect(() => {
         setIsAuthing(true)
+        setBiometricAuthScreenVisible(true)
 
         canGoBack = false
+
+        SheetManager.hideAll()
+
+        useStore.setState({
+            renameDialogVisible: false,
+            createFolderDialogVisible: false,
+            confirmPermanentDeleteDialogVisible: false,
+            removeFromSharedInDialogVisible: false,
+            stopSharingDialogVisible: false,
+            createTextFileDialogVisible: false,
+            redeemCodeDialogVisible: false,
+            deleteAccountTwoFactorDialogVisible: false,
+            disable2FATwoFactorDialogVisible: false,
+            bulkShareDialogVisible: false
+        })
 
         const removeListener = navigation.addListener("beforeRemove", (e) => {
             if(!canGoBack){
@@ -314,11 +334,14 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
             appState.current = nextAppState
         })
 
-        setTimeout(promptBiometrics, 100)
+        BackgroundTimer.setTimeout(promptBiometrics, 100)
 
         return () => {
             removeListener()
+
             appStateListener.remove()
+
+            setBiometricAuthScreenVisible(false)
         }
     }, [])
 

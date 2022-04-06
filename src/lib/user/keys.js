@@ -120,7 +120,7 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
                 return reject(response.message)
             }
 
-            if(response.data.publicKey.length > 16 && response.data.privateKey.length > 16){
+            if(response.data.publicKey.length > 16 && response.data.privateKey.length > 16 && Array.isArray(masterKeys)){
                 let privateKey = ""
 
                 for(let i = 0; i < masterKeys.length; i++){
@@ -270,7 +270,11 @@ export const updateKeys = ({ navigation }) => {
                 else{
                     console.log("Could not decrypt master keys.")
 
-                    return resolve()
+                    updatePublicAndPrivateKey({ navigation }).then(() => {
+                        return resolve()
+                    }).catch((err) => {
+                        return resolve()
+                    })
                 }
             }).catch((err) => {
                 return reject(err)

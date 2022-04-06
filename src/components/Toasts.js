@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from "react"
+import React, { useState, useEffect, useCallback, memo, useRef } from "react"
 import { View, Text, Platform, TouchableOpacity, DeviceEventEmitter } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -152,11 +152,14 @@ export const MoveToast = memo(({ message }) => {
     const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
+    const initParent = useRef()
 
     useEffect(() => {
         DeviceEventEmitter.emit("event", {
             type: "unselect-all-items"
         })
+
+        initParent.current = getParent()
     }, [])
 
     return (
@@ -216,6 +219,22 @@ export const MoveToast = memo(({ message }) => {
 
                     const parent = getParent()
 
+                    if([
+                        "recents",
+                        "shared-in",
+                        "shared-out",
+                        "links",
+                        "favorites",
+                        "offline",
+                        "cloud",
+                        "photos",
+                        "settings"
+                    ].includes(parent)){
+                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+
+                        return false
+                    }
+
                     if(parent.length <= 32 && currentActionSheetItem.type == "file"){
                         showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
@@ -255,13 +274,29 @@ export const MoveToast = memo(({ message }) => {
                                 file: currentActionSheetItem,
                                 parent
                             }).then(() => {
-                                setButtonsDisabled(false)
+                                DeviceEventEmitter.emit("event", {
+                                    type: "reload-list",
+                                    data: {
+                                        parent: initParent.current
+                                    }
+                                })
 
-                                useStore.setState({ fullscreenLoadingModalVisible: false })
+                                DeviceEventEmitter.emit("event", {
+                                    type: "reload-list",
+                                    data: {
+                                        parent
+                                    }
+                                })
 
-                                hideAllToasts()
+                                setTimeout(() => {
+                                    setButtonsDisabled(false)
 
-                                showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                    hideAllToasts()
+
+                                    //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                }, 500)
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 
@@ -294,13 +329,29 @@ export const MoveToast = memo(({ message }) => {
                                 folder: currentActionSheetItem,
                                 parent
                             }).then(() => {
-                                setButtonsDisabled(false)
+                                DeviceEventEmitter.emit("event", {
+                                    type: "reload-list",
+                                    data: {
+                                        parent: initParent
+                                    }
+                                })
 
-                                useStore.setState({ fullscreenLoadingModalVisible: false })
+                                DeviceEventEmitter.emit("event", {
+                                    type: "reload-list",
+                                    data: {
+                                        parent
+                                    }
+                                })
 
-                                hideAllToasts()
+                                setTimeout(() => {
+                                    setButtonsDisabled(false)
 
-                                showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                    hideAllToasts()
+
+                                    //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                }, 500)
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 
@@ -417,6 +468,10 @@ export const UploadToast = memo(({ message }) => {
                             }} style={{
                                 marginLeft: 20
                             }} onPress={() => {
+                                if(!Array.isArray(items)){
+                                    return false
+                                }
+                                
                                 const parent = getParent()
             
                                 if(parent.length < 16){
@@ -464,25 +519,25 @@ export const UploadToast = memo(({ message }) => {
                                         }).catch(reject)
                                     })
                                 }
+
+                                const limit = 10
+
+                                if(items.length >= limit){
+                                    return showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
+                                }
             
                                 for(let i = 0; i < items.length; i++){
                                     copyFile(items[i]).then((copyResult) => {
                                         const { path, type, size, name } = copyResult
 
-                                        RNFS.stat(path).then((stat) => {
-                                            queueFileUpload({
-                                                pickedFile: {
-                                                    name,
-                                                    size,
-                                                    type,
-                                                    uri: path.indexOf("file://") == -1 ? "file://" + path : path
-                                                },
-                                                parent
-                                            })
-                                        }).catch((err) => {
-                                            console.log(err)
-    
-                                            showToast({ message: err.toString() })
+                                        queueFileUpload({
+                                            pickedFile: {
+                                                name,
+                                                size,
+                                                type,
+                                                uri: path.indexOf("file://") == -1 ? "file://" + path : path
+                                            },
+                                            parent
                                         })
                                     }).catch((err) => {
                                         console.log(err)
@@ -642,11 +697,14 @@ export const MoveBulkToast = memo(({ message }) => {
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
     const currentBulkItems = useStore(useCallback(state => state.currentBulkItems))
+    const initParent = useRef()
 
     useEffect(() => {
         DeviceEventEmitter.emit("event", {
             type: "unselect-all-items"
         })
+
+        initParent.current = getParent()
     }, [])
 
     return (
@@ -712,8 +770,24 @@ export const MoveBulkToast = memo(({ message }) => {
 
                     const parent = getParent()
 
+                    if([
+                        "recents",
+                        "shared-in",
+                        "shared-out",
+                        "links",
+                        "favorites",
+                        "offline",
+                        "cloud",
+                        "photos",
+                        "settings"
+                    ].includes(parent)){
+                        showToast({ message: i18n(lang, "cannotMoveItemsHere") })
+
+                        return false
+                    }
+
                     if(parent.length <= 32 && currentBulkItems.filter(item => item.type == "file").length >= 1){
-                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+                        showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
                         return false
                     }
@@ -725,7 +799,7 @@ export const MoveBulkToast = memo(({ message }) => {
                     }
 
                     if(getRouteURL().indexOf("shared-in") !== -1){
-                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+                        showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
                         return false
                     }
@@ -735,13 +809,29 @@ export const MoveBulkToast = memo(({ message }) => {
                     useStore.setState({ fullscreenLoadingModalVisible: true })
 
                     bulkMove({ items: currentBulkItems, parent }).then(() => {
-                        setButtonsDisabled(false)
+                        DeviceEventEmitter.emit("event", {
+                            type: "reload-list",
+                            data: {
+                                parent: initParent.current
+                            }
+                        })
 
-                        useStore.setState({ fullscreenLoadingModalVisible: false })
+                        DeviceEventEmitter.emit("event", {
+                            type: "reload-list",
+                            data: {
+                                parent
+                            }
+                        })
 
-                        hideAllToasts()
+                        setTimeout(() => {
+                            setButtonsDisabled(false)
 
-                        showToast({ message: i18n(lang, "itemsMoved", true, ["__COUNT__"], [currentBulkItems.length]) })
+                            useStore.setState({ fullscreenLoadingModalVisible: false })
+    
+                            hideAllToasts()
+
+                            //showToast({ message: i18n(lang, "itemsMoved", true, ["__COUNT__"], [currentBulkItems.length]) })
+                        }, 500)
                     }).catch((err) => {
                         console.log(err)
 

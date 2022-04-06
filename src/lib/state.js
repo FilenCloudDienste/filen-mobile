@@ -22,6 +22,8 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setItemsSelectedCount: (itemsSelectedCount) => set({ itemsSelectedCount }),
 	fullscreenLoadingModalVisible: false,
 	setFullscreenLoadingModalVisible: (fullscreenLoadingModalVisible) => set({ fullscreenLoadingModalVisible }),
+	fullscreenLoadingModalDismissable: false,
+	setFullscreenLoadingModalDismissable: (fullscreenLoadingModalDismissable) => set({ fullscreenLoadingModalDismissable }),
 	uploads: {},
 	setUploads: (uploads) => set({ uploads }),
 	downloads: {},
@@ -102,6 +104,8 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setBulkShareDialogVisible: (bulkShareDialogVisible) => set({ bulkShareDialogVisible }),
 	itemsSortBy: "nameAsc",
 	setItemsSortBy: (itemsSortBy) => set({ itemsSortBy }),
+	biometricAuthScreenVisible: false,
+	setBiometricAuthScreenVisible: (biometricAuthScreenVisible) => set({ biometricAuthScreenVisible }),
 })))
 
 export const navigationAnimation = ({ enable = true }) => {

@@ -1,7 +1,7 @@
 import "../lib/globals"
 import "../lib/node"
 import React, { useState, useEffect, Fragment, useCallback, memo } from "react"
-import { Dimensions, SafeAreaView, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState, Text } from "react-native"
+import { Dimensions, SafeAreaView, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState, Text, Alert } from "react-native"
 import { setup } from "../lib/setup"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -49,6 +49,32 @@ import { TextEditorScreen } from "./TextEditorScreen"
 import checkAppVersion from "../lib/services/versionCheck"
 import { UpdateScreen } from "./UpdateScreen"
 import BackgroundTimer from "react-native-background-timer"
+import { setJSExceptionHandler, setNativeExceptionHandler } from "react-native-exception-handler"
+import { reportError } from "../lib/api"
+
+setJSExceptionHandler((err, isFatal) => {
+    reportError(err)
+
+    Alert.alert("Unexpected error occured",
+        `
+        Error: ${err.name} ${err.message}
+
+        The error has been automatically reported to us. Please restart the app!
+        `,
+        [
+            {
+                text: "Close",
+                onPress: () => {
+                    return false
+                }
+            }
+        ]
+    )
+}, true)
+
+setNativeExceptionHandler((err) => {
+    reportError(err)
+}, false)
 
 NetInfo.configure({
     reachabilityUrl: "https://api.filen.io",
@@ -62,7 +88,7 @@ NetInfo.configure({
 
 LogBox.ignoreLogs(["new NativeEventEmitter"])
 
-enableScreens(false)
+enableScreens(true)
 
 const Stack = createNativeStackNavigator()
 const navigationRef = createNavigationContainerRef()
@@ -96,6 +122,7 @@ export const App = memo(() => {
     const [nodeJSAlive, setNodeJSAlive] = useState(true)
     const setContentHeight = useStore(useCallback(state => state.setContentHeight))
     const isDeviceReady = useStore(useCallback(state => state.isDeviceReady))
+    const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
 
     useEffect(() => {
         SplashScreen.hide()
@@ -112,14 +139,14 @@ export const App = memo(() => {
                 if(items.data !== null){
                     if(items.data.length > 0){
                         await new Promise((resolve) => {
-                            const wait = setInterval(() => {
+                            const wait = BackgroundTimer.setInterval(() => {
                                 if(typeof navigationRef !== "undefined"){
                                     const navState = navigationRef.getState()
 
                                     if(typeof navState.routes !== "undefined"){
                                         if(navState.routes.filter(route => route.name == "SetupScreen" || route.name == "BiometricAuthScreen" || route.name == "LoginScreen").length == 0){
                                             if(storage.getBoolean("isLoggedIn")){
-                                                clearInterval(wait)
+                                                BackgroundTimer.clearInterval(wait)
 
                                                 return resolve()
                                             }
@@ -170,27 +197,49 @@ export const App = memo(() => {
         BackgroundFetch.configure({
             minimumFetchInterval: 15,
             requiredNetworkType: BackgroundFetch.NETWORK_TYPE_ANY,
-            requiresBatteryNotLow: true,
             stopOnTerminate: false,
             startOnBoot: true,
             enableHeadless: false
         }, (taskId) => {
             console.log("[" + Platform.OS + "] BG fetch running:", taskId)
 
-            if(isLoggedIn && cameraUploadEnabled){
-                runCameraUpload({
-                    runOnce: true,
-                    maxQueue: 1,
-                    callback: () => {
-                        console.log("[" + Platform.OS + "] BG fetch done:", taskId)
+            const waitForInit = (callback) => {
+                const timeout = (+new Date() + 15000)
 
-                        BackgroundFetch.finish(taskId)
+                const wait = BackgroundTimer.setInterval(() => {
+                    if(timeout > (+new Date())){
+                        if(isLoggedIn && cameraUploadEnabled && setupDone && isDeviceReady){
+                            BackgroundTimer.clearInterval(wait)
+
+                            return callback(false)
+                        }
                     }
-                })
+                    else{
+                        BackgroundTimer.clearInterval(wait)
+
+                        return callback(true)
+                    }
+                }, 10)
             }
-            else{
-                BackgroundFetch.finish(taskId)
-            }
+
+            waitForInit((timedOut) => {
+                if(timedOut){
+                    console.log("[" + Platform.OS + "] BG fetch timed out:", taskId)
+
+                    BackgroundFetch.finish(taskId)
+                }
+                else{
+                    runCameraUpload({
+                        runOnce: true,
+                        maxQueue: 1,
+                        callback: () => {
+                            console.log("[" + Platform.OS + "] BG fetch done:", taskId)
+    
+                            BackgroundFetch.finish(taskId)
+                        }
+                    })
+                }
+            })
         }, (taskId) => {
             console.log("[" + Platform.OS + "] BG fetch timeout:", taskId)
 
@@ -203,7 +252,7 @@ export const App = memo(() => {
     })
 
     const setAppearance = useCallback(() => {
-        setTimeout(() => {
+        BackgroundTimer.setTimeout(() => {
             if(Appearance.getColorScheme() == "dark"){
                 setDarkMode(true)
                 setStatusBarStyle(true)
@@ -305,7 +354,7 @@ export const App = memo(() => {
                             {
                                 name: "MainScreen",
                                 params: {
-                                    parent: "recents"
+                                    parent: startOnCloudScreen ? "base" : "recents"
                                 }
                             }
                         ]
@@ -332,7 +381,7 @@ export const App = memo(() => {
                                     {
                                         name: "MainScreen",
                                         params: {
-                                            parent: "recents"
+                                            parent: startOnCloudScreen ? "base" : "recents"
                                         }
                                     }
                                 ]
@@ -342,13 +391,13 @@ export const App = memo(() => {
                     else{
                         setSetupDone(false)
 
-                        showToast({ message: "App setup not possible. Maybe you are offline?" })
+                        showToast({ message: i18n(lang, "appSetupNotPossible") })
                     }
                 }
                 else{
                     setSetupDone(false)
 
-                    showToast({ message: "App setup not possible. Maybe you are offline?" })
+                    showToast({ message: i18n(lang, "appSetupNotPossible") })
                 }
             })
         }
@@ -417,7 +466,7 @@ export const App = memo(() => {
                                                 <Stack.Screen name="ResendConfirmationScreen" component={ResendConfirmationScreen} options={{
                                                     title: "ResendConfirmationScreen"
                                                 }}></Stack.Screen>
-                                                <Stack.Screen name="MainScreen" initialParams={{ parent: "recents" }} component={MainScreen} options={{
+                                                <Stack.Screen name="MainScreen" initialParams={{ parent: startOnCloudScreen ? "base" : "recents" }} component={MainScreen} options={{
                                                     title: "MainScreen"
                                                 }}></Stack.Screen>
                                                 <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{

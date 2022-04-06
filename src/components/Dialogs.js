@@ -11,6 +11,7 @@ import { DeviceEventEmitter, Keyboard } from "react-native"
 import { logout } from "../lib/auth/logout"
 import { navigationAnimation } from "../lib/state"
 import { StackActions } from "@react-navigation/native"
+import { CommonActions } from "@react-navigation/native"
 
 export const RenameDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -733,6 +734,20 @@ export const Disable2FATwoFactorDialog = memo(({ navigation }) => {
                     useStore.setState({ fullscreenLoadingModalVisible: false })
 
                     showToast({ message: i18n(lang, "twoFactorDisabledSuccess") })
+
+                    navigationAnimation({ enable: false }).then(() => {
+                        navigation.dispatch(CommonActions.reset({
+                            index: 1,
+                            routes: [
+                                {
+                                    name: "SettingsScreen"
+                                },
+                                {
+                                    name: "SettingsAccountScreen"
+                                }
+                            ]
+                        }))
+                    })
                 }).catch((err) => {
                     setButtonsDisabled(false)
 

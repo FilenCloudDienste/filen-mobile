@@ -200,6 +200,12 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
 
             return showToast({ message: i18n(storage.getString("lang"), "loginWrongEmailOrPassword") })
         }
+        else if(res.message == "Invalid Two Factor Authentication code." || res.message == "Invalid 2fa key"){
+            setTwoFactorKey("")
+            setShowTwoFactorField(true)
+
+            return showToast({ message: i18n(storage.getString("lang"), "invalidTwoFactorKey") })
+        }
         else{
             return showToast({ message: res.message })
         }

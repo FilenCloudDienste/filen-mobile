@@ -128,6 +128,7 @@ export const en = {
     cameraUploadReset: "Reset uploaded assets",
     cameraUploadResetInfo: "This will reset the list of uploaded assets and start uploading them again. Are you sure?",
     ok: "Ok",
+    video: "Video",
     areYouReallySure: "Are you really sure?",
     month_0: "January",
     month_1: "February",
@@ -382,5 +383,10 @@ export const en = {
     confirmNewPasswordPlaceholder: "Confirm new password",
     stopAllTransfers: "Stop all transfers",
     pauseAllTransfers: "Pause all transfers",
-    resumeAllTransfers: "Resume all transfers"
+    resumeAllTransfers: "Resume all transfers",
+    cannotMoveItemsHere: "Cannot move items here",
+    invalidTwoFactorKey: "Invalid Two Factor Authentication key",
+    startOnCloudScreen: "Start on cloud screen",
+    appSetupNotPossible: "Could not initialize the app. Maybe you are offline?",
+    shareIntoAppLimit: "You cannot share more than __LIMIT__ files into the app at once"
 }

@@ -158,7 +158,7 @@ export const BottomBar = memo(({ navigation, route }) => {
                     SheetManager.show("BottomBarAddActionSheet")
                 }
             }}>
-                <Ionicon name={netInfo.isConnected && netInfo.isInternetReachable ? (canOpenBottomAddActionSheet ? "add-circle-outline" : "close-circle-outline") : "cloud-offline-outline"} size={30} color={darkMode ? "white" : "gray"} />
+                <Ionicon name={netInfo.isConnected && netInfo.isInternetReachable ? (canOpenBottomAddActionSheet ? "add-circle-outline" : "close-circle-outline") : "cloud-offline-outline"} size={30} color={netInfo.isConnected && netInfo.isInternetReachable && canOpenBottomAddActionSheet ? darkMode ? "white" : "gray" : darkMode ? "gray" : "lightgray"} />
             </Pressable>
             <Pressable style={{
                 alignItems: "center",

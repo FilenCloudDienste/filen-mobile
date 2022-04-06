@@ -1,79 +1,106 @@
-import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName } from "./helpers"
+import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName, Semaphore } from "./helpers"
 import { storage } from "./storage"
 import { i18n } from "../i18n/i18n"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Platform } from "react-native"
 import { updateLoadItemsCache, removeLoadItemsCache, emptyTrashLoadItemsCache } from "./services/items"
 import { logout } from "./auth/logout"
 import { useStore } from "./state"
+import BackgroundTimer from "react-native-background-timer"
+
+const shareSemaphore = new Semaphore(4)
+const apiRequestSemaphore = new Semaphore(16)
+
+const endpointsToCache = [
+    "/v1/dir/content",
+    "/v1/user/baseFolders",
+    "/v1/user/shared/in",
+    "/v1/user/shared/out",
+    "/v1/user/recent",
+    "/v1/user/keyPair/info",
+    "/v1/user/keyPair/update",
+    "/v1/user/keyPair/set",
+    "/v1/dir/size",
+    "/v1/user/masterKeys"
+]
 
 export const apiRequest = ({ method, endpoint, data }) => {
     return new Promise((resolve, reject) => {
         const cacheKey = "apiCache:" + method.toUpperCase() + ":" + endpoint + ":" + JSON.stringify(data)
 
-        const maxTries = 3
+        let maxTries = 1024
         let tries = 0
+        const retryTimeout = 1000
+
+        if(endpointsToCache.includes(endpoint)){
+            maxTries = 5
+        }
+
+        const netInfo = useStore.getState().netInfo
+
+        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+            maxTries = 1
+        }
 
         const request = () => {
-            global.nodeThread.apiRequest({
-                method: method.toUpperCase(),
-                url: getAPIServer() + endpoint,
-                timeout: 500000,
-                data
-            }).then((res) => {
-                if([
-                    "/v1/dir/content",
-                    "/v1/user/baseFolders",
-                    "/v1/user/shared/in",
-                    "/v1/user/shared/out",
-                    "/v1/user/recent",
-                    "/v1/user/keyPair/info",
-                    "/v1/user/keyPair/update",
-                    "/v1/user/keyPair/set",
-                    "/v1/dir/size",
-                    "/v1/user/masterKeys"
-                ].includes(endpoint)){
-                    try{
-                        storage.set(cacheKey, JSON.stringify(res))
-                    }
-                    catch(e){
-                        //console.log(e)
-                    }
-                }
+            apiRequestSemaphore.acquire().then(() => {
+                global.nodeThread.apiRequest({
+                    method: method.toUpperCase(),
+                    url: getAPIServer() + endpoint,
+                    timeout: 500000,
+                    data
+                }).then((res) => {
+                    apiRequestSemaphore.release()
 
-                if(!res.status){
-                    if(typeof res.message == "string"){
-                        if(res.message.toLowerCase().indexOf("invalid api key") !== -1){
-                            const navigation = useStore.getState().navigation
-
-                            if(typeof navigation !== "undefined"){
-                                return logout({ navigation })
+                    if(endpointsToCache.includes(endpoint)){
+                        try{
+                            storage.set(cacheKey, JSON.stringify(res))
+                        }
+                        catch(e){
+                            //console.log(e)
+                        }
+                    }
+    
+                    if(!res.status){
+                        if(typeof res.message == "string"){
+                            if(res.message.toLowerCase().indexOf("invalid api key") !== -1){
+                                const navigation = useStore.getState().navigation
+    
+                                if(typeof navigation !== "undefined"){
+                                    return logout({ navigation })
+                                }
                             }
                         }
                     }
-                }
+    
+                    return resolve(res)
+                }).catch((err) => {
+                    apiRequestSemaphore.release()
 
-                return resolve(res)
+                    if(tries >= maxTries){
+                        try{
+                            var cache = storage.getString(cacheKey)
+            
+                            if(typeof cache == "string"){
+                                if(cache.length > 0){
+                                    return resolve(JSON.parse(cache))
+                                }
+                            }
+                        }
+                        catch(e){
+                            //console.log(e)
+                        }
+    
+                        return reject(err)
+                    }
+    
+                    tries += 1
+    
+                    return BackgroundTimer.setTimeout(request, retryTimeout)
+                })
             }).catch((err) => {
-                if(tries >= maxTries){
-                    try{
-                        var cache = storage.getString(cacheKey)
-        
-                        if(typeof cache == "string"){
-                            if(cache.length > 0){
-                                return resolve(JSON.parse(cache))
-                            }
-                        }
-                    }
-                    catch(e){
-                        //console.log(e)
-                    }
+                console.log(err)
 
-                    return reject(err)
-                }
-
-                tries += 1
-
-                return request()
+                return BackgroundTimer.setTimeout(request, retryTimeout)
             })
         }
 
@@ -235,32 +262,48 @@ export const isPublicLinkingFolder = ({ uuid }) => {
 
 export const addItemToPublicLink = ({ data }) => {
     return new Promise((resolve, reject) => {
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/dir/link/add",
-            data
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
-            }
+        shareSemaphore.acquire().then(() => {
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/dir/link/add",
+                data
+            }).then((response) => {
+                shareSemaphore.release()
 
-            return resolve()
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve()
+            }).catch((err) => {
+                shareSemaphore.release()
+
+                return reject(err)
+            })
         }).catch(reject)
     })
 }
 
 export const shareItem = ({ data }) => {
     return new Promise((resolve, reject) => {
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/share",
-            data
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
-            }
+        shareSemaphore.acquire().then(() => {
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/share",
+                data
+            }).then((response) => {
+                shareSemaphore.release()
 
-            return resolve()
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve()
+            }).catch((err) => {
+                shareSemaphore.release()
+
+                return reject(err)
+            })
         }).catch(reject)
     })
 }
@@ -311,32 +354,48 @@ export const isItemInPublicLink = ({ uuid }) => {
 
 export const renameItemInPublicLink = ({ data }) => {
     return new Promise((resolve, reject) => {
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/link/dir/item/rename",
-            data
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
-            }
+        shareSemaphore.acquire().then(() => {
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/link/dir/item/rename",
+                data
+            }).then((response) => {
+                shareSemaphore.release()
 
-            return resolve()
-        }).catch(reject)
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve()
+            }).catch((err) => {
+                shareSemaphore.release()
+
+                return reject(err)
+            }).catch(reject)
+        })
     })
 }
 
 export const renameSharedItem = ({ data }) => {
     return new Promise((resolve, reject) => {
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/user/shared/item/rename",
-            data
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
-            }
+        shareSemaphore.acquire().then(() => {
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/user/shared/item/rename",
+                data
+            }).then((response) => {
+                shareSemaphore.release()
 
-            return resolve()
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve()
+            }).catch((err) => {
+                shareSemaphore.release()
+
+                return reject(err)
+            })
         }).catch(reject)
     })
 }
@@ -1221,7 +1280,13 @@ export const changeFolderColor = ({ folder, color }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            updateLoadItemsCache({
+                item: folder,
+                prop: "color",
+                value: color
+            }).then(() => {
+                return resolve()
+            }).catch(reject)
         }).catch(reject)
     })
 }
@@ -1377,16 +1442,24 @@ export const editItemPublicLink = ({ item, type, linkUUID, expires, password, do
 
 export const addItemToFolderPublicLink = ({ data }) => {
     return new Promise((resolve, reject) => {
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/dir/link/add",
-            data
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
-            }
+        shareSemaphore.acquire().then(() => {
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/dir/link/add",
+                data
+            }).then((response) => {
+                shareSemaphore.release()
 
-            return resolve()
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve()
+            }).catch((err) => {
+                shareSemaphore.release()
+
+                return reject(err)
+            })
         }).catch(reject)
     })
 }
@@ -2593,5 +2666,55 @@ export const getLatestVersion = () => {
         }).catch((err) => {
             return reject(err)
         })
+    })
+}
+
+export const reportError = (err = "", info = "") => {
+    return new Promise((resolve, reject) => {
+        try{
+            err = err.toString()
+        }
+        catch(e){
+            err = JSON.stringify({
+                error: err
+            })
+        }
+
+        if(__DEV__){
+            console.log("Sending error to API:", err, info)
+            
+            return resolve()
+        }
+
+        let errObj = {
+            message: err,
+            file: Platform.OS,
+            line: info,
+            column: 0,
+            stack: {
+                message: err.toString(),
+                trace: err.toString()
+            },
+            cancelable: 0,
+            timestamp: 0,
+            type: Platform.OS,
+            isTrusted: 0,
+            url: 0
+        }
+
+        fetch("https://api.filen.io/v1/error/report", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "User-Agent": "filen-mobile"
+            },
+            body: JSON.stringify({
+                apiKey: getAPIKey(),
+                platform: "mobile",
+                error: JSON.stringify(errObj)
+            })
+        }).then(() => {
+            return resolve()
+        }).catch(reject)
     })
 }

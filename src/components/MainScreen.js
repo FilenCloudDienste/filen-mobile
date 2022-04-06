@@ -12,6 +12,7 @@ import { SheetManager } from "react-native-actions-sheet"
 import { previewItem } from "../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StackActions } from "@react-navigation/native"
+import { navigationAnimation } from "../lib/state"
 
 export const MainScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -39,7 +40,6 @@ export const MainScreen = memo(({ navigation, route }) => {
     const bottomBarHeight = useStore(useCallback(state => state.bottomBarHeight))
     const topBarHeight = useStore(useCallback(state => state.topBarHeight))
     const contentHeight = useStore(useCallback(state => state.contentHeight))
-    const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
     const itemsSortBy = useStore(useCallback(state => state.itemsSortBy))
@@ -230,7 +230,7 @@ export const MainScreen = memo(({ navigation, route }) => {
 
         const deviceListener = DeviceEventEmitter.addListener("event", (data) => {
             const navigationRoutes = navigation.getState().routes
-            const isListenerActive = (navigationRoutes[navigationRoutes.length - 1].key == route.key)
+            const isListenerActive = typeof navigationRoutes == "object" ? (navigationRoutes[navigationRoutes.length - 1].key == route.key) : false
 
             if(data.type == "thumbnail-generated"){
                 updateItemThumbnail(data.data, data.data.path)
@@ -246,17 +246,27 @@ export const MainScreen = memo(({ navigation, route }) => {
                     else{
                         global.currentReceiverId = data.data.receiverId
 
-                        const routeURL = getRouteURL(route)
+                        try{
+                            const currentRouteURL = getRouteURL(route)
 
-                        if(data.data.type == "folder" && routeURL.indexOf("trash") == -1){
-                            useStore.setState({ showNavigationAnimation: true })
-
-                            navigation.dispatch(StackActions.push("MainScreen", {
-                                parent: routeURL + "/" + data.data.uuid
-                            }))
+                            if(typeof currentRouteURL == "string"){
+                                if(data.data.type == "folder" && currentRouteURL.indexOf("trash") == -1){
+                                    navigationAnimation({ enable: true }).then(() => {
+                                        navigation.dispatch(StackActions.push("MainScreen", {
+                                            parent: currentRouteURL + "/" + data.data.uuid
+                                        }))
+                                    })
+                                }
+                                else{
+                                    previewItem({ item: data.data, navigation })
+                                }
+                            }
+                            else{
+                                console.log("route url !== string: ", currentRouteURL)
+                            }
                         }
-                        else{
-                            previewItem({ item: data.data, navigation })
+                        catch(e){
+                            console.log(e)
                         }
                     }
                 }
@@ -332,7 +342,6 @@ export const MainScreen = memo(({ navigation, route }) => {
             deviceListener.remove()
             
             setPhotosRange("all")
-            setItemListLastScrollIndex(0)
         }
     }, [])
 

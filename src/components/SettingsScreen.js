@@ -8,7 +8,7 @@ import { formatBytes, getFilenameFromPath } from "../lib/helpers"
 import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../lib/state"
-import { useStore } from "../lib/state"
+import { useStore, waitForStateUpdate } from "../lib/state"
 import { showToast } from "./Toasts"
 import { getColor } from "../lib/style/colors"
 import { hasBiometricPermissions } from "../lib/permissions"
@@ -313,8 +313,8 @@ export const SettingsScreen = memo(({ navigation, route }) => {
     const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
     const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
     const [biometricPinAuth, setBiometricPinAuth] = useMMKVBoolean("biometricPinAuth:" + userId, storage)
-    const setBiometricAuthScreenState = useStore(useCallback(state => state.setBiometricAuthScreenState))
     const netInfo = useStore(useCallback(state => state.netInfo))
+    const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
 
     return (
         <ScrollView style={{
@@ -377,13 +377,13 @@ export const SettingsScreen = memo(({ navigation, route }) => {
                 }} title={i18n(lang, "cameraUpload")} />
             </SettingsGroup>
             <SettingsGroup>
-                <SettingsButton title={i18n(lang, "onlyWifiUploads")} rightComponent={
+                <SettingsButton title={i18n(lang, "startOnCloudScreen")} rightComponent={
                     <Switch
                         trackColor={getColor(darkMode, "switchTrackColor")}
-                        thumbColor={onlyWifiUploads ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                        thumbColor={startOnCloudScreen ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
                         ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-                        onValueChange={() => setOnlyWifiUploads(!onlyWifiUploads)}
-                        value={onlyWifiUploads}
+                        onValueChange={() => setStartOnCloudScreen(!startOnCloudScreen)}
+                        value={startOnCloudScreen}
                     />
                 } />
                 <SettingsButton title={i18n(lang, "onlyWifiUploads")} rightComponent={
@@ -465,6 +465,8 @@ export const SettingsScreen = memo(({ navigation, route }) => {
                                                     text: i18n(lang, "ok"),
                                                     onPress: () => {
                                                         setBiometricPinAuth(false)
+
+                                                        storage.delete("pinCode:" + userId)
                                                     },
                                                     style: "default"
                                                 }
@@ -479,10 +481,10 @@ export const SettingsScreen = memo(({ navigation, route }) => {
                                 })
                             }
 
-                            setBiometricAuthScreenState("setup")
-
-                            navigationAnimation({ enable: true }).then(() => {
-                                navigation.dispatch(StackActions.push("BiometricAuthScreen"))
+                            waitForStateUpdate("biometricAuthScreenState", "setup").then(() => {
+                                navigationAnimation({ enable: true }).then(() => {
+                                    navigation.dispatch(StackActions.push("BiometricAuthScreen"))
+                                })
                             })
                         }}
                         value={biometricPinAuth}

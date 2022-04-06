@@ -29,9 +29,10 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
     const itemListRef = useRef()
-    const itemListLastScrollIndex = useStore(useCallback(state => state.itemListLastScrollIndex))
-    const setItemListLastScrollIndex = useStore(useCallback(state => state.setItemListLastScrollIndex))
     const [routeURL, setRouteURL] = useState(useCallback(getRouteURL(route)))
+    const netInfo = useStore(useCallback(state => state.netInfo))
+    const [scrollIndex, setScrollIndex] = useState(0)
+    const [currentItems, setCurrentItems] = useState([])
 
     const generateItemsForItemList = useCallback((items, range, lang = "en") => {
         range = normalizePhotosRange(range)
@@ -147,7 +148,9 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
 
     const onViewableItemsChangedRef = useRef(useCallback(({ viewableItems }) => {
         if(typeof viewableItems[0] == "object"){
-            setItemListLastScrollIndex(viewableItems[0].index)
+            if(typeof viewableItems[0].index == "number"){
+                setScrollIndex(viewableItems[0].index >= 0 ? viewableItems[0].index : 0)
+            }
         }
 
         const visible = {}
@@ -217,9 +220,28 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             }
         }
 
-        waitForStateUpdate("itemListLastScrollIndex", scrollToIndex).then(() => {
-            setPhotosRange(nextRangeSelection)
-        })
+        setScrollIndex(scrollToIndex >= 0 && scrollToIndex <= itemsForIndexLoop.length ? scrollToIndex : 0)
+        setPhotosRange(nextRangeSelection)
+    })
+
+    const getInitialScrollInex = useCallback(() => {
+        const range = normalizePhotosRange(photosRange)
+        const gridSize = calcPhotosGridSize(photosGridSize)
+        const viewMode = routeURL.indexOf("photos") !== -1 ? "photos" : itemViewMode
+        const itemsLength = currentItems.length > 0 ? currentItems.length : items.length
+
+        if(viewMode == "list"){
+            return scrollIndex >= 0 && scrollIndex <= itemsLength ? scrollIndex : 0
+        }
+
+        if(range == "all"){
+            const calcedIndex = Math.floor(scrollIndex / gridSize)
+
+            return calcedIndex >= 0 && calcedIndex <= itemsLength ? calcedIndex : 0
+        }
+        else{
+            return scrollIndex >= 0 && scrollIndex <= itemsLength ? scrollIndex : 0
+        }
     })
 
     const renderItem = useCallback(({ item, index, viewMode }) => {
@@ -247,13 +269,19 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     })
 
     useEffect(() => {
-        const max = 32
+        setCurrentItems(generateItemsForItemList(items, normalizePhotosRange(photosRange), lang))
+    }, [items, photosRange, lang])
 
-        for(let i = 0; i < items.length; i++){
-            if(i < max){
-                global.visibleItems[items[i].uuid] = true
+    useEffect(() => {
+        if(items.length > 0){
+            const max = 32
 
-                getThumbnail({ item: items[i] })
+            for(let i = 0; i < items.length; i++){
+                if(i < max){
+                    global.visibleItems[items[i].uuid] = true
+
+                    getThumbnail({ item: items[i] })
+                }
             }
         }
     }, [items, itemViewMode])
@@ -332,18 +360,22 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                         }}>
                                             {i18n(lang, "cameraUploadNotEnabled")}
                                         </Text>
-                                        <TouchableOpacity onPress={() => {
-                                            navigationAnimation({ enable: true }).then(() => {
-                                                navigation.dispatch(StackActions.push("CameraUploadScreen"))
-                                            })
-                                        }}>
-                                            <Text style={{
-                                                color: "#0A84FF",
-                                                fontWeight: "bold"
-                                            }}>
-                                                {i18n(lang, "enable")}
-                                            </Text>
-                                        </TouchableOpacity>
+                                        {
+                                            netInfo.isConnected && netInfo.isInternetReachable && (
+                                                <TouchableOpacity onPress={() => {
+                                                    navigationAnimation({ enable: true }).then(() => {
+                                                        navigation.dispatch(StackActions.push("CameraUploadScreen"))
+                                                    })
+                                                }}>
+                                                    <Text style={{
+                                                        color: "#0A84FF",
+                                                        fontWeight: "bold"
+                                                    }}>
+                                                        {i18n(lang, "enable")}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            )
+                                        }
                                     </View>
                                 )
                             }
@@ -462,9 +494,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                             type: "unselect-all-items"
                                                         })
 
-                                                        waitForStateUpdate("itemListLastScrollIndex", 0).then(() => {
-                                                            setPhotosRange(key)
-                                                        })
+                                                        setScrollIndex(0)
+                                                        setPhotosRange(key)
                                                     }}>
                                                         <Text style={{
                                                             color: "white"
@@ -493,7 +524,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 initialNumToRender={32}
                 ref={itemListRef}
                 removeClippedSubviews={true}
-                initialScrollIndex={normalizePhotosRange(photosRange) == "all" ? Math.floor(itemListLastScrollIndex / calcPhotosGridSize(photosGridSize)) : itemListLastScrollIndex}
+                initialScrollIndex={(currentItems.length > 0 ? currentItems.length : generateItemsForItemList(items, normalizePhotosRange(photosRange), lang).length) > 0 ? getInitialScrollInex() : undefined}
                 numColumns={routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : itemViewMode == "grid" ? 2 : 1}
                 getItemLayout={(data, index) => ({ length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor(dimensions.window.width - 5))) : (itemViewMode == "grid" ? (Math.floor(dimensions.window.width / 2) - 19 + 40) : (55))), offset: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor(dimensions.window.width - 5))) : (itemViewMode == "grid" ? (Math.floor(dimensions.window.width / 2) - 19 + 40) : (55))) * index, index })}
                 ListEmptyComponent={() => {

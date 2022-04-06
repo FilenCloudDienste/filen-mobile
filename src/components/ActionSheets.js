@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import FastImage from "react-native-fast-image"
 import { getImageForItem } from "../assets/thumbnails"
 import Ionicon from "react-native-vector-icons/Ionicons"
-import { pickMultiple } from "react-native-document-picker"
+import { pickMultiple, isCancel as DocumentPickerIsCancel, types as DocumentPickerTypes } from "react-native-document-picker"
 import { launchCamera, launchImageLibrary } from "react-native-image-picker"
 import { useStore } from "../lib/state"
 import { queueFileDownload, downloadWholeFileFSStream } from "../lib/download"
@@ -18,7 +18,7 @@ import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import CameraRoll from "@react-native-community/cameraroll"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../lib/permissions"
-import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink, getPublicKeyFromEmail, shareItemToUser, trashItem, restoreItem, fileExists, folderExists, fetchFileVersionData, restoreArchivedFile, bulkFavorite, bulkTrash, bulkDeletePermanently, bulkRestore, bulkStopSharing, bulkRemoveSharedIn, emptyTrash } from "../lib/api"
+import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink, getPublicKeyFromEmail, shareItemToUser, trashItem, restoreItem, fileExists, folderExists, fetchFileVersionData, restoreArchivedFile, bulkFavorite, bulkTrash, bulkDeletePermanently, bulkRestore, bulkStopSharing, bulkRemoveSharedIn, emptyTrash, reportError } from "../lib/api"
 import Clipboard from "@react-native-clipboard/clipboard"
 import { previewItem } from "../lib/services/items"
 import { removeFromOfflineStorage } from "../lib/services/offline"
@@ -131,29 +131,51 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 											includeExtra: true,
 											saveToPhotos: false
 										}).then((response) => {
+											if(response.didCancel){
+												return false
+											}
+
 											const parent = getParent()
-	
+
 											if(parent.length < 16){
 												return false
 											}
-	
-											if(typeof response.assets !== "undefined"){
-												for(let i = 0; i < response.assets.length; i++){
-													if(typeof response.assets[i].fileName == "string" && typeof response.assets[i].uri == "string"){
+
+											if(response.errorMessage){
+												console.log(response.errorMessage)
+
+												return showToast({ message: response.errorMessage.toString() })
+											}
+
+											if(response.assets){
+												for(const asset of response.assets){
+													RNFS.stat(decodeURIComponent(asset.uri)).then((stat) => {
+														const fileName = decodeURIComponent(asset.fileName || asset.uri?.substring((asset.uri || "").lastIndexOf("/") + 1) || "")
+
 														queueFileUpload({
 															pickedFile: {
-																name: i18n(lang, "photo") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + Math.random().toString().slice(8) + "." + getFileExt(response.assets[i].fileName),
-																size: response.assets[i].fileSize,
-																type: response.assets[i].type,
-																uri: response.assets[i].uri
+																name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(fileName),
+																size: asset.fileSize || typeof stat.size == "string" ? parseInt(stat.size) : stat.size,
+																type: asset.type || "",
+																uri: decodeURIComponent(asset.uri) || ""
 															},
 															parent
 														})
-													}
+													}).catch((err) => {
+														console.log(err)
+	
+														showToast({ message: err.toString() })
+													})
 												}
 											}
 										}).catch((err) => {
-											console.log(err)
+											if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
+												console.log(err)
+
+												reportError(err, "actionSheets:launchImageLibrary:uploadFromGallery")
+
+												showToast({ message: err.toString() })
+											}
 										})
 									}).catch((err) => {
 										console.log(err)
@@ -174,37 +196,59 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 													launchImageLibrary({
 														mediaType: "mixed",
-														selectionLimit: 0,
-														includeBase64: false,
-														includeExtra: true,
+														selectionLimit: 25,
 														quality: 1,
 														videoQuality: "high",
+														includeBase64: false,
+														includeExtra: true,
 														maxWidth: 999999999,
 														maxHeight: 999999999
 													}).then((response) => {
+														if(response.didCancel){
+															return false
+														}
+
 														const parent = getParent()
 		
 														if(parent.length < 16){
 															return false
 														}
-		
-														if(typeof response.assets !== "undefined"){
-															for(let i = 0; i < response.assets.length; i++){
-																if(typeof response.assets[i].fileName == "string" && typeof response.assets[i].uri == "string" && typeof response.assets[i].timestamp == "string"){
+
+														if(response.errorMessage){
+															console.log(response.errorMessage)
+
+															return showToast({ message: response.errorMessage.toString() })
+														}
+
+														if(response.assets){
+															for(const asset of response.assets){
+																RNFS.stat(decodeURIComponent(asset.uri)).then((stat) => {
+																	const fileName = decodeURIComponent(asset.fileName || asset.uri?.substring((asset.uri || "").lastIndexOf("/") + 1) || "")
+
 																	queueFileUpload({
 																		pickedFile: {
-																			name: i18n(lang, "photo") + "_" + new Date(response.assets[i].timestamp).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "_" + Math.random().toString().slice(8) + "." + getFileExt(response.assets[i].fileName),
-																			size: response.assets[i].fileSize,
-																			type: response.assets[i].type,
-																			uri: response.assets[i].uri
+																			name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date(asset.timestamp || (+new Date())).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(fileName),
+																			size: asset.fileSize || typeof stat.size == "string" ? parseInt(stat.size) : stat.size,
+																			type: asset.type || "",
+																			uri: decodeURIComponent(asset.uri) || ""
 																		},
 																		parent
 																	})
-																}
+																}).catch((err) => {
+																	console.log(err)
+				
+																	showToast({ message: err.toString() })
+																})
 															}
 														}
 													}).catch((err) => {
-														console.log(err)
+														if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
+															console.log(err)
+
+															reportError(err, "actionSheets:launchImageLibrary:uploadFromGallery")
+
+															showToast({ message: err.toString() })
+														}
 													})
 												}).catch((err) => {
 													console.log(err)
@@ -228,8 +272,8 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 										storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
 
 										pickMultiple({
-											allowMultiSelection: true,
-											copyTo: "cachesDirectory"
+											copyTo: "cachesDirectory",
+											type: [DocumentPickerTypes.allFiles]
 										}).then((response) => {
 											const parent = getParent()
 	
@@ -244,7 +288,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 															name: response[i].name,
 															size: response[i].size,
 															type: response[i].type,
-															uri: "file:///" + response[i].fileCopyUri.replace("file:/", "").replace("file://", "").replace("file:", ""),
+															uri: response[i].fileCopyUri.indexOf("file://") == -1 ? "file:///" + response[i].fileCopyUri.replace("file:/", "").replace("file://", "").replace("file:", "") : response[i].fileCopyUri,
 															clearCache: true
 														},
 														parent
@@ -252,7 +296,13 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 												}
 											}
 										}).catch((err) => {
-											console.log(err)
+											if(!DocumentPickerIsCancel(err)){
+												console.log(err)
+
+												reportError(err, "actionSheets:pickMultiple:upload")
+
+												showToast({ message: err.toString() })
+											}
 										})
 									}).catch((err) => {
 										console.log(err)
@@ -736,7 +786,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 																			file: item,
 																			saveToGalleryCallback: (path) => {
 																				CameraRoll.save(path).then(() => {
-																					//showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
+																					showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
 																				}).catch((err) => {
 																					console.log(err)
 							
@@ -1304,7 +1354,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 														file: currentActionSheetItem,
 														saveToGalleryCallback: (path) => {
 															CameraRoll.save(path).then(() => {
-																//showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
+																showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
 															}).catch((err) => {
 																console.log(err)
 		
@@ -1808,6 +1858,8 @@ export const PublicLinkActionSheet = memo(({ navigation, route }) => {
 					})
 				}
 			}
+
+			SheetManager.show("PublicLinkActionSheet")
 		}).catch((err) => {
 			setIsLoading(false)
 
@@ -2307,12 +2359,23 @@ export const ShareActionSheet = memo(({ navigation, route }) => {
 							paddingLeft: 15,
 							paddingRight: 15
 						}}>
-							<TextInput placeholder={i18n(lang, "sharePlaceholder")} value={email} onChangeText={setEmail} ref={inputRef} style={{
-								width: "75%",
-								paddingLeft: 0,
-								paddingRight: 0,
-								color: darkMode ? "white" : "black"
-							}} />
+							<TextInput 
+								placeholder={i18n(lang, "sharePlaceholder")} 
+								value={email} 
+								onChangeText={setEmail} 
+								ref={inputRef}
+								autoCapitalize="none"
+								autoCompleteType="email"
+								textContentType="emailAddress"
+								keyboardType="email-address"
+								returnKeyType="done"
+								style={{
+									width: "75%",
+									paddingLeft: 0,
+									paddingRight: 0,
+									color: darkMode ? "white" : "black"
+								}}
+							/>
 							<View style={{
 								flexDirection: "row"
 							}}>
@@ -2542,14 +2605,16 @@ export const FileVersionsActionSheet = memo(({ navigation, route }) => {
 																	<TouchableOpacity style={{
 																		marginLeft: 15
 																	}} onPress={() => {
-																		decryptFileMetadata(getMasterKeys(), item.metadata, item.uuid).then((decrypted) => {
+																		decryptFileMetadata(getMasterKeys(), item.metadata, item.uuid).then(async (decrypted) => {
 																			item.name = decrypted.name
 																			item.size = decrypted.size
 																			item.mime = decrypted.mime
 																			item.key = decrypted.key
 																			item.lastModified = decrypted.lastModified
 
-																			previewItem({ item, setCurrentActionSheetItem: false })
+																			await SheetManager.hide("FileVersionsActionSheet")
+
+																			previewItem({ item, setCurrentActionSheetItem: false, navigation })
 																		}).catch((err) => {
 																			console.log(err)
 
@@ -2704,6 +2769,16 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 								saveToPhotos: false,
 								mediaType: "photo"
 							}).then((response) => {
+								if(response.didCancel){
+									return false
+								}
+
+								if(response.errorMessage){
+									console.log(err)
+
+									return showToast({ message: response.errorMessage.toString() })
+								}
+
 								if(typeof response.assets == "undefined"){
 									return false
 								}
@@ -2728,9 +2803,15 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 									return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
 								}
 
-								uploadAvatarImage(image.uri)
+								uploadAvatarImage(decodeURIComponent(image.uri))
 							}).catch((err) => {
-								console.log(err)
+								if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
+									console.log(err)
+
+									reportError(err, "actionSheets:launchCamera:takePictureAndUpload")
+
+									showToast({ message: err.toString() })
+								}
 							})
 						}).catch((err) => {
 							console.log(err)
@@ -2750,13 +2831,23 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 								launchImageLibrary({
 									mediaType: "photo",
 									selectionLimit: 1,
-									includeBase64: false,
-									includeExtra: false,
-									quality: 0.25,
+									quality: 0.2,
 									videoQuality: "low",
+									includeBase64: false,
+									includeExtra: true,
 									maxWidth: 999999999,
 									maxHeight: 999999999
 								}).then((response) => {
+									if(response.didCancel){
+										return false
+									}
+
+									if(response.errorMessage){
+										console.log(err)
+
+										return showToast({ message: response.errorMessage.toString() })
+									}
+
 									if(typeof response.assets == "undefined"){
 										return showToast({ message: i18n(lang, "avatarInvalidImage") })
 									}
@@ -2781,9 +2872,15 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 										return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
 									}
 
-									uploadAvatarImage(image.uri)
+									uploadAvatarImage(decodeURIComponent(image.uri))
 								}).catch((err) => {
-									console.log(err)
+									if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
+										console.log(err)
+
+										reportError(err, "actionSheets:launchImageLibrary:uploadProfilePicture")
+
+										showToast({ message: err.toString() })
+									}
 								})
 							}).catch((err) => {
 								console.log(err)

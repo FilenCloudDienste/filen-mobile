@@ -1,7 +1,7 @@
-import { getUploadServer, getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileParentPath, getFileExt, canCompressThumbnail } from "./helpers"
+import { getUploadServer, getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileParentPath, getFileExt, canCompressThumbnail, randomIdUnsafe } from "./helpers"
 import RNFS from "react-native-fs"
 import { useStore } from "./state"
-import { fileExists, markUploadAsDone, archiveFile, checkIfItemParentIsShared } from "./api"
+import { fileExists, markUploadAsDone, archiveFile, checkIfItemParentIsShared, reportError } from "./api"
 import { showToast } from "../components/Toasts"
 import { storage } from "./storage"
 import { i18n } from "../i18n/i18n"
@@ -13,6 +13,7 @@ import striptags from "striptags"
 import { memoryCache } from "./memoryCache"
 import { updateLoadItemsCache, addItemLoadItemsCache, buildFile } from "./services/items"
 import BackgroundTimer from "react-native-background-timer"
+import ReactNativeBlobUtil from "react-native-blob-util"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -48,6 +49,8 @@ export const encryptAndUploadChunk = ({ base64, key, url, timeout }) => {
             }).catch((err) => {
                 console.log(err)
 
+                showToast({ message: err.toString() })
+
                 return BackgroundTimer.setTimeout(doRequest, retryTimer)
             })
         }
@@ -56,12 +59,18 @@ export const encryptAndUploadChunk = ({ base64, key, url, timeout }) => {
     })
 }
 
-export const queueFileUpload = async ({ pickedFile, parent, progressCallback, cameraUploadCallback, routeURL = undefined }) => {
+export const queueFileUpload = async ({ pickedFile, parent, progressCallback, cameraUploadCallback, routeURL = undefined, clear = true }) => {
+    let filePath = decodeURIComponent(pickedFile.uri)
+
     const clearCache = async () => {
+        if(!clear){
+            return false
+        }
+
         if(typeof pickedFile.clearCache !== "undefined"){
             try{
-                if((await RNFS.exists(getFileParentPath(pickedFile.uri)))){
-                    await RNFS.unlink(getFileParentPath(pickedFile.uri))
+                if((await RNFS.exists(getFileParentPath(filePath)))){
+                    await RNFS.unlink(getFileParentPath(filePath))
                 }
             }
             catch(e){
@@ -91,23 +100,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     }
     catch(e){
         console.log(e)
-    }
-    
-    let filePath = decodeURIComponent(pickedFile.uri)
 
-    try{
-        var lang = storage.getString("lang")
-    }
-    catch(e){
         showToast({ message: e.toString() })
-
-        clearCache()
-
-        if(typeof cameraUploadCallback == "function"){
-            cameraUploadCallback(e)
-        }
-
-        return console.log(e)
     }
 
     var item = {
@@ -261,16 +255,19 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     await uploadSemaphore.acquire()
 
     try{
-        //copy file to cache directory to prevent iOS/android from removing it (or access to it [the picked file]) before the upload is finished
-        if(filePath.indexOf(RNFS.CachesDirectoryPath) !== -1){
-            var tempPath = filePath
-        }
-        else{
-            var tempPath = RNFS.CachesDirectoryPath + (RNFS.CachesDirectoryPath.slice(-1) == "/" ? "" : "/") + await global.nodeThread.uuidv4() + "_" + name
+        /*if(filePath.indexOf(RNFS.CachesDirectoryPath) == -1){ //only copy if it's not already inside the cache directory
+            //copy file to cache directory to prevent iOS/android from removing it (or access to it [the picked file]) before the upload is finished
+            var tempPath = await getDownloadPath({ type: "temp" }) + randomIdUnsafe() + "_" + name
 
             await RNFS.copyFile(filePath, tempPath)
-        }
 
+            var stat = await RNFS.stat(tempPath)
+        }
+        else{
+            var tempPath = filePath
+        }*/
+
+        var tempPath = filePath
         var stat = await RNFS.stat(tempPath)
         var lastModified = Math.floor(+new Date(stat.mtime) / 1000)
     }
@@ -278,6 +275,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         removeFromState()
 
         BackgroundTimer.clearInterval(stopInterval)
+
+        reportError(e, "upload:copyAndStat")
 
         if(typeof cameraUploadCallback !== "function"){
             showToast({ message: e.toString() })
@@ -316,6 +315,14 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     }
 
     if(existsResponse.exists){
+        if(typeof cameraUploadCallback == "function"){
+            removeFromState()
+
+            BackgroundTimer.clearInterval(stopInterval)
+
+            return cameraUploadCallback(null, item)
+        }
+
         try{
             var updateUUID = await global.nodeThread.uuidv4()
 
@@ -421,6 +428,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     catch(e){
         removeFromState()
 
+        reportError(e, "upload:encryptAndCreateMetadata")
+
         BackgroundTimer.clearInterval(stopInterval)
 
         if(typeof cameraUploadCallback == "function"){
@@ -447,6 +456,10 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
 
     const clearAfterUpload = () => {
         return new Promise(async (resolve) => {
+            if(!clear){
+                return resolve()
+            }
+
             try{
                 if((await RNFS.exists(tempPath))){
                     await RNFS.unlink(tempPath)
@@ -636,7 +649,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
                 })
             }
             catch(e){
-                //console.log(e)
+                console.log(e)
             }
         }
     }
@@ -653,7 +666,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
 
             return true
         }
-        else if(err.toLowerCase().indexOf("blacklist") !== -1){
+        else if(err.toString().toLowerCase().indexOf("blacklist") !== -1){
             removeFromState()
 
             if(typeof cameraUploadCallback == "function"){
@@ -776,7 +789,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
 
     BackgroundTimer.clearInterval(stopInterval)
 
-    //showToast({ message: i18n(lang, "fileUploaded", true, ["__NAME__"], [name]) })
+    //showToast({ message: i18n(storage.getString("lang"), "fileUploaded", true, ["__NAME__"], [name]) })
 
     if(typeof cameraUploadCallback == "function"){
         cameraUploadCallback(null, item)

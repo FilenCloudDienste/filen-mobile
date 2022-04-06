@@ -9,6 +9,8 @@ export const FullscreenLoadingModal = memo(() => {
     const fullscreenLoadingModalVisible = useStore(useCallback(state => state.fullscreenLoadingModalVisible))
     const setFullscreenLoadingModalVisible = useStore(useCallback(state => state.setFullscreenLoadingModalVisible))
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const setFullscreenLoadingModalDismissable = useStore(useCallback(state => state.setFullscreenLoadingModalDismissable))
+    const fullscreenLoadingModalDismissable = useStore(useCallback(state => state.fullscreenLoadingModalDismissable))
 
     if(!fullscreenLoadingModalVisible){
         return null
@@ -23,7 +25,10 @@ export const FullscreenLoadingModal = memo(() => {
             justifyContent: "center",
             alignItems: "center"
         }} onPress={() => {
-            console.log("loading pressed -> dismiss and cancel")
+            if(fullscreenLoadingModalDismissable){
+                setFullscreenLoadingModalVisible(false)
+                setFullscreenLoadingModalDismissable(false)
+            }
         }}>
             <ActivityIndicator size={"small"} color="white" />
         </Pressable>

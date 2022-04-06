@@ -240,7 +240,7 @@ export const TransfersScreen = memo(({ navigation, route }) => {
                                                 marginLeft: 10,
                                                 paddingTop: 2
                                             }} numberOfLines={1}>
-                                                {transfer.transfer.file.name}{transfer.transfer.file.name}{transfer.transfer.file.name}{transfer.transfer.file.name}{transfer.transfer.file.name}{transfer.transfer.file.name}
+                                                {transfer.transfer.file.name}
                                             </Text>
                                         </View>
                                         <View style={{

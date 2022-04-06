@@ -20,15 +20,16 @@ export const TransfersIndicator = memo(({ navigation }) => {
     const [progress, setProgress] = useState(0)
     const currentRoutes = useStore(useCallback(state => state.currentRoutes))
     const [currentRouteName, setCurrentRouteName] = useState("")
+    const biometricAuthScreenVisible = useStore(useCallback(state => state.biometricAuthScreenVisible))
 
     useEffect(() => {
-        if((uploadsCount + downloadsCount) > 0 && currentRouteName !== "TransfersScreen"){
+        if((uploadsCount + downloadsCount) > 0 && currentRouteName !== "TransfersScreen" && !biometricAuthScreenVisible){
             setVisible(true)
         }
         else{
             setVisible(false)
         }
-    }, [uploadsCount, downloadsCount])
+    }, [uploadsCount, downloadsCount, currentRouteName, biometricAuthScreenVisible])
 
     useEffect(() => {
         if(typeof currentRoutes !== "undefined"){
@@ -112,7 +113,7 @@ export const TransfersIndicator = memo(({ navigation }) => {
             if(currentRouteName == "TransfersScreen"){
                 return false
             }
-            
+
             navigationAnimation({ enable: true }).then(() => {
                 navigation.current.dispatch(StackActions.push("TransfersScreen"))
             })

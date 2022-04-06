@@ -164,13 +164,15 @@ export class GridItem extends Component {
     render(){
         const { item, index, darkMode } = this.props
 
+        const windowWidth = this.props.dimensions.window.width || window.width
+
         return (
             <Pressable key={index.toString()} style={{
                 margin: 2,
                 backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
                 borderRadius: 5,
-                height: Math.floor(window.width / 2) - 19 + 40,
-                width: Math.floor(window.width / 2) - 19,
+                height: Math.floor(windowWidth / 2) - 19 + 40,
+                width: Math.floor(windowWidth / 2) - 19,
                 borderColor: getColor(darkMode, "primaryBorder"),
                 borderWidth: 1,
                 marginTop: index <= 1 ? 10 : 0
@@ -191,7 +193,7 @@ export class GridItem extends Component {
                 }}>
                     <View style={{
                         width: "100%",
-                        height: Math.floor(window.width / 2) - 19,
+                        height: Math.floor(windowWidth / 2) - 19,
                         alignItems: "center",
                         justifyContent: "center"
                     }}>
@@ -327,7 +329,8 @@ export class PhotosItem extends Component {
     render(){
         const { item, index, darkMode } = this.props
 
-        const imageWidthAndHeight = Math.floor(window.width / calcPhotosGridSize(this.props.photosGridSize)) - 1
+        const windowWidth = this.props.dimensions.window.width || window.width
+        const imageWidthAndHeight = Math.floor(windowWidth / calcPhotosGridSize(this.props.photosGridSize)) - 1
 
         return (
             <Pressable key={index.toString()} style={{
@@ -432,7 +435,8 @@ export class PhotosRangeItem extends Component {
     render(){
         const { item, index, darkMode } = this.props
 
-        const imageWidthAndHeight = Math.floor(window.width - 30)
+        const windowWidth = this.props.dimensions.window.width || window.width
+        const imageWidthAndHeight = Math.floor(windowWidth - 30)
 
         return (
             <TouchableOpacity activeOpacity={0.6} key={index.toString()} style={{
