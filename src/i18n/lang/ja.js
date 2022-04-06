@@ -115,7 +115,7 @@ export const ja = {
     removeFromOfflineStorage: "オフラインでの閲覧を不可能にする",
     itemRemovedFromOfflineStorage: "__NAME__はオフラインで閲覧不可能になりました",
     fileStoredOfflineUpdate: "オフラインで閲覧可能になっている__NAME__がクラウド上で変更されたため、同期されました",
-    enabled: "アプリが起動しているときの写真の自動アップロード",
+    enabled: "写真の自動アップロード",
     cameraUploadFolder: "アップロード先のフォルダー",
     cameraUploadIncludeImages: "写真をアップロード",
     cameraUploadIncludeVideos: "動画をアップロード",
@@ -123,7 +123,7 @@ export const ja = {
     choose: "選択",
     cameraUploadNotEnabled: "写真の自動アップロードは無効です",
     enable: "有効化",
-    cameraUploadEverythingUploaded: "写真の自動アップロードが’完了しました",
+    cameraUploadEverythingUploaded: "写真の自動アップロードが完了しました",
     cameraUploadProgress: "__TOTAL__件のうち__UPLOADED__件が完了",
     cameraUploadReset: "アップロードのやり直し",
     cameraUploadResetInfo: "アップロード履歴を消去し、最初から自動アップロードをやり直しますか？",
@@ -386,7 +386,7 @@ export const ja = {
     resumeAllTransfers: "すべて再開",
     cannotMoveItemsHere: "ここに移動することはできません",
     invalidTwoFactorKey: "二段階認証コードが違います",
-    startOnCloudScreen: "アプリ起動時にクラウドの",
+    startOnCloudScreen: "アプリ起動時にクラウドのタブを開く",
     appSetupNotPossible: "アプリの初期化（イニシャライズ）に失敗しました。ネットワークに接続されているかをご確認ください。",
     shareIntoAppLimit: "アプリ上で共有できるファイルは__LIMIT__件までです"
 }
