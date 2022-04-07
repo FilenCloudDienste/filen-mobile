@@ -434,7 +434,9 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                         await RNFS.copyAssetsVideoIOS(asset.uri, copyPath)
                     }
 
-                    var stat = await ReactNativeBlobUtil.fs.stat(copyPath)
+                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+
+                    var stat = await RNFS.stat(copyPath)
                 }
                 catch(e){
                     console.log(e)
@@ -468,6 +470,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
             queueFileUpload({
                 pickedFile: file,
                 parent: cameraUploadFolderUUID,
+                clear: Platform.OS == "android" ? false : true,
                 cameraUploadCallback: async (err) => {
                     if(!err){
                         try{

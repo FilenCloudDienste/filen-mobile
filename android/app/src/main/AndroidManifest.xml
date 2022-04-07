@@ -29,7 +29,7 @@
         android:windowSoftInputMode="adjustPan"
         android:hardwareAccelerated="true"
         android:documentLaunchMode="never"
-        android:screenOrientation="portrait">
+        android:screenOrientation="unspecified">
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

@@ -140,7 +140,8 @@ export const TextEditorScreen = memo(({ navigation, route }) => {
                 paddingRight: 15,
                 backgroundColor: darkMode ? "black" : "white",
                 borderBottomColor: getColor(darkMode, "primaryBorder"),
-                borderBottomWidth: 1
+                borderBottomWidth: 1,
+                marginTop: Platform.OS == "ios" ? 15 : 0
             }}>
                 <View style={{
                     justifyContent: "space-between",

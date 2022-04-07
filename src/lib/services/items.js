@@ -1370,10 +1370,21 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         return open(offlinePath)
     }
 
-    const appState = useStore.getState() 
+    const netInfo = useStore.getState().netInfo
 
-    if(!appState.netInfo.isConnected || !appState.netInfo.isInternetReachable){
+    if(!netInfo.isConnected || !netInfo.isInternetReachable){
         return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+    }
+
+    try{
+        if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
+            return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+        }
+    }
+    catch(e){
+        console.log(e)
+
+        showToast({ message: e.toString() })
     }
 
     useStore.setState({ fullscreenLoadingModalVisible: true, fullscreenLoadingModalDismissable: true })

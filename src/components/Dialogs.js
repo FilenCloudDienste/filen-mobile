@@ -50,7 +50,7 @@ export const RenameDialog = memo(({ navigation }) => {
         if(renameDialogVisible){
             setTimeout(() => {
                 inputRef.current.focus()
-                inputRef.current.setNativeProps({ selection: { start: value.length, end: value.length } })
+                //inputRef.current.setNativeProps({ selection: { start: value.length, end: value.length } })
             }, 250)
         }
     }, [renameDialogVisible])
@@ -67,9 +67,13 @@ export const RenameDialog = memo(({ navigation }) => {
             }}
         >
             <Dialog.Title>{i18n(lang, "rename")}</Dialog.Title>
-            <Dialog.Input placeholder={i18n(lang, "newName")} value={value} selection={{ start: value.length, end: value.length }} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
+            <Dialog.Input placeholder={i18n(lang, "newName")} value={value} selection={/*{ start: value.length, end: value.length }*/undefined} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
             <Dialog.Button label={i18n(lang, "cancel")} disabled={buttonsDisabled} onPress={() => setRenameDialogVisible(false)} />
             <Dialog.Button label={i18n(lang, "rename")} disabled={buttonsDisabled} onPress={() => {
+                if(typeof currentActionSheetItem !== "object"){
+                    return false
+                }
+                
                 setButtonsDisabled(true)
                 setRenameDialogVisible(false)
 
@@ -125,7 +129,7 @@ export const RenameDialog = memo(({ navigation }) => {
 
                             useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                            showToast({ message: i18n(lang, "folderRenamed") })
+                            //showToast({ message: i18n(lang, "folderRenamed") })
                         }).catch((err) => {
                             setButtonsDisabled(false)
 
@@ -174,7 +178,7 @@ export const RenameDialog = memo(({ navigation }) => {
 
                             useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                            showToast({ message: i18n(lang, "fileRenamed") })
+                            //showToast({ message: i18n(lang, "fileRenamed") })
                         }).catch((err) => {
                             setButtonsDisabled(false)
 
@@ -216,7 +220,7 @@ export const CreateFolderDialog = memo(({ navigation }) => {
         if(createFolderDialogVisible){
             setTimeout(() => {
                 inputRef.current.focus()
-                inputRef.current.setNativeProps({ selection: { start: value.length, end: value.length } })
+                //inputRef.current.setNativeProps({ selection: { start: value.length, end: value.length } })
             }, 250)
         }
     }, [createFolderDialogVisible])
@@ -233,7 +237,7 @@ export const CreateFolderDialog = memo(({ navigation }) => {
             }}
         >
             <Dialog.Title>{i18n(lang, "newFolder")}</Dialog.Title>
-            <Dialog.Input placeholder={i18n(lang, "folderName")} value={value} selection={{ start: value.length, end: value.length }} autoFocus={true} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
+            <Dialog.Input placeholder={i18n(lang, "folderName")} value={value} selection={/*{ start: value.length, end: value.length }*/undefined} autoFocus={true} onChangeText={(val) => setValue(val)} textInputRef={inputRef} />
             <Dialog.Button label={i18n(lang, "cancel")} disabled={buttonsDisabled} onPress={() => setCreateFolderDialogVisible(false)} />
             <Dialog.Button label={i18n(lang, "create")} disabled={buttonsDisabled} onPress={() => {
                 setButtonsDisabled(true)
@@ -273,7 +277,7 @@ export const CreateFolderDialog = memo(({ navigation }) => {
 
                         useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                        showToast({ message: i18n(lang, "folderCreated", true, ["__NAME__"], [name]) })
+                        //showToast({ message: i18n(lang, "folderCreated", true, ["__NAME__"], [name]) })
                     }).catch((err) => {
                         setButtonsDisabled(false)
 
@@ -393,7 +397,7 @@ export const ConfirmRemoveFromSharedInDialog = memo(({ navigation }) => {
 
                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                showToast({ message: i18n(lang, "removedFromSharedIn", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                //showToast({ message: i18n(lang, "removedFromSharedIn", true, ["__NAME__"], [currentActionSheetItem.name]) })
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 
@@ -451,7 +455,7 @@ export const ConfirmStopSharingDialog = memo(({ navigation }) => {
 
                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                showToast({ message: i18n(lang, "stoppedSharingItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                //showToast({ message: i18n(lang, "stoppedSharingItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 

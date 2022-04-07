@@ -107,7 +107,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 					setCreateFolderDialogVisible(true)
 				}} icon="folder-outline" text={i18n(lang, "createFolder")} />
 				{
-					typeof currentRoutes == "object" && typeof currentRoutes[currentRoutes.length - 1].params == "object" && currentRoutes[currentRoutes.length - 1].params.parent !== "base" && (
+					typeof currentRoutes == "object" && Array.isArray(currentRoutes) && typeof currentRoutes[currentRoutes.length - 1].params == "object" && typeof currentRoutes[currentRoutes.length - 1].params.parent !== "undefined" && currentRoutes[currentRoutes.length - 1].params.parent !== "base" && (
 						<>
 							<ActionButton onPress={async () => {
 								await SheetManager.hide("BottomBarAddActionSheet")
@@ -283,13 +283,14 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 	
 											for(let i = 0; i < response.length; i++){
 												if(typeof response[i].name == "string" && typeof response[i].uri == "string"){
+													const copyURL = response[i].fileCopyUri.split("file:/").join("").split("file://").join("").split("file:").join("")
+
 													queueFileUpload({
 														pickedFile: {
 															name: response[i].name,
 															size: response[i].size,
 															type: response[i].type,
-															uri: response[i].fileCopyUri.indexOf("file://") == -1 ? "file:///" + response[i].fileCopyUri.replace("file:/", "").replace("file://", "").replace("file:", "") : response[i].fileCopyUri,
-															clearCache: true
+															uri: response[i].fileCopyUri.indexOf("file://") == -1 ? "file:///" + copyURL : copyURL
 														},
 														parent
 													})
@@ -1412,7 +1413,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 									)
 								}
 								{
-									canDownload && currentActionSheetItem.type == "file" && itemListParent !== "offline" && Platform.OS == "android" && (
+									canDownload && currentActionSheetItem.type == "file" && itemListParent !== "offline" && (
 										<ActionButton onPress={async () => {
 											await SheetManager.hide("ItemActionSheet")
 		
@@ -1573,7 +1574,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 									)
 								}
 								{
-									isDeviceOnline && itemListParent == "trash" && routeURL.indexOf("shared-in") == -1 && (
+									typeof currentActionSheetItem == "object" && isDeviceOnline && itemListParent == "trash" && routeURL.indexOf("shared-in") == -1 && (
 										<>
 											<ActionButton onPress={async () => {
 												await SheetManager.hide("ItemActionSheet")

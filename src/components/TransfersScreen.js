@@ -22,8 +22,8 @@ export const TransfersScreen = memo(({ navigation, route }) => {
     const [ongoingTransfersList, setOngoingTransfersList] = useState([])
     const [finishedTransfersList, setFinishedTransfersList] = useState([])
     const bottomBarHeight = useStore(useCallback(state => state.bottomBarHeight))
-    const topBarHeight = useStore(useCallback(state => state.topBarHeight))
     const contentHeight = useStore(useCallback(state => state.contentHeight))
+    const [topBarHeight, setTopBarHeight] = useState(useStore.getState().topBarHeight)
 
     const updateTransfers = useCallback(() => {
         if(isMounted()){
@@ -105,103 +105,109 @@ export const TransfersScreen = memo(({ navigation, route }) => {
     return (
         <View style={{
             height: "100%",
+            width: "100%",
             backgroundColor: darkMode ? "black" : "white"
         }}>
             <View style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                backgroundColor: darkMode ? "black" : "white"
-            }}>
+                width: "100%",
+                height: Platform.OS == "android" ? 75 : 87
+            }} onLayout={(e) => setTopBarHeight(e.nativeEvent.layout.height)}>
                 <View style={{
-                    flexDirection: "row"
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    backgroundColor: darkMode ? "black" : "white"
+                }}>
+                    <View style={{
+                        flexDirection: "row"
+                    }}>
+                        <TouchableOpacity style={{
+                            marginTop: Platform.OS == "ios" ? 16 : 3,
+                            marginLeft: 15,
+                        }} onPress={() => navigation.goBack()}>
+                            <Ionicon name="chevron-back" size={24} color={darkMode ? "white" : "black"}></Ionicon>
+                        </TouchableOpacity>
+                        <Text style={{
+                            color: darkMode ? "white" : "black",
+                            fontWeight: "bold",
+                            fontSize: 22,
+                            marginLeft: 10,
+                            marginTop: Platform.OS == "ios" ? 15 : 0
+                        }}>
+                            {i18n(lang, "transfers")}
+                        </Text>
+                    </View>
+                    <TouchableOpacity hitSlop={{
+                        top: 10,
+                        right: 10,
+                        left: 10,
+                        bottom: 10
+                    }} style={{
+                        alignItems: "flex-end",
+                        flexDirection: "row",
+                        backgroundColor: "transparent",
+                        height: "100%",
+                        paddingLeft: 0,
+                        paddingRight: 15
+                    }} onPress={() => SheetManager.show("TopBarActionSheet")}>
+                        {
+                            ongoingTransfers > 0 && (
+                                <View>
+                                    <Ionicon name="ellipsis-horizontal-sharp" size={24} color={darkMode ? "white" : "black"}></Ionicon>
+                                </View>
+                            )
+                        }
+                    </TouchableOpacity>
+                </View>
+                <View style={{
+                    height: "auto",
+                    width: "100%",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginTop: 20
                 }}>
                     <TouchableOpacity style={{
-                        marginTop: Platform.OS == "ios" ? 16 : 3,
-                        marginLeft: 15,
-                    }} onPress={() => navigation.goBack()}>
-                        <Ionicon name="chevron-back" size={24} color={darkMode ? "white" : "black"}></Ionicon>
+                        borderBottomWidth: currentView == "ongoing" ? Platform.OS == "ios" ? 1.5 : 2 : 1,
+                        borderBottomColor: currentView == "ongoing" ? "#0A84FF" : getColor(darkMode, "primaryBorder"),
+                        height: 27,
+                        paddingLeft: 15,
+                        paddingRight: 15,
+                        width: "50%",
+                        alignItems: "center"
+                    }} hitSlop={{
+                        top: 20
+                    }} onPress={() => setCurrentView("ongoing")}>
+                        <Text style={{
+                            color: currentView == "ongoing" ? "#0A84FF" : "gray",
+                            fontWeight: "bold",
+                            fontSize: 14
+                        }}>
+                            {i18n(lang, "ongoing")}
+                        </Text>
                     </TouchableOpacity>
-                    <Text style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 22,
-                        marginLeft: 10,
-                        marginTop: Platform.OS == "ios" ? 15 : 0
-                    }}>
-                        {i18n(lang, "transfers")}
-                    </Text>
+                    <TouchableOpacity style={{
+                        borderBottomWidth: currentView == "finished" ? Platform.OS == "ios" ? 1.5 : 2 : 1,
+                        borderBottomColor: currentView == "finished" ? "#0A84FF" : getColor(darkMode, "primaryBorder"),
+                        height: 27,
+                        paddingLeft: 15,
+                        paddingRight: 15,
+                        width: "50%",
+                        alignItems: "center"
+                    }} hitSlop={{
+                        top: 20
+                    }} onPress={() => setCurrentView("finished")}>
+                        <Text style={{
+                            color: currentView == "finished" ? "#0A84FF" : "gray",
+                            fontWeight: "bold",
+                            fontSize: 14
+                        }}>
+                            {i18n(lang, "finished")}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
-                <TouchableOpacity hitSlop={{
-                    top: 10,
-                    right: 10,
-                    left: 10,
-                    bottom: 10
-                }} style={{
-                    alignItems: "flex-end",
-                    flexDirection: "row",
-                    backgroundColor: "transparent",
-                    height: "100%",
-                    paddingLeft: 0,
-                    paddingRight: 15
-                }} onPress={() => SheetManager.show("TopBarActionSheet")}>
-                    {
-                        ongoingTransfers > 0 && (
-                            <View>
-                                <Ionicon name="ellipsis-horizontal-sharp" size={24} color={darkMode ? "white" : "black"}></Ionicon>
-                            </View>
-                        )
-                    }
-                </TouchableOpacity>
-            </View>
-            <View style={{
-                height: "auto",
-                width: "100%",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginTop: 20
-            }}>
-                <TouchableOpacity style={{
-                    borderBottomWidth: currentView == "ongoing" ? Platform.OS == "ios" ? 1.5 : 2 : 1,
-                    borderBottomColor: currentView == "ongoing" ? "#0A84FF" : getColor(darkMode, "primaryBorder"),
-                    height: 27,
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    width: "50%",
-                    alignItems: "center"
-                }} hitSlop={{
-                    top: 20
-                }} onPress={() => setCurrentView("ongoing")}>
-                    <Text style={{
-                        color: currentView == "ongoing" ? "#0A84FF" : "gray",
-                        fontWeight: "bold",
-                        fontSize: 14
-                    }}>
-                        {i18n(lang, "ongoing")}
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={{
-                    borderBottomWidth: currentView == "finished" ? Platform.OS == "ios" ? 1.5 : 2 : 1,
-                    borderBottomColor: currentView == "finished" ? "#0A84FF" : getColor(darkMode, "primaryBorder"),
-                    height: 27,
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    width: "50%",
-                    alignItems: "center"
-                }} hitSlop={{
-                    top: 20
-                }} onPress={() => setCurrentView("finished")}>
-                    <Text style={{
-                        color: currentView == "finished" ? "#0A84FF" : "gray",
-                        fontWeight: "bold",
-                        fontSize: 14
-                    }}>
-                        {i18n(lang, "finished")}
-                    </Text>
-                </TouchableOpacity>
             </View>
             <View style={{
                 width: "100%",
-                height: (contentHeight - topBarHeight - bottomBarHeight - 14)
+                height: (contentHeight - topBarHeight - bottomBarHeight + 30)
             }}>
                 {
                     currentView == "ongoing" && (

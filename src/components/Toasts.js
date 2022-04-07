@@ -3,7 +3,7 @@ import { View, Text, Platform, TouchableOpacity, DeviceEventEmitter } from "reac
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { useStore, navigationAnimation } from "../lib/state"
-import { getParent, getFilenameFromPath, getRouteURL } from "../lib/helpers"
+import { getParent, getFilenameFromPath, getRouteURL, getRandomArbitrary } from "../lib/helpers"
 import { moveFile, moveFolder, folderExists, fileExists, bulkMove } from "../lib/api"
 import { i18n } from "../i18n/i18n"
 import { CommonActions } from "@react-navigation/native"
@@ -12,14 +12,42 @@ import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import { queueFileUpload } from "../lib/upload"
 import getPath from "@flyerhq/react-native-android-uri-path"
+import BackgroundTimer from "react-native-background-timer"
 
 const mime = require("mime-types")
 
 let moveToastId = undefined
 let uploadToastId = undefined
 let cameraUploadChooseFolderToastId = undefined
+const toastQueueLimit = 3
+let currentToastQueue = 0
 
 export const showToast = ({ type = "normal", message, swipeEnabled = false, duration = 5000, animationType = "slide-in", animationDuration = 100, bottomOffset = 0, offset = 50, offsetBottom = 50, offsetTop = 50, placement = "bottom", navigation = undefined }) => {
+    if(currentToastQueue >= toastQueueLimit){
+        return BackgroundTimer.setTimeout(() => {
+            showToast({
+                type,
+                message,
+                swipeEnabled,
+                duration,
+                animationType,
+                animationDuration,
+                bottomOffset,
+                offset,
+                offsetBottom,
+                offsetTop,
+                placement,
+                navigation
+            })
+        }, 100)
+    }
+
+    currentToastQueue += 1
+
+    BackgroundTimer.setTimeout(() => {
+        currentToastQueue -= 1
+    }, (duration + getRandomArbitrary(500, 1000)))
+    
     const darkMode = storage.getBoolean("darkMode")
     const insets = useStore.getState().insets
 
@@ -238,6 +266,10 @@ export const MoveToast = memo(({ message }) => {
                     if(parent.length <= 32 && currentActionSheetItem.type == "file"){
                         showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
+                        return false
+                    }
+
+                    if(typeof currentActionSheetItem !== "object"){
                         return false
                     }
 
@@ -494,7 +526,9 @@ export const UploadToast = memo(({ message }) => {
                                                     return reject("Could not get file name")
                                                 }
 
-                                                ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(() => {
+                                                ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
+                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+
                                                     RNFS.stat(path).then((stat) => {
                                                         const type = mime.lookup(name)
                                                         const ext = mime.extension(type)
@@ -505,7 +539,9 @@ export const UploadToast = memo(({ message }) => {
                                                 }).catch(reject)
                                             }
                                             else{
-                                                RNFS.copyFile(item, path).then(() => {
+                                                RNFS.copyFile(item, path).then(async () => {
+                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+
                                                     RNFS.stat(path).then((stat) => {
                                                         const name = getFilenameFromPath(item)
                                                         const type = mime.lookup(name)
@@ -537,7 +573,8 @@ export const UploadToast = memo(({ message }) => {
                                                 type,
                                                 uri: path.indexOf("file://") == -1 ? "file://" + path : path
                                             },
-                                            parent
+                                            parent,
+                                            clear: Platform.OS == "android" ? false : true
                                         })
                                     }).catch((err) => {
                                         console.log(err)
@@ -789,6 +826,10 @@ export const MoveBulkToast = memo(({ message }) => {
                     if(parent.length <= 32 && currentBulkItems.filter(item => item.type == "file").length >= 1){
                         showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
+                        return false
+                    }
+
+                    if(typeof currentActionSheetItem !== "object"){
                         return false
                     }
 

@@ -141,10 +141,6 @@ export const TwoFactorScreen = memo(({ navigation, route }) => {
                                 <Pressable style={{
                                     width: "100%",
                                     height: "auto"
-                                }} onPress={() => {
-                                    Clipboard.setString("https://filen.io/r/" + accountData.refId)
-
-                                    showToast({ message: i18n(lang, "copiedToClipboard") })
                                 }}>
                                     <View style={{
                                         width: "100%",
@@ -180,10 +176,6 @@ export const TwoFactorScreen = memo(({ navigation, route }) => {
                                 <Pressable style={{
                                     width: "100%",
                                     height: "auto"
-                                }} onPress={() => {
-                                    Clipboard.setString("https://filen.io/r/" + accountData.refId)
-
-                                    showToast({ message: i18n(lang, "copiedToClipboard") })
                                 }}>
                                     <View style={{
                                         width: "100%",

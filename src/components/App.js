@@ -59,7 +59,7 @@ setJSExceptionHandler((err, isFatal) => {
         `
         Error: ${err.name} ${err.message}
 
-        The error has been automatically reported to us. Please restart the app!
+        The error has been automatically reported to us. Please restart the if it does not continue to work app!
         `,
         [
             {
@@ -587,9 +587,15 @@ export const App = memo(() => {
                     }
                 </Fragment>
             </NavigationContainer>
-            <Toast ref={(ref) => global.toast = ref} offsetBottom={toastBottomOffset} offsetTop={toastTopOffset} pointerEvents="box-none" style={{
-                zIndex: 99999
-            }} />
+            <Toast
+                ref={(ref) => global.toast = ref}
+                offsetBottom={toastBottomOffset}
+                offsetTop={toastTopOffset}
+                pointerEvents="box-none"
+                style={{
+                    zIndex: 99999
+                }}
+            />
         </>
     )
 })

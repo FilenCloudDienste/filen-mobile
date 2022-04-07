@@ -77,7 +77,7 @@ export class ListItem extends Component {
                     </View>
                     <View style={{
                         flexDirection: "row",
-                        alignItems: "flex-start",
+                        justifyContent: "space-between",
                         height: "100%",
                         width: "100%",
                         marginLeft: 15,
@@ -85,8 +85,8 @@ export class ListItem extends Component {
                         borderBottomWidth: 1
                     }}>
                         <View style={{
-                            width: "78%",
-                            paddingTop: 2
+                            paddingTop: 2,
+                            width: "75%"
                         }}>
                             <Text style={{
                                 color: darkMode ? "white" : "black",
@@ -135,12 +135,16 @@ export class ListItem extends Component {
                                 {item.date}
                             </Text>
                         </View>
-                        <TouchableOpacity style={{
+                        <TouchableOpacity hitSlop={{
+                            top: 15,
+                            bottom: 15,
+                            right: 15,
+                            left: 15
+                        }} style={{
                             paddingTop: 5,
-                            paddingLeft: 15,
                             backgroundColor: "transparent",
-                            width: "100%",
-                            height: "100%"
+                            position: "absolute",
+                            right: 45
                         }} onPress={() => {
                             DeviceEventEmitter.emit("event", {
                                 type: "open-item-actionsheet",

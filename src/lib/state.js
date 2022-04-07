@@ -106,6 +106,8 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setItemsSortBy: (itemsSortBy) => set({ itemsSortBy }),
 	biometricAuthScreenVisible: false,
 	setBiometricAuthScreenVisible: (biometricAuthScreenVisible) => set({ biometricAuthScreenVisible }),
+	currentToastQueue: 0,
+	setCurrentToastQueue: (currentToastQueue) => set({ currentToastQueue }),
 })))
 
 export const navigationAnimation = ({ enable = true }) => {

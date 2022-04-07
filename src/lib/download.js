@@ -156,9 +156,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         }
     }
 
-    const appState = useStore.getState()
+    const netInfo = useStore.getState().netInfo
 
-    if(!appState.netInfo.isInternetReachable || !appState.netInfo.isInternetReachable){
+    if(!netInfo.isInternetReachable || !netInfo.isInternetReachable){
         callOptionalCallback(new Error("device is offline"))
 
         return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
@@ -286,7 +286,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     }
 
     try{
-        if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && appState.netInfo.type !== "wifi"){
+        if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
             return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
         }
     }
