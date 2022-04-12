@@ -402,12 +402,8 @@ export const App = memo(() => {
             })
         }
 
-        try{
-            storage.set("cameraUploadRunning", false) // Reset on app launch
-        }
-        catch(e){
-            console.log(e)
-        }
+        // Reset on app launch
+        storage.set("cameraUploadRunning", false)
 
         return () => {
             dimensionsListener.remove()

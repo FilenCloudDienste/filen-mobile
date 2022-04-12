@@ -1418,7 +1418,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 											await SheetManager.hide("ItemActionSheet")
 		
 											hasStoragePermissions().then(() => {
-												queueFileDownload({ file: currentActionSheetItem })
+												queueFileDownload({ file: currentActionSheetItem, showNotification: true })
 											}).catch((err) => {
 												console.log(err)
 

@@ -1,4 +1,4 @@
-export const en = {
+export const de = {
     cloud: "Cloud",
     shared: "Shared",
     recents: "Recent",
@@ -388,6 +388,5 @@ export const en = {
     invalidTwoFactorKey: "Invalid Two Factor Authentication key",
     startOnCloudScreen: "Start on cloud screen",
     appSetupNotPossible: "Could not initialize the app. Maybe you are offline?",
-    shareIntoAppLimit: "You cannot share more than __LIMIT__ files into the app at once",
-    cameraUploadFetchingAssetsFromLocal: "Preparing local assets"
+    shareIntoAppLimit: "You cannot share more than __LIMIT__ files into the app at once"
 }

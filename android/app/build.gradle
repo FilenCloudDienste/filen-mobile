@@ -134,8 +134,8 @@ android {
         applicationId "io.filen.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 201
-        versionName "2.0.1"
+        versionCode 211
+        versionName "2.0.11"
     }
     splits {
         abi {
@@ -147,10 +147,24 @@ android {
     }
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
+            /*storeFile file('debug.keystore')
             storePassword 'android'
             keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            keyPassword 'android'*/
+            if (project.hasProperty('FILEN_UPLOAD_STORE_FILE')) {
+                storeFile file(FILEN_UPLOAD_STORE_FILE)
+                storePassword FILEN_UPLOAD_STORE_PASSWORD
+                keyAlias FILEN_UPLOAD_KEY_ALIAS
+                keyPassword FILEN_UPLOAD_KEY_PASSWORD
+            }
+        }
+        release {
+            if (project.hasProperty('FILEN_UPLOAD_STORE_FILE')) {
+                storeFile file(FILEN_UPLOAD_STORE_FILE)
+                storePassword FILEN_UPLOAD_STORE_PASSWORD
+                keyAlias FILEN_UPLOAD_KEY_ALIAS
+                keyPassword FILEN_UPLOAD_KEY_PASSWORD
+            }
         }
     }
     buildTypes {
@@ -165,7 +179,7 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

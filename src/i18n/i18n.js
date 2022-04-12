@@ -1,7 +1,11 @@
 import { en } from "./lang/en"
+import { ja } from "./lang/ja"
+import { de } from "./lang/de"
 
 const translations = {
-    en
+    en,
+    ja,
+    de
 }
 
 export const i18n = (lang = "en", text, firstUpperCase = true, replaceFrom = [], replaceTo = []) => {
@@ -34,4 +38,8 @@ export const i18n = (lang = "en", text, firstUpperCase = true, replaceFrom = [],
     }
 
     return gotText
+}
+
+export const isLanguageAvailable = (lang = "en") => {
+    return typeof translations[lang] == "undefined" ? false : true
 }

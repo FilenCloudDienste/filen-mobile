@@ -322,7 +322,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                         paddingRight: 15
                                     }}>
                                         {
-                                            cameraUploadTotal > cameraUploadUploaded ? (
+                                            cameraUploadTotal > 0 ? cameraUploadTotal > cameraUploadUploaded ? (
                                                 <>
                                                     <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
                                                     <Text style={{
@@ -342,6 +342,17 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         paddingTop: Platform.OS == "ios" ? 2 : 1
                                                     }}>
                                                         {i18n(lang, "cameraUploadEverythingUploaded")}
+                                                    </Text>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
+                                                    <Text style={{
+                                                        marginLeft: 10,
+                                                        color: "gray",
+                                                        paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                    }}>
+                                                        {i18n(lang, "cameraUploadFetchingAssetsFromLocal")}
                                                     </Text>
                                                 </>
                                             )

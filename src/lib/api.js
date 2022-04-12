@@ -6,6 +6,7 @@ import { updateLoadItemsCache, removeLoadItemsCache, emptyTrashLoadItemsCache } 
 import { logout } from "./auth/logout"
 import { useStore } from "./state"
 import BackgroundTimer from "react-native-background-timer"
+import DeviceInfo from "react-native-device-info"
 
 const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(16)
@@ -2697,7 +2698,7 @@ export const reportError = (err = "", info = "") => {
             },
             cancelable: 0,
             timestamp: 0,
-            type: Platform.OS,
+            type: Platform.OS + " " + DeviceInfo.getVersion(),
             isTrusted: 0,
             url: 0
         }

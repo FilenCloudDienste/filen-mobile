@@ -1,19 +1,20 @@
 {
 	"name": "filen-mobile",
-	"version": "2.0.1",
+	"version": "2.0.11",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
 		"ios": "react-native run-ios",
 		"start": "react-native start",
 		"test": "jest",
-		"lint": "eslint ."
+		"lint": "eslint .",
+		"dist": "./android/gradlew bundleRelease && ./android/gradlew assembleRelease"
 	},
 	"dependencies": {
 		"@flyerhq/react-native-android-uri-path": "^2.3.0",
 		"@react-native-clipboard/clipboard": "^1.8.5",
 		"@react-native-community/art": "^1.2.0",
-		"@react-native-community/cameraroll": "^4.1.2",
+		"@react-native-community/cameraroll": "github:BohdanSol/react-native-cameraroll",
 		"@react-native-community/netinfo": "^8.0.0",
 		"@react-native-masked-view/masked-view": "^0.2.6",
 		"@react-native-picker/picker": "^2.2.1",

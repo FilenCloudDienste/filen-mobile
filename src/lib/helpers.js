@@ -1406,3 +1406,16 @@ export const arrayBufferToBase64JS = (arrayBuffer) => {
     
     return base64
 }
+
+export const promiseAllSettled = (promises) => Promise.all(
+    promises.map(p => p
+        .then(value => ({
+            status: "fulfilled",
+            value
+        }))
+        .catch(reason => ({
+            status: "rejected",
+            reason
+        }))
+    )
+)

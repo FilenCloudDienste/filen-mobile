@@ -1,14 +1,18 @@
 import { Platform, PermissionsAndroid } from "react-native"
-import { check, PERMISSIONS, RESULTS, request, requestMultiple } from "react-native-permissions"
+import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } from "react-native-permissions"
 import { storage } from "./storage"
 import { i18n } from "../i18n/i18n"
 
-export const hasWritePermissions = () => {
+export const hasWritePermissions = (requestPermissions) => {
     return new Promise((resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE).then((status) => {
                 if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
+                }
+
+                if(!requestPermissions){
+                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
                 }
 
                 request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE).then((requestStatus) => {
@@ -26,12 +30,16 @@ export const hasWritePermissions = () => {
     })
 }
 
-export const hasReadPermissions = () => {
+export const hasReadPermissions = (requestPermissions) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE).then((status) => {
                 if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
+                }
+
+                if(!requestPermissions){
+                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
                 }
 
                 request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE).then((requestStatus) => {
@@ -49,12 +57,16 @@ export const hasReadPermissions = () => {
     })
 }
 
-export const hasCameraPermissions = () => {
+export const hasCameraPermissions = (requestPermissions) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.CAMERA).then((status) => {
                 if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
+                }
+
+                if(!requestPermissions){
+                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
                 }
 
                 request(PERMISSIONS.ANDROID.CAMERA).then((requestStatus) => {
@@ -72,6 +84,10 @@ export const hasCameraPermissions = () => {
                     return resolve(true)
                 }
 
+                if(!requestPermissions){
+                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
+                }
+
                 request(PERMISSIONS.IOS.CAMERA).then((requestStatus) => {
                     if([RESULTS.GRANTED].includes(requestStatus)){
                         return resolve(true)
@@ -84,7 +100,7 @@ export const hasCameraPermissions = () => {
     })
 }
 
-export const hasBiometricPermissions = () => {
+export const hasBiometricPermissions = (requestPermissions) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             return resolve(true)
@@ -93,6 +109,10 @@ export const hasBiometricPermissions = () => {
             check(PERMISSIONS.IOS.FACE_ID).then((status) => {
                 if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
+                }
+
+                if(!requestPermissions){
+                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
                 }
 
                 request(PERMISSIONS.IOS.FACE_ID).then((requestStatus) => {
@@ -107,15 +127,19 @@ export const hasBiometricPermissions = () => {
     })
 }
 
-export const hasPhotoLibraryPermissions = () => {
+export const hasPhotoLibraryPermissions = (requestPermissions) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             hasStoragePermissions().then(resolve).catch(reject)
         }
         else{
-            check([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((statuses) => {
+            checkMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((statuses) => {
                 if([RESULTS.GRANTED].includes(statuses[PERMISSIONS.IOS.PHOTO_LIBRARY]) && [RESULTS.GRANTED].includes(statuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY])){
                     return resolve(true)
+                }
+
+                if(!requestPermissions){
+                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
                 }
 
                 requestMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((requestStatuses) => {
@@ -130,15 +154,15 @@ export const hasPhotoLibraryPermissions = () => {
     })
 }
 
-export const hasStoragePermissions = () => {
+export const hasStoragePermissions = (requestPermissions) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "ios"){
             return resolve(true)
         }
 
         try{
-            var read = await hasReadPermissions()
-            var write = await hasWritePermissions()
+            var read = await hasReadPermissions(requestPermissions)
+            var write = await hasWritePermissions(requestPermissions)
         }
         catch(e){
             console.log(e)
@@ -154,7 +178,7 @@ export const hasStoragePermissions = () => {
     })
 }
 
-export const hasLocationPermissions = () => {
+export const hasLocationPermissions = (requestPermissions) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION).then((status) => {
@@ -199,6 +223,10 @@ export const hasLocationPermissions = () => {
             check(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE).then((status) => {
                 if([RESULTS.GRANTED].includes(status)){
                     return resolve(true)
+                }
+
+                if(!requestPermissions){
+                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
                 }
 
                 request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE).then((requestStatus) => {

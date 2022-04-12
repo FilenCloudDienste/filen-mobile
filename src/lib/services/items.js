@@ -1285,9 +1285,22 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         //console.log(e)
     }
 
-    const open = (path) => {
+    const open = (path, offlineMode = false) => {
         setTimeout(() => {
             useStore.setState({ fullscreenLoadingModalVisible: false })
+
+            if(offlineMode){
+                return FileViewer.open(path, {
+                    displayName: item.name,
+                    showOpenWithDialog: true
+                }).then(() => {
+                    //console.log(path)
+                }).catch((err) => {
+                    console.log(err)
+
+                    showToast({ message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name]) })
+                })
+            }
 
             if(previewType == "image"){
                 /*const currentImages = []
@@ -1367,7 +1380,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
     }
 
     if(existsOffline){
-        return open(offlinePath)
+        return open(offlinePath, true)
     }
 
     const netInfo = useStore.getState().netInfo

@@ -105,6 +105,19 @@ export const CameraUploadScreen = memo(({ navigation, route }) => {
                         />
                     } />
                 </SettingsGroup>
+                {
+                    !hasPermissions && (
+                        <Text style={{
+                            color: "gray",
+                            fontSize: 11,
+                            paddingLeft: 17,
+                            paddingTop: 5,
+                            paddingRight: 17
+                        }}>
+                            {i18n(lang, "pleaseGrantPermission")}
+                        </Text>
+                    )
+                }
                 <SettingsGroup>
                     {
                         cameraUploadEnabled ? (
