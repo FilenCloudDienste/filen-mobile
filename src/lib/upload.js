@@ -119,6 +119,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         versionedUUID: undefined
     }
 
+    pickedFile.name = pickedFile.name.split("/").join("_").split("\\").join("_")
+
     let generatedFileName = ""
 
     if(pickedFile.name.indexOf(".") !== -1){
