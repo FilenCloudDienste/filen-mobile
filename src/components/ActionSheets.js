@@ -154,7 +154,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 														queueFileUpload({
 															pickedFile: {
-																name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(fileName),
+																name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join(".").split("\\").join("_").split("-").join("_") + "." + getFileExt(fileName),
 																size: asset.fileSize || typeof stat.size == "string" ? parseInt(stat.size) : stat.size,
 																type: asset.type || "",
 																uri: decodeURIComponent(asset.uri) || ""
@@ -172,7 +172,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 											if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
 												console.log(err)
 
-												reportError(err, "actionSheets:launchImageLibrary:uploadFromGallery")
+												reportError(err, "actionSheets:launchImageLibrary:launchCamera")
 
 												showToast({ message: err.toString() })
 											}
@@ -227,7 +227,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 																	queueFileUpload({
 																		pickedFile: {
-																			name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date(asset.timestamp || (+new Date())).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_") + "." + getFileExt(fileName),
+																			name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date(asset.timestamp || (+new Date())).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join(".").split("\\").join("_").split("-").join("_") + "." + getFileExt(fileName),
 																			size: asset.fileSize || typeof stat.size == "string" ? parseInt(stat.size) : stat.size,
 																			type: asset.type || "",
 																			uri: decodeURIComponent(asset.uri) || ""
