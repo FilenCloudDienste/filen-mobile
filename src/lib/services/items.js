@@ -913,6 +913,23 @@ export const getThumbnailCacheKey = ({ uuid }) => {
 }
 
 /*
+Clear last response cache when parent is in a route URL
+*/
+export const clearLoadItemsCacheLastResponse = ({ parent }) => {
+    return new Promise((resolve, reject) => {
+        const keys = storage.getAllKeys()
+
+        for(let i = 0; i < keys.length; i++){
+            if(keys[i].indexOf("loadItemsCache:lastResponse:") !== -1 && keys[i].indexOf(parent) !== -1){
+                storage.delete(keys[i])
+            }
+        }
+
+        return resolve()
+    })
+}
+
+/*
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {

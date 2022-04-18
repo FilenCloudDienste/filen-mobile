@@ -349,6 +349,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 	const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
 	const [currentRouteName, setCurrentRouteName] = useState("")
+	const [canMakeAvailableOffline, setCanMakeAvailableOffline] = useState(false)
 
 	const maxBulkActionsItemsCount = 100
 	const minBulkActionsItemCount = 2
@@ -396,6 +397,14 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 		return currentItems.filter(item => item.selected && extArray.includes(getFileExt(item.name))).length > 0 ? true : false
 	})
 
+	const doesSelectedItemsContainFolders = useCallback(() => {
+		if(!Array.isArray(currentItems)){
+			return false
+		}
+
+		return currentItems.filter(item => item.type == "folder" && item.selected).length > 0 ? true : false
+	})
+
 	const updateBulkItems = useCallback(() => {
 		const bulkItems = []
 
@@ -425,6 +434,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 		setCanShowAddFavorite(true)
 		setCanShowRemoveSharedIn(true)
 		setCanShowStopSharing(true)
+		setCanMakeAvailableOffline(true)
 
 		if(routeURL.indexOf("photos") !== -1){
 			setCanShowListViewStyle(false)
@@ -493,6 +503,11 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 			if(publicKey.length < 16 || privateKey.length < 16){
 				setCanShowShare(false)
 			}
+		}
+
+		if(doesSelectedItemsContainFolders()){
+			setCanDownload(false)
+			setCanMakeAvailableOffline(false)
 		}
 	})
 
@@ -811,7 +826,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 												)
 											}
 											{
-												routeURL.indexOf("offline") == -1 && canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+												canMakeAvailableOffline && routeURL.indexOf("offline") == -1 && canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
 													<ActionButton onPress={async () => {
 														await SheetManager.hide("TopBarActionSheet")
 									
@@ -855,7 +870,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 												)
 											}
 											{
-												canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
+												canDownload && canShowBulkItemsActions && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
 													<ActionButton onPress={async () => {
 														await SheetManager.hide("TopBarActionSheet")
 									

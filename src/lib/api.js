@@ -2,7 +2,7 @@ import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMe
 import { storage } from "./storage"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Platform } from "react-native"
-import { updateLoadItemsCache, removeLoadItemsCache, emptyTrashLoadItemsCache } from "./services/items"
+import { updateLoadItemsCache, removeLoadItemsCache, emptyTrashLoadItemsCache, clearLoadItemsCacheLastResponse } from "./services/items"
 import { logout } from "./auth/logout"
 import { useStore } from "./state"
 import BackgroundTimer from "react-native-background-timer"
@@ -1787,7 +1787,11 @@ export const restoreItem = ({ item }) => {
                 item,
                 routeURL: "trash"
             }).then(() => {
-                return resolve()
+                clearLoadItemsCacheLastResponse({
+                    parent: item.parent
+                }).then(() => {
+                    return resolve()
+                })
             })
         }).catch(reject)
     })
