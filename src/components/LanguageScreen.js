@@ -51,7 +51,7 @@ export const LanguageScreen = memo(({ navigation, route }) => {
                     <SettingsButtonLinkHighlight title="Русский" onPress={() => {
                         setLang("ru")
                     }} />
-                    <SettingsButtonLinkHighlight title="український" onPress={() => {
+                    <SettingsButtonLinkHighlight title="Українська" onPress={() => {
                         setLang("uk")
                     }} />
                     <SettingsButtonLinkHighlight title="日本" onPress={() => {
