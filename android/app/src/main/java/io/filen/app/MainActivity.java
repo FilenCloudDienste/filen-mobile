@@ -23,7 +23,8 @@ public class MainActivity extends ReactActivity {
 
     SplashScreen.show(this);
 
-    super.onCreate(savedInstanceState);
+    //super.onCreate(savedInstanceState); // RN-Screens bug when trying to open the app from saved state
+    super.onCreate(null);
   }
 
   /**
