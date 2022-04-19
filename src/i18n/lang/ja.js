@@ -387,6 +387,7 @@ export const ja = {
     cannotMoveItemsHere: "ここに移動することはできません",
     invalidTwoFactorKey: "二段階認証コードが違います",
     startOnCloudScreen: "アプリ起動時にクラウドのタブを開く",
-    appSetupNotPossible: "アプリの初期化（イニシャライズ）に失敗しました。ネットワークに接続されているかをご確認ください。",
-    shareIntoAppLimit: "アプリ上で共有できるファイルは__LIMIT__件までです"
+    appSetupNotPossible: "アプリのイニシャライズに失敗しました。ネットワークに接続されているかをご確認ください。",
+    shareIntoAppLimit: "アプリ上で共有できるファイルは__LIMIT__件までです",
+    cameraUploadFetchingAssetsFromLocal: "自動アップロードの準備中"
 }
