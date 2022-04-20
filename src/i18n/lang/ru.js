@@ -19,7 +19,7 @@ export const ru = {
     unselectAll: "Отменить выбор всего",
     gridView: "Режим сетки",
     listView: "Режим списка",
-    share: "Общий доступ",
+    share: "Поделиться",
     saveToGallery: "Сохранить в галерею",
     download: "Скачать",
     makeAvailableOffline: "Сделать доступным автономно",
