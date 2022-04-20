@@ -1,7 +1,7 @@
 import { en } from "./lang/en"
 import { ja } from "./lang/ja"
 import { de } from "./lang/de"
-import { fr } from "./lang/de"
+import { fr } from "./lang/fr"
 import { it } from "./lang/it"
 import { ru } from "./lang/ru"
 import { uk } from "./lang/uk"
@@ -18,6 +18,10 @@ const translations = {
 
 export const i18n = (lang = "en", text, firstUpperCase = true, replaceFrom = [], replaceTo = []) => {
     if(typeof lang !== "string"){
+        lang = "en"
+    }
+
+    if(typeof translations[lang] == "undefined"){
         lang = "en"
     }
     

@@ -3,7 +3,7 @@ export const uk = {
     shared: "Спільний доступ",
     recents: "Недавні",
     settings: "Налаштування",
-    transfers: "Трансакції",
+    transfers: "передачі",
     home: "Головна",
     photos: "Фото",
     favorites: "Обране",

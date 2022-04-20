@@ -1,6 +1,6 @@
 {
 	"name": "filen-mobile",
-	"version": "2.0.13",
+	"version": "2.0.14",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",

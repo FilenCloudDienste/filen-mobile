@@ -3,7 +3,7 @@ export const ru = {
     shared: "Общий доступ",
     recents: "Недавние",
     settings: "Настройки",
-    transfers: "Трансакции",
+    transfers: "передачи",
     home: "Главная",
     photos: "Фото",
     favorites: "Избранное",

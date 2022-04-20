@@ -130,7 +130,7 @@ export const hasBiometricPermissions = (requestPermissions = true) => {
 export const hasPhotoLibraryPermissions = (requestPermissions = true) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
-            hasStoragePermissions().then(resolve).catch(reject)
+            hasStoragePermissions(requestPermissions).then(resolve).catch(reject)
         }
         else{
             checkMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((statuses) => {
