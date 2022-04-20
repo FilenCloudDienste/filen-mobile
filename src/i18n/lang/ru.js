@@ -9,7 +9,7 @@ export const ru = {
     favorites: "Избранное",
     offlineFiles: "Автономное хранилище",
     searchInThisFolder: "Искать в этой папке",
-    items: "Объекты",
+    items: "Объектов",
     createFolder: "Создать папку",
     createTextFile: "Создать текстовый файл",
     takePhotoAndUpload: "Сделать фото и загрузить",
