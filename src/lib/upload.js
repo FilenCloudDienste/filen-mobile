@@ -297,7 +297,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     }
 
     try{
-        var existsResponse = await fileExists({ name: pickedFile.name, parent })
+        var existsResponse = await fileExists({ name, parent })
     }
     catch(e){
         removeFromState()
