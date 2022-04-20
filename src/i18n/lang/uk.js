@@ -9,7 +9,7 @@ export const uk = {
     favorites: "Обране",
     offlineFiles: "Автономне сховище",
     searchInThisFolder: "Шукати в цій папці",
-    items: "Об'єкти",
+    items: "Об'єктів",
     createFolder: "Створити папку",
     createTextFile: "Створити текстовий файл",
     takePhotoAndUpload: "Зробити фото і завантажити",
