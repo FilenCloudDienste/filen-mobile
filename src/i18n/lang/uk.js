@@ -19,7 +19,7 @@ export const uk = {
     unselectAll: "Скасувати вибір всього",
     gridView: "Режим сітки",
     listView: "Режим списку",
-    share: "Спільний доступ",
+    share: "Поділитися",
     saveToGallery: "Зберегти в галерею",
     download: "Скачати",
     makeAvailableOffline: "Зробити доступним автономно",
