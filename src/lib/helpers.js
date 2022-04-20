@@ -708,6 +708,28 @@ export function orderItemsByType(items, type){
 
         return sortedFolders.concat(sortedFiles)
     }
+    else if(type == "lastModifiedAsc"){
+        let sortedFiles = files.sort((a, b) => {
+            return a.lastModifiedSort - b.lastModifiedSort
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
+    else if(type == "lastModifiedDesc"){
+        let sortedFiles = files.sort((a, b) => {
+            return b.lastModifiedSort - a.lastModifiedSort
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
     else{
         //default, dateDesc
 

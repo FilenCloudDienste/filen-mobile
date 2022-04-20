@@ -3,7 +3,7 @@ import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } 
 import { storage } from "./storage"
 import { i18n } from "../i18n/i18n"
 
-export const hasWritePermissions = (requestPermissions) => {
+export const hasWritePermissions = (requestPermissions = true) => {
     return new Promise((resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE).then((status) => {
@@ -30,7 +30,7 @@ export const hasWritePermissions = (requestPermissions) => {
     })
 }
 
-export const hasReadPermissions = (requestPermissions) => {
+export const hasReadPermissions = (requestPermissions = true) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE).then((status) => {
@@ -57,7 +57,7 @@ export const hasReadPermissions = (requestPermissions) => {
     })
 }
 
-export const hasCameraPermissions = (requestPermissions) => {
+export const hasCameraPermissions = (requestPermissions = true) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.CAMERA).then((status) => {
@@ -100,7 +100,7 @@ export const hasCameraPermissions = (requestPermissions) => {
     })
 }
 
-export const hasBiometricPermissions = (requestPermissions) => {
+export const hasBiometricPermissions = (requestPermissions = true) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             return resolve(true)
@@ -127,7 +127,7 @@ export const hasBiometricPermissions = (requestPermissions) => {
     })
 }
 
-export const hasPhotoLibraryPermissions = (requestPermissions) => {
+export const hasPhotoLibraryPermissions = (requestPermissions = true) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             hasStoragePermissions().then(resolve).catch(reject)
@@ -154,7 +154,7 @@ export const hasPhotoLibraryPermissions = (requestPermissions) => {
     })
 }
 
-export const hasStoragePermissions = (requestPermissions) => {
+export const hasStoragePermissions = (requestPermissions = true) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "ios"){
             return resolve(true)
@@ -178,7 +178,7 @@ export const hasStoragePermissions = (requestPermissions) => {
     })
 }
 
-export const hasLocationPermissions = (requestPermissions) => {
+export const hasLocationPermissions = (requestPermissions = true) => {
     return new Promise(async (resolve, reject) => {
         if(Platform.OS == "android"){
             check(PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION).then((status) => {

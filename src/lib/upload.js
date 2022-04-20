@@ -104,9 +104,11 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         showToast({ message: e.toString() })
     }
 
+    let generatedFileName = pickedFile.name.split("/").join("_").split("\\").join("_")
+
     var item = {
         uuid: "",
-        name: pickedFile.name,
+        name: generatedFileName,
         size: pickedFile.size,
         mime: pickedFile.type || "",
         key: "",
@@ -119,12 +121,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         versionedUUID: undefined
     }
 
-    pickedFile.name = pickedFile.name.split("/").join("_").split("\\").join("_")
-
-    let generatedFileName = ""
-
-    if(pickedFile.name.indexOf(".") !== -1){
-		let fileNameEx = pickedFile.name.split(".")
+    if(generatedFileName.indexOf(".") !== -1){
+		let fileNameEx = generatedFileName.split(".")
 		let lowerCaseFileEnding = fileNameEx[fileNameEx.length - 1].toLowerCase()
 		
 		fileNameEx.pop()

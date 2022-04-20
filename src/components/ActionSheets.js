@@ -154,7 +154,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 														queueFileUpload({
 															pickedFile: {
-																name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join(".").split("\\").join("_").split("-").join("_") + "." + getFileExt(fileName),
+																name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join("_").split("\\").join("_").split("-").join("_") + "." + getFileExt(fileName),
 																size: asset.fileSize || typeof stat.size == "string" ? parseInt(stat.size) : stat.size,
 																type: asset.type || "",
 																uri: decodeURIComponent(asset.uri) || ""
@@ -227,7 +227,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 																	queueFileUpload({
 																		pickedFile: {
-																			name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date(asset.timestamp || (+new Date())).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join(".").split("\\").join("_").split("-").join("_") + "." + getFileExt(fileName),
+																			name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date(asset.timestamp || (+new Date())).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join("_").split("\\").join("_").split("-").join("_") + "." + getFileExt(fileName),
 																			size: asset.fileSize || typeof stat.size == "string" ? parseInt(stat.size) : stat.size,
 																			type: asset.type || "",
 																			uri: decodeURIComponent(asset.uri) || ""
@@ -350,6 +350,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
 	const [currentRouteName, setCurrentRouteName] = useState("")
 	const [canMakeAvailableOffline, setCanMakeAvailableOffline] = useState(false)
+	const [canDownload, setCanDownload] = useState(false)
 
 	const maxBulkActionsItemsCount = 100
 	const minBulkActionsItemCount = 2
@@ -435,6 +436,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 		setCanShowRemoveSharedIn(true)
 		setCanShowStopSharing(true)
 		setCanMakeAvailableOffline(true)
+		setCanDownload(true)
 
 		if(routeURL.indexOf("photos") !== -1){
 			setCanShowListViewStyle(false)

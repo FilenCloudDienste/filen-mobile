@@ -181,6 +181,20 @@ export const MoveToast = memo(({ message }) => {
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
     const initParent = useRef()
+    const currentRoutes = useStore(useCallback(state => state.currentRoutes))
+    const [currentParent, setCurrentParent] = useState("")
+    const [currentRouteURL, setCurrentRouteURL] = useState("")
+
+    useEffect(() => {
+        if(Array.isArray(currentRoutes)){
+            const parent = getParent(currentRoutes[currentRoutes.length - 1])
+
+            if(typeof parent == "string" && parent.length > 0){
+                setCurrentParent(parent)
+                setCurrentRouteURL(getRouteURL(currentRoutes[currentRoutes.length - 1]))
+            }
+        }
+    }, [currentRoutes])
 
     useEffect(() => {
         DeviceEventEmitter.emit("event", {
@@ -245,6 +259,18 @@ export const MoveToast = memo(({ message }) => {
                         return false
                     }
 
+                    if(
+                        currentRouteURL.indexOf("shared-in") !== -1 ||
+                        currentRouteURL.indexOf("recents") !== -1 ||
+                        currentRouteURL.indexOf("trash") !== -1 ||
+                        currentRouteURL.indexOf("photos") !== -1 ||
+                        currentRouteURL.indexOf("offline") !== -1
+                    ){
+                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+
+                        return false
+                    }
+
                     const parent = getParent()
 
                     if([
@@ -263,7 +289,7 @@ export const MoveToast = memo(({ message }) => {
                         return false
                     }
 
-                    if(parent.length <= 32 && currentActionSheetItem.type == "file"){
+                    if(parent.length <= 32){ //&& currentActionSheetItem.type == "file"
                         showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
                         return false
@@ -401,7 +427,7 @@ export const MoveToast = memo(({ message }) => {
                     }
                 }}>
                     <Text style={{
-                        color: "white"
+                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
                     }}>
                         {i18n(lang, "move")}
                     </Text>
@@ -417,6 +443,20 @@ export const UploadToast = memo(({ message }) => {
     const currentShareItems = useStore(useCallback(state => state.currentShareItems))
     const setCurrentShareItems = useStore(useCallback(state => state.setCurrentShareItems))
     const [items, setItems] = useState([])
+    const currentRoutes = useStore(useCallback(state => state.currentRoutes))
+    const [currentParent, setCurrentParent] = useState("")
+    const [currentRouteURL, setCurrentRouteURL] = useState("")
+
+    useEffect(() => {
+        if(Array.isArray(currentRoutes)){
+            const parent = getParent(currentRoutes[currentRoutes.length - 1])
+
+            if(typeof parent == "string" && parent.length > 0){
+                setCurrentParent(parent)
+                setCurrentRouteURL(getRouteURL(currentRoutes[currentRoutes.length - 1]))
+            }
+        }
+    }, [currentRoutes])
 
     useEffect(() => {
         setItems([])
@@ -500,6 +540,16 @@ export const UploadToast = memo(({ message }) => {
                             }} style={{
                                 marginLeft: 20
                             }} onPress={() => {
+                                if(
+                                    currentRouteURL.indexOf("shared-in") !== -1 ||
+                                    currentRouteURL.indexOf("recents") !== -1 ||
+                                    currentRouteURL.indexOf("trash") !== -1 ||
+                                    currentRouteURL.indexOf("photos") !== -1 ||
+                                    currentRouteURL.indexOf("offline") !== -1
+                                ){
+                                    return false
+                                }
+
                                 if(!Array.isArray(items)){
                                     return false
                                 }
@@ -587,7 +637,7 @@ export const UploadToast = memo(({ message }) => {
                                 hideAllToasts()
                             }}>
                                 <Text style={{
-                                    color: darkMode ? "white" : "black"
+                                    color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
                                 }}>
                                     {i18n(lang, "upload")}
                                 </Text>
@@ -603,6 +653,20 @@ export const UploadToast = memo(({ message }) => {
 export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
+    const currentRoutes = useStore(useCallback(state => state.currentRoutes))
+    const [currentParent, setCurrentParent] = useState("")
+    const [currentRouteURL, setCurrentRouteURL] = useState("")
+
+    useEffect(() => {
+        if(Array.isArray(currentRoutes)){
+            const parent = getParent(currentRoutes[currentRoutes.length - 1])
+
+            if(typeof parent == "string" && parent.length > 0){
+                setCurrentParent(parent)
+                setCurrentRouteURL(getRouteURL(currentRoutes[currentRoutes.length - 1]))
+            }
+        }
+    }, [currentRoutes])
 
     return (
         <View style={{
@@ -663,6 +727,16 @@ export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
                 }} style={{
                     marginLeft: 20
                 }} onPress={() => {
+                    if(
+                        currentRouteURL.indexOf("shared-in") !== -1 ||
+                        currentRouteURL.indexOf("recents") !== -1 ||
+                        currentRouteURL.indexOf("trash") !== -1 ||
+                        currentRouteURL.indexOf("photos") !== -1 ||
+                        currentRouteURL.indexOf("offline") !== -1
+                    ){
+                        return false
+                    }
+
                     const parent = getParent()
                     let folderName = undefined
 
@@ -718,7 +792,7 @@ export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
                     })
                 }}>
                     <Text style={{
-                        color: darkMode ? "white" : "black"
+                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
                     }}>
                         {i18n(lang, "choose")}
                     </Text>
@@ -735,6 +809,20 @@ export const MoveBulkToast = memo(({ message }) => {
     const [lang, setLang] = useMMKVString("lang", storage)
     const currentBulkItems = useStore(useCallback(state => state.currentBulkItems))
     const initParent = useRef()
+    const currentRoutes = useStore(useCallback(state => state.currentRoutes))
+    const [currentParent, setCurrentParent] = useState("")
+    const [currentRouteURL, setCurrentRouteURL] = useState("")
+
+    useEffect(() => {
+        if(Array.isArray(currentRoutes)){
+            const parent = getParent(currentRoutes[currentRoutes.length - 1])
+
+            if(typeof parent == "string" && parent.length > 0){
+                setCurrentParent(parent)
+                setCurrentRouteURL(getRouteURL(currentRoutes[currentRoutes.length - 1]))
+            }
+        }
+    }, [currentRoutes])
 
     useEffect(() => {
         DeviceEventEmitter.emit("event", {
@@ -796,6 +884,18 @@ export const MoveBulkToast = memo(({ message }) => {
                     marginLeft: 20
                 }} onPress={() => {
                     if(buttonsDisabled){
+                        return false
+                    }
+
+                    if(
+                        currentRouteURL.indexOf("shared-in") !== -1 ||
+                        currentRouteURL.indexOf("recents") !== -1 ||
+                        currentRouteURL.indexOf("trash") !== -1 ||
+                        currentRouteURL.indexOf("photos") !== -1 ||
+                        currentRouteURL.indexOf("offline") !== -1
+                    ){
+                        showToast({ message: i18n(lang, "cannotMoveItemsHere") })
+
                         return false
                     }
 
@@ -880,7 +980,7 @@ export const MoveBulkToast = memo(({ message }) => {
                     })
                 }}>
                     <Text style={{
-                        color: "white"
+                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
                     }}>
                         {i18n(lang, "move")}
                     </Text>

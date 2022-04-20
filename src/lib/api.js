@@ -1787,9 +1787,7 @@ export const restoreItem = ({ item }) => {
                 item,
                 routeURL: "trash"
             }).then(() => {
-                clearLoadItemsCacheLastResponse({
-                    parent: item.parent
-                }).then(() => {
+                clearLoadItemsCacheLastResponse().then(() => {
                     return resolve()
                 })
             })
