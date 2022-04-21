@@ -67,7 +67,7 @@ export const fr = {
     folderColorChanged: "La couleur de __NAME__ a changé en __COLOR__",
     itemUnfavorited: "__NAME__ supprimé des favoris",
     itemFavorited: "__NAME__ ajouté aux favoris",
-    favori: "Ajouter aux favoris",
+    favorite: "Ajouter aux favoris",
     unfavorite: "Retirer des favoris",
     deviceOffline: "L'appareil est hors ligne",
     publicLinkEnabled: "Lien public activé",
