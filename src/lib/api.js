@@ -7,6 +7,7 @@ import { logout } from "./auth/logout"
 import { useStore } from "./state"
 import BackgroundTimer from "react-native-background-timer"
 import DeviceInfo from "react-native-device-info"
+import axios from "axios"
 
 const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(16)
@@ -43,6 +44,25 @@ export const apiRequest = ({ method, endpoint, data }) => {
         }
 
         const request = () => {
+            if(tries >= maxTries){
+                try{
+                    var cache = storage.getString(cacheKey)
+    
+                    if(typeof cache == "string"){
+                        if(cache.length > 0){
+                            return resolve(JSON.parse(cache))
+                        }
+                    }
+                }
+                catch(e){
+                    //console.log(e)
+                }
+
+                return reject(err)
+            }
+
+            tries += 1
+
             apiRequestSemaphore.acquire().then(() => {
                 global.nodeThread.apiRequest({
                     method: method.toUpperCase(),
@@ -76,25 +96,6 @@ export const apiRequest = ({ method, endpoint, data }) => {
                     return resolve(res)
                 }).catch((err) => {
                     apiRequestSemaphore.release()
-
-                    if(tries >= maxTries){
-                        try{
-                            var cache = storage.getString(cacheKey)
-            
-                            if(typeof cache == "string"){
-                                if(cache.length > 0){
-                                    return resolve(JSON.parse(cache))
-                                }
-                            }
-                        }
-                        catch(e){
-                            //console.log(e)
-                        }
-    
-                        return reject(err)
-                    }
-    
-                    tries += 1
     
                     return BackgroundTimer.setTimeout(request, retryTimeout)
                 })
@@ -1073,20 +1074,23 @@ export const renameFile = ({ file, name }) => {
         global.nodeThread.hashFn({ string: name.toLowerCase() }).then((nameHashed) => {
             const masterKeys = getMasterKeys()
 
-            encryptMetadata(JSON.stringify({
-                name,
-                size: file.size,
-                mime: file.mime,
-                key: file.key,
-                lastModified: file.lastModified
-            }), masterKeys[masterKeys.length - 1]).then((encrypted) => {
+            Promise.all([
+                encryptMetadata(JSON.stringify({
+                    name,
+                    size: file.size,
+                    mime: file.mime,
+                    key: file.key,
+                    lastModified: file.lastModified
+                }), masterKeys[masterKeys.length - 1]),
+                encryptMetadata(name, masterKeys[masterKeys.length - 1])
+            ]).then(([encrypted, encryptedName]) => {
                 apiRequest({
                     method: "POST",
                     endpoint: "/v1/file/rename",
                     data: {
                         apiKey: getAPIKey(),
                         uuid: file.uuid,
-                        name,
+                        name: encryptedName,
                         nameHashed,
                         metaData: encrypted
                     }

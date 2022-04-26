@@ -14,6 +14,22 @@ const util = require("util")
 const keyutil = require("js-crypto-key-utils")
 const CryptoApi = require("crypto-api-v1")
 const { uuid } = require("uuidv4")
+const https = require("https")
+const http = require("http")
+
+const axiosClient = axios.create({
+    timeout: 3600000,
+    maxContentLength: (((1024 * 1024) * 1024) * 1024),
+    httpsAgent: new https.Agent({
+        keepAlive: true
+    }),
+    httpAgent: new http.Agent({
+        keepAlive: true
+    }),
+    headers: {
+        "User-Agent": "filen-mobile"
+    }
+}) 
 
 const cachedDerivedKeys = {}
 const cachedPemKeys = {}
@@ -169,7 +185,7 @@ const decryptData = (base64, key, version) => {
 
 const downloadAndDecryptChunk = (url, timeout, key, version) => {
     return new Promise((resolve, reject) => {
-        axios.get(url, {
+        axiosClient.get(url, {
             responseType: "arraybuffer",
             timeout,
             headers: {
@@ -390,7 +406,7 @@ const hashFn = (val) => {
 const apiRequest = (method, url, timeout, data) => {
     return new Promise((resolve, reject) => {
         if(method == "POST"){
-            axios.post(url, JSON.stringify(data), {
+            axiosClient.post(url, JSON.stringify(data), {
                 headers: {
                     "Content-Type": "application/json",
                     "User-Agent": "filen-mobile"
@@ -420,7 +436,7 @@ const encryptAndUploadChunk = (base64, key, url, timeout) => {
                 return reject(e)
             }
 
-            axios({
+            axiosClient({
                 method: "post",
                 url,
                 data,
@@ -453,7 +469,7 @@ const uploadAvatar = (base64, url, timeout) => {
             return reject(e)
         }
     
-        axios({
+        axiosClient({
             method: "post",
             url,
             data,

@@ -143,12 +143,14 @@ export const App = memo(() => {
                                 if(typeof navigationRef !== "undefined"){
                                     const navState = navigationRef.getState()
 
-                                    if(typeof navState.routes !== "undefined"){
-                                        if(navState.routes.filter(route => route.name == "SetupScreen" || route.name == "BiometricAuthScreen" || route.name == "LoginScreen").length == 0){
-                                            if(storage.getBoolean("isLoggedIn")){
-                                                BackgroundTimer.clearInterval(wait)
-
-                                                return resolve()
+                                    if(typeof navState !== "undefined"){
+                                        if(typeof navState.routes !== "undefined"){
+                                            if(navState.routes.filter(route => route.name == "SetupScreen" || route.name == "BiometricAuthScreen" || route.name == "LoginScreen").length == 0){
+                                                if(storage.getBoolean("isLoggedIn")){
+                                                    BackgroundTimer.clearInterval(wait)
+    
+                                                    return resolve()
+                                                }
                                             }
                                         }
                                     }

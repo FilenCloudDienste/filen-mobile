@@ -57,6 +57,14 @@ global.nodeThread = {
 		const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
+            if(typeof base64 !== "string"){
+                return resolve("")
+            }
+
+            if(base64.length == 0){
+                return resolve("")
+            }
+
 			isNodeInitialized().then(() => {
                 resolves[id] = resolve
                 rejects[id] = reject

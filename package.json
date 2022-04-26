@@ -21,6 +21,7 @@
 		"@react-navigation/bottom-tabs": "^6.2.0",
 		"@react-navigation/native": "^6.0.8",
 		"@react-navigation/native-stack": "^6.4.0",
+		"axios": "^0.27.1",
 		"crypto-api-v1": "^1.0.0",
 		"crypto-js": "^4.1.1",
 		"fbjs": "^3.0.4",

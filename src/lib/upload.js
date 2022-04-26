@@ -1,4 +1,4 @@
-import { getUploadServer, getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileParentPath, getFileExt, canCompressThumbnail, randomIdUnsafe } from "./helpers"
+import { getUploadServer, getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileParentPath, getFileExt, canCompressThumbnail } from "./helpers"
 import RNFS from "react-native-fs"
 import { useStore } from "./state"
 import { fileExists, markUploadAsDone, archiveFile, checkIfItemParentIsShared, reportError } from "./api"
@@ -11,9 +11,8 @@ import { getThumbnailCacheKey } from "./services/items"
 import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import { memoryCache } from "./memoryCache"
-import { updateLoadItemsCache, addItemLoadItemsCache, buildFile } from "./services/items"
+import { addItemLoadItemsCache, buildFile } from "./services/items"
 import BackgroundTimer from "react-native-background-timer"
-import ReactNativeBlobUtil from "react-native-blob-util"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
