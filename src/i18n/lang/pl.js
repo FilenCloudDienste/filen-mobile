@@ -375,7 +375,7 @@ export const pl = {
     changeEmail: "Zmień adres e-mail",
     changePassword: "Zmień hasło",
     updateNeeded: "Zaktualizuj aplikację, aby korzystać z najnowszych funkcji i poprawek!",
-    updateAvailable: "Dostępna aktualizacja",
+    updateAvailable: "Dostępna jest aktualizacja",
     updateNow: "Zaktualizuj teraz",
     couldNotOpenAppStoreLink: "Nie można otworzyć linku do AppStore, ręcznie zaktualizuj aplikację",
     notEnoughRemoteStorage: "Za mało miejsca w chmurze",
