@@ -1,4 +1,4 @@
-export const en = {
+export const pl = {
     cloud: "Chmura",
     shared: "Udostępnione",
     recents: "Ostatnie",
