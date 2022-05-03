@@ -146,7 +146,7 @@ export const ru = {
     monthShort_1: "Фев.",
     monthShort_2: "Мар.",
     monthShort_3: "Апр.",
-    monthShort_4: "Май.",
+    monthShort_4: "Мая",
     monthShort_5: "Июн.",
     monthShort_6: "Июл.",
     monthShort_7: "Авг.",
