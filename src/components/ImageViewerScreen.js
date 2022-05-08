@@ -14,7 +14,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { setStatusBarStyle } from "../lib/statusbar"
 import { canCompressThumbnail, getFileExt } from "../lib/helpers"
 import { useMountedState } from "react-use"
-import GestureRecognizer from "react-native-swipe-gestures"
 
 const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 const currentImagePreviewDownloads = {}
@@ -190,7 +189,9 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
         setStatusBarStyle(true)
 
         if(typeof imagePreviewModalItems[imagePreviewModalIndex] !== "undefined"){
-            loadImage(imagePreviewModalItems[imagePreviewModalIndex], imagePreviewModalIndex)
+            setTimeout(() => {
+                loadImage(imagePreviewModalItems[imagePreviewModalIndex], imagePreviewModalIndex)
+            }, 50)
         }
 
         const deviceListener = DeviceEventEmitter.addListener("event", (data) => {
@@ -220,6 +221,8 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 index: lastIndex.current,
                 viewPosition: 0.5
             })
+
+            loadImage(imagePreviewModalItems[lastIndex.current], lastIndex.current)
         })
 
         return () => {
@@ -417,10 +420,14 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                         height: 50,
                         backgroundColor: "black"
                     }}
-                    onPress={() => listRef?.current?.scrollToIndex({
-                        animated: false,
-                        index
-                    })}
+                    onPress={() => {
+                        listRef?.current?.scrollToIndex({
+                            animated: false,
+                            index
+                        })
+
+                        loadImage(imagePreviewModalItems[index], index)
+                    }}
                 >
                     <ActivityIndicator size={"small"} color={"white"} style={{
                         margin: "auto",
@@ -445,10 +452,14 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                     justifyContent: "space-between",
                     alignItems: "center"
                 }}
-                onPress={() => listRef?.current?.scrollToIndex({
-                    animated: false,
-                    index
-                })}
+                onPress={() => {
+                    listRef?.current?.scrollToIndex({
+                        animated: false,
+                        index
+                    })
+
+                    loadImage(imagePreviewModalItems[index], index)
+                }}
             >
                 <Image
                     source={{
@@ -578,7 +589,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                     position: "absolute",
                     bottom: insets.bottom + insets.top,
                     width: "100%",
-                    height: 90,
+                    height: 85,
                     zIndex: 1000,
                     backgroundColor: "black",
                     paddingTop: 1,

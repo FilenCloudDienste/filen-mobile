@@ -1267,6 +1267,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
     }
 
     const previewType = getFilePreviewType(getFileExt(item.name))
+    const canThumbnail = canCompressThumbnail(getFileExt(item.name))
 
     if(!["image", "video", "text", "code", "pdf", "doc", "audio"].includes(previewType)){
         DeviceEventEmitter.emit("event", {
@@ -1278,6 +1279,15 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
     }
 
     if(previewType == "image"){
+        if(!canThumbnail){
+            DeviceEventEmitter.emit("event", {
+                type: "open-item-actionsheet",
+                data: item
+            })
+    
+            return false
+        }
+        
         return setImmediate(() => {
             const currentItems = useStore.getState().currentItems
             const currentImages = []
@@ -1286,7 +1296,9 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
             let index = 0
 
             for(let i = 0; i < currentItems.length; i++){
-                if(getFilePreviewType(getFileExt(currentItems[i].name)) == "image" && !addedImages[currentItems[i].uuid]){
+                const ext = getFileExt(currentItems[i].name)
+
+                if(getFilePreviewType(ext) == "image" && canCompressThumbnail(ext) && !addedImages[currentItems[i].uuid]){
                     addedImages[currentItems[i].uuid] = true
 
                     if(currentItems[i].uuid == item.uuid){

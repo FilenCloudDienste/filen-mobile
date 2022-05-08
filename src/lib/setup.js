@@ -4,6 +4,8 @@ import { apiRequest } from "./api"
 import { getAPIKey } from "./helpers"
 import { storage } from "./storage"
 
+const ONLY_DEFAULT_DRIVE_ENABLED = false
+
 export const clearCacheDirectories = () => {
     return new Promise((resolve, reject) => {
         RNFS.readDir(RNFS.TemporaryDirectoryPath).then(async (items) => {
@@ -80,7 +82,7 @@ export const setup = ({ navigation }) => {
                         }
                     }
 
-                    if(response.data.folders.length == 1){
+                    if(response.data.folders.length == 1 && ONLY_DEFAULT_DRIVE_ENABLED){
                         storage.set("defaultDriveOnly:" + storage.getNumber("userId"), true)
                     }
                     else{
