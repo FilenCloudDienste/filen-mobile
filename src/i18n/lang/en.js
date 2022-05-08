@@ -389,5 +389,6 @@ export const en = {
     startOnCloudScreen: "Start on cloud screen",
     appSetupNotPossible: "Could not initialize the app. Maybe you are offline?",
     shareIntoAppLimit: "You cannot share more than __LIMIT__ files into the app at once",
-    cameraUploadFetchingAssetsFromLocal: "Preparing local assets"
+    cameraUploadFetchingAssetsFromLocal: "Preparing local assets",
+    cannotShareDirIntoApp: "You cannot share a directory into the app"
 }

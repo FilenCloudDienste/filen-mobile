@@ -1,5 +1,8 @@
 import { updateKeys } from "./user/keys"
 import RNFS from "react-native-fs"
+import { apiRequest } from "./api"
+import { getAPIKey } from "./helpers"
+import { storage } from "./storage"
 
 export const clearCacheDirectories = () => {
     return new Promise((resolve, reject) => {
@@ -60,7 +63,32 @@ export const setup = ({ navigation }) => {
     return new Promise((resolve, reject) => {
         clearCacheDirectories().then(() => {
             updateKeys({ navigation }).then(() => {
-                return resolve()
+                apiRequest({
+                    method: "POST",
+                    endpoint: "/v1/user/baseFolders",
+                    data: {
+                        apiKey: getAPIKey()
+                    }
+                }).then((response) => {
+                    if(!response.status){
+                        return reject(response.message)
+                    }
+
+                    for(let i = 0; i < response.data.folders.length; i++){
+                        if(response.data.folders[i].is_default){
+                            storage.set("defaultDriveUUID:" + storage.getNumber("userId"), response.data.folders[i].uuid)
+                        }
+                    }
+
+                    if(response.data.folders.length == 1){
+                        storage.set("defaultDriveOnly:" + storage.getNumber("userId"), true)
+                    }
+                    else{
+                        storage.set("defaultDriveOnly:" + storage.getNumber("userId"), false)
+                    }
+
+                    return resolve(true)
+                })
             }).catch((err) => {
                 return reject(err)
             })

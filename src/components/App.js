@@ -1,7 +1,7 @@
 import "../lib/globals"
 import "../lib/node"
 import React, { useState, useEffect, Fragment, useCallback, memo } from "react"
-import { Dimensions, SafeAreaView, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState, Text, Alert } from "react-native"
+import { Dimensions, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState, Text, Alert } from "react-native"
 import { setup } from "../lib/setup"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -13,11 +13,11 @@ import ShareMenu from "react-native-share-menu"
 import { setStatusBarStyle } from "../lib/statusbar"
 import { SetupScreen } from "./SetupScreen"
 import { BottomBar } from "./BottomBar"
-import { SafeAreaProvider } from "react-native-safe-area-context"
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { SettingsScreen } from "./SettingsScreen"
 import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet, ProfilePictureActionSheet, SortByActionSheet } from "./ActionSheets"
 import { useStore } from "../lib/state"
-import { FullscreenLoadingModal } from "./Modals"
+import { FullscreenLoadingModal, ImagePreviewModal } from "./Modals"
 import { enableScreens } from "react-native-screens"
 import { generateItemThumbnail, checkItemThumbnail } from "../lib/services/items"
 import { TransfersIndicator } from "./TransfersIndicator"
@@ -51,6 +51,7 @@ import { UpdateScreen } from "./UpdateScreen"
 import BackgroundTimer from "react-native-background-timer"
 import { setJSExceptionHandler, setNativeExceptionHandler } from "react-native-exception-handler"
 import { reportError } from "../lib/api"
+import ImageViewerScreen from "./ImageViewerScreen"
 
 setJSExceptionHandler((err, isFatal) => {
     reportError(err)
@@ -59,7 +60,7 @@ setJSExceptionHandler((err, isFatal) => {
         `
         Error: ${err.name} ${err.message}
 
-        The error has been automatically reported to us. Please restart the if it does not continue to work app!
+        The error has been automatically reported to us. Please restart the app if it does not continue to work!
         `,
         [
             {
@@ -123,6 +124,7 @@ export const App = memo(() => {
     const setContentHeight = useStore(useCallback(state => state.setContentHeight))
     const isDeviceReady = useStore(useCallback(state => state.isDeviceReady))
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
+    const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
 
     useEffect(() => {
         SplashScreen.hide()
@@ -255,13 +257,25 @@ export const App = memo(() => {
 
     const setAppearance = useCallback(() => {
         BackgroundTimer.setTimeout(() => {
-            if(Appearance.getColorScheme() == "dark"){
-                setDarkMode(true)
-                setStatusBarStyle(true)
+            if(typeof userSelectedTheme == "string" && userSelectedTheme.length > 1){
+                if(userSelectedTheme == "dark"){
+                    setDarkMode(true)
+                    setStatusBarStyle(true)
+                }
+                else{
+                    setDarkMode(false)
+                    setStatusBarStyle(false)
+                }
             }
             else{
-                setDarkMode(false)
-                setStatusBarStyle(false)
+                if(Appearance.getColorScheme() == "dark"){
+                    setDarkMode(true)
+                    setStatusBarStyle(true)
+                }
+                else{
+                    setDarkMode(false)
+                    setStatusBarStyle(false)
+                }
             }
         }, 1000) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
     })
@@ -356,7 +370,7 @@ export const App = memo(() => {
                             {
                                 name: "MainScreen",
                                 params: {
-                                    parent: startOnCloudScreen ? "base" : "recents"
+                                    parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
                                 }
                             }
                         ]
@@ -383,7 +397,7 @@ export const App = memo(() => {
                                     {
                                         name: "MainScreen",
                                         params: {
-                                            parent: startOnCloudScreen ? "base" : "recents"
+                                            parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
                                         }
                                     }
                                 ]
@@ -425,9 +439,9 @@ export const App = memo(() => {
                     <SafeAreaProvider style={{
                         backgroundColor: darkMode ? "black" : "white",
                     }}>
-                        <SafeAreaView style={{
-                            backgroundColor: darkMode ? "black" : "white",
-                            paddingTop: Platform.OS == "android" ? 15 : 15,
+                        <SafeAreaView mode="padding" style={{
+                            backgroundColor: currentScreenName == "ImageViewerScreen" ? "black" : (darkMode ? "black" : "white"),
+                            paddingTop: Platform.OS == "android" ? 5 : 5,
                             height: "100%",
                             width: "100%"
                         }}>
@@ -464,7 +478,7 @@ export const App = memo(() => {
                                                 <Stack.Screen name="ResendConfirmationScreen" component={ResendConfirmationScreen} options={{
                                                     title: "ResendConfirmationScreen"
                                                 }}></Stack.Screen>
-                                                <Stack.Screen name="MainScreen" initialParams={{ parent: startOnCloudScreen ? "base" : "recents" }} component={MainScreen} options={{
+                                                <Stack.Screen name="MainScreen" initialParams={{ parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents" }} component={MainScreen} options={{
                                                     title: "MainScreen"
                                                 }}></Stack.Screen>
                                                 <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{
@@ -511,6 +525,10 @@ export const App = memo(() => {
                                                 }}></Stack.Screen>
                                                 <Stack.Screen name="UpdateScreen" component={UpdateScreen} options={{
                                                     title: "UpdateScreen"
+                                                }}></Stack.Screen>
+                                                <Stack.Screen name="ImageViewerScreen" component={ImageViewerScreen} options={{
+                                                    title: "ImageViewerScreen",
+                                                    presentation: "fullScreenModal"
                                                 }}></Stack.Screen>
                                             </Stack.Navigator>
                                             <>
@@ -577,9 +595,10 @@ export const App = memo(() => {
                                 <ConfirmPermanentDeleteDialog navigation={navigationRef} />
                                 <RenameDialog navigation={navigationRef} />
                                 <CreateFolderDialog navigation={navigationRef} />
-                                <FullscreenLoadingModal navigation={navigationRef} />
                                 <CreateTextFileDialog navigation={navigationRef} />
                                 <BulkShareDialog navigation={navigationRef} />
+                                <ImagePreviewModal navigation={navigationRef} />
+                                <FullscreenLoadingModal navigation={navigationRef} />
                             </>
                         )
                     }

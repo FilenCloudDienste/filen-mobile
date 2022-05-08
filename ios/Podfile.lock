@@ -303,7 +303,7 @@ PODS:
     - React-Core
   - react-native-biometrics (2.1.4):
     - React
-  - react-native-blob-util (0.14.0):
+  - react-native-blob-util (0.14.1):
     - React-Core
   - react-native-cameraroll (4.1.2):
     - React-Core
@@ -421,10 +421,39 @@ PODS:
     - SDWebImageWebPCoder (~> 0.8.4)
   - RNFileViewer (2.1.5):
     - React-Core
-  - RNFS (2.18.0):
-    - React
+  - RNFS (2.19.0):
+    - React-Core
+  - RNGestureHandler (2.4.1):
+    - React-Core
   - RNPermissions (3.3.0):
     - React-Core
+  - RNReanimated (2.8.0):
+    - DoubleConversion
+    - FBLazyVector
+    - FBReactNativeSpec
+    - glog
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-Core/DevSupport
+    - React-Core/RCTWebSocket
+    - React-CoreModules
+    - React-cxxreact
+    - React-jsi
+    - React-jsiexecutor
+    - React-jsinspector
+    - React-RCTActionSheet
+    - React-RCTAnimation
+    - React-RCTBlob
+    - React-RCTImage
+    - React-RCTLinking
+    - React-RCTNetwork
+    - React-RCTSettings
+    - React-RCTText
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
@@ -533,7 +562,9 @@ DEPENDENCIES:
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNFS (from `../node_modules/react-native-fs`)
+  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
+  - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNShareMenu (from `../node_modules/react-native-share-menu`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -691,8 +722,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-file-viewer"
   RNFS:
     :path: "../node_modules/react-native-fs"
+  RNGestureHandler:
+    :path: "../node_modules/react-native-gesture-handler"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
+  RNReanimated:
+    :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   RNShareMenu:
@@ -748,7 +783,7 @@ SPEC CHECKSUMS:
   React-logger: b08f354e4c928ff794ca477347fea0922aaf11c3
   react-native-background-timer: 17ea5e06803401a379ebf1f20505b793ac44d0fe
   react-native-biometrics: 9d3306e5d29c3bc4e6a3c912d759a94e76a2f683
-  react-native-blob-util: 180714990c4563645fa70e9202cd32e27656a6e6
+  react-native-blob-util: 7ac01cd4a4ba81016864727a756ce2c1af995e35
   react-native-cameraroll: 2957f2bce63ae896a848fbe0d5352c1bd4d20866
   react-native-compressor: 4bb16f68ac8d8c59e1e97a0eb3948492b80a820a
   react-native-document-picker: 429972f7ece4463aa5bcdd789622b3a674a3c5d1
@@ -784,8 +819,10 @@ SPEC CHECKSUMS:
   RNDeviceInfo: 4944cf8787b9c5bffaf301fda68cc1a2ec003341
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNFileViewer: ce7ca3ac370e18554d35d6355cffd7c30437c592
-  RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
+  RNFS: fc610f78fdf8bfc89a9e5cc2f898519f4dba1002
+  RNGestureHandler: 4f4986408310a43f1606c391f38f76e0d6e790d5
   RNPermissions: bcd846e8f5a7f39e921cc7ca7172e2de0e698b6f
+  RNReanimated: 46cdb89ca59ab7181334f4ed05a70e82ddb36751
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   RNShareMenu: c69282e50ac439737a86949a55c7b023b90027c8
   RNSVG: 302bfc9905bd8122f08966dc2ce2d07b7b52b9f8

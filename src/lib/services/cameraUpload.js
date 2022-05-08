@@ -13,7 +13,7 @@ import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../permission
 
 const cameraUploadTimeout = 1000
 const copySemaphore = new Semaphore(1)
-const maxErrorCountIds = 3
+const maxErrorCountIds = 5
 const erroredIds = {}
 
 const increaseErrorCountForId = (id) => {

@@ -1,3 +1,10 @@
+delete process.env['http_proxy']
+delete process.env['HTTP_PROXY']
+delete process.env['https_proxy']
+delete process.env['HTTPS_PROXY']
+
+process.env.NODE_ENV = "production"
+
 process.on("uncaughtException", (err) => {
     console.log(err)
 })
@@ -20,14 +27,17 @@ const http = require("http")
 const axiosClient = axios.create({
     timeout: 3600000,
     maxContentLength: (((1024 * 1024) * 1024) * 1024),
+    maxBodyLength: (((1024 * 1024) * 1024) * 1024),
     httpsAgent: new https.Agent({
         keepAlive: true
     }),
     httpAgent: new http.Agent({
         keepAlive: true
     }),
+    proxy: false,
     headers: {
-        "User-Agent": "filen-mobile"
+        "User-Agent": "filen-mobile",
+        "Connection": "keep-alive"
     }
 }) 
 

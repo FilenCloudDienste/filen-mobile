@@ -7,7 +7,6 @@ import { logout } from "./auth/logout"
 import { useStore } from "./state"
 import BackgroundTimer from "react-native-background-timer"
 import DeviceInfo from "react-native-device-info"
-import axios from "axios"
 
 const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(16)

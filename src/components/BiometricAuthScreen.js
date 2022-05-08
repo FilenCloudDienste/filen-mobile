@@ -169,7 +169,7 @@ export const BiometricAuthScreen = memo(({ navigation, route }) => {
                             {
                                 name: "MainScreen",
                                 params: {
-                                    parent: startOnCloudScreen ? "base" : "recents"
+                                    parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
                                 }
                             }
                         ]

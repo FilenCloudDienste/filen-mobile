@@ -345,12 +345,12 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     })
 
                     if(isOfflineUpdate){
-                        if(showNotification){
+                        if(showNotification || useStore.getState().imagePreviewModalVisible){
                             showToast({ message: i18n(storage.getString("lang"), "fileStoredOfflineUpdate", true, ["__NAME__"], [file.name]) })
                         }
                     }
                     else{
-                        if(showNotification){
+                        if(showNotification || useStore.getState().imagePreviewModalVisible){
                             showToast({ message: i18n(storage.getString("lang"), "fileStoredOffline", true, ["__NAME__"], [file.name]) })
                         }
                     }
@@ -388,7 +388,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         RNFS.unlink(path).then(() => {
                             removeFromState()
 
-                            if(showNotification){
+                            if(showNotification || useStore.getState().imagePreviewModalVisible){
                                 showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                             }
 
@@ -427,7 +427,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     RNFS.moveFile(path, filePath).then(() => {
                         removeFromState()
 
-                        if(showNotification){
+                        if(showNotification || useStore.getState().imagePreviewModalVisible){
                             showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                         }
 
@@ -458,7 +458,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 RNFS.moveFile(path, filePath).then(() => {
                     removeFromState()
 
-                    if(showNotification){
+                    if(showNotification || useStore.getState().imagePreviewModalVisible){
                         showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                     }
 

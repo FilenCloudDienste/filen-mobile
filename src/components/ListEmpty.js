@@ -13,9 +13,12 @@ export const ListEmpty = memo(({ route, searchTerm = "" }) => {
     const netInfo = useStore(useCallback(state => state.netInfo))
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
+    const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
+    const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
 
     const routeURL = getRouteURL(route)
     const currentScreenName = route.name
+    const baseName = defaultDriveOnly ? defaultDriveUUID : "base"
 
     return (
         <View style={{
@@ -69,7 +72,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }) => {
                                         )
                                     }
                                     {
-                                        routeURL.indexOf("base") !== -1 && (
+                                        routeURL.indexOf(baseName) !== -1 && (
                                             <>
                                                 <Ionicon name="document-outline" size={70} color={darkMode ? "gray" : "gray"} />
                                                 <Text style={{

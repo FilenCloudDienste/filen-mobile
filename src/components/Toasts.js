@@ -576,29 +576,41 @@ export const UploadToast = memo(({ message }) => {
                                                     return reject("Could not get file name")
                                                 }
 
-                                                ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
-                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+                                                RNFS.stat(item).then((stat) => {
+                                                    if(stat.isDirectory()){
+                                                        return reject(i18n(lang, "cannotShareDirIntoApp"))
+                                                    }
 
-                                                    RNFS.stat(path).then((stat) => {
-                                                        const type = mime.lookup(name)
-                                                        const ext = mime.extension(type)
-                                                        const size = stat.size
-
-                                                        return resolve({ path, ext, type, size, name })
+                                                    ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
+                                                        await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+    
+                                                        RNFS.stat(path).then((stat) => {
+                                                            const type = mime.lookup(name)
+                                                            const ext = mime.extension(type)
+                                                            const size = stat.size
+    
+                                                            return resolve({ path, ext, type, size, name })
+                                                        }).catch(reject)
                                                     }).catch(reject)
                                                 }).catch(reject)
                                             }
                                             else{
-                                                RNFS.copyFile(item, path).then(async () => {
-                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+                                                RNFS.stat(item).then((stat) => {
+                                                    if(stat.isDirectory()){
+                                                        return reject(i18n(lang, "cannotShareDirIntoApp"))
+                                                    }
 
-                                                    RNFS.stat(path).then((stat) => {
-                                                        const name = getFilenameFromPath(item)
-                                                        const type = mime.lookup(name)
-                                                        const ext = mime.extension(type)
-                                                        const size = stat.size
-                                                        
-                                                        return resolve({ path, ext, type, size, name })
+                                                    RNFS.copyFile(item, path).then(async () => {
+                                                        await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+    
+                                                        RNFS.stat(path).then((stat) => {
+                                                            const name = getFilenameFromPath(item)
+                                                            const type = mime.lookup(name)
+                                                            const ext = mime.extension(type)
+                                                            const size = stat.size
+                                                            
+                                                            return resolve({ path, ext, type, size, name })
+                                                        }).catch(reject)
                                                     }).catch(reject)
                                                 }).catch(reject)
                                             }

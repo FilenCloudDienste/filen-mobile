@@ -17,7 +17,7 @@ import BackgroundTimer from "react-native-background-timer"
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
 
-export const encryptAndUploadChunk = ({ base64, key, url, timeout }) => {
+export const encryptAndUploadChunk = ({ base64, key, url, timeout, showErrors = true }) => {
     return new Promise((resolve, reject) => {
         const maxTries = 1024
         let currentTries = 0
@@ -25,7 +25,7 @@ export const encryptAndUploadChunk = ({ base64, key, url, timeout }) => {
 
         const doRequest = () => {
             if(currentTries > maxTries){
-                return reject(new Error("Max tries reached"))
+                return reject(new Error("Max tries reached for upload"))
             }
 
             currentTries += 1
@@ -48,7 +48,7 @@ export const encryptAndUploadChunk = ({ base64, key, url, timeout }) => {
             }).catch((err) => {
                 console.log(err)
 
-                showToast({ message: err.toString() })
+                //showToast({ message: err.toString() })
 
                 return BackgroundTimer.setTimeout(doRequest, retryTimer)
             })
@@ -536,7 +536,8 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
                         base64,
                         key,
                         url: getUploadServer() + "/v1/upload?" + queryParams,
-                        timeout: 3600000
+                        timeout: 3600000,
+                        showErrors: typeof cameraUploadCallback == "function" ? false : true
                     }).then((res) => {
                         if(typeof res !== "object"){
                             console.log("upload res not object, uuid: " + uuid + ", name: " + name)

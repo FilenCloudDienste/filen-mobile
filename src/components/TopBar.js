@@ -14,6 +14,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     const getTopBarTitle = useCallback(({ route, lang = "en" }) => {
         let title = "Cloud"
         const parent = getParent(route)
+        const routeURL = getRouteURL(route)
     
         const isMainScreen = (route.name == "MainScreen")
         const isTransfersScreen = (route.name == "TransfersScreen")
@@ -63,15 +64,20 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                 title = i18n(lang, "cloud")
             }
             else{
-                try{
-                    var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent))
-                }
-                catch(e){
-                    //console.log(e)
-                }
-        
-                if(typeof folderCache == "object"){
-                    title = folderCache.name
+                if((routeURL.split("/").length - 1) > 0){
+                    try{
+                        var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent))
+                    }
+                    catch(e){
+                        //console.log(e)
+                    }
+            
+                    if(typeof folderCache == "object"){
+                        title = folderCache.name
+                    }
+                    else{
+                        title = i18n(lang, "cloud")
+                    }
                 }
                 else{
                     title = i18n(lang, "cloud")
@@ -112,6 +118,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 
     if(isTransfersScreen && !showBackButton){
         showBackButton = true
+    }
+
+    if(isMainScreen && (routeURL.split("/").length - 1) == 0){
+        showBackButton = false
     }
 
     useEffect(() => {

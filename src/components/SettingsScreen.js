@@ -17,6 +17,7 @@ import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import { hasStoragePermissions } from "../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
+import { setStatusBarStyle } from "../lib/statusbar"
 
 const MISC_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
 
@@ -315,6 +316,7 @@ export const SettingsScreen = memo(({ navigation, route }) => {
     const [biometricPinAuth, setBiometricPinAuth] = useMMKVBoolean("biometricPinAuth:" + userId, storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
+    const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
 
     return (
         <ScrollView style={{
@@ -377,6 +379,26 @@ export const SettingsScreen = memo(({ navigation, route }) => {
                 }} title={i18n(lang, "cameraUpload")} />
             </SettingsGroup>
             <SettingsGroup>
+                <SettingsButton title={i18n(lang, "darkMode")} rightComponent={
+                    <Switch
+                        trackColor={getColor(darkMode, "switchTrackColor")}
+                        thumbColor={userSelectedTheme == "dark" ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                        onValueChange={(value) => {
+                            if(value){
+                                setUserSelectedTheme("dark")
+                                setDarkMode(true)
+                                setStatusBarStyle(true)
+                            }
+                            else{
+                                setUserSelectedTheme("light")
+                                setDarkMode(false)
+                                setStatusBarStyle(false)
+                            }
+                        }}
+                        value={typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 ? userSelectedTheme == "dark" : darkMode}
+                    />
+                } />
                 <SettingsButton title={i18n(lang, "startOnCloudScreen")} rightComponent={
                     <Switch
                         trackColor={getColor(darkMode, "switchTrackColor")}

@@ -353,16 +353,35 @@ export function unixTimestamp(){
 }
 
 export const canCompressThumbnail = (ext) => {
-    switch(ext.toLowerCase()){
-        case "jpeg":
-        case "jpg":
-        case "png":
-        case "gif":
-            return true
-        break
-        default:
-            return false
-        break
+    if(Platform.OS == "android"){
+        switch(ext.toLowerCase()){
+            case "jpeg":
+            case "jpg":
+            case "png":
+            case "gif":
+                return true
+            break
+            default:
+                return false
+            break
+        }
+    }
+    else{
+        switch(ext.toLowerCase()){
+            case "jpeg":
+            case "jpg":
+            case "png":
+            case "gif":
+            case "heif":
+            case "heic":
+            case "heifs":
+            case "heics":
+                return true
+            break
+            default:
+                return false
+            break
+        }
     }
 }
 
@@ -382,128 +401,266 @@ export function itemNameValidationRegex(type = "file", name){
 }
 
 export const canShowThumbnail = (ext) => {
-    switch(ext.toLowerCase()){
-        case "jpeg":
-        case "jpg":
-        case "png":
-        case "gif":
-        case "svg":
-        case "mp4":
-        case "webm":
-        case "avi":
-        case "mov":
-        case "wmv":
-            return true
-        break
-        default:
-            return false
-        break
+    if(Platform.OS == "android"){
+        switch(ext.toLowerCase()){
+            case "jpeg":
+            case "jpg":
+            case "png":
+            case "gif":
+            case "svg":
+            case "mp4":
+            case "webm":
+            case "avi":
+            case "mov":
+            case "wmv":
+                return true
+            break
+            default:
+                return false
+            break
+        }
+    }
+    else{
+        switch(ext.toLowerCase()){
+            case "jpeg":
+            case "jpg":
+            case "png":
+            case "gif":
+            case "svg":
+            case "mp4":
+            case "webm":
+            case "avi":
+            case "mov":
+            case "wmv":
+            case "heif":
+            case "heifs":
+            case "heic":
+            case "heics":
+            case "hevc":
+                return true
+            break
+            default:
+                return false
+            break
+        }
     }
 }
 
 export const getFilePreviewType = (ext, mime) => {
-    switch(ext.toLowerCase()){
-      case "jpeg":
-      case "jpg":
-      case "png":
-      case "gif":
-      case "svg":
-        return "image"
-      break
-      case "mp3":
-      case "mp2":
-      case "wav":
-      case "ogg":
-      case "m4a":
-      case "aac":
-      case "flac":
-      case "midi":
-      case "xmf":
-      case "rtx":
-      case "ota":
-      case "mpa":
-      case "aif":
-      case "rtttl":
-      case "wma":
-        return "audio"
-      break
-      case "mp4":
-      case "webm":
-      case "mkv":
-      case "flv":
-      case "mov":
-      case "ogv":
-      case "3gp":
-      case "avi":
-        return "video"
-      break
-      case "json":
-	  case "swift":
-	  case "m":
-      case "js":
-      case "md":
-      case "php":
-      case "css":
-      case "c":
-      case "perl":
-      case "html":
-      case "html5":
-      case "jsx":
-      case "php5":
-      case "yml":
-      case "md":
-      case "xml":
-      case "sql":
-      case "java":
-      case "csharp":
-      case "dist":
-      case "py":
-      case "cc":
-      case "cpp":
-      case "log":
-      case "conf":
-      case "cxx":
-      case "ini":
-      case "lock":
-      case "bat":
-      case "sh":
-      case "properties":
-      case "cfg":
-      case "ahk":
-      //case "ts":
-      case "tsx":
-        return "code"
-      break
-      case "txt":
-      case "rtf":
-        return "text"
-      break
-      case "pdf":
-        return "pdf"
-      break
-	  case "docx":
-	  case "doc":
-	  case "odt":
-	  case "xls":
-	  case "xlsx":
-	  case "ods":
-	  case "ppt":
-	  case "pptx":
-	  case "csv":
-		return "doc"
-	  break
-	  case "heic":
-		return "heic"
-	  break
-	  case "heif":
-		return "heif"
-	  break
-	  case "hevc":
-		return "hevc"
-	  break
-      default:
-        return "none"
-      break
+    if(Platform.OS == "android"){
+        switch(ext.toLowerCase()){
+            case "jpeg":
+            case "jpg":
+            case "png":
+            case "gif":
+            case "svg":
+              return "image"
+            break
+            case "mp3":
+            case "mp2":
+            case "wav":
+            case "ogg":
+            case "m4a":
+            case "aac":
+            case "flac":
+            case "midi":
+            case "xmf":
+            case "rtx":
+            case "ota":
+            case "mpa":
+            case "aif":
+            case "rtttl":
+            case "wma":
+              return "audio"
+            break
+            case "mp4":
+            case "webm":
+            case "mkv":
+            case "flv":
+            case "mov":
+            case "ogv":
+            case "3gp":
+            case "avi":
+              return "video"
+            break
+            case "json":
+            case "swift":
+            case "m":
+            case "js":
+            case "md":
+            case "php":
+            case "css":
+            case "c":
+            case "perl":
+            case "html":
+            case "html5":
+            case "jsx":
+            case "php5":
+            case "yml":
+            case "md":
+            case "xml":
+            case "sql":
+            case "java":
+            case "csharp":
+            case "dist":
+            case "py":
+            case "cc":
+            case "cpp":
+            case "log":
+            case "conf":
+            case "cxx":
+            case "ini":
+            case "lock":
+            case "bat":
+            case "sh":
+            case "properties":
+            case "cfg":
+            case "ahk":
+            //case "ts":
+            case "tsx":
+              return "code"
+            break
+            case "txt":
+            case "rtf":
+              return "text"
+            break
+            case "pdf":
+              return "pdf"
+            break
+            case "docx":
+            case "doc":
+            case "odt":
+            case "xls":
+            case "xlsx":
+            case "ods":
+            case "ppt":
+            case "pptx":
+            case "csv":
+              return "doc"
+            break
+            case "heic":
+              return "heic"
+            break
+            case "heif":
+              return "heif"
+            break
+            case "hevc":
+              return "hevc"
+            break
+            default:
+              return "none"
+            break
+          }
+    }
+    else{
+        switch(ext.toLowerCase()){
+            case "jpeg":
+            case "jpg":
+            case "png":
+            case "gif":
+            case "svg":
+            case "heic":
+            case "heics":
+            case "heif":
+            case "heifs":
+              return "image"
+            break
+            case "mp3":
+            case "mp2":
+            case "wav":
+            case "ogg":
+            case "m4a":
+            case "aac":
+            case "flac":
+            case "midi":
+            case "xmf":
+            case "rtx":
+            case "ota":
+            case "mpa":
+            case "aif":
+            case "rtttl":
+            case "wma":
+              return "audio"
+            break
+            case "mp4":
+            case "webm":
+            case "mkv":
+            case "flv":
+            case "mov":
+            case "ogv":
+            case "3gp":
+            case "avi":
+            case "hevc":
+              return "video"
+            break
+            case "json":
+            case "swift":
+            case "m":
+            case "js":
+            case "md":
+            case "php":
+            case "css":
+            case "c":
+            case "perl":
+            case "html":
+            case "html5":
+            case "jsx":
+            case "php5":
+            case "yml":
+            case "md":
+            case "xml":
+            case "sql":
+            case "java":
+            case "csharp":
+            case "dist":
+            case "py":
+            case "cc":
+            case "cpp":
+            case "log":
+            case "conf":
+            case "cxx":
+            case "ini":
+            case "lock":
+            case "bat":
+            case "sh":
+            case "properties":
+            case "cfg":
+            case "ahk":
+            //case "ts":
+            case "tsx":
+              return "code"
+            break
+            case "txt":
+            case "rtf":
+              return "text"
+            break
+            case "pdf":
+              return "pdf"
+            break
+            case "docx":
+            case "doc":
+            case "odt":
+            case "xls":
+            case "xlsx":
+            case "ods":
+            case "ppt":
+            case "pptx":
+            case "csv":
+              return "doc"
+            break
+            case "heic":
+              return "heic"
+            break
+            case "heif":
+              return "heif"
+            break
+            case "hevc":
+              return "hevc"
+            break
+            default:
+              return "none"
+            break
+          }
     }
 }
 

@@ -1,7 +1,7 @@
 import React, { useCallback, memo } from "react"
 import { Text, View, Pressable } from "react-native"
 import { storage } from "../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
 import { useStore, navigationAnimation } from "../lib/state"
 import Ionicon from "react-native-vector-icons/Ionicons"
@@ -16,9 +16,13 @@ export const BottomBar = memo(({ navigation, route }) => {
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(useCallback(state => state.netInfo))
     const setBottomBarHeight = useStore(useCallback(state => state.setBottomBarHeight))
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
+    const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
 
     const parent = getParent(route)
     const routeURL = getRouteURL(route)
+    const baseName = defaultDriveOnly ? defaultDriveUUID : "base"
 
     let currentScreenName = "MainScreen"
     let isRecentsScreen = false
@@ -40,7 +44,7 @@ export const BottomBar = memo(({ navigation, route }) => {
             isPhotosScreen = (routeURL.indexOf("photos") !== -1)
             isFavoritesScreen = (routeURL.indexOf("favorites") !== -1)
             isSharedScreen = ((routeURL.indexOf("shared-in") !== -1) || (routeURL.indexOf("shared-out") !== -1) || (routeURL.indexOf("links") !== -1))
-            isBaseScreen = (routeURL.indexOf("base") !== -1)
+            isBaseScreen = (routeURL.indexOf(baseName) !== -1)
             isOfflineScreen = (routeURL.indexOf("offline") !== -1)
         }
     }
@@ -135,7 +139,7 @@ export const BottomBar = memo(({ navigation, route }) => {
                             {
                                 name: "MainScreen",
                                 params: {
-                                    parent: "base"
+                                    parent: (defaultDriveOnly ? defaultDriveUUID : "base")
                                 }
                             }
                         ]

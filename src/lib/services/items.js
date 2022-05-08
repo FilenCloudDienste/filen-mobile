@@ -5,7 +5,7 @@ import striptags from "striptags"
 import { downloadWholeFileFSStream, getDownloadPath, queueFileDownload } from "../download"
 import RNFS from "react-native-fs"
 import { DeviceEventEmitter } from "react-native"
-import { useStore } from "../state"
+import { useStore, waitForStateUpdate } from "../state"
 import FileViewer from "react-native-file-viewer"
 import { getOfflineList, removeFromOfflineStorage, changeItemNameInOfflineList, getItemOfflinePath } from "./offline"
 import { showToast } from "../../components/Toasts"
@@ -1140,13 +1140,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false }) => {
     }
 
     const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid: item.uuid })
-
-    try{
-        var cache = storage.getString(cacheKey)
-    }
-    catch(e){
-        //console.log(e)
-    }
+    const cache = storage.getString(cacheKey)
 
     if(typeof cache == "string"){
         if(cache.length > 0){
@@ -1174,13 +1168,8 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false }) => {
         return false
     }
 
-    try{
-        if(storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
-            return false
-        }
-    }
-    catch(e){
-        console.log(e)
+    if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
+        return false
     }
 
     if(typeof isGeneratingThumbnailForItemUUID[item.uuid] !== "undefined"){
@@ -1190,7 +1179,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false }) => {
     isGeneratingThumbnailForItemUUID[item.uuid] = true
 
     global.generateThumbnailSemaphore.acquire().then(() => {
-        if(typeof global.visibleItems[item.uuid] == "undefined"){
+        if(typeof global.visibleItems[item.uuid] == "undefined" && !skipInViewCheck){
             delete isGeneratingThumbnailForItemUUID[item.uuid]
         
             global.generateThumbnailSemaphore.release()
@@ -1288,6 +1277,45 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         return false
     }
 
+    if(previewType == "image"){
+        return setImmediate(() => {
+            const currentItems = useStore.getState().currentItems
+            const currentImages = []
+            let currentIndex = 0
+            const addedImages = {}
+            let index = 0
+
+            for(let i = 0; i < currentItems.length; i++){
+                if(getFilePreviewType(getFileExt(currentItems[i].name)) == "image" && !addedImages[currentItems[i].uuid]){
+                    addedImages[currentItems[i].uuid] = true
+
+                    if(currentItems[i].uuid == item.uuid){
+                        currentIndex = index
+                    }
+                    
+                    currentImages.push({
+                        uri: undefined,
+                        name: currentItems[i].name,
+                        index,
+                        uuid: currentItems[i].uuid,
+                        thumbnail: currentItems[i].thumbnail,
+                        file: currentItems[i]
+                    })
+
+                    index += 1
+                }
+            }
+
+            Promise.all([
+                waitForStateUpdate("imagePreviewModalIndex", currentIndex),
+                waitForStateUpdate("imagePreviewModalItems", currentImages),
+                navigationAnimation({ enable: true })
+            ]).then(() => {
+                navigation.dispatch(StackActions.push("ImageViewerScreen"))
+            })
+        })
+    }
+
     let existsOffline = false
     let offlinePath = ""
 
@@ -1309,7 +1337,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
             if(offlineMode){
                 return FileViewer.open(path, {
                     displayName: item.name,
-                    showOpenWithDialog: true
+                    showOpenWithDialog: false
                 }).then(() => {
                     //console.log(path)
                 }).catch((err) => {
@@ -1319,40 +1347,10 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
                 })
             }
 
-            if(previewType == "image"){
-                /*const currentImages = []
-
-                const imgPath = decodeURIComponent(path.indexOf("file://") == -1 ? "file://" + path : path)
-
-                currentImages.push({
-                    uri: imgPath
-                })
-
-                if(setCurrentActionSheetItem){
-                    useStore.setState({ currentActionSheetItem: item })
-                }
-
-                useStore.setState({ imageViewerImages: currentImages })
-
-                setStatusBarStyle(true)
-
-                useStore.setState({ imageViewerModalVisible: true })*/
-
+            if(previewType == "video"){
                 FileViewer.open(path, {
                     displayName: item.name,
-                    showOpenWithDialog: true
-                }).then(() => {
-                    //console.log(path)
-                }).catch((err) => {
-                    console.log(err)
-
-                    showToast({ message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name]) })
-                })
-            }
-            else if(previewType == "video"){
-                FileViewer.open(path, {
-                    displayName: item.name,
-                    showOpenWithDialog: true
+                    showOpenWithDialog: false
                 }).then(() => {
                     //console.log(path)
                 }).catch((err) => {
@@ -1364,7 +1362,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
             else if(previewType == "pdf" || previewType == "doc"){
                 FileViewer.open(path, {
                     displayName: item.name,
-                    showOpenWithDialog: true
+                    showOpenWithDialog: false
                 }).then(() => {
                     //console.log(path)
                 }).catch((err) => {

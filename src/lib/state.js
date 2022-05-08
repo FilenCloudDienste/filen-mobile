@@ -108,6 +108,12 @@ export const useStore = create(subscribeWithSelector(set => ({
 	setBiometricAuthScreenVisible: (biometricAuthScreenVisible) => set({ biometricAuthScreenVisible }),
 	currentToastQueue: 0,
 	setCurrentToastQueue: (currentToastQueue) => set({ currentToastQueue }),
+	imagePreviewModalVisible: false,
+	setImagePreviewModalVisible: (imagePreviewModalVisible) => set({ imagePreviewModalVisible }),
+	imagePreviewModalItems: [],
+	setImagePreviewModalItems: (imagePreviewModalItems) => set({ imagePreviewModalItems }),
+	imagePreviewModalIndex: 0,
+	setImagePreviewModalIndex: (imagePreviewModalIndex) => set({ imagePreviewModalIndex }),
 })))
 
 export const navigationAnimation = ({ enable = true }) => {
