@@ -57,7 +57,7 @@ export const uk = {
     biometricPinAuth: "Аутентифікація за біометрією/PIN-кодом",
     advanced: "Розширені",
     itemSavedToGallery: "__NAME__ збережено в галерею",
-    noPermissionsToWriteToStorage: "Програма не має дозволів на запис у сховище",
+    noPermissionsToWriteToStorage: "Додаток не має дозволів на запис у сховище",
     color_default: "За замовчуванням",
     color_blue: "Голубий",
     color_green: "Зелений",
@@ -374,10 +374,10 @@ export const uk = {
     twoFactorAuthentication: "Двофакторна аутентифікація",
     changeEmail: "Змінити адресу електронної пошти",
     changePassword: "Змінити пароль",
-    updateNeeded: "Будь ласка, оновіть програму, щоб насолоджуватись найновішими функціями та виправленнями!",
+    updateNeeded: "Будь ласка, оновіть додаток, щоб насолоджуватись найновішими функціями та виправленнями!",
     updateAvailable: "Оновлення доступне",
     updateNow: "Оновити зараз",
-    couldNotOpenAppStoreLink: "Не вдалося відкрити посилання на магазин додатків, будь ласка, оновіть програму вручну",
+    couldNotOpenAppStoreLink: "Не вдалося відкрити посилання на магазин додатків, будь ласка, оновіть додаток вручну",
     notEnoughRemoteStorage: "Недостатньо місця у хмарному сховищі",
     newPasswordPlaceholder: "Новий пароль",
     confirmNewPasswordPlaceholder: "Підтвердьте новий пароль",
@@ -388,6 +388,7 @@ export const uk = {
     invalidTwoFactorKey: "Недійсний ключ двофакторної аутентифікації",
     startOnCloudScreen: "При запуску відкривати вкладку Хмара",
     appSetupNotPossible: "Не вдалося ініціалізувати додаток. Можливо ви знаходитесь в автономному режимі?",
-    shareIntoAppLimit: "Ви не можете надіслати більше __LIMIT__ файлів у програму одночасно",
-    cameraUploadFetchingAssetsFromLocal: "Підготовка локальних об'єктів"
+    shareIntoAppLimit: "Ви не можете надіслати більше __LIMIT__ файлів у додаток одночасно",
+    cameraUploadFetchingAssetsFromLocal: "Підготовка локальних об'єктів",
+    cannotShareDirIntoApp: "Ви не можете надіслати папку в додаток"
 }
