@@ -16,7 +16,6 @@ import { canCompressThumbnail, getFileExt } from "../lib/helpers"
 import { useMountedState } from "react-use"
 
 const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
-const currentImagePreviewDownloads = {}
 const minZoom = 0.99999999999
 
 const ImageViewerScreen = memo(({ navigation, route }) => {
@@ -43,12 +42,14 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
     const [portrait, setPortrait] = useState(screenDimensions.height >= screenDimensions.width)
     const lastIndex = useRef(0)
     const didNavBack = useRef(false)
+    const currentImagePreviewDownloads = useRef({}).current
 
     const loadImage = useCallback((image, index) => {
         if(!isMounted()){
             return false
         }
 
+        zoomLevel.current = minZoom
         lastIndex.current = index
 
         setCurrentName(image.file.name)
@@ -190,6 +191,17 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
 
         if(typeof imagePreviewModalItems[imagePreviewModalIndex] !== "undefined"){
             setTimeout(() => {
+                listRef?.current?.scrollToIndex({
+                    animated: false,
+                    index: imagePreviewModalIndex
+                })
+    
+                thumbnailListRef?.current?.scrollToIndex({
+                    animated: false,
+                    index: imagePreviewModalIndex,
+                    viewPosition: 0.5
+                })
+
                 loadImage(imagePreviewModalItems[imagePreviewModalIndex], imagePreviewModalIndex)
             }, 50)
         }
@@ -211,18 +223,20 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
 
             setPortrait(screen.height >= screen.width)
 
-            listRef?.current?.scrollToIndex({
-                animated: false,
-                index: lastIndex.current
-            })
-
-            thumbnailListRef?.current?.scrollToIndex({
-                animated: false,
-                index: lastIndex.current,
-                viewPosition: 0.5
-            })
-
-            loadImage(imagePreviewModalItems[lastIndex.current], lastIndex.current)
+            setTimeout(() => {
+                listRef?.current?.scrollToIndex({
+                    animated: false,
+                    index: lastIndex.current
+                })
+    
+                thumbnailListRef?.current?.scrollToIndex({
+                    animated: false,
+                    index: lastIndex.current,
+                    viewPosition: 0.5
+                })
+    
+                loadImage(imagePreviewModalItems[lastIndex.current], lastIndex.current)
+            }, 1000)
         })
 
         return () => {
@@ -283,8 +297,14 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
 
                     if(view.zoomLevel <= 1.1){
                         listRef?.current?.scrollToIndex({
-                            animated: true,
+                            animated: false,
                             index
+                        })
+
+                        thumbnailListRef?.current?.scrollToIndex({
+                            animated: false,
+                            index,
+                            viewPosition: 0.5
                         })
                     }
                 }}
@@ -420,7 +440,14 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                         height: 50,
                         backgroundColor: "black"
                     }}
-                    onPress={() => {
+                    onPress={async () => {
+                        try{
+                            await viewRefs[imagePreviewModalItems[currentIndex].uuid]?.zoomTo(1)
+                        }
+                        catch(e){
+                            console.log(e)
+                        }
+
                         listRef?.current?.scrollToIndex({
                             animated: false,
                             index
@@ -452,7 +479,14 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                     justifyContent: "space-between",
                     alignItems: "center"
                 }}
-                onPress={() => {
+                onPress={async () => {
+                    try{
+                        await viewRefs[imagePreviewModalItems[currentIndex].uuid]?.zoomTo(1)
+                    }
+                    catch(e){
+                        console.log(e)
+                    }
+
                     listRef?.current?.scrollToIndex({
                         animated: false,
                         index
@@ -501,7 +535,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 backgroundColor: "black",
                 paddingLeft: 10,
                 paddingRight: 15,
-                paddingTop: portrait ? (insets.top + 5) : 5,
+                paddingTop: portrait ? (insets.top + 5) : 15,
                 paddingBottom: 10,
                 marginTop: 0
             }}>
@@ -564,14 +598,13 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 }}
                 ref={listRef}
                 data={imagePreviewModalItems}
-                initialScrollIndex={imagePreviewModalIndex <= imagePreviewModalItems.length ? imagePreviewModalIndex : 0}
+                initialScrollIndex={imagePreviewModalIndex}
                 renderItem={({ item, index }) => {
                     return renderImage(item, index)
                 }}
                 keyExtractor={(item, index) => item.uuid}
-                windowSize={8}
-                initialNumToRender={16}
-                removeClippedSubviews={true}
+                windowSize={3}
+                initialNumToRender={1}
                 horizontal={true}
                 bounces={true}
                 getItemLayout={(data, index) => ({ length: dimensions.window.width, offset: dimensions.window.width * index, index })}
@@ -599,7 +632,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 }}
                 ref={thumbnailListRef}
                 data={imagePreviewModalItems}
-                initialScrollIndex={imagePreviewModalIndex <= imagePreviewModalItems.length ? imagePreviewModalIndex : 0}
+                initialScrollIndex={imagePreviewModalIndex}
                 renderItem={({ item, index }) => {
                     return renderThumb(item, index)
                 }}
@@ -607,10 +640,8 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 keyExtractor={(item, index) => item.uuid}
                 windowSize={8}
                 initialNumToRender={32}
-                removeClippedSubviews={true}
                 horizontal={true}
                 scrollEnabled={true}
-                pagingEnabled={false}
                 bounces={false}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}

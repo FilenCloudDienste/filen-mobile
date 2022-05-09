@@ -60,6 +60,9 @@ export const LanguageScreen = memo(({ navigation, route }) => {
                     <SettingsButtonLinkHighlight title="日本語" onPress={() => {
                         setLang("ja")
                     }} />
+                    <SettingsButtonLinkHighlight title="Polski" onPress={() => {
+                        setLang("pl")
+                    }} />
                 </SettingsGroup>
                 <View style={{ height: 25 }}></View>
             </ScrollView>
