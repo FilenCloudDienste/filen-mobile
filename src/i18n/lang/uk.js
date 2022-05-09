@@ -389,5 +389,6 @@ export const uk = {
     startOnCloudScreen: "При запуску відкривати вкладку Хмара",
     appSetupNotPossible: "Не вдалося ініціалізувати додаток. Можливо ви знаходитесь в автономному режимі?",
     shareIntoAppLimit: "Ви не можете надіслати більше __LIMIT__ файлів у програму одночасно",
-    cameraUploadFetchingAssetsFromLocal: "Підготовка локальних об'єктів"
+    cameraUploadFetchingAssetsFromLocal: "Підготовка локальних об'єктів",
+    cannotShareDirIntoApp: "Ви не можете відправити в додаток папку"
 }
