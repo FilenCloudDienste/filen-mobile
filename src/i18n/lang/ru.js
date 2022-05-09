@@ -390,5 +390,5 @@ export const ru = {
     appSetupNotPossible: "Не удалось инициализировать приложение. Возможно вы находитесь в автономном режиме?",
     shareIntoAppLimit: "Вы не можете отправить больше __LIMIT__ файлов в приложение одновременно",
     cameraUploadFetchingAssetsFromLocal: "Подготовка локальных объектов",
-    cannotShareDirIntoApp: "Вы не можете отправить в приложение папку"
+    cannotShareDirIntoApp: "Вы не можете отправить папку в приложение"
 }
