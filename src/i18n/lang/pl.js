@@ -211,7 +211,7 @@ export const pl = {
     eventDeleteAllInfo: "Wszystkie pliki i foldery zostały usunięte",
     eventDeleteUnfinishedInfo: "Niedokończone przesyłanie zostało usunięte",
     eventTrashEmptiedInfo: "Opróżniono kosz",
-    eventRequestAccountDeletionInfo: "Wysłano prośbe o usunięcie konta",
+    eventRequestAccountDeletionInfo: "Wysłano prośbę o usunięcie konta",
     event2FAEnabledInfo: "Włączono uwierzytelnianie dwuskładnikowe",
     event2FADisabledInfo: "Wyłaczono uwierzytelnianie dwuskładnikowe",
     eventCodeRedeemInfo: "Kod __CODE__ został wykorzystany",
