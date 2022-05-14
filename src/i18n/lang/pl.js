@@ -213,7 +213,7 @@ export const pl = {
     eventTrashEmptiedInfo: "Opróżniono kosz",
     eventRequestAccountDeletionInfo: "Wysłano prośbę o usunięcie konta",
     event2FAEnabledInfo: "Włączono uwierzytelnianie dwuskładnikowe",
-    event2FADisabledInfo: "Wyłaczono uwierzytelnianie dwuskładnikowe",
+    event2FADisabledInfo: "Wyłączono uwierzytelnianie dwuskładnikowe",
     eventCodeRedeemInfo: "Kod __CODE__ został wykorzystany",
     eventEmailChangedInfo: "Zmieniono adres e-mail na __EMAIL__",
     eventPasswordChangedInfo: "Hasło zostało zmienione",
