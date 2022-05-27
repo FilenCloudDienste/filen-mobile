@@ -27,7 +27,7 @@ export const CameraUploadScreen = memo(({ navigation, route }) => {
             showToast({ type: "cameraUploadChooseFolder", message: i18n(lang, "cameraUploadChooseFolder"), navigation })
 
             navigation.dispatch(StackActions.push("MainScreen", {
-                parent: "base"
+                parent: storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base"
             }))
         })
     })

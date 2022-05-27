@@ -9,4 +9,5 @@ export const setStatusBarStyle = (darkMode) => {
     }
 
     StatusBar.setBarStyle(darkMode ? "light-content" : "dark-content")
+
 }

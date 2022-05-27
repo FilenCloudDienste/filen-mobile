@@ -7,6 +7,7 @@ import { ru } from "./lang/ru"
 import { uk } from "./lang/uk"
 import { nl } from "./lang/nl"
 import { pl } from "./lang/pl"
+import { zh } from "./lang/zh"
 
 const translations = {
     en,
@@ -17,7 +18,8 @@ const translations = {
     ru,
     uk,
     nl,
-    pl
+    pl,
+    zh
 }
 
 export const i18n = (lang = "en", text, firstUpperCase = true, replaceFrom = [], replaceTo = []) => {

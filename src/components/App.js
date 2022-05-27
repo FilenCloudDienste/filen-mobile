@@ -17,7 +17,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { SettingsScreen } from "./SettingsScreen"
 import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet, ProfilePictureActionSheet, SortByActionSheet } from "./ActionSheets"
 import { useStore } from "../lib/state"
-import { FullscreenLoadingModal, ImagePreviewModal } from "./Modals"
+import { FullscreenLoadingModal } from "./Modals"
 import { enableScreens } from "react-native-screens"
 import { generateItemThumbnail, checkItemThumbnail } from "../lib/services/items"
 import { TransfersIndicator } from "./TransfersIndicator"
@@ -125,11 +125,7 @@ export const App = memo(() => {
     const isDeviceReady = useStore(useCallback(state => state.isDeviceReady))
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
-
-    useEffect(() => {
-        SplashScreen.hide()
-        BackgroundTimer.start()
-    }, [])
+    const [currentDimensions, setCurrentDimensions] = useState({ window: Dimensions.get("window"), screen: Dimensions.get("screen") })
 
     const handleShare = useCallback(async (items) => {
         if(!items){
@@ -303,6 +299,9 @@ export const App = memo(() => {
             console.log(err)
         })
 
+        SplashScreen.hide()
+        BackgroundTimer.start()
+
         const appStateListener = AppState.addEventListener("change", (nextAppState) => {
             setAppState(nextAppState)
 
@@ -327,6 +326,7 @@ export const App = memo(() => {
 
         const dimensionsListener = Dimensions.addEventListener("change", ({ window, screen }) => {
             setDimensions({ window, screen })
+            setCurrentDimensions({ window, screen })
         })
 
         const navigationRefListener = navigationRef.addListener("state", (event) => {
@@ -446,9 +446,9 @@ export const App = memo(() => {
                             width: "100%"
                         }}>
                             <View style={{
-                                width: "100%",
-                                height: "100%",
-                                backgroundColor: darkMode ? "black" : "white",
+                                width: currentScreenName == "ImageViewerScreen" ? currentDimensions.screen.width : "100%",
+                                height: currentScreenName == "ImageViewerScreen" ? currentDimensions.screen.height : "100%",
+                                backgroundColor: darkMode ? "black" : "white"
                             }} onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}>
                                 {
                                     nodeJSAlive ? (
@@ -597,7 +597,6 @@ export const App = memo(() => {
                                 <CreateFolderDialog navigation={navigationRef} />
                                 <CreateTextFileDialog navigation={navigationRef} />
                                 <BulkShareDialog navigation={navigationRef} />
-                                <ImagePreviewModal navigation={navigationRef} />
                                 <FullscreenLoadingModal navigation={navigationRef} />
                             </>
                         )

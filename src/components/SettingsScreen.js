@@ -336,6 +336,23 @@ export const SettingsScreen = memo(({ navigation, route }) => {
             <SettingsGroup marginTop={15}>
                 <SettingsHeader navigation={navigation} route={route} />
             </SettingsGroup>
+            {
+                __DEV__ && (
+                    <SettingsGroup>
+                        <SettingsButtonLinkHighlight title={"Clear loadItemsCache"} onPress={() => {
+                            const keys = storage.getAllKeys()
+
+                            keys.forEach(key => {
+                                if(key.indexOf("loadItemsCache:") !== -1 || key.indexOf("folderSize:") !== -1){
+                                    storage.delete(key)
+                                }
+                            })
+
+                            showToast({ message: "Cleared" })
+                        }} />
+                    </SettingsGroup>
+                )
+            }
             <SettingsGroup>
                 <SettingsButtonLinkHighlight onPress={() => {
                     if(!netInfo.isConnected || !netInfo.isInternetReachable){

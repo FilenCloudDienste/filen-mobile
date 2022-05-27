@@ -198,7 +198,7 @@ export const MainScreen = memo(({ navigation, route }) => {
         setItemsSelectedCount(selectedCountRef.current)
     }, [items])
 
-    const fetchItemList = useCallback(({ bypassCache = false, callStack = 0 }) => {
+    const fetchItemList = useCallback(({ bypassCache = false, callStack = 0, loadFolderSizes = false }) => {
         return new Promise((resolve, reject) => {
             loadItems({
                 parent: getParent(route),
@@ -210,7 +210,8 @@ export const MainScreen = memo(({ navigation, route }) => {
                 bypassCache,
                 route,
                 setProgress,
-                callStack
+                callStack,
+                loadFolderSizes
             }).then(resolve).catch(reject)
         })
     })
@@ -220,11 +221,7 @@ export const MainScreen = memo(({ navigation, route }) => {
         setRoute(route)
         setInsets(insets)
         
-        if(netInfo.isConnected && netInfo.isInternetReachable){
-            InteractionManager.runAfterInteractions(() => {
-                fetchItemList({ bypassCache: false }).catch((err) => console.log(err))
-            })
-        }
+        fetchItemList({ bypassCache: false, callStack: 0, loadFolderSizes: false }).catch((err) => console.log(err))
 
         global.fetchItemList = fetchItemList
 

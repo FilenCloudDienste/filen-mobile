@@ -45,7 +45,9 @@ target 'Filen' do
 end
 
 target 'ShareExtension' do
-  use_react_native!
+  use_react_native!(
+    :hermes_enabled => false
+  )
 
   pod 'RNShareMenu', :path => '../node_modules/react-native-share-menu'
   # Manually link packages here to keep your extension bundle size minimal

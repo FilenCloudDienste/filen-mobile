@@ -352,7 +352,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 	const [canMakeAvailableOffline, setCanMakeAvailableOffline] = useState(false)
 	const [canDownload, setCanDownload] = useState(false)
 
-	const maxBulkActionsItemsCount = 1000
+	const maxBulkActionsItemsCount = 10000
 	const minBulkActionsItemCount = 2
 
 	const doesSelectedItemsContainOfflineStoredItems = useCallback(() => {

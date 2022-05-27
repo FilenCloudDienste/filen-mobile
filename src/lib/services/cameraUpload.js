@@ -418,7 +418,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                         await RNFS.unlink(copyPath)
                     }
 
-                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 100)) // somehow needs to sleep a bit, otherwise the copy call fails on older/slower devices
+                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 250)) // somehow needs to sleep a bit, otherwise the copy call fails on older/slower devices
                     
                     await RNFS.copyFile(asset.uri, copyPath)
                 }
@@ -458,7 +458,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                         await RNFS.unlink(copyPath)
                     }
 
-                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 100)) // somehow needs to sleep a bit, otherwise the copy call fails on older/slower devices
+                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 250)) // somehow needs to sleep a bit, otherwise the copy call fails on older/slower devices
 
                     //todo: RN blob util supports copying raw heif/heic, make it an option
                     //await ReactNativeBlobUtil.fs.cp(asset.uri, copyPath)

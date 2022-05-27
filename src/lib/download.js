@@ -494,6 +494,17 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 export const downloadWholeFileFSStream = ({ file, path = undefined, progressCallback = undefined, maxChunks = Infinity }) => {
     return new Promise(async (resolve, reject) => {
         try{
+            const fileOfflinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), file)
+
+            if((await RNFS.exists(fileOfflinePath))){
+                return resolve(fileOfflinePath)
+            }
+        }
+        catch(e){
+            //console.log(e)
+        }
+
+        try{
             if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
                 await clearCacheDirectories()
 

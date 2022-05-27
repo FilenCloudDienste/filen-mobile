@@ -168,7 +168,7 @@ export class GridItem extends Component {
     render(){
         const { item, index, darkMode } = this.props
 
-        const windowWidth = this.props.dimensions.window.width || window.width
+        const windowWidth = ((this.props.dimensions.window.width || window.width) - (this.props.insets.left + this.props.insets.right))
 
         return (
             <Pressable key={index.toString()} style={{
@@ -333,8 +333,9 @@ export class PhotosItem extends Component {
     render(){
         const { item, index, darkMode } = this.props
 
-        const windowWidth = this.props.dimensions.window.width || window.width
-        const imageWidthAndHeight = Math.floor(windowWidth / calcPhotosGridSize(this.props.photosGridSize)) - 1
+        const calcedGridSize = calcPhotosGridSize(this.props.photosGridSize)
+        const windowWidth = ((this.props.dimensions.window.width || window.width) - (this.props.insets.left + this.props.insets.right))
+        const imageWidthAndHeight = Math.floor(windowWidth / calcedGridSize) - 1.5
 
         return (
             <Pressable key={index.toString()} style={{

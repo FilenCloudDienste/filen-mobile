@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, memo } from "react"
-import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform } from "react-native"
+import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, Dimensions } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange } from "../lib/helpers"
@@ -11,12 +11,13 @@ import { navigationAnimation } from "../lib/state"
 import { StackActions } from "@react-navigation/native"
 import { ListEmpty } from "./ListEmpty"
 import { getFolderSizeFromCache } from "../lib/services/items"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 export const ItemList = memo(({ navigation, route, items, showLoader, setItems, searchTerm, isMounted, fetchItemList, progress, setProgress, loadDone }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [refreshing, setRefreshing] = useState(false)
     const [itemViewMode, setItemViewMode] = useMMKVString("itemViewMode", storage)
-    const dimensions = useStore(useCallback(state => state.dimensions))
+    const dimensions = { window: Dimensions.get("window"), screen: Dimensions.get("screen") }
     const [lang, setLang] = useMMKVString("lang", storage)
     const cameraUploadTotal = useStore(useCallback(state => state.cameraUploadTotal))
     const cameraUploadUploaded = useStore(useCallback(state => state.cameraUploadUploaded))
@@ -33,6 +34,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const netInfo = useStore(useCallback(state => state.netInfo))
     const [scrollIndex, setScrollIndex] = useState(0)
     const [currentItems, setCurrentItems] = useState([])
+    const insets = useSafeAreaInsets()
 
     const generateItemsForItemList = useCallback((items, range, lang = "en") => {
         range = normalizePhotosRange(range)
@@ -162,10 +164,6 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             global.visibleItems[item.uuid] = true
 
             getThumbnail({ item })
-            
-            if(item.type == "folder"){
-                getFolderSizeFromCache({ folder: item, routeURL })
-            }
         }
 
         if(typeof viewableItems[0] == "object" && typeof viewableItems[viewableItems.length - 1] == "object" && routeURL.indexOf("photos") !== -1){
@@ -248,23 +246,23 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         if(viewMode == "photos"){
             if(normalizePhotosRange(photosRange) !== "all"){
                 return (
-                    <PhotosRangeItem item={item} index={index} darkMode={darkMode} selected={item.selected} thumbnail={item.thumbnail} name={item.name} size={item.size} color={item.color} favorited={item.favorited} offline={item.offline} photosGridSize={photosGridSize} hideFileNames={hideFileNames} hideThumbnails={hideThumbnails} lang={lang} dimensions={dimensions} hideSizes={hideSizes} photosRange={normalizePhotosRange(photosRange)} photosRangeItemClick={photosRangeItemClick} />
+                    <PhotosRangeItem item={item} index={index} darkMode={darkMode} selected={item.selected} thumbnail={item.thumbnail} name={item.name} size={item.size} color={item.color} favorited={item.favorited} offline={item.offline} photosGridSize={photosGridSize} hideFileNames={hideFileNames} hideThumbnails={hideThumbnails} lang={lang} dimensions={dimensions} hideSizes={hideSizes} photosRange={normalizePhotosRange(photosRange)} photosRangeItemClick={photosRangeItemClick} insets={insets} />
                 )
             }
 
             return (
-                <PhotosItem item={item} index={index} darkMode={darkMode} selected={item.selected} thumbnail={item.thumbnail} name={item.name} size={item.size} color={item.color} favorited={item.favorited} offline={item.offline} photosGridSize={photosGridSize} hideFileNames={hideFileNames} hideThumbnails={hideThumbnails} lang={lang} dimensions={dimensions} hideSizes={hideSizes} />
+                <PhotosItem item={item} index={index} darkMode={darkMode} selected={item.selected} thumbnail={item.thumbnail} name={item.name} size={item.size} color={item.color} favorited={item.favorited} offline={item.offline} photosGridSize={photosGridSize} hideFileNames={hideFileNames} hideThumbnails={hideThumbnails} lang={lang} dimensions={dimensions} hideSizes={hideSizes} insets={insets} />
             )
         }
 
         if(viewMode == "grid"){
             return (
-                <GridItem item={item} index={index} darkMode={darkMode} selected={item.selected} thumbnail={item.thumbnail} name={item.name} size={item.size} color={item.color} favorited={item.favorited} offline={item.offline} hideFileNames={hideFileNames} hideThumbnails={hideThumbnails} lang={lang} dimensions={dimensions} hideSizes={hideSizes} />
+                <GridItem item={item} index={index} darkMode={darkMode} selected={item.selected} thumbnail={item.thumbnail} name={item.name} size={item.size} color={item.color} favorited={item.favorited} offline={item.offline} hideFileNames={hideFileNames} hideThumbnails={hideThumbnails} lang={lang} dimensions={dimensions} hideSizes={hideSizes} insets={insets} />
             )
         }
 
         return (
-            <ListItem item={item} index={index} darkMode={darkMode} selected={item.selected} thumbnail={item.thumbnail} name={item.name} size={item.size} color={item.color} favorited={item.favorited} offline={item.offline} hideFileNames={hideFileNames} hideThumbnails={hideThumbnails} lang={lang} dimensions={dimensions} hideSizes={hideSizes} />
+            <ListItem item={item} index={index} darkMode={darkMode} selected={item.selected} thumbnail={item.thumbnail} name={item.name} size={item.size} color={item.color} favorited={item.favorited} offline={item.offline} hideFileNames={hideFileNames} hideThumbnails={hideThumbnails} lang={lang} dimensions={dimensions} hideSizes={hideSizes} insets={insets} />
         )
     })
 
@@ -293,6 +291,14 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             })
         }
     }, [photosGridSize])
+
+    useEffect(() => {
+        items.forEach(item => {
+            if(item.type == "folder"){
+                getFolderSizeFromCache({ folder: item, routeURL, load: true })
+            }
+        })
+    }, [items])
 
     return (
         <View style={{
@@ -537,7 +543,11 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 removeClippedSubviews={true}
                 initialScrollIndex={(currentItems.length > 0 ? currentItems.length : generateItemsForItemList(items, normalizePhotosRange(photosRange), lang).length) > 0 ? getInitialScrollInex() : undefined}
                 numColumns={routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : itemViewMode == "grid" ? 2 : 1}
-                getItemLayout={(data, index) => ({ length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor(dimensions.window.width - 5))) : (itemViewMode == "grid" ? (Math.floor(dimensions.window.width / 2) - 19 + 40) : (55))), offset: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor(dimensions.window.width - 5))) : (itemViewMode == "grid" ? (Math.floor(dimensions.window.width / 2) - 19 + 40) : (55))) * index, index })}
+                getItemLayout={(data, index) => ({
+                    length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))),
+                    offset: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))) * index,
+                    index
+                })}
                 ListEmptyComponent={() => {
                     return (
                         <View style={{
@@ -572,11 +582,21 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                             if(typeof fetchItemList == "function"){
                                 try{
                                     await new Promise((resolve) => setTimeout(resolve, 500))
-                                    await fetchItemList({ bypassCache: true, callStack: 1 })
+                                    await fetchItemList({ bypassCache: true, callStack: 1, loadFolderSizes: true })
                                 }
                                 catch(e){
                                     console.log(e)
                                 }
+
+                                setTimeout(() => {
+                                    if(items.length > 0){
+                                        items.forEach(item => {
+                                            if(item.type == "folder"){
+                                                getFolderSizeFromCache({ folder: item, routeURL, load: true })
+                                            }
+                                        })
+                                    }
+                                }, 250)
 
                                 setRefreshing(false)
                             }

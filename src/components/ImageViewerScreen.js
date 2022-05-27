@@ -1,19 +1,21 @@
 import React, { useCallback, memo, useEffect, useState, useRef } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, DeviceEventEmitter, Pressable, Dimensions } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Animated, Pressable, Dimensions, StatusBar } from "react-native"
 import { useStore } from "../lib/state"
 import { storage } from "../lib/storage"
-import { useMMKVBoolean } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Image from "react-native-fast-image"
 import Ionicon from "react-native-vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
 import { downloadWholeFileFSStream } from "../lib/download"
-import { SheetManager } from "react-native-actions-sheet"
 import RNFS from "react-native-fs"
 import { navigationAnimation } from "../lib/state"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { setStatusBarStyle } from "../lib/statusbar"
-import { canCompressThumbnail, getFileExt } from "../lib/helpers"
 import { useMountedState } from "react-use"
+import { hideNavigationBar, showNavigationBar } from "react-native-navigation-bar-color"
+import { generateItemThumbnail } from "../lib/services/items"
+import { getImageForItem } from "../assets/thumbnails"
+import { i18n } from "../i18n/i18n"
 
 const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 const minZoom = 0.99999999999
@@ -21,10 +23,10 @@ const minZoom = 0.99999999999
 const ImageViewerScreen = memo(({ navigation, route }) => {
     const screenDimensions = Dimensions.get("screen")
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const [lang, setLang] = useMMKVString("lang", storage)
     const imagePreviewModalItems = useStore(useCallback(state => state.imagePreviewModalItems))
     const imagePreviewModalIndex = useStore(useCallback(state => state.imagePreviewModalIndex))
     const setCurrentActionSheetItem = useStore(useCallback(state => state.setCurrentActionSheetItem))
-    const dimensions = useStore(useCallback(state => state.dimensions))
     const [images, setImages] = useState({})
     const [currentName, setCurrentName] = useState("")
     const [isZooming, setIsZooming] = useState(false)
@@ -32,7 +34,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
     const zoomLevel = useRef(minZoom)
     const thumbnailListRef = useRef()
     const listRef = useRef()
-    const [currentIndex, setCurrentIndex] = useState(0)
+    const [currentIndex, setCurrentIndex] = useState(imagePreviewModalIndex)
     const [showControls, setShowControls] = useState(true)
     const insets = useSafeAreaInsets()
     const viewRefs = useRef({}).current
@@ -40,9 +42,11 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
     const tapCount = useRef(0)
     const tapTimer = useRef(undefined)
     const [portrait, setPortrait] = useState(screenDimensions.height >= screenDimensions.width)
-    const lastIndex = useRef(0)
     const didNavBack = useRef(false)
     const currentImagePreviewDownloads = useRef({}).current
+    const setListScrollAgain = useRef(false)
+    const imageActionsContainerHeight = new Animated.Value(120)
+    const imageActionsVisible = useRef(false)
 
     const loadImage = useCallback((image, index) => {
         if(!isMounted()){
@@ -50,7 +54,6 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
         }
 
         zoomLevel.current = minZoom
-        lastIndex.current = index
 
         setCurrentName(image.file.name)
         setCurrentActionSheetItem(image.file)
@@ -61,6 +64,15 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
             index,
             viewPosition: 0.5
         })
+
+        if(setListScrollAgain.current){
+            setListScrollAgain.current = false
+
+            listRef?.current?.scrollToIndex({
+                animated: false,
+                index
+            })
+        }
 
         const currentImages = {...images}
 
@@ -83,10 +95,24 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 return false
             }
 
-            return setImages(prev => ({
-                ...prev,
-                [image.uuid]: path
-            }))
+            generateItemThumbnail({
+                item: image.file,
+                skipInViewCheck: true,
+                callback: (err, thumbPath) => {
+                    if(!isMounted()){
+                        return false
+                    }
+
+                    if(!err && typeof thumbPath == "string"){
+                        updateItemThumbnail(image.file, thumbPath)
+                    }
+
+                    return setImages(prev => ({
+                        ...prev,
+                        [image.uuid]: path
+                    }))
+                }
+            })
         }).catch((err) => {
             delete currentImagePreviewDownloads[image.uuid]
 
@@ -110,25 +136,6 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
         loadImage(indexItem.item, indexItem.index)
     }))
 
-    const getThumbnail = useCallback(({ item }) => {
-        if(item.type == "file"){
-            if(canCompressThumbnail(getFileExt(item.name))){
-                if(typeof item.thumbnail !== "string"){
-                    DeviceEventEmitter.emit("event", {
-                        type: "generate-thumbnail",
-                        item
-                    })
-                }
-                else{
-                    //DeviceEventEmitter.emit("event", {
-                    //    type: "check-thumbnail",
-                    //    item
-                    //})
-                }
-            }
-        }
-    })
-
     const updateItemThumbnail = useCallback((item, path) => {
         if(typeof path !== "string"){
             return false
@@ -148,34 +155,9 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
 
     const viewabilityConfigRef = useRef({
         minimumViewTime: 0,
-        viewAreaCoveragePercentThreshold: 95
-    })
-
-    const onViewableItemsChangedThumbnailsRef = useRef(useCallback(({ viewableItems }) => {
-        const visible = {}
-
-        for(let i = 0; i < viewableItems.length; i++){
-            const item = viewableItems[i].item.file
-
-            visible[item.uuid] = true
-            global.visibleItems[item.uuid] = true
-
-            getThumbnail({ item })
-        }
-
-        for(let prop in global.visibleItems){
-            if(typeof visible[prop] !== "undefined"){
-                global.visibleItems[prop] = true
-            }
-            else{
-                delete global.visibleItems[prop]
-            }
-        }
-    }))
-
-    const viewabilityConfigThumbnailsRef = useRef({
-        minimumViewTime: 0,
-        viewAreaCoveragePercentThreshold: 95
+        viewAreaCoveragePercentThreshold: 95,
+        viewAreaCoveragePercentThreshold: 95,
+        waitForInteraction: false
     })
 
     useEffect(() => {
@@ -187,34 +169,23 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
     }, [isZooming])
 
     useEffect(() => {
+        if(imagePreviewModalItems.length == 0){
+            return navigation.goBack()
+        }
+
         setStatusBarStyle(true)
+        
+        if(Platform.OS == "android"){
+            hideNavigationBar()
+
+            StatusBar.setHidden(true)
+        }
 
         if(typeof imagePreviewModalItems[imagePreviewModalIndex] !== "undefined"){
             setTimeout(() => {
-                listRef?.current?.scrollToIndex({
-                    animated: false,
-                    index: imagePreviewModalIndex
-                })
-    
-                thumbnailListRef?.current?.scrollToIndex({
-                    animated: false,
-                    index: imagePreviewModalIndex,
-                    viewPosition: 0.5
-                })
-
                 loadImage(imagePreviewModalItems[imagePreviewModalIndex], imagePreviewModalIndex)
             }, 50)
         }
-
-        const deviceListener = DeviceEventEmitter.addListener("event", (data) => {
-            if(!isMounted()){
-                return false
-            }
-
-            if(data.type == "thumbnail-generated"){
-                updateItemThumbnail(data.data, data.data.path)
-            }
-        })
 
         const dimensionsListener = Dimensions.addEventListener("change", ({ screen }) => {
             if(!isMounted()){
@@ -222,27 +193,18 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
             }
 
             setPortrait(screen.height >= screen.width)
-
-            setTimeout(() => {
-                listRef?.current?.scrollToIndex({
-                    animated: false,
-                    index: lastIndex.current
-                })
-    
-                thumbnailListRef?.current?.scrollToIndex({
-                    animated: false,
-                    index: lastIndex.current,
-                    viewPosition: 0.5
-                })
-    
-                loadImage(imagePreviewModalItems[lastIndex.current], lastIndex.current)
-            }, 1000)
         })
 
         return () => {
             setStatusBarStyle(darkMode)
-            deviceListener.remove()
+            
             dimensionsListener.remove()
+
+            if(Platform.OS == "android"){
+                showNavigationBar()
+
+                StatusBar.setHidden(false)
+            }
         }
     }, [])
 
@@ -254,8 +216,8 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 <View
                     key={image.uuid}
                     style={{
-                        width: dimensions.window.width,
-                        height: dimensions.window.height
+                        width: screenDimensions.width,
+                        height: screenDimensions.height
                     }}
                 >
                     <ActivityIndicator size={"small"} color={"white"} style={{
@@ -279,11 +241,11 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 zoomStep={2}
                 initialZoom={minZoom}
                 bindToBorders={true}
-                contentWidth={dimensions.window.width}
-                contentHeight={dimensions.window.height}
+                contentWidth={screenDimensions.width}
+                contentHeight={screenDimensions.height}
                 style={{
-                    width: dimensions.window.width,
-                    height: dimensions.window.height
+                    width: screenDimensions.width,
+                    height: screenDimensions.height
                 }}
                 onZoomBefore={(e, state, view) => {
                     setIsZooming(view.zoomLevel > 1)
@@ -316,7 +278,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 onShiftingAfter={(e, state, view) => {
                     setIsZooming(view.zoomLevel > 1)
 
-                    if(view.distanceTop >= 75 && !didNavBack.current && zoomLevel.current <= 1){
+                    if((view.distanceTop >= 50 || view.distanceBottom >= 50) && !didNavBack.current && zoomLevel.current <= 1 && !isSwiping && !isZooming){
                         didNavBack.current = true
 
                         navigation.goBack()
@@ -391,8 +353,8 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                             }}
                             resizeMode="contain"
                             style={{
-                                width: dimensions.window.width,
-                                height: dimensions.window.height
+                                width: screenDimensions.width,
+                                height: screenDimensions.height
                             }}
                         >
                             {
@@ -403,8 +365,8 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                                         }}
                                         resizeMode="contain"
                                         style={{
-                                            width: dimensions.window.width,
-                                            height: dimensions.window.height
+                                            width: screenDimensions.width,
+                                            height: screenDimensions.height
                                         }}
                                     />
                                 )
@@ -431,14 +393,22 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
     const renderThumb = useCallback((item, index) => {
         const image = item
 
-        if(typeof image.thumbnail !== "string"){
-            return (
+        return (
+            <View
+                style={{
+                    width: 30,
+                    height: 50
+                }}
+            >
                 <TouchableOpacity
                     key={image.uuid}
                     style={{
                         width: 30,
                         height: 50,
-                        backgroundColor: "black"
+                        backgroundColor: "transparent",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        alignItems: "center"
                     }}
                     onPress={async () => {
                         try{
@@ -448,94 +418,83 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                             console.log(e)
                         }
 
-                        listRef?.current?.scrollToIndex({
+                        setListScrollAgain.current = true
+
+                        thumbnailListRef?.current?.scrollToIndex({
                             animated: false,
-                            index
+                            index,
+                            viewPosition: 0.5
+                        })
+
+                        listRef?.current?.scrollToOffset({
+                            animated: false,
+                            offset: screenDimensions.width * index + 1
                         })
 
                         loadImage(imagePreviewModalItems[index], index)
                     }}
                 >
-                    <ActivityIndicator size={"small"} color={"white"} style={{
-                        margin: "auto",
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        bottom: 10,
-                        right: 0
-                    }} />
+                    {
+                        typeof image.thumbnail !== "string" ? (
+                            <Image
+                                source={getImageForItem(image.file)}
+                                resizeMode="cover"
+                                style={{
+                                    width: 25,
+                                    height: 35,
+                                    marginTop: 2.5,
+                                    marginLeft: 2.5
+                                }}
+                            />
+                        ) : (
+                            <Image
+                                source={{
+                                    uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
+                                }}
+                                resizeMode="cover"
+                                style={{
+                                    width: 30,
+                                    height: 40
+                                }}
+                            />
+                        )
+                    }
+                    <View style={{
+                        backgroundColor: currentIndex == index ? "gray" : "transparent",
+                        width: 15,
+                        height: 5,
+                        borderRadius: 20
+                    }}></View>
                 </TouchableOpacity>
-            )
-        }
-
-        return (
-            <TouchableOpacity
-                key={image.uuid}
-                style={{
-                    width: 30,
-                    height: 50,
-                    backgroundColor: "black",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                }}
-                onPress={async () => {
-                    try{
-                        await viewRefs[imagePreviewModalItems[currentIndex].uuid]?.zoomTo(1)
-                    }
-                    catch(e){
-                        console.log(e)
-                    }
-
-                    listRef?.current?.scrollToIndex({
-                        animated: false,
-                        index
-                    })
-
-                    loadImage(imagePreviewModalItems[index], index)
-                }}
-            >
-                <Image
-                    source={{
-                        uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
-                    }}
-                    resizeMode="cover"
-                    style={{
-                        width: 30,
-                        height: 40
-                    }}
-                />
-                <View style={{
-                    backgroundColor: currentIndex == index ? "gray" : "transparent",
-                    width: 15,
-                    height: 5,
-                    borderRadius: 20
-                }}></View>
-            </TouchableOpacity>
+            </View>
         )
     })
 
     return (
         <View style={{
             backgroundColor: "black",
-            height: dimensions.window.height + insets.top + insets.bottom,
-            width: dimensions.screen.width,
-            marginTop: 0
+            height: screenDimensions.height,
+            width: screenDimensions.width,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0
         }}>
             <View style={{
-                display: showControls ? "none" : "flex",
+                opacity: showControls ? 0 : 1,
                 flexDirection: "row",
                 height: "auto",
-                width: dimensions.screen.width,
+                width: screenDimensions.width,
                 justifyContent: "space-between",
                 alignItems: "center",
                 position: "absolute",
                 top: 0,
-                zIndex: 1000,
-                backgroundColor: "black",
+                zIndex: showControls ? 0 : 1000,
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
                 paddingLeft: 10,
                 paddingRight: 15,
-                paddingTop: portrait ? (insets.top + 5) : 15,
+                paddingTop: Platform.OS == "android" ? 15 : (!portrait ? 10 : insets.top),
                 paddingBottom: 10,
                 marginTop: 0
             }}>
@@ -584,7 +543,18 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                         left: 10,
                         bottom: 10,
                         right: 10
-                    }} onPress={() => SheetManager.show("ItemActionSheet")}>
+                    }} onPress={() => {
+                        imageActionsVisible.current = !imageActionsVisible.current
+
+                        Animated.timing(                    // Animate over time
+                            imageActionsContainerHeight,             // The animated value to drive, this would be a new Animated.Value(0) object.
+                            {
+                            toValue: imageActionsVisible.current ? 300 : 120,                   // Animate the value
+                            duration: 100,                 // Make it take a while
+                            useNativeDriver: false
+                            }
+                        ).start()
+                    }}>
                         <Ionicon name="ellipsis-horizontal-sharp" size={24} color={"white"}></Ionicon>
                     </TouchableOpacity>
                 </View>
@@ -592,22 +562,24 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
             <FlatList
                 style={{
                     position: "absolute",
-                    width: dimensions.screen.width,
-                    height: dimensions.screen.height,
+                    width: screenDimensions.width,
+                    height: screenDimensions.height,
                     zIndex: 10
                 }}
                 ref={listRef}
                 data={imagePreviewModalItems}
-                initialScrollIndex={imagePreviewModalIndex}
+                initialScrollIndex={currentIndex}
                 renderItem={({ item, index }) => {
                     return renderImage(item, index)
                 }}
+                key={portrait ? "portrait" : "landscape"}
+                extraData={portrait ? "portrait" : "landscape"}
                 keyExtractor={(item, index) => item.uuid}
                 windowSize={3}
                 initialNumToRender={1}
                 horizontal={true}
                 bounces={true}
-                getItemLayout={(data, index) => ({ length: dimensions.window.width, offset: dimensions.window.width * index, index })}
+                getItemLayout={(data, index) => ({ length: screenDimensions.width, offset: screenDimensions.width * index, index })}
                 scrollEnabled={!isZooming}
                 pagingEnabled={true}
                 onViewableItemsChanged={onViewableItemsChangedRef?.current}
@@ -616,38 +588,73 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 showsHorizontalScrollIndicator={false}
                 onScrollBeginDrag={() => setIsSwiping(true)}
                 onScrollEndDrag={() => setIsSwiping(false)}
+                removeClippedSubviews={false}
             />
-            <FlatList
+            <Animated.View
                 style={{
                     position: "absolute",
-                    bottom: insets.bottom + insets.top,
-                    width: "100%",
-                    height: 85,
-                    zIndex: 1000,
-                    backgroundColor: "black",
+                    bottom: -30,
+                    width: screenDimensions.width,
+                    height: imageActionsContainerHeight,
+                    zIndex: showControls ? 0 : 10000,
+                    backgroundColor: "rgba(0, 0, 0, 1)",
                     paddingTop: 1,
                     paddingBottom: insets.bottom + insets.top,
-                    display: showControls ? "none" : "flex",
+                    opacity: showControls ? 0 : 1,
                     paddingBottom: insets.bottom
                 }}
-                ref={thumbnailListRef}
-                data={imagePreviewModalItems}
-                initialScrollIndex={imagePreviewModalIndex}
-                renderItem={({ item, index }) => {
-                    return renderThumb(item, index)
-                }}
-                getItemLayout={(data, index) => ({ length: 30, offset: 30 * index, index })}
-                keyExtractor={(item, index) => item.uuid}
-                windowSize={8}
-                initialNumToRender={32}
-                horizontal={true}
-                scrollEnabled={true}
-                bounces={false}
-                showsVerticalScrollIndicator={false}
-                showsHorizontalScrollIndicator={false}
-                onViewableItemsChanged={onViewableItemsChangedThumbnailsRef?.current}
-                viewabilityConfig={viewabilityConfigThumbnailsRef?.current}
-            />
+            >
+                <FlatList
+                    style={{
+                        position: "absolute",
+                        width: screenDimensions.width,
+                        height: 120,
+                        paddingTop: 1
+                    }}
+                    ref={thumbnailListRef}
+                    data={imagePreviewModalItems}
+                    renderItem={({ item, index }) => {
+                        return renderThumb(item, index)
+                    }}
+                    getItemLayout={(data, index) => ({ length: 30, offset: 30 * index, index })}
+                    keyExtractor={(item, index) => item.uuid}
+                    horizontal={true}
+                    scrollEnabled={true}
+                    bounces={false}
+                    showsVerticalScrollIndicator={false}
+                    showsHorizontalScrollIndicator={false}
+                    removeClippedSubviews={false}
+                />
+                <View style={{
+                    marginTop: 60,
+                    borderTopColor: "gray",
+                    borderTopWidth: 1,
+                    opacity: 0
+                }}>
+                    <View style={{
+                        width: "100%",
+                        height: 45,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        borderBottomColor: "gray",
+                        borderBottomWidth: 1,
+                        paddingLeft: 15,
+                        paddingRight: 15
+                    }}>
+                        <Text style={{
+                            color: "white",
+                            paddingTop: 12
+                        }}>
+                            {i18n(lang, "publicLinkEnabled")}
+                        </Text>
+                        <View style={{
+                            paddingTop: Platform.OS == "ios" ? 6 : 8
+                        }}>
+
+                        </View>
+                    </View>
+                </View>
+            </Animated.View>
         </View>
     )
 })

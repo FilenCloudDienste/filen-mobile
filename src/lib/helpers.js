@@ -780,7 +780,7 @@ export function orderItemsByType(items, type){
     }
     else if(type == "dateAsc"){
         let sortedFiles = files.sort((a, b) => {
-            return a.timestamp - b.timestamp
+            return a.lastModifiedSort - b.lastModifiedSort
         })
 
         let sortedFolders = folders.sort((a, b) => {

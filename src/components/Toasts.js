@@ -576,45 +576,51 @@ export const UploadToast = memo(({ message }) => {
                                                     return reject("Could not get file name")
                                                 }
 
-                                                RNFS.stat(item).then((stat) => {
-                                                    if(stat.isDirectory()){
-                                                        return reject(i18n(lang, "cannotShareDirIntoApp"))
-                                                    }
+                                                ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
+                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
 
-                                                    ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
-                                                        await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
-    
-                                                        RNFS.stat(path).then((stat) => {
-                                                            const type = mime.lookup(name)
-                                                            const ext = mime.extension(type)
-                                                            const size = stat.size
-    
-                                                            return resolve({ path, ext, type, size, name })
-                                                        }).catch(reject)
-                                                    }).catch(reject)
-                                                }).catch(reject)
+                                                    RNFS.stat(path).then((stat) => {
+                                                        if(stat.isDirectory()){
+                                                            return reject(i18n(lang, "cannotShareDirIntoApp"))
+                                                        }
+
+                                                        const type = mime.lookup(name)
+                                                        const ext = mime.extension(type)
+                                                        const size = stat.size
+
+                                                        return resolve({ path, ext, type, size, name })
+                                                    }).catch((err) => {
+                                                        return reject(err)
+                                                    })
+                                                }).catch((err) => {
+                                                    return reject(err)
+                                                })
                                             }
                                             else{
-                                                RNFS.stat(item).then((stat) => {
-                                                    if(stat.isDirectory()){
-                                                        return reject(i18n(lang, "cannotShareDirIntoApp"))
-                                                    }
+                                                RNFS.copyFile(item, path).then(async () => {
+                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
 
-                                                    RNFS.copyFile(item, path).then(async () => {
-                                                        await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
-    
-                                                        RNFS.stat(path).then((stat) => {
-                                                            const name = getFilenameFromPath(item)
-                                                            const type = mime.lookup(name)
-                                                            const ext = mime.extension(type)
-                                                            const size = stat.size
-                                                            
-                                                            return resolve({ path, ext, type, size, name })
-                                                        }).catch(reject)
-                                                    }).catch(reject)
-                                                }).catch(reject)
+                                                    RNFS.stat(path).then((stat) => {
+                                                        if(stat.isDirectory()){
+                                                            return reject(i18n(lang, "cannotShareDirIntoApp"))
+                                                        }
+
+                                                        const name = getFilenameFromPath(item)
+                                                        const type = mime.lookup(name)
+                                                        const ext = mime.extension(type)
+                                                        const size = stat.size
+                                                        
+                                                        return resolve({ path, ext, type, size, name })
+                                                    }).catch((err) => {
+                                                        return reject(err)
+                                                    })
+                                                }).catch((err) => {
+                                                    return reject(err)
+                                                })
                                             }
-                                        }).catch(reject)
+                                        }).catch((err) => {
+                                            return reject(err)
+                                        })
                                     })
                                 }
 
@@ -741,10 +747,12 @@ export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
                 }} onPress={() => {
                     if(
                         currentRouteURL.indexOf("shared-in") !== -1 ||
+                        currentRouteURL.indexOf("shared-out") !== -1 ||
                         currentRouteURL.indexOf("recents") !== -1 ||
                         currentRouteURL.indexOf("trash") !== -1 ||
                         currentRouteURL.indexOf("photos") !== -1 ||
-                        currentRouteURL.indexOf("offline") !== -1
+                        currentRouteURL.indexOf("offline") !== -1 ||
+                        currentRouteURL.split("/").length < 2
                     ){
                         return false
                     }
@@ -761,6 +769,7 @@ export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
                     }
                     catch(e){
                         console.log(e)
+                        console.log(currentRouteURL)
 
                         return false
                     }
@@ -804,7 +813,7 @@ export const CameraUploadChooseFolderToast = memo(({ message, navigation }) => {
                     })
                 }}>
                     <Text style={{
-                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
+                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32 && currentRouteURL.split("/").length >= 2) ? darkMode ? "white" : "black" : "gray"
                     }}>
                         {i18n(lang, "choose")}
                     </Text>

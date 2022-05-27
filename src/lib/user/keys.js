@@ -38,12 +38,8 @@ export const updateKeypair = ({ publicKey, privateKey, navigation }) => {
                 }
 
                 return resolve()
-            }).catch((err) => {
-                return reject(err)
-            })
-        }).catch((err) => {
-            return reject(err)
-        })
+            }).catch(reject)
+        }).catch(reject)
     })
 }
 
@@ -81,12 +77,8 @@ export const setKeypair = ({ publicKey, privateKey, navigation }) => {
                 }
     
                 return resolve()
-            }).catch((err) => {
-                return reject(err)
-            })
-        }).catch((err) => {
-            return reject(err)
-        })
+            }).catch(reject)
+        }).catch(reject)
     })
 }
 
@@ -153,9 +145,7 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
                         console.log("User keypair updated.")
 
                         return resolve()
-                    }).catch((err) => {
-                        return reject(err)
-                    })
+                    }).catch(reject)
                 }
                 else{
                     console.log("Could not decrypt private key.")
@@ -165,38 +155,29 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
             }
             else{
                 try{
-                    const generatedKeypair = await global.nodeThread.generateKeypair()
-                    const b64PubKey = generatedKeypair.publicKey
-                    const b64PrivKey = generatedKeypair.privateKey
-    
-                    if(b64PubKey.length > 16 && b64PrivKey.length > 16){
-                        setKeypair({ publicKey: b64PubKey, privateKey: b64PrivKey, navigation }).then(() => {
-                            try{
-                                storage.set("publicKey", b64PubKey)
-                                storage.set("privateKey", b64PrivKey)
-                            }
-                            catch(err){
-                                return reject(err)
-                            }
-
-                            console.log("User keypair generated and updated.")
-
-                            return resolve()
-                        }).catch((err) => {
-                            return reject(err)
-                        })
-                    }
-                    else{
-                        return reject("Key lengths invalid")
-                    }
+                    var generatedKeypair = await global.nodeThread.generateKeypair()
+                    var b64PubKey = generatedKeypair.publicKey
+                    var b64PrivKey = generatedKeypair.privateKey
                 }
                 catch(e){
                     return reject(e)
                 }
+
+                if(b64PubKey.length > 16 && b64PrivKey.length > 16){
+                    setKeypair({ publicKey: b64PubKey, privateKey: b64PrivKey, navigation }).then(() => {
+                        storage.set("publicKey", b64PubKey)
+                        storage.set("privateKey", b64PrivKey)
+
+                        console.log("User keypair generated and updated.")
+
+                        return resolve()
+                    }).catch(reject)
+                }
+                else{
+                    return reject("Key lengths invalid")
+                }
             }
-        }).catch((err) => {
-            return reject(err)
-        })
+        }).catch(reject)
     })
 }
 
@@ -276,11 +257,7 @@ export const updateKeys = ({ navigation }) => {
                         return resolve()
                     })
                 }
-            }).catch((err) => {
-                return reject(err)
-            })
-        }).catch((err) => {
-            return reject(err)
-        })
+            }).catch(reject)
+        }).catch(reject)
     })
 }

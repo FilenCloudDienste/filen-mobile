@@ -4,7 +4,7 @@ import { apiRequest } from "./api"
 import { getAPIKey } from "./helpers"
 import { storage } from "./storage"
 
-const ONLY_DEFAULT_DRIVE_ENABLED = false
+const ONLY_DEFAULT_DRIVE_ENABLED = true
 
 export const clearCacheDirectories = () => {
     return new Promise((resolve, reject) => {
