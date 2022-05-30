@@ -43,6 +43,7 @@ const axiosClient = axios.create({
 
 const cachedDerivedKeys = {}
 const cachedPemKeys = {}
+let tasksRunning = 0
 
 const convertArrayBufferToUtf8String = (buffer) => {
     return Buffer.from(buffer).toString("utf8")
@@ -503,7 +504,23 @@ const uploadAvatar = (base64, url, timeout) => {
     })
 }
 
+rn_bridge.app.on("pause", (pauseLock) => {
+    new Promise((resolve, _) => {
+        const wait = setInterval(() => {
+            if(tasksRunning <= 0){
+                clearInterval(wait)
+    
+                return resolve()
+            }
+        }, 100)
+    }).then(() => {
+        pauseLock.release()
+    })
+})
+
 rn_bridge.channel.on("message", (message) => {
+    tasksRunning += 1
+
     const request = message
 
     if(request.type == "encryptData"){
@@ -513,12 +530,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: encrypted
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "decryptData"){
@@ -528,12 +549,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: decrypted
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "downloadAndDecryptChunk"){
@@ -543,12 +568,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: decrypted
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "deriveKeyFromPassword"){
@@ -558,12 +587,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: key
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "encryptMetadata"){
@@ -573,12 +606,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: encrypted
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "decryptMetadata"){
@@ -588,12 +625,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: decrypted
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "encryptMetadataPublicKey"){
@@ -603,12 +644,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: encrypted
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "decryptMetadataPrivateKey"){
@@ -618,12 +663,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: decrypted
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "generateKeypair"){
@@ -633,12 +682,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: keyPair
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "hashPassword"){
@@ -648,6 +701,8 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: hashPassword(request.string)
             })
+
+            tasksRunning -= 1
         }
         catch(e){
             rn_bridge.channel.send({
@@ -655,6 +710,8 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 err: e.toString()
             })
+
+            tasksRunning -= 1
         }
     }
     else if(request.type == "hashFn"){
@@ -664,6 +721,8 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: hashFn(request.string)
             })
+
+            tasksRunning -= 1
         }
         catch(e){
             rn_bridge.channel.send({
@@ -671,6 +730,8 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 err: e.toString()
             })
+
+            tasksRunning -= 1
         }
     }
     else if(request.type == "apiRequest"){
@@ -680,12 +741,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: res
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "encryptAndUploadChunk"){
@@ -695,12 +760,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: res
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else if(request.type == "generateRandomString"){
@@ -710,6 +779,8 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: randomString(request.charLength)
             })
+
+            tasksRunning -= 1
         }
         catch(e){
             rn_bridge.channel.send({
@@ -717,6 +788,8 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 err: e.toString()
             })
+
+            tasksRunning -= 1
         }
     }
     else if(request.type == "uuidv4"){
@@ -726,6 +799,8 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: uuid()
             })
+
+            tasksRunning -= 1
         }
         catch(e){
             rn_bridge.channel.send({
@@ -733,6 +808,8 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 err: e.toString()
             })
+
+            tasksRunning -= 1
         }
     }
     else if(request.type == "ping"){
@@ -741,6 +818,8 @@ rn_bridge.channel.on("message", (message) => {
             type: request.type,
             response: "pong"
         })
+
+        tasksRunning -= 1
     }
     else if(request.type == "uploadAvatar"){
         uploadAvatar(request.base64, request.url, request.timeout).then((res) => {
@@ -749,12 +828,16 @@ rn_bridge.channel.on("message", (message) => {
                 type: request.type,
                 response: res
             })
+
+            tasksRunning -= 1
         }).catch((err) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,
                 err: err.toString()
             })
+
+            tasksRunning -= 1
         })
     }
     else{
@@ -763,6 +846,8 @@ rn_bridge.channel.on("message", (message) => {
             type: request.type,
             err: "Invalid request type: " + request.type
         })
+
+        tasksRunning -= 1
     }
 
     return true

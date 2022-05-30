@@ -35,6 +35,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const [scrollIndex, setScrollIndex] = useState(0)
     const [currentItems, setCurrentItems] = useState([])
     const insets = useSafeAreaInsets()
+    const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
 
     const generateItemsForItemList = useCallback((items, range, lang = "en") => {
         range = normalizePhotosRange(range)
@@ -328,7 +329,18 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                         paddingRight: 15
                                     }}>
                                         {
-                                            cameraUploadTotal > 0 ? cameraUploadTotal > cameraUploadUploaded ? (
+                                            netInfo.isConnected && netInfo.isInternetReachable ? onlyWifiUploads && netInfo.type !== "wifi" ? (
+                                                <>
+                                                    <Ionicon name="wifi-outline" size={20} color={"gray"} />
+                                                    <Text style={{
+                                                        marginLeft: 10,
+                                                        color: "gray",
+                                                        paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                    }}>
+                                                        {i18n(lang, "onlyWifiUploads")}
+                                                    </Text>
+                                                </>
+                                            ) : cameraUploadTotal > 0 ? cameraUploadTotal > cameraUploadUploaded ? (
                                                 <>
                                                     <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
                                                     <Text style={{
@@ -359,6 +371,17 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         paddingTop: Platform.OS == "ios" ? 2 : 1
                                                     }}>
                                                         {i18n(lang, "cameraUploadFetchingAssetsFromLocal")}
+                                                    </Text>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Ionicon name="wifi-outline" size={20} color={"gray"} />
+                                                    <Text style={{
+                                                        marginLeft: 10,
+                                                        color: "gray",
+                                                        paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                    }}>
+                                                        {i18n(lang, "deviceOffline")}
                                                     </Text>
                                                 </>
                                             )

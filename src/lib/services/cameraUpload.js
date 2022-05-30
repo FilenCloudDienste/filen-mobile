@@ -3,7 +3,7 @@ import CameraRoll from "@react-native-community/cameraroll"
 import { Platform } from "react-native"
 import { useStore } from "../state"
 import { queueFileUpload } from "../upload"
-import { getFilenameFromPath, Semaphore, randomIdUnsafe, getFileExt, promiseAllSettled } from "../helpers"
+import { getFilenameFromPath, Semaphore, randomIdUnsafe, getFileExt, promiseAllSettled, asyncJSON } from "../helpers"
 import ReactNativeBlobUtil from "react-native-blob-util"
 import { getDownloadPath } from "../download"
 import { folderPresent, reportError } from "../api"
@@ -11,9 +11,9 @@ import BackgroundTimer from "react-native-background-timer"
 import RNFS from "react-native-fs"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../permissions"
 
-const cameraUploadTimeout = 1000
+const cameraUploadTimeout = 5000
 const copySemaphore = new Semaphore(1)
-const maxErrorCountIds = 5
+const maxErrorCountIds = 8
 const erroredIds = {}
 
 const increaseErrorCountForId = (id) => {
@@ -109,7 +109,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
 
     try{
-        var isLoggedIn = storage.getBoolean("isLoggedIn")
+        var isLoggedIn = await storage.getBooleanAsync("isLoggedIn")
     }
     catch(e){
         console.log(e)
@@ -144,7 +144,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
 
     try{
-        var userId = storage.getString("userId")
+        var userId = await storage.getNumberAsync("userId")
     }
     catch(e){
         console.log(e)
@@ -197,7 +197,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
 
     try{
-        if(storage.getBoolean("onlyWifiUploads:" + userId) && netInfo.type !== "wifi"){
+        if(await storage.getBooleanAsync("onlyWifiUploads:" + userId) && netInfo.type !== "wifi"){
             setCameraUploadRunning(false)
             callCallback(false)
 
@@ -218,10 +218,10 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
 
     try{
-        var cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
-        var cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
-        var cameraUploadFetchNewAssetsTimeout = storage.getNumber("cameraUploadFetchNewAssetsTimeout") || 0
-        var cameraUploadUploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
+        var cameraUploadEnabled = await storage.getBooleanAsync("cameraUploadEnabled:" + userId)
+        var cameraUploadFolderUUID = await storage.getStringAsync("cameraUploadFolderUUID:" + userId)
+        var cameraUploadFetchNewAssetsTimeout = await storage.getNumberAsync("cameraUploadFetchNewAssetsTimeout") || 0
+        var cameraUploadUploadedIds = await asyncJSON.parse(await storage.getStringAsync("cameraUploadUploadedIds:" + userId) || "{}")
     }
     catch(e){
         console.log(e)
@@ -320,8 +320,8 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         try{
             var assets = await getCameraRollAssets()
 
-            storage.set("cachedCameraUploadAssets:" + userId, JSON.stringify(assets))
-            storage.set("cameraUploadFetchNewAssetsTimeout", (Math.floor(+new Date()) + 30000))
+            await storage.setAsync("cachedCameraUploadAssets:" + userId, await asyncJSON.stringify(assets))
+            await storage.setAsync("cameraUploadFetchNewAssetsTimeout", (Math.floor(+new Date()) + 30000))
         }
         catch(e){
             console.log(e)
@@ -343,7 +343,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
     }
     else{
         try{
-            var assets = JSON.parse(storage.getString("cachedCameraUploadAssets:" + userId) || "[]")
+            var assets = await asyncJSON.parse(await storage.getStringAsync("cachedCameraUploadAssets:" + userId) || "[]")
         }
         catch(e){
             console.log(e)
@@ -380,7 +380,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
         }
     }
 
-    if(Object.keys(cameraUploadUploadedIds).length == assets.length){
+    /*if(Object.keys(cameraUploadUploadedIds).length == assets.length){
         setCameraUploadRunning(false)
         callCallback(false)
 
@@ -392,7 +392,7 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 runCameraUpload({ maxQueue, runOnce, callback })
             }, cameraUploadTimeout)
         }
-    }
+    }*/
 
     let currentQueue = 0
     const uploads = []
@@ -511,12 +511,12 @@ export const runCameraUpload = async ({ maxQueue = 10, runOnce = false, callback
                 cameraUploadCallback: async (err) => {
                     if(!err){
                         try{
-                            const uploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
+                            const uploadedIds = await asyncJSON.parse(await storage.getStringAsync("cameraUploadUploadedIds:" + userId) || "{}")
 
                             if(typeof uploadedIds[id] == "undefined"){
                                 uploadedIds[id] = true
 
-                                storage.set("cameraUploadUploadedIds:" + userId, JSON.stringify(uploadedIds))
+                                await storage.setAsync("cameraUploadUploadedIds:" + userId, await asyncJSON.stringify(uploadedIds))
 
                                 useStore.setState({ cameraUploadUploaded: Object.keys(uploadedIds).length })
                             }
@@ -591,11 +591,11 @@ export const convertPhAssetToAssetsLibrary = (localId, ext) => {
 export const getCameraRollAssets = () => {
     return new Promise((resolve, reject) => {
         hasStoragePermissions(false).then(() => {
-            hasPhotoLibraryPermissions(false).then(() => {
+            hasPhotoLibraryPermissions(false).then(async () => {
                 try{
-                    var userId = storage.getString("userId")
-                    var cameraUploadIncludeImages = storage.getBoolean("cameraUploadIncludeImages:" + userId)
-                    var cameraUploadIncludeVideos = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
+                    var userId = await storage.getStringAsync("userId")
+                    var cameraUploadIncludeImages = await storage.getBooleanAsync("cameraUploadIncludeImages:" + userId)
+                    var cameraUploadIncludeVideos = await storage.getBooleanAsync("cameraUploadIncludeVideos:" + userId)
                 }
                 catch(e){
                     return reject(e)

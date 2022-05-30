@@ -240,7 +240,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 minZoom={minZoom}
                 zoomStep={2}
                 initialZoom={minZoom}
-                bindToBorders={true}
+                bindToBorders={false}
                 contentWidth={screenDimensions.width}
                 contentHeight={screenDimensions.height}
                 style={{
@@ -299,7 +299,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                         tapCount.current += 1
 
                         if(tapCount.current >= 2){
-                            if(zoomLevel.current >= 1.1){
+                            if(zoomLevel.current >= 1.01){
                                 viewRefs[image.uuid]?.zoomTo(1)
 
                                 zoomLevel.current = 1
@@ -494,7 +494,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 backgroundColor: "rgba(0, 0, 0, 0.6)",
                 paddingLeft: 10,
                 paddingRight: 15,
-                paddingTop: Platform.OS == "android" ? 15 : (!portrait ? 10 : insets.top),
+                paddingTop: Platform.OS == "android" ? (insets.top + 5) : ((!portrait ? 10 : insets.top) + 5),
                 paddingBottom: 10,
                 marginTop: 0
             }}>

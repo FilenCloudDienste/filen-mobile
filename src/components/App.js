@@ -300,7 +300,7 @@ export const App = memo(() => {
         })
 
         SplashScreen.hide()
-        BackgroundTimer.start()
+        //BackgroundTimer.start()
 
         const appStateListener = AppState.addEventListener("change", (nextAppState) => {
             setAppState(nextAppState)

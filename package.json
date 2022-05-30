@@ -30,6 +30,7 @@
 		"fbjs": "^3.0.4",
 		"graceful-fs": "^4.2.9",
 		"install": "^0.13.0",
+		"js-coroutines": "^2.4.36",
 		"mime-types": "^2.1.34",
 		"nodejs-mobile-react-native": "^0.7.0",
 		"npm": "^8.4.0",

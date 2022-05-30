@@ -1,4 +1,4 @@
-import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName, Semaphore } from "./helpers"
+import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName, Semaphore, asyncJSON } from "./helpers"
 import { storage } from "./storage"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Platform } from "react-native"
@@ -9,7 +9,8 @@ import BackgroundTimer from "react-native-background-timer"
 import DeviceInfo from "react-native-device-info"
 
 const shareSemaphore = new Semaphore(4)
-const apiRequestSemaphore = new Semaphore(16)
+const apiRequestSemaphore = new Semaphore(8192 * 8192)
+const fetchFolderSizeSemaphore = new Semaphore(1)
 
 const endpointsToCache = [
     "/v1/dir/content",
@@ -42,22 +43,22 @@ export const apiRequest = ({ method, endpoint, data }) => {
             maxTries = 1
         }
 
-        const request = () => {
+        const request = async () => {
             if(tries >= maxTries){
                 try{
-                    var cache = storage.getString(cacheKey)
+                    var cache = await storage.getStringAsync(cacheKey)
     
                     if(typeof cache == "string"){
                         if(cache.length > 0){
-                            return resolve(JSON.parse(cache))
+                            return resolve(await asyncJSON.parse(cache))
                         }
                     }
                 }
                 catch(e){
-                    //console.log(e)
+                    return reject(e)
                 }
 
-                return reject(err)
+                return reject(i18n(storage.getString("lang"), "deviceOffline"))
             }
 
             tries += 1
@@ -68,12 +69,12 @@ export const apiRequest = ({ method, endpoint, data }) => {
                     url: getAPIServer() + endpoint,
                     timeout: 500000,
                     data
-                }).then((res) => {
+                }).then(async (res) => {
                     apiRequestSemaphore.release()
 
                     if(endpointsToCache.includes(endpoint)){
                         try{
-                            storage.set(cacheKey, JSON.stringify(res))
+                            await storage.setAsync(cacheKey, await asyncJSON.stringify(res))
                         }
                         catch(e){
                             //console.log(e)
@@ -95,6 +96,8 @@ export const apiRequest = ({ method, endpoint, data }) => {
                     return resolve(res)
                 }).catch((err) => {
                     apiRequestSemaphore.release()
+
+                    console.log(err)
     
                     return BackgroundTimer.setTimeout(request, retryTimeout)
                 })
@@ -1994,53 +1997,68 @@ export const fetchEventInfo = ({ uuid }) => {
 
 export const fetchFolderSize = ({ folder, routeURL }) => {
     return new Promise((resolve, reject) => {
-        let payload = {}
+        fetchFolderSizeSemaphore.acquire().then(() => {
+            let payload = {}
 
-        if(routeURL.indexOf("shared-out") !== -1){
-            payload = {
-                apiKey: getAPIKey(),
-                uuid: folder.uuid,
-                sharerId: folder.sharerId || 0,
-                receiverId: folder.receiverId || 0
+            try{
+                if(routeURL.indexOf("shared-out") !== -1){
+                    payload = {
+                        apiKey: getAPIKey(),
+                        uuid: folder.uuid,
+                        sharerId: folder.sharerId || 0,
+                        receiverId: folder.receiverId || 0
+                    }
+                }
+                else if(routeURL.indexOf("shared-in") !== -1){
+                    payload = {
+                        apiKey: getAPIKey(),
+                        uuid: folder.uuid,
+                        sharerId: folder.sharerId || 0,
+                        receiverId: folder.receiverId || 0
+                    }
+                }
+                else if(routeURL.indexOf("trash") !== -1){
+                    payload = {
+                        apiKey: getAPIKey(),
+                        uuid: folder.uuid,
+                        sharerId: 0,
+                        receiverId: 0,
+                        trash: 1
+                    }
+                }
+                else{
+                    payload = {
+                        apiKey: getAPIKey(),
+                        uuid: folder.uuid,
+                        sharerId: 0,
+                        receiverId: 0
+                    }
+                }
             }
-        }
-        else if(routeURL.indexOf("shared-in") !== -1){
-            payload = {
-                apiKey: getAPIKey(),
-                uuid: folder.uuid,
-                sharerId: folder.sharerId || 0,
-                receiverId: folder.receiverId || 0
-            }
-        }
-        else if(routeURL.indexOf("trash") !== -1){
-            payload = {
-                apiKey: getAPIKey(),
-                uuid: folder.uuid,
-                sharerId: 0,
-                receiverId: 0,
-                trash: 1
-            }
-        }
-        else{
-            payload = {
-                apiKey: getAPIKey(),
-                uuid: folder.uuid,
-                sharerId: 0,
-                receiverId: 0
-            }
-        }
+            catch(e){
+                fetchFolderSizeSemaphore.release()
 
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/dir/size",
-            data: payload
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
+                return reject(e)
             }
 
-            return resolve(response.data.size)
-        }).catch(reject)  
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/dir/size",
+                data: payload
+            }).then((response) => {
+                fetchFolderSizeSemaphore.release()
+
+                if(!response.status){
+                    return reject(response.message)
+                }
+
+                return resolve(response.data.size)
+            }).catch((err) => {
+                fetchFolderSizeSemaphore.release()
+
+                return reject(err)
+            })
+        }).catch(reject)
     })
 }
 

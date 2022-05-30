@@ -171,7 +171,7 @@ export const changeItemNameInOfflineList = ({ item, name }) => {
 export const removeItemFromOfflineList = ({ item }) => {
     return new Promise(async (resolve, reject) => {
         try{
-            var userId = storage.getString("userId")
+            var userId = await storage.getStringAsync("userId")
 
             if(typeof userId !== "number"){
                 return reject("userId in storage !== number")
@@ -192,14 +192,14 @@ export const removeItemFromOfflineList = ({ item }) => {
         for(let i = 0; i < newList.length; i++){
             if(newList[i].uuid == item.uuid){
                 newList.splice(i, 1)
-
-                try{
-                    storage.delete(userId + ":offlineItems:" + item.uuid)
-                }
-                catch(e){
-                    //console.log(e)
-                }
             }
+        }
+
+        try{
+            await storage.deleteAsync(userId + ":offlineItems:" + item.uuid)
+        }
+        catch(e){
+            console.log(e)
         }
 
         try{
