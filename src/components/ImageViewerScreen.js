@@ -24,8 +24,8 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
     const screenDimensions = Dimensions.get("screen")
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const imagePreviewModalItems = useStore(useCallback(state => state.imagePreviewModalItems))
-    const imagePreviewModalIndex = useStore(useCallback(state => state.imagePreviewModalIndex))
+    const [imagePreviewModalItems, setImagePreviewModalItems] = useState(route.params.items || [])
+    const [imagePreviewModalIndex, setImagePreviewModalIndex] = useState(route.params.index || 0)
     const setCurrentActionSheetItem = useStore(useCallback(state => state.setCurrentActionSheetItem))
     const [images, setImages] = useState({})
     const [currentName, setCurrentName] = useState("")
@@ -146,10 +146,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
         }
     
         if(isMounted()){
-            useStore.setState(prev => ({
-                ...prev,
-                imagePreviewModalItems: prev.imagePreviewModalItems.map(mapItem => mapItem.file.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem)
-            }))
+            setImagePreviewModalItems(prev => [...prev.map(mapItem => mapItem.file.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem)])
         }
     })
 

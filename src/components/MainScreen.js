@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react"
-import { View, DeviceEventEmitter, InteractionManager, Platform } from "react-native"
+import { View, DeviceEventEmitter, Platform } from "react-native"
 import { storage } from "../lib/storage"
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "./TopBar"
@@ -11,7 +11,7 @@ import { useMountedState } from "react-use"
 import { SheetManager } from "react-native-actions-sheet"
 import { previewItem } from "../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { StackActions } from "@react-navigation/native"
+import { StackActions, useIsFocused } from "@react-navigation/native"
 import { navigationAnimation } from "../lib/state"
 
 export const MainScreen = memo(({ navigation, route }) => {
@@ -44,6 +44,7 @@ export const MainScreen = memo(({ navigation, route }) => {
     const netInfo = useStore(useCallback(state => state.netInfo))
     const itemsSortBy = useStore(useCallback(state => state.itemsSortBy))
     const [initialized, setInitialized] = useState(false)
+    const isFocused = useIsFocused()
 
     const updateItemThumbnail = useCallback((item, path) => {
         if(typeof path !== "string"){
@@ -185,18 +186,20 @@ export const MainScreen = memo(({ navigation, route }) => {
     }, [itemsSortBy])
 
     useEffect(() => {
-        setCurrentItems(items)
+        if(isFocused){
+            setCurrentItems(items)
 
-        itemsRef.current = items
-        global.items = items
-        global.setItems = setItems
+            itemsRef.current = items
+            global.items = items
+            global.setItems = setItems
 
-        const selected = items.filter(item => item.selected).length
+            const selected = items.filter(item => item.selected).length
 
-        selectedCountRef.current = selected
+            selectedCountRef.current = selected
 
-        setItemsSelectedCount(selectedCountRef.current)
-    }, [items])
+            setItemsSelectedCount(selectedCountRef.current)
+        }
+    }, [items, isFocused])
 
     const fetchItemList = useCallback(({ bypassCache = false, callStack = 0, loadFolderSizes = false }) => {
         return new Promise((resolve, reject) => {

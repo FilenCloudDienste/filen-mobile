@@ -4,7 +4,7 @@ import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, ge
 import striptags from "striptags"
 import { downloadWholeFileFSStream, getDownloadPath, queueFileDownload } from "../download"
 import RNFS from "react-native-fs"
-import { DeviceEventEmitter, InteractionManager } from "react-native"
+import { DeviceEventEmitter } from "react-native"
 import { useStore, waitForStateUpdate } from "../state"
 import FileViewer from "react-native-file-viewer"
 import { getOfflineList, removeFromOfflineStorage, changeItemNameInOfflineList, getItemOfflinePath } from "./offline"
@@ -957,23 +957,21 @@ export const getThumbnailCacheKey = ({ uuid }) => {
 Clear last response cache
 */
 export const clearLoadItemsCacheLastResponse = () => {
-    return new Promise((resolve, reject) => {
-        InteractionManager.runAfterInteractions(async () => {
-            try{
-                const keys = await storage.getAllKeysAsync()
+    return new Promise(async (resolve, reject) => {
+        try{
+            const keys = await storage.getAllKeysAsync()
 
-                for(let i = 0; i < keys.length; i++){
-                    if(keys[i].indexOf("loadItemsCache:lastResponse:") !== -1){
-                        await storage.deleteAsync(keys[i])
-                    }
+            for(let i = 0; i < keys.length; i++){
+                if(keys[i].indexOf("loadItemsCache:lastResponse:") !== -1){
+                    await storage.deleteAsync(keys[i])
                 }
             }
-            catch(e){
-                console.log(e)
-            }
+        }
+        catch(e){
+            console.log(e)
+        }
 
-            return resolve()
-        })
+        return resolve()
     })
 }
 
@@ -981,42 +979,40 @@ export const clearLoadItemsCacheLastResponse = () => {
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
-    return new Promise((resolve, reject) => {
-        InteractionManager.runAfterInteractions(async () => {
-            try{
-                const keys = await storage.getAllKeysAsync()
+    return new Promise(async (resolve, reject) => {
+        try{
+            const keys = await storage.getAllKeysAsync()
 
-                for(let i = 0; i < keys.length; i++){
-                    if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
-                        let cache = []
-                        let didChange = false
+            for(let i = 0; i < keys.length; i++){
+                if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
+                    let cache = []
+                    let didChange = false
 
-                        try{
-                            cache = await asyncJSON.parse(await storage.getStringAsync(keys[i]))
-                        }
-                        catch(e){
-                            console.log(e)
-                        }
+                    try{
+                        cache = await asyncJSON.parse(await storage.getStringAsync(keys[i]))
+                    }
+                    catch(e){
+                        console.log(e)
+                    }
 
-                        for(let x = 0; x < cache.length; x++){
-                            if(cache[x].uuid == item.uuid){
-                                cache[x][prop] = value
-                                didChange = true
-                            }
+                    for(let x = 0; x < cache.length; x++){
+                        if(cache[x].uuid == item.uuid){
+                            cache[x][prop] = value
+                            didChange = true
                         }
+                    }
 
-                        if(didChange){
-                            await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
-                        }
+                    if(didChange){
+                        await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
                     }
                 }
             }
-            catch(e){
-                console.log(e)
-            }
+        }
+        catch(e){
+            console.log(e)
+        }
 
-            return resolve()
-        })
+        return resolve()
     })
 }
 
@@ -1024,42 +1020,40 @@ export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
-    return new Promise((resolve, reject) => {
-        InteractionManager.runAfterInteractions(async () => {
-            try{
-                const keys = await storage.getAllKeysAsync()
+    return new Promise(async (resolve, reject) => {
+        try{
+            const keys = await storage.getAllKeysAsync()
 
-                for(let i = 0; i < keys.length; i++){
-                    if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
-                        let cache = []
-                        let didChange = false
+            for(let i = 0; i < keys.length; i++){
+                if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
+                    let cache = []
+                    let didChange = false
 
-                        try{
-                            cache = await asyncJSON.parse(await storage.getStringAsync(keys[i]))
-                        }
-                        catch(e){
-                            console.log(e)
-                        }
+                    try{
+                        cache = await asyncJSON.parse(await storage.getStringAsync(keys[i]))
+                    }
+                    catch(e){
+                        console.log(e)
+                    }
 
-                        for(let x = 0; x < cache.length; x++){
-                            if(cache[x].uuid == item.uuid){
-                                cache.splice(x, 1)
-                                didChange = true
-                            }
+                    for(let x = 0; x < cache.length; x++){
+                        if(cache[x].uuid == item.uuid){
+                            cache.splice(x, 1)
+                            didChange = true
                         }
+                    }
 
-                        if(didChange){
-                            await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
-                        }
+                    if(didChange){
+                        await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
                     }
                 }
             }
-            catch(e){
-                console.log(e)
-            }
+        }
+        catch(e){
+            console.log(e)
+        }
 
-            return resolve()
-        })
+        return resolve()
     })
 }
 
@@ -1067,23 +1061,21 @@ export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const emptyTrashLoadItemsCache = () => {
-    return new Promise((resolve, reject) => {
-        InteractionManager.runAfterInteractions(async () => {
-            try{
-                const keys = await storage.getAllKeysAsync()
+    return new Promise(async (resolve, reject) => {
+        try{
+            const keys = await storage.getAllKeysAsync()
 
-                for(let i = 0; i < keys.length; i++){
-                    if(keys[i].indexOf("loadItemsCache:trash") !== -1){
-                        await storage.deleteAsync(keys[i])
-                    }
+            for(let i = 0; i < keys.length; i++){
+                if(keys[i].indexOf("loadItemsCache:trash") !== -1){
+                    await storage.deleteAsync(keys[i])
                 }
             }
-            catch(e){
-                console.log(e)
-            }
+        }
+        catch(e){
+            console.log(e)
+        }
 
-            return resolve()
-        })
+        return resolve()
     })
 }
 
@@ -1091,36 +1083,34 @@ export const emptyTrashLoadItemsCache = () => {
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const addItemLoadItemsCache = ({ item, routeURL = "" }) => {
-    return new Promise((resolve, reject) => {
-        InteractionManager.runAfterInteractions(async () => {
-            try{
-                const keys = await storage.getAllKeysAsync()
+    return new Promise(async (resolve, reject) => {
+        try{
+            const keys = await storage.getAllKeysAsync()
 
-                for(let i = 0; i < keys.length; i++){
-                    if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
-                        let cache = []
-    
-                        try{
-                            cache = await asyncJSON.parse(storage.getString(keys[i]))
-                        }
-                        catch(e){
-                            console.log(e)
-                        }
-    
-                        if(cache.length > 0){
-                            cache.push(item)
-    
-                            await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
-                        }
+            for(let i = 0; i < keys.length; i++){
+                if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
+                    let cache = []
+
+                    try{
+                        cache = await asyncJSON.parse(storage.getString(keys[i]))
+                    }
+                    catch(e){
+                        console.log(e)
+                    }
+
+                    if(cache.length > 0){
+                        cache.push(item)
+
+                        await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
                     }
                 }
             }
-            catch(e){
-                console.log(e)
-            }
+        }
+        catch(e){
+            console.log(e)
+        }
 
-            return resolve()
-        })
+        return resolve()
     })
 }
 
@@ -1426,10 +1416,16 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         
         return setImmediate(() => {
             const currentItems = useStore.getState().currentItems
+
+            if(!Array.isArray(currentItems)){
+                return false
+            }
+
             const currentImages = []
             let currentIndex = 0
             const addedImages = {}
             let index = 0
+            let imgFound = false
 
             for(let i = 0; i < currentItems.length; i++){
                 const ext = getFileExt(currentItems[i].name)
@@ -1439,6 +1435,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
 
                     if(currentItems[i].uuid == item.uuid){
                         currentIndex = index
+                        imgFound = true
                     }
                     
                     currentImages.push({
@@ -1454,13 +1451,14 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
                 }
             }
 
-            Promise.all([
-                waitForStateUpdate("imagePreviewModalIndex", currentIndex),
-                waitForStateUpdate("imagePreviewModalItems", currentImages),
-                navigationAnimation({ enable: true })
-            ]).then(() => {
-                navigation.dispatch(StackActions.push("ImageViewerScreen"))
-            })
+            if(imgFound){
+                navigationAnimation({ enable: true }).then(() => {
+                    navigation.dispatch(StackActions.push("ImageViewerScreen", {
+                        items: currentImages,
+                        index: currentIndex
+                    }))
+                })
+            }
         })
     }
 

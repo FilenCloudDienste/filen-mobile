@@ -1032,7 +1032,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 								)
 							}
 							{
-								routeURL.indexOf("trash") !== -1 && (
+								routeURL.indexOf("trash") !== -1 && currentItems.length > 0 && (
 									<ActionButton onPress={async () => {
 										await SheetManager.hide("TopBarActionSheet")
 

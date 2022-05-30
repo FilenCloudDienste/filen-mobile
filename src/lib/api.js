@@ -2664,9 +2664,9 @@ export const emptyTrash = () => {
                 return reject(response.message)
             }
 
-            emptyTrashLoadItemsCache().then(() => {
-                return resolve()
-            })
+            emptyTrashLoadItemsCache().catch(console.log)
+
+            return resolve()
         }).catch((err) => {
             return reject(err)
         })

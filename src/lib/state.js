@@ -113,7 +113,7 @@ export const useStore = create(subscribeWithSelector(set => ({
 	imagePreviewModalItems: [],
 	setImagePreviewModalItems: (imagePreviewModalItems) => set({ imagePreviewModalItems }),
 	imagePreviewModalIndex: 0,
-	setImagePreviewModalIndex: (imagePreviewModalIndex) => set({ imagePreviewModalIndex }),
+	setImagePreviewModalIndex: (imagePreviewModalIndex) => set({ imagePreviewModalIndex })
 })))
 
 export const navigationAnimation = ({ enable = true }) => {
