@@ -162,9 +162,12 @@ export const sortItems = ({ items, passedRoute = undefined }) => {
     const routeEx = routeURL.split("/")
 
     if(routeEx[routeEx.length - 1] == storage.getString("cameraUploadFolderUUID:" + storage.getNumber("userId"))){
-        return items.sort((a, b) => {
+        const folders = items.filter(item => item.type == "folder")
+        const files = items.filter(item => item.type == "file")
+
+        return [...folders, ...files.sort((a, b) => {
             return b.lastModifiedSort > a.lastModifiedSort
-        })
+        })]
     }
 
     if(routeURL.indexOf("recents") !== -1){

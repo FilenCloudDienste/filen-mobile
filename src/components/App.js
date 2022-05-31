@@ -35,7 +35,6 @@ import { EventsScreen, EventsInfoScreen } from "./EventsScreen"
 import { CommonActions } from "@react-navigation/native"
 import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
-import SplashScreen from "react-native-splash-screen"
 import { RegisterScreen } from "./RegisterScreen"
 import { ForgotPasswordScreen } from "./ForgotPasswordScreen"
 import { ResendConfirmationScreen } from "./ResendConfirmationScreen"
@@ -52,6 +51,7 @@ import BackgroundTimer from "react-native-background-timer"
 import { setJSExceptionHandler, setNativeExceptionHandler } from "react-native-exception-handler"
 import { reportError } from "../lib/api"
 import ImageViewerScreen from "./ImageViewerScreen"
+import RNBootSplash from "react-native-bootsplash"
 
 setJSExceptionHandler((err, isFatal) => {
     reportError(err)
@@ -299,7 +299,8 @@ export const App = memo(() => {
             console.log(err)
         })
 
-        SplashScreen.hide()
+        BackgroundTimer.setTimeout(() => RNBootSplash.hide({ fade: true }), 1000)
+        
         //BackgroundTimer.start()
 
         const appStateListener = AppState.addEventListener("change", (nextAppState) => {

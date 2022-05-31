@@ -134,8 +134,8 @@ android {
         applicationId "io.filen.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 216
-        versionName "2.0.16"
+        versionCode 217
+        versionName "2.0.17"
     }
     splits {
         abi {
@@ -208,6 +208,7 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    implementation "androidx.core:core-splashscreen:1.0.0-beta01"
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'

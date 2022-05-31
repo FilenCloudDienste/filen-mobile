@@ -17,7 +17,7 @@
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
-      android:theme="@style/AppTheme"
+      android:theme="@style/BootTheme"
       android:hardwareAccelerated="true"
       android:largeHeap="true"
       android:requestLegacyExternalStorage="true">
@@ -29,6 +29,7 @@
         android:windowSoftInputMode="adjustPan"
         android:hardwareAccelerated="true"
         android:documentLaunchMode="never"
+        android:exported="true"
         android:screenOrientation="unspecified">
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />

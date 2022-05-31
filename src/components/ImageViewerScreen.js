@@ -194,6 +194,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
 
         return () => {
             setStatusBarStyle(darkMode)
+            setTimeout(() => setStatusBarStyle(darkMode), 1000)
             
             dimensionsListener.remove()
 
@@ -237,7 +238,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                 minZoom={minZoom}
                 zoomStep={2}
                 initialZoom={minZoom}
-                bindToBorders={false}
+                bindToBorders={true}
                 contentWidth={screenDimensions.width}
                 contentHeight={screenDimensions.height}
                 style={{
@@ -254,7 +255,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                     
                     zoomLevel.current = view.zoomLevel
 
-                    if(view.zoomLevel <= 1.1){
+                    if(view.zoomLevel <= 1.05){
                         listRef?.current?.scrollToIndex({
                             animated: false,
                             index
@@ -606,7 +607,7 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
                         position: "absolute",
                         width: screenDimensions.width,
                         height: 120,
-                        paddingTop: 1
+                        paddingTop: 3
                     }}
                     ref={thumbnailListRef}
                     data={imagePreviewModalItems}

@@ -4,7 +4,7 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 
-#import "RNSplashScreen.h"
+#import "RNBootSplash.h"
 #import <TSBackgroundFetch/TSBackgroundFetch.h>
 #import <RNShareMenu/ShareMenuManager.h>
 
@@ -52,7 +52,7 @@ static void InitializeFlipper(UIApplication *application) {
     self.window.rootViewController = rootViewController;
     [self.window makeKeyAndVisible];
     
-    [RNSplashScreen show];
+    [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView];
     [[TSBackgroundFetch sharedInstance] didFinishLaunching];
     
     return YES;

@@ -332,8 +332,6 @@ PODS:
     - React-Core
   - react-native-safe-area-context (3.3.2):
     - React-Core
-  - react-native-splash-screen (3.3.0):
-    - React-Core
   - react-native-version-check (3.4.2):
     - React
   - React-perflogger (0.67.1)
@@ -406,6 +404,8 @@ PODS:
   - ReactNativeExceptionHandler (2.10.10):
     - React-Core
   - RNBackgroundFetch (4.0.5):
+    - React-Core
+  - RNBootSplash (4.1.5):
     - React-Core
   - RNCClipboard (1.8.5):
     - React-Core
@@ -538,7 +538,6 @@ DEPENDENCIES:
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
   - react-native-version-check (from `../node_modules/react-native-version-check`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -555,6 +554,7 @@ DEPENDENCIES:
   - "ReactNativeART (from `../node_modules/@react-native-community/art`)"
   - ReactNativeExceptionHandler (from `../node_modules/react-native-exception-handler`)
   - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
+  - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
@@ -674,8 +674,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-restart"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
-  react-native-splash-screen:
-    :path: "../node_modules/react-native-splash-screen"
   react-native-version-check:
     :path: "../node_modules/react-native-version-check"
   React-perflogger:
@@ -708,6 +706,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-exception-handler"
   RNBackgroundFetch:
     :path: "../node_modules/react-native-background-fetch"
+  RNBootSplash:
+    :path: "../node_modules/react-native-bootsplash"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
@@ -796,7 +796,6 @@ SPEC CHECKSUMS:
   react-native-quick-base64: 5b0692872a9456fb4723f7b2a0083d51485baa95
   react-native-restart: 45c8dca02491980f2958595333cbccd6877cb57e
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
-  react-native-splash-screen: 4312f786b13a81b5169ef346d76d33bc0c6dc457
   react-native-version-check: d8b8900e6ce03ae1568cb22ef9451f2508188883
   React-perflogger: 9a6172711d9c4c8c7ac0a426717317c3c6ecf85c
   React-RCTActionSheet: ed408b54b08278e6af8a75e08679675041da61ae
@@ -813,6 +812,7 @@ SPEC CHECKSUMS:
   ReactNativeART: 78edc68dd4a1e675338cd0cd113319cf3a65f2ab
   ReactNativeExceptionHandler: b11ff67c78802b2f62eed0e10e75cb1ef7947c60
   RNBackgroundFetch: f61b5eb62e86e76ec6302c3ba9798966a14aa312
+  RNBootSplash: 2830c475d5793d6cf12312d1e8f5f1decb0dd3e8
   RNCClipboard: cc054ad1e8a33d2a74cd13e565588b4ca928d8fd
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
