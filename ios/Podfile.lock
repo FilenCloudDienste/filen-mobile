@@ -405,8 +405,6 @@ PODS:
     - React-Core
   - RNBackgroundFetch (4.0.5):
     - React-Core
-  - RNBootSplash (4.1.5):
-    - React-Core
   - RNCClipboard (1.8.5):
     - React-Core
   - RNCMaskedView (0.2.6):
@@ -554,7 +552,6 @@ DEPENDENCIES:
   - "ReactNativeART (from `../node_modules/@react-native-community/art`)"
   - ReactNativeExceptionHandler (from `../node_modules/react-native-exception-handler`)
   - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
-  - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
@@ -706,8 +703,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-exception-handler"
   RNBackgroundFetch:
     :path: "../node_modules/react-native-background-fetch"
-  RNBootSplash:
-    :path: "../node_modules/react-native-bootsplash"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
@@ -812,7 +807,6 @@ SPEC CHECKSUMS:
   ReactNativeART: 78edc68dd4a1e675338cd0cd113319cf3a65f2ab
   ReactNativeExceptionHandler: b11ff67c78802b2f62eed0e10e75cb1ef7947c60
   RNBackgroundFetch: f61b5eb62e86e76ec6302c3ba9798966a14aa312
-  RNBootSplash: 2830c475d5793d6cf12312d1e8f5f1decb0dd3e8
   RNCClipboard: cc054ad1e8a33d2a74cd13e565588b4ca928d8fd
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e

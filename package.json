@@ -1,6 +1,6 @@
 {
 	"name": "filen-mobile",
-	"version": "2.0.17",
+	"version": "2.0.18",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
@@ -46,7 +46,6 @@
 		"react-native-base64": "^0.2.1",
 		"react-native-biometrics": "^2.1.4",
 		"react-native-blob-util": "^0.14.1",
-		"react-native-bootsplash": "^4.1.5",
 		"react-native-compressor": "^1.5.0",
 		"react-native-device-info": "^8.4.9",
 		"react-native-dialog": "^9.2.1",

@@ -15,6 +15,7 @@ import { clearCacheDirectories } from "./setup"
 const cachedGetDownloadPath = {}
 const downloadSemaphore = new Semaphore(3)
 const maxThreads = 32
+const downloadThreadsSemaphore = new Semaphore(maxThreads)
 
 export const downloadFileChunk = ({ region, bucket, uuid, index, key, version }) => {
     return new Promise((resolve, reject) => {

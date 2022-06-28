@@ -2,8 +2,6 @@ package io.filen.app;
 
 import android.os.Bundle;
 import com.facebook.react.ReactActivity;
-import com.facebook.react.ReactActivityDelegate;
-import com.zoontek.rnbootsplash.RNBootSplash;
 
 public class MainActivity extends ReactActivity {
   @Override
@@ -19,17 +17,5 @@ public class MainActivity extends ReactActivity {
   @Override
   protected String getMainComponentName() {
     return "Filen";
-  }
-
-  @Override
-  protected ReactActivityDelegate createReactActivityDelegate() {
-    return new ReactActivityDelegate(this, getMainComponentName()) {
-
-      @Override
-      protected void loadApp(String appKey) {
-        RNBootSplash.init(getPlainActivity());
-        super.loadApp(appKey);
-      }
-    };
   }
 }

@@ -309,10 +309,28 @@ export const uInt8ArrayConcatAsync = (arrays) => {
     })
 }
 
-export const simpleDate = (timestamp) => {
+export const convertTimestampToMs = (timestamp) => {
     const date = new Date(timestamp * 1000)
 
-    return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
+    if(date.getFullYear() > 2100){
+        return Math.floor(timestamp)
+    }
+    else{
+        return Math.floor(timestamp * 1000)
+    }
+}
+
+export const simpleDate = (timestamp) => {
+    try{
+        const date = new Date(convertTimestampToMs(parseInt(timestamp)))
+
+        return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
+    }
+    catch(e){
+        const date = new Date()
+
+        return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
+    }
 }
 
 export const normalizePhotosRange = (range) => {

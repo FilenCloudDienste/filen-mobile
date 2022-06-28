@@ -17,7 +17,6 @@
 		3D8900C427ACCC1700C43F8A /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3D8900BA27ACCC1700C43F8A /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3D8900C927ACCC6200C43F8A /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8900C827ACCC6200C43F8A /* ShareViewController.swift */; };
 		3DE7BC3B27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7BC3A27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m */; };
-		3DFD662428457F7300A6B664 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DFD662328457F7300A6B664 /* BootSplash.storyboard */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		C96D787E92A95319F0489030 /* libPods-ShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BBAA59C1E4CF12EDD4403145 /* libPods-ShareExtension.a */; };
 		DE28B25F01C487E70C5F60C4 /* libPods-Filen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C078319821E15D538950AA1 /* libPods-Filen.a */; };
@@ -92,7 +91,6 @@
 		3D8900DA27AD522800C43F8A /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SimpleLineIcons.ttf; sourceTree = "<group>"; };
 		3D8900DB27AD522800C43F8A /* MaterialIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialIcons.ttf; sourceTree = "<group>"; };
 		3DE7BC3A27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "RNBackgroundFetch+AppDelegate.m"; path = "../node_modules/react-native-background-fetch/ios/RNBackgroundFetch/RNBackgroundFetch+AppDelegate.m"; sourceTree = "<group>"; };
-		3DFD662328457F7300A6B664 /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = Filen/BootSplash.storyboard; sourceTree = "<group>"; };
 		5B9DCD7741E64912425A5CFF /* Pods-Filen-FilenTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Filen-FilenTests.release.xcconfig"; path = "Target Support Files/Pods-Filen-FilenTests/Pods-Filen-FilenTests.release.xcconfig"; sourceTree = "<group>"; };
 		75E159AEB3278EAD3E4BEE46 /* Pods-Filen-FilenTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Filen-FilenTests.debug.xcconfig"; path = "Target Support Files/Pods-Filen-FilenTests/Pods-Filen-FilenTests.debug.xcconfig"; sourceTree = "<group>"; };
 		787CCEEF7C4F434C083A19ED /* Pods-Filen.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Filen.debug.xcconfig"; path = "Target Support Files/Pods-Filen/Pods-Filen.debug.xcconfig"; sourceTree = "<group>"; };
@@ -153,7 +151,6 @@
 			children = (
 				3DE7BC3A27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m */,
 				3D89005027AC3EBC00C43F8A /* Filen.entitlements */,
-				3DFD662328457F7300A6B664 /* BootSplash.storyboard */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -392,7 +389,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3DFD662428457F7300A6B664 /* BootSplash.storyboard in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 			);
@@ -751,7 +747,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Filen/Filen.entitlements;
-				CURRENT_PROJECT_VERSION = 217;
+				CURRENT_PROJECT_VERSION = 218;
 				DEVELOPMENT_TEAM = 7YTW5D2K7P;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Filen/Info.plist;
@@ -760,7 +756,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.17;
+				MARKETING_VERSION = 2.0.18;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -784,7 +780,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Filen/Filen.entitlements;
-				CURRENT_PROJECT_VERSION = 217;
+				CURRENT_PROJECT_VERSION = 218;
 				DEVELOPMENT_TEAM = 7YTW5D2K7P;
 				INFOPLIST_FILE = Filen/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -792,7 +788,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.17;
+				MARKETING_VERSION = 2.0.18;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

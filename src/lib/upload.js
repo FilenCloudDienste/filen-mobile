@@ -14,8 +14,10 @@ import { memoryCache } from "./memoryCache"
 import { addItemLoadItemsCache, buildFile } from "./services/items"
 import BackgroundTimer from "react-native-background-timer"
 
-const maxThreads = 10
+const maxThreads = 8
 const uploadSemaphore = new Semaphore(3)
+const uploadThreadsSemaphore = new Semaphore(maxThreads)
+const uploadVersion = 2
 
 export const encryptAndUploadChunk = ({ base64, key, url, timeout, showErrors = true }) => {
     return new Promise((resolve, reject) => {
@@ -116,7 +118,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         chunks: 0,
         parent,
         timestamp: Math.floor(+new Date() / 1000),
-        version: 2,
+        version: uploadVersion,
         versionedUUID: undefined
     }
 
@@ -293,60 +295,6 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
         lastModified = pickedFile.lastModified
     }
 
-    try{
-        var existsResponse = await fileExists({ name, parent })
-    }
-    catch(e){
-        removeFromState()
-
-        BackgroundTimer.clearInterval(stopInterval)
-
-        if(typeof cameraUploadCallback !== "function"){
-            showToast({ message: e.toString() })
-        }
-        else{
-            cameraUploadCallback(e)
-        }
-
-        clearCache()
-
-        return console.log(e)
-    }
-
-    if(existsResponse.exists){
-        if(typeof cameraUploadCallback == "function"){
-            removeFromState()
-
-            BackgroundTimer.clearInterval(stopInterval)
-
-            return cameraUploadCallback(null, item)
-        }
-
-        try{
-            var updateUUID = await global.nodeThread.uuidv4()
-
-            await archiveFile({ existsUUID: existsResponse.existsUUID, updateUUID })
-
-            item.versionedUUID = existsResponse.existsUUID
-        }
-        catch(e){
-            removeFromState()
-
-            BackgroundTimer.clearInterval(stopInterval)
-
-            if(typeof cameraUploadCallback !== "function"){
-                showToast({ message: e.toString() })
-            }
-            else{
-                cameraUploadCallback(e)
-            }
-
-            clearCache()
-
-            return console.log(e)
-        }
-    }
-
     const masterKeys = getMasterKeys()
     const apiKey = getAPIKey()
 
@@ -450,7 +398,6 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     item.uuid = uuid
 
     let chunksDone = 0
-    let currentIndex = -1
     let err = undefined
 
     const clearAfterUpload = () => {
@@ -514,7 +461,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
                         uploadKey: encodeURIComponent(uploadKey),
                         metaData: encodeURIComponent(metaData),
                         parent: encodeURIComponent(parent),
-                        version: encodeURIComponent(2)
+                        version: encodeURIComponent(uploadVersion)
                     }).toString()
                 }
                 catch(e){
@@ -535,7 +482,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
                     encryptAndUploadChunk({
                         base64,
                         key,
-                        url: getUploadServer() + "/v1/upload?" + queryParams,
+                        url: getUploadServer() + "/v2/upload?" + queryParams,
                         timeout: 3600000,
                         showErrors: typeof cameraUploadCallback == "function" ? false : true
                     }).then((res) => {
@@ -567,58 +514,35 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
     }
 
     try{
-        var res = await upload(0)
+        const res = await upload(0)
 
         item.region = res.data.region
         item.bucket = res.data.bucket
-    }
-    catch(e){
-        err = e
-    }
 
-    if(typeof err == "undefined"){
-        chunksDone += 1
-        currentIndex += 1
+        await new Promise((resolve, reject) => {
+            let done = 1
 
-        while(fileChunks > chunksDone && typeof err == "undefined"){
-            let chunksLeft = (fileChunks - chunksDone)
-            let chunksToUpload = maxThreads
-            
-            if(chunksLeft >= maxThreads){
-                chunksToUpload = maxThreads
-            }
-            else{
-                chunksToUpload = chunksLeft
-            }
-            
-            const uploadChunks = []
-            
-            for(let i = 0; i < chunksToUpload; i++){
-                currentIndex += 1
+            for(let i = 1; i < (fileChunks + 1); i++){
+                uploadThreadsSemaphore.acquire().then(() => {
+                    upload(i).then((response) => {
+                        region = response.data.region
+                        bucket = response.data.bucket
 
-                uploadChunks.push(upload(currentIndex))
-            }
-            
-            try{
-                await Promise.all(uploadChunks)
-            }
-            catch(e){
-                err = e
+                        done += 1
 
-                break
-            }
-            
-            chunksDone += uploadChunks.length
-        }
-    }
+                        uploadThreadsSemaphore.release()
 
-    if(typeof err == "undefined"){
-        try{
-            await upload((currentIndex + 1))
-        }
-        catch(e){
-            err = e
-        }
+                        if(done >= (fileChunks + 1)){
+                            return resolve(true)
+                        }
+                    }).catch((err) => {
+                        uploadThreadsSemaphore.release()
+
+                        return reject(err)
+                    })
+                })
+            }
+        })
 
         if(canCompressThumbnail(getFileExt(name))){
             try{
@@ -652,6 +576,15 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
                 console.log(e)
             }
         }
+    }
+    catch(e){
+        if(e.toString().toLowerCase().indexOf("already exists") !== -1){
+            await clearAfterUpload()
+
+            return resolve(true)
+        }
+
+        err = e
     }
 
     await clearAfterUpload()
@@ -746,7 +679,7 @@ export const queueFileUpload = async ({ pickedFile, parent, progressCallback, ca
             receiverEmail: undefined,
             sharerId: undefined,
             sharerEmail: undefined,
-            version: 2,
+            version: uploadVersion,
             favorited: 0
         },
         metadata: {

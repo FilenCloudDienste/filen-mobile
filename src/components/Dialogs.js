@@ -255,6 +255,14 @@ export const CreateFolderDialog = memo(({ navigation }) => {
                 const parent = getParent()
                 const name = value.trim()
 
+                if(!fileAndFolderNameValidation(name)){
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    return showToast({ message: i18n(lang, "invalidFolderName") })
+                }
+
                 folderExists({
                     name,
                     parent

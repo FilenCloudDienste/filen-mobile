@@ -23,6 +23,10 @@ const toastQueueLimit = 3
 let currentToastQueue = 0
 
 export const showToast = ({ type = "normal", message, swipeEnabled = false, duration = 5000, animationType = "slide-in", animationDuration = 100, bottomOffset = 0, offset = 50, offsetBottom = 50, offsetTop = 50, placement = "bottom", navigation = undefined }) => {
+    if(typeof global.toast == "undefined"){
+        return false
+    }
+    
     if(currentToastQueue >= toastQueueLimit){
         return BackgroundTimer.setTimeout(() => {
             showToast({
@@ -152,10 +156,18 @@ export const showToast = ({ type = "normal", message, swipeEnabled = false, dura
 }
 
 export const hideToast = ({ id }) => {
+    if(typeof global.toast == "undefined"){
+        return false
+    }
+
     return global.toast.hide(id)
 }
 
 export const hideAllToasts = () => {
+    if(typeof global.toast == "undefined"){
+        return false
+    }
+
     return global.toast.hideAll()
 }
 

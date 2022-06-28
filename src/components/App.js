@@ -51,7 +51,6 @@ import BackgroundTimer from "react-native-background-timer"
 import { setJSExceptionHandler, setNativeExceptionHandler } from "react-native-exception-handler"
 import { reportError } from "../lib/api"
 import ImageViewerScreen from "./ImageViewerScreen"
-import RNBootSplash from "react-native-bootsplash"
 
 setJSExceptionHandler((err, isFatal) => {
     reportError(err)
@@ -299,8 +298,6 @@ export const App = memo(() => {
             console.log(err)
         })
 
-        BackgroundTimer.setTimeout(() => RNBootSplash.hide({ fade: true }), 1000)
-        
         //BackgroundTimer.start()
 
         const appStateListener = AppState.addEventListener("change", (nextAppState) => {

@@ -23,7 +23,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const cameraUploadUploaded = useStore(useCallback(state => state.cameraUploadUploaded))
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + userId, storage)
-    const [scrollDate, setScrollDate] = useState(typeof items == "object" && items.length > 0 ? calcCameraUploadCurrentDate(items[0].lastModified, items[items.length - 1].lastModified, lang) : "")
+    const [scrollDate, setScrollDate] = useState(Array.isArray(items) && items.length > 0 ? calcCameraUploadCurrentDate(items[0].lastModified, items[items.length - 1].lastModified, lang) : "")
     const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
     const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + userId, storage)
     const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
@@ -223,7 +223,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         setPhotosRange(nextRangeSelection)
     })
 
-    const getInitialScrollInex = useCallback(() => {
+    const getInitialScrollIndex = useCallback(() => {
         const range = normalizePhotosRange(photosRange)
         const gridSize = calcPhotosGridSize(photosGridSize)
         const viewMode = routeURL.indexOf("photos") !== -1 ? "photos" : itemViewMode
@@ -564,7 +564,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 initialNumToRender={32}
                 ref={itemListRef}
                 removeClippedSubviews={true}
-                initialScrollIndex={(currentItems.length > 0 ? currentItems.length : generateItemsForItemList(items, normalizePhotosRange(photosRange), lang).length) > 0 ? getInitialScrollInex() : undefined}
+                initialScrollIndex={(currentItems.length > 0 ? currentItems.length : generateItemsForItemList(items, normalizePhotosRange(photosRange), lang).length) > 0 ? getInitialScrollIndex() : undefined}
                 numColumns={routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : itemViewMode == "grid" ? 2 : 1}
                 getItemLayout={(data, index) => ({
                     length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))),

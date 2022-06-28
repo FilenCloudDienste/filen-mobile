@@ -129,7 +129,7 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
         parent: file.parent || "base",
         rm: file.rm,
         chunks: file.chunks,
-        date: simpleDate(parseInt(typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp)),
+        date: typeof metadata.lastModified == "number" && metadata.lastModified > 0 ? simpleDate(parseInt(metadata.lastModified)) : simpleDate(file.timestamp),
         timestamp: file.timestamp,
         receiverId: typeof file.receiverId == "number" ? file.receiverId : 0,
         receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,
@@ -250,7 +250,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         if(getParent(route) == parent && isMounted()){
             items = sortItems({ items, passedRoute: route })
 
-            setItems(items)
+            setItems(items.filter(item => item !== null && typeof item.uuid == "string"))
             setLoadDone(true)
         }
 
@@ -862,7 +862,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     storage.set(cacheKey, await asyncJSON.stringify(items))
 
     if(getParent(route) == parent && isMounted()){
-        setItems(items)
+        setItems(items.filter(item => item !== null && typeof item.uuid == "string"))
         setLoadDone(true)
     }
 

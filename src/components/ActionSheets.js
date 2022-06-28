@@ -282,7 +282,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 											}
 	
 											for(let i = 0; i < response.length; i++){
-												if(typeof response[i].name == "string" && typeof response[i].uri == "string"){
+												if(typeof response[i].name == "string" && typeof response[i].uri == "string" && typeof response[i].fileCopyUri == "string"){
 													const copyURL = response[i].fileCopyUri.split("file:/").join("").split("file://").join("").split("file:").join("")
 
 													queueFileUpload({

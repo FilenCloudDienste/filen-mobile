@@ -170,7 +170,9 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
             return navigation.goBack()
         }
 
-        setStatusBarStyle(true)
+        if(Platform.OS == "ios"){
+            setStatusBarStyle(true)
+        }
         
         if(Platform.OS == "android"){
             hideNavigationBar()
@@ -193,10 +195,13 @@ const ImageViewerScreen = memo(({ navigation, route }) => {
         })
 
         return () => {
-            setStatusBarStyle(darkMode)
-            setTimeout(() => setStatusBarStyle(darkMode), 1000)
-            
             dimensionsListener.remove()
+
+            if(Platform.OS == "ios"){
+                setStatusBarStyle(darkMode)
+                setTimeout(() => setStatusBarStyle(darkMode), 500)
+                setTimeout(() => setStatusBarStyle(darkMode), 1000)
+            }
 
             if(Platform.OS == "android"){
                 showNavigationBar()

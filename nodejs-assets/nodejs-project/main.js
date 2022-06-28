@@ -440,17 +440,10 @@ const apiRequest = (method, url, timeout, data) => {
 const encryptAndUploadChunk = (base64, key, url, timeout) => {
     return new Promise((resolve, reject) => {
         encryptData(base64, key, false).then((encrypted) => {
-            try{
-                var data = convertUint8ArrayToBinaryString(encrypted)
-            }
-            catch(e){
-                return reject(e)
-            }
-
             axiosClient({
                 method: "post",
                 url,
-                data,
+                data: encrypted,
                 timeout,
                 headers: {
                     "User-Agent": "filen-mobile"

@@ -18,8 +18,9 @@ export const MainScreen = memo(({ navigation, route }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [routeURL, setRouteURL] = useState(useCallback(getRouteURL(route)))
-    const [cachedItemsRef, setCachedItemsRef] = useState(useCallback(storage.getString("loadItemsCache:" + routeURL)))
-    const [items, setItems] = useState(typeof cachedItemsRef !== "undefined" ? JSON.parse(cachedItemsRef) : [])
+    const cachedItemsRef = useRef(storage.getString("loadItemsCache:" + routeURL)).current
+    const cachedItemsParsed = useRef(typeof cachedItemsRef == "string" ? JSON.parse(cachedItemsRef) : []).current
+    const [items, setItems] = useState(Array.isArray(cachedItemsParsed) ? cachedItemsParsed.filter(item => item !== null && typeof item.uuid == "string") : [])
     const [searchTerm, setSearchTerm] = useState("")
     const [loadDone, setLoadDone] = useState(typeof cachedItemsRef !== "undefined" ? true : false)
     const setNavigation = useStore(useCallback(state => state.setNavigation))
@@ -186,7 +187,7 @@ export const MainScreen = memo(({ navigation, route }) => {
     }, [itemsSortBy])
 
     useEffect(() => {
-        if(isFocused){
+        if(isFocused && Array.isArray(items) && items.length > 0){
             setCurrentItems(items)
 
             itemsRef.current = items
