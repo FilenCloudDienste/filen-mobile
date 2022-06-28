@@ -187,18 +187,29 @@ export const MainScreen = memo(({ navigation, route }) => {
     }, [itemsSortBy])
 
     useEffect(() => {
-        if(isFocused && Array.isArray(items) && items.length > 0){
-            setCurrentItems(items)
+        if(isFocused){
+            if(Array.isArray(items) && items.length > 0){
+                setCurrentItems(items)
 
-            itemsRef.current = items
-            global.items = items
+                itemsRef.current = items
+                global.items = items
+
+                const selected = items.filter(item => item.selected).length
+
+                selectedCountRef.current = selected
+
+                setItemsSelectedCount(selectedCountRef.current)
+            }
+            else{
+                setCurrentItems([])
+    
+                itemsRef.current = []
+                global.items = []
+    
+                setItemsSelectedCount(0)
+            }
+
             global.setItems = setItems
-
-            const selected = items.filter(item => item.selected).length
-
-            selectedCountRef.current = selected
-
-            setItemsSelectedCount(selectedCountRef.current)
         }
     }, [items, isFocused])
 
