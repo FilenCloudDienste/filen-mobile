@@ -10,6 +10,7 @@ import { folderPresent, reportError } from "../api"
 import BackgroundTimer from "react-native-background-timer"
 import RNFS from "react-native-fs"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../permissions"
+import pathModule from "react-native-path"
 
 const cameraUploadTimeout = 5000
 const copySemaphore = new Semaphore(1)
@@ -629,7 +630,7 @@ export const getCameraRollAssets = () => {
                     }).then((data) => {
                         try{
                             data.edges.forEach((edge) => {
-                                const uri = decodeURIComponent(edge.node.image.uri)
+                                const uri = pathModule.normalize(decodeURIComponent(edge.node.image.uri))
             
                                 // Do not upload files that are locally saved (app isolated library), avoiding duplicates
                                 if(

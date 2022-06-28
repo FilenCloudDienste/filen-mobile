@@ -390,5 +390,6 @@ export const en = {
     appSetupNotPossible: "Could not initialize the app. Maybe you are offline?",
     shareIntoAppLimit: "You cannot share more than __LIMIT__ files into the app at once",
     cameraUploadFetchingAssetsFromLocal: "Preparing local assets",
-    cannotShareDirIntoApp: "You cannot share a directory into the app"
+    cannotShareDirIntoApp: "You cannot share a directory into the app",
+    alreadyUploadingFile: "Already uploading __NAME__"
 }

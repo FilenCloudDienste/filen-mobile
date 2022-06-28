@@ -68,6 +68,7 @@
 		"react-native-modalbox": "^2.0.2",
 		"react-native-modals": "^0.22.3",
 		"react-native-navigation-bar-color": "^2.0.1",
+		"react-native-path": "^0.0.5",
 		"react-native-permissions": "^3.3.0",
 		"react-native-photo-gallery": "^0.2.4",
 		"react-native-picker-select": "^8.0.4",

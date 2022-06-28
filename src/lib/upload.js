@@ -13,6 +13,7 @@ import striptags from "striptags"
 import { memoryCache } from "./memoryCache"
 import { addItemLoadItemsCache, buildFile } from "./services/items"
 import BackgroundTimer from "react-native-background-timer"
+import pathModule from "react-native-path"
 
 const maxThreads = 8
 const uploadSemaphore = new Semaphore(3)
@@ -61,7 +62,7 @@ export const encryptAndUploadChunk = ({ base64, key, url, timeout, showErrors = 
 }
 
 export const queueFileUpload = async ({ pickedFile, parent, progressCallback, cameraUploadCallback, routeURL = undefined, clear = true }) => {
-    let filePath = decodeURIComponent(pickedFile.uri)
+    let filePath = pathModule.normalize(decodeURIComponent(pickedFile.uri))
 
     const clearCache = async () => {
         if(!clear){

@@ -13,6 +13,7 @@ import { getDownloadPath } from "../lib/download"
 import { queueFileUpload } from "../lib/upload"
 import getPath from "@flyerhq/react-native-android-uri-path"
 import BackgroundTimer from "react-native-background-timer"
+import pathModule from "react-native-path"
 
 const mime = require("mime-types")
 
@@ -643,7 +644,7 @@ export const UploadToast = memo(({ message }) => {
                                 }
             
                                 for(let i = 0; i < items.length; i++){
-                                    copyFile(items[i]).then((copyResult) => {
+                                    copyFile(pathModule.normalize(decodeURIComponent(items[i]))).then((copyResult) => {
                                         const { path, type, size, name } = copyResult
 
                                         queueFileUpload({
@@ -651,7 +652,7 @@ export const UploadToast = memo(({ message }) => {
                                                 name,
                                                 size,
                                                 type,
-                                                uri: path.indexOf("file://") == -1 ? "file://" + path : path
+                                                uri: pathModule.normalize(decodeURIComponent(path.indexOf("file://") == -1 ? "file://" + path : path))
                                             },
                                             parent,
                                             clear: Platform.OS == "android" ? false : true

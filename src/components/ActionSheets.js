@@ -28,6 +28,7 @@ import { getColor } from "../lib/style/colors"
 import { navigationAnimation } from "../lib/state"
 import { updateUserInfo } from "../lib/user/info"
 import ReactNativeBlobUtil from "react-native-blob-util"
+import pathModule from "react-native-path"
 
 const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 
@@ -149,7 +150,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 											if(response.assets){
 												for(const asset of response.assets){
-													RNFS.stat(decodeURIComponent(asset.uri)).then((stat) => {
+													RNFS.stat(pathModule.normalize(decodeURIComponent(asset.uri))).then((stat) => {
 														const fileName = decodeURIComponent(asset.fileName || asset.uri?.substring((asset.uri || "").lastIndexOf("/") + 1) || "")
 
 														queueFileUpload({
@@ -157,7 +158,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 																name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join("_").split("\\").join("_").split("-").join("_") + "_" + Math.random().toString().slice(3) + "." + getFileExt(fileName),
 																size: asset.fileSize || typeof stat.size == "string" ? parseInt(stat.size) : stat.size,
 																type: asset.type || "",
-																uri: decodeURIComponent(asset.uri) || ""
+																uri: pathModule.normalize(decodeURIComponent(asset.uri)) || ""
 															},
 															parent
 														})
@@ -222,7 +223,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 
 														if(response.assets){
 															for(const asset of response.assets){
-																RNFS.stat(decodeURIComponent(asset.uri)).then((stat) => {
+																RNFS.stat(pathModule.normalize(decodeURIComponent(asset.uri))).then((stat) => {
 																	const fileName = decodeURIComponent(asset.fileName || asset.uri?.substring((asset.uri || "").lastIndexOf("/") + 1) || "")
 
 																	queueFileUpload({
@@ -230,7 +231,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 																			name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date(asset.timestamp || (+new Date())).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join("_").split("\\").join("_").split("-").join("_") + "_" + Math.random().toString().slice(3) + "." + getFileExt(fileName),
 																			size: asset.fileSize || typeof stat.size == "string" ? parseInt(stat.size) : stat.size,
 																			type: asset.type || "",
-																			uri: decodeURIComponent(asset.uri) || ""
+																			uri: pathModule.normalize(decodeURIComponent(asset.uri)) || ""
 																		},
 																		parent
 																	})
@@ -290,7 +291,7 @@ export const BottomBarAddActionSheet = memo(({ navigation, route }) => {
 															name: response[i].name,
 															size: response[i].size,
 															type: response[i].type,
-															uri: response[i].fileCopyUri.indexOf("file://") == -1 ? "file:///" + copyURL : copyURL
+															uri: pathModule.normalize(decodeURIComponent(response[i].fileCopyUri.indexOf("file://") == -1 ? "file:///" + copyURL : copyURL))
 														},
 														parent
 													})
@@ -2836,7 +2837,7 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 									return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
 								}
 
-								uploadAvatarImage(decodeURIComponent(image.uri))
+								uploadAvatarImage(pathModule.normalize(decodeURIComponent(image.uri)))
 							}).catch((err) => {
 								if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
 									console.log(err)
@@ -2905,7 +2906,7 @@ export const ProfilePictureActionSheet = memo(({ navigation, route }) => {
 										return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
 									}
 
-									uploadAvatarImage(decodeURIComponent(image.uri))
+									uploadAvatarImage(pathModule.normalize(decodeURIComponent(image.uri)))
 								}).catch((err) => {
 									if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
 										console.log(err)

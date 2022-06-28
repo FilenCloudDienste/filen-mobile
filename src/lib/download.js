@@ -11,6 +11,7 @@ import { addItemToOfflineList } from "./services/offline"
 import { getItemOfflinePath } from "./services/offline"
 import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "./setup"
+import pathModule from "react-native-path"
 
 const cachedGetDownloadPath = {}
 const downloadSemaphore = new Semaphore(3)
@@ -295,7 +296,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         console.log(e)
     }
 
-    const filePath = downloadPath + file.name
+    const filePath = pathModule.normalize(downloadPath + file.name)
 
     downloadWholeFileFSStream({
         file,
