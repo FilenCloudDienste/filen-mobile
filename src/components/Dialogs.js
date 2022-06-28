@@ -23,7 +23,6 @@ export const RenameDialog = memo(({ navigation }) => {
     const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
     const [lang, setLang] = useMMKVString("lang", storage)
     const [ext, setExt] = useState("")
-    const imagePreviewModalVisible = useStore(useCallback(state => state.imagePreviewModalVisible))
 
     useEffect(() => {
         setButtonsDisabled(false)
@@ -130,9 +129,7 @@ export const RenameDialog = memo(({ navigation }) => {
 
                             useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                            if(imagePreviewModalVisible){
-                                showToast({ message: i18n(lang, "folderRenamed") })
-                            }
+                            //showToast({ message: i18n(lang, "folderRenamed") })
                         }).catch((err) => {
                             setButtonsDisabled(false)
 
@@ -181,9 +178,7 @@ export const RenameDialog = memo(({ navigation }) => {
 
                             useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                            if(imagePreviewModalVisible){
-                                showToast({ message: i18n(lang, "fileRenamed") })
-                            }
+                            //showToast({ message: i18n(lang, "fileRenamed") })
                         }).catch((err) => {
                             setButtonsDisabled(false)
 
@@ -317,7 +312,6 @@ export const ConfirmPermanentDeleteDialog = memo(({ navigation }) => {
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
     const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
-    const imagePreviewModalVisible = useStore(useCallback(state => state.imagePreviewModalVisible))
 
     useEffect(() => {
         setButtonsDisabled(false)
@@ -353,9 +347,7 @@ export const ConfirmPermanentDeleteDialog = memo(({ navigation }) => {
 
                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                if(imagePreviewModalVisible){
-                                    showToast({ message: i18n(lang, "itemDeletedPermanently", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                }
+                                //showToast({ message: i18n(lang, "itemDeletedPermanently", true, ["__NAME__"], [currentActionSheetItem.name]) })
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 
@@ -378,7 +370,6 @@ export const ConfirmRemoveFromSharedInDialog = memo(({ navigation }) => {
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
     const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
-    const imagePreviewModalVisible = useStore(useCallback(state => state.imagePreviewModalVisible))
 
     useEffect(() => {
         setButtonsDisabled(false)
@@ -414,9 +405,7 @@ export const ConfirmRemoveFromSharedInDialog = memo(({ navigation }) => {
 
                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                if(imagePreviewModalVisible){
-                                    showToast({ message: i18n(lang, "removedFromSharedIn", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                }
+                                //showToast({ message: i18n(lang, "removedFromSharedIn", true, ["__NAME__"], [currentActionSheetItem.name]) })
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 
@@ -439,7 +428,6 @@ export const ConfirmStopSharingDialog = memo(({ navigation }) => {
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
     const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
-    const imagePreviewModalVisible = useStore(useCallback(state => state.imagePreviewModalVisible))
 
     useEffect(() => {
         setButtonsDisabled(false)
@@ -475,9 +463,7 @@ export const ConfirmStopSharingDialog = memo(({ navigation }) => {
 
                                 useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                if(imagePreviewModalVisible){
-                                    showToast({ message: i18n(lang, "stoppedSharingItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                }
+                                //showToast({ message: i18n(lang, "stoppedSharingItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 

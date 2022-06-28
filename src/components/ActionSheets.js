@@ -669,9 +669,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 												bulkRestore({ items }).then(() => {
 													useStore.setState({ fullscreenLoadingModalVisible: false })
 
-													if(imagePreviewModalVisible){
-														showToast({ message: i18n(lang, "restoreSelectedItemsSuccess", true, ["__COUNT__"], [items.length]) })
-													}
+													//showToast({ message: i18n(lang, "restoreSelectedItemsSuccess", true, ["__COUNT__"], [items.length]) })
 												}).catch((err) => {
 													console.log(err)
 
@@ -734,8 +732,6 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 												routeURL.indexOf("recents") == -1 && canShowBulkItemsActions && canShowMoveItems && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
 													<ActionButton onPress={async () => {
 														await SheetManager.hide("TopBarActionSheet")
-
-														useStore.setState({ imagePreviewModalVisible: false })
 
 														updateBulkItems()
 									
@@ -907,9 +903,7 @@ export const TopBarActionSheet = memo(({ navigation }) => {
 																type: "unselect-all-items"
 															})
 
-															if(imagePreviewModalVisible){
-																showToast({ message: i18n(lang, "selectedItemsTrashed") })
-															}
+															//showToast({ message: i18n(lang, "selectedItemsTrashed") })
 														}).catch((err) => {
 															console.log(err)
 
@@ -1241,7 +1235,6 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 	const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
 	const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
-	const imagePreviewModalVisible = useStore(useCallback(state => state.imagePreviewModalVisible))
 
 	const can = useCallback(() => {
 		if(typeof currentActionSheetItem !== "undefined"){
@@ -1459,9 +1452,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 		
 											hasStoragePermissions().then(() => {
 												removeFromOfflineStorage({ item: currentActionSheetItem }).then(() => {
-													if(imagePreviewModalVisible){
-														showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
-													}
+													//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
 												}).catch((err) => {
 													console.log(err)
 	
@@ -1524,9 +1515,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 		
 												useStore.setState({ fullscreenLoadingModalVisible: false })
 		
-												if(imagePreviewModalVisible){
-													showToast({ message: i18n(lang, value == 1 ? "itemFavorited" : "itemUnfavorited", true, ["__NAME__"], [currentActionSheetItem.name]) })
-												}
+												//showToast({ message: i18n(lang, value == 1 ? "itemFavorited" : "itemUnfavorited", true, ["__NAME__"], [currentActionSheetItem.name]) })
 											}).catch((err) => {
 												console.log(err)
 		
@@ -1550,8 +1539,6 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 									isDeviceOnline && !currentActionSheetItem.isSync && !currentActionSheetItem.isDefault && itemListParent !== "trash" && routeURL.indexOf("shared-in") == -1 && routeURL.indexOf("shared-out") == -1 && routeURL.indexOf("links") == -1 && routeURL.indexOf("favorites") == -1 && routeURL.indexOf("offline") == -1 && routeURL.indexOf("recents") == -1 && routeURL.indexOf("photos") == -1 && (
 										<ActionButton onPress={async () => {
 											await SheetManager.hide("ItemActionSheet")
-
-											useStore.setState({ imagePreviewModalVisible: false })
 		
 											showToast({ type: "move", message: i18n(lang, "moveItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
 										}} icon="move-outline" text={i18n(lang, "move")} />
@@ -1583,9 +1570,7 @@ export const ItemActionSheet = memo(({ navigation, route }) => {
 
 												useStore.setState({ fullscreenLoadingModalVisible: false })
 
-												if(imagePreviewModalVisible){
-													showToast({ message: i18n(lang, "itemTrashed", true, ["__NAME__"], [currentActionSheetItem.name]) })
-												}
+												//showToast({ message: i18n(lang, "itemTrashed", true, ["__NAME__"], [currentActionSheetItem.name]) })
 											}).catch(async (err) => {
 												console.log(err)
 
