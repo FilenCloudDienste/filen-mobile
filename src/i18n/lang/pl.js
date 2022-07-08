@@ -245,7 +245,7 @@ export const pl = {
     resendConfirmationBtn: "Wyślij ponownie potwierdzenie",
     registerBtn: "Utwórz konto",
     registerWeakPassword: "Hasło za słabe, powinno mieć minimum __MIN__ znaków",
-    registerPasswordsNotMatching: "Hasła nie zgadzają się",
+    registerPasswordsNotMatching: "Hasła nie pasują do siebie",
     apiError: "Błąd API, spróbuj ponownie później",
     registerSuccess: "Konto utworzone, proszę potwierdzić wysłaną wiadomość e-mail",
     registerEmailAlreadyRegistered: "Ten adres e-mail jest już zarejestrowany",
