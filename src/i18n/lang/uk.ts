@@ -388,5 +388,6 @@ export const uk: {
     appSetupNotPossible: "Не вдалося ініціалізувати додаток. Можливо ви знаходитесь в автономному режимі?",
     shareIntoAppLimit: "Ви не можете надіслати більше __LIMIT__ файлів у додаток одночасно",
     cameraUploadFetchingAssetsFromLocal: "Підготовка локальних об'єктів",
-    cannotShareDirIntoApp: "Ви не можете надіслати папку в додаток"
+    cannotShareDirIntoApp: "Ви не можете надіслати папку в додаток",
+    alreadyUploadingFile: "__NAME__ вже завантажується"
 }
