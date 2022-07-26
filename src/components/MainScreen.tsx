@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, memo } from "react"
+import React, { useState, useEffect, useRef, memo } from "react"
 import { View, DeviceEventEmitter, Platform } from "react-native"
 import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from "react-native-mmkv"
@@ -13,147 +13,153 @@ import { previewItem } from "../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StackActions, useIsFocused } from "@react-navigation/native"
 import { navigationAnimation } from "../lib/state"
+import type { EdgeInsets } from "react-native-safe-area-context"
 
-export const MainScreen = memo(({ navigation, route }) => {
+export interface MainScreenProps {
+    navigation: any,
+    route: any
+}
+
+export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [routeURL, setRouteURL] = useState(useCallback(getRouteURL(route)))
-    const cachedItemsRef = useRef(storage.getString("loadItemsCache:" + routeURL)).current
-    const cachedItemsParsed = useRef(typeof cachedItemsRef == "string" ? JSON.parse(cachedItemsRef) : []).current
-    const [items, setItems] = useState(Array.isArray(cachedItemsParsed) ? cachedItemsParsed.filter(item => item !== null && typeof item.uuid == "string") : [])
-    const [searchTerm, setSearchTerm] = useState("")
-    const [loadDone, setLoadDone] = useState(typeof cachedItemsRef !== "undefined" ? true : false)
-    const setNavigation = useStore(useCallback(state => state.setNavigation))
-    const setRoute = useStore(useCallback(state => state.setRoute))
-    const [masterKeys, setMasterKeys] = useState(useCallback(getMasterKeys()))
-    const isMounted = useMountedState()
-    const setCurrentActionSheetItem = useStore(useCallback(state => state.setCurrentActionSheetItem))
-    const setCurrentItems = useStore(useCallback(state => state.setCurrentItems))
-    const itemsRef = useRef([])
-    const setItemsSelectedCount = useStore(useCallback(state => state.setItemsSelectedCount))
-    const setInsets = useStore(useCallback(state => state.setInsets))
-    const insets = useSafeAreaInsets()
-    const [progress, setProgress] = useState({ itemsDone: 0, totalItems: 1 })
-    const selectedCountRef = useRef(0)
-    const setIsDeviceReady = useStore(useCallback(state => state.setIsDeviceReady))
-    const [itemsBeforeSearch, setItemsBeforeSearch] = useState([])
+    const [routeURL, setRouteURL] = useState<string>(getRouteURL(route))
+    const cachedItemsRef = useRef<string | undefined>(storage.getString("loadItemsCache:" + routeURL)).current
+    const cachedItemsParsed = useRef<any>(typeof cachedItemsRef == "string" ? JSON.parse(cachedItemsRef) : []).current
+    const [items, setItems] = useState<any>(Array.isArray(cachedItemsParsed) ? cachedItemsParsed.filter(item => item !== null && typeof item.uuid == "string") : [])
+    const [searchTerm, setSearchTerm] = useState<string>("")
+    const [loadDone, setLoadDone] = useState<boolean>(typeof cachedItemsRef !== "undefined" ? true : false)
+    const setNavigation = useStore(state => state.setNavigation)
+    const setRoute = useStore(state => state.setRoute)
+    const [masterKeys, setMasterKeys] = useState<string>(getMasterKeys())
+    const isMounted: () => boolean = useMountedState()
+    const setCurrentActionSheetItem = useStore(state => state.setCurrentActionSheetItem)
+    const setCurrentItems = useStore(state => state.setCurrentItems)
+    const itemsRef = useRef<any>([])
+    const setItemsSelectedCount = useStore(state => state.setItemsSelectedCount)
+    const setInsets = useStore(state => state.setInsets)
+    const insets: EdgeInsets = useSafeAreaInsets()
+    const [progress, setProgress] = useState<{ itemsDone: number, totalItems: number }>({ itemsDone: 0, totalItems: 1 })
+    const selectedCountRef = useRef<number>(0)
+    const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
+    const [itemsBeforeSearch, setItemsBeforeSearch] = useState<any>([])
     const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
-    const bottomBarHeight = useStore(useCallback(state => state.bottomBarHeight))
-    const topBarHeight = useStore(useCallback(state => state.topBarHeight))
-    const contentHeight = useStore(useCallback(state => state.contentHeight))
+    const bottomBarHeight = useStore(state => state.bottomBarHeight)
+    const topBarHeight = useStore(state => state.topBarHeight)
+    const contentHeight = useStore(state => state.contentHeight)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
-    const netInfo = useStore(useCallback(state => state.netInfo))
-    const itemsSortBy = useStore(useCallback(state => state.itemsSortBy))
-    const [initialized, setInitialized] = useState(false)
-    const isFocused = useIsFocused()
+    const netInfo = useStore(state => state.netInfo)
+    const itemsSortBy = useStore(state => state.itemsSortBy)
+    const [initialized, setInitialized] = useState<boolean>(false)
+    const isFocused: boolean = useIsFocused()
 
-    const updateItemThumbnail = useCallback((item, path) => {
+    const updateItemThumbnail = (item: any, path: string): void => {
         if(typeof path !== "string"){
-            return false
+            return
         }
 
         if(path.length < 4){
-            return false
+            return
         }
     
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem))
         }
-    })
+    }
     
-    const selectItem = useCallback((item) => {
+    const selectItem = (item: any): void => {
         if(getRouteURL(route).indexOf("photos") !== -1){
             if(calcPhotosGridSize(photosGridSize) >= 6){
-                return false
+                return
             }
         }
 
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: true} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == item.uuid ? {...mapItem, selected: true} : mapItem))
         }
-    })
+    }
     
-    const unselectItem = useCallback((item) => {
+    const unselectItem = (item: any): void => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: false} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == item.uuid ? {...mapItem, selected: false} : mapItem))
         }
-    })
+    }
 
-    const unselectAllItems = useCallback(() => {
+    const unselectAllItems = (): void => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.selected ? {...mapItem, selected: false} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.selected ? {...mapItem, selected: false} : mapItem))
         }
-    })
+    }
 
-    const selectAllItems = useCallback(() => {
+    const selectAllItems = (): void => {
         if(getRouteURL(route).indexOf("photos") !== -1){
             if(calcPhotosGridSize(photosGridSize) >= 6){
-                return false
+                return
             }
         }
 
         if(isMounted()){
-            setItems(items => items.map(mapItem => !mapItem.selected ? {...mapItem, selected: true} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => !mapItem.selected ? {...mapItem, selected: true} : mapItem))
         }
-    })
+    }
 
-    const removeItem = useCallback((uuid) => {
+    const removeItem = (uuid: string): void => {
         if(isMounted()){
-            setItems(items => items.filter(mapItem => mapItem.uuid !== uuid && mapItem))
+            setItems((items: any) => items.filter((mapItem: any) => mapItem.uuid !== uuid && mapItem))
         }
-    })
+    }
 
-    const markOffline = useCallback((uuid, value) => {
+    const markOffline = (uuid: string, value: boolean): void => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, offline: value} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid ? {...mapItem, offline: value} : mapItem))
         }
-    })
+    }
 
-    const markFavorite = useCallback((uuid, value) => {
+    const markFavorite = (uuid: string, value: boolean): void => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, favorited: value} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid ? {...mapItem, favorited: value} : mapItem))
         }
-    })
+    }
 
-    const changeFolderColor = useCallback((uuid, color) => {
+    const changeFolderColor = (uuid: string, color: string | null | undefined): void => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, color} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, color} : mapItem))
         }
-    })
+    }
 
-    const changeItemName = useCallback((uuid, name) => {
+    const changeItemName = (uuid: string, name: string): void => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, name} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid ? {...mapItem, name} : mapItem))
         }
-    })
+    }
 
-    const addItem = useCallback((item, parent) => {
-        const currentParent = getParent(route)
+    const addItem = (item: any, parent: string): void => {
+        const currentParent: string = getParent(route)
 
         if(isMounted() && (currentParent == parent || (item.offline && parent == "offline"))){
-            setItems(items => sortItems({ items: [...items, item], passedRoute: route }))
+            setItems((items: any) => sortItems({ items: [...items, item], passedRoute: route }))
         }
-    })
+    }
 
-    const changeWholeItem = useCallback((item, uuid) => {
+    const changeWholeItem = (item: any, uuid: string): void => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? item : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid ? item : mapItem))
         }
-    })
+    }
 
-    const reloadList = useCallback((parent) => {
-        const currentParent = getParent(route)
+    const reloadList = (parent: string): void => {
+        const currentParent: string = getParent(route)
 
         if(isMounted() && currentParent == parent){
             fetchItemList({ bypassCache: true, callStack: 1 })
         }
-    })
+    }
 
-    const updateFolderSize = useCallback((uuid, size) => {
+    const updateFolderSize = (uuid: string, size: number): void => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, size} : mapItem))
+            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, size} : mapItem))
         }
-    })
+    }
 
     useEffect(() => {
         if(isMounted() && initialized){
@@ -167,10 +173,10 @@ export const MainScreen = memo(({ navigation, route }) => {
                 if(itemsBeforeSearch.length == 0){
                     setItemsBeforeSearch(items)
     
-                    var filtered = items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
+                    var filtered = items.filter((item: any) => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
                 }
                 else{
-                    var filtered = itemsBeforeSearch.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
+                    var filtered = itemsBeforeSearch.filter((item: any) => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
                 }
     
                 setItems(filtered)
@@ -213,8 +219,9 @@ export const MainScreen = memo(({ navigation, route }) => {
         }
     }, [items, isFocused])
 
-    const fetchItemList = useCallback(({ bypassCache = false, callStack = 0, loadFolderSizes = false }) => {
+    const fetchItemList = ({ bypassCache = false, callStack = 0, loadFolderSizes = false }: { bypassCache?: boolean, callStack?: number, loadFolderSizes?: boolean }) => {
         return new Promise((resolve, reject) => {
+            // @ts-ignore
             loadItems({
                 parent: getParent(route),
                 setItems,
@@ -229,7 +236,7 @@ export const MainScreen = memo(({ navigation, route }) => {
                 loadFolderSizes
             }).then(resolve).catch(reject)
         })
-    })
+    }
 
     useEffect(() => {
         setNavigation(navigation)
@@ -358,16 +365,39 @@ export const MainScreen = memo(({ navigation, route }) => {
     }, [])
 
     return (
-        <View style={{
-            height: "100%",
-            width: "100%",
-            backgroundColor: darkMode ? "black" : "white"
-        }}>
-            <TopBar navigation={navigation} route={route} setLoadDone={setLoadDone} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-            <View style={{
-                height: routeURL.indexOf("photos") !== -1 ? (contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26)) : (contentHeight - topBarHeight - bottomBarHeight + 30)
-            }}>
-                <ItemList navigation={navigation} route={route} items={items} setItems={setItems} showLoader={!loadDone} loadDone={loadDone} searchTerm={searchTerm} isMounted={isMounted} fetchItemList={fetchItemList} progress={progress} setProgress={setProgress} />
+        <View
+            style={{
+                height: "100%",
+                width: "100%",
+                backgroundColor: darkMode ? "black" : "white"
+            }}
+        >
+            <TopBar
+                navigation={navigation}
+                route={route}
+                setLoadDone={setLoadDone}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+            />
+            <View
+                style={{
+                    height: routeURL.indexOf("photos") !== -1 ? (contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26)) : (contentHeight - topBarHeight - bottomBarHeight + 30)
+                }}
+            >
+                <ItemList
+                    // @ts-ignore
+                    navigation={navigation}
+                    route={route}
+                    items={items}
+                    setItems={setItems}
+                    showLoader={!loadDone}
+                    loadDone={loadDone}
+                    searchTerm={searchTerm}
+                    isMounted={isMounted}
+                    fetchItemList={fetchItemList}
+                    progress={progress}
+                    setProgress={setProgress}
+                />
             </View>
         </View>
     )

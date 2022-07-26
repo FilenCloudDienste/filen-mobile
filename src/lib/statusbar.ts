@@ -7,8 +7,8 @@ export const setStatusBarStyle = (darkMode: boolean): void => {
         NavigationBar.setBackgroundColorAsync(darkMode ? "black" : "white").catch(console.log)
         NavigationBar.setBorderColorAsync(darkMode ? "black" : "white").catch(console.log)
         NavigationBar.setButtonStyleAsync(darkMode ? "dark" : "light").catch(console.log)
+        StatusBar.setStatusBarBackgroundColor(darkMode ? "black" : "white", false)
     }
 
-    StatusBar.setStatusBarBackgroundColor(darkMode ? "black" : "white", false)
     StatusBar.setStatusBarStyle(darkMode ? "light" : "dark")
 }

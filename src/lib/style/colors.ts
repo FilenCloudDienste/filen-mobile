@@ -1,4 +1,4 @@
-export const colors = {
+export const colors: any = {
     dark: {
         primary: "black",
         primaryBorder: "#202020",
@@ -29,7 +29,7 @@ export const colors = {
     }
 }
 
-export const getColor = (darkMode, value) => {
+export const getColor = (darkMode: boolean, value: string): any => {
     const color = colors[darkMode ? 'dark' : 'light'][value]
 
     if(typeof color == "undefined"){

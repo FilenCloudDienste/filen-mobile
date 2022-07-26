@@ -7,24 +7,39 @@ import { formatBytes, getFolderColor, calcPhotosGridSize } from "../lib/helpers"
 import { i18n } from "../i18n/i18n"
 import { getColor } from "../lib/style/colors"
 import RNFS from "react-native-fs"
+import type { ScaledSize } from "react-native"
+import type { EdgeInsets } from "react-native-safe-area-context"
 
 const isEqual = require("react-fast-compare")
 
 const window = Dimensions.get("window")
 const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 
-export interface ListItemProps {
+export interface ItemBaseProps {
     item: any,
     index: number,
     darkMode: boolean,
-    hideThumbnails: boolean,
-    lang: string,
+    selected: boolean,
+    thumbnail: string,
+    name: string,
+    size: number,
+    color: string | undefined | null,
+    favorited: boolean,
+    offline: boolean,
     hideFileNames: boolean,
-    hideSizes: boolean
+    hideThumbnails: boolean,
+    lang: string | undefined,
+    dimensions: { window: ScaledSize, screen: ScaledSize }
+    hideSizes: boolean,
+    insets: EdgeInsets
+}
+
+export interface ListItemProps extends ItemBaseProps {
+    
 }
 
 export class ListItem extends Component<ListItemProps> {
-    shouldComponentUpdate(nextProps){
+    shouldComponentUpdate(nextProps: ListItemProps){
         return !isEqual(this.props, nextProps)
     }
 
@@ -214,19 +229,12 @@ export class ListItem extends Component<ListItemProps> {
     }
 }
 
-export interface GridItemProps {
-    item: any,
-    index: number,
-    darkMode: boolean,
-    dimensions: any,
-    insets: any,
-    lang: string,
-    hideThumbnails: boolean,
-    hideFileNames: boolean
+export interface GridItemProps extends ItemBaseProps {
+    
 }
 
 export class GridItem extends Component<GridItemProps> {
-    shouldComponentUpdate(nextProps){
+    shouldComponentUpdate(nextProps: GridItemProps){
         return !isEqual(this.props, nextProps)
     }
 
@@ -445,18 +453,12 @@ export class GridItem extends Component<GridItemProps> {
     }
 }
 
-export interface PhotosItemProps {
-    item: any,
-    index: number,
-    darkMode: boolean,
-    photosGridSize: number,
-    dimensions: any,
-    insets: any,
-    hideThumbnails: boolean
+export interface PhotosItemProps extends ItemBaseProps {
+    photosGridSize: number
 }
 
 export class PhotosItem extends Component<PhotosItemProps> {
-    shouldComponentUpdate(nextProps){
+    shouldComponentUpdate(nextProps: PhotosItemProps){
         return !isEqual(this.props, nextProps)
     }
 
@@ -590,17 +592,14 @@ export class PhotosItem extends Component<PhotosItemProps> {
     }
 }
 
-export interface PhotosRangeItemProps {
-    item: any,
-    index: number,
-    darkMode: boolean,
-    hideThumbnails: boolean,
+export interface PhotosRangeItemProps extends ItemBaseProps {
     photosRangeItemClick: Function,
-    dimensions: any
+    photosGridSize: number,
+    photosRange: string
 }
 
 export class PhotosRangeItem extends Component<PhotosRangeItemProps> {
-    shouldComponentUpdate(nextProps){
+    shouldComponentUpdate(nextProps: PhotosRangeItemProps){
         return !isEqual(this.props, nextProps)
     }
 

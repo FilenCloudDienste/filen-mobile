@@ -12,42 +12,46 @@ import { useStore } from "../lib/state"
 import { getColor } from "../lib/style/colors"
 import { getParent } from "../lib/helpers"
 
-export const TextEditorScreen = memo(({ navigation, route }) => {
+export interface TextEditorScreenProps {
+    navigation: any
+}
+
+export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const textEditorText = useStore(useCallback(state => state.textEditorText))
-    const textEditorState = useStore(useCallback(state => state.textEditorState))
-    const currentActionSheetItem = useStore(useCallback(state => state.currentActionSheetItem))
-    const inputRef = useRef()
-    const [value, setValue] = useState("")
-    const [initialValue, setInitialValue] = useState("")
-    const createTextFileDialogName = useStore(useCallback(state => state.createTextFileDialogName))
-    const dimensions = useStore(useCallback(state => state.dimensions))
-    const textEditorParent = useStore(useCallback(state => state.textEditorParent))
-    const [offset, setOffset] = useState(0)
-    const setTextEditorState = useStore(useCallback(state => state.setTextEditorState))
-    const [textEditorActive, setTextEditorActive] = useState(false)
-    const [textEditorFocused, setTextEditorFocused] = useState(false)
+    const textEditorText = useStore(state => state.textEditorText)
+    const textEditorState = useStore(state => state.textEditorState)
+    const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
+    const inputRef = useRef<any>()
+    const [value, setValue] = useState<string>("")
+    const [initialValue, setInitialValue] = useState<string>("")
+    const createTextFileDialogName = useStore(state => state.createTextFileDialogName)
+    const dimensions = useStore(state => state.dimensions)
+    const textEditorParent = useStore(state => state.textEditorParent)
+    const [offset, setOffset] = useState<number>(0)
+    const setTextEditorState = useStore(state => state.setTextEditorState)
+    const [textEditorActive, setTextEditorActive] = useState<boolean>(false)
+    const [textEditorFocused, setTextEditorFocused] = useState<boolean>(false)
 
-    const fileName = textEditorState == "edit" ? createTextFileDialogName : currentActionSheetItem.name
+    const fileName: string = textEditorState == "edit" ? createTextFileDialogName : currentActionSheetItem.name
 
-    const save = useCallback(() => {
+    const save = (): void => {
         if(value.length <= 0){
-            return false
+            return
         }
 
         if(value == initialValue){
             return navigation.goBack()
         }
 
-        let parent = getParent()
+        let parent: string = getParent()
 
         if(textEditorParent.length > 16){
             parent = textEditorParent
         }
 
         if(parent.length < 16){
-            return false
+            return
         }
 
         navigation.goBack()
@@ -68,7 +72,7 @@ export const TextEditorScreen = memo(({ navigation, route }) => {
                 try{
                     var stat = await RNFS.stat(path)
                 }
-                catch(e){
+                catch(e: any){
                     console.log(e)
 
                     return showToast({ message: e.toString() })
@@ -78,6 +82,7 @@ export const TextEditorScreen = memo(({ navigation, route }) => {
                     return false
                 }
 
+                // @ts-ignore
                 queueFileUpload({
                     pickedFile: {
                         name: fileName,
@@ -93,9 +98,9 @@ export const TextEditorScreen = memo(({ navigation, route }) => {
                 showToast({ message: err.toString() })
             })
         })
-    })
+    }
 
-    const close = useCallback(() => {
+    const close = (): void => {
         if(initialValue !== value){
             return Alert.alert(i18n(lang, "exit"), i18n(lang, "exitWithoutSavingChanges"), [
                 {
@@ -119,7 +124,7 @@ export const TextEditorScreen = memo(({ navigation, route }) => {
         else{
             navigation.goBack()
         }
-    })
+    }
 
     useEffect(() => {
         if(textEditorText.length > 0){
@@ -134,58 +139,89 @@ export const TextEditorScreen = memo(({ navigation, route }) => {
 
     return (
         <View onLayout={(e) => setOffset(dimensions.window.height - e.nativeEvent.layout.height)}>
-            <View style={{
-                height: 35,
-                paddingLeft: 15,
-                paddingRight: 15,
-                backgroundColor: darkMode ? "black" : "white",
-                borderBottomColor: getColor(darkMode, "primaryBorder"),
-                borderBottomWidth: 1,
-                marginTop: Platform.OS == "ios" ? 15 : 0
-            }}>
-                <View style={{
-                    justifyContent: "space-between",
-                    flexDirection: "row"
-                }}>
-                    <View style={{
-                        marginLeft: 0,
-                        width: "70%",
+            <View
+                style={{
+                    height: 35,
+                    paddingLeft: 15,
+                    paddingRight: 15,
+                    backgroundColor: darkMode ? "black" : "white",
+                    borderBottomColor: getColor(darkMode, "primaryBorder"),
+                    borderBottomWidth: 1,
+                    marginTop: Platform.OS == "ios" ? 15 : 0
+                }}
+            >
+                <View
+                    style={{
+                        justifyContent: "space-between",
                         flexDirection: "row"
-                    }}>
+                    }}
+                >
+                    <View
+                        style={{
+                            marginLeft: 0,
+                            width: "70%",
+                            flexDirection: "row"
+                        }}
+                    >
                         <TouchableOpacity onPress={() => close()}>
-                            <Ionicon name="chevron-back-outline" size={21} color={darkMode ? "white" : "black"} style={{
-                                marginTop: Platform.OS == "android" ? 4 : 2.5
-                            }}></Ionicon>
+                            <Ionicon
+                                name="chevron-back-outline"
+                                size={21}
+                                color={darkMode ? "white" : "black"}
+                                style={{
+                                    marginTop: Platform.OS == "android" ? 4 : 2.5
+                                }}
+                            />
                         </TouchableOpacity>
-                        <Text style={{
-                            fontSize: 20,
-                            color: darkMode ? "white" : "black",
-                            marginLeft: 10
-                        }} numberOfLines={1}>{fileName}</Text>
+                        <Text
+                            style={{
+                                fontSize: 20,
+                                color: darkMode ? "white" : "black",
+                                marginLeft: 10
+                            }}
+                            numberOfLines={1}
+                        >
+                            {fileName}
+                        </Text>
                     </View>
                     {
                         textEditorState == "edit" && (
-                            <View style={{
-                                alignItems: "flex-start",
-                                flexDirection: "row"
-                            }}>
+                            <View
+                                style={{
+                                    alignItems: "flex-start",
+                                    flexDirection: "row"
+                                }}
+                            >
                                 {
                                     textEditorFocused && (
-                                        <TouchableOpacity onPress={() => Keyboard.dismiss()} style={{
-                                            marginRight: initialValue !== value ? 25 : 0
-                                        }}>
-                                            <Ionicon name="chevron-down-outline" size={21} color={darkMode ? "white" : "black"} style={{
-                                                marginTop: 5
-                                            }}></Ionicon>
+                                        <TouchableOpacity
+                                            onPress={() => Keyboard.dismiss()}
+                                            style={{
+                                                marginRight: initialValue !== value ? 25 : 0
+                                            }}
+                                        >
+                                            <Ionicon
+                                                name="chevron-down-outline"
+                                                size={21}
+                                                color={darkMode ? "white" : "black"}
+                                                style={{
+                                                    marginTop: 5
+                                                }}
+                                            />
                                         </TouchableOpacity>
                                     )
                                 }
                                 {
                                     initialValue !== value && (
                                         <TouchableOpacity onPress={() => save()}>
-                                            <Ionicon name="save-outline" size={21} color={darkMode ? "white" : "black"} style={{
-                                                marginTop: 5
-                                            }}></Ionicon>
+                                            <Ionicon
+                                                name="save-outline"
+                                                size={21}
+                                                color={darkMode ? "white" : "black"}
+                                                style={{
+                                                    marginTop: 5
+                                                }}
+                                            />
                                         </TouchableOpacity>
                                     )
                                 }
@@ -194,9 +230,13 @@ export const TextEditorScreen = memo(({ navigation, route }) => {
                     }
                 </View>
             </View>
-            <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={offset} style={{
-                backgroundColor: darkMode ? "black" : "white"
-            }}>
+            <KeyboardAvoidingView
+                behavior="padding"
+                keyboardVerticalOffset={offset}
+                style={{
+                    backgroundColor: darkMode ? "black" : "white"
+                }}
+            >
                 <TextInput
                     ref={inputRef}
                     value={value}
