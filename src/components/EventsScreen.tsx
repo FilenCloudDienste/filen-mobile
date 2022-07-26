@@ -179,94 +179,79 @@ export interface GetEventText {
 
 export const getEventText = async ({ item, masterKeys, lang }: GetEventText) => {
     let eventText = ""
+    let decrypted: any = undefined
+    let decryptedOld: any = undefined
 
     switch(item.type){
         case "fileUploaded":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventFileUploadedInfo", true, ["__NAME__"], [striptags(decrypted.name)])
         break
         case "fileVersioned":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventFileVersionedInfo", true, ["__NAME__"], [striptags(decrypted.name)])
         break
         case "versionedFileRestored":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventVersionedFileRestoredInfo", true, ["__NAME__"], [striptags(decrypted.name)])
         break
         case "fileMoved":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventFileMovedInfo", true, ["__NAME__"], [striptags(decrypted.name)])
         break
         case "fileRenamed":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-            var decryptedOld = await decryptFileMetadata(masterKeys, item.info.oldMetadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+            decryptedOld = await decryptFileMetadata(masterKeys, item.info.oldMetadata, item.info.uuid)
             eventText = i18n(lang, "eventFileRenamedInfo", true, ["__NAME__", "__NEW__"], [striptags(decryptedOld.name), striptags(decrypted.name)])
         break
         case "fileTrash":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventFileTrashInfo", true, ["__NAME__"], [striptags(decrypted.name)])
         break
         case "fileRm":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventFileRmInfo", true, ["__NAME__"], [striptags(decrypted.name)])
         break
         case "fileRestored":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventFileRestoredInfo", true, ["__NAME__"], [striptags(decrypted.name)])
         break
         case "fileShared":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventFileSharedInfo", true, ["__NAME__", "__EMAIL__"], [striptags(decrypted.name), item.info.receiverEmail])
         break
         case "fileLinkEdited":
-            var decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-
+            decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
             eventText = i18n(lang, "eventFileLinkEditedInfo", true, ["__NAME__"], [striptags(decrypted.name)])
         break
         case "folderTrash":
-            var decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
-
+            decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
             eventText = i18n(lang, "eventFolderTrashInfo", true, ["__NAME__"], [striptags(decrypted)])
         break
         case "folderShared":
-            var decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
-
+            decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
             eventText = i18n(lang, "eventFolderSharedInfo", true, ["__NAME__", "__EMAIL__"], [striptags(decrypted), item.info.receiverEmail])
         break
         case "folderMoved":
-            var decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
-
+            decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
             eventText = i18n(lang, "eventFolderMovedInfo", true, ["__NAME__"], [striptags(decrypted)])
         break
         case "folderRenamed":
-            var decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
-            var decryptedOld = await decryptFolderName(masterKeys, item.info.oldName, item.info.uuid)
-
+            decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
+            decryptedOld = await decryptFolderName(masterKeys, item.info.oldName, item.info.uuid)
             eventText = i18n(lang, "eventFolderRenamedInfo", true, ["__NAME__", "__NEW__"], [striptags(decryptedOld), striptags(decrypted)])
         break
         case "subFolderCreated":
         case "baseFolderCreated":
-            var decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
-
+            decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
             eventText = i18n(lang, "eventFolderCreatedInfo", true, ["__NAME__"], [striptags(decrypted)])
         break
         case "folderRestored":
-            var decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
-
+            decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
             eventText = i18n(lang, "eventFolderRestoredInfo", true, ["__NAME__"], [striptags(decrypted)])
         break
         case "folderColorChanged":
-            var decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
-
+            decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
             eventText = i18n(lang, "eventFolderColorChangedInfo", true, ["__NAME__"], [striptags(decrypted)])
         break
         case "login":

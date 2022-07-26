@@ -389,5 +389,6 @@ export const en: {
     shareIntoAppLimit: "You cannot share more than __LIMIT__ files into the app at once",
     cameraUploadFetchingAssetsFromLocal: "Preparing local assets",
     cannotShareDirIntoApp: "You cannot share a directory into the app",
-    alreadyUploadingFile: "Already uploading __NAME__"
+    alreadyUploadingFile: "Already uploading __NAME__",
+    publicLink: "Public link"
 }

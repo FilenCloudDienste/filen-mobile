@@ -12,7 +12,7 @@ const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(8192 * 8192)
 const fetchFolderSizeSemaphore = new Semaphore(1)
 
-const endpointsToCache = [
+const endpointsToCache: string[] = [
     "/v1/dir/content",
     "/v1/user/baseFolders",
     "/v1/user/shared/in",
@@ -25,7 +25,7 @@ const endpointsToCache = [
     "/v1/user/masterKeys"
 ]
 
-export const apiRequest = ({ method, endpoint, data }) => {
+export const apiRequest = ({ method, endpoint, data }: { method: string, endpoint: string, data: any }): Promise<any> => {
     return new Promise((resolve, reject) => {
         const cacheKey = "apiCache:" + method.toUpperCase() + ":" + endpoint + ":" + JSON.stringify(data)
 
@@ -96,10 +96,6 @@ export const apiRequest = ({ method, endpoint, data }) => {
     
                     return BackgroundTimer.setTimeout(request, retryTimeout)
                 })
-            }).catch((err) => {
-                console.log(err)
-
-                return BackgroundTimer.setTimeout(request, retryTimeout)
             })
         }
 
@@ -107,7 +103,7 @@ export const apiRequest = ({ method, endpoint, data }) => {
     })
 }
 
-export const fileExists = ({ name, parent }) => {
+export const fileExists = ({ name, parent }: { name: string, parent: string }): Promise<{ exists: boolean, existsUUID: string }> => {
     return new Promise((resolve, reject) => {
         global.nodeThread.hashFn({ string: name.toLowerCase() }).then((nameHashed) => {
             apiRequest({
@@ -132,7 +128,7 @@ export const fileExists = ({ name, parent }) => {
     })
 }
 
-export const folderExists = ({ name, parent }) => {
+export const folderExists = ({ name, parent }: { name: string, parent: string }): Promise<{ exists: boolean, existsUUID: string }> => {
     return new Promise((resolve, reject) => {
         global.nodeThread.hashFn({ string: name.toLowerCase() }).then((nameHashed) => {
             apiRequest({
@@ -157,7 +153,7 @@ export const folderExists = ({ name, parent }) => {
     })
 }
 
-export const markUploadAsDone = ({ uuid, uploadKey }) => {
+export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -171,32 +167,12 @@ export const markUploadAsDone = ({ uuid, uploadKey }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)
     })
 }
 
-export const archiveFile = ({ existsUUID, updateUUID }) => {
-    return new Promise((resolve, reject) => {
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/file/archive",
-            data: {
-                apiKey: getAPIKey(),
-                uuid: existsUUID,
-                updateUUID
-            }
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
-            }
-
-            return resolve()
-        }).catch(reject)
-    })
-}
-
-export const getFolderContents = ({ uuid }) => {
+export const getFolderContents = ({ uuid }: { uuid: string }): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -215,7 +191,7 @@ export const getFolderContents = ({ uuid }) => {
     })
 }
 
-export const isSharingFolder = ({ uuid }) => {
+export const isSharingFolder = ({ uuid }: { uuid: string }): Promise<{ sharing: boolean, users: any }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -237,7 +213,7 @@ export const isSharingFolder = ({ uuid }) => {
     })
 }
 
-export const isPublicLinkingFolder = ({ uuid }) => {
+export const isPublicLinkingFolder = ({ uuid }: { uuid: string }): Promise<{ linking: boolean, links: any }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -259,7 +235,7 @@ export const isPublicLinkingFolder = ({ uuid }) => {
     })
 }
 
-export const addItemToPublicLink = ({ data }) => {
+export const addItemToPublicLink = ({ data }: { data: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         shareSemaphore.acquire().then(() => {
             apiRequest({
@@ -273,7 +249,7 @@ export const addItemToPublicLink = ({ data }) => {
                     return reject(response.message)
                 }
     
-                return resolve()
+                return resolve(true)
             }).catch((err) => {
                 shareSemaphore.release()
 
@@ -283,7 +259,7 @@ export const addItemToPublicLink = ({ data }) => {
     })
 }
 
-export const shareItem = ({ data }) => {
+export const shareItem = ({ data }: { data: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         shareSemaphore.acquire().then(() => {
             apiRequest({
@@ -297,7 +273,7 @@ export const shareItem = ({ data }) => {
                     return reject(response.message)
                 }
     
-                return resolve()
+                return resolve(true)
             }).catch((err) => {
                 shareSemaphore.release()
 
@@ -307,7 +283,7 @@ export const shareItem = ({ data }) => {
     })
 }
 
-export const isSharingItem = ({ uuid }) => {
+export const isSharingItem = ({ uuid }: { uuid: string }): Promise<{ sharing: boolean, users: any }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -329,7 +305,7 @@ export const isSharingItem = ({ uuid }) => {
     })
 }
 
-export const isItemInPublicLink = ({ uuid }) => {
+export const isItemInPublicLink = ({ uuid }: { uuid: string }): Promise<{ linking: boolean, links: any }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -351,7 +327,7 @@ export const isItemInPublicLink = ({ uuid }) => {
     })
 }
 
-export const renameItemInPublicLink = ({ data }) => {
+export const renameItemInPublicLink = ({ data }: { data: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         shareSemaphore.acquire().then(() => {
             apiRequest({
@@ -365,7 +341,7 @@ export const renameItemInPublicLink = ({ data }) => {
                     return reject(response.message)
                 }
     
-                return resolve()
+                return resolve(true)
             }).catch((err) => {
                 shareSemaphore.release()
 
@@ -375,7 +351,7 @@ export const renameItemInPublicLink = ({ data }) => {
     })
 }
 
-export const renameSharedItem = ({ data }) => {
+export const renameSharedItem = ({ data }: { data: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         shareSemaphore.acquire().then(() => {
             apiRequest({
@@ -389,7 +365,7 @@ export const renameSharedItem = ({ data }) => {
                     return reject(response.message)
                 }
     
-                return resolve()
+                return resolve(true)
             }).catch((err) => {
                 shareSemaphore.release()
 
@@ -399,14 +375,14 @@ export const renameSharedItem = ({ data }) => {
     })
 }
 
-export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
+export const checkIfItemParentIsShared = ({ type, parent, metaData }: { type: string, parent: string, metaData: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        let shareCheckDone = false
-        let linkCheckDone = false
-        let resolved = false
-        let doneInterval = undefined
-        const apiKey = getAPIKey()
-        const masterKeys = getMasterKeys()
+        let shareCheckDone: boolean = false
+        let linkCheckDone: boolean = false
+        let resolved: boolean = false
+        let doneInterval: any = undefined
+        const apiKey: string = getAPIKey()
+        const masterKeys: string[] = getMasterKeys()
 
         const done = () => {
             if(shareCheckDone && linkCheckDone){
@@ -415,7 +391,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
                 if(!resolved){
                     resolved = true
 
-                    resolve()
+                    resolve(true)
                 }
 
                 return true
@@ -499,12 +475,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
                     const folders = contents.folders
 
                     for(let i = 0; i < files.length; i++){
-                        try{
-                            var decrypted = await decryptFileMetadata(masterKeys, files[i].metadata, files[i].uuid)
-                        }
-                        catch(e){
-                            //console.log(e)
-                        }
+                        const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata, files[i].uuid)
 
                         if(typeof decrypted == "object"){
                             if(typeof decrypted.name == "string"){
@@ -527,12 +498,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
                     }
 
                     for(let i = 0; i < folders.length; i++){
-                        try{
-                            var decrypted = await decryptFolderName(masterKeys, folders[i].name, folders[i].uuid)
-                        }
-                        catch(e){
-                            //console.log(e)
-                        }
+                        const decrypted = await decryptFolderName(masterKeys, folders[i].name, folders[i].uuid)
 
                         if(typeof decrypted == "string"){
                             if(decrypted.length > 0){
@@ -650,13 +616,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
 
                 for(let i = 0; i < totalLinks; i++){
                     const link = data.links[i]
-
-                    try{
-                        var key = await decryptFolderLinkKey(masterKeys, link.linkKey)
-                    }
-                    catch(e){
-                        //console.log(e)
-                    }
+                    const key = await decryptFolderLinkKey(masterKeys, link.linkKey)
 
                     if(typeof key == "string"){
                         if(key.length > 0){
@@ -729,12 +689,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
                     const folders = contents.folders
 
                     for(let i = 0; i < files.length; i++){
-                        try{
-                            var decrypted = await decryptFileMetadata(masterKeys, files[i].metadata, files[i].uuid)
-                        }
-                        catch(e){
-                            //console.log(e)
-                        }
+                        const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata, files[i].uuid)
 
                         if(typeof decrypted == "object"){
                             if(typeof decrypted.name == "string"){
@@ -757,12 +712,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
                     }
 
                     for(let i = 0; i < folders.length; i++){
-                        try{
-                            var decrypted = await decryptFolderName(masterKeys, folders[i].name, folders[i].uuid)
-                        }
-                        catch(e){
-                            //console.log(e)
-                        }
+                        const decrypted = await decryptFolderName(masterKeys, folders[i].name, folders[i].uuid)
 
                         if(typeof decrypted == "string"){
                             if(decrypted.length > 0){
@@ -797,13 +747,7 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
 
                         for(let x = 0; x < totalLinks; x++){
                             const link = data.links[x]
-
-                            try{
-                                var key = await decryptFolderLinkKey(masterKeys, link.linkKey)
-                            }
-                            catch(e){
-                                //console.log(e)
-                            }
+                            const key = await decryptFolderLinkKey(masterKeys, link.linkKey)
 
                             if(typeof key == "string"){
                                 if(key.length > 0){
@@ -890,14 +834,14 @@ export const checkIfItemParentIsShared = ({ type, parent, metaData }) => {
     })
 }
 
-export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }) => {
+export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }: { type: string, uuid: string, metaData: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        let shareCheckDone = false
-        let linkCheckDone = false
-        let resolved = false
-        let doneInterval = undefined
-        const apiKey = getAPIKey()
-        const masterKeys = getMasterKeys()
+        let shareCheckDone: boolean = false
+        let linkCheckDone: boolean = false
+        let resolved: boolean = false
+        let doneInterval: any = undefined
+        const apiKey: string = getAPIKey()
+        const masterKeys: string[] = getMasterKeys()
 
         const done = () => {
             if(shareCheckDone && linkCheckDone){
@@ -906,7 +850,7 @@ export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }) => {
                 if(!resolved){
                     resolved = true
 
-                    resolve()
+                    resolve(true)
                 }
 
                 return true
@@ -1066,7 +1010,7 @@ export const checkIfItemIsSharedForRename = ({ type, uuid, metaData }) => {
     })
 }
 
-export const renameFile = ({ file, name }) => {
+export const renameFile = ({ file, name }: { file: any, name: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         global.nodeThread.hashFn({ string: name.toLowerCase() }).then((nameHashed) => {
             const masterKeys = getMasterKeys()
@@ -1112,7 +1056,7 @@ export const renameFile = ({ file, name }) => {
                             prop: "name",
                             value: name
                         }).then(() => {
-                            return resolve()
+                            return resolve(true)
                         })
                     }).catch(reject)
                 }).catch(reject)
@@ -1121,7 +1065,7 @@ export const renameFile = ({ file, name }) => {
     })
 }
 
-export const renameFolder = ({ folder, name }) => {
+export const renameFolder = ({ folder, name }: { folder: any, name: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         global.nodeThread.hashFn({ string: name.toLowerCase() }).then((nameHashed) => {
             const masterKeys = getMasterKeys()
@@ -1153,7 +1097,7 @@ export const renameFolder = ({ folder, name }) => {
                             prop: "name",
                             value: name
                         }).then(() => {
-                            return resolve()
+                            return resolve(true)
                         })
                     }).catch(reject)
                 }).catch(reject)
@@ -1162,7 +1106,7 @@ export const renameFolder = ({ folder, name }) => {
     })
 }
 
-export const createFolder = ({ name, parent }) => {
+export const createFolder = ({ name, parent }: { name: string, parent: string }): Promise<string> => {
     return new Promise((resolve, reject) => {
         global.nodeThread.hashFn({ string: name.toLowerCase() }).then((nameHashed) => {
             global.nodeThread.uuidv4().then((uuid) => {
@@ -1205,7 +1149,7 @@ export const createFolder = ({ name, parent }) => {
     })
 }
 
-export const moveFile = ({ file, parent }) => {
+export const moveFile = ({ file, parent }: { file: any, parent: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1232,13 +1176,13 @@ export const moveFile = ({ file, parent }) => {
                     lastModified: file.lastModified
                 }
             }).then(() => {
-                return resolve()
+                return resolve(true)
             }).catch(reject)
         }).catch(reject)
     })
 }
 
-export const moveFolder = ({ folder, parent }) => {
+export const moveFolder = ({ folder, parent }: { folder: any, parent: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1261,13 +1205,13 @@ export const moveFolder = ({ folder, parent }) => {
                     uuid: folder.uuid
                 }
             }).then(() => {
-                return resolve()
+                return resolve(true)
             }).catch(reject)
         }).catch(reject)
     })
 }
 
-export const changeFolderColor = ({ folder, color }) => {
+export const changeFolderColor = ({ folder, color }: { folder: any, color: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1287,13 +1231,13 @@ export const changeFolderColor = ({ folder, color }) => {
                 prop: "color",
                 value: color
             }).then(() => {
-                return resolve()
+                return resolve(true)
             }).catch(reject)
         }).catch(reject)
     })
 }
 
-export const favoriteItem = ({ item, value }) => {
+export const favoriteItem = ({ item, value }: { item: any, value: number | boolean }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1322,13 +1266,13 @@ export const favoriteItem = ({ item, value }) => {
                 prop: "favorited",
                 value
             }).then(() => {
-                return resolve()
+                return resolve(true)
             })
         }).catch(reject)
     })
 }
 
-export const itemPublicLinkInfo = ({ item }) => {
+export const itemPublicLinkInfo = ({ item }: { item: any }): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1350,7 +1294,7 @@ export const itemPublicLinkInfo = ({ item }) => {
     })
 }
 
-export const editItemPublicLink = ({ item, type, linkUUID, expires, password, downloadBtn, progressCallback, isEdit = false }) => {
+export const editItemPublicLink = ({ item, type, linkUUID, expires, password, downloadBtn, progressCallback, isEdit = false }: { item: any, type: boolean, linkUUID: string, expires: string, password: string, downloadBtn: string, progressCallback: (doneItems: number, totalItems: number) => void, isEdit: boolean }): Promise<{ linkUUID: string, linkKey: string }> => {
     return new Promise((resolve, reject) => {
         const pass = (password.length > 0 ? "notempty" : "empty")
         const passH = (password.length > 0 ? password : "empty")
@@ -1387,7 +1331,10 @@ export const editItemPublicLink = ({ item, type, linkUUID, expires, password, do
                                 return reject(response.message)
                             }
                 
-                            return resolve(linkUUID)
+                            return resolve({
+                                linkUUID,
+                                linkKey: ""
+                            })
                         }).catch(reject)
                     }
                     else{
@@ -1410,7 +1357,10 @@ export const editItemPublicLink = ({ item, type, linkUUID, expires, password, do
                                         return reject(response.message)
                                     }
                         
-                                    return resolve(linkUUID)
+                                    return resolve({
+                                        linkUUID,
+                                        linkKey: ""
+                                    })
                                 }).catch(reject)
                             }
                             else{
@@ -1432,7 +1382,10 @@ export const editItemPublicLink = ({ item, type, linkUUID, expires, password, do
                                     return reject(response.message)
                                 }
                     
-                                return resolve(linkUUID)
+                                return resolve({
+                                    linkUUID,
+                                    linkKey: ""
+                                })
                             }).catch(reject)
                         }
                     }
@@ -1442,7 +1395,7 @@ export const editItemPublicLink = ({ item, type, linkUUID, expires, password, do
     })
 }
 
-export const addItemToFolderPublicLink = ({ data }) => {
+export const addItemToFolderPublicLink = ({ data }: { data: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         shareSemaphore.acquire().then(() => {
             apiRequest({
@@ -1456,7 +1409,7 @@ export const addItemToFolderPublicLink = ({ data }) => {
                     return reject(response.message)
                 }
     
-                return resolve()
+                return resolve(true)
             }).catch((err) => {
                 shareSemaphore.release()
 
@@ -1466,7 +1419,7 @@ export const addItemToFolderPublicLink = ({ data }) => {
     })
 }
 
-export const createFolderPublicLink = ({ item, progressCallback }) => {
+export const createFolderPublicLink = ({ item, progressCallback }: { item: any, progressCallback: (doneItems: number, totalItems: number) => void }): Promise<{ linkUUID: string, linkKey: string }> => {
     return new Promise((resolve, reject) => {
         getFolderContents({ uuid: item.uuid }).then((contents) => {
             global.nodeThread.generateRandomString({ charLength: 32 }).then((key) => {
@@ -1496,7 +1449,7 @@ export const createFolderPublicLink = ({ item, progressCallback }) => {
                             return true
                         }
 
-                        const addItem = (itemType, itemToAdd) => {
+                        const addItem = (itemType: string, itemToAdd: { name?: string, mime?: string, key?: string, size?: number, lastModified?: number, uuid?: string, parent?: string }) => {
                             let itemMetadata = ""
 
                             if(itemType == "file"){
@@ -1536,7 +1489,7 @@ export const createFolderPublicLink = ({ item, progressCallback }) => {
 
                                     itemAdded()
                                 })
-                            }).catch(() => {
+                            }).catch((err) => {
                                 console.log(err)
 
                                 itemAdded()
@@ -1585,7 +1538,7 @@ export const createFolderPublicLink = ({ item, progressCallback }) => {
     })
 }
 
-export const getPublicKeyFromEmail = ({ email }) => {
+export const getPublicKeyFromEmail = ({ email }: { email: string }): Promise<string> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1603,7 +1556,7 @@ export const getPublicKeyFromEmail = ({ email }) => {
     })
 }
 
-export const shareItemToUser = ({ item, email, publicKey, progressCallback }) => {
+export const shareItemToUser = ({ item, email, publicKey, progressCallback }: { item: any, email: string, publicKey: string, progressCallback?: (doneItems: number, totalItems: number) => void }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         const apiKey = getAPIKey()
 
@@ -1628,7 +1581,7 @@ export const shareItemToUser = ({ item, email, publicKey, progressCallback }) =>
                         metadata: encrypted
                     }
                 }).then(() => {
-                    return resolve()
+                    return resolve(true)
                 }).catch(reject)
             }).catch(reject)
         }
@@ -1648,13 +1601,13 @@ export const shareItemToUser = ({ item, email, publicKey, progressCallback }) =>
                     }
 
                     if(doneItems >= totalItems){
-                        resolve()
+                        resolve(true)
                     }
 
                     return true
                 }
 
-                const shareItemRequest = (itemType, itemToShare) => {
+                const shareItemRequest = (itemType: string, itemToShare: { name?: string, mime?: string, key?: string, size?: number, lastModified?: number, uuid?: string, parent?: string }) => {
                     let itemMetadata = ""
 
                     if(itemType == "file"){
@@ -1692,7 +1645,7 @@ export const shareItemToUser = ({ item, email, publicKey, progressCallback }) =>
 
                             itemShared()
                         })
-                    }).catch(() => {
+                    }).catch((err) => {
                         console.log(err)
 
                         itemShared()
@@ -1740,7 +1693,7 @@ export const shareItemToUser = ({ item, email, publicKey, progressCallback }) =>
     })
 }
 
-export const trashItem = ({ item }) => {
+export const trashItem = ({ item }: { item: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1764,13 +1717,13 @@ export const trashItem = ({ item }) => {
                     }
                 })
 
-                return resolve()
+                return resolve(true)
             })
         }).catch(reject)
     })
 }
 
-export const restoreItem = ({ item }) => {
+export const restoreItem = ({ item }: { item: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1789,14 +1742,14 @@ export const restoreItem = ({ item }) => {
                 routeURL: "trash"
             }).then(() => {
                 clearLoadItemsCacheLastResponse().then(() => {
-                    return resolve()
+                    return resolve(true)
                 })
             })
         }).catch(reject)
     })
 }
 
-export const deleteItemPermanently = ({ item }) => {
+export const deleteItemPermanently = ({ item }: { item: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1820,13 +1773,13 @@ export const deleteItemPermanently = ({ item }) => {
                     }
                 })
 
-                return resolve()
+                return resolve(true)
             })
         }).catch(reject)
     })
 }
 
-export const stopSharingItem = ({ item }) => {
+export const stopSharingItem = ({ item }: { item: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1852,13 +1805,13 @@ export const stopSharingItem = ({ item }) => {
                     }
                 })
 
-                return resolve()
+                return resolve(true)
             })
         }).catch(reject)
     })
 }
 
-export const removeSharedInItem = ({ item }) => {
+export const removeSharedInItem = ({ item }: { item: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1884,13 +1837,13 @@ export const removeSharedInItem = ({ item }) => {
                     }
                 })
 
-                return resolve()
+                return resolve(true)
             })
         }).catch(reject)  
     })
 }
 
-export const fetchFileVersionData = ({ file }) => {
+export const fetchFileVersionData = ({ file }: { file: any }): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1909,7 +1862,7 @@ export const fetchFileVersionData = ({ file }) => {
     })
 }
 
-export const restoreArchivedFile = ({ uuid, currentUUID }) => {
+export const restoreArchivedFile = ({ uuid, currentUUID }: { uuid: string, currentUUID: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1924,12 +1877,12 @@ export const restoreArchivedFile = ({ uuid, currentUUID }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)  
     })
 }
 
-export const fetchOfflineFilesInfo = ({ files }) => {
+export const fetchOfflineFilesInfo = ({ files }: { files: any }): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1948,7 +1901,7 @@ export const fetchOfflineFilesInfo = ({ files }) => {
     })
 }
 
-export const fetchEvents = ({ lastId = 0, filter = "all" }) => {
+export const fetchEvents = ({ lastId = 0, filter = "all" }: { lastId?: number, filter?: string }): Promise<{ events: any, limit: number }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1956,7 +1909,7 @@ export const fetchEvents = ({ lastId = 0, filter = "all" }) => {
             data: {
                 apiKey: getAPIKey(),
                 filter,
-                id: parseInt(lastId)
+                id: lastId
             }
         }).then((response) => {
             if(!response.status){
@@ -1971,7 +1924,7 @@ export const fetchEvents = ({ lastId = 0, filter = "all" }) => {
     })
 }
 
-export const fetchEventInfo = ({ uuid }) => {
+export const fetchEventInfo = ({ uuid }: { uuid: string }): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -1990,7 +1943,7 @@ export const fetchEventInfo = ({ uuid }) => {
     })
 }
 
-export const fetchFolderSize = ({ folder, routeURL }) => {
+export const fetchFolderSize = ({ folder, routeURL }: { folder: any, routeURL: string }): Promise<number> => {
     return new Promise((resolve, reject) => {
         fetchFolderSizeSemaphore.acquire().then(() => {
             let payload = {}
@@ -2057,7 +2010,7 @@ export const fetchFolderSize = ({ folder, routeURL }) => {
     })
 }
 
-export const deleteAllFilesAndFolders = () => {
+export const deleteAllFilesAndFolders = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2070,12 +2023,12 @@ export const deleteAllFilesAndFolders = () => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)  
     })
 }
 
-export const deleteAllVersionedFiles = () => {
+export const deleteAllVersionedFiles = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2088,12 +2041,12 @@ export const deleteAllVersionedFiles = () => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)  
     })
 }
 
-export const deleteAccount = ({ twoFactorKey = "XXXXXX" }) => {
+export const deleteAccount = ({ twoFactorKey = "XXXXXX" }: { twoFactorKey: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2107,12 +2060,12 @@ export const deleteAccount = ({ twoFactorKey = "XXXXXX" }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)  
     })
 }
 
-export const redeemCode = ({ code }) => {
+export const redeemCode = ({ code }: { code: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2126,12 +2079,12 @@ export const redeemCode = ({ code }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)  
     })
 }
 
-export const fetchGDPRInfo = () => {
+export const fetchGDPRInfo = (): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2149,7 +2102,7 @@ export const fetchGDPRInfo = () => {
     })
 }
 
-export const getAccount = () => {
+export const getAccount = (): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2167,7 +2120,7 @@ export const getAccount = () => {
     })
 }
 
-export const getSettings = () => {
+export const getSettings = (): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2185,7 +2138,7 @@ export const getSettings = () => {
     })
 }
 
-export const enable2FA = ({ code = "XXXXXX" }) => {
+export const enable2FA = ({ code = "XXXXXX" }: { code: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2199,12 +2152,12 @@ export const enable2FA = ({ code = "XXXXXX" }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)  
     })
 }
 
-export const disable2FA = ({ code = "XXXXXX" }) => {
+export const disable2FA = ({ code = "XXXXXX" }: { code: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2218,12 +2171,12 @@ export const disable2FA = ({ code = "XXXXXX" }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)  
     })
 }
 
-export const getAuthInfo = ({ email }) => {
+export const getAuthInfo = ({ email }: { email: string }): Promise<{ authVersion: number, salt: string }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2244,7 +2197,7 @@ export const getAuthInfo = ({ email }) => {
     })
 }
 
-export const changeEmail = ({ email, emailRepeat, password, authVersion }) => {
+export const changeEmail = ({ email, emailRepeat, password, authVersion }: { email: string, emailRepeat: string, password: string, authVersion: number }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2261,12 +2214,12 @@ export const changeEmail = ({ email, emailRepeat, password, authVersion }) => {
                 return reject(response.message)
             }
 
-            return resolve()
+            return resolve(true)
         }).catch(reject)  
     })
 }
 
-export const changePassword = ({ password, passwordRepeat, currentPassword, authVersion, salt, masterKeys }) => {
+export const changePassword = ({ password, passwordRepeat, currentPassword, authVersion, salt, masterKeys }: { password: string, passwordRepeat: string, currentPassword: string, authVersion: number, salt: string, masterKeys: string }): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2290,7 +2243,7 @@ export const changePassword = ({ password, passwordRepeat, currentPassword, auth
     })
 }
 
-export const fetchAllStoredItems = ({ lastLength = 0, filesOnly, maxSize, includeTrash, includeVersioned  }) => {
+export const fetchAllStoredItems = ({ lastLength = 0, filesOnly, maxSize, includeTrash, includeVersioned  }: { lastLength?: number, filesOnly: boolean | number, maxSize: number, includeTrash: boolean | number, includeVersioned: boolean | number  }): Promise<{ files: any, folders: any }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2299,7 +2252,7 @@ export const fetchAllStoredItems = ({ lastLength = 0, filesOnly, maxSize, includ
                 apiKey: getAPIKey(),
                 lastLength,
                 filesOnly: filesOnly ? 1 : 0,
-                maxSize: typeof maxSize == "number" ? maxSize : 0,
+                maxSize: maxSize,
                 includeTrash: includeTrash ? 1 : 0,
                 includeVersioned: includeVersioned ? 1 : 0
             }
@@ -2316,7 +2269,7 @@ export const fetchAllStoredItems = ({ lastLength = 0, filesOnly, maxSize, includ
     })
 }
 
-export const fetchUserInfo = () => {
+export const fetchUserInfo = (): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2336,7 +2289,7 @@ export const fetchUserInfo = () => {
     })
 }
 
-export const fetchUserUsage = () => {
+export const fetchUserUsage = (): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2356,7 +2309,7 @@ export const fetchUserUsage = () => {
     })
 }
 
-export const bulkMove = ({ items, parent }) => {
+export const bulkMove = ({ items, parent }: { items: any, parent: string }): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < items.length; i++){
             const item = items[i]
@@ -2399,11 +2352,11 @@ export const bulkMove = ({ items, parent }) => {
             }
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
-export const bulkFavorite = ({ value, items }) => {
+export const bulkFavorite = ({ value, items }: { value: boolean | number, items: any }): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < items.length; i++){
             const item = items[i]
@@ -2421,11 +2374,11 @@ export const bulkFavorite = ({ value, items }) => {
             }
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
-export const bulkTrash = ({ items }) => {
+export const bulkTrash = ({ items }: { items: any }): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < items.length; i++){
             const item = items[i]
@@ -2438,11 +2391,11 @@ export const bulkTrash = ({ items }) => {
             }
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
-export const bulkShare = ({ email, items }) => {
+export const bulkShare = ({ email, items }: { email: string, items: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         getPublicKeyFromEmail({ email }).then(async (publicKey) => {
             if(typeof publicKey !== "string"){
@@ -2468,7 +2421,7 @@ export const bulkShare = ({ email, items }) => {
                 }
             }
 
-            return resolve()
+            return resolve(true)
         }).catch((err) => {
             console.log(err)
 
@@ -2477,7 +2430,7 @@ export const bulkShare = ({ email, items }) => {
     })
 }
 
-export const bulkDeletePermanently = ({ items }) => {
+export const bulkDeletePermanently = ({ items }: { items: any }): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < items.length; i++){
             const item = items[i]
@@ -2497,11 +2450,11 @@ export const bulkDeletePermanently = ({ items }) => {
             }
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
-export const bulkRestore = ({ items }) => {
+export const bulkRestore = ({ items }: { items: any }): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < items.length; i++){
             const item = items[i]
@@ -2552,11 +2505,11 @@ export const bulkRestore = ({ items }) => {
             }
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
-export const bulkStopSharing = ({ items }) => {
+export const bulkStopSharing = ({ items }: { items: any }): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < items.length; i++){
             const item = items[i]
@@ -2576,11 +2529,11 @@ export const bulkStopSharing = ({ items }) => {
             }
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
-export const bulkRemoveSharedIn = ({ items }) => {
+export const bulkRemoveSharedIn = ({ items }: { items: any }): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < items.length; i++){
             const item = items[i]
@@ -2600,11 +2553,11 @@ export const bulkRemoveSharedIn = ({ items }) => {
             }
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
-export const folderPresent = ({ uuid }) => {
+export const folderPresent = ({ uuid }: { uuid: string }): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2625,7 +2578,7 @@ export const folderPresent = ({ uuid }) => {
     })
 }
 
-export const filePresent = ({ uuid }) => {
+export const filePresent = ({ uuid }: { uuid: string }): Promise<any> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2646,7 +2599,7 @@ export const filePresent = ({ uuid }) => {
     })
 }
 
-export const emptyTrash = () => {
+export const emptyTrash = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2661,14 +2614,14 @@ export const emptyTrash = () => {
 
             emptyTrashLoadItemsCache().catch(console.log)
 
-            return resolve()
+            return resolve(true)
         }).catch((err) => {
             return reject(err)
         })
     })
 }
 
-export const getLatestVersion = () => {
+export const getLatestVersion = (): Promise<string> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
@@ -2688,7 +2641,7 @@ export const getLatestVersion = () => {
     })
 }
 
-export const reportError = (err = "", info = "") => {
+export const reportError = (err: string = "", info: string = ""): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         try{
             err = err.toString()
@@ -2702,7 +2655,7 @@ export const reportError = (err = "", info = "") => {
         if(__DEV__){
             console.log("Sending error to API:", err, info)
             
-            return resolve()
+            return resolve(true)
         }
 
         let errObj = {
@@ -2733,7 +2686,7 @@ export const reportError = (err = "", info = "") => {
                 error: JSON.stringify(errObj)
             })
         }).then(() => {
-            return resolve()
+            return resolve(true)
         }).catch(reject)
     })
 }

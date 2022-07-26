@@ -4,15 +4,15 @@ import * as cppBase64 from "react-native-quick-base64"
 import { useStore } from "./state"
 import { i18n } from "../i18n/i18n"
 
-export const base64Decode = (str) => {
+export const base64Decode = (str: string): string => {
     return cppBase64.atob(str)
 }
 
-export const base64Encode = (str) => {
+export const base64Encode = (str: string): string => {
     return cppBase64.btoa(str)
 }
 
-export const getAPIServer = () => {
+export const getAPIServer = (): string => {
     const servers = [
         "https://api.filen.io",
 		"https://api.filen.net",
@@ -27,7 +27,7 @@ export const getAPIServer = () => {
     return servers[getRandomArbitrary(0, (servers.length - 1))]
 }
 
-export const getDownloadServer = () => {
+export const getDownloadServer = (): string => {
     const servers = [
         "https://down.filen.io",
 		"https://down.filen.net",
@@ -42,7 +42,7 @@ export const getDownloadServer = () => {
     return servers[getRandomArbitrary(0, (servers.length - 1))]
 }
 
-export const getUploadServer = () => {
+export const getUploadServer = (): string => {
     const servers = [
         "https://up.filen.io",
 		"https://up.filen.net",
@@ -57,16 +57,16 @@ export const getUploadServer = () => {
     return servers[getRandomArbitrary(0, (servers.length - 1))]
 }
 
-export const getMasterKeys = () => {
+export const getMasterKeys = (): string[] => {
     try{
-        return JSON.parse(storage.getString("masterKeys"))
+        return JSON.parse(storage.getString("masterKeys") || "[]")
     }
     catch(e){
         return []
     }
 }
 
-export const getFolderColor = (color) => {
+export const getFolderColor = (color: string): string => {
     const colors = getAvailableFolderColors()
 
     if(typeof colors[color] !== "undefined"){
@@ -76,7 +76,7 @@ export const getFolderColor = (color) => {
     return colors['default']
 }
 
-export const getAvailableFolderColors = () => {
+export const getAvailableFolderColors = (): { [key: string]: string } => {
     return {
         "default": "#F6C358",
         "blue": "#2992E5",
@@ -87,7 +87,7 @@ export const getAvailableFolderColors = () => {
     }
 }
 
-export const fileAndFolderNameValidation = (name) => {
+export const fileAndFolderNameValidation = (name: string): boolean => {
     const regex = /[<>:"\/\\|?*\x00-\x1F]|^(?:aux|con|clock\$|nul|prn|com[1-9]|lpt[1-9])$/i
 
     if(regex.test(name)){
@@ -97,7 +97,7 @@ export const fileAndFolderNameValidation = (name) => {
     return true
 }
 
-export const getFileParentPath = (filePath) => {
+export const getFileParentPath = (filePath: string): string => {
 	const ex = filePath.split("/")
   
     ex.pop()
@@ -105,11 +105,11 @@ export const getFileParentPath = (filePath) => {
  	return ex.join("/")
 }
 
-export const getFilenameFromPath = (path) => {
-    return path.split("\\").pop().split("/").pop()
+export const getFilenameFromPath = (path: string): string => {
+    return path.split("\\")?.pop()?.split("/")?.pop() as string
 }
 
-export const getRouteURL = (passedRoute) => {
+export const getRouteURL = (passedRoute?: any): string => {
     if(typeof passedRoute !== "undefined"){
         var route = passedRoute
         var routeURL = getParent(passedRoute)
@@ -131,7 +131,7 @@ export const getRouteURL = (passedRoute) => {
     return routeURL
 }
 
-export const getParent = (passedRoute) => {
+export const getParent = (passedRoute?: any): string => {
     let routes = useStore.getState().currentRoutes
     let route = routes[routes.length - 1]
 
@@ -157,15 +157,15 @@ export const getParent = (passedRoute) => {
     return "base"
 }
 
-export const getRandomArbitrary = (min, max) => {
+export const getRandomArbitrary = (min: number, max: number): number => {
     return Math.floor(Math.random() * (max - min) + min)
 }
 
-export const sleep = (ms = 1000) => {
+export const sleep = (ms: number = 1000): Promise<void> => {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export const formatBytes = (bytes, decimals = 2) => {
+export const formatBytes = (bytes: number, decimals: number = 2) => {
     if(bytes == 0){
         return "0 Bytes"
     }
@@ -179,53 +179,23 @@ export const formatBytes = (bytes, decimals = 2) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
 }
 
-export const arrayBufferToHex = (buffer) => {
+export const arrayBufferToHex = (buffer: ArrayBuffer): string => {
     return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, "0")).join("")
 }
 
-export const arrayBufferToHexAsync = (buffer) => {
-    return new Promise((resolve) => {
-        InteractionManager.runAfterInteractions(() => {
-            return resolve([...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, "0")).join(""))
-        })
-    })
-}
-
-export const base64ToArrayBuffer = (b64) => {
+export const base64ToArrayBuffer = (b64: string): ArrayBuffer => {
     return cppBase64.toByteArray(b64)
 }
 
-export const base64ToArrayBufferAsync = (b64) => {
-    return new Promise((resolve) => {
-        InteractionManager.runAfterInteractions(() => {
-            return resolve(cppBase64.toByteArray(b64))
-        })
-    })
-}
-
-export function convertBinaryStringToUint8Array(bStr) {
-    var i, len = bStr.length, u8_array = new Uint8Array(len);
+export function convertBinaryStringToUint8Array(bStr: string): ArrayBuffer {
+    var i: number, len: number = bStr.length, u8_array: Uint8Array = new Uint8Array(len);
     for (var i = 0; i < len; i++) {
         u8_array[i] = bStr.charCodeAt(i);
     }
     return u8_array;
 }
 
-export function convertBinaryStringToUint8ArrayAsync(bStr) {
-    return new Promise((resolve) => {
-        InteractionManager.runAfterInteractions(() => {
-            var i, len = bStr.length, u8_array = new Uint8Array(len);
-
-            for (var i = 0; i < len; i++) {
-                u8_array[i] = bStr.charCodeAt(i);
-            }
-
-            return resolve(u8_array);
-        })
-    })
-}
-
-export function convertWordArrayToUint8Array(wordArray){
+export function convertWordArrayToUint8Array(wordArray: any): ArrayBuffer {
     let arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : []
     let length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4
     let uInt8Array = new Uint8Array(length), index=0, word, i
@@ -242,69 +212,29 @@ export function convertWordArrayToUint8Array(wordArray){
     return uInt8Array
 }
 
-export const arrayBufferToBase64 = (arrayBuffer) => {
+export const arrayBufferToBase64 = (arrayBuffer: ArrayBuffer): string => {
     return cppBase64.fromByteArray(new Uint8Array(arrayBuffer)) 
 }
 
-export const arrayBufferToBase64Async = (arrayBuffer) => {
-    return new Promise((resolve, reject) => {
-        InteractionManager.runAfterInteractions(() => {
-            return resolve(cppBase64.fromByteArray(new Uint8Array(arrayBuffer)))
-        })
-    })
-}
-
-export const uInt8ArrayConcat = (arrays) => {
+export const uInt8ArrayConcat = (arrays: Uint8Array[]): Uint8Array => {
     // sum of individual array lengths
     let totalLength = arrays.reduce((acc, value) => acc + value.length, 0);
-  
-    if (!arrays.length) return null;
   
     let result = new Uint8Array(totalLength);
   
     // for each array - copy it over result
     // next array is copied right after the previous one
     let length = 0;
+
     for(let array of arrays) {
       result.set(array, length);
       length += array.length;
     }
-
-	totalLength = null
-	length = null
-	arrays = null
   
     return result;
 }
 
-export const uInt8ArrayConcatAsync = (arrays) => {
-    return new Promise((resolve) => {
-        InteractionManager.runAfterInteractions(() => {
-            // sum of individual array lengths
-            let totalLength = arrays.reduce((acc, value) => acc + value.length, 0);
-        
-            if (!arrays.length) return null;
-        
-            let result = new Uint8Array(totalLength);
-        
-            // for each array - copy it over result
-            // next array is copied right after the previous one
-            let length = 0;
-            for(let array of arrays) {
-            result.set(array, length);
-            length += array.length;
-            }
-
-            totalLength = null
-            length = null
-            arrays = null
-        
-            return resolve(result);
-        })
-    })
-}
-
-export const convertTimestampToMs = (timestamp) => {
+export const convertTimestampToMs = (timestamp: number): number => {
     const date = new Date(timestamp * 1000)
 
     if(date.getFullYear() > 2100){
@@ -315,9 +245,9 @@ export const convertTimestampToMs = (timestamp) => {
     }
 }
 
-export const simpleDate = (timestamp) => {
+export const simpleDate = (timestamp: number): string => {
     try{
-        const date = new Date(convertTimestampToMs(parseInt(timestamp)))
+        const date = new Date(convertTimestampToMs(timestamp))
 
         return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
     }
@@ -328,7 +258,7 @@ export const simpleDate = (timestamp) => {
     }
 }
 
-export const normalizePhotosRange = (range) => {
+export const normalizePhotosRange = (range: string): string => {
     if(typeof range !== "string"){
         return "all"
     }
@@ -340,32 +270,21 @@ export const normalizePhotosRange = (range) => {
     return range
 }
 
-export const randomIdUnsafe = () => {
+export const randomIdUnsafe = (): string => {
     return Math.random().toString().slice(3) + Math.random().toString().slice(3) + Math.random().toString().slice(3)
 }
 
-export const generateRandomString = (length = 32) => {
+export const generateRandomString = (length: number = 32): Promise<string> => {
     return new Promise((resolve, reject) => {
         global.nodeThread.generateRandomString({ charLength: length }).then(resolve).catch(reject)
     })
 }
 
-export function generateRandomClassName(length = 16){
-    let result = ""
-    let characters = "abcdefghijklmnopqrstuvwxyz"
-
-    for(let i = 0; i < length; i++){
-        result += characters.charAt(Math.floor(Math.random() * characters.length))
-    }
-
-    return result + "-" + result
-}
-
-export function unixTimestamp(){
+export function unixTimestamp(): number {
     return Math.floor((+new Date()) / 1000)
 }
 
-export const canCompressThumbnail = (ext) => {
+export const canCompressThumbnail = (ext: string): boolean => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -398,22 +317,7 @@ export const canCompressThumbnail = (ext) => {
     }
 }
 
-export function itemNameValidationRegex(type = "file", name){
-	if(type == "file"){
-        if(/^(con|prn|aux|nul|com[0-9]|lpt[0-9])$|([<>:"\/\\|?*])|(\.|\s)$/ig.test(name)){
-            return false
-        }
-    }
-    else{
-        if(/^(con|prn|aux|nul|com[0-9]|lpt[0-9])$|([<>:"\/\\|?*])|(\.|\s)$/ig.test(name)){
-            return false
-        }
-    }
-
-	return true
-}
-
-export const canShowThumbnail = (ext) => {
+export const canShowThumbnail = (ext: string): boolean => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -459,7 +363,7 @@ export const canShowThumbnail = (ext) => {
     }
 }
 
-export const getFilePreviewType = (ext, mime) => {
+export const getFilePreviewType = (ext: string, mime?: string): string => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -677,49 +581,18 @@ export const getFilePreviewType = (ext, mime) => {
     }
 }
 
-export function convertUint8ArrayToBinaryString(u8Array){
-    let i, len = u8Array.length, b_str = ""
+export function convertUint8ArrayToBinaryString(u8Array: Uint8Array | ArrayBuffer): string {
+    const arr: Uint8Array = new Uint8Array(u8Array)
+    let i, len = arr.length, b_str = ""
 
     for (i = 0; i < len; i++){
-        b_str += String.fromCharCode(u8Array[i])
+        b_str += String.fromCharCode(arr[i])
     }
 
     return b_str
 }
 
-export function convertUint8ArrayToBinaryStringAsync(u8Array){
-    return new Promise((resolve) => {
-        InteractionManager.runAfterInteractions(() => {
-            let i, len = u8Array.length, b_str = ""
-
-            for (i = 0; i < len; i++){
-                b_str += String.fromCharCode(u8Array[i])
-            }
-
-            return resolve(b_str)
-        })
-    })
-}
-
-export function fetchWithTimeout(ms, promise) {
-    return new Promise((resolve, reject) => {
-        let timer = setTimeout(() => {
-            return reject(new Error("Request timeout after " + ms + "ms"))
-        }, ms)
-
-        promise.then((value) => {
-            clearTimeout(timer)
-            
-            return resolve(value)
-        }).catch((err) => {
-            clearTimeout(timer)
-
-            return reject(err)
-        })
-    })
-}
-
-export const calcCameraUploadCurrentDate = (from, to, lang = "en") => {
+export const calcCameraUploadCurrentDate = (from: number, to: number, lang: string = "en"): string => {
     const fromDate = new Date(from * 1000)
     const toDate = new Date(to * 1000)
     const fromMonth = fromDate.getMonth()
@@ -748,7 +621,7 @@ export const calcCameraUploadCurrentDate = (from, to, lang = "en") => {
     }
 }
 
-export const calcPhotosGridSize = (num) => {
+export const calcPhotosGridSize = (num: number): number => {
     if(num <= 0){
         return 3
     }
@@ -756,7 +629,7 @@ export const calcPhotosGridSize = (num) => {
     return num
 }
 
-export function orderItemsByType(items, type){
+export function orderItemsByType(items: any[], type: string): any[] {
     let files = []
     let folders = []
 
@@ -915,8 +788,8 @@ export function orderItemsByType(items, type){
     }
 }
 
-export function compareVersions(current, got){
-	function compare(a, b) {
+export function compareVersions(current: string, got: string): string {
+	function compare(a: string, b: string) {
 		if (a === b) {
 		   return 0;
 		}
@@ -957,55 +830,68 @@ export function compareVersions(current, got){
 	}
 }
 
-export function Semaphore(max){
-    var counter = 0;
-    var waiting = [];
-    
-    var take = function() {
-      if (waiting.length > 0 && counter < max){
-        counter++;
-        let promise = waiting.shift();
-        promise.resolve();
+export interface SemaphoreInterface {
+    acquire: Function,
+    release: Function,
+    count: Function,
+    setMax: Function,
+    purge: Function
+  }
+  
+  export const Semaphore = function(this: SemaphoreInterface, max: number) {
+      var counter = 0;
+      var waiting: any = [];
+      var maxCount = max || 1
+      
+      var take = function() {
+        if (waiting.length > 0 && counter < maxCount){
+          counter++;
+          let promise = waiting.shift();
+          promise.resolve();
+        }
       }
-    }
-    
-    this.acquire = function() {
-      if(counter < max) {
-        counter++
-        return new Promise(resolve => {
-        resolve();
-      });
-      } else {
-        return new Promise((resolve, err) => {
-          waiting.push({resolve: resolve, err: err});
+      
+      this.acquire = function() {
+        if(counter < maxCount) {
+          counter++
+          return new Promise(resolve => {
+          resolve(true);
         });
+        } else {
+          return new Promise((resolve, err) => {
+            waiting.push({resolve: resolve, err: err});
+          });
+        }
       }
-    }
-      
-    this.release = function() {
-     counter--;
-     take();
-    }
-
-	this.count = function() {
-		return counter
-	}
-    
-    this.purge = function() {
-      let unresolved = waiting.length;
-    
-      for (let i = 0; i < unresolved; i++) {
-        waiting[i].err('Task has been purged.');
+        
+      this.release = function() {
+       counter--;
+       take();
       }
-    
-      counter = 0;
-      waiting = [];
+  
+      this.count = function() {
+        return counter
+      }
+  
+      this.setMax = function(newMax: number) {
+          maxCount = newMax
+      }
       
-      return unresolved;
-    }
-}
+      this.purge = function() {
+        let unresolved = waiting.length;
+      
+        for (let i = 0; i < unresolved; i++) {
+          waiting[i].err('Task has been purged.');
+        }
+      
+        counter = 0;
+        waiting = [];
+        
+        return unresolved;
+      }
+  } as any as { new (max: number): SemaphoreInterface; };
 
-export const deriveKeyFromPassword = (password, salt, iterations = 200000, hash = "SHA-512", bitLength = 512, returnHex = true) => {
+export const deriveKeyFromPassword = (password: string, salt: string, iterations: number = 200000, hash: string = "SHA-512", bitLength: number = 512, returnHex: boolean = true): Promise<any> => {
     return new Promise((resolve, reject) => {
         global.nodeThread.deriveKeyFromPassword({
             password,
@@ -1018,7 +904,7 @@ export const deriveKeyFromPassword = (password, salt, iterations = 200000, hash 
     })
 }
 
-export const decryptMetadata = (data, key) => {
+export const decryptMetadata = (data: string, key: string): Promise<any> => {
 	return new Promise((resolve, reject) => {
         global.nodeThread.decryptMetadata({
             data,
@@ -1027,7 +913,7 @@ export const decryptMetadata = (data, key) => {
     })
 }
 
-export const encryptMetadata = (data, key) => {
+export const encryptMetadata = (data: string, key: string): Promise<any> => {
 	return new Promise((resolve, reject) => {
         global.nodeThread.encryptMetadata({
             data,
@@ -1036,7 +922,7 @@ export const encryptMetadata = (data, key) => {
     })
 }
 
-export const decryptFolderLinkKey = (masterKeys, metadata) => {
+export const decryptFolderLinkKey = (masterKeys: string[], metadata: string): Promise<string> => {
     return new Promise((resolve, reject) => {
         let link = ""
         let iterated = 0
@@ -1061,16 +947,10 @@ export const decryptFolderLinkKey = (masterKeys, metadata) => {
     })
 }
 
-export const decryptFileMetadataPrivateKey = (metadata, privateKey, uuid) => {
+export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string, uuid: string): Promise<any> => {
     return new Promise((resolve, reject) => {
         const cacheKey = "metadataCache:file:" + uuid + ":" + metadata
-
-        try{
-            var metadataCache = storage.getString(cacheKey)
-        }
-        catch(e){
-            console.log(e)
-        }
+        let metadataCache: any = storage.getString(cacheKey) || "{}"
 
         if(typeof metadataCache == "string"){
             try{
@@ -1136,20 +1016,14 @@ export const decryptFileMetadataPrivateKey = (metadata, privateKey, uuid) => {
     })
 }
 
-export const decryptFolderNamePrivateKey = (privateKey, metadata, uuid) => {
+export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string, uuid: string): Promise<string> => {
     return new Promise((resolve, reject) => {
         if(metadata == "default"){
             return resolve("Default")
         }
 
         const cacheKey = "metadataCache:folder:" + uuid + ":" + metadata
-
-        try{
-            var metadataCache = storage.getString(cacheKey)
-        }
-        catch(e){
-            console.log(e)
-        }
+        let metadataCache: any = storage.getString(cacheKey)
 
         if(typeof metadataCache == "string"){
             try{
@@ -1189,14 +1063,9 @@ export const decryptFolderNamePrivateKey = (privateKey, metadata, uuid) => {
 
             if(typeof name == "string"){
                 if(name.length > 0){
-                    try{
-                        storage.set(cacheKey, JSON.stringify({
-                            name
-                        }))
-                    }
-                    catch(e){
-                        console.log(e)
-                    }
+                    storage.set(cacheKey, JSON.stringify({
+                        name
+                    }))
                 }
             }
 
@@ -1209,42 +1078,14 @@ export const decryptFolderNamePrivateKey = (privateKey, metadata, uuid) => {
     })
 }
 
-export const decryptFolderName = (masterKeys, metadata, uuid) => {
+export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: string): Promise<string> => {
     return new Promise((resolve, reject) => {
         if(metadata == "default"){
             return resolve("Default")
         }
 
-        /*try{
-            var masterKeys = storage.getString("masterKeys")
-        }
-        catch(e){
-            return reject(e)
-        }
-
-        if(typeof masterKeys == "undefined"){
-            return reject(new Error("Master keys undefined"))
-        }
-        
-        try{
-            masterKeys = JSON.parse(masterKeys)
-        }
-        catch(e){
-            return reject(e)
-        }
-
-        if(masterKeys.length == 0){
-            return reject(new Error("Master keys undefined"))
-        }*/
-
         const cacheKey = "metadataCache:folder:" + uuid + ":" + metadata
-
-        try{
-            var metadataCache = storage.getString(cacheKey)
-        }
-        catch(e){
-            console.log(e)
-        }
+        let metadataCache: any = storage.getString(cacheKey)
 
         if(typeof metadataCache == "string"){
             try{
@@ -1286,14 +1127,9 @@ export const decryptFolderName = (masterKeys, metadata, uuid) => {
                 if(iterated >= masterKeys.length){
                     if(typeof name == "string"){
                         if(name.length > 0){
-                            try{
-                                storage.set(cacheKey, JSON.stringify({
-                                    name
-                                }))
-                            }
-                            catch(e){
-                                console.log(e)
-                            }
+                            storage.set(cacheKey, JSON.stringify({
+                                name
+                            }))
                         }
                     }
 
@@ -1306,16 +1142,10 @@ export const decryptFolderName = (masterKeys, metadata, uuid) => {
     })
 }
 
-export const decryptFileMetadata = (masterKeys, metadata, uuid) => {
+export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number }> => {
     return new Promise((resolve, reject) => {
         const cacheKey = "metadataCache:file:" + uuid + ":" + metadata
-
-        try{
-            var metadataCache = storage.getString(cacheKey)
-        }
-        catch(e){
-            console.log(e)
-        }
+        let metadataCache: any = storage.getString(cacheKey)
 
         if(typeof metadataCache == "string"){
             try{
@@ -1377,13 +1207,8 @@ export const decryptFileMetadata = (masterKeys, metadata, uuid) => {
 
                 if(iterated >= masterKeys.length){
                     if(typeof file.name == "string"){
-                        if(file.name > 0){
-                            try{
-                                storage.set(cacheKey, JSON.stringify(file))
-                            }
-                            catch(e){
-                                console.log(e)
-                            }
+                        if(file.name.length > 0){
+                            storage.set(cacheKey, JSON.stringify(file))
                         }
                     }
 
@@ -1396,7 +1221,7 @@ export const decryptFileMetadata = (masterKeys, metadata, uuid) => {
     })
 }
 
-export const encryptData = (base64, key) => {
+export const encryptData = (base64: string, key: string): Promise<any> => {
     return new Promise((resolve, reject) => {
         if(typeof base64 !== "string"){
             return resolve("")
@@ -1413,13 +1238,13 @@ export const encryptData = (base64, key) => {
     })
 }
 
-export const utf8ToHex = (str) => {
+export const utf8ToHex = (str: string): string => {
     return Array.from(str).map(c => 
         c.charCodeAt(0) < 128 ? c.charCodeAt(0).toString(16) : encodeURIComponent(c).replace(/\%/g, "").toLowerCase()
     ).join('')
 }
 
-export const decryptData = (encrypted, key, version) => {
+export const decryptData = (encrypted: ArrayBuffer, key: string, version: number): Promise<any> => {
     return new Promise((resolve, reject) => {
         global.nodeThread.decryptData({
             base64: arrayBufferToBase64(encrypted),
@@ -1429,99 +1254,16 @@ export const decryptData = (encrypted, key, version) => {
     })
 }
 
-export const getAPIKey = () => {
+export const getAPIKey = (): string => {
     try{
-        return storage.getString("apiKey")
+        return storage.getString("apiKey") || ""
     }
     catch(e){
         return ""
     }
 }
 
-export const fetchArrayBuffer = ({ url, timeout = 3600000 }) => {
-    return new Promise((resolve, reject) => {
-        InteractionManager.runAfterInteractions(() => {
-            const request = new XMLHttpRequest()
-
-            request.open("GET", url, true)
-            request.responseType = "arraybuffer"
-            request.timeout = timeout
-
-            request.onloadend = () => {
-                const response = request.response
-
-                if(typeof response == "object"){
-                    if(typeof response.byteLength == "number"){
-                        if(response.byteLength > 0){
-                            resolve(response)
-                        }
-                    }
-                    else{
-                        reject(new Error("Response is not an arrayBuffer"))
-                    }
-                }
-                else{
-                    reject(new Error("Response is not an arrayBuffer"))
-                }
-            }
-
-            request.onerror = (err) => {
-                reject(err)
-            }
-
-            request.send()
-        })
-    })
-}
-
-export const getNavigationAnimationType = (from, to) => {
-    //export declare type StackAnimationTypes = 'default' | 'fade' | 'fade_from_bottom' | 'flip' | 'none' | 'simple_push' | 'slide_from_bottom' | 'slide_from_right' | 'slide_from_left';
-
-    const defaultAnimation = Platform.OS == "android" ? "fade" : "default"
-
-    if(from == "recents" && to == "base"){
-        return "slide_from_right"
-    }
-    else if(from == "base" && to == "photos"){
-        return "slide_from_right"
-    }
-    else if(from == "photos" && to == "settings"){
-        return "slide_from_right"
-    }
-    else if(from == "settings" && to == "photos"){
-        return "slide_from_left"
-    }
-    else if(from == "photos" && to == "base"){
-        return "slide_from_left"
-    }
-    else if(from == "base" && to == "recents"){
-        return "slide_from_left"
-    }
-    else if(from == "recents" && to == "shared-in"){
-        return "none"
-    }
-    else if(from == "recents" && to == "shared-out"){
-        return "none"
-    }
-    else if(from == "recents" && to == "links"){
-        return "none"
-    }
-    else if(from == "recents" && to == "favorites"){
-        return "none"
-    }
-    else if(from == "recents" && to == "offline"){
-        return "none"
-    }
-    else{
-        return defaultAnimation
-    }
-}
-
-export function replaceAll(str, find, replace) {
-    return str.replace(new RegExp(find, 'g'), replace);
-}
-
-export const getFileExt = (name) => {
+export const getFileExt = (name: string): string => {
     if(name.indexOf(".") == -1){
         return ""
     }
@@ -1531,9 +1273,9 @@ export const getFileExt = (name) => {
     return ex[ex.length - 1].toLowerCase()
 }
 
-export function uuidv4(){ // Public Domain/MIT (UNSAFE, predictable rng)
+export function uuidv4(): string { // Public Domain/MIT (UNSAFE, predictable rng)
     let d = new Date().getTime();//Timestamp
-    let d2 = (performance && performance.now && (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
+    let d2 = 0;//Time in microseconds since page-load or 0 if unsupported
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         let r = Math.random() * 16;//random number between 0 and 16
         if(d > 0){//Use timestamp until depleted
@@ -1547,65 +1289,13 @@ export function uuidv4(){ // Public Domain/MIT (UNSAFE, predictable rng)
     });
 }
 
-export const arrayBufferToBase64JS = (arrayBuffer) => {
-    var base64    = ''
-    var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-  
-    var bytes         = new Uint8Array(arrayBuffer)
-    var byteLength    = bytes.byteLength
-    var byteRemainder = byteLength % 3
-    var mainLength    = byteLength - byteRemainder
-  
-    var a, b, c, d
-    var chunk
-  
-    // Main loop deals with bytes in chunks of 3
-    for (var i = 0; i < mainLength; i = i + 3) {
-      // Combine the three bytes into a single integer
-      chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
-  
-      // Use bitmasks to extract 6-bit segments from the triplet
-      a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
-      b = (chunk & 258048)   >> 12 // 258048   = (2^6 - 1) << 12
-      c = (chunk & 4032)     >>  6 // 4032     = (2^6 - 1) << 6
-      d = chunk & 63               // 63       = 2^6 - 1
-  
-      // Convert the raw binary segments to the appropriate ASCII encoding
-      base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
-    }
-  
-    // Deal with the remaining bytes and padding
-    if (byteRemainder == 1) {
-      chunk = bytes[mainLength]
-  
-      a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
-  
-      // Set the 4 least significant bits to zero
-      b = (chunk & 3)   << 4 // 3   = 2^2 - 1
-  
-      base64 += encodings[a] + encodings[b] + '=='
-    } else if (byteRemainder == 2) {
-      chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
-  
-      a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
-      b = (chunk & 1008)  >>  4 // 1008  = (2^6 - 1) << 4
-  
-      // Set the 2 least significant bits to zero
-      c = (chunk & 15)    <<  2 // 15    = 2^4 - 1
-  
-      base64 += encodings[a] + encodings[b] + encodings[c] + '='
-    }
-    
-    return base64
-}
-
-export const promiseAllSettled = (promises) => Promise.all(
+export const promiseAllSettled = (promises: Promise<any>[]) => Promise.all(
     promises.map(p => p
-        .then(value => ({
+        .then((value: any) => ({
             status: "fulfilled",
             value
         }))
-        .catch(reason => ({
+        .catch((reason: any) => ({
             status: "rejected",
             reason
         }))

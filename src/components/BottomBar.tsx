@@ -16,7 +16,7 @@ export interface BottomBarProps {
 
 export const BottomBar = memo(({ navigation }: BottomBarProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const currentRoutes = useStore(state => state.currentRoutes) as any
+    const currentRoutes = useStore(state => state.currentRoutes)
     const [lang, setLang] = useMMKVString("lang", storage)
     const netInfo = useStore(state => state.netInfo)
     const setBottomBarHeight = useStore(state => state.setBottomBarHeight)
