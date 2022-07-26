@@ -1,26 +1,31 @@
-import React, { useState, useEffect, useCallback, memo } from "react"
+import React, { useState, useEffect, memo } from "react"
 import { ActivityIndicator, TouchableOpacity, View } from "react-native"
 import storage from "../lib/storage"
 import { useMMKVBoolean } from "react-native-mmkv"
 import { StackActions } from "@react-navigation/native"
 import { useStore } from "../lib/state"
 import { navigationAnimation } from "../lib/state"
+// @ts-ignore
 import AnimatedProgressWheel from "react-native-progress-wheel"
 import memoryCache from "../lib/memoryCache"
 
 const isEqual = require("react-fast-compare")
 
-export const TransfersIndicator = memo(({ navigation }) => {
+export interface TransfersIndicatorProps {
+    navigation: any
+}
+
+export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const uploadsCount = useStore(useCallback(state => Object.keys(state.uploads).length))
-    const downloadsCount = useStore(useCallback(state => Object.keys(state.downloads).length))
+    const uploadsCount = useStore(state => Object.keys(state.uploads).length)
+    const downloadsCount = useStore(state => Object.keys(state.downloads).length)
     const [visible, setVisible] = useState(false)
-    const uploads = useStore(useCallback(state => state.uploads), (current, next) => !isEqual(current, next))
-    const downloads = useStore(useCallback(state => state.downloads), (current, next) => !isEqual(current, next))
+    const uploads = useStore(state => state.uploads, (current, next) => !isEqual(current, next))
+    const downloads = useStore(state => state.downloads, (current, next) => !isEqual(current, next))
     const [progress, setProgress] = useState(0)
-    const currentRoutes = useStore(useCallback(state => state.currentRoutes))
+    const currentRoutes = useStore(state => state.currentRoutes)
     const [currentRouteName, setCurrentRouteName] = useState("")
-    const biometricAuthScreenVisible = useStore(useCallback(state => state.biometricAuthScreenVisible))
+    const biometricAuthScreenVisible = useStore(state => state.biometricAuthScreenVisible)
 
     useEffect(() => {
         if((uploadsCount + downloadsCount) > 0 && currentRouteName !== "TransfersScreen" && !biometricAuthScreenVisible){
@@ -99,34 +104,39 @@ export const TransfersIndicator = memo(({ navigation }) => {
     }, [uploadsCount, downloadsCount])
 
     return (
-        <TouchableOpacity style={{
-            width: 50,
-            height: 50,
-            borderRadius: 50,
-            backgroundColor: darkMode ? "#171717" : "lightgray",
-            position: "absolute",
-            bottom: 60,
-            right: 10,
-            zIndex: 999999,
-            display: visible ? "flex" : "none"
-        }} onPress={() => {
-            if(currentRouteName == "TransfersScreen"){
-                return false
-            }
+        <TouchableOpacity
+            style={{
+                width: 50,
+                height: 50,
+                borderRadius: 50,
+                backgroundColor: darkMode ? "#171717" : "lightgray",
+                position: "absolute",
+                bottom: 60,
+                right: 10,
+                zIndex: 999999,
+                display: visible ? "flex" : "none"
+            }}
+            onPress={() => {
+                if(currentRouteName == "TransfersScreen"){
+                    return false
+                }
 
-            navigationAnimation({ enable: true }).then(() => {
-                navigation.current.dispatch(StackActions.push("TransfersScreen"))
-            })
-        }}>
-            <View style={{
-                justifyContent: "center",
-                alignContent: "center",
-                transform: [
-                    {
-                        rotate: "270deg"
-                    }
-                ]
-            }}>
+                navigationAnimation({ enable: true }).then(() => {
+                    navigation?.current?.dispatch(StackActions.push("TransfersScreen"))
+                })
+            }}
+        >
+            <View
+                style={{
+                    justifyContent: "center",
+                    alignContent: "center",
+                    transform: [
+                        {
+                            rotate: "270deg"
+                        }
+                    ]
+                }}
+            >
                 {/*color={progress > 0 ? "#0A84FF" : darkMode ? "#171717" : "lightgray"}
                     progress={progress}
                     backgroundColor={darkMode ? "#171717" : "lightgray"}
@@ -139,10 +149,14 @@ export const TransfersIndicator = memo(({ navigation }) => {
                     backgroundColor="transparent"
                     containerColor="transparent"
                 />
-                <ActivityIndicator size={"small"} color={darkMode ? "white" : "black"} style={{
-                    position: "absolute",
-                    marginLeft: 15
-                }} />
+                <ActivityIndicator
+                    size="small"
+                    color={darkMode ? "white" : "black"}
+                    style={{
+                        position: "absolute",
+                        marginLeft: 15
+                    }}
+                />
             </View>
         </TouchableOpacity>
     )
