@@ -31,14 +31,7 @@ const getErrorCountForId = (id) => {
 }
 
 export const isCameraUploadRunning = () => {
-    try{
-        return storage.getBoolean("cameraUploadRunning")
-    }
-    catch(e){
-        console.log(e)
-
-        return false
-    }
+    return storage.getBoolean("cameraUploadRunning")
 }
 
 export const setCameraUploadRunning = (val = true) => {

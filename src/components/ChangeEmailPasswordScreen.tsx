@@ -248,7 +248,7 @@ export const ChangeEmailPasswordScreen = memo(({ navigation }: ChangeEmailPasswo
 
                                     useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                                    getAuthInfo({ email: storage.getString("email") }).then((authInfo) => {
+                                    getAuthInfo({ email: storage.getString("email") as string }).then((authInfo) => {
                                         const { authVersion, salt } = authInfo
 
                                         generatePasswordAndMasterKeysBasedOnAuthVersion({ rawPassword: password, authVersion, salt }).then((generated) => {
@@ -490,7 +490,7 @@ export const ChangeEmailPasswordScreen = memo(({ navigation }: ChangeEmailPasswo
 
                                     useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                                    getAuthInfo({ email: storage.getString("email") }).then((authInfo) => {
+                                    getAuthInfo({ email: storage.getString("email") as string }).then((authInfo) => {
                                         const { authVersion, salt } = authInfo
 
                                         generatePasswordAndMasterKeysBasedOnAuthVersion({ rawPassword: currentPassword, authVersion, salt }).then((generated) => {

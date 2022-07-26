@@ -258,7 +258,7 @@ export const simpleDate = (timestamp: number): string => {
     }
 }
 
-export const normalizePhotosRange = (range: string): string => {
+export const normalizePhotosRange = (range: string | undefined): string => {
     if(typeof range !== "string"){
         return "all"
     }
@@ -1271,22 +1271,6 @@ export const getFileExt = (name: string): string => {
     let ex = name.split(".")
 
     return ex[ex.length - 1].toLowerCase()
-}
-
-export function uuidv4(): string { // Public Domain/MIT (UNSAFE, predictable rng)
-    let d = new Date().getTime();//Timestamp
-    let d2 = 0;//Time in microseconds since page-load or 0 if unsupported
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        let r = Math.random() * 16;//random number between 0 and 16
-        if(d > 0){//Use timestamp until depleted
-            r = (d + r)%16 | 0;
-            d = Math.floor(d/16);
-        } else {//Use microseconds since page-load if supported
-            r = (d2 + r)%16 | 0;
-            d2 = Math.floor(d2/16);
-        }
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
 }
 
 export const promiseAllSettled = (promises: Promise<any>[]) => Promise.all(

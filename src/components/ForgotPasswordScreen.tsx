@@ -7,10 +7,9 @@ import { apiRequest } from "../lib/api"
 import { useStore } from "../lib/state"
 import { showToast } from "./Toasts"
 import { Keyboard } from "react-native"
-import type { NavigationContainerRef } from "@react-navigation/native"
 
 export interface ForgotPasswordScreenProps {
-    navigation: NavigationContainerRef<{}>
+    navigation: any
 }
 
 export const ForgotPasswordScreen = memo(({ navigation }: ForgotPasswordScreenProps) => {

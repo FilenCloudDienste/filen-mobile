@@ -12,3 +12,5 @@ export const setStatusBarStyle = (darkMode: boolean): void => {
 
     StatusBar.setStatusBarStyle(darkMode ? "light" : "dark")
 }
+
+export default setStatusBarStyle

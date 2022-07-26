@@ -10,10 +10,9 @@ import { SettingsGroup, SettingsButton, SettingsButtonLinkHighlight } from "./Se
 import { showToast } from "./Toasts"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../lib/permissions"
 import { getColor } from "../lib/style/colors"
-import type { NavigationContainerRef } from "@react-navigation/native"
 
 export interface CameraUploadScreenProps {
-    navigation: NavigationContainerRef<{}>
+    navigation: any
 }
 
 export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps) => {

@@ -15,10 +15,53 @@ import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../state"
 import memoryCache from "../memoryCache"
 
-const isGeneratingThumbnailForItemUUID = {}
-const isCheckingThumbnailForItemUUID = {}
+const isGeneratingThumbnailForItemUUID: any = {}
+const isCheckingThumbnailForItemUUID : any= {}
 
-export const buildFolder = async ({ folder, name = "", masterKeys = undefined, sharedIn = false, privateKey = undefined, routeURL, userId = undefined, loadFolderSizes = false }) => {
+export interface Item {
+    id: string,
+    type: string,
+    uuid: string,
+    name: string,
+    date: string,
+    timestamp: number,
+    lastModified: number,
+    lastModifiedSort: number,
+    parent: string,
+    receiverId: number,
+    receiverEmail: string,
+    sharerId: number,
+    sharerEmail: string,
+    color: string | null,
+    favorited: boolean,
+    isBase: boolean,
+    isSync: boolean,
+    isDefault: boolean,
+    size: number,
+    selected: boolean,
+    mime: string,
+    key: string,
+    offline: boolean,
+    bucket: string,
+    region: string,
+    rm: string,
+    chunks: number,
+    thumbnail: string | undefined,
+    version: number
+}
+
+export interface BuildFolder {
+    folder: any,
+    name?: string,
+    masterKeys?: string[],
+    sharedIn?: boolean,
+    privateKey?: string,
+    routeURL?: string,
+    userId?: number,
+    loadFolderSizes?: boolean
+}
+
+export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
 
     if(memoryCache.has(cacheKey)){
@@ -49,23 +92,48 @@ export const buildFolder = async ({ folder, name = "", masterKeys = undefined, s
         date: simpleDate(folder.timestamp),
         timestamp: folder.timestamp,
         lastModified: folder.timestamp,
-        lastModifiedSort: folder.timestamp + "." + folder.uuid.replace(/\D/g, ""),
+        lastModifiedSort: parseFloat(folder.timestamp + "." + folder.uuid.replace(/\D/g, "")),
         parent: folder.parent || "base",
         receiverId: typeof folder.receiverId == "number" ? folder.receiverId : 0,
-        receiverEmail: typeof folder.receiverEmail == "string" ? folder.receiverEmail : undefined,
+        receiverEmail: typeof folder.receiverEmail == "string" ? folder.receiverEmail : "",
         sharerId: typeof folder.sharerId == "number" ? folder.sharerId : 0,
-        sharerEmail: typeof folder.sharerEmail == "string" ? folder.sharerEmail : undefined,
+        sharerEmail: typeof folder.sharerEmail == "string" ? folder.sharerEmail : "",
         color: folder.color || null,
-        favorited: folder.favorited || 0,
+        favorited: folder.favorited == 1 ? true : false,
         isBase: typeof folder.parent == "string" ? false : true,
         isSync: folder.is_sync || false,
         isDefault: folder.is_default || false,
         size: typeof routeURL == "string" ? getFolderSizeFromCache({ folder, routeURL, load: loadFolderSizes }) : 0,
-        selected: false
+        selected: false,
+        mime: "",
+        key: "",
+        offline: false,
+        bucket: "",
+        region: "",
+        rm: "",
+        chunks: 0,
+        thumbnail: undefined,
+        version: 0
     }
 }
 
-export const buildFile = async ({ file, metadata = undefined, masterKeys = undefined, sharedIn = false, privateKey = undefined, routeURL, userId = undefined }) => {
+export interface BuildFile {
+    file: any,
+    metadata?: {
+        name: string,
+        mime: string,
+        size: number,
+        key: string,
+        lastModified: number
+    },
+    masterKeys?: string[],
+    sharedIn?: boolean,
+    privateKey?: string,
+    routeURL?: string,
+    userId?: number
+}
+
+export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0 }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
     const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn.toString()
 
     if(memoryCache.has(cacheKey)){
@@ -124,7 +192,7 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
         parent: file.parent || "base",
         rm: file.rm,
         chunks: file.chunks,
-        date: typeof metadata.lastModified == "number" && metadata.lastModified > 0 ? simpleDate(parseInt(metadata.lastModified)) : simpleDate(file.timestamp),
+        date: typeof metadata.lastModified == "number" && metadata.lastModified > 0 ? simpleDate(metadata.lastModified) : simpleDate(file.timestamp),
         timestamp: file.timestamp,
         receiverId: typeof file.receiverId == "number" ? file.receiverId : 0,
         receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,
@@ -134,11 +202,15 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
         version: file.version,
         favorited: file.favorited,
         thumbnail: thumbnailCachePath,
-        selected: false
+        selected: false,
+        color: null,
+        isBase: false,
+        isSync: false,
+        isDefault: false
     }
 }
 
-export const sortItems = ({ items, passedRoute = undefined }) => {
+export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }): Item[] => {
     let routeURL = ""
 
     if(typeof passedRoute !== "undefined"){
@@ -149,9 +221,7 @@ export const sortItems = ({ items, passedRoute = undefined }) => {
     }
 
     if(routeURL.indexOf("photos") !== -1){
-        return items.sort((a, b) => {
-            return b.lastModifiedSort > a.lastModifiedSort
-        })
+        return items.sort((a, b) => b.lastModifiedSort - a.lastModifiedSort)
     }
 
     const routeEx = routeURL.split("/")
@@ -161,7 +231,7 @@ export const sortItems = ({ items, passedRoute = undefined }) => {
         const files = items.filter(item => item.type == "file")
 
         return [...folders, ...files.sort((a, b) => {
-            return b.lastModifiedSort > a.lastModifiedSort
+            return b.lastModifiedSort - a.lastModifiedSort
         })]
     }
 
@@ -175,7 +245,23 @@ export const sortItems = ({ items, passedRoute = undefined }) => {
     return items
 }
 
-export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLoadDone, bypassCache = false, isFollowUpRequest = false, callStack = 0, navigation, isMounted, route, setProgress, loadFolderSizes = false }) => {
+export interface LoadItems {
+    parent: string,
+    prevItems: Item[],
+    setItems: React.Dispatch<React.SetStateAction<Item[]>>,
+    masterKeys: string[],
+    setLoadDone: React.Dispatch<React.SetStateAction<boolean>>,
+    bypassCache?: boolean,
+    isFollowUpRequest?: boolean,
+    callStack?: number,
+    navigation?: any,
+    isMounted: () => boolean,
+    route?: any,
+    setProgress?: any,
+    loadFolderSizes?: boolean
+}
+
+export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLoadDone, bypassCache = false, isFollowUpRequest = false, callStack = 0, navigation, isMounted, route, setProgress, loadFolderSizes = false }: LoadItems): Promise<boolean> => {
     const userId = storage.getNumber("userId")
 
     if(typeof userId !== "number"){
@@ -190,7 +276,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         return false
     }
     
-    let items = []
+    let items: Item[] = []
     const netInfo = useStore.getState().netInfo
     let isDeviceOnline = (netInfo.isConnected && netInfo.isInternetReachable)
     const routeURL = typeof route !== "undefined" ? getRouteURL(route) : getRouteURL()
@@ -637,6 +723,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                                             file: newItem,
                                             storeOffline: true,
                                             isOfflineUpdate: true,
+                                            // @ts-ignore
                                             optionalCallback: () => {
                                                 removeFromOfflineStorage({
                                                     item: {
@@ -673,7 +760,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                                                     }
                                                 })
 
-                                                return resolve()
+                                                return resolve(true)
                                             }).catch(reject)
                                         })
                                     }
@@ -779,7 +866,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     return true
 }
 
-export const getFolderSizeCacheKey = ({ folder, routeURL }) => {
+export const getFolderSizeCacheKey = ({ folder, routeURL }: { folder: Item, routeURL: string }): string => {
     let cacheKey = "folderSize:"
 
     if(routeURL.indexOf("shared-out") !== -1){
@@ -798,18 +885,13 @@ export const getFolderSizeCacheKey = ({ folder, routeURL }) => {
     return cacheKey
 }
 
-export const getFolderSizeFromCache = ({ folder, routeURL, load = true }) => {
+export const getFolderSizeFromCache = ({ folder, routeURL, load = true }: { folder: Item, routeURL: string, load?: boolean }): number => {
     const cacheKey = getFolderSizeCacheKey({ folder, routeURL })
-
-    try{
-        var cache = storage.getNumber(cacheKey)
+    let timeout = 0
+    const cache = storage.getNumber(cacheKey)
         
-        if(load){
-            var timeout = storage.getNumber(cacheKey + ":timeout")
-        }
-    }
-    catch(e){
-        return 0
+    if(load){
+        timeout = storage.getNumber(cacheKey + ":timeout")
     }
 
     if(load){
@@ -853,7 +935,7 @@ export const getFolderSizeFromCache = ({ folder, routeURL, load = true }) => {
     return (typeof cache == "number" ? cache : 0)
 }
 
-export const getThumbnailCacheKey = ({ uuid }) => {
+export const getThumbnailCacheKey = ({ uuid }: { uuid: string }): { width: number, height: number, quality: number, thumbnailVersion: string, cacheKey: string } => {
     const width = 512, height = 512, quality = 80, thumbnailVersion = "2.0.7"
     const cacheKey = "thumbnailCache:" + uuid + ":" + width + ":" + height + ":" + quality + ":" + thumbnailVersion
 
@@ -869,7 +951,7 @@ export const getThumbnailCacheKey = ({ uuid }) => {
 /*
 Clear last response cache
 */
-export const clearLoadItemsCacheLastResponse = () => {
+export const clearLoadItemsCacheLastResponse = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         try{
             const keys = storage.getAllKeys()
@@ -884,14 +966,14 @@ export const clearLoadItemsCacheLastResponse = () => {
             console.log(e)
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
 /*
 Update the item cache so we do not need to re-fetch data from the API
 */
-export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
+export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }: { item: Item, routeURL?: string, prop: any, value: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         try{
             const keys = storage.getAllKeys()
@@ -902,7 +984,7 @@ export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
                     let didChange = false
 
                     try{
-                        cache = JSON.parse(storage.getString(keys[i]))
+                        cache = JSON.parse(storage.getString(keys[i]) as string)
                     }
                     catch(err){
                         console.log(err)
@@ -925,14 +1007,14 @@ export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
             console.log(e)
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
 /*
 Update the item cache so we do not need to re-fetch data from the API
 */
-export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
+export const removeLoadItemsCache = ({ item, routeURL = "" }: { item: Item, routeURL?: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         try{
             const keys = storage.getAllKeys()
@@ -943,7 +1025,7 @@ export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
                     let didChange = false
 
                     try{
-                        cache = JSON.parse(storage.getString(keys[i]))
+                        cache = JSON.parse(storage.getString(keys[i]) as string)
                     }
                     catch(err){
                         console.log(err)
@@ -966,14 +1048,14 @@ export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
             console.log(e)
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
 /*
 Update the item cache so we do not need to re-fetch data from the API
 */
-export const emptyTrashLoadItemsCache = () => {
+export const emptyTrashLoadItemsCache = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         try{
             const keys = storage.getAllKeys()
@@ -988,14 +1070,14 @@ export const emptyTrashLoadItemsCache = () => {
             console.log(e)
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
 /*
 Update the item cache so we do not need to re-fetch data from the API
 */
-export const addItemLoadItemsCache = ({ item, routeURL = "" }) => {
+export const addItemLoadItemsCache = ({ item, routeURL = "" }: { item: Item, routeURL?: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         try{
             const keys = storage.getAllKeys()
@@ -1005,7 +1087,7 @@ export const addItemLoadItemsCache = ({ item, routeURL = "" }) => {
                     let cache = []
 
                     try{
-                        cache = JSON.parse(storage.getString(keys[i]))
+                        cache = JSON.parse(storage.getString(keys[i]) as string)
                     }
                     catch(err){
                         console.log(err)
@@ -1023,24 +1105,24 @@ export const addItemLoadItemsCache = ({ item, routeURL = "" }) => {
             console.log(e)
         }
 
-        return resolve()
+        return resolve(true)
     })
 }
 
 /*
 Check if a thumbnail exists locally after trying to load it threw an error. If it dos not exists, re-cache it
 */
-export const checkItemThumbnail = ({ item }) => {
+export const checkItemThumbnail = ({ item }: { item: Item }): void => {
     if(typeof item.thumbnail !== "string"){
-        return false
+        return
     }
 
     //if(typeof global.visibleItems[item.uuid] == "undefined"){
-    //    return false
+    //    return
     //}
 
     if(typeof isCheckingThumbnailForItemUUID[item.uuid] !== "undefined"){
-        return false
+        return
     }
 
     isCheckingThumbnailForItemUUID[item.uuid] = true
@@ -1055,7 +1137,7 @@ export const checkItemThumbnail = ({ item }) => {
     }
 
     if(typeof cache !== "string"){
-        return false
+        return
     }
 
     getDownloadPath({ type: "thumbnail" }).then((path) => {
@@ -1066,7 +1148,7 @@ export const checkItemThumbnail = ({ item }) => {
                 const netInfo = useStore.getState().netInfo 
     
                 if(!netInfo.isConnected || !netInfo.isInternetReachable){
-                    return false
+                    return
                 }
     
                 storage.delete(cacheKey)
@@ -1093,7 +1175,7 @@ export const checkItemThumbnail = ({ item }) => {
     })
 }
 
-export const generateItemThumbnail = ({ item, skipInViewCheck = false, callback = undefined }) => {
+export const generateItemThumbnail = ({ item, skipInViewCheck = false, callback = undefined }: { item: Item, skipInViewCheck?: boolean, callback?: Function }): any => {
     if(typeof item.thumbnail == "string"){
         if(typeof callback == "function"){
             callback(true)
@@ -1293,7 +1375,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, callback 
     })
 }
 
-export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }) => {
+export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }: { item: Item, setCurrentActionSheetItem?: boolean, navigation?: any }) => {
     if(item.size >= 134217728){
         return DeviceEventEmitter.emit("event", {
             type: "open-item-actionsheet",
@@ -1334,9 +1416,9 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
                 return false
             }
 
-            const currentImages = []
+            const currentImages: any = []
             let currentIndex = 0
-            const addedImages = {}
+            const addedImages: any = {}
             let index = 0
             let imgFound = false
 
@@ -1389,7 +1471,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         //console.log(e)
     }
 
-    const open = (path, offlineMode = false) => {
+    const open = (path: string, offlineMode: boolean = false) => {
         setTimeout(() => {
             useStore.setState({ fullscreenLoadingModalVisible: false })
 
@@ -1463,21 +1545,15 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
     }
 
-    try{
-        if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
-            return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
-        }
-    }
-    catch(e){
-        console.log(e)
-
-        showToast({ message: e.toString() })
+    if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
+        return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
     }
 
     useStore.setState({ fullscreenLoadingModalVisible: true, fullscreenLoadingModalDismissable: true })
 
     queueFileDownload({
         file: item,
+        // @ts-ignore
         optionalCallback: (err, path) => {
             useStore.setState({ fullscreenLoadingModalVisible: false })
 

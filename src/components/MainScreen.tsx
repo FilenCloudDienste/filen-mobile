@@ -31,7 +31,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const [loadDone, setLoadDone] = useState<boolean>(typeof cachedItemsRef !== "undefined" ? true : false)
     const setNavigation = useStore(state => state.setNavigation)
     const setRoute = useStore(state => state.setRoute)
-    const [masterKeys, setMasterKeys] = useState<string>(getMasterKeys())
+    const [masterKeys, setMasterKeys] = useState<string[]>(getMasterKeys())
     const isMounted: () => boolean = useMountedState()
     const setCurrentActionSheetItem = useStore(state => state.setCurrentActionSheetItem)
     const setCurrentItems = useStore(state => state.setCurrentItems)
