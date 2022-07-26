@@ -7,7 +7,17 @@ import { Keyboard } from "react-native"
 
 const CryptoJS = require("crypto-js")
 
-export const register = async ({ email, password, confirmPassword, setEmail, setPassword, setConfirmPassword, navigation }) => {
+export interface Register {
+    email: string,
+    password: string,
+    confirmPassword: string,
+    setEmail: React.Dispatch<React.SetStateAction<string>>,
+    setPassword: React.Dispatch<React.SetStateAction<string>>,
+    setConfirmPassword: React.Dispatch<React.SetStateAction<string>>,
+    navigation: any
+}
+
+export const register = async ({ email, password, confirmPassword, setEmail, setPassword, setConfirmPassword, navigation }: Register): Promise<void> => {
     const lang = storage.getString("lang")
 
     useStore.setState({ fullscreenLoadingModalVisible: true })
@@ -47,15 +57,6 @@ export const register = async ({ email, password, confirmPassword, setEmail, set
     }
 
     try{
-        
-    }
-    catch(e){
-        console.log(e)
-
-        return showToast({ message: e.toString() })
-    }
-
-    try{
         var salt = await global.nodeThread.generateRandomString({ charLength: 256 })
         var derivedKey = await global.nodeThread.deriveKeyFromPassword({
             password,
@@ -70,7 +71,7 @@ export const register = async ({ email, password, confirmPassword, setEmail, set
         password = CryptoJS.SHA512(password).toString()
         confirmPassword = password
     }
-    catch(e){
+    catch(e: any){
         console.log(e)
 
         useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -91,7 +92,7 @@ export const register = async ({ email, password, confirmPassword, setEmail, set
             }
         })
     }
-    catch(e){
+    catch(e: any){
         console.log(e)
 
         useStore.setState({ fullscreenLoadingModalVisible: false })

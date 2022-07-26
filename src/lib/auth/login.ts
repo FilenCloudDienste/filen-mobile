@@ -10,7 +10,13 @@ import { Keyboard } from "react-native"
 
 const CryptoJS = require("crypto-js")
 
-export const generatePasswordAndMasterKeysBasedOnAuthVersion = ({ rawPassword, authVersion, salt }) => {
+export interface GeneratePasswordAndMasterKeysBasedOnAuthVersion {
+    rawPassword: string,
+    authVersion: number,
+    salt: string
+}
+
+export const generatePasswordAndMasterKeysBasedOnAuthVersion = ({ rawPassword, authVersion, salt }: GeneratePasswordAndMasterKeysBasedOnAuthVersion): Promise<{ derivedMasterKeys: string, derivedPassword: string }> => {
     return new Promise(async (resolve, reject) => {
         let derivedPassword = ""
         let derivedMasterKeys = undefined
@@ -20,7 +26,7 @@ export const generatePasswordAndMasterKeysBasedOnAuthVersion = ({ rawPassword, a
                 derivedPassword = await global.nodeThread.hashPassword({ password: rawPassword })
                 derivedMasterKeys = await global.nodeThread.hashFn({ string: rawPassword })
             }
-            catch(e){
+            catch(e: any){
                 return reject(e.toString())
             }
         }
@@ -39,7 +45,7 @@ export const generatePasswordAndMasterKeysBasedOnAuthVersion = ({ rawPassword, a
                 derivedPassword = derivedKey.substring((derivedKey.length / 2), derivedKey.length)
                 derivedPassword = CryptoJS.SHA512(derivedPassword).toString()
             }
-            catch(e){
+            catch(e: any){
                 console.log(e)
     
                 useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -58,7 +64,19 @@ export const generatePasswordAndMasterKeysBasedOnAuthVersion = ({ rawPassword, a
     })
 }
 
-export const login = async ({ email, password, twoFactorKey, setEmail, setPassword, setTwoFactorKey, setShowTwoFactorField, navigation, setSetupDone }) => {
+export interface Login {
+    email: string,
+    password: string, 
+    twoFactorKey: string, 
+    setEmail: React.Dispatch<React.SetStateAction<string>>, 
+    setPassword: React.Dispatch<React.SetStateAction<string>>, 
+    setTwoFactorKey: React.Dispatch<React.SetStateAction<string>>, 
+    setShowTwoFactorField: React.Dispatch<React.SetStateAction<boolean>>, 
+    navigation: any, 
+    setSetupDone: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+export const login = async ({ email, password, twoFactorKey, setEmail, setPassword, setTwoFactorKey, setShowTwoFactorField, navigation, setSetupDone }: Login): Promise<void> => {
     useStore.setState({ fullscreenLoadingModalVisible: true })
 
     Keyboard.dismiss()
@@ -93,7 +111,7 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
             }
         })
     }
-    catch(e){
+    catch(e: any){
         console.log(e)
 
         useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -128,12 +146,12 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
     let authVersion = authInfo.data.authVersion
 
     try{
-        const { derivedPassword, derivedMasterKeys } = await generatePasswordAndMasterKeysBasedOnAuthVersion({ rawPassword: password, authVersion, salt })
+        const { derivedPassword, derivedMasterKeys } = await generatePasswordAndMasterKeysBasedOnAuthVersion({ rawPassword: password, authVersion, salt }) as any
 
         masterKey = derivedMasterKeys
         passwordToSend = derivedPassword
     }
-    catch(e){
+    catch(e: any){
         console.log(e)
 
         useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -153,7 +171,7 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
             }
         })
     }
-    catch(e){
+    catch(e: any){
         console.log(e)
 
         useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -230,7 +248,7 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
             })
         })
     }
-    catch(e){
+    catch(e: any){
         console.log(e)
 
         useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -241,12 +259,12 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
     try{
         storage.set("apiKey", res.data.apiKey)
         storage.set("email", email)
-        storage.set("userId", userInfo.id)
+        storage.set("userId", (userInfo as any).id)
         storage.set("masterKeys", JSON.stringify([masterKey]))
         storage.set("authVersion", authVersion)
         storage.set("isLoggedIn", true)
     }
-    catch(e){
+    catch(e: any){
         console.log(e)
 
         useStore.setState({ fullscreenLoadingModalVisible: false })

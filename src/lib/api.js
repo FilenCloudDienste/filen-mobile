@@ -1,4 +1,4 @@
-import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName, Semaphore, asyncJSON } from "./helpers"
+import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName, Semaphore } from "./helpers"
 import storage from "./storage"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Platform } from "react-native"
@@ -46,11 +46,11 @@ export const apiRequest = ({ method, endpoint, data }) => {
         const request = async () => {
             if(tries >= maxTries){
                 try{
-                    var cache = await storage.getStringAsync(cacheKey)
+                    const cache = storage.getString(cacheKey)
     
                     if(typeof cache == "string"){
                         if(cache.length > 0){
-                            return resolve(await asyncJSON.parse(cache))
+                            return resolve(JSON.parse(cache))
                         }
                     }
                 }
@@ -73,12 +73,7 @@ export const apiRequest = ({ method, endpoint, data }) => {
                     apiRequestSemaphore.release()
 
                     if(endpointsToCache.includes(endpoint)){
-                        try{
-                            await storage.setAsync(cacheKey, await asyncJSON.stringify(res))
-                        }
-                        catch(e){
-                            //console.log(e)
-                        }
+                        storage.set(cacheKey, JSON.stringify(res))
                     }
     
                     if(!res.status){

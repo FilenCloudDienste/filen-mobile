@@ -365,110 +365,211 @@ export const App = memo(() => {
         <>
             <NavigationContainer ref={navigationRef}>
                 <Fragment>
-                    <SafeAreaProvider style={{
-                        backgroundColor: darkMode ? "black" : "white",
-                    }}>
-                        <SafeAreaView mode="padding" style={{
-                            backgroundColor: currentScreenName == "ImageViewerScreen" ? "black" : (darkMode ? "black" : "white"),
-                            paddingTop: Platform.OS == "android" ? 5 : 5,
-                            height: "100%",
-                            width: "100%"
-                        }}>
-                            <View style={{
-                                width: currentScreenName == "ImageViewerScreen" ? currentDimensions.screen.width : "100%",
-                                height: currentScreenName == "ImageViewerScreen" ? currentDimensions.screen.height : "100%",
-                                backgroundColor: darkMode ? "black" : "white"
-                            }} onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}>
-                                <Stack.Navigator initialRouteName={isLoggedIn ? (setupDone ? "MainScreen" : "SetupScreen") : "LoginScreen"} screenOptions={{
-                                    contentStyle: {
-                                        backgroundColor: darkMode ? "black" : "white"
-                                    },
-                                    headerStyle: {
-                                        backgroundColor: darkMode ? "black" : "white"
-                                    },
-                                    headerShown: false,
-                                    animation: showNavigationAnimation ? "default" : "none"
-                                }}>
-                                    <Stack.Screen name="SetupScreen" component={SetupScreen} options={{
-                                        title: "SetupScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="LoginScreen" options={{
-                                        title: "LoginScreen"
-                                        // @ts-ignore
-                                    }}>{(props) => <LoginScreen {...props} setSetupDone={setSetupDone} />}</Stack.Screen>
-                                    <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{
-                                        title: "RegisterScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{
-                                        title: "ForgotPasswordScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="ResendConfirmationScreen" component={ResendConfirmationScreen} options={{
-                                        title: "ResendConfirmationScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="MainScreen" initialParams={{ parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents" }} component={MainScreen} options={{
-                                        title: "MainScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{
-                                        title: "SettingsScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="TransfersScreen" component={TransfersScreen} options={{
-                                        title: "TransfersScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="CameraUploadScreen" component={CameraUploadScreen} options={{
-                                        title: "CameraUploadScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="BiometricAuthScreen" component={BiometricAuthScreen} options={{
-                                        title: "BiometricAuthScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="LanguageScreen" component={LanguageScreen} options={{
-                                        title: "LanguageScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="SettingsAdvancedScreen" component={SettingsAdvancedScreen} options={{
-                                        title: "SettingsAdvancedScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="SettingsAccountScreen" component={SettingsAccountScreen} options={{
-                                        title: "SettingsAccountScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="EventsScreen" component={EventsScreen} options={{
-                                        title: "EventsScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="EventsInfoScreen" component={EventsInfoScreen} options={{
-                                        title: "EventsInfoScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="GDPRScreen" component={GDPRScreen} options={{
-                                        title: "GDPRScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="InviteScreen" component={InviteScreen} options={{
-                                        title: "InviteScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="TwoFactorScreen" component={TwoFactorScreen} options={{
-                                        title: "TwoFactorScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="ChangeEmailPasswordScreen" component={ChangeEmailPasswordScreen} options={{
-                                        title: "ChangeEmailPasswordScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="TextEditorScreen" component={TextEditorScreen} options={{
-                                        title: "TextEditorScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="UpdateScreen" component={UpdateScreen} options={{
-                                        title: "UpdateScreen"
-                                    }}></Stack.Screen>
-                                    <Stack.Screen name="ImageViewerScreen" component={ImageViewerScreen} options={{
-                                        title: "ImageViewerScreen",
-                                        presentation: "fullScreenModal"
-                                    }}></Stack.Screen>
+                    <SafeAreaProvider
+                        style={{
+                            backgroundColor: darkMode ? "black" : "white",
+                        }}
+                    >
+                        <SafeAreaView
+                            mode="padding"
+                            style={{
+                                backgroundColor: currentScreenName == "ImageViewerScreen" ? "black" : (darkMode ? "black" : "white"),
+                                paddingTop: Platform.OS == "android" ? 5 : 5,
+                                height: "100%",
+                                width: "100%"
+                            }}
+                        >
+                            <View
+                                style={{
+                                    width: currentScreenName == "ImageViewerScreen" ? currentDimensions.screen.width : "100%",
+                                    height: currentScreenName == "ImageViewerScreen" ? currentDimensions.screen.height : "100%",
+                                    backgroundColor: darkMode ? "black" : "white"
+                                }}
+                                onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
+                            >
+                                <Stack.Navigator
+                                    initialRouteName={isLoggedIn ? (setupDone ? "MainScreen" : "SetupScreen") : "LoginScreen"}
+                                    screenOptions={{
+                                        contentStyle: {
+                                            backgroundColor: darkMode ? "black" : "white"
+                                        },
+                                        headerStyle: {
+                                            backgroundColor: darkMode ? "black" : "white"
+                                        },
+                                        headerShown: false,
+                                        animation: showNavigationAnimation ? "default" : "none"
+                                    }}
+                                >
+                                    <Stack.Screen
+                                        name="SetupScreen"
+                                        component={SetupScreen}
+                                        options={{
+                                            title: "SetupScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="LoginScreen"
+                                        options={{
+                                            title: "LoginScreen"
+                                        }}
+                                    >
+                                        {(props) => <LoginScreen {...props} setSetupDone={setSetupDone} />}
+                                    </Stack.Screen>
+                                    <Stack.Screen
+                                        name="RegisterScreen"
+                                        component={RegisterScreen}
+                                        options={{
+                                            title: "RegisterScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="ForgotPasswordScreen"
+                                        component={ForgotPasswordScreen}
+                                        options={{
+                                            title: "ForgotPasswordScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="ResendConfirmationScreen"
+                                        component={ResendConfirmationScreen}
+                                        options={{
+                                            title: "ResendConfirmationScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="MainScreen"
+                                        initialParams={{ parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents" }}
+                                        component={MainScreen}
+                                        options={{
+                                            title: "MainScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="SettingsScreen"
+                                        component={SettingsScreen}
+                                        options={{
+                                            title: "SettingsScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="TransfersScreen"
+                                        component={TransfersScreen}
+                                        options={{
+                                            title: "TransfersScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="CameraUploadScreen"
+                                        component={CameraUploadScreen} 
+                                        options={{
+                                            title: "CameraUploadScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="BiometricAuthScreen"
+                                        component={BiometricAuthScreen}
+                                        options={{
+                                            title: "BiometricAuthScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="LanguageScreen"
+                                        component={LanguageScreen}
+                                        options={{
+                                            title: "LanguageScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="SettingsAdvancedScreen"
+                                        component={SettingsAdvancedScreen}
+                                        options={{
+                                            title: "SettingsAdvancedScreen"
+                                        }}    
+                                    />
+                                    <Stack.Screen
+                                        name="SettingsAccountScreen"
+                                        component={SettingsAccountScreen}
+                                        options={{
+                                            title: "SettingsAccountScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="EventsScreen"
+                                        component={EventsScreen}
+                                        options={{
+                                            title: "EventsScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="EventsInfoScreen"
+                                        component={EventsInfoScreen}
+                                        options={{
+                                            title: "EventsInfoScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="GDPRScreen"
+                                        component={GDPRScreen}
+                                        options={{
+                                            title: "GDPRScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="InviteScreen"
+                                        component={InviteScreen}
+                                        options={{
+                                            title: "InviteScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="TwoFactorScreen"
+                                        component={TwoFactorScreen}
+                                        options={{
+                                            title: "TwoFactorScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="ChangeEmailPasswordScreen"
+                                        component={ChangeEmailPasswordScreen}
+                                        options={{
+                                            title: "ChangeEmailPasswordScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="TextEditorScreen"
+                                        component={TextEditorScreen}
+                                        options={{
+                                            title: "TextEditorScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="UpdateScreen"
+                                        component={UpdateScreen}
+                                        options={{
+                                            title: "UpdateScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="ImageViewerScreen"
+                                        component={ImageViewerScreen}
+                                        options={{
+                                            title: "ImageViewerScreen",
+                                            presentation: "fullScreenModal"
+                                        }}
+                                    />
                                 </Stack.Navigator>
                                 <>
                                     {
                                         setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen", "ChangeEmailPasswordScreen"].includes(currentScreenName) && (
-                                            <View style={{
-                                                position: "relative",
-                                                width: "100%",
-                                                bottom: 0,
-                                                height: 50
-                                            }}>
-                                                {/* @ts-ignore */}
-                                                <BottomBar navigation={navigationRef} currentScreenName={currentScreenName} />
+                                            <View
+                                                style={{
+                                                    position: "relative",
+                                                    width: "100%",
+                                                    bottom: 0,
+                                                    height: 50
+                                                }}
+                                            >
+                                                <BottomBar navigation={navigationRef} />
                                             </View>
                                         )
                                     }
@@ -496,28 +597,17 @@ export const App = memo(() => {
                             </View>
                         </SafeAreaView>
                     </SafeAreaProvider>
-                    {/* @ts-ignore */}
                     <Disable2FATwoFactorDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
                     <DeleteAccountTwoFactorDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
-                    <RedeemCodeDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
-                    <ConfirmStopSharingDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
-                    <ConfirmRemoveFromSharedInDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
-                    <ConfirmPermanentDeleteDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
-                    <RenameDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
-                    <CreateFolderDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
+                    <RedeemCodeDialog />
+                    <ConfirmStopSharingDialog />
+                    <ConfirmRemoveFromSharedInDialog />
+                    <ConfirmPermanentDeleteDialog />
+                    <RenameDialog />
+                    <CreateFolderDialog />
                     <CreateTextFileDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
-                    <BulkShareDialog navigation={navigationRef} />
-                    {/* @ts-ignore */}
-                    <FullscreenLoadingModal navigation={navigationRef} />
+                    <BulkShareDialog />
+                    <FullscreenLoadingModal />
                 </Fragment>
             </NavigationContainer>
             <Toast

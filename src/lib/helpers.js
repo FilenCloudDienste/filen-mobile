@@ -1611,26 +1611,3 @@ export const promiseAllSettled = (promises) => Promise.all(
         }))
     )
 )
-
-export const asyncJSON = {
-    stringify: (data) => {
-        return new Promise((resolve, reject) => {
-            try{
-                return resolve(JSON.stringify(data))
-            }
-            catch(e){
-                return reject(e)
-            }
-        })
-    },
-    parse: (data) => {
-        return new Promise((resolve, reject) => {
-            try{
-                return resolve(JSON.parse(data))
-            }
-            catch(e){
-                return reject(e)
-            }
-        })
-    }
-}

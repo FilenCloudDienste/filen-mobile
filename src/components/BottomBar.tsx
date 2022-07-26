@@ -11,11 +11,10 @@ import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../lib/style/colors"
 
 export interface BottomBarProps {
-    navigation: any,
-    route: any
+    navigation: any
 }
 
-export const BottomBar = memo(({ navigation, route }: BottomBarProps) => {
+export const BottomBar = memo(({ navigation }: BottomBarProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const currentRoutes = useStore(state => state.currentRoutes) as any
     const [lang, setLang] = useMMKVString("lang", storage)
@@ -25,8 +24,8 @@ export const BottomBar = memo(({ navigation, route }: BottomBarProps) => {
     const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
     const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
 
-    const parent: string = getParent(route)
-    const routeURL: string = getRouteURL(route)
+    const parent: string = getParent()
+    const routeURL: string = getRouteURL()
     const baseName: string = defaultDriveOnly ? defaultDriveUUID as string : "base"
 
     let currentScreenName: string = "MainScreen"

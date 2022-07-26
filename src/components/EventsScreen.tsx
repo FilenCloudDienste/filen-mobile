@@ -15,15 +15,20 @@ import striptags from "striptags"
 import { ListEmpty } from "./ListEmpty"
 import { useMountedState } from "react-use"
 
-export const EventsInfoScreen = memo(({ navigation, route }) => {
+export interface EventsInfoScreenProps {
+    navigation: any,
+    route: any
+}
+
+export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const [eventInfo, setEventInfo] = useState(undefined)
-    const [isLoading, setIsLoading] = useState(true)
-    const [eventText, setEventText] = useState("")
-    const isMounted = useMountedState()
+    const [eventInfo, setEventInfo] = useState<any>(undefined)
+    const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [eventText, setEventText] = useState<string>("")
+    const isMounted: () => boolean = useMountedState()
 
-    const uuid = route?.params?.uuid
+    const uuid: string = route?.params?.uuid
 
     useEffect(() => {
         setIsLoading(true)
@@ -48,62 +53,89 @@ export const EventsInfoScreen = memo(({ navigation, route }) => {
 
     return (
         <>
-            <View style={{
-                flexDirection: "row",
-                justifyContent: "flex-start",
-                backgroundColor: darkMode ? "black" : "white"
-            }}>
-                <TouchableOpacity style={{
-                    marginTop: Platform.OS == "ios" ? 17 : 4,
-                    marginLeft: 15,
-                }} onPress={() => navigation.goBack()}>
-                    <Ionicon name="chevron-back" size={24} color={darkMode ? "white" : "black"}></Ionicon>
+            <View
+                style={{
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    backgroundColor: darkMode ? "black" : "white"
+                }}
+            >
+                <TouchableOpacity
+                    style={{
+                        marginTop: Platform.OS == "ios" ? 17 : 4,
+                        marginLeft: 15,
+                    }}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Ionicon
+                        name="chevron-back"
+                        size={24}
+                        color={darkMode ? "white" : "black"}
+                    />
                 </TouchableOpacity>
-                <Text style={{
-                    color: darkMode ? "white" : "black",
-                    fontWeight: "bold",
-                    fontSize: 24,
-                    marginLeft: 10,
-                    marginTop: Platform.OS == "ios" ? 15 : 0
-                }}>
+                <Text
+                    style={{
+                        color: darkMode ? "white" : "black",
+                        fontWeight: "bold",
+                        fontSize: 24,
+                        marginLeft: 10,
+                        marginTop: Platform.OS == "ios" ? 15 : 0
+                    }}
+                >
                     {i18n(lang, "eventInfo")}
                 </Text>
             </View>
-            <ScrollView style={{
-                height: "100%",
-                width: "100%",
-                backgroundColor: darkMode ? "black" : "white"
-            }}>
-                
+            <ScrollView
+                style={{
+                    height: "100%",
+                    width: "100%",
+                    backgroundColor: darkMode ? "black" : "white"
+                }}
+            >
                 {
                     isLoading ? (
-                        <ActivityIndicator size="small" color={darkMode ? "white" : "black"} style={{
-                            marginTop: 100
-                        }} />
+                        <ActivityIndicator
+                            size="small"
+                            color={darkMode ? "white" : "black"}
+                            style={{
+                                marginTop: 100
+                            }}
+                        />
                     ) : (
                         <>
                             <SettingsGroup>
+                                {/* @ts-ignore */}
                                 <SettingsButton title={eventText} />
                             </SettingsGroup>
+                            {/* @ts-ignore */}
                             <SettingsGroup marginTop={10}>
+                                {/* @ts-ignore */}
                                 <SettingsButton title={new Date(eventInfo.timestamp * 1000).toLocaleDateString() + " " + new Date(eventInfo.timestamp * 1000).toLocaleTimeString()} />
                             </SettingsGroup>
+                            {/* @ts-ignore */}
                             <SettingsGroup marginTop={10}>
+                                {/* @ts-ignore */}
                                 <SettingsButton title={eventInfo.info.userAgent} />
                             </SettingsGroup>
+                            {/* @ts-ignore */}
                             <SettingsGroup marginTop={10}>
+                                {/* @ts-ignore */}
                                 <SettingsButton title={eventInfo.info.ip} />
                             </SettingsGroup>
                         </>
                     )
                 }
-                <View style={{ height: 25 }}></View>
+                <View
+                    style={{
+                        height: 25
+                    }}
+                />
             </ScrollView>
         </>
     )
 })
 
-export const eventTypes = (lang = "en") => {
+export const eventTypes = (lang: string | undefined = "en"): { [key: string]: string } => {
     return {
         fileUploaded: i18n(lang, "eventFileUploaded"),
         fileVersioned: i18n(lang, "eventFileVersioned"),
@@ -139,7 +171,13 @@ export const eventTypes = (lang = "en") => {
     }
 }
 
-export const getEventText = async ({ item, masterKeys, lang }) => {
+export interface GetEventText {
+    item: any,
+    masterKeys: string[],
+    lang: string | undefined
+}
+
+export const getEventText = async ({ item, masterKeys, lang }: GetEventText) => {
     let eventText = ""
 
     switch(item.type){
@@ -213,9 +251,6 @@ export const getEventText = async ({ item, masterKeys, lang }) => {
             var decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
             var decryptedOld = await decryptFolderName(masterKeys, item.info.oldName, item.info.uuid)
 
-            str += `
-                ` + escapeHTML(decryptedOld) + ` renamed to ` + escapeHTML(decrypted) + `
-            `
             eventText = i18n(lang, "eventFolderRenamedInfo", true, ["__NAME__", "__NEW__"], [striptags(decryptedOld), striptags(decrypted)])
         break
         case "subFolderCreated":
@@ -281,7 +316,16 @@ export const getEventText = async ({ item, masterKeys, lang }) => {
     return eventText
 }
 
-export class EventRow extends Component {
+export interface EventRowProps {
+    item: any,
+    masterKeys: string[],
+    lang: string | undefined,
+    index: number,
+    darkMode: boolean,
+    navigation: any
+}
+
+export class EventRow extends Component<EventRowProps> {
     state = {
         eventText: ""
     }
@@ -297,61 +341,83 @@ export class EventRow extends Component {
         const { item, index, darkMode, lang, navigation } = this.props
 
         return (
-            <View key={index} style={{
-                height: 35,
-                width: "100%",
-                paddingLeft: 15,
-                paddingRight: 15,
-                marginBottom: 10
-            }}>
-                <View style={{
-                    height: "auto",
+            <View
+                key={index.toString()} style={{
+                    height: 35,
                     width: "100%",
-                    backgroundColor: darkMode ? "#171717" : "lightgray",
-                    borderRadius: 10
-                }}>
-                    <TouchableHighlight underlayColor={"gray"} style={{
-                        width: "100%",
+                    paddingLeft: 15,
+                    paddingRight: 15,
+                    marginBottom: 10
+                }}
+            >
+                <View
+                    style={{
                         height: "auto",
+                        width: "100%",
+                        backgroundColor: darkMode ? "#171717" : "lightgray",
                         borderRadius: 10
-                    }} onPress={() => {
-                        navigationAnimation({ enable: true }).then(() => {
-                            navigation.dispatch(StackActions.push("EventsInfoScreen", {
-                                uuid: item.uuid
-                            }))
-                        })
-                    }}>
-                        <View style={{
+                    }}
+                >
+                    <TouchableHighlight
+                        underlayColor={"gray"}
+                        style={{
                             width: "100%",
                             height: "auto",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            paddingLeft: 10,
-                            paddingRight: 10,
-                            paddingTop: 9,
-                            paddingBottom: 10
-                        }}>
-                            <Text style={{
-                                color: darkMode ? "white" : "black",
-                                fontSize: 13,
-                                width: "45%"
-                            }} numberOfLines={1}>
+                            borderRadius: 10
+                        }}
+                        onPress={() => {
+                            navigationAnimation({ enable: true }).then(() => {
+                                navigation.dispatch(StackActions.push("EventsInfoScreen", {
+                                    uuid: item.uuid
+                                }))
+                            })
+                        }}
+                    >
+                        <View
+                            style={{
+                                width: "100%",
+                                height: "auto",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                paddingLeft: 10,
+                                paddingRight: 10,
+                                paddingTop: 9,
+                                paddingBottom: 10
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: darkMode ? "white" : "black",
+                                    fontSize: 13,
+                                    width: "45%"
+                                }}
+                                numberOfLines={1}
+                            >
                                 {this.state.eventText}
                             </Text>
-                            <View style={{
-                                flexDirection: "row",
-                                paddingTop: 2
-                            }}>
-                                <Text style={{
-                                    color: "gray",
-                                    paddingRight: 10,
-                                    fontSize: 12
-                                }}>
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    paddingTop: 2
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: "gray",
+                                        paddingRight: 10,
+                                        fontSize: 12
+                                    }}
+                                >
                                     {new Date(item.timestamp * 1000).toLocaleDateString()} {new Date(item.timestamp * 1000).toLocaleTimeString()}
                                 </Text>
-                                <Ionicon name="chevron-forward-outline" size={15} color="gray" style={{
-                                    marginTop: 0
-                                }} />
+                                <Ionicon
+                                    name="chevron-forward-outline" 
+                                    size={15} 
+                                    color="gray" 
+                                    style={{
+                                        marginTop: 0
+                                    }}
+                                />
                             </View>
                         </View>
                     </TouchableHighlight>
@@ -361,24 +427,29 @@ export class EventRow extends Component {
     }
 }
 
-export const EventsScreen = memo(({ navigation, route }) => {
+export interface EventsScreenProps {
+    navigation: any,
+    route: any
+}
+
+export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const [events, setEvents] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
-    const [filter, setFilter] = useState("all")
-    const [limit, setLimit] = useState(0)
-    const [refreshing, setRefreshing] = useState(false)
-    const dimensions = useStore(useCallback(state => state.dimensions))
-    const [masterKeys, setMasterKeys] = useState(getMasterKeys())
-    const isMounted = useMountedState()
-    const [topHeight, setTopHeight] = useState(0)
-    const bottomBarHeight = useStore(useCallback(state => state.bottomBarHeight))
-    const contentHeight = useStore(useCallback(state => state.contentHeight))
-    const onEndReachedCalledDuringMomentum = useRef(false)
-    const lastEventId = useRef(0)
+    const [events, setEvents] = useState<any>([])
+    const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [filter, setFilter] = useState<string>("all")
+    const [limit, setLimit] = useState<number>(0)
+    const [refreshing, setRefreshing] = useState<boolean>(false)
+    const dimensions = useStore(state => state.dimensions)
+    const [masterKeys, setMasterKeys] = useState<string[]>(getMasterKeys())
+    const isMounted: () => boolean = useMountedState()
+    const [topHeight, setTopHeight] = useState<number>(0)
+    const bottomBarHeight = useStore(state => state.bottomBarHeight)
+    const contentHeight = useStore(state => state.contentHeight)
+    const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
+    const lastEventId = useRef<number>(0)
 
-    const getEvents = useCallback((lastId) => {
+    const getEvents = (lastId: number) => {
         setIsLoading(true)
         
         fetchEvents({ lastId, filter }).then((data) => {
@@ -389,10 +460,8 @@ export const EventsScreen = memo(({ navigation, route }) => {
                 const newEvents = data.events
                 const limit = data.limit
 
-                setEvents(prev => [...prev, ...newEvents])
+                setEvents((prev: any) => [...prev, ...newEvents])
                 setLimit(limit)
-
-                newEvents.map(event => console.log(event.id))
                 
                 lastEventId.current = newEvents[newEvents.length - 1].id
             }
@@ -401,7 +470,7 @@ export const EventsScreen = memo(({ navigation, route }) => {
 
             showToast({ message: err.toString() })
         })
-    })
+    }
 
     useEffect(() => {
         setEvents([])
@@ -411,36 +480,50 @@ export const EventsScreen = memo(({ navigation, route }) => {
 
     return (
         <>
-            <View style={{
-                flexDirection: "row",
-                justifyContent: "flex-start",
-                backgroundColor: darkMode ? "black" : "white"
-            }} onLayout={(e) => setTopHeight(e.nativeEvent.layout.height)}>
-                <TouchableOpacity style={{
-                    marginTop: Platform.OS == "ios" ? 17 : 4,
-                    marginLeft: 15,
-                }} onPress={() => navigation.goBack()}>
-                    <Ionicon name="chevron-back" size={24} color={darkMode ? "white" : "black"}></Ionicon>
+            <View
+                style={{
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    backgroundColor: darkMode ? "black" : "white"
+                }}
+                onLayout={(e) => setTopHeight(e.nativeEvent.layout.height)}
+            >
+                <TouchableOpacity
+                    style={{
+                        marginTop: Platform.OS == "ios" ? 17 : 4,
+                        marginLeft: 15,
+                    }}
+                    onPress={() => navigation.goBack()}
+                >
+                    <Ionicon
+                        name="chevron-back"
+                        size={24}
+                        color={darkMode ? "white" : "black"}
+                    />
                 </TouchableOpacity>
-                <Text style={{
-                    color: darkMode ? "white" : "black",
-                    fontWeight: "bold",
-                    fontSize: 24,
-                    marginLeft: 10,
-                    marginTop: Platform.OS == "ios" ? 15 : 0
-                }}>
+                <Text
+                    style={{
+                        color: darkMode ? "white" : "black",
+                        fontWeight: "bold",
+                        fontSize: 24,
+                        marginLeft: 10,
+                        marginTop: Platform.OS == "ios" ? 15 : 0
+                    }}
+                >
                     {i18n(lang, "events")}
                 </Text>
             </View>
-            <View style={{
-                height: Math.floor(contentHeight - topHeight - bottomBarHeight + 31),
-                width: "100%",
-                backgroundColor: darkMode ? "black" : "white",
-                paddingTop: 15
-            }}>
+            <View
+                style={{
+                    height: Math.floor(contentHeight - topHeight - bottomBarHeight + 31),
+                    width: "100%",
+                    backgroundColor: darkMode ? "black" : "white",
+                    paddingTop: 15
+                }}
+            >
                 <FlatList
                     data={events}
-                    keyExtractor={(item, index) => index}
+                    keyExtractor={(_, index) => index.toString()}
                     key="events"
                     windowSize={10}
                     initialNumToRender={32}
@@ -453,36 +536,42 @@ export const EventsScreen = memo(({ navigation, route }) => {
                         if(limit <= events.length && limit > 0 && events.length > 0 && !onEndReachedCalledDuringMomentum.current){
                             onEndReachedCalledDuringMomentum.current = true
 
-                            console.log("called")
-
                             getEvents(lastEventId.current)
                         }
                     }}
-                    getItemLayout={(data, index) => (
-                        {length: 45, offset: 45 * index, index}
-                    )}
+                    getItemLayout={(_, index) => ({ length: 45, offset: 45 * index, index })}
                     ListEmptyComponent={() => {
                         return (
-                            <View style={{
-                                width: "100%",
-                                height: Math.floor(dimensions.screen.height - 255),
-                                justifyContent: "center",
-                                alignItems: "center",
-                                alignContent: "center"
-                            }}>
+                            <View
+                                style={{
+                                    width: "100%",
+                                    height: Math.floor(dimensions.screen.height - 255),
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    alignContent: "center"
+                                }}
+                            >
                                 {
                                     isLoading ? (
                                         <View>
-                                            <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
-                                            <Text style={{
-                                                color: darkMode ? "white" : "black",
-                                                marginTop: 15
-                                            }}>
+                                            <ActivityIndicator
+                                                color={darkMode ? "white" : "black"}
+                                                size="small"
+                                            />
+                                            <Text
+                                                style={{
+                                                    color: darkMode ? "white" : "black",
+                                                    marginTop: 15
+                                                }}
+                                            >
                                                 {i18n(lang, "loading")}
                                             </Text>
                                         </View>
                                     ) : (
-                                        <ListEmpty route={route} searchTerm={""} />
+                                        <ListEmpty
+                                            route={route}
+                                            searchTerm={""} 
+                                        />
                                     )
                                 }
                             </View>
@@ -501,7 +590,6 @@ export const EventsScreen = memo(({ navigation, route }) => {
                                 getEvents(0)
                             }}
                             tintColor={darkMode ? "white" : "black"}
-                            size="default"
                         />
                     }
                     style={{
@@ -513,11 +601,16 @@ export const EventsScreen = memo(({ navigation, route }) => {
                             <></>
                         ) : (
                             limit <= events.length && limit > 0 && events.length > 0 ? (
-                                <View style={{
-                                    height: 50,
-                                    marginTop: 15
-                                }}>
-                                    <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
+                                <View
+                                    style={{
+                                        height: 50,
+                                        marginTop: 15
+                                    }}
+                                >
+                                    <ActivityIndicator
+                                        color={darkMode ? "white" : "black"}
+                                        size="small"
+                                    />
                                 </View>
                             ) : (
                                 <></>
