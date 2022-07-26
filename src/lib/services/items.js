@@ -1,11 +1,11 @@
 import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize } from "../api"
-import { storage } from "../storage"
-import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate, asyncJSON } from "../helpers"
+import storage from "../storage"
+import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate } from "../helpers"
 import striptags from "striptags"
 import { downloadWholeFileFSStream, getDownloadPath, queueFileDownload } from "../download"
 import RNFS from "react-native-fs"
 import { DeviceEventEmitter } from "react-native"
-import { useStore, waitForStateUpdate } from "../state"
+import { useStore } from "../state"
 import FileViewer from "react-native-file-viewer"
 import { getOfflineList, removeFromOfflineStorage, changeItemNameInOfflineList, getItemOfflinePath } from "./offline"
 import { showToast } from "../../components/Toasts"
@@ -13,7 +13,7 @@ import { i18n } from "../../i18n/i18n"
 import ImageResizer from "react-native-image-resizer"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../state"
-import { memoryCache } from "../memoryCache"
+import memoryCache from "../memoryCache"
 
 const isGeneratingThumbnailForItemUUID = {}
 const isCheckingThumbnailForItemUUID = {}
@@ -97,12 +97,7 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
             thumbnailCachePath = memoryCache.get(thumbnailCacheKey)
         }
         else{
-            try{
-                var thumbnailCache = await storage.getStringAsync(thumbnailCacheKey)
-            }
-            catch(e){
-                //console.log(e)
-            }
+            const thumbnailCache = storage.getString(thumbnailCacheKey)
     
             if(typeof thumbnailCache == "string"){
                 if(thumbnailCache.length > 0){
@@ -135,7 +130,7 @@ export const buildFile = async ({ file, metadata = undefined, masterKeys = undef
         receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,
         sharerId: typeof file.sharerId == "number" ? file.sharerId : 0,
         sharerEmail: typeof file.sharerEmail == "string" ? file.sharerEmail : undefined,
-        offline: typeof userId == "number" && userId !== 0 ? (await storage.getBooleanAsync(userId + ":offlineItems:" + file.uuid) ? true : false) : false,
+        offline: typeof userId == "number" && userId !== 0 ? (storage.getBoolean(userId + ":offlineItems:" + file.uuid) ? true : false) : false,
         version: file.version,
         favorited: file.favorited,
         thumbnail: thumbnailCachePath,
@@ -181,23 +176,16 @@ export const sortItems = ({ items, passedRoute = undefined }) => {
 }
 
 export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLoadDone, bypassCache = false, isFollowUpRequest = false, callStack = 0, navigation, isMounted, route, setProgress, loadFolderSizes = false }) => {
-    try{
-        var userId = await storage.getNumberAsync("userId")
+    const userId = storage.getNumber("userId")
 
-        if(typeof userId !== "number"){
-            console.log("userId in storage !== number")
+    if(typeof userId !== "number"){
+        console.log("userId in storage !== number")
 
-            return false
-        }
-
-        if(userId == 0){
-            console.log("userId in storage invalid (0)")
-
-            return false
-        }
+        return false
     }
-    catch(e){
-        console.log(e)
+
+    if(userId == 0){
+        console.log("userId in storage invalid (0)")
 
         return false
     }
@@ -210,8 +198,8 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     const cacheKeyLastResponse = "loadItemsCache:lastResponse:" + routeURL
 
     try{
-        var cacheRaw = await storage.getStringAsync(cacheKey)
-        var cache = typeof cacheRaw == "string" ? await asyncJSON.parse(cacheRaw) : undefined
+        var cacheRaw = storage.getString(cacheKey)
+        var cache = typeof cacheRaw == "string" ? JSON.parse(cacheRaw) : undefined
     }
     catch(e){
         console.log(e)
@@ -282,13 +270,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
-                    const responseString = await asyncJSON.stringify(response.data)
+                    const responseString = JSON.stringify(response.data)
 
-                    if(await storage.getStringAsync(cacheKeyLastResponse) == responseString){
+                    if(storage.getString(cacheKeyLastResponse) == responseString){
                         return false
                     }
 
-                    await storage.setAsync(cacheKeyLastResponse, responseString)
+                    storage.set(cacheKeyLastResponse, responseString)
                 }
                 catch(e){
                     console.log(e)
@@ -303,12 +291,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
 			items.push(item)
 
-			try{
-                await storage.setAsync("itemCache:folder:" + folder.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                console.log(e)
-            }
+			storage.set("itemCache:folder:" + folder.uuid, JSON.stringify(item))
 		}
     }
     else if(parent == "recents"){
@@ -336,13 +319,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
-                    const responseString = await asyncJSON.stringify(response.data)
+                    const responseString = JSON.stringify(response.data)
 
-                    if(await storage.getStringAsync(cacheKeyLastResponse) == responseString){
+                    if(storage.getString(cacheKeyLastResponse) == responseString){
                         return false
                     }
 
-                    await storage.setAsync(cacheKeyLastResponse, responseString)
+                    storage.set(cacheKeyLastResponse, responseString)
                 }
                 catch(e){
                     console.log(e)
@@ -357,12 +340,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             items.push(item)
 
-			try{
-                await storage.setAsync("itemCache:file:" + file.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                console.log(e)
-            }
+			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
         }
     }
     else if(routeURL.indexOf("shared-in") !== -1){
@@ -373,7 +351,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                 data: {
                     apiKey: getAPIKey(),
                     uuid: parent,
-                    folders: await asyncJSON.stringify(["shared-in"]),
+                    folders: JSON.stringify(["shared-in"]),
                     page: 1,
                     app: "true"
                 }
@@ -394,13 +372,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
-                    const responseString = await asyncJSON.stringify(response.data)
+                    const responseString = JSON.stringify(response.data)
 
-                    if(await storage.getStringAsync(cacheKeyLastResponse) == responseString){
+                    if(storage.getString(cacheKeyLastResponse) == responseString){
                         return false
                     }
 
-                    await storage.setAsync(cacheKeyLastResponse, responseString)
+                    storage.set(cacheKeyLastResponse, responseString)
                 }
                 catch(e){
                     console.log(e)
@@ -408,14 +386,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             }
         }
 
-        try{
-            var privateKey = await storage.getStringAsync("privateKey")
-        }
-        catch(e){
-            console.log(e)
-
-            return false
-        }
+        const privateKey = storage.getString("privateKey")
 
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
@@ -424,12 +395,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
 			items.push(item)
 
-			try{
-                storage.set("itemCache:folder:" + folder.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                console.log(e)
-            }
+			storage.set("itemCache:folder:" + folder.uuid, JSON.stringify(item))
 		}
 
         for(let i = 0; i < response.data.uploads.length; i++){
@@ -439,12 +405,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             items.push(item)
 
-			try{
-                storage.set("itemCache:file:" + file.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                console.log(e)
-            }
+			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
         }
     }
     else if(routeURL.indexOf("shared-out") !== -1){
@@ -455,7 +416,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                 data: {
                     apiKey: getAPIKey(),
                     uuid: parent,
-                    folders: await asyncJSON.stringify(["default"]),
+                    folders: JSON.stringify(["default"]),
                     page: 1,
                     app: "true",
                     receiverId: global.currentReceiverId
@@ -477,7 +438,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
-                    const responseString = await asyncJSON.stringify(response.data)
+                    const responseString = JSON.stringify(response.data)
 
                     if(storage.getString(cacheKeyLastResponse) == responseString){
                         return false
@@ -502,12 +463,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
 			items.push(item)
 
-			try{
-                storage.set("itemCache:folder:" + folder.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                console.log(e)
-            }
+			storage.set("itemCache:folder:" + folder.uuid, JSON.stringify(item))
 		}
 
         for(let i = 0; i < response.data.uploads.length; i++){
@@ -517,12 +473,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             items.push(item)
 
-			try{
-                storage.set("itemCache:file:" + file.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                console.log(e)
-            }
+			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
         }
     }
     else if(parent == "photos"){
@@ -542,7 +493,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                         data: {
                             apiKey: getAPIKey(),
                             uuid: cameraUploadParent,
-                            folders: await asyncJSON.stringify(["default"]),
+                            folders: JSON.stringify(["default"]),
                             page: 1,
                             app: "true"
                         }
@@ -563,7 +514,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                 if(typeof cache !== "undefined"){
                     if(cache.length > 0){
                         try{
-                            const responseString = await asyncJSON.stringify(response.data)
+                            const responseString = JSON.stringify(response.data)
         
                             if(storage.getString(cacheKeyLastResponse) == responseString){
                                 return false
@@ -586,41 +537,10 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                         items.push(item)
                     }
         
-                    try{
-                        storage.set("itemCache:file:" + file.uuid, await asyncJSON.stringify(item))
-                    }
-                    catch(e){
-                        console.log(e)
-                    }
+                    storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
                 }
             }
         }
-
-        /*try{
-            var { files } = await fetchAllStoredItems({ filesOnly: true, maxSize: ((1024 * 1024) * 128), includeTrash: false, includeVersioned: false })
-        }
-        catch(e){
-            console.log(e)
-
-            return false
-        }
-
-        for(let i = 0; i < files.length; i++){
-            let file = files[i]
-
-            let item = await buildFile({ file, masterKeys, userId })
-
-            if(canCompressThumbnail(getFileExt(item.name))){
-                items.push(item)
-            }
-
-			try{
-                storage.set("itemCache:file:" + file.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                //console.log(e)
-            }
-        }*/
     }
     else if(parent == "offline"){
         try{
@@ -791,7 +711,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                 data: {
                     apiKey: getAPIKey(),
                     uuid: parent,
-                    folders: await asyncJSON.stringify(["default"]),
+                    folders: JSON.stringify(["default"]),
                     page: 1,
                     app: "true"
                 }
@@ -812,7 +732,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
-                    const responseString = await asyncJSON.stringify(response.data)
+                    const responseString = JSON.stringify(response.data)
 
                     if(storage.getString(cacheKeyLastResponse) == responseString){
                         return false
@@ -833,12 +753,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
 			items.push(item)
 
-			try{
-                storage.set("itemCache:folder:" + folder.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                console.log(e)
-            }
+			storage.set("itemCache:folder:" + folder.uuid, JSON.stringify(item))
 		}
 
         for(let i = 0; i < response.data.uploads.length; i++){
@@ -848,18 +763,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
             items.push(item)
 
-			try{
-                storage.set("itemCache:file:" + file.uuid, await asyncJSON.stringify(item))
-            }
-            catch(e){
-                console.log(e)
-            }
+			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
         }
     }
 
     items = sortItems({ items, passedRoute: route })
 
-    storage.set(cacheKey, await asyncJSON.stringify(items))
+    storage.set(cacheKey, JSON.stringify(items))
 
     if(getParent(route) == parent && isMounted()){
         setItems(items.filter(item => item !== null && typeof item.uuid == "string"))
@@ -906,16 +816,16 @@ export const getFolderSizeFromCache = ({ folder, routeURL, load = true }) => {
         const netInfo = useStore.getState().netInfo
 
         if(Math.floor(+new Date()) > timeout && netInfo.isConnected && netInfo.isInternetReachable){
-            fetchFolderSize({ folder, routeURL }).then(async (size) => {
+            fetchFolderSize({ folder, routeURL }).then((size) => {
                 try{
                     if(cache == size){
-                        await storage.setAsync(cacheKey + ":timeout", (Math.floor(+new Date()) + 15000))
+                        storage.set(cacheKey + ":timeout", (Math.floor(+new Date()) + 15000))
 
                         return false
                     }
 
-                    await storage.setAsync(cacheKey, size)
-                    await storage.setAsync(cacheKey + ":timeout", (Math.floor(+new Date()) + 45000))
+                    storage.set(cacheKey, size)
+                    storage.set(cacheKey + ":timeout", (Math.floor(+new Date()) + 45000))
                 }
                 catch(e){
                     return console.log(e)
@@ -960,13 +870,13 @@ export const getThumbnailCacheKey = ({ uuid }) => {
 Clear last response cache
 */
 export const clearLoadItemsCacheLastResponse = () => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         try{
-            const keys = await storage.getAllKeysAsync()
+            const keys = storage.getAllKeys()
 
             for(let i = 0; i < keys.length; i++){
                 if(keys[i].indexOf("loadItemsCache:lastResponse:") !== -1){
-                    await storage.deleteAsync(keys[i])
+                    storage.delete(keys[i])
                 }
             }
         }
@@ -982,9 +892,9 @@ export const clearLoadItemsCacheLastResponse = () => {
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         try{
-            const keys = await storage.getAllKeysAsync()
+            const keys = storage.getAllKeys()
 
             for(let i = 0; i < keys.length; i++){
                 if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
@@ -992,10 +902,10 @@ export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
                     let didChange = false
 
                     try{
-                        cache = await asyncJSON.parse(await storage.getStringAsync(keys[i]))
+                        cache = JSON.parse(storage.getString(keys[i]))
                     }
-                    catch(e){
-                        console.log(e)
+                    catch(err){
+                        console.log(err)
                     }
 
                     for(let x = 0; x < cache.length; x++){
@@ -1006,7 +916,7 @@ export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
                     }
 
                     if(didChange){
-                        await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
+                        storage.set(keys[i], JSON.stringify(cache))
                     }
                 }
             }
@@ -1023,9 +933,9 @@ export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }) => {
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         try{
-            const keys = await storage.getAllKeysAsync()
+            const keys = storage.getAllKeys()
 
             for(let i = 0; i < keys.length; i++){
                 if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
@@ -1033,10 +943,10 @@ export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
                     let didChange = false
 
                     try{
-                        cache = await asyncJSON.parse(await storage.getStringAsync(keys[i]))
+                        cache = JSON.parse(storage.getString(keys[i]))
                     }
-                    catch(e){
-                        console.log(e)
+                    catch(err){
+                        console.log(err)
                     }
 
                     for(let x = 0; x < cache.length; x++){
@@ -1047,7 +957,7 @@ export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
                     }
 
                     if(didChange){
-                        await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
+                        storage.set(keys[i], JSON.stringify(cache))
                     }
                 }
             }
@@ -1064,13 +974,13 @@ export const removeLoadItemsCache = ({ item, routeURL = "" }) => {
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const emptyTrashLoadItemsCache = () => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         try{
-            const keys = await storage.getAllKeysAsync()
+            const keys = storage.getAllKeys()
 
             for(let i = 0; i < keys.length; i++){
                 if(keys[i].indexOf("loadItemsCache:trash") !== -1){
-                    await storage.deleteAsync(keys[i])
+                    storage.delete(keys[i])
                 }
             }
         }
@@ -1086,25 +996,25 @@ export const emptyTrashLoadItemsCache = () => {
 Update the item cache so we do not need to re-fetch data from the API
 */
 export const addItemLoadItemsCache = ({ item, routeURL = "" }) => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         try{
-            const keys = await storage.getAllKeysAsync()
+            const keys = storage.getAllKeys()
 
             for(let i = 0; i < keys.length; i++){
                 if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
                     let cache = []
 
                     try{
-                        cache = await asyncJSON.parse(storage.getString(keys[i]))
+                        cache = JSON.parse(storage.getString(keys[i]))
                     }
-                    catch(e){
-                        console.log(e)
+                    catch(err){
+                        console.log(err)
                     }
 
                     if(cache.length > 0){
                         cache.push(item)
 
-                        await storage.setAsync(keys[i], await asyncJSON.stringify(cache))
+                        storage.set(keys[i], JSON.stringify(cache))
                     }
                 }
             }

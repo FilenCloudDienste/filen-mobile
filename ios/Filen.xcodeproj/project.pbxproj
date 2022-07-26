@@ -12,12 +12,13 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		267D64C68DCBD92EFC9180B7 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D3627D5EF862E7E76E3229 /* ExpoModulesProvider.swift */; };
 		3D43717527EAC90C00511321 /* swift-noop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D43717427EAC90C00511321 /* swift-noop.swift */; };
 		3D8900C027ACCC1700C43F8A /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D8900BE27ACCC1700C43F8A /* MainInterface.storyboard */; };
 		3D8900C427ACCC1700C43F8A /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3D8900BA27ACCC1700C43F8A /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3D8900C927ACCC6200C43F8A /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8900C827ACCC6200C43F8A /* ShareViewController.swift */; };
-		3DE7BC3B27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7BC3A27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		96219F6E35FACBC8AEA6F967 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9E571310AF8CCA36D37133 /* ExpoModulesProvider.swift */; };
 		C96D787E92A95319F0489030 /* libPods-ShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BBAA59C1E4CF12EDD4403145 /* libPods-ShareExtension.a */; };
 		DE28B25F01C487E70C5F60C4 /* libPods-Filen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C078319821E15D538950AA1 /* libPods-Filen.a */; };
 /* End PBXBuildFile section */
@@ -74,24 +75,9 @@
 		3D8900C127ACCC1700C43F8A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3D8900C827ACCC6200C43F8A /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "../../node_modules/react-native-share-menu/ios/ShareViewController.swift"; sourceTree = "<group>"; };
 		3D8900CA27ACCC7C00C43F8A /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
-		3D8900CC27AD522800C43F8A /* Fontisto.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fontisto.ttf; sourceTree = "<group>"; };
-		3D8900CD27AD522800C43F8A /* Octicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Octicons.ttf; sourceTree = "<group>"; };
-		3D8900CE27AD522800C43F8A /* Feather.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Feather.ttf; sourceTree = "<group>"; };
-		3D8900CF27AD522800C43F8A /* Entypo.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Entypo.ttf; sourceTree = "<group>"; };
-		3D8900D027AD522800C43F8A /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome5_Brands.ttf; sourceTree = "<group>"; };
-		3D8900D127AD522800C43F8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialCommunityIcons.ttf; sourceTree = "<group>"; };
-		3D8900D227AD522800C43F8A /* AntDesign.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = AntDesign.ttf; sourceTree = "<group>"; };
-		3D8900D327AD522800C43F8A /* Foundation.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Foundation.ttf; sourceTree = "<group>"; };
-		3D8900D427AD522800C43F8A /* Ionicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Ionicons.ttf; sourceTree = "<group>"; };
-		3D8900D527AD522800C43F8A /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome5_Solid.ttf; sourceTree = "<group>"; };
-		3D8900D627AD522800C43F8A /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome5_Regular.ttf; sourceTree = "<group>"; };
-		3D8900D727AD522800C43F8A /* FontAwesome.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome.ttf; sourceTree = "<group>"; };
-		3D8900D827AD522800C43F8A /* Zocial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Zocial.ttf; sourceTree = "<group>"; };
-		3D8900D927AD522800C43F8A /* EvilIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = EvilIcons.ttf; sourceTree = "<group>"; };
-		3D8900DA27AD522800C43F8A /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SimpleLineIcons.ttf; sourceTree = "<group>"; };
-		3D8900DB27AD522800C43F8A /* MaterialIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialIcons.ttf; sourceTree = "<group>"; };
-		3DE7BC3A27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "RNBackgroundFetch+AppDelegate.m"; path = "../node_modules/react-native-background-fetch/ios/RNBackgroundFetch/RNBackgroundFetch+AppDelegate.m"; sourceTree = "<group>"; };
+		3F9E571310AF8CCA36D37133 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Filen/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		5B9DCD7741E64912425A5CFF /* Pods-Filen-FilenTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Filen-FilenTests.release.xcconfig"; path = "Target Support Files/Pods-Filen-FilenTests/Pods-Filen-FilenTests.release.xcconfig"; sourceTree = "<group>"; };
+		75D3627D5EF862E7E76E3229 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Filen-FilenTests/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		75E159AEB3278EAD3E4BEE46 /* Pods-Filen-FilenTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Filen-FilenTests.debug.xcconfig"; path = "Target Support Files/Pods-Filen-FilenTests/Pods-Filen-FilenTests.debug.xcconfig"; sourceTree = "<group>"; };
 		787CCEEF7C4F434C083A19ED /* Pods-Filen.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Filen.debug.xcconfig"; path = "Target Support Files/Pods-Filen/Pods-Filen.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Filen/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -149,7 +135,6 @@
 		13B07FAE1A68108700A75B9A /* Filen */ = {
 			isa = PBXGroup;
 			children = (
-				3DE7BC3A27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m */,
 				3D89005027AC3EBC00C43F8A /* Filen.entitlements */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -159,6 +144,14 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 			);
 			name = Filen;
+			sourceTree = "<group>";
+		};
+		172D0F023635003943F545F0 /* FilenTests */ = {
+			isa = PBXGroup;
+			children = (
+				75D3627D5EF862E7E76E3229 /* ExpoModulesProvider.swift */,
+			);
+			name = FilenTests;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -181,30 +174,6 @@
 				3D8900C127ACCC1700C43F8A /* Info.plist */,
 			);
 			path = ShareExtension;
-			sourceTree = "<group>";
-		};
-		3D8900CB27AD522800C43F8A /* Fonts */ = {
-			isa = PBXGroup;
-			children = (
-				3D8900CC27AD522800C43F8A /* Fontisto.ttf */,
-				3D8900CD27AD522800C43F8A /* Octicons.ttf */,
-				3D8900CE27AD522800C43F8A /* Feather.ttf */,
-				3D8900CF27AD522800C43F8A /* Entypo.ttf */,
-				3D8900D027AD522800C43F8A /* FontAwesome5_Brands.ttf */,
-				3D8900D127AD522800C43F8A /* MaterialCommunityIcons.ttf */,
-				3D8900D227AD522800C43F8A /* AntDesign.ttf */,
-				3D8900D327AD522800C43F8A /* Foundation.ttf */,
-				3D8900D427AD522800C43F8A /* Ionicons.ttf */,
-				3D8900D527AD522800C43F8A /* FontAwesome5_Solid.ttf */,
-				3D8900D627AD522800C43F8A /* FontAwesome5_Regular.ttf */,
-				3D8900D727AD522800C43F8A /* FontAwesome.ttf */,
-				3D8900D827AD522800C43F8A /* Zocial.ttf */,
-				3D8900D927AD522800C43F8A /* EvilIcons.ttf */,
-				3D8900DA27AD522800C43F8A /* SimpleLineIcons.ttf */,
-				3D8900DB27AD522800C43F8A /* MaterialIcons.ttf */,
-			);
-			name = Fonts;
-			path = "../node_modules/react-native-vector-icons/Fonts";
 			sourceTree = "<group>";
 		};
 		40B85A5A4113FD5E606932EE /* Pods */ = {
@@ -231,7 +200,6 @@
 			isa = PBXGroup;
 			children = (
 				3D43717427EAC90C00511321 /* swift-noop.swift */,
-				3D8900CB27AD522800C43F8A /* Fonts */,
 				13B07FAE1A68108700A75B9A /* Filen */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* FilenTests */,
@@ -241,6 +209,7 @@
 				40B85A5A4113FD5E606932EE /* Pods */,
 				C12A03C80F3B405DBCF5F497 /* Resources */,
 				3D43717327EAC90C00511321 /* Filen-Bridging-Header.h */,
+				DBEA2AC4E0305D7F8B45B7CA /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -257,11 +226,28 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		894231C2A26DB437E46AB808 /* Filen */ = {
+			isa = PBXGroup;
+			children = (
+				3F9E571310AF8CCA36D37133 /* ExpoModulesProvider.swift */,
+			);
+			name = Filen;
+			sourceTree = "<group>";
+		};
 		C12A03C80F3B405DBCF5F497 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 			);
 			name = Resources;
+			sourceTree = "<group>";
+		};
+		DBEA2AC4E0305D7F8B45B7CA /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				894231C2A26DB437E46AB808 /* Filen */,
+				172D0F023635003943F545F0 /* FilenTests */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -637,6 +623,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00E356F31AD99517003FC87E /* FilenTests.m in Sources */,
+				267D64C68DCBD92EFC9180B7 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -644,10 +631,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3DE7BC3B27D1739300A5C0EE /* RNBackgroundFetch+AppDelegate.m in Sources */,
 				3D43717527EAC90C00511321 /* swift-noop.swift in Sources */,
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				96219F6E35FACBC8AEA6F967 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -697,7 +684,7 @@
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = FilenTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -708,6 +695,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Filen.app/Filen";
@@ -722,7 +710,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = FilenTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -733,6 +721,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Filen.app/Filen";
@@ -751,7 +740,7 @@
 				DEVELOPMENT_TEAM = 7YTW5D2K7P;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Filen/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -762,6 +751,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = io.filen.app;
 				PRODUCT_NAME = Filen;
 				SWIFT_OBJC_BRIDGING_HEADER = "Filen-Bridging-Header.h";
@@ -783,7 +773,7 @@
 				CURRENT_PROJECT_VERSION = 218;
 				DEVELOPMENT_TEAM = 7YTW5D2K7P;
 				INFOPLIST_FILE = Filen/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -794,6 +784,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = io.filen.app;
 				PRODUCT_NAME = Filen;
 				SWIFT_OBJC_BRIDGING_HEADER = "Filen-Bridging-Header.h";
@@ -825,7 +816,7 @@
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ShareExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -834,6 +825,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = io.filen.app.ShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -868,7 +860,7 @@
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ShareExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -876,6 +868,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = io.filen.app.ShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -935,7 +928,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -993,7 +986,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",

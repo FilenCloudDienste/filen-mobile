@@ -1,5 +1,5 @@
 import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName, Semaphore, asyncJSON } from "./helpers"
-import { storage } from "./storage"
+import storage from "./storage"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Platform } from "react-native"
 import { updateLoadItemsCache, removeLoadItemsCache, emptyTrashLoadItemsCache, clearLoadItemsCacheLastResponse } from "./services/items"

@@ -1,23 +1,24 @@
 import React, { useCallback, useEffect, memo } from "react"
 import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
-import { storage } from "../lib/storage"
+import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
-import Ionicon from "react-native-vector-icons/Ionicons"
+import Ionicon from "@expo/vector-icons/Ionicons"
 import FastImage from "react-native-fast-image"
-import { formatBytes, getFilenameFromPath } from "../lib/helpers"
+import { formatBytes, getFilenameFromPath, getFileExt } from "../lib/helpers"
 import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../lib/state"
 import { useStore, waitForStateUpdate } from "../lib/state"
 import { showToast } from "./Toasts"
 import { getColor } from "../lib/style/colors"
-import { hasBiometricPermissions } from "../lib/permissions"
 import { updateUserInfo } from "../lib/user/info"
 import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import { hasStoragePermissions } from "../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../lib/statusbar"
+import * as MediaLibrary from "expo-media-library"
+import * as FileSystem from "expo-file-system"
 
 const MISC_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
 
@@ -338,19 +339,33 @@ export const SettingsScreen = memo(({ navigation, route }) => {
             </SettingsGroup>
             {
                 __DEV__ && (
-                    <SettingsGroup>
-                        <SettingsButtonLinkHighlight title={"Clear loadItemsCache"} onPress={() => {
-                            const keys = storage.getAllKeys()
+                    <>
+                        <SettingsGroup>
+                            <SettingsButtonLinkHighlight title={"Clear loadItemsCache"} onPress={() => {
+                                const keys = storage.getAllKeys()
 
-                            keys.forEach(key => {
-                                if(key.indexOf("loadItemsCache:") !== -1 || key.indexOf("folderSize:") !== -1){
-                                    storage.delete(key)
-                                }
-                            })
+                                keys.forEach(key => {
+                                    if(key.indexOf("loadItemsCache:") !== -1 || key.indexOf("folderSize:") !== -1){
+                                        storage.delete(key)
+                                    }
+                                })
 
-                            showToast({ message: "Cleared" })
-                        }} />
-                    </SettingsGroup>
+                                showToast({ message: "Cleared" })
+                            }} />
+                            <SettingsButtonLinkHighlight title={"get medialib"} onPress={() => {
+                                MediaLibrary.getAssetsAsync().then((content) => {
+                                    const asset = content.assets[1]
+
+                                    FileSystem.copyAsync({
+                                        from: asset.uri,
+                                        to: FileSystem.cacheDirectory + asset.filename,
+                                    }).then(() => {
+                                        FileSystem.getInfoAsync(FileSystem.cacheDirectory + asset.filename).then(console.log)
+                                    })
+                                })
+                            }} />
+                        </SettingsGroup>
+                    </>
                 )
             }
             <SettingsGroup>

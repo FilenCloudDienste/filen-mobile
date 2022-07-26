@@ -1,4 +1,4 @@
-import { storage } from "../storage"
+import storage from "../storage"
 import { apiRequest } from "../api"
 import { logout } from "../auth/logout"
 import { getMasterKeys, encryptMetadata, getAPIKey, decryptMetadata } from "../helpers"

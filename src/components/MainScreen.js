@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react"
 import { View, DeviceEventEmitter, Platform } from "react-native"
-import { storage } from "../lib/storage"
+import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "./TopBar"
 import { ItemList } from "./ItemList"

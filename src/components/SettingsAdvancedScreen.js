@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, memo } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, Alert } from "react-native"
-import { storage } from "../lib/storage"
+import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
-import Ionicon from "react-native-vector-icons/Ionicons"
+import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../i18n/i18n"
 import { SettingsGroup, SettingsButtonLinkHighlight } from "./SettingsScreen"
 import { useStore } from "../lib/state"
@@ -11,7 +11,7 @@ import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import DeviceInfo from "react-native-device-info"
 import { formatBytes } from "../lib/helpers"
-import { memoryCache } from "../lib/memoryCache"
+import memoryCache from "../lib/memoryCache"
 
 export const calculateFolderSize = async (folderPath, size = 0) => {
     const dirList = await RNFS.readDir(folderPath)

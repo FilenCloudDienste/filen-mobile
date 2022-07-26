@@ -1,5 +1,5 @@
-import { apiRequest, fetchUserInfo } from "../api"
-import { storage } from "../storage"
+import { apiRequest } from "../api"
+import storage from "../storage"
 import { setup } from "../setup"
 import { logout } from "./logout"
 import { i18n } from "../../i18n/i18n"

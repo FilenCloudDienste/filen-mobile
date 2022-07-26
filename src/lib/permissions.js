@@ -1,6 +1,6 @@
-import { Platform, PermissionsAndroid } from "react-native"
+import { Platform } from "react-native"
 import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } from "react-native-permissions"
-import { storage } from "./storage"
+import storage from "./storage"
 import { i18n } from "../i18n/i18n"
 
 export const hasWritePermissions = (requestPermissions = true) => {

@@ -1,0 +1,19 @@
+import { Semaphore } from "./helpers"
+
+declare global {
+    var generateThumbnailSemaphore: any;
+    var items: any;
+    var toast: any;
+    var setItems: any;
+    var fetchItemList: any;
+    var currentReceiverId: undefined | number;
+    var visibleItems: any;
+}
+
+(global as any).generateThumbnailSemaphore = new Semaphore(3) as any
+(global as any).items = undefined as any
+(global as any).toast = undefined as any
+(global as any).setItems = undefined as any
+(global as any).fetchItemList = undefined as any
+(global as any).currentReceiverId = undefined as any
+(global as any).visibleItems = {} as any

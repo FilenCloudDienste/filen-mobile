@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from "react"
 import Dialog from "react-native-dialog"
 import { useStore } from "../lib/state"
-import { storage } from "../lib/storage"
+import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { getParent, fileAndFolderNameValidation } from "../lib/helpers"
 import { createFolder, folderExists, fileExists, renameFile, renameFolder, deleteItemPermanently, removeSharedInItem, stopSharingItem, redeemCode, deleteAccount, disable2FA, bulkShare } from "../lib/api"
@@ -10,8 +10,7 @@ import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter, Keyboard } from "react-native"
 import { logout } from "../lib/auth/logout"
 import { navigationAnimation } from "../lib/state"
-import { StackActions } from "@react-navigation/native"
-import { CommonActions } from "@react-navigation/native"
+import { StackActions, CommonActions } from "@react-navigation/native"
 
 export const RenameDialog = memo(({ navigation }) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)

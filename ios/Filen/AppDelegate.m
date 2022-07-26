@@ -4,7 +4,6 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 
-#import <TSBackgroundFetch/TSBackgroundFetch.h>
 #import <RNShareMenu/ShareMenuManager.h>
 
 #ifdef FB_SONARKIT_ENABLED
@@ -34,10 +33,8 @@ static void InitializeFlipper(UIApplication *application) {
     InitializeFlipper(application);
   #endif
 
-    RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-    RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
-                                                    moduleName:@"Filen"
-                                              initialProperties:nil];
+    RCTBridge *bridge = [self.reactDelegate createBridgeWithDelegate:self launchOptions:launchOptions];
+    UIView *rootView = [self.reactDelegate createRootViewWithBridge:bridge moduleName:@"Filen" initialProperties:nil];
 
     if (@available(iOS 13.0, *)) {
         rootView.backgroundColor = [UIColor systemBackgroundColor];
@@ -46,12 +43,11 @@ static void InitializeFlipper(UIApplication *application) {
     }
 
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    UIViewController *rootViewController = [UIViewController new];
+    UIViewController *rootViewController = [self.reactDelegate createRootViewController];
     rootViewController.view = rootView;
     self.window.rootViewController = rootViewController;
     [self.window makeKeyAndVisible];
-    
-    [[TSBackgroundFetch sharedInstance] didFinishLaunching];
+    [super application:application didFinishLaunchingWithOptions:launchOptions];
     
     return YES;
   }

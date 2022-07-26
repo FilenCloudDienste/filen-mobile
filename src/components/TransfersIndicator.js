@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, memo } from "react"
 import { ActivityIndicator, TouchableOpacity, View } from "react-native"
-import { storage } from "../lib/storage"
+import storage from "../lib/storage"
 import { useMMKVBoolean } from "react-native-mmkv"
 import { StackActions } from "@react-navigation/native"
 import { useStore } from "../lib/state"
 import { navigationAnimation } from "../lib/state"
 import AnimatedProgressWheel from "react-native-progress-wheel"
-import { memoryCache } from "../lib/memoryCache"
+import memoryCache from "../lib/memoryCache"
 
 const isEqual = require("react-fast-compare")
 

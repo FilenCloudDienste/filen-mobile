@@ -1,20 +1,15 @@
-import { storage } from "./storage"
-import base64 from "react-native-base64"
-import encoding from "text-encoding"
+import storage from "./storage"
 import { InteractionManager, Platform } from "react-native"
 import * as cppBase64 from "react-native-quick-base64"
 import { useStore } from "./state"
 import { i18n } from "../i18n/i18n"
 
-const textDecoder = new encoding.TextDecoder()
-const textEncoder = new encoding.TextEncoder()
-
 export const base64Decode = (str) => {
-    return base64.decode(str)
+    return cppBase64.atob(str)
 }
 
 export const base64Encode = (str) => {
-    return base64.encode(str)
+    return cppBase64.btoa(str)
 }
 
 export const getAPIServer = () => {
