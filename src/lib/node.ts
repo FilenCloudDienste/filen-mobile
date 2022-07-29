@@ -1,4 +1,5 @@
 import nodejs from "nodejs-mobile-react-native"
+import { DeviceEventEmitter } from "react-native"
 
 nodejs.start("main.js")
 
@@ -26,7 +27,11 @@ declare global {
         generateRandomString: (params: { charLength?: number }) => Promise<string>,
         uuidv4: () => Promise<string>,
         ping: () => Promise<any>,
-        uploadAvatar: (params: { base64: string, url: string, timeout: number }) => Promise<any>
+        uploadAvatar: (params: { base64: string, url: string, timeout: number }) => Promise<any>,
+        encryptAndUploadFileChunk: (params: { path: string, key: string, queryParams: string, chunkIndex: number, chunkSize: number }) => Promise<any>,
+        getDataDir: () => Promise<string>,
+        appendFileToFile: (params: { first: string, second: string }) => Promise<boolean>,
+        downloadDecryptAndWriteFileChunk: (params: { destPath: string, uuid: string, region: string, bucket: string, index: number, key: string, version: number }) => Promise<string>
     }
 }
 
@@ -377,11 +382,98 @@ global.nodeThread = {
             })
 		})
     },
+    encryptAndUploadFileChunk: ({ path, key, queryParams, chunkIndex, chunkSize }) => {
+        const id = currentId += 1
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+                resolves[id] = resolve
+                rejects[id] = reject
+
+                return nodejs.channel.send({
+                    id,
+                    type: "encryptAndUploadFileChunk",
+                    path,
+                    key,
+                    queryParams,
+                    chunkIndex,
+                    chunkSize
+                })
+            })
+		})
+    },
+    getDataDir: () => {
+        const id = currentId += 1
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+                resolves[id] = resolve
+                rejects[id] = reject
+
+                return nodejs.channel.send({
+                    id,
+                    type: "getDataDir"
+                })
+            })
+		})
+    },
+    appendFileToFile: ({ first, second }) => {
+        const id = currentId += 1
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+                resolves[id] = resolve
+                rejects[id] = reject
+
+                return nodejs.channel.send({
+                    id,
+                    type: "appendFileToFile",
+                    first,
+                    second
+                })
+            })
+		})
+    },
+    downloadDecryptAndWriteFileChunk: ({ destPath, uuid, region, bucket, index, key, version }) => {
+        const id = currentId += 1
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+                resolves[id] = resolve
+                rejects[id] = reject
+
+                return nodejs.channel.send({
+                    id,
+                    type: "downloadDecryptAndWriteFileChunk",
+                    destPath,
+                    uuid,
+                    region,
+                    bucket,
+                    index,
+                    key,
+                    version
+                })
+            })
+		})
+    },
 }
 
 nodejs.channel.addListener("message", (message) => {
     if(message == "ready" && !global.nodeThread.ready){
         return global.nodeThread.ready = true
+    }
+
+    if(typeof message.type == "string"){
+        if(message.type == "uploadProgress"){
+            DeviceEventEmitter.emit("uploadProgress", message)
+
+            return
+        }
+        else if(message.type == "downloadProgress"){
+            DeviceEventEmitter.emit("downloadProgress", message)
+
+            return
+        }
     }
     
     const { id, err, response } = message

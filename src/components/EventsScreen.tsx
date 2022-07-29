@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, Component, memo, useRef } from "react"
+import React, { useEffect, useState, Component, memo, useRef } from "react"
 import { View, Text, Platform, ScrollView, TouchableOpacity, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight } from "react-native"
 import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"

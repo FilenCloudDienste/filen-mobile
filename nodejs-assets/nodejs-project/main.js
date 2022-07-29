@@ -23,6 +23,10 @@ const CryptoApi = require("crypto-api-v1")
 const { uuid } = require("uuidv4")
 const https = require("https")
 const http = require("http")
+const request = require("request")
+const fs = require("fs")
+const pathModule = require("path")
+const { Readable } = require("stream")
 
 const axiosClient = axios.create({
     timeout: 3600000,
@@ -43,6 +47,7 @@ const axiosClient = axios.create({
 
 const cachedDerivedKeys = {}
 const cachedPemKeys = {}
+let tasksRunning = 0
 
 const convertArrayBufferToUtf8String = (buffer) => {
     return Buffer.from(buffer).toString("utf8")
@@ -110,14 +115,18 @@ const randomString = (length) => {
     return result.join("")
 }
 
-const encryptData = (base64, key, convertToBase64 = true) => {
+const encryptData = (data, key, convertToBase64 = true, isBase64 = true) => {
     return new Promise((resolve, reject) => {
-        const data = base64ToArrayBuffer(base64)
+        let buffer = data
+
+        if(isBase64){
+            buffer = base64ToArrayBuffer(data)
+        }
 
         try{
             const iv = randomString(12)
             const cipher = crypto.createCipheriv("aes-256-gcm", utf8StringToArrayBuffer(key), utf8StringToArrayBuffer(iv))
-            const encrypted = arrayBufferConcat(cipher.update(data), cipher.final())
+            const encrypted = arrayBufferConcat(cipher.update(buffer), cipher.final())
             const authTag = cipher.getAuthTag()
             const ciphertext = arrayBufferConcat(encrypted, authTag)
 
@@ -133,16 +142,25 @@ const encryptData = (base64, key, convertToBase64 = true) => {
     })
 }
 
-const decryptData = (base64, key, version) => {
+const decryptData = (data, key, version, returnBase64 = true, isBase64 = true) => {
     return new Promise((resolve, reject) => {
-        const encrypted = base64ToArrayBuffer(base64)
+        let encrypted = data
+
+        if(isBase64){
+            encrypted = base64ToArrayBuffer(data)
+        }
 
         if(version == 1){
             const sliced = convertArrayBufferToUtf8String(new Uint8Array(encrypted).slice(0, 16)) + "_" + arrayBufferToBase64(new Uint8Array(encrypted).slice(0, 16))
 
             if(sliced.indexOf("Salted") !== -1){
                 try{
-                    return resolve(arrayBufferToBase64(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(base64ToArrayBuffer(encrypted), key))))
+                    if(returnBase64){
+
+                    }
+                    else{
+                        return resolve(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(encrypted, key)))
+                    }
                 }
                 catch(e){
                     return reject(e)
@@ -150,7 +168,12 @@ const decryptData = (base64, key, version) => {
             }
             else if(sliced.indexOf("U2FsdGVk") !== -1){
                 try{
-                    return resolve(arrayBufferToBase64(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(convertArrayBufferToUtf8String(new Uint8Array(encrypted)), key))))
+                    if(returnBase64){
+                        return resolve(arrayBufferToBase64(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(convertArrayBufferToUtf8String(new Uint8Array(encrypted)), key))))
+                    }
+                    else{
+                        return resolve(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(convertArrayBufferToUtf8String(new Uint8Array(encrypted)), key)))
+                    }
                 }
                 catch(e){
                     return reject(e)
@@ -161,7 +184,12 @@ const decryptData = (base64, key, version) => {
                     const decipher = crypto.createDecipheriv("aes-256-cbc", utf8StringToArrayBuffer(key), utf8StringToArrayBuffer(key).slice(0, 16))
                     const decrypted = arrayBufferConcat(decipher.update(encrypted), decipher.final())
 
-                    return resolve(arrayBufferToBase64(decrypted))
+                    if(returnBase64){
+                        return resolve(arrayBufferToBase64(decrypted))
+                    }
+                    else{
+                        return resolve(decrypted)
+                    }
                 }
                 catch(e){
                     return reject(e)
@@ -179,9 +207,12 @@ const decryptData = (base64, key, version) => {
 
                 decipher.setAuthTag(authTag)
 
-                const decrypted = arrayBufferToBase64(arrayBufferConcat(decipher.update(ciphertext), decipher.final()))
-
-                return resolve(decrypted)
+                if(returnBase64){
+                    return resolve(arrayBufferToBase64(arrayBufferConcat(decipher.update(ciphertext), decipher.final())))
+                }
+                else{
+                    return resolve(arrayBufferConcat(decipher.update(ciphertext), decipher.final()))
+                }
             }
             catch(e){
                 return reject(e)
@@ -416,19 +447,35 @@ const hashFn = (val) => {
 const apiRequest = (method, url, timeout, data) => {
     return new Promise((resolve, reject) => {
         if(method == "POST"){
-            axiosClient.post(url, JSON.stringify(data), {
+            request({
+                method: method.toUpperCase(),
+                url,
+                timeout,
                 headers: {
                     "Content-Type": "application/json",
                     "User-Agent": "filen-mobile"
                 },
-                timeout
-            }).then((res) => {
-                if(res.status !== 200){
+                agent: new https.Agent({
+                    keepAlive: true,
+                    timeout: 86400000
+                }),
+                body: JSON.stringify(data)
+            }, (err, response, body) => {
+                if(err){
+                    return reject(err)
+                }
+
+                if(response.statusCode !== 200){
                     return reject("Response status: " + response.status)
                 }
 
-                return resolve(res.data)
-            }).catch(reject)
+                try{
+                    return resolve(JSON.parse(body))
+                }
+                catch(e){
+                    return reject(e)
+                }
+            })
         }
         else{
             return reject("Invalid method: " + method)
@@ -485,13 +532,381 @@ const uploadAvatar = (base64, url, timeout) => {
                 return reject("Response status: " + response.status)
             }
 
-            return resolve(res)
             try{
                 return resolve(res.data)
             }
             catch(e){
                 return reject(e)
             }
+        }).catch(reject)
+    })
+}
+
+const readChunk = (path, offset, length) => {
+    return new Promise((resolve, reject) => {
+        path = pathModule.normalize(path)
+
+        fs.open(path, "r", (err, fd) => {
+            if(err){
+                return reject(err)
+            }
+
+            const buffer = Buffer.alloc(length)
+
+            fs.read(fd, buffer, 0, length, offset, (err, read) => {
+                if(err){
+                    return reject(err)
+                }
+
+                let data = undefined
+
+                if(read < length){
+                    data = buffer.slice(0, read)
+                }
+                else{
+                    data = buffer
+                }
+
+                fs.close(fd, (err) => {
+                    if(err){
+                        return reject(err)
+                    }
+
+                    return resolve(data)
+                })
+            })
+        })
+    })
+}
+
+const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
+    return new Promise((resolve, reject) => {
+        encryptData(buffer, key, false, false).then((encrypted) => {
+            let lastBytes = 0
+            let totalBytes = 0
+            const urlParams = new URLSearchParams(queryParams)
+            const uuid = urlParams.get("uuid") || ""
+
+            const calcProgress = (written) => {
+                let bytes = written
+
+                if(lastBytes == 0){
+                    lastBytes = written
+                }
+                else{
+                    bytes = Math.floor(written - lastBytes)
+                    lastBytes = written
+                }
+
+                totalBytes += bytes
+
+                rn_bridge.channel.send({
+                    type: "uploadProgress",
+                    status: "progress",
+                    data: {
+                        uuid,
+                        bytes: bytes
+                    }
+                })
+            }
+
+            const req = request({
+                url: "https://up.filen.io/v2/upload?" + queryParams,
+                method: "POST",
+                agent: new https.Agent({
+                    keepAlive: true,
+                    timeout: 86400000
+                }),
+                timeout: 86400000,
+                headers: {
+                    "User-Agent": "filen-mobile"
+                }
+            }, (err, response, body) => {
+                if(err){
+                    return reject(err)
+                }
+
+                calcProgress(req.req.connection.bytesWritten)
+
+                if(response.statusCode !== 200){
+                    if((-totalBytes) < 0){
+                        rn_bridge.channel.send({
+                            type: "uploadProgress",
+                            status: "progress",
+                            data: {
+                                uuid,
+                                bytes: -totalBytes
+                            }
+                        })
+                    }
+
+                    totalBytes = 0
+                    
+                    return reject("Upload failed, status code: " + response.statusCode)
+                }
+
+                try{
+                    var res = JSON.parse(body)
+                }
+                catch(e){
+                    return reject(e)
+                }
+
+                if(!res.status){
+                    if((-totalBytes) < 0){
+                        rn_bridge.channel.send({
+                            type: "uploadProgress",
+                            status: "progress",
+                            data: {
+                                uuid,
+                                bytes: -totalBytes
+                            }
+                        })
+                    }
+
+                    totalBytes = 0
+                }
+
+                return resolve(res)
+            }).on("drain", () => calcProgress(req.req.connection.bytesWritten))
+
+            Readable.from([encrypted]).pipe(req)
+        }).catch(reject)
+    })
+}
+
+const normalizeRNFilePath = (path) => {
+    if(path.startsWith("file://")){
+        return path.replace("file://", "")
+    }
+
+    return path
+}
+
+const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize) => {
+    return new Promise((resolve, reject) => {
+        path = pathModule.normalize(normalizeRNFilePath(path))
+
+        readChunk(path, (chunkIndex * chunkSize), chunkSize).then((buffer) => {
+            const maxTries = 1024
+            let currentTries = 0
+            const triesTimeout = 1000
+
+            const doUpload = () => {
+                if(currentTries >= maxTries){
+                    return reject("max tries reached for upload, returning")
+                }
+
+                currentTries += 1
+
+                encryptAndUploadChunkBuffer(buffer, key, queryParams).then(resolve).catch((err) => {
+                    console.log(err)
+
+                    return setTimeout(doUpload, triesTimeout)
+                })
+            }
+
+            doUpload()
+        }).catch(reject)
+    })
+}
+
+const downloadFileChunk = (uuid, region, bucket, index) => {
+    return new Promise((resolve, reject) => {
+        let totalBytes = 0
+
+        const request = https.request({
+            host: "down.filen.io",
+            port: 443,
+            path: "/" + region + "/" + bucket + "/" + uuid + "/" + index,
+            method: "GET",
+            agent: new https.Agent({
+                keepAlive: true,
+                timeout: 86400000
+            }),
+            timeout: 86400000,
+            headers: {
+                "User-Agent": "filen-mobile"
+            }
+        })
+
+        request.on("response", (response) => {
+            if(response.statusCode !== 200){
+                return reject(new Error("Invalid http statuscode: " + response.statusCode))
+            }
+
+            let res = []
+
+            response.on("error", (err) => {
+                if((-totalBytes) < 0){
+                    rn_bridge.channel.send({
+                        type: "downloadProgress",
+                        status: "progress",
+                        data: {
+                            uuid,
+                            bytes: -totalBytes
+                        }
+                    })
+                }
+
+                return reject(err)
+            })
+
+            response.on("data", (chunk) => {
+                if(res == null){
+                    return false
+                }
+
+                res.push(chunk)
+
+                totalBytes += chunk.length
+
+                rn_bridge.channel.send({
+                    type: "downloadProgress",
+                    status: "progress",
+                    data: {
+                        uuid,
+                        bytes: chunk.length
+                    }
+                })
+            }).on("end", () => {
+                return resolve(Buffer.concat(res))
+            }).on("error", (err) => {
+                if((-totalBytes) < 0){
+                    rn_bridge.channel.send({
+                        type: "downloadProgress",
+                        status: "progress",
+                        data: {
+                            uuid,
+                            bytes: -totalBytes
+                        }
+                    })
+                }
+
+                return reject(err)
+            })
+        })
+
+        request.on("timeout", () => {
+            if((-totalBytes) < 0){
+                rn_bridge.channel.send({
+                    type: "downloadProgress",
+                    status: "progress",
+                    data: {
+                        uuid,
+                        bytes: -totalBytes
+                    }
+                })
+            }
+
+            return reject(new Error("Request timed out"))
+        })
+
+        request.on("error", (err) => {
+            if((-totalBytes) < 0){
+                rn_bridge.channel.send({
+                    type: "downloadProgress",
+                    status: "progress",
+                    data: {
+                        uuid,
+                        bytes: -totalBytes
+                    }
+                })
+            }
+
+            return reject(err)
+        })
+
+        request.end()
+    })
+}
+
+const downloadDecryptAndWriteFileChunk = (destPath, uuid, region, bucket, index, key, version) => {
+    return new Promise((resolve, reject) => {
+        destPath = pathModule.normalize(destPath)
+
+        const maxTries = 1024
+        let currentTries = 0
+        const triesTimeout = 1000
+
+        const doDownload = () => {
+            if(currentTries >= maxTries){
+                return fs.unlink(destPath, () => {
+                    return reject("max tries reached for download, returning")
+                })
+            }
+
+            currentTries += 1
+
+            downloadFileChunk(uuid, region, bucket, index).then((buffer) => {
+                decryptData(buffer, key, version, false, false).then(async (decrypted) => {
+                    await new Promise((resolve) => fs.unlink(destPath, () => resolve()))
+    
+                    const stream = fs.createWriteStream(destPath, {
+                        flags: "w"
+                    })
+    
+                    stream.on("close", () => resolve(destPath))
+    
+                    stream.on("error", (err) => {
+                        console.log(err)
+
+                        return setTimeout(doDownload, triesTimeout)
+                    })
+    
+                    Readable.from([decrypted]).pipe(stream)
+                }).catch((err) => {
+                    console.log(err)
+
+                    return setTimeout(doDownload, triesTimeout)
+                })
+            }).catch((err) => {
+                console.log(err)
+
+                return setTimeout(doDownload, triesTimeout)
+            })
+        }
+
+        doDownload()
+    })
+}
+
+const appendFileToFile = (first, second) => {
+    return new Promise((resolve, reject) => {
+        first = pathModule.normalize(first)
+        second = pathModule.normalize(second)
+
+        Promise.all([
+            new Promise((resolve, reject) => {
+                fs.access(first, (err) => {
+                    if(err){
+                        return reject(err)
+                    }
+
+                    return resolve(true)
+                })
+            }),
+            new Promise((resolve, reject) => {
+                fs.access(second, (err) => {
+                    if(err){
+                        return reject(err)
+                    }
+
+                    return resolve(true)
+                })
+            })
+        ]).then(() => {
+            const w = fs.createWriteStream(first, {
+                flags: "a"
+            })
+
+            const r = fs.createReadStream(second)
+
+            w.on("close", () => resolve(true))
+            w.on("error", (err) => reject(err))
+            r.on("error", (err) => reject(err))
+
+            r.pipe(w)
         }).catch(reject)
     })
 }
@@ -815,6 +1230,79 @@ rn_bridge.channel.on("message", (message) => {
     }
     else if(request.type == "uploadAvatar"){
         uploadAvatar(request.base64, request.url, request.timeout).then((res) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                response: res
+            })
+
+            tasksRunning -= 1
+        }).catch((err) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                err: err.toString()
+            })
+
+            tasksRunning -= 1
+        })
+    }
+    else if(request.type == "encryptAndUploadFileChunk"){
+        encryptAndUploadFileChunk(request.path, request.key, request.queryParams, request.chunkIndex, request.chunkSize).then((res) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                response: res
+            })
+
+            tasksRunning -= 1
+        }).catch((err) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                err: err.toString()
+            })
+
+            tasksRunning -= 1
+        })
+    }
+    else if(request.type == "getDataDir"){
+        try{
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                response: rn_bridge.app.datadir()
+            })
+        }
+        catch(e){
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                err: e.toString()
+            })
+        }
+    }
+    else if(request.type == "appendFileToFile"){
+        appendFileToFile(request.first, request.second).then((res) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                response: res
+            })
+
+            tasksRunning -= 1
+        }).catch((err) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                err: err.toString()
+            })
+
+            tasksRunning -= 1
+        })
+    }
+    else if(request.type == "downloadDecryptAndWriteFileChunk"){
+        downloadDecryptAndWriteFileChunk(request.destPath, request.uuid, request.region, request.bucket, request.index, request.key, request.version).then((res) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,

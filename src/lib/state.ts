@@ -2,6 +2,7 @@ import create from "zustand"
 import { Dimensions } from "react-native"
 import { subscribeWithSelector } from "zustand/middleware"
 import { ScaledSize } from "react-native"
+import { ItemTemplate, Item } from "./services/items"
 
 const window: ScaledSize = Dimensions.get("window")
 const screen: ScaledSize = Dimensions.get("screen")
@@ -9,16 +10,16 @@ const screen: ScaledSize = Dimensions.get("screen")
 export interface State {
 	currentRoutes: any,
 	setCurrentRoutes: (currentRoutes: any) => void,
-	currentActionSheetItem: any,
-	setCurrentActionSheetItem: (currentActionSheetItem: any) => void,
+	currentActionSheetItem: Item | undefined,
+	setCurrentActionSheetItem: (currentActionSheetItem: Item) => void,
 	dimensions: { window: ScaledSize, screen: ScaledSize },
 	setDimensions: (dimensions: { window: ScaledSize, screen: ScaledSize }) => void,
 	navigation: any,
 	setNavigation: (navigation: any) => void,
 	route: any,
 	setRoute: (route: any) => void,
-	currentItems: any[],
-	setCurrentItems: (currentItems: any[]) => void,
+	currentItems: Item[],
+	setCurrentItems: (currentItems: Item[]) => void,
 	itemsSelectedCount: number,
 	setItemsSelectedCount: (itemsSelectedCount: number) => void,
 	fullscreenLoadingModalVisible: boolean,

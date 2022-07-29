@@ -66,8 +66,12 @@ export const getMasterKeys = (): string[] => {
     }
 }
 
-export const getFolderColor = (color: string): string => {
+export const getFolderColor = (color: string | null | undefined): string => {
     const colors = getAvailableFolderColors()
+
+    if(!color){
+        return colors['default']
+    }
 
     if(typeof colors[color] !== "undefined"){
         return colors[color]

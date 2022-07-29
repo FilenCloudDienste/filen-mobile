@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef, memo } from "react"
+import React, { useEffect, useState, useRef, memo } from "react"
 import { View, Text, ScrollView, TouchableHighlight, DeviceEventEmitter, Platform, ActivityIndicator, Switch, TextInput, TouchableOpacity, Share, Alert } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../lib/storage"
@@ -7,12 +7,10 @@ import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 import FastImage from "react-native-fast-image"
 import { getImageForItem } from "../assets/thumbnails"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { pickMultiple, isCancel as DocumentPickerIsCancel, types as DocumentPickerTypes } from "react-native-document-picker"
-import { launchCamera, launchImageLibrary } from "react-native-image-picker"
 import { useStore } from "../lib/state"
-import { queueFileDownload, downloadWholeFileFSStream } from "../lib/download"
-import { getFileExt, getFolderColor, formatBytes, getAvailableFolderColors, getMasterKeys, decryptFolderLinkKey, getParent, getRouteURL, decryptFileMetadata, getFilePreviewType, calcPhotosGridSize, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey, simpleDate } from "../lib/helpers"
-import { queueFileUpload } from "../lib/upload"
+import { queueFileDownload, downloadFile } from "../lib/download"
+import { getRandomArbitrary, convertTimestampToMs, getFileExt, getFolderColor, formatBytes, getAvailableFolderColors, getMasterKeys, decryptFolderLinkKey, getParent, getRouteURL, decryptFileMetadata, getFilePreviewType, calcPhotosGridSize, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey, simpleDate } from "../lib/helpers"
+import { queueFileUpload, UploadFile } from "../lib/upload"
 import { showToast } from "./Toasts"
 import { i18n } from "../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
@@ -28,6 +26,13 @@ import { getColor } from "../lib/style/colors"
 import { navigationAnimation } from "../lib/state"
 import { updateUserInfo } from "../lib/user/info"
 import ReactNativeBlobUtil from "react-native-blob-util"
+import * as DocumentPicker from "expo-document-picker"
+import * as ImagePicker from "expo-image-picker"
+import * as FileSystem from "expo-file-system"
+import * as RNDocumentPicker from "react-native-document-picker"
+import * as RNImagePicker from "react-native-image-picker"
+
+const mimeTypes = require("mime-types")
 
 const THUMBNAIL_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 
@@ -151,7 +156,12 @@ export const BottomBarAddActionSheet = memo(() => {
 					text={i18n(lang, "createFolder")}
 				/>
 				{
-					typeof currentRoutes == "object" && Array.isArray(currentRoutes) && typeof currentRoutes[currentRoutes.length - 1].params == "object" && typeof currentRoutes[currentRoutes.length - 1].params.parent !== "undefined" && currentRoutes[currentRoutes.length - 1].params.parent !== "base" && (
+					typeof currentRoutes == "object"
+					&& Array.isArray(currentRoutes)
+					&& typeof currentRoutes[currentRoutes.length - 1].params == "object"
+					&& typeof currentRoutes[currentRoutes.length - 1].params.parent !== "undefined"
+					&& currentRoutes[currentRoutes.length - 1].params.parent !== "base"
+					&& (
 						<>
 							<ActionButton
 								onPress={async () => {
@@ -170,7 +180,21 @@ export const BottomBarAddActionSheet = memo(() => {
 										hasCameraPermissions().then(() => {
 											storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
 
-											launchCamera({
+											const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
+												return new Promise((resolve, reject) => {
+													ReactNativeBlobUtil.fs.stat(asset.uri?.replace("file://", "") as string).then((info) => {
+														return resolve({
+															path: asset.uri?.replace("file://", "") as string,
+															name: i18n(lang, getFilePreviewType(getFileExt(asset.uri as string)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(asset.uri as string),
+															size: info.size as number,
+															mime: typeof mimeTypes.lookup(asset.uri as string) == "string" ? mimeTypes.lookup(asset.uri as string) : asset.type as string,
+															lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
+														})
+													}).catch(reject)
+												})
+											}
+
+											RNImagePicker.launchCamera({
 												maxWidth: 999999999,
 												maxHeight: 999999999,
 												videoQuality: "high",
@@ -180,12 +204,12 @@ export const BottomBarAddActionSheet = memo(() => {
 												includeExtra: true,
 												saveToPhotos: false,
 												mediaType: "photo"
-											}).then((response) => {
+											}).then(async (response) => {
 												if(response.didCancel){
-													return false
+													return
 												}
 
-												const parent: string = getParent()
+												const parent = getParent()
 
 												if(parent.length < 16){
 													return
@@ -194,31 +218,23 @@ export const BottomBarAddActionSheet = memo(() => {
 												if(response.errorMessage){
 													console.log(response.errorMessage)
 
-													showToast({ message: response.errorMessage.toString() })
-
-													return
+													return showToast({ message: response.errorMessage.toString() })
 												}
 
 												if(response.assets){
 													for(const asset of response.assets){
-														RNFS.stat(decodeURIComponent(asset.uri as string)).then((stat) => {
-															const fileName = decodeURIComponent(asset.fileName || asset.uri?.substring((asset.uri || "").lastIndexOf("/") + 1) || "")
-
-															// @ts-ignore
-															queueFileUpload({
-																pickedFile: {
-																	name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date().toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join("_").split("\\").join("_").split("-").join("_") + "_" + Math.random().toString().slice(3) + "." + getFileExt(fileName),
-																	size: stat.size,
-																	type: asset.type || "",
-																	uri: decodeURIComponent(asset.uri as string)
-																},
-																parent
-															})
-														}).catch((err) => {
-															console.log(err)
+														if(asset.uri){
+															try{
+																const file = await getFileInfo(asset)
 		
-															showToast({ message: err.toString() })
-														})
+																queueFileUpload({ file, parent })
+															}
+															catch(e: any){
+																console.log(e)
+		
+																showToast({ message: e.toString() })
+															}
+														}
 													}
 												}
 											}).catch((err) => {
@@ -240,91 +256,93 @@ export const BottomBarAddActionSheet = memo(() => {
 								icon="camera-outline"
 								text={i18n(lang, "takePhotoAndUpload")}
 							/>
-							{
-								Platform.OS == "ios" && (
-									<ActionButton
-										onPress={async () => {
-											await SheetManager.hide("BottomBarAddActionSheet")
+							<ActionButton
+								onPress={async () => {
+									await SheetManager.hide("BottomBarAddActionSheet")
+	
+									setTimeout(() => {
+										hasPhotoLibraryPermissions().then(() => {
+											hasStoragePermissions().then(() => {
+												storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+
+												const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
+													return new Promise((resolve, reject) => {
+														ReactNativeBlobUtil.fs.stat(asset.uri?.replace("file://", "") as string).then((info) => {
+															return resolve({
+																path: asset.uri?.replace("file://", "") as string,
+																name: i18n(lang, getFilePreviewType(getFileExt(asset.uri as string)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(asset.uri as string),
+																size: info.size as number,
+																mime: typeof mimeTypes.lookup(asset.uri as string) == "string" ? mimeTypes.lookup(asset.uri as string) : asset.type as string,
+																lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
+															})
+														}).catch(reject)
+													})
+												}
+
+												RNImagePicker.launchImageLibrary({
+													mediaType: "mixed",
+													selectionLimit: 100,
+													quality: 1,
+													videoQuality: "high",
+													includeBase64: false,
+													includeExtra: true,
+													maxWidth: 999999999,
+													maxHeight: 999999999
+												}).then(async (response) => {
+													if(response.didCancel){
+														return
+													}
+
+													const parent = getParent()
+	
+													if(parent.length < 16){
+														return
+													}
+
+													if(response.errorMessage){
+														console.log(response.errorMessage)
+
+														return showToast({ message: response.errorMessage.toString() })
+													}
+
+													if(response.assets){
+														for(const asset of response.assets){
+															if(asset.uri){
+																try{
+																	const file = await getFileInfo(asset)
 			
-											setTimeout(() => {
-												hasPhotoLibraryPermissions().then(() => {
-													hasStoragePermissions().then(() => {
-														storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
-
-														launchImageLibrary({
-															mediaType: "mixed",
-															selectionLimit: 25,
-															quality: 1,
-															videoQuality: "high",
-															includeBase64: false,
-															includeExtra: true,
-															maxWidth: 999999999,
-															maxHeight: 999999999
-														}).then((response) => {
-															if(response.didCancel){
-																return false
-															}
-
-															const parent = getParent()
+																	queueFileUpload({ file, parent })
+																}
+																catch(e: any){
+																	console.log(e)
 			
-															if(parent.length < 16){
-																return false
-															}
-
-															if(response.errorMessage){
-																console.log(response.errorMessage)
-
-																return showToast({ message: response.errorMessage.toString() })
-															}
-
-															if(response.assets){
-																for(const asset of response.assets){
-																	RNFS.stat(decodeURIComponent(asset.uri as string)).then((stat) => {
-																		const fileName = decodeURIComponent(asset.fileName || asset.uri?.substring((asset.uri || "").lastIndexOf("/") + 1) || "")
-
-																		// @ts-ignore
-																		queueFileUpload({
-																			pickedFile: {
-																				name: i18n(lang, getFilePreviewType(getFileExt(fileName)) == "image" ? "photo" : "video") + "_" + new Date(asset.timestamp || (+new Date())).toLocaleString().split(" ").join("_").split(",").join("_").split(":").join("_").split(".").join("_").split("/").join("_").split("\\").join("_").split("-").join("_") + "_" + Math.random().toString().slice(3) + "." + getFileExt(fileName),
-																				size: stat.size,
-																				type: asset.type || "",
-																				uri: decodeURIComponent(asset.uri as string)
-																			},
-																			parent
-																		})
-																	}).catch((err) => {
-																		console.log(err)
-					
-																		showToast({ message: err.toString() })
-																	})
+																	showToast({ message: e.toString() })
 																}
 															}
-														}).catch((err) => {
-															if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
-																console.log(err)
-
-																reportError(err, "actionSheets:launchImageLibrary:uploadFromGallery")
-
-																showToast({ message: err.toString() })
-															}
-														})
-													}).catch((err) => {
+														}
+													}
+												}).catch((err) => {
+													if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
 														console.log(err)
 
 														showToast({ message: err.toString() })
-													})
-												}).catch((err) => {
-													console.log(err)
-
-													showToast({ message: err.toString() })
+													}
 												})
-											}, 500)
-										}}
-										icon="image-outline"
-										text={i18n(lang, "uploadFromGallery")}
-									/>
-								)
-							}
+											}).catch((err) => {
+												console.log(err)
+
+												showToast({ message: err.toString() })
+											})
+										}).catch((err) => {
+											console.log(err)
+
+											showToast({ message: err.toString() })
+										})
+									}, 500)
+								}}
+								icon="image-outline"
+								text={i18n(lang, "uploadFromGallery")}
+							/>
 							<ActionButton
 								onPress={async () => {
 									await SheetManager.hide("BottomBarAddActionSheet")
@@ -333,42 +351,54 @@ export const BottomBarAddActionSheet = memo(() => {
 										hasStoragePermissions().then(() => {
 											storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
 
-											pickMultiple({
-												copyTo: "cachesDirectory",
-												type: [DocumentPickerTypes.allFiles]
-											}).then((response) => {
-												const parent = getParent()
-		
-												if(parent.length < 16){
-													return false
-												}
-		
-												for(let i = 0; i < response.length; i++){
-													if(typeof response[i].name == "string" && typeof response[i].uri == "string" && typeof response[i].fileCopyUri == "string"){
-														const copyURL = response[i].fileCopyUri?.split("file:/").join("").split("file://").join("").split("file:").join("")
+											const getFileInfo = (result: RNDocumentPicker.DocumentPickerResponse): Promise<UploadFile> => {
+												return new Promise((resolve, reject) => {
+													const tempPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + new Date().getTime() + "_" + result.name
 
-														if(copyURL){
-															// @ts-ignore
-															queueFileUpload({
-																pickedFile: {
-																	name: response[i].name,
-																	size: response[i].size,
-																	type: response[i].type,
-																	uri: decodeURIComponent(response[i].fileCopyUri?.indexOf("file://") == -1 ? "file:///" + copyURL : copyURL)
-																},
-																parent
+													ReactNativeBlobUtil.fs.stat(result.uri.replace("file://", "")).then((info) => {
+														ReactNativeBlobUtil.fs.cp(result.uri.replace("file://", ""), tempPath).then(() => {
+															return resolve({
+																path: tempPath,
+																name: result.name,
+																size: info.size as number,
+																mime: typeof mimeTypes.lookup(result.name) == "string" ? mimeTypes.lookup(result.name) : result.type,
+																lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
 															})
-														}
+														}).catch(reject)
+													}).catch(reject)
+												})
+											}
+
+											RNDocumentPicker.pickMultiple({
+												mode: "open",
+												allowMultiSelection: true
+											}).then(async (result) => {
+												const parent = getParent()
+			
+												if(parent.length < 16){
+													return
+												}
+
+												for(let i = 0; i < result.length; i++){
+													try{
+														const file = await getFileInfo(result[i])
+
+														queueFileUpload({ file, parent })
+													}
+													catch(e: any){
+														console.log(e)
+
+														showToast({ message: e.toString() })
 													}
 												}
 											}).catch((err) => {
-												if(!DocumentPickerIsCancel(err)){
-													console.log(err)
-
-													reportError(err, "actionSheets:pickMultiple:upload")
-
-													showToast({ message: err.toString() })
+												if(RNDocumentPicker.isCancel(err)){
+													return
 												}
+
+												console.log(err)
+
+												showToast({ message: err.toString() })
 											})
 										}).catch((err) => {
 											console.log(err)
@@ -1313,7 +1343,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 						style={{
 							width: 30,
 							height: 30,
-							marginTop: currentActionSheetItem.type == "folder" ? 1 : 2,
+							marginTop: 1,
 							marginLeft: 2,
 							borderRadius: 5
 						}}
@@ -1345,7 +1375,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 					numberOfLines={1}
 				>
 					{
-						currentActionSheetItem.offline && (
+						typeof currentActionSheetItem.offline == "boolean" && currentActionSheetItem.offline && (
 							<>
 								<Ionicon
 									name="arrow-down-circle"
@@ -1357,7 +1387,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 						)
 					}
 					{
-						currentActionSheetItem.favorited == 1 && (
+						typeof currentActionSheetItem.favorited == "boolean" && currentActionSheetItem.favorited && (
 							<>
 								<Ionicon
 									name="heart"
@@ -1370,7 +1400,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 					}
 					{hideSizes ? formatBytes(0) : formatBytes(currentActionSheetItem.size)}
 					{
-						typeof currentActionSheetItem.sharerEmail == "string" && (
+						typeof currentActionSheetItem.sharerEmail == "string" && currentActionSheetItem.sharerEmail.length > 0 && (
 							<>
 								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
 								<Text>{currentActionSheetItem.sharerEmail}</Text>
@@ -1378,7 +1408,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 						)
 					}
 					{
-						typeof currentActionSheetItem.receiverEmail == "string" && (
+						typeof currentActionSheetItem.receiverEmail == "string" && currentActionSheetItem.receiverEmail.length > 0 && (
 							<>
 								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
 								<Text>{currentActionSheetItem.receiverEmail}</Text>
@@ -1625,9 +1655,7 @@ export const ItemActionSheet = memo(({ navigation, route }: ItemActionSheetProps
 												await SheetManager.hide("ItemActionSheet")
 			
 												hasStoragePermissions().then(() => {
-													downloadWholeFileFSStream({
-														file: currentActionSheetItem
-													}).then((path) => {
+													downloadFile(currentActionSheetItem).then((path) => {
 														RNFS.readFile(path, "utf8").then((data) => {
 															setTextEditorState("edit")
 															setTextEditorParent(currentActionSheetItem.parent)
@@ -1744,7 +1772,7 @@ export const ItemActionSheet = memo(({ navigation, route }: ItemActionSheetProps
 
 												useStore.setState({ fullscreenLoadingModalVisible: true })
 			
-												const value = currentActionSheetItem.favorited == 1 ? 0 : 1
+												const value = currentActionSheetItem.favorited ? 0 : 1
 			
 												favoriteItem({
 													item: currentActionSheetItem,
@@ -1770,7 +1798,7 @@ export const ItemActionSheet = memo(({ navigation, route }: ItemActionSheetProps
 												})
 											}}
 											icon="heart-outline"
-											text={currentActionSheetItem.favorited == 1 ? i18n(lang, "unfavorite") : i18n(lang, "favorite")}
+											text={currentActionSheetItem.favorited ? i18n(lang, "unfavorite") : i18n(lang, "favorite")}
 										/>
 									)
 								}
@@ -2037,7 +2065,7 @@ export const FolderColorActionSheet = memo(() => {
 										DeviceEventEmitter.emit("event", {
 											type: "change-folder-color",
 											data: {
-												uuid: currentActionSheetItem.uuid,
+												uuid: currentActionSheetItem?.uuid,
 												color: prop
 											}
 										})
@@ -2046,7 +2074,7 @@ export const FolderColorActionSheet = memo(() => {
 
 										useStore.setState({ fullscreenLoadingModalVisible: false })
 
-										showToast({ message: i18n(lang, "folderColorChanged", true, ["__NAME__", "__COLOR__"], [currentActionSheetItem.name, i18n(lang, "color_" + prop)]) })
+										showToast({ message: i18n(lang, "folderColorChanged", true, ["__NAME__", "__COLOR__"], [currentActionSheetItem?.name, i18n(lang, "color_" + prop)]) })
 									}).catch((err) => {
 										console.log(err)
 
@@ -2108,6 +2136,10 @@ export const PublicLinkActionSheet = memo(() => {
 	}
 
 	const editLink = (type: boolean = true, downloadButton: string = "enabled", pass: string = "", expire: string = "never"): void => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		setIsLoading(true)
 		setType(type)
 										
@@ -2136,11 +2168,11 @@ export const PublicLinkActionSheet = memo(() => {
 					if(data.linkKey !== "undefined"){
 						setLinkUUID(data.linkUUID)
 						setLinkKey(data.linkKey)
-						setLinkURL("https://filen.io/" + (currentActionSheetItem.type == "file" ? "d" : "f") + "/" + data.linkUUID + "#!" + data.linkKey)
+						setLinkURL("https://filen.io/f/" + data.linkUUID + "#!" + data.linkKey)
 					}
 					else{
 						setLinkUUID(data.linkUUID)
-						setLinkURL("https://filen.io/" + (currentActionSheetItem.type == "file" ? "d" : "f") + "/" + data + "#!" + currentActionSheetItem.key)
+						setLinkURL("https://filen.io/f/" + data + "#!" + currentActionSheetItem.key)
 					}
 				}
 				else{
@@ -2492,7 +2524,7 @@ export const PublicLinkActionSheet = memo(() => {
 											</View>
 										</View>
 										{
-											currentActionSheetItem.type == "file" && (
+											currentActionSheetItem?.type == "file" && (
 												<View
 													style={{
 														width: "100%",

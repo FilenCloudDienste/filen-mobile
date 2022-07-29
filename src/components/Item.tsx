@@ -9,6 +9,7 @@ import { getColor } from "../lib/style/colors"
 import RNFS from "react-native-fs"
 import type { ScaledSize } from "react-native"
 import type { EdgeInsets } from "react-native-safe-area-context"
+import type { Item } from "../lib/services/items"
 
 const isEqual = require("react-fast-compare")
 
@@ -16,7 +17,7 @@ const window = Dimensions.get("window")
 const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 
 export interface ItemBaseProps {
-    item: any,
+    item: Item,
     index: number,
     darkMode: boolean,
     selected: boolean,
@@ -103,7 +104,7 @@ export class ListItem extends Component<ListItemProps> {
                                     style={{
                                         width: 30,
                                         height: 30,
-                                        marginTop: item.type == "folder" ? 1 : 4,
+                                        marginTop: 4,
                                         marginLeft: 2,
                                         borderRadius: 5
                                     }}
@@ -154,7 +155,7 @@ export class ListItem extends Component<ListItemProps> {
                                 numberOfLines={1}
                             >
                                 {
-                                    item.offline && (
+                                    typeof item.offline == "boolean" && item.offline && (
                                         <>
                                             <Ionicon
                                                 name="arrow-down-circle" size={12}
@@ -165,7 +166,7 @@ export class ListItem extends Component<ListItemProps> {
                                     )
                                 }
                                 {
-                                    item.favorited == 1 && (
+                                    typeof item.favorited == "boolean" && item.favorited && (
                                         <>
                                             <Ionicon
                                                 name="heart"
@@ -178,7 +179,7 @@ export class ListItem extends Component<ListItemProps> {
                                 }
                                 {this.props.hideSizes ? formatBytes(0) : formatBytes(item.size)}
                                 {
-                                    typeof item.sharerEmail == "string" && (
+                                    typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && (
                                         <>
                                             <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
                                             <Text>{item.sharerEmail}</Text>
@@ -186,7 +187,7 @@ export class ListItem extends Component<ListItemProps> {
                                     )
                                 }
                                 {
-                                    typeof item.receiverEmail == "string" && (
+                                    typeof item.receiverEmail == "string" && item.receiverEmail.length > 0 && (
                                         <>
                                             <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
                                             <Text>{item.receiverEmail}</Text>
@@ -294,8 +295,8 @@ export class GridItem extends Component<GridItemProps> {
                                     <FastImage 
                                         source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                                         style={{
-                                            width: item.type == "folder" ? 35 : typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
-                                            height: item.type == "folder" ? 35 : typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
+                                            width: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
+                                            height: typeof item.thumbnail !== "undefined" && !this.props.hideThumbnails ? "100%" : 35,
                                             borderTopLeftRadius: 4,
                                             borderTopRightRadius: 4
                                         }}
@@ -309,7 +310,7 @@ export class GridItem extends Component<GridItemProps> {
                                         }}
                                     />
                                     {
-                                        item.favorited == 1 && (
+                                        typeof item.favorited == "boolean" && item.favorited && (
                                             <Ionicon
                                                 name="heart"
                                                 size={19}
@@ -324,7 +325,7 @@ export class GridItem extends Component<GridItemProps> {
                                         )
                                     }
                                     {
-                                        item.offline && (
+                                        typeof item.offline == "boolean" && item.offline && (
                                             <>
                                                 <Ionicon
                                                     name="arrow-down-circle"
@@ -512,7 +513,7 @@ export class PhotosItem extends Component<PhotosItemProps> {
                     calcPhotosGridSize(this.props.photosGridSize) <= 5 && (
                         <>
                             {
-                                item.favorited == 1 && (
+                                item.favorited && (
                                     <Ionicon
                                         name="heart"
                                         size={19}
@@ -595,7 +596,8 @@ export class PhotosItem extends Component<PhotosItemProps> {
 export interface PhotosRangeItemProps extends ItemBaseProps {
     photosRangeItemClick: Function,
     photosGridSize: number,
-    photosRange: string
+    photosRange: string,
+    item: any
 }
 
 export class PhotosRangeItem extends Component<PhotosRangeItemProps> {

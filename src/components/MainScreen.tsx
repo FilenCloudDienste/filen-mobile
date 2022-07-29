@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StackActions, useIsFocused } from "@react-navigation/native"
 import { navigationAnimation } from "../lib/state"
 import type { EdgeInsets } from "react-native-safe-area-context"
+import type { Item } from "../lib/services/items"
 
 export interface MainScreenProps {
     navigation: any,
@@ -26,7 +27,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const [routeURL, setRouteURL] = useState<string>(getRouteURL(route))
     const cachedItemsRef = useRef<string | undefined>(storage.getString("loadItemsCache:" + routeURL)).current
     const cachedItemsParsed = useRef<any>(typeof cachedItemsRef == "string" ? JSON.parse(cachedItemsRef) : []).current
-    const [items, setItems] = useState<any>(Array.isArray(cachedItemsParsed) ? cachedItemsParsed.filter(item => item !== null && typeof item.uuid == "string") : [])
+    const [items, setItems] = useState<Item[]>(Array.isArray(cachedItemsParsed) ? cachedItemsParsed.filter(item => item !== null && typeof item.uuid == "string") : [])
     const [searchTerm, setSearchTerm] = useState<string>("")
     const [loadDone, setLoadDone] = useState<boolean>(typeof cachedItemsRef !== "undefined" ? true : false)
     const setNavigation = useStore(state => state.setNavigation)
@@ -42,18 +43,17 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const [progress, setProgress] = useState<{ itemsDone: number, totalItems: number }>({ itemsDone: 0, totalItems: 1 })
     const selectedCountRef = useRef<number>(0)
     const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
-    const [itemsBeforeSearch, setItemsBeforeSearch] = useState<any>([])
+    const [itemsBeforeSearch, setItemsBeforeSearch] = useState<Item[]>([])
     const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
     const bottomBarHeight = useStore(state => state.bottomBarHeight)
     const topBarHeight = useStore(state => state.topBarHeight)
     const contentHeight = useStore(state => state.contentHeight)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
-    const netInfo = useStore(state => state.netInfo)
     const itemsSortBy = useStore(state => state.itemsSortBy)
     const [initialized, setInitialized] = useState<boolean>(false)
     const isFocused: boolean = useIsFocused()
 
-    const updateItemThumbnail = (item: any, path: string): void => {
+    const updateItemThumbnail = (item: Item, path: string): void => {
         if(typeof path !== "string"){
             return
         }
@@ -63,11 +63,11 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         }
     
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem))
         }
     }
     
-    const selectItem = (item: any): void => {
+    const selectItem = (item: Item): void => {
         if(getRouteURL(route).indexOf("photos") !== -1){
             if(calcPhotosGridSize(photosGridSize) >= 6){
                 return
@@ -75,19 +75,19 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         }
 
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == item.uuid ? {...mapItem, selected: true} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: true} : mapItem))
         }
     }
     
-    const unselectItem = (item: any): void => {
+    const unselectItem = (item: Item): void => {
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == item.uuid ? {...mapItem, selected: false} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: false} : mapItem))
         }
     }
 
     const unselectAllItems = (): void => {
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.selected ? {...mapItem, selected: false} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.selected ? {...mapItem, selected: false} : mapItem))
         }
     }
 
@@ -99,51 +99,51 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         }
 
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => !mapItem.selected ? {...mapItem, selected: true} : mapItem))
+            setItems(items => items.map(mapItem => !mapItem.selected ? {...mapItem, selected: true} : mapItem))
         }
     }
 
     const removeItem = (uuid: string): void => {
         if(isMounted()){
-            setItems((items: any) => items.filter((mapItem: any) => mapItem.uuid !== uuid && mapItem))
+            setItems(items => items.filter(mapItem => mapItem.uuid !== uuid && mapItem))
         }
     }
 
     const markOffline = (uuid: string, value: boolean): void => {
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid ? {...mapItem, offline: value} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, offline: value} : mapItem))
         }
     }
 
     const markFavorite = (uuid: string, value: boolean): void => {
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid ? {...mapItem, favorited: value} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, favorited: value} : mapItem))
         }
     }
 
-    const changeFolderColor = (uuid: string, color: string | null | undefined): void => {
+    const changeFolderColor = (uuid: string, color: string | null): void => {
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, color} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, color} : mapItem))
         }
     }
 
     const changeItemName = (uuid: string, name: string): void => {
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid ? {...mapItem, name} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, name} : mapItem))
         }
     }
 
-    const addItem = (item: any, parent: string): void => {
+    const addItem = (item: Item, parent: string): void => {
         const currentParent: string = getParent(route)
 
         if(isMounted() && (currentParent == parent || (item.offline && parent == "offline"))){
-            setItems((items: any) => sortItems({ items: [...items, item], passedRoute: route }))
+            setItems(items => sortItems({ items: [...items, item], passedRoute: route }))
         }
     }
 
-    const changeWholeItem = (item: any, uuid: string): void => {
+    const changeWholeItem = (item: Item, uuid: string): void => {
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid ? item : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid ? item : mapItem))
         }
     }
 
@@ -157,7 +157,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 
     const updateFolderSize = (uuid: string, size: number): void => {
         if(isMounted()){
-            setItems((items: any) => items.map((mapItem: any) => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, size} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, size} : mapItem))
         }
     }
 
@@ -170,13 +170,15 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                 }
             }
             else{
+                let filtered: Item[] = []
+
                 if(itemsBeforeSearch.length == 0){
                     setItemsBeforeSearch(items)
     
-                    var filtered = items.filter((item: any) => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
+                    filtered = items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
                 }
                 else{
-                    var filtered = itemsBeforeSearch.filter((item: any) => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
+                    filtered = itemsBeforeSearch.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
                 }
     
                 setItems(filtered)

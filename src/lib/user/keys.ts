@@ -4,10 +4,10 @@ import { logout } from "../auth/logout"
 import { getMasterKeys, encryptMetadata, getAPIKey, decryptMetadata } from "../helpers"
 import { showToast } from "../../components/Toasts"
 
-export const updateKeypair = ({ publicKey, privateKey, navigation }) => {
+export const updateKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        let masterKeys = getMasterKeys()
-        let apiKey = getAPIKey()
+        const masterKeys: string[] = getMasterKeys()
+        const apiKey: string = getAPIKey()
 
         if(masterKeys.length == 0){
             logout({ navigation })
@@ -37,16 +37,16 @@ export const updateKeypair = ({ publicKey, privateKey, navigation }) => {
                     return reject(response.message)
                 }
 
-                return resolve()
+                return resolve(true)
             }).catch(reject)
         }).catch(reject)
     })
 }
 
-export const setKeypair = ({ publicKey, privateKey, navigation }) => {
+export const setKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        let masterKeys = getMasterKeys()
-        let apiKey = getAPIKey()
+        const masterKeys: string[] = getMasterKeys()
+        const apiKey: string = getAPIKey()
 
         if(masterKeys.length == 0){
             logout({ navigation })
@@ -70,22 +70,22 @@ export const setKeypair = ({ publicKey, privateKey, navigation }) => {
                     if(response.message.toLowerCase().indexOf("api key not found") !== -1){
                         logout({ navigation })
 
-                        return resolve()
+                        return resolve(true)
                     }
 
                     return reject(response.message)
                 }
     
-                return resolve()
+                return resolve(true)
             }).catch(reject)
         }).catch(reject)
     })
 }
 
-export const updatePublicAndPrivateKey = ({ navigation }) => {
+export const updatePublicAndPrivateKey = ({ navigation }: { navigation: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        let masterKeys = getMasterKeys()
-        let apiKey = getAPIKey()
+        const masterKeys: string[] = getMasterKeys()
+        const apiKey: string = getAPIKey()
 
         if(masterKeys.length == 0){
             logout({ navigation })
@@ -117,7 +117,7 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
 
                 for(let i = 0; i < masterKeys.length; i++){
                     try{
-                        let decrypted = await decryptMetadata(response.data.privateKey, masterKeys[i])
+                        const decrypted = await decryptMetadata(response.data.privateKey, masterKeys[i])
 
                         if(typeof decrypted == "string"){
                             if(decrypted.length > 16){
@@ -144,13 +144,13 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
                     updateKeypair({ publicKey: response.data.publicKey, privateKey, navigation }).then(() => {
                         console.log("User keypair updated.")
 
-                        return resolve()
+                        return resolve(true)
                     }).catch(reject)
                 }
                 else{
                     console.log("Could not decrypt private key.")
 
-                    return resolve()
+                    return resolve(true)
                 }
             }
             else{
@@ -170,7 +170,7 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
 
                         console.log("User keypair generated and updated.")
 
-                        return resolve()
+                        return resolve(true)
                     }).catch(reject)
                 }
                 else{
@@ -181,7 +181,7 @@ export const updatePublicAndPrivateKey = ({ navigation }) => {
     })
 }
 
-export const updateKeys = ({ navigation }) => {
+export const updateKeys = ({ navigation }: { navigation: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         let masterKeys = getMasterKeys()
         let apiKey = getAPIKey()
@@ -211,7 +211,7 @@ export const updateKeys = ({ navigation }) => {
                     return reject(response.message)
                 }
 
-                let newMasterKeys = ""
+                let newMasterKeys: any = ""
 
                 for(let i = 0; i < masterKeys.length; i++){
                     try{
@@ -243,18 +243,22 @@ export const updateKeys = ({ navigation }) => {
                     console.log("Master keys updated.")
 
                     updatePublicAndPrivateKey({ navigation }).then(() => {
-                        return resolve()
+                        return resolve(true)
                     }).catch((err) => {
-                        return resolve()
+                        console.log(err)
+
+                        return resolve(true)
                     })
                 }
                 else{
                     console.log("Could not decrypt master keys.")
 
                     updatePublicAndPrivateKey({ navigation }).then(() => {
-                        return resolve()
+                        return resolve(true)
                     }).catch((err) => {
-                        return resolve()
+                        console.log(err)
+                        
+                        return resolve(true)
                     })
                 }
             }).catch(reject)

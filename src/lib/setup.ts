@@ -3,9 +3,8 @@ import RNFS from "react-native-fs"
 import { apiRequest } from "./api"
 import { getAPIKey } from "./helpers"
 import storage from "./storage"
-import { NavigationContainerRef } from "@react-navigation/native"
 
-const ONLY_DEFAULT_DRIVE_ENABLED = true
+const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 
 export const clearCacheDirectories = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
@@ -35,7 +34,7 @@ export const clearCacheDirectories = (): Promise<boolean> => {
     })
 }
 
-export const setup = ({ navigation }: { navigation: NavigationContainerRef<{}> }): Promise<boolean> => {
+export const setup = ({ navigation }: { navigation: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         clearCacheDirectories().then(() => {
             updateKeys({ navigation }).then(() => {

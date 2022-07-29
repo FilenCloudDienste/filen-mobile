@@ -2,7 +2,7 @@ import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize } from "../api"
 import storage from "../storage"
 import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate } from "../helpers"
 import striptags from "striptags"
-import { downloadWholeFileFSStream, getDownloadPath, queueFileDownload } from "../download"
+import { getDownloadPath, queueFileDownload, downloadFile } from "../download"
 import RNFS from "react-native-fs"
 import { DeviceEventEmitter } from "react-native"
 import { useStore } from "../state"
@@ -20,7 +20,7 @@ const isCheckingThumbnailForItemUUID : any= {}
 
 export interface Item {
     id: string,
-    type: string,
+    type: "folder" | "file",
     uuid: string,
     name: string,
     date: string,
@@ -48,6 +48,38 @@ export interface Item {
     chunks: number,
     thumbnail: string | undefined,
     version: number
+}
+
+export const ItemTemplate: Item = {
+    id: "",
+    type: "file",
+    uuid: "",
+    name: "",
+    date: "",
+    timestamp: 0,
+    lastModified: 0,
+    lastModifiedSort: 0,
+    parent: "",
+    receiverId: 0,
+    receiverEmail: "",
+    sharerId: 0,
+    sharerEmail: "",
+    color: null,
+    favorited: false,
+    isBase: false,
+    isSync: false,
+    isDefault: false,
+    size: 0,
+    selected: false,
+    mime: "",
+    key: "",
+    offline: false,
+    bucket: "",
+    region: "",
+    rm: "",
+    chunks: 0,
+    thumbnail: undefined,
+    version: 0
 }
 
 export interface BuildFolder {
@@ -1291,10 +1323,8 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, callback 
                 catch(e){
                     //console.log(e)
                 }
-    
-                downloadWholeFileFSStream({
-                    file: item
-                }).then((path) => {
+
+                downloadFile(item).then((path) => {
                     ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
                         RNFS.moveFile(compressed.uri, dest).then(() => {
                             storage.set(cacheKey, item.uuid + ".jpg")

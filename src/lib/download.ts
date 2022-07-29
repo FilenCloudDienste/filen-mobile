@@ -1,5 +1,5 @@
 import ReactNativeBlobUtil from "react-native-blob-util"
-import { getDownloadServer, Semaphore, getFileExt } from "./helpers"
+import { getDownloadServer, Semaphore, getFileExt, randomIdUnsafe } from "./helpers"
 import RNFS from "react-native-fs"
 import { Platform, DeviceEventEmitter } from "react-native"
 import { useStore } from "./state"
@@ -11,54 +11,15 @@ import { addItemToOfflineList } from "./services/offline"
 import { getItemOfflinePath } from "./services/offline"
 import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "./setup"
-import pathModule from "react-native-path"
+import * as FileSystem from "expo-file-system"
+import type { Item } from "./services/items"
 
-const cachedGetDownloadPath = {}
 const downloadSemaphore = new Semaphore(3)
-const maxThreads = 32
+const maxThreads = 16
 const downloadThreadsSemaphore = new Semaphore(maxThreads)
 
-export const downloadFileChunk = ({ region, bucket, uuid, index, key, version }) => {
+export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<string> => {
     return new Promise((resolve, reject) => {
-        const maxTries = 1024
-        let tries = 0
-        const triesTimeout = 1000
-        const requestTimeout = 3600000
-
-        const download = async () => {
-            if(tries >= maxTries){
-                return reject(new Error("Max tries reached for download of UUID " + uuid))
-            }
-
-            tries += 1
-
-            try{
-                return resolve(await global.nodeThread.downloadAndDecryptChunk({
-                    url: getDownloadServer() + "/" + region + "/" + bucket + "/" + uuid + "/" + index,
-                    timeout: requestTimeout,
-                    key,
-                    version
-                }))
-            }
-            catch(e){
-                console.log(e)
-
-                return BackgroundTimer.setTimeout(download, triesTimeout)
-            }
-        }
-
-        download()
-    })
-}
-
-export const getDownloadPath = ({ type = "temp" }) => {
-    return new Promise((resolve, reject) => {
-        const cacheKey = Platform.OS + ":" + type
-
-        if(typeof cachedGetDownloadPath[cacheKey] !== "undefined"){
-            return resolve(cachedGetDownloadPath[cacheKey])
-        }
-
         if(Platform.OS == "android"){
             if(type == "temp"){
                 return resolve(RNFS.CachesDirectoryPath + (RNFS.CachesDirectoryPath.slice(-1) == "/" ? "" : "/"))
@@ -68,8 +29,6 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 const path = root + "thumbnailCache"
 
                 RNFS.mkdir(path).then(() => {
-                    cachedGetDownloadPath[cacheKey] = path + "/"
-
                     return resolve(path + "/")
                 }).catch(reject)
             }
@@ -78,8 +37,6 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 const path = root + "offlineFiles"
 
                 RNFS.mkdir(path).then(() => {
-                    cachedGetDownloadPath[cacheKey] = path + "/"
-
                     return resolve(path + "/")
                 }).catch(reject)
             }
@@ -88,13 +45,19 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 const path = root + "misc"
 
                 RNFS.mkdir(path).then(() => {
-                    cachedGetDownloadPath[cacheKey] = path + "/"
-
                     return resolve(path + "/")
                 }).catch(reject)
             }
             else if(type == "download"){
                 return resolve(RNFS.DownloadDirectoryPath + (RNFS.DownloadDirectoryPath.slice(-1) == "/" ? "" : "/"))
+            }
+            else if(type == "node"){
+                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const path = root + "node"
+
+                RNFS.mkdir(path).then(() => {
+                    return resolve(path + "/")
+                }).catch(reject)
             }
         }
         else{
@@ -106,8 +69,6 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 const path = root + "thumbnailCache"
 
                 RNFS.mkdir(path).then(() => {
-                    cachedGetDownloadPath[cacheKey] = path + "/"
-
                     return resolve(path + "/")
                 }).catch(reject)
             }
@@ -116,8 +77,6 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 const path = root + "offlineFiles"
 
                 RNFS.mkdir(path).then(() => {
-                    cachedGetDownloadPath[cacheKey] = path + "/"
-
                     return resolve(path + "/")
                 }).catch(reject)
             }
@@ -126,8 +85,6 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 const path = root + "misc"
 
                 RNFS.mkdir(path).then(() => {
-                    cachedGetDownloadPath[cacheKey] = path + "/"
-
                     return resolve(path + "/")
                 }).catch(reject)
             }
@@ -136,8 +93,6 @@ export const getDownloadPath = ({ type = "temp" }) => {
                 const path = root + "Downloads"
 
                 RNFS.mkdir(path).then(() => {
-                    cachedGetDownloadPath[cacheKey] = path + "/"
-
                     return resolve(path + "/")
                 }).catch(reject)
             }
@@ -145,14 +100,20 @@ export const getDownloadPath = ({ type = "temp" }) => {
     })
 }
 
-export const getItemDownloadName = (path, item) => {
-    return path + item.name + "_" + item.uuid + "." + getFileExt(item.name)
+export interface QueueFileDownload {
+    file: Item,
+    storeOffline?: boolean,
+    optionalCallback?: Function,
+    saveToGalleryCallback?: Function,
+    isOfflineUpdate?: boolean,
+    isPreview?: boolean,
+    showNotification?: boolean
 }
 
-export const queueFileDownload = async ({ file, storeOffline = false, optionalCallback = undefined, saveToGalleryCallback = undefined, isOfflineUpdate = false, isPreview = false, showNotification = false }) => {
+export const queueFileDownload = async ({ file, storeOffline = false, optionalCallback = undefined, saveToGalleryCallback = undefined, isOfflineUpdate = false, isPreview = false, showNotification = false }: QueueFileDownload) => {
     let didStop = false
 
-    const callOptionalCallback = (...args) => {
+    const callOptionalCallback = (...args: any) => {
         if(typeof optionalCallback == "function"){
             optionalCallback(...args)
         }
@@ -220,20 +181,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         return true
     }
 
-    const updateProgress = (chunksDone) => {
-        const currentDownloads = useStore.getState().downloads
-
-        if(typeof currentDownloads[file.uuid] !== "undefined"){
-            currentDownloads[file.uuid].chunksDone = chunksDone
-
-            useStore.setState({
-                downloads: currentDownloads
-            })
-        }
-
-        return true
-    }
-
     const isStopped = () => {
         const currentDownloads = useStore.getState().downloads
 
@@ -296,14 +243,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         console.log(e)
     }
 
-    const filePath = pathModule.normalize(downloadPath + file.name)
+    const filePath = downloadPath + file.name
 
-    downloadWholeFileFSStream({
-        file,
-        progressCallback: (chunksDone) => {
-            updateProgress(chunksDone)
-        }
-    }).then(async (path) => {
+    downloadFile(file).then(async (path) => {
         BackgroundTimer.clearInterval(stopInterval)
 
         if(isPreview){
@@ -493,7 +435,147 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     })
 }
 
-export const downloadWholeFileFSStream = ({ file, path = undefined, progressCallback = undefined, maxChunks = Infinity }) => {
+export const downloadFile = (file: Item): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+        const tmpPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + randomIdUnsafe() + file.uuid + "." + getFileExt(file.name)
+        let currentWriteIndex = 0
+        let didStop = false
+
+        const stopInterval = BackgroundTimer.setInterval(async () => {
+            if(isStopped() && !didStop){
+                didStop = true
+
+                BackgroundTimer.clearInterval(stopInterval)
+            }
+        }, 10)
+
+        const isPaused = () => {
+            const currentDownloads = useStore.getState().downloads
+    
+            if(typeof currentDownloads[file.uuid] == "undefined"){
+                return false
+            }
+    
+            return currentDownloads[file.uuid].paused
+        }
+    
+        const isStopped = () => {
+            const currentDownloads = useStore.getState().downloads
+    
+            if(typeof currentDownloads[file.uuid] == "undefined"){
+                return false
+            }
+    
+            return currentDownloads[file.uuid].stopped
+        }
+
+        const downloadTask = (index: number): Promise<{ index: number, path: string }> => {
+            return new Promise(async (resolve, reject) => {
+                if(isPaused()){
+                    await new Promise((resolve) => {
+                        const wait = BackgroundTimer.setInterval(() => {
+                            if(!isPaused() || isStopped()){
+                                BackgroundTimer.clearInterval(wait)
+    
+                                return resolve(true)
+                            }
+                        }, 10)
+                    })
+                }
+    
+                if(didStop){
+                    return reject("stopped")
+                }
+
+                const destPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + randomIdUnsafe() + file.uuid + "." + index
+
+                global.nodeThread.downloadDecryptAndWriteFileChunk({
+                    destPath,
+                    uuid: file.uuid,
+                    region: file.region,
+                    bucket: file.bucket,
+                    index,
+                    key: file.key,
+                    version: file.version
+                }).then(() => {
+                    return resolve({
+                        index,
+                        path: destPath
+                    })
+                }).catch(reject)
+            })
+        }
+
+        const write = (index: number, path: string) => {
+            if(index !== currentWriteIndex){
+                return BackgroundTimer.setTimeout(() => {
+                    write(index, path)
+                }, 10)
+            }
+
+            if(index == 0){
+                ReactNativeBlobUtil.fs.mv(path, tmpPath).then(() => {
+                    currentWriteIndex += 1
+                }).catch(reject)
+            }
+            else{
+                global.nodeThread.appendFileToFile({
+                    first: tmpPath,
+                    second: path
+                }).then(() => {
+                    currentWriteIndex += 1
+                }).catch(reject)
+            }
+        }
+
+        try{
+            await new Promise((resolve, reject) => {
+                let done = 0
+
+                for(let i = 0; i < file.chunks; i++){
+                    downloadThreadsSemaphore.acquire().then(() => {
+                        downloadTask(i).then(({ index, path }) => {
+                            write(index, path)
+
+                            done += 1
+
+                            downloadThreadsSemaphore.release()
+
+                            if(done >= file.chunks){
+                                return resolve(true)
+                            }
+                        }).catch((err) => {
+                            downloadThreadsSemaphore.release()
+
+                            return reject(err)
+                        })
+                    })
+                }
+            })
+
+            await new Promise((resolve) => {
+                if(currentWriteIndex >= file.chunks){
+                    return resolve(true)
+                }
+
+                const wait = BackgroundTimer.setInterval(() => {
+                    if(currentWriteIndex >= file.chunks){
+                        clearInterval(wait)
+
+                        return resolve(true)
+                    }
+                }, 10)
+            })
+        }
+        catch(e){
+            return reject(e)
+        }
+
+        return resolve(tmpPath)
+    })
+}
+
+/*export const downloadWholeFileFSStream = ({ file, path = undefined, progressCallback = undefined, maxChunks = Infinity }) => {
     return new Promise(async (resolve, reject) => {
         try{
             const fileOfflinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), file)
@@ -697,4 +779,4 @@ export const downloadWholeFileFSStream = ({ file, path = undefined, progressCall
 
         return resolve(path)
     })
-}
+}*/

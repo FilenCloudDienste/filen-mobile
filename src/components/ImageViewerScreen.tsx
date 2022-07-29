@@ -1,4 +1,4 @@
-import React, { useCallback, memo, useEffect, useState, useRef } from "react"
+import React, { memo, useEffect, useState, useRef } from "react"
 import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Animated, Pressable, Dimensions, ScaledSize } from "react-native"
 import { useStore } from "../lib/state"
 import storage from "../lib/storage"
@@ -6,7 +6,7 @@ import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Image from "react-native-fast-image"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
-import { downloadWholeFileFSStream } from "../lib/download"
+import { downloadFile } from "../lib/download"
 import RNFS from "react-native-fs"
 import { navigationAnimation } from "../lib/state"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -95,9 +95,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 
         currentImagePreviewDownloads[image.uuid] = true
 
-        downloadWholeFileFSStream({
-            file: image.file
-        }).then((path) => {
+        downloadFile(image.file).then((path) => {
             delete currentImagePreviewDownloads[image.uuid]
 
             if(!isMounted()){

@@ -13,7 +13,6 @@ import { getDownloadPath } from "../lib/download"
 import { queueFileUpload } from "../lib/upload"
 import getPath from "@flyerhq/react-native-android-uri-path"
 import BackgroundTimer from "react-native-background-timer"
-import pathModule from "react-native-path"
 
 const mime = require("mime-types")
 
@@ -208,7 +207,7 @@ export const MoveToast = memo(({ message }: { message?: string | undefined }) =>
     const currentActionSheetItem = useStore(state => state.currentActionSheetItem) as any
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const initParent = useRef()
+    const initParent = useRef<any>()
     const currentRoutes = useStore(state => state.currentRoutes) as any
     const [currentParent, setCurrentParent] = useState("")
     const [currentRouteURL, setCurrentRouteURL] = useState("")
@@ -586,7 +585,7 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
                                     return false
                                 }
 
-                                const copyFile = (item) => {
+                                const copyFile = (item: any) => {
                                     return new Promise((resolve, reject) => {
                                         getDownloadPath({ type: "temp" }).then((path) => {
                                             path = path + Math.random().toString().slice(2) + "" + Math.random().toString().slice(2)
@@ -603,7 +602,9 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
                                                 }
 
                                                 ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
-                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(() => {
+                                                        return resolve(true)
+                                                    }, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
 
                                                     RNFS.stat(path).then((stat) => {
                                                         if(stat.isDirectory()){
@@ -624,7 +625,9 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
                                             }
                                             else{
                                                 RNFS.copyFile(item, path).then(async () => {
-                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(resolve, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(() => {
+                                                        return resolve(true)
+                                                    }, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
 
                                                     RNFS.stat(path).then((stat) => {
                                                         if(stat.isDirectory()){
@@ -657,7 +660,7 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
                                 }
             
                                 for(let i = 0; i < items.length; i++){
-                                    copyFile(pathModule.normalize(decodeURIComponent(items[i]))).then((copyResult: any) => {
+                                    copyFile(decodeURIComponent(items[i])).then((copyResult: any) => {
                                         const { path, type, size, name } = copyResult
 
                                         // @ts-ignore
@@ -666,7 +669,7 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
                                                 name,
                                                 size,
                                                 type,
-                                                uri: pathModule.normalize(decodeURIComponent(path.indexOf("file://") == -1 ? "file://" + path : path))
+                                                uri: decodeURIComponent(path.indexOf("file://") == -1 ? "file://" + path : path)
                                             },
                                             parent,
                                             clear: Platform.OS == "android" ? false : true
@@ -856,7 +859,7 @@ export const MoveBulkToast = memo(({ message }: { message?: string | undefined }
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const [lang, setLang] = useMMKVString("lang", storage)
     const currentBulkItems = useStore(state => state.currentBulkItems) as any
-    const initParent = useRef()
+    const initParent = useRef<any>()
     const currentRoutes = useStore(state => state.currentRoutes) as any
     const [currentParent, setCurrentParent] = useState("")
     const [currentRouteURL, setCurrentRouteURL] = useState("")
@@ -971,7 +974,7 @@ export const MoveBulkToast = memo(({ message }: { message?: string | undefined }
                         return false
                     }
 
-                    if(parent.length <= 32 && currentBulkItems.filter(item => item.type == "file").length >= 1){
+                    if(parent.length <= 32 && currentBulkItems.filter((item: any) => item.type == "file").length >= 1){
                         showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
                         return false
