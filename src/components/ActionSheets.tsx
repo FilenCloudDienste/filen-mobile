@@ -20,21 +20,17 @@ import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink
 import * as Clipboard from "expo-clipboard"
 import { previewItem } from "../lib/services/items"
 import { removeFromOfflineStorage } from "../lib/services/offline"
-import RNFS from "react-native-fs"
 import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../lib/style/colors"
 import { navigationAnimation } from "../lib/state"
 import { updateUserInfo } from "../lib/user/info"
 import ReactNativeBlobUtil from "react-native-blob-util"
-import * as DocumentPicker from "expo-document-picker"
-import * as ImagePicker from "expo-image-picker"
-import * as FileSystem from "expo-file-system"
 import * as RNDocumentPicker from "react-native-document-picker"
 import * as RNImagePicker from "react-native-image-picker"
 
 const mimeTypes = require("mime-types")
 
-const THUMBNAIL_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
+const THUMBNAIL_BASE_PATH: string = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/thumbnailCache/"
 
 interface ActionButtonProps {
 	onPress: any,
@@ -1656,7 +1652,7 @@ export const ItemActionSheet = memo(({ navigation, route }: ItemActionSheetProps
 			
 												hasStoragePermissions().then(() => {
 													downloadFile(currentActionSheetItem).then((path) => {
-														RNFS.readFile(path, "utf8").then((data) => {
+														ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
 															setTextEditorState("edit")
 															setTextEditorParent(currentActionSheetItem.parent)
 															setCreateTextFileDialogName(currentActionSheetItem.name)
@@ -3177,7 +3173,7 @@ export const ProfilePictureActionSheet = memo(() => {
 	const uploadAvatarImage = (uri: string): void => {
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		RNFS.readFile(uri, "base64").then((base64) => {
+		ReactNativeBlobUtil.fs.readFile(uri, "base64").then((base64) => {
 			ReactNativeBlobUtil.fetch("POST", getAPIServer() + "/v1/user/avatar/upload/" + getAPIKey(), {}, convertUint8ArrayToBinaryString(base64ToArrayBuffer(base64))).then((response) => {
 				const json = response.json()
 
@@ -3237,7 +3233,7 @@ export const ProfilePictureActionSheet = memo(() => {
 							hasCameraPermissions().then(() => {
 								storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
 
-								launchCamera({
+								RNImagePicker.launchCamera({
 									maxWidth: 999999999,
 									maxHeight: 999999999,
 									videoQuality: "low",
@@ -3313,7 +3309,7 @@ export const ProfilePictureActionSheet = memo(() => {
 								hasStoragePermissions().then(() => {
 									storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
 
-									launchImageLibrary({
+									RNImagePicker.launchImageLibrary({
 										mediaType: "photo",
 										selectionLimit: 1,
 										quality: 0.2,

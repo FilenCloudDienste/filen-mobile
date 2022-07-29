@@ -3,7 +3,7 @@ import { getDownloadPath } from "../download"
 import { getFileExt } from "../helpers"
 import { DeviceEventEmitter } from "react-native"
 import { updateLoadItemsCache, removeLoadItemsCache } from "./items"
-import * as FileSystem from "expo-file-system"
+import ReactNativeBlobUtil from "react-native-blob-util"
 
 export const getOfflineList = (): Promise<any[]> => {
     return new Promise((resolve, reject) => {
@@ -177,8 +177,8 @@ export const removeFromOfflineStorage = ({ item }: { item: any }): Promise<boole
             path = getItemOfflinePath(path, item)
 
             try{
-                if((await FileSystem.getInfoAsync(path)).exists){
-                    await FileSystem.deleteAsync(path)
+                if((await ReactNativeBlobUtil.fs.exists(path))){
+                    await ReactNativeBlobUtil.fs.unlink(path)
                 }
             }
             catch(e){

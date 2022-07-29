@@ -1,5 +1,5 @@
 import ReactNativeBlobUtil from "react-native-blob-util"
-import { getDownloadServer, Semaphore, getFileExt, randomIdUnsafe } from "./helpers"
+import { Semaphore, getFileExt, randomIdUnsafe } from "./helpers"
 import RNFS from "react-native-fs"
 import { Platform, DeviceEventEmitter } from "react-native"
 import { useStore } from "./state"
@@ -11,7 +11,6 @@ import { addItemToOfflineList } from "./services/offline"
 import { getItemOfflinePath } from "./services/offline"
 import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "./setup"
-import * as FileSystem from "expo-file-system"
 import type { Item } from "./services/items"
 
 const downloadSemaphore = new Semaphore(3)
@@ -22,79 +21,155 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
     return new Promise((resolve, reject) => {
         if(Platform.OS == "android"){
             if(type == "temp"){
-                return resolve(RNFS.CachesDirectoryPath + (RNFS.CachesDirectoryPath.slice(-1) == "/" ? "" : "/"))
+                return resolve(ReactNativeBlobUtil.fs.dirs.CacheDir + "/")
             }
             else if(type == "thumbnail"){
-                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
                 const path = root + "thumbnailCache"
 
-                RNFS.mkdir(path).then(() => {
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
                     return resolve(path + "/")
-                }).catch(reject)
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
             }
             else if(type == "offline"){
-                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
                 const path = root + "offlineFiles"
 
-                RNFS.mkdir(path).then(() => {
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
                     return resolve(path + "/")
-                }).catch(reject)
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
             }
             else if(type == "misc"){
-                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
                 const path = root + "misc"
 
-                RNFS.mkdir(path).then(() => {
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
                     return resolve(path + "/")
-                }).catch(reject)
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
+            }
+            else if(type == "cachedDownloads"){
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
+                const path = root + "cachedDownloads"
+
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
+                    return resolve(path + "/")
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
             }
             else if(type == "download"){
-                return resolve(RNFS.DownloadDirectoryPath + (RNFS.DownloadDirectoryPath.slice(-1) == "/" ? "" : "/"))
+                return resolve(ReactNativeBlobUtil.fs.dirs.DownloadDir + "/")
             }
             else if(type == "node"){
-                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
                 const path = root + "node"
 
-                RNFS.mkdir(path).then(() => {
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
                     return resolve(path + "/")
-                }).catch(reject)
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
             }
         }
         else{
             if(type == "temp"){
-                return resolve(RNFS.CachesDirectoryPath + (RNFS.CachesDirectoryPath.slice(-1) == "/" ? "" : "/"))
+                return resolve(ReactNativeBlobUtil.fs.dirs.CacheDir + "/")
             }
             else if(type == "thumbnail"){
-                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
                 const path = root + "thumbnailCache"
 
-                RNFS.mkdir(path).then(() => {
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
                     return resolve(path + "/")
-                }).catch(reject)
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
             }
             else if(type == "offline"){
-                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
                 const path = root + "offlineFiles"
 
-                RNFS.mkdir(path).then(() => {
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
                     return resolve(path + "/")
-                }).catch(reject)
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
             }
             else if(type == "misc"){
-                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
                 const path = root + "misc"
 
-                RNFS.mkdir(path).then(() => {
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
                     return resolve(path + "/")
-                }).catch(reject)
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
+            }
+            else if(type == "cachedDownloads"){
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
+                const path = root + "cachedDownloads"
+
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
+                    return resolve(path + "/")
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
             }
             else if(type == "download"){
-                const root = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/")
+                const root = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/"
                 const path = root + "Downloads"
 
-                RNFS.mkdir(path).then(() => {
+                ReactNativeBlobUtil.fs.mkdir(path).then(() => {
                     return resolve(path + "/")
-                }).catch(reject)
+                }).catch((err) => {
+                    if(err.toString().toLowerCase().indexOf("already exists") !== -1){
+                        return resolve(path + "/")
+                    }
+
+                    return reject(err)
+                })
             }
         }
     })
@@ -436,142 +511,217 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 }
 
 export const downloadFile = (file: Item): Promise<string> => {
-    return new Promise(async (resolve, reject) => {
-        const tmpPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + randomIdUnsafe() + file.uuid + "." + getFileExt(file.name)
-        let currentWriteIndex = 0
-        let didStop = false
+    return new Promise((resolve, reject) => {
+        getDownloadPath({ type: "cachedDownloads" }).then(async (cachedDownloadsPath) => {
+            const cachePath = cachedDownloadsPath + file.uuid + "." + getFileExt(file.name)
 
-        const stopInterval = BackgroundTimer.setInterval(async () => {
-            if(isStopped() && !didStop){
-                didStop = true
+            try{
+                if((await ReactNativeBlobUtil.fs.exists(cachePath))){
+                    return resolve(cachePath)
+                }
+            }
+            catch(e){
+                //console.log(e)
+            }
 
+            try{
+                if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
+                    await clearCacheDirectories()
+    
+                    await new Promise((resolve) => BackgroundTimer.setTimeout(() => resolve(true), 5000))
+    
+                    if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
+                        return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
+                    }
+                }
+            }
+            catch(e){
+                return reject(e)
+            }
+
+            DeviceEventEmitter.emit("download", {
+                type: "start",
+                data: file
+            })
+    
+            const tmpPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + randomIdUnsafe() + file.uuid + "." + getFileExt(file.name)
+            let currentWriteIndex = 0
+            let didStop = false
+    
+            const stopInterval = BackgroundTimer.setInterval(async () => {
+                if(isStopped() && !didStop){
+                    didStop = true
+    
+                    BackgroundTimer.clearInterval(stopInterval)
+                }
+            }, 10)
+
+            const cleanup = () => {
                 BackgroundTimer.clearInterval(stopInterval)
-            }
-        }, 10)
 
-        const isPaused = () => {
-            const currentDownloads = useStore.getState().downloads
-    
-            if(typeof currentDownloads[file.uuid] == "undefined"){
-                return false
-            }
-    
-            return currentDownloads[file.uuid].paused
-        }
-    
-        const isStopped = () => {
-            const currentDownloads = useStore.getState().downloads
-    
-            if(typeof currentDownloads[file.uuid] == "undefined"){
-                return false
-            }
-    
-            return currentDownloads[file.uuid].stopped
-        }
-
-        const downloadTask = (index: number): Promise<{ index: number, path: string }> => {
-            return new Promise(async (resolve, reject) => {
-                if(isPaused()){
-                    await new Promise((resolve) => {
-                        const wait = BackgroundTimer.setInterval(() => {
-                            if(!isPaused() || isStopped()){
-                                BackgroundTimer.clearInterval(wait)
-    
-                                return resolve(true)
+                RNFS.readDir(ReactNativeBlobUtil.fs.dirs.CacheDir).then((items) => {
+                    items.forEach((item) => {
+                        if(!item.isDirectory()){
+                            if(item.name.indexOf(file.uuid + ".chunk") !== -1){
+                                ReactNativeBlobUtil.fs.unlink(item.path).catch(console.log)
                             }
-                        }, 10)
+                        }
                     })
-                }
+                }).catch(console.log)
+            }
     
-                if(didStop){
-                    return reject("stopped")
+            const isPaused = () => {
+                const currentDownloads = useStore.getState().downloads
+        
+                if(typeof currentDownloads[file.uuid] == "undefined"){
+                    return false
                 }
-
-                const destPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + randomIdUnsafe() + file.uuid + "." + index
-
-                global.nodeThread.downloadDecryptAndWriteFileChunk({
-                    destPath,
-                    uuid: file.uuid,
-                    region: file.region,
-                    bucket: file.bucket,
-                    index,
-                    key: file.key,
-                    version: file.version
-                }).then(() => {
-                    return resolve({
-                        index,
-                        path: destPath
-                    })
-                }).catch(reject)
-            })
-        }
-
-        const write = (index: number, path: string) => {
-            if(index !== currentWriteIndex){
-                return BackgroundTimer.setTimeout(() => {
-                    write(index, path)
-                }, 10)
+        
+                return currentDownloads[file.uuid].paused
             }
-
-            if(index == 0){
-                ReactNativeBlobUtil.fs.mv(path, tmpPath).then(() => {
-                    currentWriteIndex += 1
-                }).catch(reject)
+        
+            const isStopped = () => {
+                const currentDownloads = useStore.getState().downloads
+        
+                if(typeof currentDownloads[file.uuid] == "undefined"){
+                    return false
+                }
+        
+                return currentDownloads[file.uuid].stopped
             }
-            else{
-                global.nodeThread.appendFileToFile({
-                    first: tmpPath,
-                    second: path
-                }).then(() => {
-                    currentWriteIndex += 1
-                }).catch(reject)
-            }
-        }
-
-        try{
-            await new Promise((resolve, reject) => {
-                let done = 0
-
-                for(let i = 0; i < file.chunks; i++){
-                    downloadThreadsSemaphore.acquire().then(() => {
-                        downloadTask(i).then(({ index, path }) => {
-                            write(index, path)
-
-                            done += 1
-
-                            downloadThreadsSemaphore.release()
-
-                            if(done >= file.chunks){
-                                return resolve(true)
-                            }
-                        }).catch((err) => {
-                            downloadThreadsSemaphore.release()
-
-                            return reject(err)
+    
+            const downloadTask = (index: number): Promise<{ index: number, path: string }> => {
+                return new Promise(async (resolve, reject) => {
+                    if(isPaused()){
+                        await new Promise((resolve) => {
+                            const wait = BackgroundTimer.setInterval(() => {
+                                if(!isPaused() || isStopped()){
+                                    BackgroundTimer.clearInterval(wait)
+        
+                                    return resolve(true)
+                                }
+                            }, 10)
                         })
-                    })
+                    }
+        
+                    if(didStop){
+                        return reject("stopped")
+                    }
+    
+                    const destPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + randomIdUnsafe() + "." + file.uuid + ".chunk." + index
+    
+                    global.nodeThread.downloadDecryptAndWriteFileChunk({
+                        destPath,
+                        uuid: file.uuid,
+                        region: file.region,
+                        bucket: file.bucket,
+                        index,
+                        key: file.key,
+                        version: file.version
+                    }).then(() => {
+                        return resolve({
+                            index,
+                            path: destPath
+                        })
+                    }).catch(reject)
+                })
+            }
+    
+            const write = (index: number, path: string) => {
+                if(index !== currentWriteIndex){
+                    return BackgroundTimer.setTimeout(() => {
+                        write(index, path)
+                    }, 10)
                 }
+    
+                if(index == 0){
+                    ReactNativeBlobUtil.fs.mv(path, tmpPath).then(() => {
+                        currentWriteIndex += 1
+    
+                        ReactNativeBlobUtil.fs.unlink(path).catch(console.log)
+                    }).catch(reject)
+                }
+                else{
+                    global.nodeThread.appendFileToFile({
+                        first: tmpPath,
+                        second: path
+                    }).then(() => {
+                        currentWriteIndex += 1
+    
+                        ReactNativeBlobUtil.fs.unlink(path).catch(console.log)
+                    }).catch(reject)
+                }
+            }
+
+            DeviceEventEmitter.emit("download", {
+                type: "started",
+                data: file
             })
-
-            await new Promise((resolve) => {
-                if(currentWriteIndex >= file.chunks){
-                    return resolve(true)
-                }
-
-                const wait = BackgroundTimer.setInterval(() => {
+    
+            try{
+                await new Promise((resolve, reject) => {
+                    let done = 0
+    
+                    for(let i = 0; i < file.chunks; i++){
+                        downloadThreadsSemaphore.acquire().then(() => {
+                            downloadTask(i).then(({ index, path }) => {
+                                write(index, path)
+    
+                                done += 1
+    
+                                downloadThreadsSemaphore.release()
+    
+                                if(done >= file.chunks){
+                                    return resolve(true)
+                                }
+                            }).catch((err) => {
+                                downloadThreadsSemaphore.release()
+    
+                                return reject(err)
+                            })
+                        })
+                    }
+                })
+    
+                await new Promise((resolve) => {
                     if(currentWriteIndex >= file.chunks){
-                        clearInterval(wait)
-
                         return resolve(true)
                     }
-                }, 10)
-            })
-        }
-        catch(e){
-            return reject(e)
-        }
+    
+                    const wait = BackgroundTimer.setInterval(() => {
+                        if(currentWriteIndex >= file.chunks){
+                            clearInterval(wait)
+    
+                            return resolve(true)
+                        }
+                    }, 10)
+                })
+    
+                if(file.size < ((1024 * 1024) * 64)){
+                    ReactNativeBlobUtil.fs.cp(tmpPath, cachePath).catch(console.log)
+                }
+            }
+            catch(e: any){
+                cleanup()
 
-        return resolve(tmpPath)
+                DeviceEventEmitter.emit("download", {
+                    type: "err",
+                    err: e.toString(),
+                    data: file
+                })
+    
+                return reject(e)
+            }
+
+            DeviceEventEmitter.emit("download", {
+                type: "done",
+                data: file
+            })
+    
+            cleanup()
+    
+            return resolve(tmpPath)
+        }).catch(reject)
     })
 }
 

@@ -3,22 +3,14 @@ import RNFS from "react-native-fs"
 import { apiRequest } from "./api"
 import { getAPIKey } from "./helpers"
 import storage from "./storage"
+import { getDownloadPath } from "./download"
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 
 export const clearCacheDirectories = (): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        RNFS.readDir(RNFS.TemporaryDirectoryPath).then(async (items) => {
-            for(let i = 0; i < items.length; i++){
-                try{
-                    await RNFS.unlink(items[i].path)
-                }
-                catch(e){
-                    //console.log(e)
-                }
-            }
-
-            RNFS.readDir(RNFS.CachesDirectoryPath).then(async (items) => {
+    return new Promise((resolve) => {
+        getDownloadPath({ type: "cachedDownloads" }).then((cachedDownloadsPath) => {
+            RNFS.readDir(RNFS.TemporaryDirectoryPath).then(async (items) => {
                 for(let i = 0; i < items.length; i++){
                     try{
                         await RNFS.unlink(items[i].path)
@@ -28,7 +20,29 @@ export const clearCacheDirectories = (): Promise<boolean> => {
                     }
                 }
     
-                return resolve(true)
+                RNFS.readDir(RNFS.CachesDirectoryPath).then(async (items) => {
+                    for(let i = 0; i < items.length; i++){
+                        try{
+                            await RNFS.unlink(items[i].path)
+                        }
+                        catch(e){
+                            //console.log(e)
+                        }
+                    }
+        
+                    RNFS.readDir(cachedDownloadsPath).then(async (items) => {
+                        for(let i = 0; i < items.length; i++){
+                            try{
+                                await RNFS.unlink(items[i].path)
+                            }
+                            catch(e){
+                                //console.log(e)
+                            }
+                        }
+            
+                        return resolve(true)
+                    }).catch(resolve)
+                }).catch(resolve)
             }).catch(resolve)
         }).catch(resolve)
     })

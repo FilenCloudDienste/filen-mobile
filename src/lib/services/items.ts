@@ -1207,7 +1207,7 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
     })
 }
 
-export const generateItemThumbnail = ({ item, skipInViewCheck = false, callback = undefined }: { item: Item, skipInViewCheck?: boolean, callback?: Function }): any => {
+export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = undefined, callback = undefined }: { item: Item, skipInViewCheck?: boolean, callback?: Function, path?: string }): any => {
     if(typeof item.thumbnail == "string"){
         if(typeof callback == "function"){
             callback(true)
@@ -1299,6 +1299,67 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, callback 
 
     isGeneratingThumbnailForItemUUID[item.uuid] = true
 
+    const generateThumbnail = (path: string, dest: string) => {
+        ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
+            RNFS.moveFile(compressed.uri, dest).then(() => {
+                storage.set(cacheKey, item.uuid + ".jpg")
+                memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
+
+                updateLoadItemsCache({
+                    item,
+                    prop: "thumbnail",
+                    value: item.uuid + ".jpg"
+                }).then(() => {
+                    DeviceEventEmitter.emit("event", {
+                        type: "thumbnail-generated",
+                        data: {
+                            uuid: item.uuid,
+                            path: item.uuid + ".jpg"
+                        }
+                    })
+
+                    delete isGeneratingThumbnailForItemUUID[item.uuid]
+
+                    if(typeof callback == "function"){
+                        callback(null, item.uuid + ".jpg")
+                    }
+    
+                    global.generateThumbnailSemaphore.release()
+                }).catch((err) => {
+                    console.log(err)
+
+                    delete isGeneratingThumbnailForItemUUID[item.uuid]
+
+                    if(typeof callback == "function"){
+                        callback(err)
+                    }
+                    
+                    global.generateThumbnailSemaphore.release()
+                })
+            }).catch((err) => {
+                console.log(err)
+
+                delete isGeneratingThumbnailForItemUUID[item.uuid]
+
+                if(typeof callback == "function"){
+                    callback(err)
+                }
+
+                global.generateThumbnailSemaphore.release()
+            })
+        }).catch((err) => {
+            console.log(err)
+
+            delete isGeneratingThumbnailForItemUUID[item.uuid]
+
+            if(typeof callback == "function"){
+                callback(err)
+            }
+
+            global.generateThumbnailSemaphore.release()
+        })
+    }
+
     global.generateThumbnailSemaphore.acquire().then(() => {
         if(typeof global.visibleItems[item.uuid] == "undefined" && !skipInViewCheck){
             delete isGeneratingThumbnailForItemUUID[item.uuid]
@@ -1324,65 +1385,12 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, callback 
                     //console.log(e)
                 }
 
-                downloadFile(item).then((path) => {
-                    ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
-                        RNFS.moveFile(compressed.uri, dest).then(() => {
-                            storage.set(cacheKey, item.uuid + ".jpg")
-                            memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
+                if(typeof path == "string"){
+                    generateThumbnail(path, dest)
+                }
 
-                            updateLoadItemsCache({
-                                item,
-                                prop: "thumbnail",
-                                value: item.uuid + ".jpg"
-                            }).then(() => {
-                                DeviceEventEmitter.emit("event", {
-                                    type: "thumbnail-generated",
-                                    data: {
-                                        uuid: item.uuid,
-                                        path: item.uuid + ".jpg"
-                                    }
-                                })
-        
-                                delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-                                if(typeof callback == "function"){
-                                    callback(null, item.uuid + ".jpg")
-                                }
-                
-                                global.generateThumbnailSemaphore.release()
-                            }).catch((err) => {
-                                console.log(err)
-        
-                                delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-                                if(typeof callback == "function"){
-                                    callback(err)
-                                }
-                                
-                                global.generateThumbnailSemaphore.release()
-                            })
-                        }).catch((err) => {
-                            console.log(err)
-    
-                            delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-                            if(typeof callback == "function"){
-                                callback(err)
-                            }
-            
-                            global.generateThumbnailSemaphore.release()
-                        })
-                    }).catch((err) => {
-                        console.log(err)
-    
-                        delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-                        if(typeof callback == "function"){
-                            callback(err)
-                        }
-            
-                        global.generateThumbnailSemaphore.release()
-                    })
+                downloadFile(item).then((downloadedPath) => {
+                    generateThumbnail(downloadedPath, dest)
                 }).catch((err) => {
                     console.log(err)
 

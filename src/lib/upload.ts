@@ -122,18 +122,6 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
         uploadSemaphore.release()
     }
 
-    const updateProgress = (chunksDone: number) => {
-        const currentUploads = useStore.getState().uploads
-
-        if(typeof currentUploads[name] !== "undefined"){
-            currentUploads[name].chunksDone = chunksDone
-
-            useStore.setState({
-                uploads: currentUploads
-            })
-        }
-    }
-
     const isPaused = () => {
         const currentUploads = useStore.getState().uploads
 
@@ -265,6 +253,16 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
         })
     }
 
+    DeviceEventEmitter.emit("download", {
+        type: "start",
+        data: item
+    })
+
+    DeviceEventEmitter.emit("download", {
+        type: "started",
+        data: item
+    })
+
     try{
         const res = await upload(0)
 
@@ -342,6 +340,13 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
     }
 
     if(typeof err !== "undefined"){
+        DeviceEventEmitter.emit("download", {
+            type: "err",
+            data: {
+                err: err.toString()
+            }
+        })
+
         BackgroundTimer.clearInterval(stopInterval)
 
         if(err == "stopped"){
@@ -384,6 +389,13 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
     catch(e: any){
         removeFromState()
 
+        DeviceEventEmitter.emit("download", {
+            type: "err",
+            data: {
+                err: e.toString()
+            }
+        })
+
         BackgroundTimer.clearInterval(stopInterval)
 
         showToast({ message: e.toString() })
@@ -421,6 +433,11 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
             lastModified
         },
         masterKeys
+    })
+
+    DeviceEventEmitter.emit("download", {
+        type: "done",
+        data: item
     })
 
     removeFromState()

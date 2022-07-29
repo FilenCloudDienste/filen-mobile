@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from "react"
-import { ActivityIndicator, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, TouchableOpacity, View, DeviceEventEmitter } from "react-native"
 import storage from "../lib/storage"
 import { useMMKVBoolean } from "react-native-mmkv"
 import { StackActions } from "@react-navigation/native"
@@ -7,9 +7,6 @@ import { useStore } from "../lib/state"
 import { navigationAnimation } from "../lib/state"
 // @ts-ignore
 import AnimatedProgressWheel from "react-native-progress-wheel"
-import memoryCache from "../lib/memoryCache"
-
-const isEqual = require("react-fast-compare")
 
 export interface TransfersIndicatorProps {
     navigation: any
@@ -17,24 +14,59 @@ export interface TransfersIndicatorProps {
 
 export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const uploadsCount = useStore(state => Object.keys(state.uploads).length)
-    const downloadsCount = useStore(state => Object.keys(state.downloads).length)
-    const [visible, setVisible] = useState(false)
-    const uploads = useStore(state => state.uploads, (current, next) => !isEqual(current, next))
-    const downloads = useStore(state => state.downloads, (current, next) => !isEqual(current, next))
-    const [progress, setProgress] = useState(0)
+    const [visible, setVisible] = useState<boolean>(false)
+    const [progress, setProgress] = useState<number>(0)
     const currentRoutes = useStore(state => state.currentRoutes)
-    const [currentRouteName, setCurrentRouteName] = useState("")
+    const [currentRouteName, setCurrentRouteName] = useState<string>("")
     const biometricAuthScreenVisible = useStore(state => state.biometricAuthScreenVisible)
+    const [currentUploads, setCurrentUploads] = useState<any>({})
+    const [currentDownloads, setCurrentDownloads] = useState<any>({})
+
+    const calcSpeed = (now: number, started: number, bytes: number): number => {
+        now = new Date().getTime() - 1000
+
+        const secondsDiff: number = ((now - started) / 1000)
+        const bps: number = Math.floor((bytes / secondsDiff) * 1)
+
+        return bps > 0 ? bps : 0
+    }
+
+    const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: number): number => {
+        const elapsed: number = (new Date().getTime() - started)
+        const speed: number = (loadedBytes / (elapsed / 1000))
+        const remaining: number = ((totalBytes - loadedBytes) / speed)
+
+        return remaining > 0 ? remaining : 0
+    }
 
     useEffect(() => {
-        if((uploadsCount + downloadsCount) > 0 && currentRouteName !== "TransfersScreen" && !biometricAuthScreenVisible){
+        if((Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0 && currentRouteName !== "TransfersScreen" && !biometricAuthScreenVisible){
             setVisible(true)
         }
         else{
             setVisible(false)
         }
-    }, [uploadsCount, downloadsCount, currentRouteName, biometricAuthScreenVisible])
+
+        if((Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0){
+            let total = 0
+            let bytes = 0
+
+            for(const prop in currentUploads){
+                bytes += currentUploads[prop].bytes
+                total += currentUploads[prop].size
+            }
+
+            for(const prop in currentDownloads){
+                bytes += currentDownloads[prop].bytes
+                total += currentDownloads[prop].size
+            }
+
+            setProgress((bytes / total) * 100)
+        }
+        else{
+            setProgress(0)
+        }
+    }, [currentUploads, currentDownloads, currentRouteName, biometricAuthScreenVisible])
 
     useEffect(() => {
         if(typeof currentRoutes !== "undefined"){
@@ -45,63 +77,113 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
     }, [currentRoutes])
 
     useEffect(() => {
-        if((uploadsCount + downloadsCount) > 0){
-            const transfers = memoryCache.get("transfers") || {}
-            
-            let chunks = 0
-            let chunksDone = 0
+        const uploadListener = DeviceEventEmitter.addListener("upload", (data) => {
+            const now: number = new Date().getTime()
 
-            for(let prop in uploads){
-                if(typeof transfers['upload:' + uploads[prop].id] == "undefined"){
-                    transfers['upload:' + uploads[prop].id] = uploads[prop]
+            if(data.type == "start"){
+                setCurrentUploads((prev: any) => ({
+                    ...prev,
+                    [data.data.uuid]: {
+                        ...data.data,
+                        started: now,
+                        bytes: 0,
+                        percent: 0,
+                        lastTime: now,
+                        lastBps: 0,
+                        timeLeft: 0,
+                        timestamp: now
+                    }
+                }))
+            }
+            else if(data.type == "started"){
+                setCurrentUploads((prev: any) => ({
+                    ...prev,
+                    [data.data.uuid]: {
+                        ...prev[data.data.uuid],
+                        started: now,
+                        lastTime: now,
+                        timestamp: now
+                    }
+                }))
+            }
+            else if(data.type == "done" || data.type == "err"){
+                setCurrentUploads((prev: any) => Object.keys(prev).filter(key => key !== data.data.uuid).reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {}))
+            }
+        })
+
+        const downloadListener = DeviceEventEmitter.addListener("download", (data) => {
+            const now: number = new Date().getTime()
+
+            if(data.type == "start"){
+                setCurrentDownloads((prev: any) => ({
+                    ...prev,
+                    [data.data.uuid]: {
+                        ...data.data,
+                        started: now,
+                        bytes: 0,
+                        percent: 0,
+                        lastTime: now,
+                        lastBps: 0,
+                        timeLeft: 0,
+                        timestamp: now
+                    }
+                }))
+            }
+            else if(data.type == "started"){
+                setCurrentDownloads((prev: any) => ({
+                    ...prev,
+                    [data.data.uuid]: {
+                        ...prev[data.data.uuid],
+                        started: now,
+                        lastTime: now,
+                        timestamp: now
+                    }
+                }))
+            }
+            else if(data.type == "done" || data.type == "err"){
+                setCurrentDownloads((prev: any) => Object.keys(prev).filter(key => key !== data.data.uuid).reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {}))
+            }
+        })
+
+        const uploadProgressListener = DeviceEventEmitter.addListener("uploadProgress", (data) => {
+            const now: number = new Date().getTime()
+
+            setCurrentUploads((prev: any) => Object.keys(prev).filter(key => key == data.data.uuid).length > 0 ? ({
+                ...prev,
+                [data.data.uuid]: {
+                    ...prev[data.data.uuid],
+                    percent: ((prev[data.data.uuid].bytes + data.data.bytes) / Math.floor((prev[data.data.uuid].size || 0) * 1)) * 100,
+                    lastBps: calcSpeed(now, prev[data.data.uuid].started, (prev[data.data.uuid].bytes + data.data.bytes)),
+                    lastTime: now,
+                    bytes: prev[data.data.uuid].bytes + data.data.bytes,
+                    timeLeft: calcTimeLeft((prev[data.data.uuid].bytes + data.data.bytes), Math.floor((prev[data.data.uuid].size || 0) * 1), prev[data.data.uuid].started)
                 }
-            }
+            }) : prev)
+        })
 
-            for(let prop in downloads){
-                if(typeof transfers['download:' + downloads[prop].id] == "undefined"){
-                    transfers['download:' + downloads[prop].id] = downloads[prop]
+        const downloadProgressListener = DeviceEventEmitter.addListener("downloadProgress", (data) => {
+            const now: number = new Date().getTime()
+
+            setCurrentDownloads((prev: any) => Object.keys(prev).filter(key => key == data.data.uuid).length > 0 ? ({
+                ...prev,
+                [data.data.uuid]: {
+                    ...prev[data.data.uuid],
+                    percent: ((prev[data.data.uuid].bytes + data.data.bytes) / Math.floor((prev[data.data.uuid].size || 0) * 1)) * 100,
+                    lastBps: calcSpeed(now, prev[data.data.uuid].started, (prev[data.data.uuid].bytes + data.data.bytes)),
+                    lastTime: now,
+                    bytes: prev[data.data.uuid].bytes + data.data.bytes,
+                    timeLeft: calcTimeLeft((prev[data.data.uuid].bytes + data.data.bytes), Math.floor((prev[data.data.uuid].size || 0) * 1), prev[data.data.uuid].started)
                 }
-            }
+            }) : prev)
+        })
 
-            memoryCache.set("transfers", transfers)
-
-            for(let prop in transfers){
-                const transferDone = transfers[prop].chunksDone >= transfers[prop].file.chunks ? 1 : 0
-
-                if(!transferDone){
-                    chunks = chunks + transfers[prop].file.chunks
-                    chunksDone = chunksDone + transfers[prop].chunksDone
-                }
-            }
-
-            let prog = Math.round((chunksDone / chunks) * 100)
-
-            if(isNaN(prog)){
-                prog = 0
-            }
-
-            if(prog >= 100){
-                prog = 100
-            }
-
-            setProgress(prog)
+        return () => {
+            uploadListener.remove()
+            downloadListener.remove()
+            uploadProgressListener.remove()
+            downloadProgressListener.remove()
         }
-        else{
-            setProgress(0)
-        }
-    }, [JSON.stringify(uploads), JSON.stringify(downloads), uploadsCount, downloadsCount])
-
-    useEffect(() => {
-        if((uploadsCount + downloadsCount) <= 0){
-            const transfers = memoryCache.get("transfers") || {}
-            
-            for(let prop in transfers){
-                transfers[prop].chunksDone = transfers[prop].file.chunks
-            }
-
-            memoryCache.set("transfers", transfers)
-        }
-    }, [uploadsCount, downloadsCount])
+    }, [])
 
     return (
         <TouchableOpacity
@@ -137,17 +219,13 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
                     ]
                 }}
             >
-                {/*color={progress > 0 ? "#0A84FF" : darkMode ? "#171717" : "lightgray"}
-                    progress={progress}
-                    backgroundColor={darkMode ? "#171717" : "lightgray"}
-                    containerColor={darkMode ? "#171717" : "lightgray"}*/}
                 <AnimatedProgressWheel
                     size={50} 
                     width={4}
-                    color="transparent"
+                    color={isNaN(progress) ? 0 : progress > 0 ? "#0A84FF" : darkMode ? "#171717" : "lightgray"}
                     progress={progress}
-                    backgroundColor="transparent"
-                    containerColor="transparent"
+                    backgroundColor={darkMode ? "#171717" : "lightgray"}
+                    containerColor={darkMode ? "#171717" : "lightgray"}
                 />
                 <ActivityIndicator
                     size="small"
