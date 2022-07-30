@@ -66,6 +66,23 @@ export const getMasterKeys = (): string[] => {
     }
 }
 
+export const calcSpeed = (now: number, started: number, bytes: number): number => {
+    now = new Date().getTime() - 1000
+
+    const secondsDiff: number = ((now - started) / 1000)
+    const bps: number = Math.floor((bytes / secondsDiff) * 1)
+
+    return bps > 0 ? bps : 0
+}
+
+export const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: number): number => {
+    const elapsed: number = (new Date().getTime() - started)
+    const speed: number = (loadedBytes / (elapsed / 1000))
+    const remaining: number = ((totalBytes - loadedBytes) / speed)
+
+    return remaining > 0 ? remaining : 0
+}
+
 export const getFolderColor = (color: string | null | undefined): string => {
     const colors = getAvailableFolderColors()
 

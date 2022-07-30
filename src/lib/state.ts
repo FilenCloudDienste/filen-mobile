@@ -30,6 +30,10 @@ export interface State {
 	setUploads: (uploads: any) => void,
 	downloads: any,
 	setDownloads: (downloads: any) => void,
+	currentUploads: any,
+	setCurrentUploads: (currentUploads: any) => void,
+	currentDownloads: any,
+	setCurrentDownloads: (currentDownloads: any) => void,
 	uploadProgress: any,
 	setUploadProgress: (uploadProgress: any) => void,
 	downloadProgress: any,
@@ -115,7 +119,9 @@ export interface State {
 	imagePreviewModalItems: any[],
 	setImagePreviewModalItems: (imagePreviewModalItems: any[]) => void,
 	imagePreviewModalIndex: number,
-	setImagePreviewModalIndex: (imagePreviewModalIndex: number) => void
+	setImagePreviewModalIndex: (imagePreviewModalIndex: number) => void,
+	finishedTransfers: any[],
+	setFinishedTransfers: (finishedTransfers: any[]) => void
 }
 
 export const useStore = create<State>()(subscribeWithSelector(set => ({
@@ -141,6 +147,10 @@ export const useStore = create<State>()(subscribeWithSelector(set => ({
 	setUploads: (uploads) => set({ uploads }),
 	downloads: {},
 	setDownloads: (downloads) => set({ downloads }),
+	currentUploads: {},
+	setCurrentUploads: (currentUploads) => set({ currentUploads }),
+	currentDownloads: {},
+	setCurrentDownloads: (currentDownloads) => set({ currentDownloads }),
 	uploadProgress: {},
 	setUploadProgress: (uploadProgress) => set({ uploadProgress }),
 	downloadProgress: {},
@@ -226,7 +236,9 @@ export const useStore = create<State>()(subscribeWithSelector(set => ({
 	imagePreviewModalItems: [],
 	setImagePreviewModalItems: (imagePreviewModalItems) => set({ imagePreviewModalItems }),
 	imagePreviewModalIndex: 0,
-	setImagePreviewModalIndex: (imagePreviewModalIndex) => set({ imagePreviewModalIndex })
+	setImagePreviewModalIndex: (imagePreviewModalIndex) => set({ imagePreviewModalIndex }),
+	finishedTransfers: [],
+	setFinishedTransfers: (finishedTransfers) => set({ finishedTransfers })
 })))
 
 export const navigationAnimation = ({ enable = true }): Promise<boolean> => {
