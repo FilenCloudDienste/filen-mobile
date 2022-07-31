@@ -104,15 +104,19 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
 })
 
 export interface OngoingTransfersListProps {
-    uploads: any,
-    downloads: any,
-    currentTransfers: any,
-    setCurrentTransfers: React.Dispatch<React.SetStateAction<any>>
+    currentTransfers: any
 }
 
-export const OngoingTransfersList = memo(({ uploads, downloads, currentTransfers, setCurrentTransfers }: OngoingTransfersListProps) => {
+export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfersListProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
+    const [pausedTransfers, setPausedTransfers] = useState<any>({})
+
+    useEffect(() => {
+        if(currentTransfers.length == 0){
+            setPausedTransfers({})
+        }
+    }, [currentTransfers])
 
     return (
         <FlatList
@@ -124,6 +128,7 @@ export const OngoingTransfersList = memo(({ uploads, downloads, currentTransfers
             numColumns={1}
             renderItem={({ item }) => {
                 const transfer = item
+                const isPaused = typeof pausedTransfers[transfer.uuid] == "boolean" ? pausedTransfers[transfer.uuid] : false
                 
                 return (
                     <View
@@ -149,7 +154,7 @@ export const OngoingTransfersList = memo(({ uploads, downloads, currentTransfers
                             }}
                         >
                             <Ionicon
-                                name={transfer.paused ? "pause-circle-outline" : transfer.transferType == "upload" ? "arrow-up-outline" : "arrow-down-outline"}
+                                name={isPaused ? "pause-circle-outline" : transfer.transferType == "upload" ? "arrow-up-outline" : "arrow-down-outline"}
                                 size={20}
                                 color={darkMode ? "white" : "black"}
                             />
@@ -175,7 +180,7 @@ export const OngoingTransfersList = memo(({ uploads, downloads, currentTransfers
                                 }}
                             >
                                 {
-                                    transfer.percent == 0 ? (
+                                    isPaused ? "" : transfer.percent == 0 ? (
                                         <>{i18n(lang, "queued")}</>
                                     ) : (
                                         <>{isNaN(transfer.percent) ? 0 : transfer.percent.toFixed(2)}%</>
@@ -185,9 +190,12 @@ export const OngoingTransfersList = memo(({ uploads, downloads, currentTransfers
                         </View>
                         <TouchableOpacity
                             onPress={() => {
-                                setCurrentTransfers((prev: any) => prev.map((mapTransfer: any) => mapTransfer.uuid == transfer.uuid ? { ...mapTransfer, paused: !transfer.paused } : mapTransfer))
+                                setPausedTransfers((prev: any) => ({
+                                    ...prev,
+                                    [transfer.uuid]: !isPaused
+                                }))
 
-                                DeviceEventEmitter.emit(transfer.paused ? "resumeTransfer" : "pauseTransfer", transfer.uuid)
+                                DeviceEventEmitter.emit(isPaused ? "resumeTransfer" : "pauseTransfer", transfer.uuid)
                             }}
                         >
                             <Text
@@ -195,7 +203,7 @@ export const OngoingTransfersList = memo(({ uploads, downloads, currentTransfers
                                     color: "#0A84FF"
                                 }}
                             >
-                                {transfer.paused ? i18n(lang, "resume") : i18n(lang, "pause")}
+                                {isPaused ? i18n(lang, "resume") : i18n(lang, "pause")}
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -248,16 +256,13 @@ export const OngoingTransfersList = memo(({ uploads, downloads, currentTransfers
 
 export interface TransfersScreenBodyProps {
     currentTransfers: any,
-    setCurrentTransfers: React.Dispatch<React.SetStateAction<any>>,
-    uploads: any,
-    downloads: any,
     currentUploads: any,
     currentDownloads: any,
     finishedTransfers: any,
     navigation: any,
 }
 
-export const TransfersScreenBody = memo(({ currentTransfers, setCurrentTransfers, uploads, downloads, currentUploads, currentDownloads, finishedTransfers, navigation }: TransfersScreenBodyProps) => {
+export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, currentDownloads, finishedTransfers, navigation }: TransfersScreenBodyProps) => {
     const bottomBarHeight = useStore(state => state.bottomBarHeight)
     const contentHeight = useStore(state => state.contentHeight)
     const dimensions = useStore(state => state.dimensions)
@@ -429,10 +434,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, setCurrentTransfers
                     }}
                 >
                     <OngoingTransfersList
-                        uploads={uploads}
-                        downloads={downloads}
                         currentTransfers={currentTransfers}
-                        setCurrentTransfers={setCurrentTransfers}
                     />
                 </View>
                 <View
@@ -454,8 +456,6 @@ export interface TransfersScreenProps {
 
 export const TransfersScreen = memo(({ navigation }: TransfersScreenProps) => {
     const [currentTransfers, setCurrentTransfers] = useState<any>([])
-    const uploads = useStore(state => state.uploads)
-    const downloads = useStore(state => state.downloads)
     const currentUploads = useStore(state => state.currentUploads)
     const currentDownloads = useStore(state => state.currentDownloads)
     const finishedTransfers = useStore(state => state.finishedTransfers)
@@ -485,9 +485,6 @@ export const TransfersScreen = memo(({ navigation }: TransfersScreenProps) => {
     return (
         <TransfersScreenBody
             currentTransfers={currentTransfers}
-            setCurrentTransfers={setCurrentTransfers}
-            uploads={uploads}
-            downloads={downloads}
             currentUploads={currentUploads}
             currentDownloads={currentDownloads}
             finishedTransfers={finishedTransfers}

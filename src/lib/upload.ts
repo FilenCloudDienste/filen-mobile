@@ -1,7 +1,7 @@
-import { getUploadServer, getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileParentPath, getFileExt, canCompressThumbnail } from "./helpers"
+import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnail, getParent } from "./helpers"
 import RNFS from "react-native-fs"
 import { useStore } from "./state"
-import { markUploadAsDone, checkIfItemParentIsShared, reportError } from "./api"
+import { markUploadAsDone, checkIfItemParentIsShared } from "./api"
 import { showToast } from "../components/Toasts"
 import storage from "./storage"
 import { i18n } from "../i18n/i18n"
@@ -11,8 +11,8 @@ import { getThumbnailCacheKey } from "./services/items"
 import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "./memoryCache"
-import { addItemLoadItemsCache, buildFile } from "./services/items"
 import BackgroundTimer from "react-native-background-timer"
+import { debounce } from "lodash"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -27,7 +27,18 @@ export interface UploadFile {
     lastModified: number
 }
 
+const debouncedListUpdate = debounce(() => {
+    global.fetchItemList({ bypassCache: true, callStack: 0, loadFolderSizes: true }).catch((err: any) => console.log(err))
+}, 1000)
+
 export const queueFileUpload = async ({ file, parent }: { file: UploadFile, parent: string }): Promise<void> => {
+    const masterKeys = getMasterKeys()
+    const apiKey = getAPIKey()
+
+    if(masterKeys.length <= 0){
+        return console.log("master keys !== object")
+    }
+
     const netInfo = useStore.getState().netInfo
 
     if(storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
@@ -71,6 +82,9 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
     let fileChunks = 0
     const expire = "never"
     const lastModified = file.lastModified
+    let paused = false
+    let stopped = false
+    let didStop = false
 
     while(dummyOffset < size){
         fileChunks += 1
@@ -80,125 +94,41 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
     item.chunks = fileChunks
     item.name = name
 
-    let didStop = false
-
-    const addToState = () => {
-        const currentUploads = useStore.getState().uploads
-
-        if(typeof currentUploads[name] == "undefined"){
-            currentUploads[name] = {
-                id: Math.random().toString().slice(3),
-                file: {
-                    name,
-                    size,
-                    mime,
-                    parent,
-                    chunks: fileChunks
-                },
-                chunksDone: 0,
-                progress: 0,
-                loaded: 0,
-                stopped: false,
-                paused: false
-            }
-        
-            useStore.setState({
-                uploads: currentUploads
-            })
-        }
-    }
-
-    const removeFromState = () => {
-        const currentUploads = useStore.getState().uploads
-        
-        if(typeof currentUploads[name] !== "undefined"){
-            delete currentUploads[name]
-
-            useStore.setState({
-                uploads: currentUploads
-            })
-        }
-
-        uploadSemaphore.release()
-    }
-
-    const isPaused = () => {
-        const currentUploads = useStore.getState().uploads
-
-        if(typeof currentUploads[name] == "undefined"){
-            return false
-        }
-
-        return currentUploads[name].paused
-    }
-
-    const isStopped = () => {
-        const currentUploads = useStore.getState().uploads
-
-        if(typeof currentUploads[name] == "undefined"){
-            return false
-        }
-
-        return currentUploads[name].stopped
-    }
-
-    const currentUploads = useStore.getState().uploads
-
-    if(typeof currentUploads[name] !== "undefined"){
-        return
-    }
-
-    addToState()
-
     const stopInterval = BackgroundTimer.setInterval(() => {
-        if(isStopped() && !didStop){
+        if(stopped && !didStop){
             didStop = true
 
             BackgroundTimer.clearInterval(stopInterval)
-
-            removeFromState()
 
             return true
         }
     }, 10)
 
-    await uploadSemaphore.acquire()
-
-    const masterKeys = getMasterKeys()
-    const apiKey = getAPIKey()
-
-    if(masterKeys.length <= 0){
-        removeFromState()
-
-        BackgroundTimer.clearInterval(stopInterval)
-
-        return console.log("master keys !== object")
-    }
-
     try{
-        var uuid = await global.nodeThread.uuidv4()
         var key = await global.nodeThread.generateRandomString({ charLength: 32 })
-        var rm = await global.nodeThread.generateRandomString({ charLength: 32 })
-        var uploadKey = await global.nodeThread.generateRandomString({ charLength: 32 })
-        var nameEnc = await encryptMetadata(name, key)
-        var nameH = await global.nodeThread.hashFn({ string: name.toLowerCase() })
-        var mimeEnc = await encryptMetadata(mime, key)
-        var sizeEnc = await encryptMetadata(size.toString(), key)
-        var metaData = await encryptMetadata(JSON.stringify({
-			name,
-			size,
-			mime,
-			key,
-			lastModified
-		}), masterKeys[masterKeys.length - 1])
+
+        var [uuid, rm, uploadKey, nameEnc, nameH, mimeEnc, sizeEnc, metaData] = await Promise.all([
+            global.nodeThread.uuidv4(),
+            global.nodeThread.generateRandomString({ charLength: 32 }),
+            global.nodeThread.generateRandomString({ charLength: 32 }),
+            encryptMetadata(name, key),
+            global.nodeThread.hashFn({ string: name.toLowerCase() }),
+            encryptMetadata(mime, key),
+            encryptMetadata(size.toString(), key),
+            encryptMetadata(JSON.stringify({
+                name,
+                size,
+                mime,
+                key,
+                lastModified
+            }), masterKeys[masterKeys.length - 1])
+        ])
 
         item.key = key
         item.rm = rm
         item.metadata = metaData
     }
     catch(e){
-        removeFromState()
-
         BackgroundTimer.clearInterval(stopInterval)
 
         return console.log(e)
@@ -206,14 +136,47 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
 
     item.uuid = uuid
 
+    DeviceEventEmitter.emit("upload", {
+        type: "start",
+        data: item
+    })
+
+    await uploadSemaphore.acquire()
+
+    const pauseListener = DeviceEventEmitter.addListener("pauseTransfer", (uuid) => {
+        if(uuid == uuid){
+            paused = true
+        }
+    })
+
+    const resumeListener = DeviceEventEmitter.addListener("resumeTransfer", (uuid) => {
+        if(uuid == uuid){
+            paused = false
+        }
+    })
+
+    const stopListener = DeviceEventEmitter.addListener("stopTransfer", (uuid) => {
+        if(uuid == uuid){
+            stopped = true
+        }
+    })
+
+    const cleanup = () => {
+        uploadSemaphore.release()
+        pauseListener.remove()
+        resumeListener.remove()
+        stopListener.remove()
+        BackgroundTimer.clearInterval(stopInterval)
+    }
+
     let err = undefined
 
     const upload = (index: number): Promise<any> => {
         return new Promise(async (resolve, reject) => {
-            if(isPaused()){
+            if(paused){
                 await new Promise((resolve) => {
                     const wait = BackgroundTimer.setInterval(() => {
-                        if(!isPaused() || isStopped()){
+                        if(!paused || stopped){
                             BackgroundTimer.clearInterval(wait)
 
                             return resolve(true)
@@ -225,8 +188,6 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
             if(didStop){
                 return reject("stopped")
             }
-
-            console.log("UPLOADING", index, file.path)
 
             global.nodeThread.encryptAndUploadFileChunk({
                 path: file.path,
@@ -253,12 +214,7 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
         })
     }
 
-    DeviceEventEmitter.emit("download", {
-        type: "start",
-        data: item
-    })
-
-    DeviceEventEmitter.emit("download", {
+    DeviceEventEmitter.emit("upload", {
         type: "started",
         data: item
     })
@@ -280,7 +236,7 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
     
                 for(let i = 1; i < (fileChunks + 1); i++){
                     uploadThreadsSemaphore.acquire().then(() => {
-                        upload(i).then((response) => {
+                        upload(i).then(() => {
                             done += 1
     
                             uploadThreadsSemaphore.release()
@@ -332,6 +288,14 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
         }
         catch(e: any){
             if(e.toString().toLowerCase().indexOf("already exists") !== -1){
+                cleanup()
+
+                DeviceEventEmitter.emit("upload", {
+                    type: "err",
+                    err: e.toString(),
+                    data: item
+                })
+
                 return
             }
     
@@ -340,28 +304,23 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
     }
 
     if(typeof err !== "undefined"){
-        DeviceEventEmitter.emit("download", {
+        DeviceEventEmitter.emit("upload", {
             type: "err",
-            data: {
-                err: err.toString()
-            }
+            err: err.toString(),
+            data: item
         })
 
-        BackgroundTimer.clearInterval(stopInterval)
+        cleanup()
 
         if(err == "stopped"){
             return
         }
         else if(err.toString().toLowerCase().indexOf("blacklist") !== -1){
-            removeFromState()
-
             showToast({ message: i18n(storage.getString("lang"), "notEnoughRemoteStorage") })
 
             return
         }
         else{
-            removeFromState()
-
             showToast({ message: err.toString() })
 
             return
@@ -387,62 +346,29 @@ export const queueFileUpload = async ({ file, parent }: { file: UploadFile, pare
         })
     }
     catch(e: any){
-        removeFromState()
-
-        DeviceEventEmitter.emit("download", {
+        DeviceEventEmitter.emit("upload", {
             type: "err",
-            data: {
-                err: e.toString()
-            }
+            err: e.toString(),
+            data: item
         })
 
-        BackgroundTimer.clearInterval(stopInterval)
+        cleanup()
 
         showToast({ message: e.toString() })
 
         return
     }
 
-    const newItem = await buildFile({
-        file: {
-            uuid,
-            name,
-            size,
-            mime,
-            key,
-            lastModified,
-            bucket: item.bucket,
-            region: item.region,
-            timestamp: item.timestamp,
-            rm,
-            chunks_size: size,
-            parent,
-            chunks: fileChunks,
-            receiverId: undefined,
-            receiverEmail: undefined,
-            sharerId: undefined,
-            sharerEmail: undefined,
-            version: uploadVersion,
-            favorited: 0
-        },
-        metadata: {
-            name,
-            size,
-            mime,
-            key,
-            lastModified
-        },
-        masterKeys
-    })
-
-    DeviceEventEmitter.emit("download", {
+    DeviceEventEmitter.emit("upload", {
         type: "done",
         data: item
     })
 
-    removeFromState()
+    cleanup()
 
-    BackgroundTimer.clearInterval(stopInterval)
+    if(getParent() == parent){
+        debouncedListUpdate()
+    }
 
     //showToast({ message: i18n(storage.getString("lang"), "fileUploaded", true, ["__NAME__"], [name]) })
 }

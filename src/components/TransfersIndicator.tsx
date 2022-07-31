@@ -122,7 +122,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
         else{
             setProgress(0)
         }
-    }, 1000), [])
+    }, 250), [])
 
     useEffect(() => {
         if((Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0 && currentRouteName !== "TransfersScreen" && !biometricAuthScreenVisible){
