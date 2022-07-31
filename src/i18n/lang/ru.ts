@@ -389,5 +389,6 @@ export const ru: {
     shareIntoAppLimit: "Вы не можете отправить больше __LIMIT__ файлов в приложение одновременно",
     cameraUploadFetchingAssetsFromLocal: "Подготовка локальных объектов",
     cannotShareDirIntoApp: "Вы не можете отправить папку в приложение",
-    alreadyUploadingFile: "__NAME__ уже загружается"
+    alreadyUploadingFile: "__NAME__ уже загружается",
+    publicLink: "Публичная ссылка"
 }
