@@ -389,5 +389,6 @@ export const uk: {
     shareIntoAppLimit: "Ви не можете надіслати більше __LIMIT__ файлів у додаток одночасно",
     cameraUploadFetchingAssetsFromLocal: "Підготовка локальних об'єктів",
     cannotShareDirIntoApp: "Ви не можете надіслати папку в додаток",
-    alreadyUploadingFile: "__NAME__ вже завантажується"
+    alreadyUploadingFile: "__NAME__ вже завантажується",
+    publicLink: "Публічне посилання"
 }
