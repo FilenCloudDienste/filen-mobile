@@ -12,7 +12,9 @@ import NetInfo from "@react-native-community/netinfo"
 import RNFS from "react-native-fs"
 import mimeTypes from "mime-types"
 
-const TIMEOUT = 5000
+const TIMEOUT: number = 5000
+const FAILED: any = {}
+const MAX_FAILED: number = 3
 
 export const disableCameraUpload = (resetFolder: boolean = false): void => {
     const userId = storage.getNumber("userId")
@@ -378,6 +380,13 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                     }).catch((err) => {
                         console.log(err)
 
+                        if(typeof FAILED[assetId] !== "number"){
+                            FAILED[assetId] = 1
+                        }
+                        else{
+                            FAILED[assetId] += 1
+                        }
+
                         return resolve(true)
                     })
                 }).catch((err) => {
@@ -389,7 +398,13 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         }
 
         for(let i = 0; i < assets.length; i++){
-            if(typeof cameraUploadUploadedIds[getAssetId(assets[i])] == "undefined" && maxQueue > currentQueue){
+            const assetId = getAssetId(assets[i])
+
+            if(
+                typeof cameraUploadUploadedIds[assetId] == "undefined"
+                && maxQueue > currentQueue
+                && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED
+            ){
                 currentQueue += 1
 
                 uploads.push(upload(assets[i]))

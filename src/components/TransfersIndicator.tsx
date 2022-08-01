@@ -9,6 +9,7 @@ import { calcSpeed, calcTimeLeft } from "../lib/helpers"
 // @ts-ignore
 import AnimatedProgressWheel from "react-native-progress-wheel"
 import { throttle } from "lodash"
+import memoryCache from "../lib/memoryCache"
 
 export interface TransfersIndicatorProps {
     navigation: any
@@ -186,6 +187,12 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
         })
 
         const downloadListener = DeviceEventEmitter.addListener("download", (data) => {
+            if(memoryCache.has("showDownloadProgress:" + data.data.uuid)){
+                if(!memoryCache.has("showDownloadProgress:" + data.data.uuid)){
+                    return
+                }
+            }
+
             const now: number = new Date().getTime()
 
             if(data.type == "start"){
@@ -243,6 +250,12 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
         })
 
         const downloadProgressListener = DeviceEventEmitter.addListener("downloadProgress", (data) => {
+            if(memoryCache.has("showDownloadProgress:" + data.data.uuid)){
+                if(!memoryCache.has("showDownloadProgress:" + data.data.uuid)){
+                    return
+                }
+            }
+            
             const now: number = new Date().getTime()
 
             setCurrentDownloads((prev: any) => Object.keys(prev).filter(key => key == data.data.uuid).length > 0 ? ({

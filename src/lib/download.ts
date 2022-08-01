@@ -12,6 +12,7 @@ import { getItemOfflinePath } from "./services/offline"
 import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "./setup"
 import type { Item } from "./services/items"
+import memoryCache from "./memoryCache"
 
 const downloadSemaphore = new Semaphore(3)
 const maxThreads = 16
@@ -478,7 +479,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     })
 }
 
-export const downloadFile = (file: Item): Promise<string> => {
+export const downloadFile = (file: Item, showProgress: boolean = true): Promise<string> => {
+    memoryCache.set("showDownloadProgress:" + file.uuid, showProgress)
+
     return new Promise((resolve, reject) => {
         getDownloadPath({ type: "cachedDownloads" }).then(async (cachedDownloadsPath) => {
             const cachePath = cachedDownloadsPath + file.uuid + "." + getFileExt(file.name)

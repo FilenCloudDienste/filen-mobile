@@ -95,7 +95,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 
         currentImagePreviewDownloads[image.uuid] = true
 
-        downloadFile(image.file).then((path) => {
+        downloadFile(image.file, false).then((path) => {
             delete currentImagePreviewDownloads[image.uuid]
 
             if(!isMounted()){
