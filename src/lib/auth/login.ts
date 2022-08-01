@@ -21,7 +21,7 @@ export const generatePasswordAndMasterKeysBasedOnAuthVersion = ({ rawPassword, a
         let derivedPassword = ""
         let derivedMasterKeys = undefined
 
-        if(authVersion == 1){
+        if(authVersion == 1){ //old & deprecated, not in use anymore, just here for backwards compatibility
             try{
                 derivedPassword = await global.nodeThread.hashPassword({ password: rawPassword })
                 derivedMasterKeys = await global.nodeThread.hashFn({ string: rawPassword })

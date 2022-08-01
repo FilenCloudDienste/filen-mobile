@@ -1,8 +1,8 @@
 import storage from "../storage"
-import { queueFileUpload } from "../upload"
+import { queueFileUpload, UploadFile } from "../upload"
 import { Platform } from "react-native"
 import { randomIdUnsafe, promiseAllSettled } from "../helpers"
-import { folderPresent } from "../api"
+import { folderPresent, fileExists } from "../api"
 import BackgroundTimer from "react-native-background-timer"
 import * as MediaLibrary from "expo-media-library"
 import ReactNativeBlobUtil from "react-native-blob-util"
@@ -10,7 +10,7 @@ import * as FileSystem from "expo-file-system"
 import { throttle } from "lodash"
 import NetInfo from "@react-native-community/netinfo"
 import RNFS from "react-native-fs"
-import type { UploadFile } from "../upload"
+import mimeTypes from "mime-types"
 
 const TIMEOUT = 5000
 
@@ -26,6 +26,9 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
     if(resetFolder){
         storage.delete("cameraUploadFolderUUID:" + userId)
         storage.delete("cameraUploadFolderName:" + userId)
+        storage.delete("cameraUploadLastAssets:" + userId)
+        storage.set("cameraUploadUploaded", 0)
+        storage.set("cameraUploadTotal", 0)
     }
 }
 
@@ -33,6 +36,10 @@ export const convertPhAssetToAssetsLibrary = (localId: string, ext: string): str
     const hash = localId.split("/")[0]
 
     return "assets-library://asset/asset." + ext + "?id=" + hash + "&ext=" + ext
+}
+
+export const getAssetId = (asset: MediaLibrary.Asset): string => {
+    return asset.uri.indexOf("ph://") !== -1 && ["photo", "video"].includes(asset.mediaType) ? convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), asset.mediaType == "photo" ? "jpg" : "mov") : asset.uri
 }
 
 export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
@@ -125,15 +132,21 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
     })
 }
 
-export const runCameraUpload = throttle(async (maxQueue: number = 32): Promise<any> => {
+export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: boolean = false): Promise<boolean> => {
     try{
         const isLoggedIn = storage.getBoolean("isLoggedIn")
         const userId = storage.getNumber("userId")
 
         if(!isLoggedIn || userId == 0){
-            return BackgroundTimer.setTimeout(() => {
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
+
+            return true
         }
 
         const cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
@@ -144,35 +157,65 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32): Promise<a
         storage.set("cameraUploadUploaded", Object.keys(cameraUploadUploadedIds).length)
 
         if(!cameraUploadEnabled){
-            return BackgroundTimer.setTimeout(() => {
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
+
+            return true
         }
 
         if(typeof cameraUploadFolderUUID !== "string"){
-            return BackgroundTimer.setTimeout(() => {
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
+
+            return true
         }
 
         if(cameraUploadFolderUUID.length < 32){
-            return BackgroundTimer.setTimeout(() => {
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
+
+            return true
         }
 
         const netInfo = await NetInfo.fetch()
 
         if(!netInfo.isConnected || !netInfo.isInternetReachable){
-            return BackgroundTimer.setTimeout(() => {
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
+
+            return true
         }
 
         if(storage.getBoolean("onlyWifiUploads:" + userId) && netInfo.type !== "wifi"){
-            return BackgroundTimer.setTimeout(() => {
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
+
+            return true
         }
 
         let folderExists = false
@@ -187,9 +230,15 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32): Promise<a
         if(!folderExists){
             disableCameraUpload(true)
 
-            return BackgroundTimer.setTimeout(() => {
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
+
+            return true
         }
 
         const assets = await fetchAssets()
@@ -197,9 +246,15 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32): Promise<a
         storage.set("cameraUploadTotal", assets.length)
 
         if(assets.length == 0){
-            return BackgroundTimer.setTimeout(() => {
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
+
+            return true
         }
 
         let currentQueue = 0
@@ -207,13 +262,90 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32): Promise<a
 
         const upload = (asset: MediaLibrary.Asset): Promise<boolean> => {
             return new Promise((resolve) => {
-                const getFile = (): Promise<UploadFile> => {
-                    return new Promise((resolve, reject) => {
-                        const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
-                        const path = tmp.replace("file://", "")
+                const assetId = getAssetId(asset)
 
-                        if(Platform.OS == "ios"){
-                            if(cameraUploadEnableHeic){
+                const add = (): void => {
+                    const uploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
+    
+                    if(typeof uploadedIds[assetId] == "undefined"){
+                        uploadedIds[assetId] = true
+
+                        storage.set("cameraUploadUploadedIds:" + userId, JSON.stringify(uploadedIds))
+                        storage.set("cameraUploadUploaded", Object.keys(uploadedIds).length)
+                    }
+
+                    return resolve(true)
+                }
+
+                fileExists({
+                    name: asset.filename,
+                    parent: cameraUploadFolderUUID
+                }).then((exists) => {
+                    if(exists.exists){
+                        return add()
+                    }
+
+                    const getFile = (): Promise<UploadFile> => {
+                        return new Promise((resolve, reject) => {
+                            if(Platform.OS == "ios" && asset.uri.indexOf("ph://") !== -1){
+                                if(cameraUploadEnableHeic){
+                                    const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
+                                    const path = tmp.replace("file://", "")
+
+                                    FileSystem.copyAsync({
+                                        from: asset.uri,
+                                        to: tmp
+                                    }).then(() => {
+                                        ReactNativeBlobUtil.fs.stat(path).then((stat) => {
+                                            return resolve({
+                                                path,
+                                                name: asset.filename,
+                                                mime: stat.type || mimeTypes.lookup(tmp),
+                                                size: stat.size,
+                                                lastModified: asset.modificationTime
+                                            })
+                                        }).catch(reject)
+                                    }).catch(reject)
+                                }
+                                else{
+                                    if(asset.mediaType == "photo"){
+                                        const tmp = RNFS.CachesDirectoryPath + randomIdUnsafe() + ".jpg"
+                                        const path = tmp.replace("file://", "")
+
+                                        RNFS.copyAssetsFileIOS(convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), "jpg"), tmp, 0, 0).then(() => {
+                                            ReactNativeBlobUtil.fs.stat(path).then((stat) => {
+                                                return resolve({
+                                                    path,
+                                                    name: asset.filename.indexOf(".") !== -1 ? (asset.filename.split(".").slice(0, -1).join(".") + ".jpg") : asset.filename + ".jpg",
+                                                    mime: stat.type || mimeTypes.lookup(tmp),
+                                                    size: stat.size,
+                                                    lastModified: asset.modificationTime
+                                                })
+                                            }).catch(reject)
+                                        }).catch(reject)
+                                    }
+                                    else{
+                                        const tmp = RNFS.CachesDirectoryPath + randomIdUnsafe() + ".mov"
+                                        const path = tmp.replace("file://", "")
+
+                                        RNFS.copyAssetsVideoIOS(convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), "mov"), tmp).then(() => {
+                                            ReactNativeBlobUtil.fs.stat(path).then((stat) => {
+                                                return resolve({
+                                                    path,
+                                                    name: asset.filename.indexOf(".") !== -1 ? (asset.filename.split(".").slice(0, -1).join(".") + ".mov") : asset.filename + ".mov",
+                                                    mime: stat.type || mimeTypes.lookup(tmp),
+                                                    size: stat.size,
+                                                    lastModified: asset.modificationTime
+                                                })
+                                            }).catch(reject)
+                                        }).catch(reject)
+                                    }
+                                }
+                            }
+                            else{
+                                const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
+                                const path = tmp.replace("file://", "")
+
                                 FileSystem.copyAsync({
                                     from: asset.uri,
                                     to: tmp
@@ -222,76 +354,27 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32): Promise<a
                                         return resolve({
                                             path,
                                             name: asset.filename,
-                                            mime: stat.type,
+                                            mime: stat.type || mimeTypes.lookup(tmp),
                                             size: stat.size,
                                             lastModified: asset.modificationTime
                                         })
                                     }).catch(reject)
                                 }).catch(reject)
                             }
-                            else{
-                                if(asset.mediaType == "photo"){
-                                    RNFS.copyAssetsFileIOS(convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), "jpg"), tmp, 0, 0).then(() => {
-                                        ReactNativeBlobUtil.fs.stat(path).then((stat) => {
-                                            return resolve({
-                                                path,
-                                                name: asset.filename,
-                                                mime: stat.type,
-                                                size: stat.size,
-                                                lastModified: asset.modificationTime
-                                            })
-                                        }).catch(reject)
-                                    }).catch(reject)
-                                }
-                                else{
-                                    RNFS.copyAssetsVideoIOS(convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), "mov"), tmp).then(() => {
-                                        ReactNativeBlobUtil.fs.stat(path).then((stat) => {
-                                            return resolve({
-                                                path,
-                                                name: asset.filename,
-                                                mime: stat.type,
-                                                size: stat.size,
-                                                lastModified: asset.modificationTime
-                                            })
-                                        }).catch(reject)
-                                    }).catch(reject)
-                                }
-                            }
-                        }
-                        else{
-                            FileSystem.copyAsync({
-                                from: asset.uri,
-                                to: tmp
-                            }).then(() => {
-                                ReactNativeBlobUtil.fs.stat(path).then((stat) => {
-                                    return resolve({
-                                        path,
-                                        name: asset.filename,
-                                        mime: stat.type,
-                                        size: stat.size,
-                                        lastModified: asset.modificationTime
-                                    })
-                                }).catch(reject)
-                            }).catch(reject)
-                        }
-                    })
-                }
+                        })
+                    }
 
-                getFile().then((file) => {
-                    queueFileUpload({
-                        file,
-                        parent: cameraUploadFolderUUID
-                    }).then(() => {
-                        const uploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
-    
-                        if(typeof uploadedIds[asset.uri] == "undefined"){
-                            uploadedIds[asset.uri] = true
-    
-                            storage.set("cameraUploadUploadedIds:" + userId, JSON.stringify(uploadedIds))
-                            storage.set("cameraUploadUploaded", Object.keys(uploadedIds).length)
-                        }
+                    getFile().then((file) => {
+                        queueFileUpload({
+                            file,
+                            parent: cameraUploadFolderUUID
+                        }).then(() => {
+                            return add()
+                        }).catch((err) => {
+                            console.log(err)
 
-                        return resolve(true)
+                            return resolve(true)
+                        })
                     }).catch((err) => {
                         console.log(err)
 
@@ -306,7 +389,7 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32): Promise<a
         }
 
         for(let i = 0; i < assets.length; i++){
-            if(typeof cameraUploadUploadedIds[assets[i].uri] == "undefined" && maxQueue > currentQueue){
+            if(typeof cameraUploadUploadedIds[getAssetId(assets[i])] == "undefined" && maxQueue > currentQueue){
                 currentQueue += 1
 
                 uploads.push(upload(assets[i]))
@@ -315,17 +398,39 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32): Promise<a
 
         if(uploads.length > 0){
             await promiseAllSettled(uploads)
+
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
+                runCameraUpload(maxQueue)
+            }, TIMEOUT)
+
+            return true
         }
 
-        return BackgroundTimer.setTimeout(() => {
+        if(runOnce){
+            return true
+        }
+
+        BackgroundTimer.setTimeout(() => {
             runCameraUpload(maxQueue)
         }, TIMEOUT)
+
+        return true
     }
     catch(e){
         console.log(e)
 
-        return BackgroundTimer.setTimeout(() => {
+        if(runOnce){
+            return true
+        }
+
+        BackgroundTimer.setTimeout(() => {
             runCameraUpload(maxQueue)
         }, TIMEOUT)
+
+        return true
     }
 }, TIMEOUT)

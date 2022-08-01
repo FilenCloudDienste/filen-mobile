@@ -150,7 +150,7 @@ const decryptData = (data, key, version, returnBase64 = true, isBase64 = true) =
             encrypted = base64ToArrayBuffer(data)
         }
 
-        if(version == 1){
+        if(version == 1){ //old & deprecated, not in use anymore, just here for backwards compatibility
             const sliced = convertArrayBufferToUtf8String(new Uint8Array(encrypted).slice(0, 16)) + "_" + arrayBufferToBase64(new Uint8Array(encrypted).slice(0, 16))
 
             if(sliced.indexOf("Salted") !== -1){
@@ -436,7 +436,7 @@ const generateKeypair = () => {
     })
 }
 
-const hashPassword = (password) => { //old deprecated
+const hashPassword = (password) => { //old & deprecated, not in use anymore, just here for backwards compatibility
     return CryptoApi.hash("sha512", CryptoApi.hash("sha384", CryptoApi.hash("sha256", CryptoApi.hash("sha1", password)))) + CryptoApi.hash("sha512", CryptoApi.hash("md5", CryptoApi.hash("md4", CryptoApi.hash("md2", (password)))))
 }
 
