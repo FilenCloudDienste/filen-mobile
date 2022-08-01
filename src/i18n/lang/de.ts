@@ -386,5 +386,8 @@ export const de: {
     invalidTwoFactorKey: "Ungültiger Zwei Faktor Authentifizierungsschlüssel",
     startOnCloudScreen: "Start auf dem Cloud-Bildschirm",
     appSetupNotPossible: "Die App konnte nicht initialisiert werden. Vielleicht sind Sie offline?",
-    shareIntoAppLimit: "Sie können keine __LIMIT__ aufeinmal in die Anwendung hochladen"
+    shareIntoAppLimit: "Sie können keine __LIMIT__ aufeinmal in die Anwendung hochladen",
+    cameraUploadEnableHeic: "HEIC/HEIF nicht konvertieren",
+    albums: "Alben",
+    cameraUploadNoAlbumsFound: "Keine Alben gefunden, alle Dateien werden hochgeladen"
 }

@@ -33,8 +33,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const [itemViewMode, setItemViewMode] = useMMKVString("itemViewMode", storage)
     const dimensions = { window: Dimensions.get("window"), screen: Dimensions.get("screen") }
     const [lang, setLang] = useMMKVString("lang", storage)
-    const cameraUploadTotal = useStore(state => state.cameraUploadTotal)
-    const cameraUploadUploaded = useStore(state => state.cameraUploadUploaded)
+    const [cameraUploadTotal, setCameraUploadTotal] = useMMKVNumber("cameraUploadTotal", storage)
+    const [cameraUploadUploaded, setCameraUploadUploaded] = useMMKVNumber("cameraUploadUploaded", storage)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + userId, storage)
     const [scrollDate, setScrollDate] = useState<string>(Array.isArray(items) && items.length > 0 ? calcCameraUploadCurrentDate(items[0].lastModified, items[items.length - 1].lastModified, lang) : "")

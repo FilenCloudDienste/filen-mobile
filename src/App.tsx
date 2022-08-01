@@ -26,7 +26,6 @@ import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, Confirm
 import Toast from "react-native-toast-notifications"
 import NetInfo from "@react-native-community/netinfo"
 import { CameraUploadScreen } from "./components/CameraUploadScreen"
-import { runCameraUpload } from "./lib/services/cameraUpload"
 import { BiometricAuthScreen } from "./components/BiometricAuthScreen"
 import { LanguageScreen } from "./components/LanguageScreen"
 import { SettingsAdvancedScreen } from "./components/SettingsAdvancedScreen"
@@ -48,6 +47,7 @@ import BackgroundTimer from "react-native-background-timer"
 import { setJSExceptionHandler, setNativeExceptionHandler } from "react-native-exception-handler"
 import { reportError } from "./lib/api"
 import ImageViewerScreen from "./components/ImageViewerScreen"
+import { CameraUploadAlbumsScreen } from "./components/CameraUploadAlbumsScreen"
 
 setJSExceptionHandler((err) => {
     reportError(err.toString())
@@ -98,6 +98,9 @@ DeviceEventEmitter.addListener("event", (data) => {
         void checkItemThumbnail({ item: data.item })
     }
 })
+
+storage.set("cameraUploadUploaded", 0)
+storage.set("cameraUploadTotal", 0)
 
 export const App = memo(() => {
     const [isLoggedIn, setIsLoggedIn] = useMMKVBoolean("isLoggedIn", storage)
@@ -211,16 +214,6 @@ export const App = memo(() => {
             }
         }, 1000) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
     }
-
-    useEffect(() => {
-        if(isLoggedIn && cameraUploadEnabled && setupDone){
-            runCameraUpload({
-                maxQueue: 10,
-                runOnce: false,
-                callback: undefined
-            })
-        }
-    }, [isLoggedIn, cameraUploadEnabled, setupDone])
 
     useEffect(() => {
         NetInfo.fetch().then((state) => {
@@ -348,8 +341,6 @@ export const App = memo(() => {
             })
         }
 
-        storage.set("cameraUploadRunning", false)
-
         return () => {
             dimensionsListener.remove()
             shareMenuListener.remove()
@@ -466,6 +457,13 @@ export const App = memo(() => {
                                         }}
                                     />
                                     <Stack.Screen
+                                        name="CameraUploadAlbumsScreen"
+                                        component={CameraUploadAlbumsScreen} 
+                                        options={{
+                                            title: "CameraUploadAlbumsScreen"
+                                        }}
+                                    />
+                                    <Stack.Screen
                                         name="BiometricAuthScreen"
                                         component={BiometricAuthScreen}
                                         options={{
@@ -560,7 +558,7 @@ export const App = memo(() => {
                                 </Stack.Navigator>
                                 <>
                                     {
-                                        setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen", "ChangeEmailPasswordScreen"].includes(currentScreenName) && (
+                                        setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "CameraUploadAlbumsScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen", "ChangeEmailPasswordScreen"].includes(currentScreenName) && (
                                             <View
                                                 style={{
                                                     position: "relative",

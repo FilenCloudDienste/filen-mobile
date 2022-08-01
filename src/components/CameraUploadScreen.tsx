@@ -25,6 +25,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
     const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
     const [cameraUploadFolderName, setCameraUploadFolderName] = useMMKVString("cameraUploadFolderName:" + userId, storage)
     const [hasPermissions, setHasPermissions] = useState<boolean>(false)
+    const [cameraUploadEnableHeic, setCameraUploadEnableHeic] = useMMKVBoolean("cameraUploadEnableHeic:" + userId, storage)
 
     const chooseFolder = (): void => {
         navigationAnimation({ enable: true }).then(() => {
@@ -95,7 +96,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
             >
                 <SettingsGroup>
                     <SettingsButton
-                        // @ts-ignore
                         title={i18n(lang, "enabled")}
                         rightComponent={
                             <Switch
@@ -145,7 +145,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                     {
                         cameraUploadEnabled ? (
                             <SettingsButton
-                                // @ts-ignore
                                 title={i18n(lang, "cameraUploadFolder")}
                                 rightComponent={
                                     <Text style={{
@@ -160,7 +159,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             />
                         ) : (
                             <SettingsButtonLinkHighlight
-                                // @ts-ignore
                                 rightText={typeof cameraUploadFolderUUID == "string" && cameraUploadFolderUUID.length > 16 ? cameraUploadFolderName : i18n(lang, "cameraUploadChooseFolder")}
                                 onPress={() => {
                                     chooseFolder()
@@ -170,7 +168,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                         )
                     }
                     <SettingsButton
-                        // @ts-ignore
                         title={i18n(lang, "cameraUploadIncludeImages")}
                         rightComponent={
                             <Switch
@@ -183,7 +180,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                         }
                     />
                     <SettingsButton
-                        // @ts-ignore
                         title={i18n(lang, "cameraUploadIncludeVideos")}
                         rightComponent={
                             <Switch
@@ -195,10 +191,33 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             />
                         }
                     />
+                    {
+                        Platform.OS == "ios" && (
+                            <SettingsButton
+                                title={i18n(lang, "cameraUploadEnableHeic")}
+                                rightComponent={
+                                    <Switch
+                                        trackColor={getColor(darkMode, "switchTrackColor")}
+                                        thumbColor={cameraUploadEnableHeic ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                                        onValueChange={() => setCameraUploadEnableHeic(!cameraUploadEnableHeic)}
+                                        value={cameraUploadEnableHeic}
+                                    />
+                                }
+                            />
+                        )
+                    }
+                    <SettingsButtonLinkHighlight
+                        onPress={() => {
+                            navigationAnimation({ enable: true }).then(() => {
+                                navigation.dispatch(StackActions.push("CameraUploadAlbumsScreen"))
+                            })
+                        }}
+                        title={i18n(lang, "albums")}
+                    />
                 </SettingsGroup>
                 <SettingsGroup>
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title={i18n(lang, "cameraUploadReset")}
                         onPress={() => {
                             Alert.alert(i18n(lang, "cameraUploadReset"), i18n(lang, "cameraUploadResetInfo"), [

@@ -71,6 +71,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
         && currentScreenName !== "LanguageScreen" 
         && currentScreenName !== "SettingsAdvancedScreen" 
         && currentScreenName !== "CameraUploadScreen" 
+        && currentScreenName !== "CameraUploadAlbumsScreen" 
         && currentScreenName !== "SettingsScreen" 
         && currentScreenName !== "TransfersScreen" 
         && currentScreenName !== "EventsScreen" 
@@ -85,6 +86,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
         || currentScreenName == "SettingsAccountScreen" 
         || currentScreenName == "SettingsAdvancedScreen" 
         || currentScreenName == "CameraUploadScreen" 
+        || currentScreenName == "CameraUploadAlbumsScreen" 
         || currentScreenName == "EventsScreen" 
         || currentScreenName == "EventsInfoScreen" 
         || isTrashScreen

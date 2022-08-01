@@ -354,7 +354,7 @@ export class GridItem extends Component<GridItemProps> {
                                         )
                                     }
                                     {
-                                        item.selected && (
+                                        typeof item.selected == "boolean" && item.selected && (
                                             <>
                                                 <Ionicon
                                                     name="checkmark-circle"
@@ -513,7 +513,7 @@ export class PhotosItem extends Component<PhotosItemProps> {
                     calcPhotosGridSize(this.props.photosGridSize) <= 5 && (
                         <>
                             {
-                                item.favorited && (
+                                typeof item.favorited == "boolean" && item.favorited && (
                                     <Ionicon
                                         name="heart"
                                         size={19}
@@ -528,7 +528,7 @@ export class PhotosItem extends Component<PhotosItemProps> {
                                 )
                             }
                             {
-                                item.offline && (
+                                typeof item.offline == "boolean" && item.offline && (
                                     <>
                                         <Ionicon
                                             name="arrow-down-circle"
@@ -557,7 +557,7 @@ export class PhotosItem extends Component<PhotosItemProps> {
                                 )
                             }
                             {
-                                item.selected && (
+                                typeof item.selected == "boolean" && item.selected && (
                                     <>
                                         <Ionicon
                                             name="checkmark-circle"

@@ -390,5 +390,8 @@ export const en: {
     cameraUploadFetchingAssetsFromLocal: "Preparing local assets",
     cannotShareDirIntoApp: "You cannot share a directory into the app",
     alreadyUploadingFile: "Already uploading __NAME__",
-    publicLink: "Public link"
+    publicLink: "Public link",
+    cameraUploadEnableHeic: "Do not convert HEIC/HEIF",
+    albums: "Albums",
+    cameraUploadNoAlbumsFound: "No albums found, including all assets"
 }
