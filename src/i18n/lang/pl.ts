@@ -387,5 +387,8 @@ export const pl: {
     startOnCloudScreen: "Rozpocznij na ekranie chmury",
     appSetupNotPossible: "Nie można zainicjować aplikacji. Może jesteś w trybie offline?",
     shareIntoAppLimit: "Nie można jednocześnie udostępniać w aplikacji więcej niż __LIMIT__ plików",
-    cameraUploadFetchingAssetsFromLocal: "Przygotowanie zasobów lokalnych"
+    cameraUploadFetchingAssetsFromLocal: "Przygotowanie zasobów lokalnych",
+    cannotShareDirIntoApp: "Nie możesz udostępnić katalogu w aplikacji",
+    alreadyUploadingFile: "__NAME__ już się przesyła",
+    publicLink: "Publiczny link"
 }
