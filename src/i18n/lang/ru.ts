@@ -390,5 +390,8 @@ export const ru: {
     cameraUploadFetchingAssetsFromLocal: "Подготовка локальных объектов",
     cannotShareDirIntoApp: "Вы не можете отправить папку в приложение",
     alreadyUploadingFile: "__NAME__ уже загружается",
-    publicLink: "Публичная ссылка"
+    publicLink: "Публичная ссылка",
+    cameraUploadEnableHeic: "Не конвертировать HEIC/HEIF",
+    albums: "Альбомы",
+    cameraUploadNoAlbumsFound: "Альбомы не найдены, включая все вложения"
 }
