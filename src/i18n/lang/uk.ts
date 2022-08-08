@@ -390,5 +390,8 @@ export const uk: {
     cameraUploadFetchingAssetsFromLocal: "Підготовка локальних об'єктів",
     cannotShareDirIntoApp: "Ви не можете надіслати папку в додаток",
     alreadyUploadingFile: "__NAME__ вже завантажується",
-    publicLink: "Публічне посилання"
+    publicLink: "Публічне посилання",
+    cameraUploadEnableHeic: "Не конвертувати HEIC/HEIF",
+    albums: "Альбоми",
+    cameraUploadNoAlbumsFound: "Альбоми не знайдені, включаючи всі вкладення"
 }
