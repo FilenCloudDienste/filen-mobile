@@ -188,7 +188,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 
         const downloadListener = DeviceEventEmitter.addListener("download", (data) => {
             if(memoryCache.has("showDownloadProgress:" + data.data.uuid)){
-                if(!memoryCache.has("showDownloadProgress:" + data.data.uuid)){
+                if(!memoryCache.get("showDownloadProgress:" + data.data.uuid)){
                     return
                 }
             }
@@ -251,7 +251,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 
         const downloadProgressListener = DeviceEventEmitter.addListener("downloadProgress", (data) => {
             if(memoryCache.has("showDownloadProgress:" + data.data.uuid)){
-                if(!memoryCache.has("showDownloadProgress:" + data.data.uuid)){
+                if(!memoryCache.get("showDownloadProgress:" + data.data.uuid)){
                     return
                 }
             }
