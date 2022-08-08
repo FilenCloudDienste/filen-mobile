@@ -40,7 +40,6 @@ yarn-error.log
 buck-out/
 \.buckd/
 *.keystore
-!debug.keystore
 
 # fastlane
 #
@@ -167,7 +166,7 @@ buck-out
 .gradle
 local.properties
 *.iml
-/android/
+#/android/
 
 # Node
 node_modules
@@ -291,7 +290,6 @@ yarn-error.log
 buck-out/
 \.buckd/
 *.keystore
-!debug.keystore
 
 # Bundle artifacts
 *.jsbundle
