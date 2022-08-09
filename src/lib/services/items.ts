@@ -1,6 +1,6 @@
 import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize } from "../api"
 import storage from "../storage"
-import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate } from "../helpers"
+import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate, convertTimestampToMs } from "../helpers"
 import striptags from "striptags"
 import { getDownloadPath, queueFileDownload, downloadFile } from "../download"
 import RNFS from "react-native-fs"
@@ -116,15 +116,17 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
         }
     }
 
+    const folderLastModified = convertTimestampToMs(folder.timestamp)
+
     return {
         id: folder.uuid,
         type: "folder",
         uuid: folder.uuid,
         name: striptags(name),
-        date: simpleDate(folder.timestamp),
+        date: simpleDate(folderLastModified),
         timestamp: folder.timestamp,
-        lastModified: folder.timestamp,
-        lastModifiedSort: parseFloat(folder.timestamp + "." + folder.uuid.replace(/\D/g, "")),
+        lastModified: folderLastModified,
+        lastModifiedSort: parseFloat(folderLastModified + "." + folder.uuid.replace(/\D/g, "")),
         parent: folder.parent || "base",
         receiverId: typeof folder.receiverId == "number" ? folder.receiverId : 0,
         receiverEmail: typeof folder.receiverEmail == "string" ? folder.receiverEmail : "",
@@ -209,6 +211,8 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
         }
     }
 
+    const fileLastModified = typeof metadata.lastModified == "number" ? convertTimestampToMs(metadata.lastModified) : convertTimestampToMs(file.timestamp)
+
     return {
         id: file.uuid,
         type: "file",
@@ -217,14 +221,14 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
         mime: metadata.mime,
         size: typeof file.size == "number" ? file.size : typeof file.chunks_size == "number" ? file.chunks_size : 0,
         key: metadata.key,
-        lastModified: parseInt(typeof metadata.lastModified == "number" ? metadata.lastModified : file.timestamp),
-        lastModifiedSort: parseFloat(typeof metadata.lastModified == "number" ? metadata.lastModified + "." + file.uuid.replace(/\D/g, "") : file.timestamp + "." + file.uuid.replace(/\D/g, "")),
+        lastModified: fileLastModified,
+        lastModifiedSort: parseFloat(fileLastModified + "." + file.uuid.replace(/\D/g, "")),
         bucket: file.bucket,
         region: file.region,
         parent: file.parent || "base",
         rm: file.rm,
         chunks: file.chunks,
-        date: typeof metadata.lastModified == "number" && metadata.lastModified > 0 ? simpleDate(metadata.lastModified) : simpleDate(file.timestamp),
+        date: simpleDate(fileLastModified),
         timestamp: file.timestamp,
         receiverId: typeof file.receiverId == "number" ? file.receiverId : 0,
         receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,

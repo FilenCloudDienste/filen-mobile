@@ -614,8 +614,8 @@ export function convertUint8ArrayToBinaryString(u8Array: Uint8Array | ArrayBuffe
 }
 
 export const calcCameraUploadCurrentDate = (from: number, to: number, lang: string = "en"): string => {
-    const fromDate = new Date(from * 1000)
-    const toDate = new Date(to * 1000)
+    const fromDate = new Date(convertTimestampToMs(from))
+    const toDate = new Date(convertTimestampToMs(to))
     const fromMonth = fromDate.getMonth()
     const toMonth = toDate.getMonth()
     const fromYear = fromDate.getFullYear()
