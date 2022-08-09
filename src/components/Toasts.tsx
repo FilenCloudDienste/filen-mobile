@@ -13,14 +13,13 @@ import { getDownloadPath } from "../lib/download"
 import { queueFileUpload } from "../lib/upload"
 import getPath from "@flyerhq/react-native-android-uri-path"
 import BackgroundTimer from "react-native-background-timer"
+import mime from "mime-types"
 
-const mime = require("mime-types")
-
-let moveToastId = undefined
-let uploadToastId = undefined
-let cameraUploadChooseFolderToastId = undefined
-const toastQueueLimit = 3
-let currentToastQueue = 0
+let moveToastId: any = undefined
+let uploadToastId: any = undefined
+let cameraUploadChooseFolderToastId: any = undefined
+const toastQueueLimit: number = 3
+let currentToastQueue: number = 0
 
 export interface ShowToast {
     type?: string,
@@ -190,12 +189,16 @@ export const NormalToast = memo(({ message }: { message?: string | undefined }) 
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
     return (
-        <View pointerEvents="box-none" style={{
-            zIndex: 99999
-        }}>
-            <Text style={{
-                color: darkMode ? "white" : "black"
-            }}>
+        <View
+            pointerEvents="box-none" style={{
+                zIndex: 99999
+            }}
+        >
+            <Text
+                style={{
+                    color: darkMode ? "white" : "black"
+                }}
+            >
                 {message}
             </Text>
         </View>
@@ -232,156 +235,181 @@ export const MoveToast = memo(({ message }: { message?: string | undefined }) =>
     }, [])
 
     return (
-        <View style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            width: "100%",
-            height: "100%",
-            zIndex: 99999
-        }}>
-            <View style={{
-                width: "50%"
-            }}>
-                <Text style={{
-                    color: "white"
-                }} numberOfLines={1}>
+        <View
+            style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+                height: "100%",
+                zIndex: 99999
+            }}
+        >
+            <View
+                style={{
+                    width: "50%"
+                }}
+            >
+                <Text
+                    style={{
+                        color: "white"
+                    }}
+                    numberOfLines={1}
+                >
                     {message}
                 </Text>
             </View>
-            <View style={{
-                flexDirection: "row",
-                height: "100%"
-            }}>
-                <TouchableOpacity hitSlop={{
-                    right: 20,
-                    left: 20,
-                    top: 10,
-                    bottom: 10
-                }} style={{
-                    borderStartColor: "red",
+            <View 
+                style={{
+                    flexDirection: "row",
                     height: "100%"
-                }} onPress={() => {
-                    if(buttonsDisabled){
-                        return false
-                    }
+                }}
+            >
+                <TouchableOpacity
+                    hitSlop={{
+                        right: 20,
+                        left: 20,
+                        top: 10,
+                        bottom: 10
+                    }}
+                    style={{
+                        borderStartColor: "red",
+                        height: "100%"
+                    }}
+                    onPress={() => {
+                        if(buttonsDisabled){
+                            return false
+                        }
 
-                    hideAllToasts()
-                }}>
-                    <Text style={{
-                        color: "white",
-                        fontWeight: "bold"
-                    }}>
+                        hideAllToasts()
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: "white",
+                            fontWeight: "bold"
+                        }}
+                    >
                         {i18n(lang, "cancel")}
                     </Text>
                 </TouchableOpacity>
-                <TouchableOpacity hitSlop={{
-                    right: 20,
-                    left: 20,
-                    top: 10,
-                    bottom: 10
-                }} style={{
-                    marginLeft: 20
-                }} onPress={() => {
-                    if(buttonsDisabled){
-                        return false
-                    }
+                <TouchableOpacity
+                    hitSlop={{
+                        right: 20,
+                        left: 20,
+                        top: 10,
+                        bottom: 10
+                    }}
+                    style={{
+                        marginLeft: 20
+                    }}
+                    onPress={() => {
+                        if(buttonsDisabled){
+                            return false
+                        }
 
-                    if(
-                        currentRouteURL.indexOf("shared-in") !== -1 ||
-                        currentRouteURL.indexOf("recents") !== -1 ||
-                        currentRouteURL.indexOf("trash") !== -1 ||
-                        currentRouteURL.indexOf("photos") !== -1 ||
-                        currentRouteURL.indexOf("offline") !== -1
-                    ){
-                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+                        if(
+                            currentRouteURL.indexOf("shared-in") !== -1 ||
+                            currentRouteURL.indexOf("recents") !== -1 ||
+                            currentRouteURL.indexOf("trash") !== -1 ||
+                            currentRouteURL.indexOf("photos") !== -1 ||
+                            currentRouteURL.indexOf("offline") !== -1
+                        ){
+                            showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
-                        return false
-                    }
+                            return false
+                        }
 
-                    const parent = getParent()
+                        const parent = getParent()
 
-                    if([
-                        "recents",
-                        "shared-in",
-                        "shared-out",
-                        "links",
-                        "favorites",
-                        "offline",
-                        "cloud",
-                        "photos",
-                        "settings"
-                    ].includes(parent)){
-                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+                        if([
+                            "recents",
+                            "shared-in",
+                            "shared-out",
+                            "links",
+                            "favorites",
+                            "offline",
+                            "cloud",
+                            "photos",
+                            "settings"
+                        ].includes(parent)){
+                            showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
-                        return false
-                    }
+                            return false
+                        }
 
-                    if(parent.length <= 32){ //&& currentActionSheetItem.type == "file"
-                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+                        if(parent.length <= 32){ //&& currentActionSheetItem.type == "file"
+                            showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
-                        return false
-                    }
+                            return false
+                        }
 
-                    if(typeof currentActionSheetItem !== "object"){
-                        return false
-                    }
+                        if(typeof currentActionSheetItem !== "object"){
+                            return false
+                        }
 
-                    if(currentActionSheetItem.parent == parent){
-                        showToast({ message: i18n(lang, "moveSameParentFolder") })
+                        if(currentActionSheetItem.parent == parent){
+                            showToast({ message: i18n(lang, "moveSameParentFolder") })
 
-                        return false
-                    }
+                            return false
+                        }
 
-                    if(getRouteURL().indexOf("shared-in") !== -1){
-                        showToast({ message: i18n(lang, "cannotMoveFileHere") })
+                        if(getRouteURL().indexOf("shared-in") !== -1){
+                            showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
-                        return false
-                    }
+                            return false
+                        }
 
-                    setButtonsDisabled(true)
+                        setButtonsDisabled(true)
 
-                    useStore.setState({ fullscreenLoadingModalVisible: true })
+                        useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                    if(currentActionSheetItem.type == "file"){
-                        fileExists({
-                            name: currentActionSheetItem.name,
-                            parent
-                        }).then((res) => {
-                            if(res.exists){
-                                setButtonsDisabled(false)
-
-                                useStore.setState({ fullscreenLoadingModalVisible: false })
-    
-                                return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                            }
-
-                            moveFile({
-                                file: currentActionSheetItem,
+                        if(currentActionSheetItem.type == "file"){
+                            fileExists({
+                                name: currentActionSheetItem.name,
                                 parent
-                            }).then(() => {
-                                DeviceEventEmitter.emit("event", {
-                                    type: "reload-list",
-                                    data: {
-                                        parent: initParent.current
-                                    }
-                                })
+                            }).then((res) => {
+                                if(res.exists){
+                                    setButtonsDisabled(false)
 
-                                DeviceEventEmitter.emit("event", {
-                                    type: "reload-list",
-                                    data: {
-                                        parent
-                                    }
-                                })
+                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+        
+                                    return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                }
 
-                                setTimeout(() => {
+                                moveFile({
+                                    file: currentActionSheetItem,
+                                    parent
+                                }).then(() => {
+                                    DeviceEventEmitter.emit("event", {
+                                        type: "reload-list",
+                                        data: {
+                                            parent: initParent.current
+                                        }
+                                    })
+
+                                    DeviceEventEmitter.emit("event", {
+                                        type: "reload-list",
+                                        data: {
+                                            parent
+                                        }
+                                    })
+
+                                    setTimeout(() => {
+                                        setButtonsDisabled(false)
+
+                                        useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                        hideAllToasts()
+
+                                        //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                    }, 500)
+                                }).catch((err) => {
                                     setButtonsDisabled(false)
 
                                     useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                    hideAllToasts()
-
-                                    //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                }, 500)
+                                    showToast({ message: err.toString() })
+                                })
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 
@@ -389,54 +417,54 @@ export const MoveToast = memo(({ message }: { message?: string | undefined }) =>
 
                                 showToast({ message: err.toString() })
                             })
-                        }).catch((err) => {
-                            setButtonsDisabled(false)
-
-                            useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                            showToast({ message: err.toString() })
-                        })
-                    }
-                    else{
-                        folderExists({
-                            name: currentActionSheetItem.name,
-                            parent
-                        }).then((res) => {
-                            if(res.exists){
-                                setButtonsDisabled(false)
-
-                                useStore.setState({ fullscreenLoadingModalVisible: false })
-    
-                                return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                            }
-
-                            moveFolder({
-                                folder: currentActionSheetItem,
+                        }
+                        else{
+                            folderExists({
+                                name: currentActionSheetItem.name,
                                 parent
-                            }).then(() => {
-                                DeviceEventEmitter.emit("event", {
-                                    type: "reload-list",
-                                    data: {
-                                        parent: initParent
-                                    }
-                                })
+                            }).then((res) => {
+                                if(res.exists){
+                                    setButtonsDisabled(false)
 
-                                DeviceEventEmitter.emit("event", {
-                                    type: "reload-list",
-                                    data: {
-                                        parent
-                                    }
-                                })
+                                    useStore.setState({ fullscreenLoadingModalVisible: false })
+        
+                                    return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                }
 
-                                setTimeout(() => {
+                                moveFolder({
+                                    folder: currentActionSheetItem,
+                                    parent
+                                }).then(() => {
+                                    DeviceEventEmitter.emit("event", {
+                                        type: "reload-list",
+                                        data: {
+                                            parent: initParent
+                                        }
+                                    })
+
+                                    DeviceEventEmitter.emit("event", {
+                                        type: "reload-list",
+                                        data: {
+                                            parent
+                                        }
+                                    })
+
+                                    setTimeout(() => {
+                                        setButtonsDisabled(false)
+
+                                        useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                        hideAllToasts()
+
+                                        //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                                    }, 500)
+                                }).catch((err) => {
                                     setButtonsDisabled(false)
 
                                     useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                    hideAllToasts()
-
-                                    //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                }, 500)
+                                    showToast({ message: err.toString() })
+                                })
                             }).catch((err) => {
                                 setButtonsDisabled(false)
 
@@ -444,18 +472,14 @@ export const MoveToast = memo(({ message }: { message?: string | undefined }) =>
 
                                 showToast({ message: err.toString() })
                             })
-                        }).catch((err) => {
-                            setButtonsDisabled(false)
-
-                            useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                            showToast({ message: err.toString() })
-                        })
-                    }
-                }}>
-                    <Text style={{
-                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
-                    }}>
+                        }
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
+                        }}
+                    >
                         {i18n(lang, "move")}
                     </Text>
                 </TouchableOpacity>
@@ -525,168 +549,184 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
         <>
             {
                 items.length > 0 && (
-                    <View style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        width: "100%",
-                        height: "100%",
-                        zIndex: 99999
-                    }}>
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            height: "100%",
+                            zIndex: 99999
+                        }}
+                    >
                         <View>
-                            <Text style={{
-                                color: darkMode ? "white" : "black"
-                            }}>
+                            <Text
+                                style={{
+                                    color: darkMode ? "white" : "black"
+                                }}
+                            >
                                 {i18n(lang, "cameraUploadChooseFolder")}
                             </Text>
                         </View>
-                        <View style={{
-                            flexDirection: "row"
-                        }}>
-                            <TouchableOpacity hitSlop={{
-                                right: 20,
-                                left: 20,
-                                top: 10,
-                                bottom: 10
-                            }} onPress={() => {
-                                hideAllToasts()
-                                setCurrentShareItems(undefined)
-                            }}>
-                                <Text style={{
-                                    color: darkMode ? "white" : "black"
-                                }}>
+                        <View
+                            style={{
+                                flexDirection: "row"
+                            }}
+                        >
+                            <TouchableOpacity
+                                hitSlop={{
+                                    right: 20,
+                                    left: 20,
+                                    top: 10,
+                                    bottom: 10
+                                }}
+                                onPress={() => {
+                                    hideAllToasts()
+                                    setCurrentShareItems(undefined)
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: darkMode ? "white" : "black"
+                                    }}
+                                >
                                     {i18n(lang, "cancel")}
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity hitSlop={{
-                                right: 20,
-                                left: 20,
-                                top: 10,
-                                bottom: 10
-                            }} style={{
-                                marginLeft: 20
-                            }} onPress={() => {
-                                if(
-                                    currentRouteURL.indexOf("shared-in") !== -1 ||
-                                    currentRouteURL.indexOf("recents") !== -1 ||
-                                    currentRouteURL.indexOf("trash") !== -1 ||
-                                    currentRouteURL.indexOf("photos") !== -1 ||
-                                    currentRouteURL.indexOf("offline") !== -1
-                                ){
-                                    return false
-                                }
+                            <TouchableOpacity
+                                hitSlop={{
+                                    right: 20,
+                                    left: 20,
+                                    top: 10,
+                                    bottom: 10
+                                }}
+                                style={{
+                                    marginLeft: 20
+                                }}
+                                onPress={() => {
+                                    if(
+                                        currentRouteURL.indexOf("shared-in") !== -1 ||
+                                        currentRouteURL.indexOf("recents") !== -1 ||
+                                        currentRouteURL.indexOf("trash") !== -1 ||
+                                        currentRouteURL.indexOf("photos") !== -1 ||
+                                        currentRouteURL.indexOf("offline") !== -1
+                                    ){
+                                        return false
+                                    }
 
-                                if(!Array.isArray(items)){
-                                    return false
-                                }
-                                
-                                const parent = getParent()
-            
-                                if(parent.length < 16){
-                                    return false
-                                }
+                                    if(!Array.isArray(items)){
+                                        return false
+                                    }
+                                    
+                                    const parent = getParent()
+                
+                                    if(parent.length < 16){
+                                        return false
+                                    }
 
-                                const copyFile = (item: any) => {
-                                    return new Promise((resolve, reject) => {
-                                        getDownloadPath({ type: "temp" }).then((path) => {
-                                            path = path + Math.random().toString().slice(2) + "" + Math.random().toString().slice(2)
+                                    const copyFile = (item: any) => {
+                                        return new Promise((resolve, reject) => {
+                                            getDownloadPath({ type: "temp" }).then((path) => {
+                                                path = path + Math.random().toString().slice(2) + "" + Math.random().toString().slice(2)
 
-                                            if(item.indexOf("content://") !== -1 && Platform.OS == "android"){
-                                                const name = getFilenameFromPath(getPath(item))
+                                                if(item.indexOf("content://") !== -1 && Platform.OS == "android"){
+                                                    const name = getFilenameFromPath(getPath(item))
 
-                                                if(typeof name !== "string"){
-                                                    return reject("Could not get file name")
-                                                }
+                                                    if(typeof name !== "string"){
+                                                        return reject("Could not get file name")
+                                                    }
 
-                                                if(name.length <= 0){
-                                                    return reject("Could not get file name")
-                                                }
+                                                    if(name.length <= 0){
+                                                        return reject("Could not get file name")
+                                                    }
 
-                                                ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
-                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(() => {
-                                                        return resolve(true)
-                                                    }, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+                                                    ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
+                                                        await new Promise((resolve) => BackgroundTimer.setTimeout(() => {
+                                                            return resolve(true)
+                                                        }, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
 
-                                                    RNFS.stat(path).then((stat) => {
-                                                        if(stat.isDirectory()){
-                                                            return reject(i18n(lang, "cannotShareDirIntoApp"))
-                                                        }
+                                                        RNFS.stat(path).then((stat) => {
+                                                            if(stat.isDirectory()){
+                                                                return reject(i18n(lang, "cannotShareDirIntoApp"))
+                                                            }
 
-                                                        const type = mime.lookup(name)
-                                                        const ext = mime.extension(type)
-                                                        const size = stat.size
+                                                            const type = mime.lookup(name)
+                                                            const ext = mime.extension(type as string)
+                                                            const size = stat.size
 
-                                                        return resolve({ path, ext, type, size, name })
+                                                            return resolve({ path, ext, type, size, name })
+                                                        }).catch((err) => {
+                                                            return reject(err)
+                                                        })
                                                     }).catch((err) => {
                                                         return reject(err)
                                                     })
-                                                }).catch((err) => {
-                                                    return reject(err)
-                                                })
-                                            }
-                                            else{
-                                                RNFS.copyFile(item, path).then(async () => {
-                                                    await new Promise((resolve) => BackgroundTimer.setTimeout(() => {
-                                                        return resolve(true)
-                                                    }, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
+                                                }
+                                                else{
+                                                    RNFS.copyFile(item, path).then(async () => {
+                                                        await new Promise((resolve) => BackgroundTimer.setTimeout(() => {
+                                                            return resolve(true)
+                                                        }, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
 
-                                                    RNFS.stat(path).then((stat) => {
-                                                        if(stat.isDirectory()){
-                                                            return reject(i18n(lang, "cannotShareDirIntoApp"))
-                                                        }
+                                                        RNFS.stat(path).then((stat) => {
+                                                            if(stat.isDirectory()){
+                                                                return reject(i18n(lang, "cannotShareDirIntoApp"))
+                                                            }
 
-                                                        const name = getFilenameFromPath(item)
-                                                        const type = mime.lookup(name)
-                                                        const ext = mime.extension(type)
-                                                        const size = stat.size
-                                                        
-                                                        return resolve({ path, ext, type, size, name })
+                                                            const name = getFilenameFromPath(item)
+                                                            const type = mime.lookup(name)
+                                                            const ext = mime.extension(type as string)
+                                                            const size = stat.size
+                                                            
+                                                            return resolve({ path, ext, type, size, name })
+                                                        }).catch((err) => {
+                                                            return reject(err)
+                                                        })
                                                     }).catch((err) => {
                                                         return reject(err)
                                                     })
-                                                }).catch((err) => {
-                                                    return reject(err)
-                                                })
-                                            }
+                                                }
+                                            }).catch((err) => {
+                                                return reject(err)
+                                            })
+                                        })
+                                    }
+
+                                    const limit = 10
+
+                                    if(items.length >= limit){
+                                        return showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
+                                    }
+                
+                                    for(let i = 0; i < items.length; i++){
+                                        copyFile(decodeURIComponent(items[i])).then((copyResult: any) => {
+                                            const { path, type, size, name } = copyResult
+
+                                            queueFileUpload({
+                                                file: {
+                                                    path: decodeURIComponent(path).replace("file://", ""),
+                                                    name,
+                                                    size,
+                                                    mime: type,
+                                                    lastModified: new Date().getTime()
+                                                },
+                                                parent
+                                            })
                                         }).catch((err) => {
-                                            return reject(err)
+                                            console.log(err)
+
+                                            showToast({ message: err.toString() })
                                         })
-                                    })
-                                }
+                                    }
 
-                                const limit = 10
-
-                                if(items.length >= limit){
-                                    return showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
-                                }
-            
-                                for(let i = 0; i < items.length; i++){
-                                    copyFile(decodeURIComponent(items[i])).then((copyResult: any) => {
-                                        const { path, type, size, name } = copyResult
-
-                                        // @ts-ignore
-                                        queueFileUpload({
-                                            file: {
-                                                path: decodeURIComponent(path).replace("file://", ""),
-                                                name,
-                                                size,
-                                                mime: type,
-                                                lastModified: new Date().getTime()
-                                            },
-                                            parent
-                                        })
-                                    }).catch((err) => {
-                                        console.log(err)
-
-                                        showToast({ message: err.toString() })
-                                    })
-                                }
-
-                                setCurrentShareItems(undefined)
-                                hideAllToasts()
-                            }}>
-                                <Text style={{
-                                    color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
-                                }}>
+                                    setCurrentShareItems(undefined)
+                                    hideAllToasts()
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
+                                    }}
+                                >
                                     {i18n(lang, "upload")}
                                 </Text>
                             </TouchableOpacity>
@@ -717,134 +757,152 @@ export const CameraUploadChooseFolderToast = memo(({ message, navigation }: { me
     }, [currentRoutes])
 
     return (
-        <View style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            width: "100%",
-            height: "100%",
-            zIndex: 99999
-        }}>
+        <View
+            style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+                height: "100%",
+                zIndex: 99999
+            }}
+        >
             <View>
-                <Text style={{
-                    color: darkMode ? "white" : "black"
-                }}>
+                <Text
+                    style={{
+                        color: darkMode ? "white" : "black"
+                    }}
+                >
                     {message}
                 </Text>
             </View>
-            <View style={{
-                flexDirection: "row"
-            }}>
-                <TouchableOpacity hitSlop={{
-                    right: 20,
-                    left: 20,
-                    top: 10,
-                    bottom: 10
-                }} style={{
-                    width: "auto",
-                    height: "auto",
-                    paddingLeft: 10,
-                    paddingRight: 10
-                }} onPress={() => {
-                    hideAllToasts()
+            <View
+                style={{
+                    flexDirection: "row"
+                }}
+            >
+                <TouchableOpacity
+                    hitSlop={{
+                        right: 20,
+                        left: 20,
+                        top: 10,
+                        bottom: 10
+                    }}
+                    style={{
+                        width: "auto",
+                        height: "auto",
+                        paddingLeft: 10,
+                        paddingRight: 10
+                    }}
+                    onPress={() => {
+                        hideAllToasts()
 
-                    navigationAnimation({ enable: false }).then(() => {
-                        navigation.dispatch(CommonActions.reset({
-                            index: 1,
-                            routes: [
-                                {
-                                    name: "SettingsScreen"
-                                },
-                                {
-                                    name: "CameraUploadScreen"
-                                }
-                            ]
-                        }))
-                    })
-                }}>
-                    <Text style={{
-                        color: darkMode ? "white" : "black"
-                    }}>
+                        navigationAnimation({ enable: false }).then(() => {
+                            navigation.dispatch(CommonActions.reset({
+                                index: 1,
+                                routes: [
+                                    {
+                                        name: "SettingsScreen"
+                                    },
+                                    {
+                                        name: "CameraUploadScreen"
+                                    }
+                                ]
+                            }))
+                        })
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: darkMode ? "white" : "black"
+                        }}
+                    >
                         {i18n(lang, "cancel")}
                     </Text>
                 </TouchableOpacity>
-                <TouchableOpacity hitSlop={{
-                    right: 20,
-                    left: 20,
-                    top: 10,
-                    bottom: 10
-                }} style={{
-                    marginLeft: 20
-                }} onPress={() => {
-                    if(
-                        currentRouteURL.indexOf("shared-in") !== -1 ||
-                        currentRouteURL.indexOf("shared-out") !== -1 ||
-                        currentRouteURL.indexOf("recents") !== -1 ||
-                        currentRouteURL.indexOf("trash") !== -1 ||
-                        currentRouteURL.indexOf("photos") !== -1 ||
-                        currentRouteURL.indexOf("offline") !== -1 ||
-                        currentRouteURL.split("/").length < 2
-                    ){
-                        return false
-                    }
+                <TouchableOpacity
+                    hitSlop={{
+                        right: 20,
+                        left: 20,
+                        top: 10,
+                        bottom: 10
+                    }}
+                    style={{
+                        marginLeft: 20
+                    }}
+                    onPress={() => {
+                        if(
+                            currentRouteURL.indexOf("shared-in") !== -1 ||
+                            currentRouteURL.indexOf("shared-out") !== -1 ||
+                            currentRouteURL.indexOf("recents") !== -1 ||
+                            currentRouteURL.indexOf("trash") !== -1 ||
+                            currentRouteURL.indexOf("photos") !== -1 ||
+                            currentRouteURL.indexOf("offline") !== -1 ||
+                            currentRouteURL.split("/").length < 2
+                        ){
+                            return false
+                        }
 
-                    const parent = getParent()
-                    let folderName = undefined
+                        const parent = getParent()
+                        let folderName = undefined
 
-                    if(parent.length < 32){
-                        return false
-                    }
+                        if(parent.length < 32){
+                            return false
+                        }
 
-                    try{
-                        var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent) as string)
-                    }
-                    catch(e){
-                        console.log(e)
-                        console.log(currentRouteURL)
+                        try{
+                            var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent) as string)
+                        }
+                        catch(e){
+                            console.log(e)
+                            console.log(currentRouteURL)
 
-                        return false
-                    }
-            
-                    if(typeof folderCache == "object"){
-                        folderName = folderCache.name
-                    }
+                            return false
+                        }
+                
+                        if(typeof folderCache == "object"){
+                            folderName = folderCache.name
+                        }
 
-                    if(typeof folderName == "undefined"){
-                        return false
-                    }
+                        if(typeof folderName == "undefined"){
+                            return false
+                        }
 
-                    try{
-                        storage.set("cameraUploadFolderUUID:" + storage.getNumber("userId"), parent)
-                        storage.set("cameraUploadFolderName:" + storage.getNumber("userId"), folderName)
-                        //storage.set("cameraUploadUploadedIds:" + storage.getNumber("userId"), "{}")
-                        //storage.set("cameraUploadFetchNewAssetsTimeout", 0)
-                        //storage.set("cachedCameraUploadAssets:" + storage.getNumber("userId"), "[]")
-                        //storage.set("cameraUploadEnabled:" + storage.getNumber("userId"), true)
-                    }
-                    catch(e){
-                        console.log(e)
+                        try{
+                            storage.set("cameraUploadFolderUUID:" + storage.getNumber("userId"), parent)
+                            storage.set("cameraUploadFolderName:" + storage.getNumber("userId"), folderName)
+                            //storage.set("cameraUploadUploadedIds:" + storage.getNumber("userId"), "{}")
+                            //storage.set("cameraUploadFetchNewAssetsTimeout", 0)
+                            //storage.set("cachedCameraUploadAssets:" + storage.getNumber("userId"), "[]")
+                            //storage.set("cameraUploadEnabled:" + storage.getNumber("userId"), true)
+                        }
+                        catch(e){
+                            console.log(e)
 
-                        return false
-                    }
+                            return false
+                        }
 
-                    hideAllToasts()
+                        hideAllToasts()
 
-                    navigationAnimation({ enable: false }).then(() => {
-                        navigation.dispatch(CommonActions.reset({
-                            index: 1,
-                            routes: [
-                                {
-                                    name: "SettingsScreen"
-                                },
-                                {
-                                    name: "CameraUploadScreen"
-                                }
-                            ]
-                        }))
-                    })
-                }}>
-                    <Text style={{
-                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32 && currentRouteURL.split("/").length >= 2) ? darkMode ? "white" : "black" : "gray"
-                    }}>
+                        navigationAnimation({ enable: false }).then(() => {
+                            navigation.dispatch(CommonActions.reset({
+                                index: 1,
+                                routes: [
+                                    {
+                                        name: "SettingsScreen"
+                                    },
+                                    {
+                                        name: "CameraUploadScreen"
+                                    }
+                                ]
+                            }))
+                        })
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32 && currentRouteURL.split("/").length >= 2) ? darkMode ? "white" : "black" : "gray"
+                        }}
+                    >
                         {i18n(lang, "choose")}
                     </Text>
                 </TouchableOpacity>
@@ -884,155 +942,176 @@ export const MoveBulkToast = memo(({ message }: { message?: string | undefined }
     }, [])
 
     return (
-        <View style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            width: "100%",
-            height: "100%",
-            zIndex: 99999
-        }}>
-            <View style={{
-                width: "50%"
-            }}>
-                <Text style={{
-                    color: "white"
-                }} numberOfLines={1}>
+        <View
+            style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+                height: "100%",
+                zIndex: 99999
+            }}
+        >
+            <View
+                style={{
+                    width: "50%"
+                }}
+            >
+                <Text
+                    style={{
+                        color: "white"
+                    }}
+                    numberOfLines={1}
+                >
                     {message}
                 </Text>
             </View>
-            <View style={{
-                flexDirection: "row",
-                height: "100%"
-            }}>
-                <TouchableOpacity hitSlop={{
-                    right: 20,
-                    left: 20,
-                    top: 10,
-                    bottom: 10
-                }} style={{
-                    borderStartColor: "red",
+            <View
+                style={{
+                    flexDirection: "row",
                     height: "100%"
-                }} onPress={() => {
-                    if(buttonsDisabled){
-                        return false
-                    }
+                }}
+            >
+                <TouchableOpacity
+                    hitSlop={{
+                        right: 20,
+                        left: 20,
+                        top: 10,
+                        bottom: 10
+                    }}
+                    style={{
+                        borderStartColor: "red",
+                        height: "100%"
+                    }}
+                    onPress={() => {
+                        if(buttonsDisabled){
+                            return false
+                        }
 
-                    hideAllToasts()
-                }}>
-                    <Text style={{
-                        color: "white",
-                        fontWeight: "bold"
-                    }}>
+                        hideAllToasts()
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: "white",
+                            fontWeight: "bold"
+                        }}
+                    >
                         {i18n(lang, "cancel")}
                     </Text>
                 </TouchableOpacity>
-                <TouchableOpacity hitSlop={{
-                    right: 20,
-                    left: 20,
-                    top: 10,
-                    bottom: 10
-                }} style={{
-                    marginLeft: 20
-                }} onPress={() => {
-                    if(buttonsDisabled){
-                        return false
-                    }
+                <TouchableOpacity
+                    hitSlop={{
+                        right: 20,
+                        left: 20,
+                        top: 10,
+                        bottom: 10
+                    }}
+                    style={{
+                        marginLeft: 20
+                    }}
+                    onPress={() => {
+                        if(buttonsDisabled){
+                            return false
+                        }
 
-                    if(
-                        currentRouteURL.indexOf("shared-in") !== -1 ||
-                        currentRouteURL.indexOf("recents") !== -1 ||
-                        currentRouteURL.indexOf("trash") !== -1 ||
-                        currentRouteURL.indexOf("photos") !== -1 ||
-                        currentRouteURL.indexOf("offline") !== -1
-                    ){
-                        showToast({ message: i18n(lang, "cannotMoveItemsHere") })
+                        if(
+                            currentRouteURL.indexOf("shared-in") !== -1 ||
+                            currentRouteURL.indexOf("recents") !== -1 ||
+                            currentRouteURL.indexOf("trash") !== -1 ||
+                            currentRouteURL.indexOf("photos") !== -1 ||
+                            currentRouteURL.indexOf("offline") !== -1
+                        ){
+                            showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
-                        return false
-                    }
+                            return false
+                        }
 
-                    if(currentBulkItems.length == 0){
-                        hideAllToasts()
-
-                        return false
-                    }
-
-                    const parent = getParent()
-
-                    if([
-                        "recents",
-                        "shared-in",
-                        "shared-out",
-                        "links",
-                        "favorites",
-                        "offline",
-                        "cloud",
-                        "photos",
-                        "settings"
-                    ].includes(parent)){
-                        showToast({ message: i18n(lang, "cannotMoveItemsHere") })
-
-                        return false
-                    }
-
-                    if(parent.length <= 32 && currentBulkItems.filter((item: any) => item.type == "file").length >= 1){
-                        showToast({ message: i18n(lang, "cannotMoveItemsHere") })
-
-                        return false
-                    }
-
-                    if(typeof currentActionSheetItem !== "object"){
-                        return false
-                    }
-
-                    if(currentActionSheetItem.parent == parent){
-                        showToast({ message: i18n(lang, "moveSameParentFolder") })
-
-                        return false
-                    }
-
-                    if(getRouteURL().indexOf("shared-in") !== -1){
-                        showToast({ message: i18n(lang, "cannotMoveItemsHere") })
-
-                        return false
-                    }
-
-                    setButtonsDisabled(true)
-
-                    useStore.setState({ fullscreenLoadingModalVisible: true })
-
-                    bulkMove({ items: currentBulkItems, parent }).then(() => {
-                        DeviceEventEmitter.emit("event", {
-                            type: "reload-list",
-                            data: {
-                                parent: initParent.current
-                            }
-                        })
-
-                        DeviceEventEmitter.emit("event", {
-                            type: "reload-list",
-                            data: {
-                                parent
-                            }
-                        })
-
-                        setTimeout(() => {
-                            setButtonsDisabled(false)
-
-                            useStore.setState({ fullscreenLoadingModalVisible: false })
-    
+                        if(currentBulkItems.length == 0){
                             hideAllToasts()
 
-                            //showToast({ message: i18n(lang, "itemsMoved", true, ["__COUNT__"], [currentBulkItems.length]) })
-                        }, 500)
-                    }).catch((err) => {
-                        console.log(err)
+                            return false
+                        }
 
-                        showToast({ message: err.toString() })
-                    })
-                }}>
-                    <Text style={{
-                        color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
-                    }}>
+                        const parent = getParent()
+
+                        if([
+                            "recents",
+                            "shared-in",
+                            "shared-out",
+                            "links",
+                            "favorites",
+                            "offline",
+                            "cloud",
+                            "photos",
+                            "settings"
+                        ].includes(parent)){
+                            showToast({ message: i18n(lang, "cannotMoveItemsHere") })
+
+                            return false
+                        }
+
+                        if(parent.length <= 32 && currentBulkItems.filter((item: any) => item.type == "file").length >= 1){
+                            showToast({ message: i18n(lang, "cannotMoveItemsHere") })
+
+                            return false
+                        }
+
+                        if(typeof currentActionSheetItem !== "object"){
+                            return false
+                        }
+
+                        if(currentActionSheetItem.parent == parent){
+                            showToast({ message: i18n(lang, "moveSameParentFolder") })
+
+                            return false
+                        }
+
+                        if(getRouteURL().indexOf("shared-in") !== -1){
+                            showToast({ message: i18n(lang, "cannotMoveItemsHere") })
+
+                            return false
+                        }
+
+                        setButtonsDisabled(true)
+
+                        useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                        bulkMove({ items: currentBulkItems, parent }).then(() => {
+                            DeviceEventEmitter.emit("event", {
+                                type: "reload-list",
+                                data: {
+                                    parent: initParent.current
+                                }
+                            })
+
+                            DeviceEventEmitter.emit("event", {
+                                type: "reload-list",
+                                data: {
+                                    parent
+                                }
+                            })
+
+                            setTimeout(() => {
+                                setButtonsDisabled(false)
+
+                                useStore.setState({ fullscreenLoadingModalVisible: false })
+        
+                                hideAllToasts()
+
+                                //showToast({ message: i18n(lang, "itemsMoved", true, ["__COUNT__"], [currentBulkItems.length]) })
+                            }, 500)
+                        }).catch((err) => {
+                            console.log(err)
+
+                            showToast({ message: err.toString() })
+                        })
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? darkMode ? "white" : "black" : "gray"
+                        }}
+                    >
                         {i18n(lang, "move")}
                     </Text>
                 </TouchableOpacity>

@@ -13,7 +13,7 @@ import RNFS from "react-native-fs"
 import mimeTypes from "mime-types"
 
 const TIMEOUT: number = 5000
-const FAILED: any = {}
+const FAILED: { [key: string]: number } = {}
 const MAX_FAILED: number = 3
 
 export const disableCameraUpload = (resetFolder: boolean = false): void => {
