@@ -116,7 +116,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
         if(currentTransfers.length == 0){
             setPausedTransfers({})
         }
-    }, [currentTransfers])
+    }, [currentTransfers.length])
 
     return (
         <FlatList
