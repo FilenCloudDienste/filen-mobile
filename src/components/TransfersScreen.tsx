@@ -183,7 +183,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
                                     isPaused ? "" : transfer.percent == 0 ? (
                                         <>{i18n(lang, "queued")}</>
                                     ) : (
-                                        <>{isNaN(transfer.percent) ? 0 : transfer.percent.toFixed(2)}%</>
+                                        <>{isNaN(transfer.percent) ? 0 : transfer.percent >= 100 ? 100 : transfer.percent.toFixed(2)}%</>
                                     )
                                 }
                             </Text>

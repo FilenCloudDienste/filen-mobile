@@ -168,6 +168,13 @@ export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: st
             resumeListener.remove()
             stopListener.remove()
             BackgroundTimer.clearInterval(stopInterval)
+
+            if(
+                file.path.indexOf(RNFS.CachesDirectoryPath)
+                || file.path.indexOf(RNFS.TemporaryDirectoryPath)
+            ){
+                RNFS.unlink(file.path).catch(() => {})
+            }
         }
 
         let err = undefined

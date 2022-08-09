@@ -557,7 +557,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
                     items.forEach((item) => {
                         if(!item.isDirectory()){
                             if(item.name.indexOf(file.uuid + ".chunk") !== -1){
-                                ReactNativeBlobUtil.fs.unlink(item.path).catch(console.log)
+                                ReactNativeBlobUtil.fs.unlink(item.path).catch(() => {})
                             }
                         }
                     })
