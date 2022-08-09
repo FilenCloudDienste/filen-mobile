@@ -305,3 +305,5 @@ todo.txt
 nodejs-assets/nodejs-project/debug.js
 nodejs-assets/build-native-modules-MacOS-helper-script-node.sh
 nodejs-assets/build-native-modules-MacOS-helper-script-npm.sh
+
+index.android.bundle.*
