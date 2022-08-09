@@ -959,7 +959,6 @@ export const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) =
 																		if(extArray.includes(getFileExt(item.name))){
 																			queueFileDownload({
 																				file: item,
-																				// @ts-ignore
 																				saveToGalleryCallback: (path: string) => {
 																					CameraRoll.save(path).then(() => {
 																						showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
@@ -1617,7 +1616,6 @@ export const ItemActionSheet = memo(({ navigation, route }: ItemActionSheetProps
 													hasPhotoLibraryPermissions().then(() => {
 														queueFileDownload({
 															file: currentActionSheetItem,
-															// @ts-ignore
 															saveToGalleryCallback: (path: string) => {
 																CameraRoll.save(path).then(() => {
 																	showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })

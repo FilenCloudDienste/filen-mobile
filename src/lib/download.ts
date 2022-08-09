@@ -216,45 +216,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         }
     }
 
-    const addToState = () => {
-        const currentDownloads = useStore.getState().downloads
-
-        if(typeof currentDownloads[file.uuid] == "undefined"){
-            currentDownloads[file.uuid] = {
-                id: Math.random().toString().slice(3),
-                file,
-                chunksDone: 0,
-                loaded: 0,
-                stopped: false,
-                paused: false
-            }
-        
-            useStore.setState({
-                downloads: currentDownloads
-            })
-        }
-
-        return true
-    }
-
-    const removeFromState = () => {
-        const currentDownloads = useStore.getState().downloads
-        
-        if(typeof currentDownloads[file.uuid] !== "undefined"){
-            delete currentDownloads[file.uuid]
-
-            useStore.setState({
-                downloads: currentDownloads
-            })
-        }
-
-        if(!isPreview){
-            downloadSemaphore.release()
-        }
-
-        return true
-    }
-
     const currentDownloads = useStore.getState().downloads
 
     if(typeof currentDownloads[file.uuid] !== "undefined"){
@@ -263,7 +224,10 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         return showToast({ message: i18n(storage.getString("lang"), "alreadyDownloadingFile", true, ["__NAME__"], [file.name]) })
     }
 
-    addToState()
+    DeviceEventEmitter.emit("upload", {
+        type: "start",
+        data: file
+    })
 
     if(!isPreview){
         await downloadSemaphore.acquire()
@@ -273,17 +237,19 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         var downloadPath = await getDownloadPath({ type: (storeOffline ? "offline" : "download") })
     }
     catch(e){
-        removeFromState()
-
         console.log(e)
 
         callOptionalCallback(new Error("could not get download path"))
+
+        downloadSemaphore.release()
 
         return showToast({ message: i18n(storage.getString("lang"), "couldNotGetDownloadPath") })
     }
 
     try{
         if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
+            downloadSemaphore.release()
+
             return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
         }
     }
@@ -294,15 +260,18 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     const filePath = downloadPath + file.name
 
     downloadFile(file).then(async (path) => {
-        if(isPreview){
-            removeFromState()
+        DeviceEventEmitter.emit("upload", {
+            type: "done",
+            data: file
+        })
 
+        downloadSemaphore.release()
+
+        if(isPreview){
             return callOptionalCallback(null, path)
         }
 
         if(typeof saveToGalleryCallback == "function"){
-            removeFromState()
-
             callOptionalCallback(null, path)
             
             return saveToGalleryCallback(path)
@@ -324,8 +293,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 addItemToOfflineList({
                     item: file
                 }).then(() => {
-                    removeFromState()
-
                     DeviceEventEmitter.emit("event", {
                         type: "mark-item-offline",
                         data: {
@@ -349,8 +316,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
                     return console.log(file.name + " download done")
                 }).catch((err) => {
-                    removeFromState()
-    
                     showToast({ message: err.toString() })
 
                     callOptionalCallback(err)
@@ -358,8 +323,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     return console.log(err)
                 })
             }).catch((err) => {
-                removeFromState()
-
                 showToast({ message: err.toString() })
 
                 callOptionalCallback(err)
@@ -376,8 +339,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         mimeType: file.mime
                     }, "Download", path).then(() => {
                         RNFS.unlink(path).then(() => {
-                            removeFromState()
-
                             if(showNotification || useStore.getState().imagePreviewModalVisible){
                                 showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                             }
@@ -386,8 +347,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     
                             return console.log(file.name + " download done")
                         }).catch((err) => {
-                            removeFromState()
-
                             showToast({ message: err.toString() })
 
                             callOptionalCallback(err)
@@ -395,8 +354,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                             return console.log(err)
                         })
                     }).catch((err) => {
-                        removeFromState()
-
                         showToast({ message: err.toString() })
 
                         callOptionalCallback(err)
@@ -415,8 +372,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     }
 
                     RNFS.moveFile(path, filePath).then(() => {
-                        removeFromState()
-
                         if(showNotification || useStore.getState().imagePreviewModalVisible){
                             showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                         }
@@ -425,8 +380,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         
                         return console.log(file.name + " download done")
                     }).catch((err) => {
-                        removeFromState()
-
                         showToast({ message: err.toString() })
 
                         callOptionalCallback(err)
@@ -446,8 +399,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 }
 
                 RNFS.moveFile(path, filePath).then(() => {
-                    removeFromState()
-
                     if(showNotification || useStore.getState().imagePreviewModalVisible){
                         showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                     }
@@ -456,8 +407,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     
                     return console.log(file.name + " download done")
                 }).catch((err) => {
-                    removeFromState()
-
                     showToast({ message: err.toString() })
 
                     callOptionalCallback(err)
@@ -467,10 +416,16 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
             }
         }
     }).catch((err) => {
-        removeFromState()
-
+        downloadSemaphore.release()
+        
         if(err !== "stopped"){
             showToast({ message: err.toString() })
+
+            DeviceEventEmitter.emit("upload", {
+                type: "err",
+                data: file,
+                err: err.toString()
+            })
 
             console.log(err)
         }

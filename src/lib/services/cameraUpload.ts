@@ -1,7 +1,7 @@
 import storage from "../storage"
 import { queueFileUpload, UploadFile } from "../upload"
 import { Platform } from "react-native"
-import { randomIdUnsafe, promiseAllSettled } from "../helpers"
+import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs } from "../helpers"
 import { folderPresent, fileExists } from "../api"
 import BackgroundTimer from "react-native-background-timer"
 import * as MediaLibrary from "expo-media-library"
@@ -304,7 +304,7 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                                                 name: asset.filename,
                                                 mime: stat.type || mimeTypes.lookup(tmp),
                                                 size: stat.size,
-                                                lastModified: asset.modificationTime
+                                                lastModified: convertTimestampToMs(asset.modificationTime)
                                             })
                                         }).catch(reject)
                                     }).catch(reject)
@@ -321,7 +321,7 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                                                     name: asset.filename.indexOf(".") !== -1 ? (asset.filename.split(".").slice(0, -1).join(".") + ".jpg") : asset.filename + ".jpg",
                                                     mime: stat.type || mimeTypes.lookup(tmp),
                                                     size: stat.size,
-                                                    lastModified: asset.modificationTime
+                                                    lastModified: convertTimestampToMs(asset.modificationTime)
                                                 })
                                             }).catch(reject)
                                         }).catch(reject)
@@ -337,7 +337,7 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                                                     name: asset.filename.indexOf(".") !== -1 ? (asset.filename.split(".").slice(0, -1).join(".") + ".mov") : asset.filename + ".mov",
                                                     mime: stat.type || mimeTypes.lookup(tmp),
                                                     size: stat.size,
-                                                    lastModified: asset.modificationTime
+                                                    lastModified: convertTimestampToMs(asset.modificationTime)
                                                 })
                                             }).catch(reject)
                                         }).catch(reject)
@@ -358,7 +358,7 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                                             name: asset.filename,
                                             mime: stat.type || mimeTypes.lookup(tmp),
                                             size: stat.size,
-                                            lastModified: asset.modificationTime
+                                            lastModified: convertTimestampToMs(asset.modificationTime)
                                         })
                                     }).catch(reject)
                                 }).catch(reject)

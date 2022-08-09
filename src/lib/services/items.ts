@@ -755,7 +755,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                                             file: newItem,
                                             storeOffline: true,
                                             isOfflineUpdate: true,
-                                            // @ts-ignore
                                             optionalCallback: () => {
                                                 removeFromOfflineStorage({
                                                     item: {
@@ -1591,8 +1590,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
 
     queueFileDownload({
         file: item,
-        // @ts-ignore
-        optionalCallback: (err, path) => {
+        optionalCallback: (err: any, path: string) => {
             useStore.setState({ fullscreenLoadingModalVisible: false })
 
             if(err){

@@ -665,14 +665,14 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
 
                                         // @ts-ignore
                                         queueFileUpload({
-                                            pickedFile: {
+                                            file: {
+                                                path: decodeURIComponent(path).replace("file://", ""),
                                                 name,
                                                 size,
-                                                type,
-                                                uri: decodeURIComponent(path.indexOf("file://") == -1 ? "file://" + path : path)
+                                                mime: type,
+                                                lastModified: new Date().getTime()
                                             },
-                                            parent,
-                                            clear: Platform.OS == "android" ? false : true
+                                            parent
                                         })
                                     }).catch((err) => {
                                         console.log(err)

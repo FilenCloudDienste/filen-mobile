@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, memo } from "react"
+import React, { useState, useEffect, useRef, memo } from "react"
 import { View, Text, Platform, TouchableOpacity, TextInput, KeyboardAvoidingView, Keyboard, Alert } from "react-native"
 import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -33,7 +33,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
     const [textEditorActive, setTextEditorActive] = useState<boolean>(false)
     const [textEditorFocused, setTextEditorFocused] = useState<boolean>(false)
 
-    const fileName: string = textEditorState == "edit" ? createTextFileDialogName : currentActionSheetItem.name
+    const fileName: string = textEditorState == "edit" ? createTextFileDialogName : currentActionSheetItem?.name as string
 
     const save = (): void => {
         if(value.length <= 0){
@@ -82,13 +82,13 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                     return false
                 }
 
-                // @ts-ignore
                 queueFileUpload({
-                    pickedFile: {
+                    file: {
+                        path: decodeURIComponent(path).replace("file://", ""),
                         name: fileName,
                         size: stat.size,
-                        type: "text/plain",
-                        uri: path.indexOf("file://") == -1 ? "file://" + path : path
+                        mime: "text/plain",
+                        lastModified: new Date().getTime()
                     },
                     parent
                 })

@@ -121,18 +121,18 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
     return (
         <FlatList
             data={currentTransfers}
-            keyExtractor={(data) => data.uuid}
+            keyExtractor={(_, index) => index.toString()}
             key="ongoing"
             windowSize={10}
             initialNumToRender={32}
             numColumns={1}
-            renderItem={({ item }) => {
+            renderItem={({ item, index }) => {
                 const transfer = item
                 const isPaused = typeof pausedTransfers[transfer.uuid] == "boolean" ? pausedTransfers[transfer.uuid] : false
                 
                 return (
                     <View
-                        key={transfer.uuid}
+                        key={index.toString()}
                         style={{
                             width: "100%",
                             height: 40,
