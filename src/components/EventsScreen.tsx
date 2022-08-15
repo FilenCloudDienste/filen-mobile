@@ -104,22 +104,15 @@ export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenPro
                     ) : (
                         <>
                             <SettingsGroup>
-                                {/* @ts-ignore */}
                                 <SettingsButton title={eventText} />
                             </SettingsGroup>
-                            {/* @ts-ignore */}
                             <SettingsGroup marginTop={10}>
-                                {/* @ts-ignore */}
                                 <SettingsButton title={new Date(eventInfo.timestamp * 1000).toLocaleDateString() + " " + new Date(eventInfo.timestamp * 1000).toLocaleTimeString()} />
                             </SettingsGroup>
-                            {/* @ts-ignore */}
                             <SettingsGroup marginTop={10}>
-                                {/* @ts-ignore */}
                                 <SettingsButton title={eventInfo.info.userAgent} />
                             </SettingsGroup>
-                            {/* @ts-ignore */}
                             <SettingsGroup marginTop={10}>
-                                {/* @ts-ignore */}
                                 <SettingsButton title={eventInfo.info.ip} />
                             </SettingsGroup>
                         </>

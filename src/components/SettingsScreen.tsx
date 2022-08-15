@@ -111,7 +111,7 @@ export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText }: 
 
 export interface SettingsButtonProps {
     title?: string,
-    rightComponent: any
+    rightComponent?: any
 }
 
 export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonProps) => {
@@ -437,15 +437,10 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                             <SettingsButtonLinkHighlight
                                 title={"get medialib"}
                                 onPress={() => {
-                                    MediaLibrary.getAssetsAsync().then((content) => {
-                                        const asset = content.assets[1]
-
-                                        FileSystem.copyAsync({
-                                            from: asset.uri,
-                                            to: FileSystem.cacheDirectory + asset.filename,
-                                        }).then(() => {
-                                            FileSystem.getInfoAsync(FileSystem.cacheDirectory + asset.filename).then(console.log)
-                                        })
+                                    MediaLibrary.getAlbumsAsync({
+                                        includeSmartAlbums: true
+                                    }).then((content) => {
+                                        console.log(content)
                                     })
                                 }}
                             />

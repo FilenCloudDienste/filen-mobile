@@ -207,14 +207,18 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             />
                         )
                     }
-                    <SettingsButtonLinkHighlight
-                        onPress={() => {
-                            navigationAnimation({ enable: true }).then(() => {
-                                navigation.dispatch(StackActions.push("CameraUploadAlbumsScreen"))
-                            })
-                        }}
-                        title={i18n(lang, "albums")}
-                    />
+                    {
+                        Platform.OS == "android" && (
+                            <SettingsButtonLinkHighlight
+                                onPress={() => {
+                                    navigationAnimation({ enable: true }).then(() => {
+                                        navigation.dispatch(StackActions.push("CameraUploadAlbumsScreen"))
+                                    })
+                                }}
+                                title={i18n(lang, "albums")}
+                            />
+                        )
+                    }
                 </SettingsGroup>
                 <SettingsGroup>
                     <SettingsButtonLinkHighlight

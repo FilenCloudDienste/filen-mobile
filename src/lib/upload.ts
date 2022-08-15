@@ -64,7 +64,7 @@ export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: st
             bucket: ""
         }
 
-        if(fileName.indexOf(".") !== -1){
+        /*if(fileName.indexOf(".") !== -1){
             let fileNameEx = fileName.split(".")
             let lowerCaseFileEnding = fileNameEx[fileNameEx.length - 1].toLowerCase()
             
@@ -73,9 +73,9 @@ export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: st
             const fileNameWithLowerCaseEnding = fileNameEx.join(".") + "." + lowerCaseFileEnding
 
             fileName = striptags(fileNameWithLowerCaseEnding)
-        }
+        }*/
 
-        const name = fileName
+        const name = striptags(fileName)
         const size = file.size
         const mime = file.mime || ""
         const chunkSizeToUse = ((1024 * 1024) * 1)

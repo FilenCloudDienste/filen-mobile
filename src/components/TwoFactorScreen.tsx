@@ -71,7 +71,6 @@ export const TwoFactorScreen = memo(({ navigation, route }: TwoFactorScreenProps
                         <>
                             <SettingsGroup>
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     onPress={() => {
                                         Alert.alert(i18n(lang, "disable2FA"), i18n(lang, "disable2FAInfo"), [
                                             {

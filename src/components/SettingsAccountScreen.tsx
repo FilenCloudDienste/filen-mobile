@@ -92,10 +92,8 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                         />
                     ) : (
                         <>
-                            {/* @ts-ignore */}
                             <SettingsGroup marginTop={15}>
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     onPress={() => {
                                         navigationAnimation({ enable: true }).then(() => {
                                             navigation.dispatch(StackActions.push("ChangeEmailPasswordScreen"))
@@ -104,7 +102,6 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                     title={i18n(lang, "changeEmailPassword")}
                                 />
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     onPress={() => {
                                         navigationAnimation({ enable: true }).then(() => {
                                             navigation.dispatch(StackActions.push("TwoFactorScreen", {
@@ -115,7 +112,6 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                     title={i18n(lang, accountSettings.twoFactorEnabled ? "disable2FA" : "enable2FA")}
                                 />
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     onPress={() => {
                                         navigationAnimation({ enable: true }).then(() => {
                                             navigation.dispatch(StackActions.push("GDPRScreen"))
@@ -126,7 +122,6 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                             </SettingsGroup>
                             <SettingsGroup>
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     rightText={formatBytes(accountSettings.storageUsed)}
                                     onPress={() => {
                                         Alert.alert(i18n(lang, "deleteAllFiles"), i18n(lang, "deleteAllFilesInfo"), [
@@ -182,7 +177,6 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                     title={i18n(lang, "deleteAllFiles")}
                                 />
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     rightText={formatBytes(accountSettings.versionedStorage)}
                                     onPress={() => {
                                         Alert.alert(i18n(lang, "deleteAllVersionedFiles"), i18n(lang, "deleteAllVersionedFilesInfo"), [
@@ -241,12 +235,10 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                             </SettingsGroup>
                             <SettingsGroup>
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     onPress={() => setRedeemCodeDialogVisible(true)}
                                     title={i18n(lang, "redeemACode")}
                                 />
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     onPress={() => {
                                         navigationAnimation({ enable: true }).then(() => {
                                             navigation.dispatch(StackActions.push("InviteScreen"))
@@ -257,7 +249,6 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                             </SettingsGroup>
                             <SettingsGroup>
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     onPress={() => {
                                         Alert.alert(i18n(lang, "logout"), i18n(lang, "areYouReallySure"), [
                                             {
@@ -281,7 +272,6 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                             </SettingsGroup>
                             <SettingsGroup>
                                 <SettingsButtonLinkHighlight
-                                    // @ts-ignore
                                     onPress={() => {
                                         Alert.alert(i18n(lang, "deleteAccount"), i18n(lang, "deleteAccountInfo"), [
                                             {

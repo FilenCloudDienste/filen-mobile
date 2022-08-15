@@ -291,13 +291,11 @@ export const waitForStateUpdate = (key: string, value: any): Promise<boolean> =>
 			return resolve(true)
 		}
 
-		// @ts-ignore
-		if(useStore.getState()[key] == value){
+		if((useStore.getState() as any)[key] == value){
 			return callback()
 		}
 
-		// @ts-ignore
-		unsub = useStore.subscribe(state => state[key], () => {
+		unsub = useStore.subscribe((state: any) => state[key], () => {
 			return callback()
 		})
 

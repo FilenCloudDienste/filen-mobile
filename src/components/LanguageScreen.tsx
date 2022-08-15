@@ -58,57 +58,46 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
             >
                 <SettingsGroup>
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="English"
                         onPress={() => setLang("en")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="Deutsch"
                         onPress={() => setLang("de")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="Français"
                         onPress={() => setLang("fr")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="Italiano"
                         onPress={() => setLang("it")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="Nederlands"
                         onPress={() => setLang("nl")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="Polski"
                         onPress={() => setLang("pl")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="Русский"
                         onPress={() => setLang("ru")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="Українська"
                         onPress={() => setLang("uk")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="日本語"
                         onPress={() => setLang("ja")} 
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="简体字"
                         onPress={() => setLang("zh")}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title="Türk"
                         onPress={() => setLang("tr")}
                     />

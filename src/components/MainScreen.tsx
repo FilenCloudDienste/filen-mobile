@@ -387,7 +387,6 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                 }}
             >
                 <ItemList
-                    // @ts-ignore
                     navigation={navigation}
                     route={route}
                     items={items}

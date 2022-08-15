@@ -572,26 +572,16 @@ export const App = memo(() => {
                                         )
                                     }
                                 </>
-                                {/* @ts-ignore */}
                                 <TransfersIndicator navigation={navigationRef} />
-                                {/* @ts-ignore */}
                                 <TopBarActionSheet navigation={navigationRef} />
-                                {/* @ts-ignore */}
-                                <BottomBarAddActionSheet navigation={navigationRef} />
-                                {/* @ts-ignore */}
+                                <BottomBarAddActionSheet />
                                 <ItemActionSheet navigation={navigationRef} />
-                                {/* @ts-ignore */}
-                                <FolderColorActionSheet navigation={navigationRef} />
-                                {/* @ts-ignore */}
-                                <PublicLinkActionSheet navigation={navigationRef} />
-                                {/* @ts-ignore */}
-                                <ShareActionSheet navigation={navigationRef} />
-                                {/* @ts-ignore */}
+                                <FolderColorActionSheet />
+                                <PublicLinkActionSheet />
+                                <ShareActionSheet />
                                 <FileVersionsActionSheet navigation={navigationRef} />
-                                {/* @ts-ignore */}
-                                <ProfilePictureActionSheet navigation={navigationRef} />
-                                {/* @ts-ignore */}
-                                <SortByActionSheet navigation={navigationRef} />
+                                <ProfilePictureActionSheet />
+                                <SortByActionSheet />
                             </View>
                         </SafeAreaView>
                     </SafeAreaProvider>

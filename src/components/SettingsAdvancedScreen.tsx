@@ -114,7 +114,6 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
             >
                 <SettingsGroup>
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title={i18n(lang, "clearThumbnailCache")}
                         rightText={isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(thumbnailCacheLocalFolderSize)}
                         onPress={() => {
@@ -204,7 +203,6 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                         }}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title={i18n(lang, "clearCachesDirectory")}
                         rightText={isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(cachesLocalFolderSize)}
                         onPress={() => {
@@ -263,7 +261,6 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                         }}
                     />
                     <SettingsButtonLinkHighlight
-                        // @ts-ignore
                         title={i18n(lang, "clearTempDirectory")}
                         rightText={isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(tempLocalFolderSize)}
                         onPress={() => {

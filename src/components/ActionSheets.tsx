@@ -1438,11 +1438,10 @@ export const ActionSheetIndicator = memo(() => {
 })
 
 export interface ItemActionSheetProps {
-	navigation: any,
-	route: any
+	navigation: any
 }
 
-export const ItemActionSheet = memo(({ navigation, route }: ItemActionSheetProps) => {
+export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 	const insets: EdgeInsets = useSafeAreaInsets()
 	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)

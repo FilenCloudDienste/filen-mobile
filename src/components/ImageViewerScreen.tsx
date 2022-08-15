@@ -105,8 +105,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
             generateItemThumbnail({
                 item: image.file,
                 skipInViewCheck: true,
-                // @ts-ignore
-                callback: (err, thumbPath) => {
+                callback: (err: any, thumbPath: string) => {
                     if(!isMounted()){
                         return false
                     }
