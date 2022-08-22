@@ -390,5 +390,8 @@ export const pl: {
     cameraUploadFetchingAssetsFromLocal: "Przygotowanie zasobów lokalnych",
     cannotShareDirIntoApp: "Nie możesz udostępnić katalogu w aplikacji",
     alreadyUploadingFile: "__NAME__ już się przesyła",
-    publicLink: "Publiczny link"
+    publicLink: "Publiczny link",
+    cameraUploadEnableHeic: "Nie konwertuj HEIC/HEIF",
+    albums: "Albumy",
+    cameraUploadNoAlbumsFound: "Nie znaleziono albumów, w tym wszystkich zasobów"
 }
