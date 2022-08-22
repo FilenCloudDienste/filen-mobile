@@ -336,6 +336,8 @@ export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: st
         }
 
         try{
+            await new Promise((resolve) => BackgroundTimer.setTimeout(() => resolve(true), 250))
+
             await markUploadAsDone({ uuid, uploadKey })
 
             item.timestamp = Math.floor(+new Date() / 1000)
@@ -362,7 +364,9 @@ export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: st
 
             cleanup()
 
-            showToast({ message: e.toString() })
+            if(e.toString().toLowerCase().indexOf("upload chunks") == -1){
+                showToast({ message: e.toString() })
+            }
 
             return reject(e)
         }
@@ -374,61 +378,7 @@ export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: st
 
         cleanup()
 
-        if(getParent() == "photos" && parent == "photos"){
-            try{
-                const newItem = await buildFile({
-                    file: {
-                        uuid,
-                        name,
-                        size,
-                        mime,
-                        key,
-                        lastModified,
-                        bucket: item.bucket,
-                        region: item.region,
-                        timestamp: item.timestamp,
-                        rm,
-                        chunks_size: size,
-                        parent,
-                        chunks: fileChunks,
-                        receiverId: undefined,
-                        receiverEmail: undefined,
-                        sharerId: undefined,
-                        sharerEmail: undefined,
-                        version: uploadVersion,
-                        favorited: 0
-                    },
-                    metadata: {
-                        uuid,
-                        name,
-                        size,
-                        mime,
-                        key,
-                        lastModified
-                    },
-                    masterKeys,
-                    email: storage.getString("email"),
-                    userId: storage.getNumber("userId")
-                })
-    
-                await addItemLoadItemsCache({
-                    item: newItem,
-                    routeURL: "photos"
-                })
-        
-                DeviceEventEmitter.emit("event", {
-                    type: "add-item",
-                    data: {
-                        item: newItem,
-                        parent: "photos"
-                    }
-                })
-            }
-            catch(e){
-                console.log(e)
-            }
-        }
-        else{
+        if(getParent() == parent){
             debouncedListUpdate()
         }
 
