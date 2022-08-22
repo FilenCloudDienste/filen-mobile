@@ -23,7 +23,6 @@ const CryptoApi = require("crypto-api-v1")
 const { uuid } = require("uuidv4")
 const https = require("https")
 const http = require("http")
-const request = require("request")
 const fs = require("fs")
 const pathModule = require("path")
 const { Readable } = require("stream")
@@ -43,7 +42,22 @@ const axiosClient = axios.create({
         "User-Agent": "filen-mobile",
         "Connection": "keep-alive"
     }
-}) 
+})
+
+const httpsAPIAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 10
+})
+
+const httpsUploadAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 32
+})
+
+const httpsDownloadAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 64
+})
 
 const cachedDerivedKeys = {}
 const cachedPemKeys = {}
@@ -446,36 +460,47 @@ const hashFn = (val) => {
 
 const apiRequest = (method, url, timeout, data) => {
     return new Promise((resolve, reject) => {
+        url = new URL(url)
+
         if(method == "POST"){
-            request({
+            const req = https.request({
                 method: method.toUpperCase(),
-                url,
-                timeout,
+                hostname: "api.filen.io",
+                path: url.pathname,
+                port: 443,
+                agent: httpsAPIAgent,
+                timeout: 86400000,
                 headers: {
                     "Content-Type": "application/json",
                     "User-Agent": "filen-mobile"
-                },
-                agent: new https.Agent({
-                    keepAlive: true,
-                    timeout: 86400000
-                }),
-                body: JSON.stringify(data)
-            }, (err, response, body) => {
-                if(err){
-                    return reject(err)
                 }
-
+            }, (response) => {
                 if(response.statusCode !== 200){
-                    return reject("Response status: " + response.status)
+                    return reject(new Error("API response " + response.statusCode))
                 }
 
-                try{
-                    return resolve(JSON.parse(body))
-                }
-                catch(e){
-                    return reject(e)
-                }
+                const res = []
+
+                response.on("data", (chunk) => {
+                    res.push(chunk)
+                })
+
+                response.on("end", () => {
+                    try{
+                        return resolve(JSON.parse(Buffer.concat(res).toString()))
+                    }
+                    catch(e){
+                        return reject(e)
+                    }
+                })
             })
+
+            req.on("error", (err) => {
+                return reject(err)
+            })
+
+            req.write(JSON.stringify(data))
+            req.end()
         }
         else{
             return reject("Invalid method: " + method)
@@ -610,24 +635,17 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
                 })
             }
 
-            const req = request({
-                url: "https://up.filen.io/v2/upload?" + queryParams,
+            const req = https.request({
                 method: "POST",
-                agent: new https.Agent({
-                    keepAlive: true,
-                    timeout: 86400000
-                }),
+                hostname: "up.filen.io",
+                path: "/v2/upload?" + queryParams,
+                port: 443,
                 timeout: 86400000,
+                agent: httpsUploadAgent,
                 headers: {
                     "User-Agent": "filen-mobile"
                 }
-            }, (err, response, body) => {
-                if(err){
-                    return reject(err)
-                }
-
-                calcProgress(req.req.connection.bytesWritten)
-
+            }, (response) => {
                 if(response.statusCode !== 200){
                     if((-totalBytes) < 0){
                         rn_bridge.channel.send({
@@ -645,30 +663,59 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
                     return reject("Upload failed, status code: " + response.statusCode)
                 }
 
-                try{
-                    var res = JSON.parse(body)
-                }
-                catch(e){
-                    return reject(e)
-                }
+                calcProgress(req.socket.bytesWritten)
 
-                if(!res.status){
-                    if((-totalBytes) < 0){
-                        rn_bridge.channel.send({
-                            type: "uploadProgress",
-                            status: "progress",
-                            data: {
-                                uuid,
-                                bytes: -totalBytes
+                const res = []
+
+                response.on("data", (chunk) => {
+                    res.push(chunk)
+                })
+
+                response.on("end", () => {
+                    try{
+                        const obj = JSON.parse(Buffer.concat(res).toString())
+
+                        if(!obj.status){
+                            if((-totalBytes) < 0){
+                                rn_bridge.channel.send({
+                                    type: "uploadProgress",
+                                    status: "progress",
+                                    data: {
+                                        uuid,
+                                        bytes: -totalBytes
+                                    }
+                                })
                             }
-                        })
+        
+                            totalBytes = 0
+                        }
+        
+                        return resolve(obj)
                     }
+                    catch(e){
+                        return reject(e)
+                    }
+                })
+            })
 
-                    totalBytes = 0
+            req.on("error", (err) => {
+                if((-totalBytes) < 0){
+                    rn_bridge.channel.send({
+                        type: "uploadProgress",
+                        status: "progress",
+                        data: {
+                            uuid,
+                            bytes: -totalBytes
+                        }
+                    })
                 }
 
-                return resolve(res)
-            }).on("drain", () => calcProgress(req.req.connection.bytesWritten))
+                totalBytes = 0
+
+                return reject(err)
+            })
+
+            req.on("drain", () => calcProgress(req.socket.bytesWritten))
 
             Readable.from([encrypted]).pipe(req)
         }).catch(reject)
@@ -720,10 +767,7 @@ const downloadFileChunk = (uuid, region, bucket, index) => {
             port: 443,
             path: "/" + region + "/" + bucket + "/" + uuid + "/" + index,
             method: "GET",
-            agent: new https.Agent({
-                keepAlive: true,
-                timeout: 86400000
-            }),
+            agent: httpsDownloadAgent,
             timeout: 86400000,
             headers: {
                 "User-Agent": "filen-mobile"

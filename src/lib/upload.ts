@@ -7,7 +7,7 @@ import storage from "./storage"
 import { i18n } from "../i18n/i18n"
 import { DeviceEventEmitter } from "react-native"
 import { getDownloadPath } from "./download"
-import { getThumbnailCacheKey } from "./services/items"
+import { getThumbnailCacheKey, addItemLoadItemsCache, buildFile } from "./services/items"
 import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "./memoryCache"
@@ -374,7 +374,61 @@ export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: st
 
         cleanup()
 
-        if(getParent() == parent){
+        if(getParent() == "photos" && parent == "photos"){
+            try{
+                const newItem = await buildFile({
+                    file: {
+                        uuid,
+                        name,
+                        size,
+                        mime,
+                        key,
+                        lastModified,
+                        bucket: item.bucket,
+                        region: item.region,
+                        timestamp: item.timestamp,
+                        rm,
+                        chunks_size: size,
+                        parent,
+                        chunks: fileChunks,
+                        receiverId: undefined,
+                        receiverEmail: undefined,
+                        sharerId: undefined,
+                        sharerEmail: undefined,
+                        version: uploadVersion,
+                        favorited: 0
+                    },
+                    metadata: {
+                        uuid,
+                        name,
+                        size,
+                        mime,
+                        key,
+                        lastModified
+                    },
+                    masterKeys,
+                    email: storage.getString("email"),
+                    userId: storage.getNumber("userId")
+                })
+    
+                await addItemLoadItemsCache({
+                    item: newItem,
+                    routeURL: "photos"
+                })
+        
+                DeviceEventEmitter.emit("event", {
+                    type: "add-item",
+                    data: {
+                        item: newItem,
+                        parent: "photos"
+                    }
+                })
+            }
+            catch(e){
+                console.log(e)
+            }
+        }
+        else{
             debouncedListUpdate()
         }
 
