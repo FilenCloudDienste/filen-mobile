@@ -422,6 +422,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                 }}
                 pagingEnabled={true}
                 horizontal={true}
+                showsHorizontalScrollIndicator={false}
                 disableIntervalMomentum={true} 
                 snapToAlignment="center"
                 onMomentumScrollEnd={(e) => setCurrentView(e.nativeEvent.contentOffset.x == 0 ? "ongoing" : "finished")}

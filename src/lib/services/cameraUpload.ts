@@ -286,6 +286,7 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
 
             storage.set("cameraUploadLastRemoteAssets:" + userId, JSON.stringify(remoteAssets))
             storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, now + 3600000)
+            storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify(remoteHashes))
         }
         else{
             remoteHashes = JSON.parse(storage.getString("cameraUploadRemoteHashes:" + userId) || "{}")

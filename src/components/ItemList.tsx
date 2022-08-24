@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect, memo } from "react"
 import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, Dimensions } from "react-native"
 import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange } from "../lib/helpers"
+import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, convertTimestampToMs } from "../lib/helpers"
 import { ListItem, GridItem, PhotosItem, PhotosRangeItem } from "./Item"
 import { useStore } from "../lib/state"
 import { i18n } from "../i18n/i18n"
@@ -64,7 +64,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             const occupied: any = {}
     
             for(let i = 0; i < items.length; i++){
-                const itemDate = new Date(items[i].lastModified * 1000)
+                const itemDate = new Date(items[i].lastModified)
                 const itemYear = itemDate.getFullYear()
                 const occKey = itemYear
     
@@ -91,7 +91,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             const occupied: any = {}
     
             for(let i = 0; i < items.length; i++){
-                const itemDate = new Date(items[i].lastModified * 1000)
+                const itemDate = new Date(items[i].lastModified)
                 const itemYear = itemDate.getFullYear()
                 const itemMonth = itemDate.getMonth()
                 const occKey = itemYear + ":" + itemMonth
@@ -117,7 +117,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             const occupied: any = {}
     
             for(let i = 0; i < items.length; i++){
-                const itemDate = new Date(items[i].lastModified * 1000)
+                const itemDate = new Date(items[i].lastModified)
                 const itemYear = itemDate.getFullYear()
                 const itemMonth = itemDate.getMonth()
                 const itemDay = itemDate.getDate()
