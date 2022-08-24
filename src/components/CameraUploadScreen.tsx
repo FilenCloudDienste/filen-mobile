@@ -248,6 +248,9 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                                 onPress: () => {
                                                     try{
                                                         storage.delete("cameraUploadUploadedIds:" + userId)
+                                                        storage.delete("cameraUploadUploadedHashes:" + userId)
+                                                        storage.delete("cameraUploadFetchRemoteAssetsTimeout:" + userId)
+                                                        storage.delete("cameraUploadRemoteHashes:" + userId)
                                                     }
                                                     catch(e){
                                                         console.log(e)

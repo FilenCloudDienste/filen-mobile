@@ -968,7 +968,7 @@ export const decryptFolderLinkKey = (masterKeys: string[], metadata: string): Pr
     })
 }
 
-export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string, uuid: string): Promise<any> => {
+export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string, uuid: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number, hash: string }> => {
     return new Promise((resolve, reject) => {
         const cacheKey = "metadataCache:file:" + uuid + ":" + metadata
         let metadataCache: any = storage.getString(cacheKey) || "{}"
@@ -984,7 +984,8 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
                             size: metadataCache.size,
                             mime: metadataCache.mime,
                             key: metadataCache.key,
-                            lastModified: metadataCache.lastModified
+                            lastModified: metadataCache.lastModified,
+                            hash: typeof metadataCache.hash == "string" && metadataCache.hash.length > 0 ? metadataCache.hash : ""
                         })
                     }
                 }
@@ -999,7 +1000,8 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
             size: 0,
             mime: "",
             key: "",
-            lastModified: unixTimestamp()
+            lastModified: unixTimestamp(),
+            hash: ""
         }
 
         global.nodeThread.decryptMetadataPrivateKey({
@@ -1015,7 +1017,8 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
                         size: decrypted.size,
                         mime: decrypted.mime,
                         key: decrypted.key,
-                        lastModified: decrypted.lastModified
+                        lastModified: decrypted.lastModified,
+                        hash: typeof decrypted.hash == "string" && decrypted.hash.length > 0 ? decrypted.hash : ""
                     }
     
                     try{
@@ -1163,7 +1166,7 @@ export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: 
     })
 }
 
-export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number }> => {
+export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number, hash: string }> => {
     return new Promise((resolve, reject) => {
         const cacheKey = "metadataCache:file:" + uuid + ":" + metadata
         let metadataCache: any = storage.getString(cacheKey)
@@ -1180,7 +1183,8 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
                                 size: metadataCache.size,
                                 mime: metadataCache.mime,
                                 key: metadataCache.key,
-                                lastModified: metadataCache.lastModified
+                                lastModified: metadataCache.lastModified,
+                                hash: typeof metadataCache.hash == "string" && metadataCache.hash.length > 0 ? metadataCache.hash : ""
                             })
                         }
                     }
@@ -1196,7 +1200,8 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
             size: 0,
             mime: "",
             key: "",
-            lastModified: Math.floor((+new Date()) / 1000)
+            lastModified: Math.floor((+new Date()) / 1000),
+            hash: ""
         }
 
         let iterated = 0
@@ -1214,7 +1219,8 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
                                     size: decrypted.size,
                                     mime: decrypted.mime,
                                     key: decrypted.key,
-                                    lastModified: decrypted.lastModified
+                                    lastModified: decrypted.lastModified,
+                                    hash: typeof decrypted.hash == "string" && decrypted.hash.length > 0 ? decrypted.hash : ""
                                 }
                             }
                         }

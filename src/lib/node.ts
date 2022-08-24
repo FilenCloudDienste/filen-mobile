@@ -31,7 +31,8 @@ declare global {
         encryptAndUploadFileChunk: (params: { path: string, key: string, queryParams: string, chunkIndex: number, chunkSize: number }) => Promise<any>,
         getDataDir: () => Promise<string>,
         appendFileToFile: (params: { first: string, second: string }) => Promise<boolean>,
-        downloadDecryptAndWriteFileChunk: (params: { destPath: string, uuid: string, region: string, bucket: string, index: number, key: string, version: number }) => Promise<string>
+        downloadDecryptAndWriteFileChunk: (params: { destPath: string, uuid: string, region: string, bucket: string, index: number, key: string, version: number }) => Promise<string>,
+        getFileHash: (params: { path: string, hashName: string }) => Promise<string>
     }
 }
 
@@ -452,6 +453,23 @@ global.nodeThread = {
                     index,
                     key,
                     version
+                })
+            })
+		})
+    },
+    getFileHash: ({ path, hashName }) => {
+        const id = currentId += 1
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+                resolves[id] = resolve
+                rejects[id] = reject
+
+                return nodejs.channel.send({
+                    id,
+                    type: "getFileHash",
+                    path,
+                    hashName
                 })
             })
 		})

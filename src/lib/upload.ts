@@ -31,7 +31,7 @@ const debouncedListUpdate = debounce(() => {
     global.fetchItemList({ bypassCache: true, callStack: 0, loadFolderSizes: true }).catch((err: any) => console.log(err))
 }, 1000)
 
-export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: string }): Promise<any> => {
+export const queueFileUpload = ({ file, parent, includeFileHash = false }: { file: UploadFile, parent: string, includeFileHash?: boolean }): Promise<any> => {
     return new Promise(async (resolve, reject) => {
         const masterKeys = getMasterKeys()
         const apiKey = getAPIKey()
@@ -116,7 +116,17 @@ export const queueFileUpload = ({ file, parent }: { file: UploadFile, parent: st
                 global.nodeThread.hashFn({ string: name.toLowerCase() }),
                 encryptMetadata(mime, key),
                 encryptMetadata(size.toString(), key),
-                encryptMetadata(JSON.stringify({
+                encryptMetadata(JSON.stringify(includeFileHash ? {
+                    name,
+                    size,
+                    mime,
+                    key,
+                    lastModified,
+                    hash: await global.nodeThread.getFileHash({
+                        path: file.path,
+                        hashName: "sha512"
+                    })
+                } : {
                     name,
                     size,
                     mime,

@@ -722,6 +722,17 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
     })
 }
 
+const getFileHash = (path, hashName) => {
+    return new Promise((resolve, reject) => {
+        const hash = crypto.createHash(hashName.toLowerCase())
+        const stream = fs.createReadStream(pathModule.normalize(normalizeRNFilePath(path)))
+
+        stream.on("error", reject)
+        stream.on("data", (chunk) => hash.update(chunk))
+        stream.on("end", () => resolve(hash.digest("hex")))
+    })
+}
+
 const normalizeRNFilePath = (path) => {
     if(path.startsWith("file://")){
         return path.replace("file://", "")
@@ -1274,6 +1285,25 @@ rn_bridge.channel.on("message", (message) => {
     }
     else if(request.type == "uploadAvatar"){
         uploadAvatar(request.base64, request.url, request.timeout).then((res) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                response: res
+            })
+
+            tasksRunning -= 1
+        }).catch((err) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                err: err.toString()
+            })
+
+            tasksRunning -= 1
+        })
+    }
+    else if(request.type == "getFileHash"){
+        getFileHash(request.path, request.hashName).then((res) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,

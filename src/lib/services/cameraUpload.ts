@@ -1,8 +1,8 @@
 import storage from "../storage"
 import { queueFileUpload, UploadFile } from "../upload"
 import { Platform } from "react-native"
-import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs } from "../helpers"
-import { folderPresent, fileExists } from "../api"
+import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, decryptFileMetadata, getMasterKeys } from "../helpers"
+import { folderPresent, fileExists, apiRequest } from "../api"
 import BackgroundTimer from "react-native-background-timer"
 import * as MediaLibrary from "expo-media-library"
 import ReactNativeBlobUtil from "react-native-blob-util"
@@ -155,6 +155,10 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
         const cameraUploadUploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
         const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
+        const cameraUploadFetchRemoteAssetsTimeout = storage.getNumber("cameraUploadFetchRemoteAssetsTimeout:" + userId)
+        const apiKey = getAPIKey()
+        const masterKeys = getMasterKeys()
+        const now = new Date().getTime()
 
         storage.set("cameraUploadUploaded", Object.keys(cameraUploadUploadedIds).length)
 
@@ -243,6 +247,38 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
             return true
         }
 
+        let remoteHashes: any = {}
+
+        if(now > cameraUploadFetchRemoteAssetsTimeout){
+            const remoteAssetsResponse = await apiRequest({
+                method: "POST",
+                endpoint: "/v1/dir/content",
+                data: {
+                    apiKey,
+                    uuid: cameraUploadFolderUUID,
+                    folders: JSON.stringify(["default"]),
+                    page: 1,
+                    app: "true"
+                }
+            })
+    
+            for(let i = 0; i < remoteAssetsResponse.data.uploads.length; i++){
+                const file = remoteAssetsResponse.data.uploads[i]
+                const decrypted = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
+    
+                if(typeof decrypted.hash == "string"){
+                    if(decrypted.hash.length > 0){
+                        remoteHashes[decrypted.hash] = true
+                    }
+                }
+            }
+
+            storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, now + 3600000)
+        }
+        else{
+            remoteHashes = JSON.parse(storage.getString("cameraUploadRemoteHashes:" + userId) || "{}")
+        }
+
         const assets = await fetchAssets()
 
         storage.set("cameraUploadTotal", assets.length)
@@ -266,7 +302,7 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
             return new Promise((resolve) => {
                 const assetId = getAssetId(asset)
 
-                const add = (): void => {
+                const add = (fileHash: string = ""): void => {
                     const uploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
     
                     if(typeof uploadedIds[assetId] == "undefined"){
@@ -274,6 +310,24 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
 
                         storage.set("cameraUploadUploadedIds:" + userId, JSON.stringify(uploadedIds))
                         storage.set("cameraUploadUploaded", Object.keys(uploadedIds).length)
+                    }
+
+                    if(fileHash.length > 0){
+                        const uploadedHashes = JSON.parse(storage.getString("cameraUploadUploadedHashes:" + userId) || "{}")
+    
+                        if(typeof uploadedHashes[fileHash] == "undefined"){
+                            uploadedHashes[fileHash] = true
+
+                            storage.set("cameraUploadUploadedHashes:" + userId, JSON.stringify(uploadedHashes))
+                        }
+
+                        const remote = JSON.parse(storage.getString("cameraUploadRemoteHashes:" + userId) || "{}")
+
+                        if(typeof remote[fileHash] == "undefined"){
+                            remote[fileHash] = true
+
+                            storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify(remote))
+                        }
                     }
 
                     return resolve(true)
@@ -367,13 +421,36 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                     }
 
                     getFile().then((file) => {
-                        queueFileUpload({
-                            file,
-                            parent: cameraUploadFolderUUID
-                        }).then(() => {
-                            return add()
+                        global.nodeThread.getFileHash({
+                            path: file.path,
+                            hashName: "sha512"
+                        }).then((hash) => {
+                            const uploadedHashes = JSON.parse(storage.getString("cameraUploadUploadedHashes:" + userId) || "{}")
+
+                            if(typeof uploadedHashes[hash] !== "undefined" || typeof remoteHashes[hash] !== "undefined"){
+                                return add(hash)
+                            }
+
+                            queueFileUpload({
+                                file,
+                                parent: cameraUploadFolderUUID,
+                                includeFileHash: true
+                            }).then(() => {
+                                return add(hash)
+                            }).catch((err) => {
+                                console.log(err)
+    
+                                return resolve(true)
+                            })
                         }).catch((err) => {
                             console.log(err)
+
+                            if(typeof FAILED[assetId] !== "number"){
+                                FAILED[assetId] = 1
+                            }
+                            else{
+                                FAILED[assetId] += 1
+                            }
 
                             return resolve(true)
                         })

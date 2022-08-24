@@ -341,6 +341,8 @@ export const App = memo(() => {
             })
         }
 
+        storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, new Date().getTime() - 5000)
+
         return () => {
             dimensionsListener.remove()
             shareMenuListener.remove()

@@ -47,7 +47,8 @@ export interface Item {
     rm: string,
     chunks: number,
     thumbnail: string | undefined,
-    version: number
+    version: number,
+    hash: string
 }
 
 export const ItemTemplate: Item = {
@@ -79,7 +80,8 @@ export const ItemTemplate: Item = {
     rm: "",
     chunks: 0,
     thumbnail: undefined,
-    version: 0
+    version: 0,
+    hash: ""
 }
 
 export interface BuildFolder {
@@ -147,7 +149,8 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
         rm: "",
         chunks: 0,
         thumbnail: undefined,
-        version: 0
+        version: 0,
+        hash: ""
     }
 }
 
@@ -158,7 +161,8 @@ export interface BuildFile {
         mime: string,
         size: number,
         key: string,
-        lastModified: number
+        lastModified: number,
+        hash: string
     },
     masterKeys?: string[],
     sharedIn?: boolean,
@@ -167,7 +171,7 @@ export interface BuildFile {
     userId?: number
 }
 
-export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0 }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
+export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0, hash: "" }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
     const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn.toString()
 
     if(memoryCache.has(cacheKey)){
@@ -242,7 +246,8 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
         color: null,
         isBase: false,
         isSync: false,
-        isDefault: false
+        isDefault: false,
+        hash: typeof metadata.hash == "string" && metadata.hash.length > 0 ? metadata.hash : ""
     }
 }
 
