@@ -128,7 +128,7 @@ export class ListItem extends Component<ListItemProps> {
                             width: "100%",
                             marginLeft: 15,
                             borderBottomColor: getColor(darkMode, "primaryBorder"),
-                            borderBottomWidth: 1
+                            borderBottomWidth: 0.5
                         }}
                     >
                         <View

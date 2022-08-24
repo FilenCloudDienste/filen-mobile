@@ -435,6 +435,10 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                 setIsLoading(false)
                 setRefreshing(false)
 
+                if(data.events.length <= 0){
+                    return
+                }
+
                 const newEvents = data.events
                 const limit = data.limit
 
