@@ -154,11 +154,13 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         const cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
         const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
         const cameraUploadUploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
+        const cameraUploadLastRemoteAssets = JSON.parse(storage.getString("cameraUploadLastRemoteAssets:" + userId) || "[]")
         const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
         const cameraUploadFetchRemoteAssetsTimeout = storage.getNumber("cameraUploadFetchRemoteAssetsTimeout:" + userId)
         const apiKey = getAPIKey()
         const masterKeys = getMasterKeys()
         const now = new Date().getTime()
+        const remoteExtraChecks: any = {}
 
         storage.set("cameraUploadUploaded", Object.keys(cameraUploadUploadedIds).length)
 
@@ -247,7 +249,7 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
             return true
         }
 
-        let remoteHashes: any = {}
+        let remoteHashes: { [key: string]: boolean } = {}
 
         if(now > cameraUploadFetchRemoteAssetsTimeout){
             const remoteAssetsResponse = await apiRequest({
@@ -261,22 +263,36 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                     app: "true"
                 }
             })
+
+            const remoteAssets = []
     
             for(let i = 0; i < remoteAssetsResponse.data.uploads.length; i++){
                 const file = remoteAssetsResponse.data.uploads[i]
                 const decrypted = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
+
+                remoteAssets.push({
+                    ...file,
+                    metadata: decrypted
+                })
     
                 if(typeof decrypted.hash == "string"){
                     if(decrypted.hash.length > 0){
                         remoteHashes[decrypted.hash] = true
                     }
                 }
+
+                remoteExtraChecks[decrypted.lastModified + ":" + decrypted.size] = true
             }
 
+            storage.set("cameraUploadLastRemoteAssets:" + userId, JSON.stringify(remoteAssets))
             storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, now + 3600000)
         }
         else{
             remoteHashes = JSON.parse(storage.getString("cameraUploadRemoteHashes:" + userId) || "{}")
+
+            for(let i = 0; i < cameraUploadLastRemoteAssets.length; i++){
+                remoteExtraChecks[cameraUploadLastRemoteAssets[i].metadata.lastModified + ":" + cameraUploadLastRemoteAssets[i].metadata.size] = true
+            }
         }
 
         const assets = await fetchAssets()
@@ -427,7 +443,11 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                         }).then((hash) => {
                             const uploadedHashes = JSON.parse(storage.getString("cameraUploadUploadedHashes:" + userId) || "{}")
 
-                            if(typeof uploadedHashes[hash] !== "undefined" || typeof remoteHashes[hash] !== "undefined"){
+                            if(
+                                typeof uploadedHashes[hash] !== "undefined"
+                                || typeof remoteHashes[hash] !== "undefined"
+                                || typeof remoteExtraChecks[file.lastModified + ":" + file.size] !== "undefined"
+                            ){
                                 return add(hash)
                             }
 
