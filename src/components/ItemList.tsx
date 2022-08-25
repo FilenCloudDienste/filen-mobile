@@ -471,6 +471,23 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         {i18n(lang, "cameraUploadEverythingUploaded")}
                                                     </Text>
                                                 </>
+                                            ) : cameraUploadTotal == 0 ? (
+                                                <>
+                                                    <Ionicon
+                                                        name="checkmark-done-circle-outline"
+                                                        size={20}
+                                                        color="green"
+                                                    />
+                                                    <Text
+                                                        style={{
+                                                            marginLeft: 10,
+                                                            color: "gray",
+                                                            paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                        }}
+                                                    >
+                                                        {i18n(lang, "cameraUploadEverythingUploaded")}
+                                                    </Text>
+                                                </>
                                             ) : (
                                                 <>
                                                     <ActivityIndicator

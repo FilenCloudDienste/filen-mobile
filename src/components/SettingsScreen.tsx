@@ -393,6 +393,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
     const netInfo = useStore(state => state.netInfo)
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
+    const [onlyUsePINCode, setOnlyUsePINCode] = useMMKVBoolean("onlyUsePINCode:" + userId, storage)
 
     return (
         <ScrollView
@@ -657,6 +658,19 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                                 })
                             }}
                             value={biometricPinAuth}
+                        />
+                    }
+                />
+                <SettingsButton
+                    title={i18n(lang, "onlyUsePINCode")}
+                    rightComponent={
+                        <Switch
+                            trackColor={getColor(darkMode, "switchTrackColor")}
+                            thumbColor={onlyUsePINCode ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                            onValueChange={() => setOnlyUsePINCode(!onlyUsePINCode)}
+                            value={onlyUsePINCode}
+                            disabled={!biometricPinAuth}
                         />
                     }
                 />

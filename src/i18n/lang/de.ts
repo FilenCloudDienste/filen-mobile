@@ -389,5 +389,6 @@ export const de: {
     shareIntoAppLimit: "Sie können keine __LIMIT__ aufeinmal in die Anwendung hochladen",
     cameraUploadEnableHeic: "HEIC/HEIF nicht konvertieren",
     albums: "Alben",
-    cameraUploadNoAlbumsFound: "Keine Alben gefunden, alle Dateien werden hochgeladen"
+    cameraUploadNoAlbumsFound: "Keine Alben gefunden, alle Dateien werden hochgeladen",
+    onlyUsePINCode: "Nur PIN Code benutzen"
 }

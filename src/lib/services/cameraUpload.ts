@@ -31,6 +31,9 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
         storage.delete("cameraUploadLastAssets:" + userId)
         storage.set("cameraUploadUploaded", 0)
         storage.set("cameraUploadTotal", 0)
+        storage.delete("cameraUploadFetchRemoteAssetsTimeout:" + userId)
+        storage.delete("cameraUploadRemoteHashes:" + userId)
+        storage.delete("cameraUploadLastRemoteAssets:" + userId)
     }
 }
 
@@ -511,16 +514,6 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
 
         if(uploads.length > 0){
             await promiseAllSettled(uploads)
-
-            if(runOnce){
-                return true
-            }
-
-            BackgroundTimer.setTimeout(() => {
-                runCameraUpload(maxQueue)
-            }, TIMEOUT)
-
-            return true
         }
 
         if(runOnce){

@@ -279,6 +279,10 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
             return
         }
 
+        if(storage.getBoolean("onlyUsePINCode:" + storage.getNumber("userId"))){
+            return
+        }
+
         await new Promise((resolve) => {
             const wait = setInterval(() => {
                 if(appState.current == "active"){
@@ -346,7 +350,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
             appState.current = nextAppState
         })
 
-        setTimeout(promptBiometrics, 100)
+        setTimeout(promptBiometrics, 250)
 
         return () => {
             navigation.removeListener("beforeRemove", removeListener)

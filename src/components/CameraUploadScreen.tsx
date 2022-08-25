@@ -147,12 +147,16 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             <SettingsButton
                                 title={i18n(lang, "cameraUploadFolder")}
                                 rightComponent={
-                                    <Text style={{
-                                        color: "gray",
-                                        paddingTop: 3,
-                                        paddingRight: 10,
-                                        fontSize: 13
-                                    }}>
+                                    <Text
+                                        style={{
+                                            color: "gray",
+                                            paddingTop: 5,
+                                            paddingRight: 10,
+                                            fontSize: 13,
+                                            maxWidth: 200
+                                        }}
+                                        numberOfLines={1}
+                                    >
                                         {cameraUploadFolderName}
                                     </Text>
                                 }
