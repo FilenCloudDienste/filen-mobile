@@ -393,5 +393,6 @@ export const uk: {
     publicLink: "Публічне посилання",
     cameraUploadEnableHeic: "Не конвертувати HEIC/HEIF",
     albums: "Альбоми",
-    cameraUploadNoAlbumsFound: "Альбоми не знайдені, включаючи всі вкладення"
+    cameraUploadNoAlbumsFound: "Альбоми не знайдені, включаючи всі вкладення",
+    onlyUsePINCode: "Використовувати тільки PIN-код"
 }
