@@ -393,5 +393,6 @@ export const ru: {
     publicLink: "Публичная ссылка",
     cameraUploadEnableHeic: "Не конвертировать HEIC/HEIF",
     albums: "Альбомы",
-    cameraUploadNoAlbumsFound: "Альбомы не найдены, включая все вложения"
+    cameraUploadNoAlbumsFound: "Альбомы не найдены, включая все вложения",
+    onlyUsePINCode: "Использовать только PIN-код"
 }
