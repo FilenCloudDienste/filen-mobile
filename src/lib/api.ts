@@ -155,20 +155,38 @@ export const folderExists = ({ name, parent }: { name: string, parent: string })
 
 export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey: string }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/upload/done",
-            data: {
-                uuid,
-                uploadKey
-            }
-        }).then((response) => {
-            if(!response.status){
-                return reject(response.message)
+        const max = 32
+        let current = 0
+        const timeout = 1000
+
+        const req = () => {
+            if(current > max){
+                return reject(new Error("Could not mark upload " + uuid + " as done, max tries reached"))
             }
 
-            return resolve(true)
-        }).catch(reject)
+            current += 1
+
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/upload/done",
+                data: {
+                    uuid,
+                    uploadKey
+                }
+            }).then((response) => {
+                if(!response.status){
+                    if(response.message.toString().toLowerCase().indexOf("chunks are not matching") !== -1){
+                        return setTimeout(req, timeout)
+                    }
+
+                    return reject(response.message)
+                }
+    
+                return resolve(true)
+            }).catch(reject)
+        }
+
+        req()
     })
 }
 
