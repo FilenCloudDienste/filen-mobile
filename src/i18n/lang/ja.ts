@@ -327,7 +327,7 @@ export const ja: {
     unselect: "選択解除",
     deviceOutOfStorage: "本体の容量が不足しています",
     avatarInvalidImage: "このプロフィール画像は使用できません",
-    avatarMaxImageSize: "プロフィール画像は__SIZE__以下である必要があります",
+    avatarMaxImageSize: "プロフィール画像は__SIZE__以下で設定可能です",
     avatarUploaded: "プロフィール画像を設定しました",
     favoriteSelectedItems: "お気に入りに追加",
     unfavoriteSelectedItems: "お気に入りから外す",
