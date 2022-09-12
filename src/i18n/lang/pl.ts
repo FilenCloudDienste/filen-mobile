@@ -393,5 +393,6 @@ export const pl: {
     publicLink: "Publiczny link",
     cameraUploadEnableHeic: "Nie konwertuj HEIC/HEIF",
     albums: "Albumy",
-    cameraUploadNoAlbumsFound: "Nie znaleziono albumów, w tym wszystkich zasobów"
+    cameraUploadNoAlbumsFound: "Nie znaleziono albumów, w tym wszystkich zasobów",
+    onlyUsePINCode: "Używaj tylko kodu PIN"
 }
