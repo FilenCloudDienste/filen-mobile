@@ -26,6 +26,7 @@ const http = require("http")
 const fs = require("fs")
 const pathModule = require("path")
 const { Readable } = require("stream")
+const heicConvert = require("heic-convert")
 
 const axiosClient = axios.create({
     timeout: 3600000,
@@ -966,6 +967,29 @@ const appendFileToFile = (first, second) => {
     })
 }
 
+const convertHeic = (input, output, format) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(input, (err, inputBuffer) => {
+            if(err){
+                return reject(err)
+            }
+
+            heicConvert({
+                buffer: inputBuffer,
+                format
+            }).then((outputBuffer) => {
+                fs.writeFile(output, outputBuffer, (err) => {
+                    if(err){
+                        return reject(err)
+                    }
+
+                    return resolve(output)
+                })
+            }).catch(reject)
+        })
+    })
+}
+
 /*rn_bridge.app.on("pause", (pauseLock) => {
     new Promise((resolve, _) => {
         const wait = setInterval(() => {
@@ -1377,6 +1401,25 @@ rn_bridge.channel.on("message", (message) => {
     }
     else if(request.type == "downloadDecryptAndWriteFileChunk"){
         downloadDecryptAndWriteFileChunk(request.destPath, request.uuid, request.region, request.bucket, request.index, request.key, request.version).then((res) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                response: res
+            })
+
+            tasksRunning -= 1
+        }).catch((err) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                err: err.toString()
+            })
+
+            tasksRunning -= 1
+        })
+    }
+    else if(request.type == "convertHeic"){
+        convertHeic(request.input, request.output, request.format).then((res) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,

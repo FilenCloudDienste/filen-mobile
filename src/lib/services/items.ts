@@ -1,10 +1,10 @@
 import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize } from "../api"
 import storage from "../storage"
-import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate, convertTimestampToMs } from "../helpers"
+import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate, convertTimestampToMs, randomIdUnsafe } from "../helpers"
 import striptags from "striptags"
 import { getDownloadPath, queueFileDownload, downloadFile } from "../download"
 import RNFS from "react-native-fs"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Platform } from "react-native"
 import { useStore } from "../state"
 import FileViewer from "react-native-file-viewer"
 import { getOfflineList, removeFromOfflineStorage, changeItemNameInOfflineList, getItemOfflinePath } from "./offline"
@@ -1308,7 +1308,19 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
 
     isGeneratingThumbnailForItemUUID[item.uuid] = true
 
-    const generateThumbnail = (path: string, dest: string) => {
+    const onError = (err: Error): void => {
+        console.log(err)
+
+        delete isGeneratingThumbnailForItemUUID[item.uuid]
+
+        if(typeof callback == "function"){
+            callback(err)
+        }
+        
+        global.generateThumbnailSemaphore.release()
+    }
+
+    const compress = (path: string, dest: string) => {
         ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
             RNFS.moveFile(compressed.uri, dest).then(() => {
                 storage.set(cacheKey, item.uuid + ".jpg")
@@ -1334,39 +1346,26 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
                     }
     
                     global.generateThumbnailSemaphore.release()
-                }).catch((err) => {
-                    console.log(err)
+                }).catch(onError)
+            }).catch(onError)
+        }).catch(onError)
+    }
 
-                    delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-                    if(typeof callback == "function"){
-                        callback(err)
-                    }
-                    
-                    global.generateThumbnailSemaphore.release()
-                })
-            }).catch((err) => {
-                console.log(err)
-
-                delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-                if(typeof callback == "function"){
-                    callback(err)
-                }
-
-                global.generateThumbnailSemaphore.release()
-            })
-        }).catch((err) => {
-            console.log(err)
-
-            delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-            if(typeof callback == "function"){
-                callback(err)
-            }
-
-            global.generateThumbnailSemaphore.release()
-        })
+    const generateThumbnail = (path: string, dest: string) => {
+        if(["heic", "heif"].includes(getFileExt(item.name)) && Platform.OS == "android"){
+            getDownloadPath({ type: "temp" }).then((tempPath) => {
+                global.nodeThread.convertHeic({
+                    input: path,
+                    output: tempPath + randomIdUnsafe() + ".jpg",
+                    format: "JPEG"
+                }).then((output) => {
+                    compress(output, dest)
+                }).catch(onError)
+            }).catch(onError)
+        }
+        else{
+            compress(path, dest)
+        }
     }
 
     global.generateThumbnailSemaphore.acquire().then(() => {
@@ -1400,24 +1399,8 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
 
                 downloadFile(item, false).then((downloadedPath) => {
                     generateThumbnail(downloadedPath, dest)
-                }).catch((err) => {
-                    console.log(err)
-
-                    if(typeof callback == "function"){
-                        callback(err)
-                    }
-    
-                    delete isGeneratingThumbnailForItemUUID[item.uuid]
-                })
-            }).catch((err) => {
-                console.log(err)
-
-                if(typeof callback == "function"){
-                    callback(err)
-                }
-    
-                delete isGeneratingThumbnailForItemUUID[item.uuid]
-            })
+                }).catch(onError)
+            }).catch(onError)
         }
     })
 }

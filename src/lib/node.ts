@@ -32,7 +32,8 @@ declare global {
         getDataDir: () => Promise<string>,
         appendFileToFile: (params: { first: string, second: string }) => Promise<boolean>,
         downloadDecryptAndWriteFileChunk: (params: { destPath: string, uuid: string, region: string, bucket: string, index: number, key: string, version: number }) => Promise<string>,
-        getFileHash: (params: { path: string, hashName: string }) => Promise<string>
+        getFileHash: (params: { path: string, hashName: string }) => Promise<string>,
+        convertHeic: (params: { input: string, output: string, format: "JPEG" | "PNG" }) => Promise<string>
     }
 }
 
@@ -474,6 +475,24 @@ global.nodeThread = {
             })
 		})
     },
+    convertHeic: ({ input, output, format }) => {
+        const id = currentId += 1
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+                resolves[id] = resolve
+                rejects[id] = reject
+
+                return nodejs.channel.send({
+                    id,
+                    type: "convertHeic",
+                    input,
+                    output,
+                    format
+                })
+            })
+		})
+    }
 }
 
 nodejs.channel.addListener("message", (message) => {

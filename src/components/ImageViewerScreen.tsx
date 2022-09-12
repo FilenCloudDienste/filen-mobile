@@ -6,7 +6,7 @@ import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Image from "react-native-fast-image"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
-import { downloadFile } from "../lib/download"
+import { downloadFile, getDownloadPath } from "../lib/download"
 import RNFS from "react-native-fs"
 import { navigationAnimation } from "../lib/state"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -20,6 +20,7 @@ import * as StatusBar from "expo-status-bar"
 import type { NavigationContainerRef } from "@react-navigation/native"
 import type { EdgeInsets } from "react-native-safe-area-context"
 import { showToast } from "./Toasts"
+import { getFileExt, randomIdUnsafe } from "../lib/helpers"
 
 const THUMBNAIL_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 const minZoom: number = 0.99999999999
@@ -114,10 +115,26 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                         updateItemThumbnail(image.file, thumbPath)
                     }
 
-                    return setImages((prev: any) => ({
-                        ...prev,
-                        [image.uuid]: path
-                    }))
+                    if(Platform.OS == "android" && ["heic", "heif"].includes(getFileExt(image.file.name))){
+                        getDownloadPath({ type: "temp" }).then((tempPath) => {
+                            global.nodeThread.convertHeic({
+                                input: path,
+                                output: tempPath + randomIdUnsafe() + ".jpg",
+                                format: "JPEG"
+                            }).then((output) => {
+                                return setImages((prev: any) => ({
+                                    ...prev,
+                                    [image.uuid]: output
+                                }))
+                            }).catch(console.error)
+                        }).catch(console.error)
+                    }
+                    else{
+                        return setImages((prev: any) => ({
+                            ...prev,
+                            [image.uuid]: path
+                        }))
+                    }
                 }
             })
         }).catch((err) => {
