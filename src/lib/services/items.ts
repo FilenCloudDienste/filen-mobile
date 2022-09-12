@@ -1352,15 +1352,9 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
     }
 
     const generateThumbnail = (path: string, dest: string) => {
-        if(["heic", "heif"].includes(getFileExt(item.name)) && Platform.OS == "android"){
-            getDownloadPath({ type: "temp" }).then((tempPath) => {
-                global.nodeThread.convertHeic({
-                    input: path,
-                    output: tempPath + randomIdUnsafe() + ".jpg",
-                    format: "JPEG"
-                }).then((output) => {
-                    compress(output, dest)
-                }).catch(onError)
+        if(["heic"].includes(getFileExt(item.name)) && Platform.OS == "android"){
+            convertHeic(item, path).then((converted) => {
+                compress(converted, dest)
             }).catch(onError)
         }
         else{
@@ -1603,5 +1597,28 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         console.error(err)
 
         showToast({ message: err.toString() })
+    })
+}
+
+export const convertHeic = (item: Item, path: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        getDownloadPath({ type: "temp" }).then(async (tempPath) => {
+            const outputPath: string = tempPath + item.uuid + "_convertHeic.jpg"
+
+            try{
+                if((await RNFS.exists(outputPath))){
+                    return resolve(outputPath)
+                }
+            }
+            catch(e){
+                console.log(e)
+            }
+
+            global.nodeThread.convertHeic({
+                input: path,
+                output: outputPath,
+                format: "JPEG"
+            }).then(resolve).catch(reject)
+        }).catch(reject)
     })
 }

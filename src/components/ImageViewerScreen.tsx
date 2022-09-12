@@ -12,7 +12,7 @@ import { navigationAnimation } from "../lib/state"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { setStatusBarStyle } from "../lib/statusbar"
 import { useMountedState } from "react-use"
-import { generateItemThumbnail } from "../lib/services/items"
+import { generateItemThumbnail, convertHeic } from "../lib/services/items"
 import { getImageForItem } from "../assets/thumbnails"
 import { i18n } from "../i18n/i18n"
 import * as NavigationBar from "expo-navigation-bar"
@@ -115,19 +115,19 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                         updateItemThumbnail(image.file, thumbPath)
                     }
 
-                    if(Platform.OS == "android" && ["heic", "heif"].includes(getFileExt(image.file.name))){
-                        getDownloadPath({ type: "temp" }).then((tempPath) => {
-                            global.nodeThread.convertHeic({
-                                input: path,
-                                output: tempPath + randomIdUnsafe() + ".jpg",
-                                format: "JPEG"
-                            }).then((output) => {
-                                return setImages((prev: any) => ({
-                                    ...prev,
-                                    [image.uuid]: output
-                                }))
-                            }).catch(console.error)
-                        }).catch(console.error)
+                    if(Platform.OS == "android" && ["heic"].includes(getFileExt(image.file.name))){
+                        convertHeic(image.file, path).then((output) => {
+                            return setImages((prev: any) => ({
+                                ...prev,
+                                [image.uuid]: output
+                            }))
+                        }).catch((err) => {
+                            delete currentImagePreviewDownloads[image.uuid]
+                
+                            console.log(err)
+                
+                            return showToast({ message: err.toString() })
+                        })
                     }
                     else{
                         return setImages((prev: any) => ({

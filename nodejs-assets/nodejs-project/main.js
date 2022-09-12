@@ -27,6 +27,9 @@ const fs = require("fs")
 const pathModule = require("path")
 const { Readable } = require("stream")
 const heicConvert = require("heic-convert")
+const { Semaphore } = require("await-semaphore")
+const ExifReader = require("exifreader")
+const jimp = require("jimp")
 
 const axiosClient = axios.create({
     timeout: 3600000,
@@ -63,6 +66,7 @@ const httpsDownloadAgent = new https.Agent({
 const cachedDerivedKeys = {}
 const cachedPemKeys = {}
 let tasksRunning = 0
+const convertHeicSemaphore = new Semaphore(3)
 
 const convertArrayBufferToUtf8String = (buffer) => {
     return Buffer.from(buffer).toString("utf8")
@@ -967,25 +971,87 @@ const appendFileToFile = (first, second) => {
     })
 }
 
-const convertHeic = (input, output, format) => {
+const rotateImage = (buffer, orientation, mime) => {
+    const rotationMap = {
+        "1": 0,
+        "2": 0,
+        "3": 180,
+        "4": 180,
+        "5": 90,
+        "6": 90,
+        "7": 270,
+        "8": 270
+    }
+
     return new Promise((resolve, reject) => {
-        fs.readFile(input, (err, inputBuffer) => {
-            if(err){
-                return reject(err)
-            }
+        jimp.read(buffer).then((image) => {
+            image.rotate(rotationMap[orientation]).getBufferAsync(mime).then(resolve).catch(reject)
+        }).catch(reject)
+    })
+}
 
-            heicConvert({
-                buffer: inputBuffer,
-                format
-            }).then((outputBuffer) => {
-                fs.writeFile(output, outputBuffer, (err) => {
-                    if(err){
+const convertHeic = (input, output, format) => {
+    input = pathModule.normalize(input)
+    output = pathModule.normalize(output)
+
+    return new Promise((resolve, reject) => {
+        convertHeicSemaphore.acquire().then((release) => {
+            fs.readFile(input, (err, inputBuffer) => {
+                if(err){
+                    release()
+
+                    return reject(err)
+                }
+    
+                ExifReader.load(input).then((exif) => {
+                    heicConvert({
+                        buffer: inputBuffer,
+                        format
+                    }).then((outputBuffer) => {
+                        const write = (buffer) => {
+                            fs.writeFile(output, buffer, (err) => {
+                                release()
+        
+                                if(err){
+                                    return reject(err)
+                                }
+            
+                                return resolve(output)
+                            })
+                        }
+
+                        const rotate = () => {
+                            rotateImage(outputBuffer, exif['Orientation'].value, format == "JPEG" ? "image/jpeg" : "image/png").then((buffer) => {
+                                return write(buffer)
+                            }).catch((err) => {
+                                release()
+            
+                                return reject(err)
+                            })
+                        }
+
+                        if(typeof exif !== "undefined"){
+                            if(typeof exif['Orientation'] !== "undefined"){
+                                if(typeof exif['Orientation'].value !== "undefined"){
+                                    if(exif['Orientation'].value !== 1){
+                                        return rotate()
+                                    }
+                                }
+                            }
+                        }
+
+                        return write(outputBuffer)
+                    }).catch((err) => {
+                        release()
+    
                         return reject(err)
-                    }
-
-                    return resolve(output)
+                    })
+                }).catch((err) => {
+                    release()
+    
+                    return reject(err)
                 })
-            }).catch(reject)
+            })
         })
     })
 }
