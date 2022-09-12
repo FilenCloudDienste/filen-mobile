@@ -140,7 +140,7 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
         isSync: folder.is_sync || false,
         isDefault: folder.is_default || false,
         //size: typeof routeURL == "string" ? getFolderSizeFromCache({ folder, routeURL, load: loadFolderSizes }) : 0,
-        size: 0,
+        size: storage.getNumber("folderSize:" + folder.uuid),
         selected: false,
         mime: "",
         key: "",
