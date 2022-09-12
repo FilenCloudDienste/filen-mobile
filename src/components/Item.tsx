@@ -1,15 +1,17 @@
-import React, { Component } from "react"
+import React, { Component, memo, useState, useEffect } from "react"
 import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, Dimensions, Pressable, Platform } from "react-native"
 import FastImage from "react-native-fast-image"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { getImageForItem } from "../assets/thumbnails"
-import { formatBytes, getFolderColor, calcPhotosGridSize } from "../lib/helpers"
+import { formatBytes, getFolderColor, calcPhotosGridSize, getRouteURL } from "../lib/helpers"
 import { i18n } from "../i18n/i18n"
 import { getColor } from "../lib/style/colors"
 import RNFS from "react-native-fs"
 import type { ScaledSize } from "react-native"
 import type { EdgeInsets } from "react-native-safe-area-context"
 import type { Item } from "../lib/services/items"
+import { fetchFolderSize } from "../lib/api"
+import storage from "../lib/storage"
 
 const isEqual = require("react-fast-compare")
 
@@ -35,204 +37,214 @@ export interface ItemBaseProps {
     insets: EdgeInsets
 }
 
-export interface ListItemProps extends ItemBaseProps {
-    
-}
+export interface ListItemProps extends ItemBaseProps { }
 
-export class ListItem extends Component<ListItemProps> {
-    shouldComponentUpdate(nextProps: ListItemProps){
-        return !isEqual(this.props, nextProps)
-    }
+export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang }: ListItemProps) => {
+    const [itemSize, setItemSize] = useState<number>(item.size)
 
-    render(){
-        const { item, index, darkMode } = this.props
+    useEffect(() => {
+        if(item.type == "folder"){
+            const folderSizeCache = storage.getNumber("folderSize:" + item.uuid)
+            const fetchFolderSizeTimeout = storage.getNumber("fetchFolderSizeTimeout:" + item.uuid)
 
-        return (
-            <TouchableHighlight
-                key={index.toString()}
-                underlayColor="#171717"
+            setItemSize(folderSizeCache)
+
+            if(fetchFolderSizeTimeout > new Date().getTime()){
+                return
+            }
+
+            fetchFolderSize({ folder: item, routeURL: getRouteURL() }).then((fetchedSize) => {
+                storage.set("folderSize:" + item.uuid, fetchedSize)
+                storage.set("fetchFolderSizeTimeout:" + item.uuid, (new Date().getTime() + 30000))
+
+                setItemSize(fetchedSize)
+            }).catch(console.error)
+        }
+    }, [])
+
+    return (
+        <TouchableHighlight
+            key={index.toString()}
+            underlayColor="#171717"
+            style={{
+                width: "100%",
+                height: 55
+            }}
+            onPress={() => {
+                DeviceEventEmitter.emit("event", {
+                    type: "item-onpress",
+                    data: item
+                })
+            }}
+            onLongPress={() => {
+                DeviceEventEmitter.emit("event", {
+                    type: "item-onlongpress",
+                    data: item
+                })
+            }}
+        >
+            <View
                 style={{
+                    backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
                     width: "100%",
-                    height: 55
-                }}
-                onPress={() => {
-                    DeviceEventEmitter.emit("event", {
-                        type: "item-onpress",
-                        data: item
-                    })
-                }}
-                onLongPress={() => {
-                    DeviceEventEmitter.emit("event", {
-                        type: "item-onlongpress",
-                        data: item
-                    })
+                    height: 55,
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    paddingLeft: 15,
+                    paddingRight: 15,
+                    marginBottom: 0,
+                    paddingTop: 10
                 }}
             >
                 <View
                     style={{
-                        backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
-                        width: "100%",
-                        height: 55,
+                        width: 30,
+                        height: 30
+                    }}
+                >
+                    {
+                        item.type == "folder" ? (
+                            <Ionicon
+                                name="folder"
+                                size={29}
+                                color={getFolderColor(item.color)}
+                                style={{
+                                    paddingLeft: 3,
+                                    paddingTop: 2
+                                }}
+                            />
+                        ) : (
+                            <FastImage
+                                source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    marginTop: 4,
+                                    marginLeft: 2,
+                                    borderRadius: 5
+                                }}
+                                onError={() => {
+                                    if(typeof item.thumbnail == "string"){
+                                        DeviceEventEmitter.emit("event", {
+                                            type: "check-thumbnail",
+                                            item
+                                        })
+                                    }
+                                }}
+                            />
+                        )
+                    }
+                </View>
+                <View
+                    style={{
                         flexDirection: "row",
-                        alignItems: "flex-start",
-                        paddingLeft: 15,
-                        paddingRight: 15,
-                        marginBottom: 0,
-                        paddingTop: 10
+                        justifyContent: "space-between",
+                        height: "100%",
+                        width: "100%",
+                        marginLeft: 15,
+                        borderBottomColor: getColor(darkMode, "primaryBorder"),
+                        borderBottomWidth: 0.5
                     }}
                 >
                     <View
                         style={{
-                            width: 30,
-                            height: 30
+                            paddingTop: 2,
+                            width: "75%"
                         }}
                     >
-                        {
-                            item.type == "folder" ? (
-                                <Ionicon
-                                    name="folder"
-                                    size={29}
-                                    color={getFolderColor(item.color)}
-                                    style={{
-                                        paddingLeft: 3,
-                                        paddingTop: 2
-                                    }}
-                                />
-                            ) : (
-                                <FastImage
-                                    source={this.props.hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
-                                    style={{
-                                        width: 30,
-                                        height: 30,
-                                        marginTop: 4,
-                                        marginLeft: 2,
-                                        borderRadius: 5
-                                    }}
-                                    onError={() => {
-                                        if(typeof item.thumbnail == "string"){
-                                            DeviceEventEmitter.emit("event", {
-                                                type: "check-thumbnail",
-                                                item
-                                            })
-                                        }
-                                    }}
-                                />
-                            )
-                        }
+                        <Text
+                            style={{
+                                color: darkMode ? "white" : "black",
+                                fontWeight: "bold",
+                                fontSize: 12
+                            }} numberOfLines={1}
+                        >
+                            {hideFileNames ? i18n(lang, item.type == "folder" ? "folder" : "file") : item.name}
+                        </Text>
+                        <Text
+                            style={{
+                                color: darkMode ? "white" : "black",
+                                fontSize: 11,
+                                paddingTop: 3
+                            }}
+                            numberOfLines={1}
+                        >
+                            {
+                                typeof item.offline == "boolean" && item.offline && (
+                                    <>
+                                        <Ionicon
+                                            name="arrow-down-circle" size={12}
+                                            color={"green"}
+                                        />
+                                        <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+                                    </>
+                                )
+                            }
+                            {
+                                typeof item.favorited == "boolean" && item.favorited && (
+                                    <>
+                                        <Ionicon
+                                            name="heart"
+                                            size={12}
+                                            color={darkMode ? "white" : "black"}
+                                        />
+                                        <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+                                    </>
+                                )
+                            }
+                            {hideSizes ? formatBytes(0) : formatBytes(itemSize)}
+                            {
+                                typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && (
+                                    <>
+                                        <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+                                        <Text>{item.sharerEmail}</Text>
+                                    </>
+                                )
+                            }
+                            {
+                                typeof item.receiverEmail == "string" && item.receiverEmail.length > 0 && (
+                                    <>
+                                        <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+                                        <Text>{item.receiverEmail}</Text>
+                                    </>
+                                )
+                            }
+                            &nbsp;&nbsp;&#8226;&nbsp;&nbsp;
+                            {item.date}
+                        </Text>
                     </View>
-                    <View
+                    <TouchableOpacity
+                        hitSlop={{
+                            top: 15,
+                            bottom: 15,
+                            right: 15,
+                            left: 15
+                        }}
                         style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            height: "100%",
-                            width: "100%",
-                            marginLeft: 15,
-                            borderBottomColor: getColor(darkMode, "primaryBorder"),
-                            borderBottomWidth: 0.5
+                            paddingTop: 5,
+                            backgroundColor: "transparent",
+                            position: "absolute",
+                            right: 45
+                        }}
+                        onPress={() => {
+                            DeviceEventEmitter.emit("event", {
+                                type: "open-item-actionsheet",
+                                data: item
+                            })
                         }}
                     >
-                        <View
-                            style={{
-                                paddingTop: 2,
-                                width: "75%"
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: darkMode ? "white" : "black",
-                                    fontWeight: "bold",
-                                    fontSize: 12
-                                }} numberOfLines={1}
-                            >
-                                {this.props.hideFileNames ? i18n(this.props.lang, item.type == "folder" ? "folder" : "file") : item.name}
-                            </Text>
-                            <Text
-                                style={{
-                                    color: darkMode ? "white" : "black",
-                                    fontSize: 11,
-                                    paddingTop: 3
-                                }}
-                                numberOfLines={1}
-                            >
-                                {
-                                    typeof item.offline == "boolean" && item.offline && (
-                                        <>
-                                            <Ionicon
-                                                name="arrow-down-circle" size={12}
-                                                color={"green"}
-                                            />
-                                            <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                        </>
-                                    )
-                                }
-                                {
-                                    typeof item.favorited == "boolean" && item.favorited && (
-                                        <>
-                                            <Ionicon
-                                                name="heart"
-                                                size={12}
-                                                color={darkMode ? "white" : "black"}
-                                            />
-                                            <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                        </>
-                                    )
-                                }
-                                {this.props.hideSizes ? formatBytes(0) : formatBytes(item.size)}
-                                {
-                                    typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && (
-                                        <>
-                                            <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                            <Text>{item.sharerEmail}</Text>
-                                        </>
-                                    )
-                                }
-                                {
-                                    typeof item.receiverEmail == "string" && item.receiverEmail.length > 0 && (
-                                        <>
-                                            <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                            <Text>{item.receiverEmail}</Text>
-                                        </>
-                                    )
-                                }
-                                &nbsp;&nbsp;&#8226;&nbsp;&nbsp;
-                                {item.date}
-                            </Text>
-                        </View>
-                        <TouchableOpacity
-                            hitSlop={{
-                                top: 15,
-                                bottom: 15,
-                                right: 15,
-                                left: 15
-                            }}
-                            style={{
-                                paddingTop: 5,
-                                backgroundColor: "transparent",
-                                position: "absolute",
-                                right: 45
-                            }}
-                            onPress={() => {
-                                DeviceEventEmitter.emit("event", {
-                                    type: "open-item-actionsheet",
-                                    data: item
-                                })
-                            }}
-                        >
-                            <Ionicon
-                                name="ellipsis-horizontal-sharp"
-                                size={20} color={darkMode ? "white" : "black"}
-                            />
-                        </TouchableOpacity>
-                    </View>
+                        <Ionicon
+                            name="ellipsis-horizontal-sharp"
+                            size={20} color={darkMode ? "white" : "black"}
+                        />
+                    </TouchableOpacity>
                 </View>
-            </TouchableHighlight>
-        )
-    }
-}
+            </View>
+        </TouchableHighlight>
+    )
+})
 
-export interface GridItemProps extends ItemBaseProps {
-    
-}
+export interface GridItemProps extends ItemBaseProps { }
 
 export class GridItem extends Component<GridItemProps> {
     shouldComponentUpdate(nextProps: GridItemProps){

@@ -18,7 +18,6 @@ import { hasStoragePermissions } from "../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../lib/statusbar"
 import * as MediaLibrary from "expo-media-library"
-import * as FileSystem from "expo-file-system"
 
 const MISC_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
 
@@ -670,7 +669,6 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                             ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
                             onValueChange={() => setOnlyUsePINCode(!onlyUsePINCode)}
                             value={onlyUsePINCode}
-                            disabled={!biometricPinAuth}
                         />
                     }
                 />
