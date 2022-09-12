@@ -467,7 +467,7 @@ PODS:
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
-  - RNShareMenu (5.0.5):
+  - RNShareMenu (6.0.0):
     - React
   - RNSVG (12.1.1):
     - React
@@ -850,7 +850,7 @@ SPEC CHECKSUMS:
   RNPermissions: bcd846e8f5a7f39e921cc7ca7172e2de0e698b6f
   RNReanimated: 46cdb89ca59ab7181334f4ed05a70e82ddb36751
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
-  RNShareMenu: c69282e50ac439737a86949a55c7b023b90027c8
+  RNShareMenu: cb9dac548c8bf147d06f0bf07296ad51ea9f5fc3
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815

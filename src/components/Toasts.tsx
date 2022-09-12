@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, memo, useRef } from "react"
+import React, { useState, useEffect, memo, useRef } from "react"
 import { View, Text, Platform, TouchableOpacity, DeviceEventEmitter } from "react-native"
 import storage from "../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { useStore, navigationAnimation } from "../lib/state"
-import { getParent, getFilenameFromPath, getRouteURL, getRandomArbitrary } from "../lib/helpers"
+import { getParent, getFilenameFromPath, getRouteURL, getRandomArbitrary, promiseAllSettled, randomIdUnsafe } from "../lib/helpers"
 import { moveFile, moveFolder, folderExists, fileExists, bulkMove } from "../lib/api"
 import { i18n } from "../i18n/i18n"
 import { CommonActions } from "@react-navigation/native"
@@ -11,9 +11,9 @@ import ReactNativeBlobUtil from "react-native-blob-util"
 import RNFS from "react-native-fs"
 import { getDownloadPath } from "../lib/download"
 import { queueFileUpload } from "../lib/upload"
-import getPath from "@flyerhq/react-native-android-uri-path"
 import BackgroundTimer from "react-native-background-timer"
 import mime from "mime-types"
+import { hasStoragePermissions } from "../lib/permissions"
 
 let moveToastId: any = undefined
 let uploadToastId: any = undefined
@@ -132,7 +132,7 @@ export const showToast = ({ type = "normal", message, swipeEnabled = false, dura
     else if(type == "upload"){
         hideAllToasts()
         
-        var toastId = global.toast.show(<UploadToast message={message} />, {
+        var toastId = global.toast.show(<UploadToast />, {
             type: "custom",
             style: {
                 backgroundColor: darkMode ? "#171717" : "lightgray",
@@ -488,7 +488,7 @@ export const MoveToast = memo(({ message }: { message?: string | undefined }) =>
     )
 })
 
-export const UploadToast = memo(({ message }: { message?: string | undefined }) => {
+export const UploadToast = memo(() => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
     const currentShareItems = useStore(state => state.currentShareItems) as any
@@ -602,7 +602,7 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
                                 style={{
                                     marginLeft: 20
                                 }}
-                                onPress={() => {
+                                onPress={async () => {
                                     if(
                                         currentRouteURL.indexOf("shared-in") !== -1 ||
                                         currentRouteURL.indexOf("recents") !== -1 ||
@@ -623,111 +623,86 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
                                         return false
                                     }
 
-                                    const copyFile = (item: any) => {
+                                    try{
+                                        await hasStoragePermissions()
+                                    }
+                                    catch(e: any){
+                                        console.log(e)
+
+                                        return showToast({ message: e.toString() })
+                                    }
+
+                                    const copyFile = (item: string): Promise<{ path: string, ext: string, type: string, size: number, name: string }> => {
                                         return new Promise((resolve, reject) => {
                                             getDownloadPath({ type: "temp" }).then((path) => {
-                                                path = path + Math.random().toString().slice(2) + "" + Math.random().toString().slice(2)
+                                                path = path + randomIdUnsafe()
+                                                
+                                                if(Platform.OS == "ios"){
+                                                    item = decodeURIComponent(item)
+                                                    path = decodeURIComponent(path)
+                                                }
 
-                                                if(item.indexOf("content://") !== -1 && Platform.OS == "android"){
-                                                    const name = getFilenameFromPath(getPath(item))
-
-                                                    if(typeof name !== "string"){
-                                                        return reject("Could not get file name")
+                                                RNFS.stat(item).then((stat) => {
+                                                    if(stat.isDirectory()){
+                                                        return reject(i18n(lang, "cannotShareDirIntoApp"))
                                                     }
 
-                                                    if(name.length <= 0){
-                                                        return reject("Could not get file name")
-                                                    }
-
-                                                    ReactNativeBlobUtil.MediaCollection.copyToInternal(item, path).then(async () => {
-                                                        await new Promise((resolve) => BackgroundTimer.setTimeout(() => {
-                                                            return resolve(true)
-                                                        }, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
-
-                                                        RNFS.stat(path).then((stat) => {
-                                                            if(stat.isDirectory()){
-                                                                return reject(i18n(lang, "cannotShareDirIntoApp"))
-                                                            }
-
-                                                            const type = mime.lookup(name)
-                                                            const ext = mime.extension(type as string)
-                                                            const size = stat.size
-
-                                                            return resolve({ path, ext, type, size, name })
-                                                        }).catch((err) => {
-                                                            return reject(err)
-                                                        })
+                                                    RNFS.copyFile(item, path).then(() => {
+                                                        const name = getFilenameFromPath(item)
+                                                        const type = mime.lookup(name) || ""
+                                                        const ext = mime.extension(type as string) || ""
+                                                        const size = stat.size
+                                                        
+                                                        return resolve({ path, ext, type, size, name })
                                                     }).catch((err) => {
                                                         return reject(err)
                                                     })
-                                                }
-                                                else{
-                                                    RNFS.copyFile(item, path).then(async () => {
-                                                        await new Promise((resolve) => BackgroundTimer.setTimeout(() => {
-                                                            return resolve(true)
-                                                        }, 1000)) // somehow needs to sleep a bit, otherwise the stat call fails on older/slower devices
-
-                                                        RNFS.stat(path).then((stat) => {
-                                                            if(stat.isDirectory()){
-                                                                return reject(i18n(lang, "cannotShareDirIntoApp"))
-                                                            }
-
-                                                            const name = getFilenameFromPath(item)
-                                                            const type = mime.lookup(name)
-                                                            const ext = mime.extension(type as string)
-                                                            const size = stat.size
-                                                            
-                                                            return resolve({ path, ext, type, size, name })
-                                                        }).catch((err) => {
-                                                            return reject(err)
-                                                        })
-                                                    }).catch((err) => {
-                                                        return reject(err)
-                                                    })
-                                                }
+                                                })
                                             }).catch((err) => {
                                                 return reject(err)
                                             })
                                         })
                                     }
 
-                                    const limit = 10
+                                    const limit = 100
 
                                     if(items.length >= limit){
                                         return showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
                                     }
+
+                                    const uploads = []
                 
                                     for(let i = 0; i < items.length; i++){
-                                        copyFile(decodeURIComponent(items[i])).then((copyResult: any) => {
-                                            const { path, type, size, name } = copyResult
-
-                                            queueFileUpload({
-                                                file: {
-                                                    path: decodeURIComponent(path).replace("file://", ""),
-                                                    name,
-                                                    size,
-                                                    mime: type,
-                                                    lastModified: new Date().getTime()
-                                                },
-                                                parent
-                                            }).catch((err) => {
-                                                if(err == "wifiOnly"){
-                                                    return showToast({ message: i18n(lang, "onlyWifiUploads") })
-                                                }
-                                                
-                                                console.log(err)
-    
-                                                showToast({ message: err.toString() })
-                                            })
-                                        }).catch((err) => {
-                                            console.log(err)
-
-                                            showToast({ message: err.toString() })
-                                        })
+                                        uploads.push(new Promise((resolve, reject) => {
+                                            copyFile(items[i]).then(({ path, type, size, name }) => {
+                                                queueFileUpload({
+                                                    file: {
+                                                        path: path.replace("file://", ""),
+                                                        name,
+                                                        size,
+                                                        mime: type,
+                                                        lastModified: new Date().getTime()
+                                                    },
+                                                    parent
+                                                }).then(resolve).catch(reject)
+                                            }).catch(reject)
+                                        }))
                                     }
 
                                     setCurrentShareItems(undefined)
                                     hideAllToasts()
+
+                                    promiseAllSettled(uploads).then((values) => {
+                                        values.forEach((value) => {
+                                            if(value.status == "rejected"){
+                                                // @ts-ignore
+                                                console.log(value.reason)
+
+                                                // @ts-ignore
+                                                showToast({ message: value.reason.toString() })
+                                            }
+                                        })
+                                    }).catch(console.error)
                                 }}
                             >
                                 <Text

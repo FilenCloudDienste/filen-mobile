@@ -312,8 +312,7 @@ export const canCompressThumbnail = (ext: string): boolean => {
             case "jpg":
             case "png":
             case "gif":
-            case "heif":
-            case "heic":
+            //case "heic":
                 return true
             break
             default:
@@ -351,8 +350,7 @@ export const canShowThumbnail = (ext: string): boolean => {
             case "avi":
             case "mov":
             case "wmv":
-            case "heif":
-            case "heic":
+            //case "heic":
                 return true
             break
             default:
@@ -392,8 +390,7 @@ export const getFilePreviewType = (ext: string, mime?: string): string => {
             case "png":
             case "gif":
             case "svg":
-            case "heic":
-            case "heif":
+            //case "heic":
               return "image"
             break
             case "mp3":

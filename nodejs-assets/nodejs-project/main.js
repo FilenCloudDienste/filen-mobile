@@ -66,7 +66,7 @@ const httpsDownloadAgent = new https.Agent({
 const cachedDerivedKeys = {}
 const cachedPemKeys = {}
 let tasksRunning = 0
-const convertHeicSemaphore = new Semaphore(3)
+const convertHeicSemaphore = new Semaphore(1)
 
 const convertArrayBufferToUtf8String = (buffer) => {
     return Buffer.from(buffer).toString("utf8")

@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@dudigital/react-native-zoomable-view": "^1.1.3",
-    "@flyerhq/react-native-android-uri-path": "^2.3.0",
     "@react-native-community/art": "^1.2.0",
     "@react-native-community/cameraroll": "github:BohdanSol/react-native-cameraroll",
     "@react-native-community/netinfo": "^8.0.0",
@@ -66,7 +65,7 @@
     "react-native-reanimated": "^2.8.0",
     "react-native-safe-area-context": "^3.3.2",
     "react-native-screens": "^3.10.2",
-    "react-native-share-menu": "github:meedan/react-native-share-menu#pull/158/head",
+    "react-native-share-menu": "github:meedan/react-native-share-menu",
     "react-native-svg": "12.1.1",
     "react-native-toast-notifications": "^3.2.3",
     "react-use": "^17.3.2",
