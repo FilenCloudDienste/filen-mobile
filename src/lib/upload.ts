@@ -28,8 +28,11 @@ export interface UploadFile {
 }
 
 const debouncedListUpdate = debounce(() => {
-    global.fetchItemList({ bypassCache: true, callStack: 0, loadFolderSizes: true }).catch((err: any) => console.log(err))
-}, 1000)
+    global.fetchItemList({ bypassCache: true, callStack: 0, loadFolderSizes: true }).catch(console.error)
+}, 1000, {
+    leading: true,
+    trailing: false
+})
 
 export const queueFileUpload = ({ file, parent, includeFileHash = false }: { file: UploadFile, parent: string, includeFileHash?: boolean }): Promise<any> => {
     return new Promise(async (resolve, reject) => {

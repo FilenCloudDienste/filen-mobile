@@ -223,7 +223,15 @@ export const BottomBarAddActionSheet = memo(() => {
 															try{
 																const file = await getFileInfo(asset)
 		
-																queueFileUpload({ file, parent })
+																queueFileUpload({ file, parent }).catch((err) => {
+																	if(err == "wifiOnly"){
+																		return showToast({ message: i18n(lang, "onlyWifiUploads") })
+																	}
+		
+																	console.error(err)
+		
+																	showToast({ message: err.toString() })
+																})
 															}
 															catch(e: any){
 																console.log(e)
@@ -307,7 +315,15 @@ export const BottomBarAddActionSheet = memo(() => {
 																try{
 																	const file = await getFileInfo(asset)
 			
-																	queueFileUpload({ file, parent })
+																	queueFileUpload({ file, parent }).catch((err) => {
+																		if(err == "wifiOnly"){
+																			return showToast({ message: i18n(lang, "onlyWifiUploads") })
+																		}
+			
+																		console.error(err)
+			
+																		showToast({ message: err.toString() })
+																	})
 																}
 																catch(e: any){
 																	console.log(e)
@@ -379,7 +395,15 @@ export const BottomBarAddActionSheet = memo(() => {
 													try{
 														const file = await getFileInfo(result[i])
 
-														queueFileUpload({ file, parent })
+														queueFileUpload({ file, parent }).catch((err) => {
+															if(err == "wifiOnly"){
+																return showToast({ message: i18n(lang, "onlyWifiUploads") })
+															}
+
+															console.error(err)
+
+															showToast({ message: err.toString() })
+														})
 													}
 													catch(e: any){
 														console.log(e)
@@ -968,6 +992,14 @@ export const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) =
 																						showToast({ message: err.toString() })
 																					})
 																				}
+																			}).catch((err) => {
+																				if(err == "wifiOnly"){
+																					return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+																				}
+					
+																				console.error(err)
+					
+																				showToast({ message: err.toString() })
 																			})
 																		}
 																	})
@@ -996,7 +1028,15 @@ export const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) =
 															hasStoragePermissions().then(() => {
 																updateBulkItems().forEach((item) => {
 																	if(!item.offline){
-																		queueFileDownload({ file: item, storeOffline: true })
+																		queueFileDownload({ file: item, storeOffline: true }).catch((err) => {
+																			if(err == "wifiOnly"){
+																				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+																			}
+				
+																			console.error(err)
+				
+																			showToast({ message: err.toString() })
+																		})
 																	}
 																})
 															}).catch((err) => {
@@ -1047,7 +1087,15 @@ export const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) =
 										
 															hasStoragePermissions().then(() => {
 																updateBulkItems().forEach((item) => {
-																	queueFileDownload({ file: item })
+																	queueFileDownload({ file: item }).catch((err) => {
+																		if(err == "wifiOnly"){
+																			return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+																		}
+			
+																		console.error(err)
+			
+																		showToast({ message: err.toString() })
+																	})
 																})
 															}).catch((err) => {
 																console.log(err)
@@ -1624,6 +1672,14 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 																	showToast({ message: err.toString() })
 																})
 															}
+														}).catch((err) => {
+															if(err == "wifiOnly"){
+																return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+															}
+
+															console.error(err)
+
+															showToast({ message: err.toString() })
 														})
 													}).catch((err) => {
 														console.log(err)
@@ -1686,7 +1742,15 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 												await SheetManager.hide("ItemActionSheet")
 			
 												hasStoragePermissions().then(() => {
-													queueFileDownload({ file: currentActionSheetItem, showNotification: true })
+													queueFileDownload({ file: currentActionSheetItem, showNotification: true }).catch((err) => {
+														if(err == "wifiOnly"){
+															return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+														}
+
+														console.error(err)
+
+														showToast({ message: err.toString() })
+													})
 												}).catch((err) => {
 													console.log(err)
 
@@ -1730,7 +1794,15 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 												await SheetManager.hide("ItemActionSheet")
 			
 												hasStoragePermissions().then(() => {
-													queueFileDownload({ file: currentActionSheetItem, storeOffline: true })
+													queueFileDownload({ file: currentActionSheetItem, storeOffline: true }).catch((err) => {
+														if(err == "wifiOnly"){
+															return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+														}
+
+														console.error(err)
+
+														showToast({ message: err.toString() })
+													})
 												}).catch((err) => {
 													console.log(err)
 

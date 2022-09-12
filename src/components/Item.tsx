@@ -38,24 +38,21 @@ export interface ItemBaseProps {
 export interface ListItemProps extends ItemBaseProps { }
 
 export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang }: ListItemProps) => {
-    const [itemSize, setItemSize] = useState<number>(item.size)
+    const [folderSize, setFolderSize] = useState<number>(item.type == "folder" ? storage.getNumber("folderSizeCache:" + item.uuid) : 0)
 
     useEffect(() => {
         if(item.type == "folder"){
-            const folderSizeCache = storage.getNumber("folderSize:" + item.uuid)
             const fetchFolderSizeTimeout = storage.getNumber("fetchFolderSizeTimeout:" + item.uuid)
-
-            setItemSize(folderSizeCache)
 
             if(fetchFolderSizeTimeout > new Date().getTime()){
                 return
             }
 
             fetchFolderSize({ folder: item, routeURL: getRouteURL() }).then((fetchedSize) => {
-                storage.set("folderSize:" + item.uuid, fetchedSize)
+                storage.set("folderSizeCache:" + item.uuid, fetchedSize)
                 storage.set("fetchFolderSizeTimeout:" + item.uuid, (new Date().getTime() + 30000))
 
-                setItemSize(fetchedSize)
+                setFolderSize(fetchedSize)
             }).catch(console.error)
         }
     }, [])
@@ -190,7 +187,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                     </>
                                 )
                             }
-                            {hideSizes ? formatBytes(0) : formatBytes(itemSize)}
+                            {hideSizes ? formatBytes(0) : formatBytes(item.type == "file" ? item.size : folderSize)}
                             {
                                 typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && (
                                     <>

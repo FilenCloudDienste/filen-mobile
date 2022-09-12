@@ -984,7 +984,7 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
                             size: metadataCache.size,
                             mime: metadataCache.mime,
                             key: metadataCache.key,
-                            lastModified: metadataCache.lastModified,
+                            lastModified: convertTimestampToMs(metadataCache.lastModified),
                             hash: typeof metadataCache.hash == "string" && metadataCache.hash.length > 0 ? metadataCache.hash : ""
                         })
                     }
@@ -1017,7 +1017,7 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
                         size: decrypted.size,
                         mime: decrypted.mime,
                         key: decrypted.key,
-                        lastModified: decrypted.lastModified,
+                        lastModified: convertTimestampToMs(decrypted.lastModified),
                         hash: typeof decrypted.hash == "string" && decrypted.hash.length > 0 ? decrypted.hash : ""
                     }
     
@@ -1183,7 +1183,7 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
                                 size: metadataCache.size,
                                 mime: metadataCache.mime,
                                 key: metadataCache.key,
-                                lastModified: metadataCache.lastModified,
+                                lastModified: convertTimestampToMs(metadataCache.lastModified),
                                 hash: typeof metadataCache.hash == "string" && metadataCache.hash.length > 0 ? metadataCache.hash : ""
                             })
                         }
@@ -1219,7 +1219,7 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
                                     size: decrypted.size,
                                     mime: decrypted.mime,
                                     key: decrypted.key,
-                                    lastModified: decrypted.lastModified,
+                                    lastModified: convertTimestampToMs(decrypted.lastModified),
                                     hash: typeof decrypted.hash == "string" && decrypted.hash.length > 0 ? decrypted.hash : ""
                                 }
                             }

@@ -710,6 +710,14 @@ export const UploadToast = memo(({ message }: { message?: string | undefined }) 
                                                     lastModified: new Date().getTime()
                                                 },
                                                 parent
+                                            }).catch((err) => {
+                                                if(err == "wifiOnly"){
+                                                    return showToast({ message: i18n(lang, "onlyWifiUploads") })
+                                                }
+                                                
+                                                console.log(err)
+    
+                                                showToast({ message: err.toString() })
                                             })
                                         }).catch((err) => {
                                             console.log(err)

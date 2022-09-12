@@ -140,7 +140,7 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
         isSync: folder.is_sync || false,
         isDefault: folder.is_default || false,
         //size: typeof routeURL == "string" ? getFolderSizeFromCache({ folder, routeURL, load: loadFolderSizes }) : 0,
-        size: storage.getNumber("folderSize:" + folder.uuid),
+        size: 0,
         selected: false,
         mime: "",
         key: "",
@@ -695,7 +695,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     await removeFromOfflineStorage({ item: file })
 
                     if(netInfo.isConnected && netInfo.isInternetReachable){
-                        queueFileDownload({ file, storeOffline: true })
+                        queueFileDownload({ file, storeOffline: true }).catch(console.error)
                     }
                 }
                 else{
@@ -788,7 +788,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                                                     }
                                                 })
                                             }
-                                        })
+                                        }).catch(console.error)
                                     }
                                     else{
                                         await new Promise((resolve, reject) => {
@@ -1612,5 +1612,13 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
             return open(path)
         },
         isPreview: true
+    }).catch((err) => {
+        if(err == "wifiOnly"){
+            return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+        }
+
+        console.error(err)
+
+        showToast({ message: err.toString() })
     })
 }
