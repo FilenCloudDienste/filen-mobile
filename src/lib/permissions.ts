@@ -1,7 +1,7 @@
 import { Platform } from "react-native"
 import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } from "react-native-permissions"
 import storage from "./storage"
-import { i18n } from "../i18n/i18n"
+import { i18n } from "../i18n"
 
 export const hasWritePermissions = (requestPermissions: boolean = true): Promise<boolean> => {
     return new Promise((resolve, reject) => {

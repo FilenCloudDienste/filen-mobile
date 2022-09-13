@@ -191,6 +191,7 @@ export const en: {
     eventFileUploadedInfo: "__NAME__ uploaded",
     eventFileVersionedInfo: "__NAME__ versioned",
     eventVersionedFileRestoredInfo: "File version of __NAME__ restored",
+    eventFileRenamedInfo: "__NAME__ renamed to __NEW__",
     eventFileMovedInfo: "__NAME__ moved",
     fileRenamedInfo: "__NAME__ renamed to __NEW__",
     eventFileTrashInfo: "__NAME__ moved to trash",
