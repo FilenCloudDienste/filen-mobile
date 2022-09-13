@@ -12,6 +12,7 @@ import type { EdgeInsets } from "react-native-safe-area-context"
 import type { Item } from "../lib/services/items"
 import { fetchFolderSize } from "../lib/api"
 import storage from "../lib/storage"
+import { useMountedState } from "react-use"
 
 const window = Dimensions.get("window")
 const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
@@ -39,6 +40,7 @@ export interface ListItemProps extends ItemBaseProps { }
 
 export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang }: ListItemProps) => {
     const [folderSize, setFolderSize] = useState<number>(item.type == "folder" ? storage.getNumber("folderSizeCache:" + item.uuid) : 0)
+    const isMounted: () => boolean = useMountedState()
 
     useEffect(() => {
         if(item.type == "folder"){
@@ -52,7 +54,9 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
                 storage.set("fetchFolderSizeTimeout:" + item.uuid, (new Date().getTime() + 30000))
 
-                setFolderSize(fetchedSize)
+                if(isMounted()){
+                    setFolderSize(fetchedSize)
+                }
             }).catch(console.error)
         }
     }, [])

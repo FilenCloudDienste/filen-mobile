@@ -1003,52 +1003,22 @@ const convertHeic = (input, output, format) => {
                     return reject(err)
                 }
     
-                ExifReader.load(input).then((exif) => {
-                    heicConvert({
-                        buffer: inputBuffer,
-                        format
-                    }).then((outputBuffer) => {
-                        const write = (buffer) => {
-                            fs.writeFile(output, buffer, (err) => {
-                                release()
-        
-                                if(err){
-                                    return reject(err)
-                                }
-            
-                                return resolve(output)
-                            })
-                        }
-
-                        const rotate = () => {
-                            rotateImage(outputBuffer, exif['Orientation'].value, format == "JPEG" ? "image/jpeg" : "image/png").then((buffer) => {
-                                return write(buffer)
-                            }).catch((err) => {
-                                release()
-            
-                                return reject(err)
-                            })
-                        }
-
-                        if(typeof exif !== "undefined"){
-                            if(typeof exif['Orientation'] !== "undefined"){
-                                if(typeof exif['Orientation'].value !== "undefined"){
-                                    if(exif['Orientation'].value !== 1){
-                                        return rotate()
-                                    }
-                                }
-                            }
-                        }
-
-                        return write(outputBuffer)
-                    }).catch((err) => {
+                heicConvert({
+                    buffer: inputBuffer,
+                    format
+                }).then((outputBuffer) => {
+                    fs.writeFile(output, outputBuffer, (err) => {
                         release()
+
+                        if(err){
+                            return reject(err)
+                        }
     
-                        return reject(err)
+                        return resolve(output)
                     })
                 }).catch((err) => {
                     release()
-    
+
                     return reject(err)
                 })
             })

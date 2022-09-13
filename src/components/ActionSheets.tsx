@@ -1441,7 +1441,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 							</>
 						)
 					}
-					{hideSizes ? formatBytes(0) : formatBytes(currentActionSheetItem.size)}
+					{hideSizes ? formatBytes(0) : formatBytes(currentActionSheetItem.type == "file" ? currentActionSheetItem.size : storage.getNumber("folderSizeCache:" + currentActionSheetItem.uuid))}
 					{
 						typeof currentActionSheetItem.sharerEmail == "string" && currentActionSheetItem.sharerEmail.length > 0 && (
 							<>
