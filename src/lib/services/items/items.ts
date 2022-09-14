@@ -1391,7 +1391,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
                     return generateThumbnail(path, dest)
                 }
 
-                downloadFile(item, false).then((downloadedPath) => {
+                downloadFile(item, false, true).then((downloadedPath) => {
                     generateThumbnail(downloadedPath, dest)
                 }).catch(onError)
             }).catch(onError)

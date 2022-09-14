@@ -86,7 +86,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
 
                 return true
             }
-        }, 10)
+        }, 250)
 
         try{
             var key = await global.nodeThread.generateRandomString({ charLength: 32 })
@@ -183,7 +183,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
 
                                 return resolve(true)
                             }
-                        }, 10)
+                        }, 250)
                     })
                 }
 
@@ -330,8 +330,6 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
         }
 
         try{
-            await new Promise((resolve) => BackgroundTimer.setTimeout(() => resolve(true), 250))
-
             await markUploadAsDone({ uuid, uploadKey })
 
             item.timestamp = Math.floor(+new Date() / 1000)

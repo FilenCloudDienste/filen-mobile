@@ -17,6 +17,7 @@ import memoryCache from "../../memoryCache"
 const downloadSemaphore = new Semaphore(3)
 const maxThreads = 16
 const downloadThreadsSemaphore = new Semaphore(maxThreads)
+const downloadWriteThreadsSemaphore = new Semaphore(256)
 
 export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -224,7 +225,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         return showToast({ message: i18n(storage.getString("lang"), "alreadyDownloadingFile", true, ["__NAME__"], [file.name]) })
     }
 
-    DeviceEventEmitter.emit("upload", {
+    DeviceEventEmitter.emit("download", {
         type: "start",
         data: file
     })
@@ -259,8 +260,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
     const filePath = downloadPath + file.name
 
-    downloadFile(file).then(async (path) => {
-        DeviceEventEmitter.emit("upload", {
+    downloadFile(file, true, false).then(async (path) => {
+        DeviceEventEmitter.emit("download", {
             type: "done",
             data: file
         })
@@ -421,7 +422,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         if(err !== "stopped"){
             showToast({ message: err.toString() })
 
-            DeviceEventEmitter.emit("upload", {
+            DeviceEventEmitter.emit("download", {
                 type: "err",
                 data: file,
                 err: err.toString()
@@ -434,7 +435,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     })
 }
 
-export const downloadFile = (file: Item, showProgress: boolean = true): Promise<string> => {
+export const downloadFile = (file: Item, showProgress: boolean = true, standalone: boolean = false): Promise<string> => {
     memoryCache.set("showDownloadProgress:" + file.uuid, showProgress)
 
     return new Promise((resolve, reject) => {
@@ -465,10 +466,12 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
                 return reject(e)
             }
 
-            DeviceEventEmitter.emit("download", {
-                type: "start",
-                data: file
-            })
+            if(standalone){
+                DeviceEventEmitter.emit("download", {
+                    type: "start",
+                    data: file
+                })
+            }
     
             const tmpPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + randomIdUnsafe() + file.uuid + "." + getFileExt(file.name)
             let currentWriteIndex = 0
@@ -476,13 +479,13 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
             let paused = false
             let stopped = false
     
-            const stopInterval = BackgroundTimer.setInterval(async () => {
+            const stopInterval = BackgroundTimer.setInterval(() => {
                 if(stopped && !didStop){
                     didStop = true
     
                     BackgroundTimer.clearInterval(stopInterval)
                 }
-            }, 10)
+            }, 250)
 
             const pauseListener = DeviceEventEmitter.addListener("pauseTransfer", (uuid) => {
                 if(uuid == file.uuid){
@@ -529,7 +532,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
         
                                     return resolve(true)
                                 }
-                            }, 10)
+                            }, 250)
                         })
                     }
         
@@ -560,12 +563,14 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
                 if(index !== currentWriteIndex){
                     return BackgroundTimer.setTimeout(() => {
                         write(index, path)
-                    }, 10)
+                    }, 25)
                 }
     
                 if(index == 0){
                     ReactNativeBlobUtil.fs.mv(path, tmpPath).then(() => {
                         currentWriteIndex += 1
+
+                        downloadWriteThreadsSemaphore.release()
     
                         ReactNativeBlobUtil.fs.unlink(path).catch(console.log)
                     }).catch(reject)
@@ -576,6 +581,8 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
                         second: path
                     }).then(() => {
                         currentWriteIndex += 1
+
+                        downloadWriteThreadsSemaphore.release()
     
                         ReactNativeBlobUtil.fs.unlink(path).catch(console.log)
                     }).catch(reject)
@@ -592,7 +599,10 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
                     let done = 0
     
                     for(let i = 0; i < file.chunks; i++){
-                        downloadThreadsSemaphore.acquire().then(() => {
+                        Promise.all([
+                            downloadThreadsSemaphore.acquire(),
+                            downloadWriteThreadsSemaphore.acquire()
+                        ]).then(() => {
                             downloadTask(i).then(({ index, path }) => {
                                 write(index, path)
     
@@ -605,6 +615,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
                                 }
                             }).catch((err) => {
                                 downloadThreadsSemaphore.release()
+                                downloadWriteThreadsSemaphore.release()
     
                                 return reject(err)
                             })
@@ -623,7 +634,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
     
                             return resolve(true)
                         }
-                    }, 10)
+                    }, 100)
                 })
     
                 if(file.size < ((1024 * 1024) * 64)){
@@ -642,10 +653,12 @@ export const downloadFile = (file: Item, showProgress: boolean = true): Promise<
                 return reject(e)
             }
 
-            DeviceEventEmitter.emit("download", {
-                type: "done",
-                data: file
-            })
+            if(standalone){
+                DeviceEventEmitter.emit("download", {
+                    type: "done",
+                    data: file
+                })
+            }
     
             cleanup()
     

@@ -15,6 +15,7 @@ import mimeTypes from "mime-types"
 const TIMEOUT: number = 5000
 const FAILED: { [key: string]: number } = {}
 const MAX_FAILED: number = 3
+const MAX_FETCH_TIME: number = 15000
 
 export const disableCameraUpload = (resetFolder: boolean = false): void => {
     const userId = storage.getNumber("userId")
@@ -252,6 +253,10 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
             return true
         }
 
+        if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
+            return true
+        }
+
         let remoteHashes: { [key: string]: boolean } = {}
 
         if(now > cameraUploadFetchRemoteAssetsTimeout){
@@ -299,6 +304,10 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
             }
         }
 
+        if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
+            return true
+        }
+
         const assets = await fetchAssets()
 
         storage.set("cameraUploadTotal", assets.length)
@@ -312,6 +321,10 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                 runCameraUpload(maxQueue)
             }, TIMEOUT)
 
+            return true
+        }
+
+        if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
             return true
         }
 

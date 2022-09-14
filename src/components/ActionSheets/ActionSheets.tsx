@@ -36,10 +36,11 @@ interface ActionButtonProps {
 	icon?: any,
 	text: string,
 	color?: string,
-	key?: string | number
+	key?: string | number,
+	rightComponent?: any
 }
 
-export const ActionButton = memo(({ onPress, icon, text, color }: ActionButtonProps) => {
+export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }: ActionButtonProps) => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
 	return (
@@ -86,23 +87,50 @@ export const ActionButton = memo(({ onPress, icon, text, color }: ActionButtonPr
 						</View>
 					)
 				}
-				<View
-					style={{
-						paddingTop: 14,
-						marginLeft: 15,
-						borderBottomColor: getColor(darkMode, "actionSheetBorder"),
-						borderBottomWidth: 1,
-						width: "100%"
-					}}
-				>
-					<Text
-						style={{
-							color: darkMode ? "white" : "black"
-						}}
-					>
-						{text}
-					</Text>
-				</View>
+				{
+					typeof rightComponent !== "undefined" ? (
+						<View
+							style={{
+								paddingTop: 5,
+								marginLeft: 15,
+								borderBottomColor: getColor(darkMode, "actionSheetBorder"),
+								borderBottomWidth: 1,
+								width: "100%",
+								justifyContent: "space-between",
+								alignItems: "center",
+								flexDirection: "row",
+								paddingRight: 20
+							}}
+						>
+							<Text
+								style={{
+									color: darkMode ? "white" : "black"
+								}}
+							>
+								{text}
+							</Text>
+							{rightComponent}
+						</View>
+					) : (
+						<View
+							style={{
+								paddingTop: 14,
+								marginLeft: 15,
+								borderBottomColor: getColor(darkMode, "actionSheetBorder"),
+								borderBottomWidth: 1,
+								width: "100%"
+							}}
+						>
+							<Text
+								style={{
+									color: darkMode ? "white" : "black"
+								}}
+							>
+								{text}
+							</Text>
+						</View>
+					)
+				}
 			</View>
 		</TouchableHighlight>
 	)
@@ -1703,7 +1731,7 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 												await SheetManager.hide("ItemActionSheet")
 			
 												hasStoragePermissions().then(() => {
-													downloadFile(currentActionSheetItem).then((path) => {
+													downloadFile(currentActionSheetItem, true, true).then((path) => {
 														ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
 															setTextEditorState("edit")
 															setTextEditorParent(currentActionSheetItem.parent)
@@ -2733,7 +2761,8 @@ export const PublicLinkActionSheet = memo(() => {
 												</Text>
 												<Ionicon
 													name="chevron-forward-outline"
-													size={18} color={darkMode ? "white" : "black"}
+													size={18}
+													color={darkMode ? "white" : "black"}
 													style={{
 														marginRight: 15
 													}}
@@ -3600,6 +3629,15 @@ export const LockAppAfterActionSheet = memo(() => {
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "immediately")}
+					rightComponent={
+						lockAppAfter == 1 ? (
+							<Ionicon
+								name="radio-button-on-outline"
+								size={15}
+								color={darkMode ? "white" : "black"}
+							/>
+						) : undefined
+					}
 				/>
 				<ActionButton
 					onPress={() => {
@@ -3608,6 +3646,15 @@ export const LockAppAfterActionSheet = memo(() => {
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "oneMinute")}
+					rightComponent={
+						lockAppAfter == 60 ? (
+							<Ionicon
+								name="radio-button-on-outline"
+								size={15}
+								color={darkMode ? "white" : "black"}
+							/>
+						) : undefined
+					}
 				/>
 				<ActionButton
 					onPress={() => {
@@ -3616,6 +3663,15 @@ export const LockAppAfterActionSheet = memo(() => {
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "threeMinutes")}
+					rightComponent={
+						lockAppAfter == 180 ? (
+							<Ionicon
+								name="radio-button-on-outline"
+								size={15}
+								color={darkMode ? "white" : "black"}
+							/>
+						) : undefined
+					}
 				/>
 				<ActionButton
 					onPress={() => {
@@ -3624,6 +3680,15 @@ export const LockAppAfterActionSheet = memo(() => {
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "fiveMinutes")}
+					rightComponent={
+						lockAppAfter == 300 ? (
+							<Ionicon
+								name="radio-button-on-outline"
+								size={15}
+								color={darkMode ? "white" : "black"}
+							/>
+						) : undefined
+					}
 				/>
 				<ActionButton
 					onPress={() => {
@@ -3632,6 +3697,15 @@ export const LockAppAfterActionSheet = memo(() => {
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "tenMinutes")}
+					rightComponent={
+						lockAppAfter == 600 ? (
+							<Ionicon
+								name="radio-button-on-outline"
+								size={15}
+								color={darkMode ? "white" : "black"}
+							/>
+						) : undefined
+					}
 				/>
 				<ActionButton
 					onPress={() => {
@@ -3640,6 +3714,15 @@ export const LockAppAfterActionSheet = memo(() => {
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "fifteenMinutes")}
+					rightComponent={
+						lockAppAfter == 900 ? (
+							<Ionicon
+								name="radio-button-on-outline"
+								size={15}
+								color={darkMode ? "white" : "black"}
+							/>
+						) : undefined
+					}
 				/>
 				<ActionButton
 					onPress={() => {
@@ -3648,6 +3731,15 @@ export const LockAppAfterActionSheet = memo(() => {
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "thirtyMinutes")}
+					rightComponent={
+						lockAppAfter == 1800 ? (
+							<Ionicon
+								name="radio-button-on-outline"
+								size={15}
+								color={darkMode ? "white" : "black"}
+							/>
+						) : undefined
+					}
 				/>
 				<ActionButton
 					onPress={() => {
@@ -3656,6 +3748,15 @@ export const LockAppAfterActionSheet = memo(() => {
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "oneHour")}
+					rightComponent={
+						lockAppAfter == 3600 ? (
+							<Ionicon
+								name="radio-button-on-outline"
+								size={15}
+								color={darkMode ? "white" : "black"}
+							/>
+						) : undefined
+					}
 				/>
           	</View>
         </ActionSheet>
