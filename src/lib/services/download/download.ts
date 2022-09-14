@@ -17,7 +17,7 @@ import memoryCache from "../../memoryCache"
 const downloadSemaphore = new Semaphore(3)
 const maxThreads = 16
 const downloadThreadsSemaphore = new Semaphore(maxThreads)
-const downloadWriteThreadsSemaphore = new Semaphore(256)
+const downloadWriteThreadsSemaphore = new Semaphore(128)
 
 export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<string> => {
     return new Promise((resolve, reject) => {
