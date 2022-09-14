@@ -644,11 +644,13 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
             catch(e: any){
                 cleanup()
 
-                DeviceEventEmitter.emit("download", {
-                    type: "err",
-                    err: e.toString(),
-                    data: file
-                })
+                if(standalone){
+                    DeviceEventEmitter.emit("download", {
+                        type: "err",
+                        err: e.toString(),
+                        data: file
+                    })
+                }
     
                 return reject(e)
             }

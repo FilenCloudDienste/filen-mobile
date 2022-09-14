@@ -101,6 +101,10 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
                         title="Türk"
                         onPress={() => setLang("tr")}
                     />
+                    <SettingsButtonLinkHighlight
+                        title="Ελληνικά"
+                        onPress={() => setLang("el")}
+                    />
                 </SettingsGroup>
                 <View style={{ height: 25 }}></View>
             </ScrollView>
