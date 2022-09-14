@@ -390,5 +390,14 @@ export const de: {
     cameraUploadEnableHeic: "HEIC/HEIF nicht konvertieren",
     albums: "Alben",
     cameraUploadNoAlbumsFound: "Keine Alben gefunden, alle Dateien werden hochgeladen",
-    onlyUsePINCode: "Nur PIN Code benutzen"
+    onlyUsePINCode: "Nur PIN Code benutzen",
+    lockAppAfter: "App sperren nach",
+    immediately: "Sofort",
+    oneMinute: "1 Minute",
+    threeMinutes: "3 Minuten",
+    fiveMinutes: "5 Minuten",
+    tenMinutes: "10 Minuten",
+    fifteenMinutes: "15 Minuten",
+    thirtyMinutes: "30 Minuten",
+    oneHour: "1 Stunde"
 }
