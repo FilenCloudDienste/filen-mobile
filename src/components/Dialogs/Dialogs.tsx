@@ -8,7 +8,7 @@ import { createFolder, folderExists, fileExists, renameFile, renameFolder, delet
 import { showToast } from "../Toasts"
 import { i18n } from "../../i18n"
 import { DeviceEventEmitter, Keyboard } from "react-native"
-import { logout } from "../../lib/auth/logout"
+import { logout } from "../../lib/services/auth/logout"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions, CommonActions } from "@react-navigation/native"
 

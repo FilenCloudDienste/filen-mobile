@@ -5,11 +5,11 @@ import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { showToast } from "../../components/Toasts"
-import { generatePasswordAndMasterKeysBasedOnAuthVersion } from "../../lib/auth/login"
+import { generatePasswordAndMasterKeysBasedOnAuthVersion } from "../../lib/services/auth/login"
 import { getAuthInfo, changeEmail, changePassword } from "../../lib/api"
 import { useStore } from "../../lib/state"
 import { encryptMetadata, generateRandomString, getMasterKeys } from "../../lib/helpers"
-import { logout } from "../../lib/auth/logout"
+import { logout } from "../../lib/services/auth/logout"
 
 export interface ChangeEmailPasswordScreenProps {
     navigation: any

@@ -1,6 +1,6 @@
-import { fetchUserInfo, fetchUserUsage } from "../api"
-import storage from "../storage"
-import { useStore } from "../state"
+import { fetchUserInfo, fetchUserUsage } from "../../../api"
+import storage from "../../../storage"
+import { useStore } from "../../../state"
 
 export const updateUserUsage = (): void => {
     const netInfo = useStore.getState().netInfo

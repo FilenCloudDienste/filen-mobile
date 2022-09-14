@@ -3,7 +3,7 @@ import { Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView } from "
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import { i18n } from "../../i18n"
-import { register } from "../../lib/auth/register"
+import { register } from "../../lib/services/auth/register"
 import { navigationAnimation } from "../../lib/state"
 
 export interface RegisterScreenProps {

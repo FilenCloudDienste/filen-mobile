@@ -1,14 +1,14 @@
 import DeviceInfo from "react-native-device-info"
-import storage from "../storage"
-import { useStore } from "../state"
+import storage from "../../storage"
+import { useStore } from "../../state"
 import { CommonActions } from "@react-navigation/native"
-import { navigationAnimation } from "../state"
-import { compareVersions } from "../helpers"
-import { getLatestVersion } from "../api"
+import { navigationAnimation } from "../../state"
+import { compareVersions } from "../../helpers"
+import { getLatestVersion } from "../../api"
 
 const CHECK_TIMEOUT = 500 // In seconds
 
-const checkAppVersion = async ({ navigation }: { navigation: any }): Promise<void> => {
+export const checkAppVersion = async ({ navigation }: { navigation: any }): Promise<void> => {
     if(typeof navigation !== "undefined"){
         if(typeof navigation.current !== "undefined"){
             if(typeof navigation.current.routes !== "undefined"){

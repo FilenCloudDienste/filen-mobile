@@ -10,7 +10,7 @@ import { deleteAccount, deleteAllFilesAndFolders, deleteAllVersionedFiles, getSe
 import { useStore } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
 import { StackActions } from "@react-navigation/native"
-import { logout } from "../../lib/auth/logout"
+import { logout } from "../../lib/services/auth/logout"
 import { formatBytes } from "../../lib/helpers"
 import { useMountedState } from "react-use"
 

@@ -1,9 +1,9 @@
-import { updateKeys } from "./user/keys"
+import { updateKeys } from "../user/keys"
 import RNFS from "react-native-fs"
-import { apiRequest } from "./api"
-import { getAPIKey } from "./helpers"
-import storage from "./storage"
-import { getDownloadPath } from "./download"
+import { apiRequest } from "../../api"
+import { getAPIKey } from "../../helpers"
+import storage from "../../storage"
+import { getDownloadPath } from "../download/download"
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 

@@ -8,7 +8,7 @@ import { SettingsGroup, SettingsButtonLinkHighlight } from "../SettingsScreen/Se
 import { useStore } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
 import RNFS from "react-native-fs"
-import { getDownloadPath } from "../../lib/download"
+import { getDownloadPath } from "../../lib/services/download/download"
 import DeviceInfo from "react-native-device-info"
 import { formatBytes } from "../../lib/helpers"
 import memoryCache from "../../lib/memoryCache"

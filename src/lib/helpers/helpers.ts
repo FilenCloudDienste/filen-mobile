@@ -1,8 +1,8 @@
-import storage from "./storage"
+import storage from "../storage"
 import { Platform } from "react-native"
 import * as cppBase64 from "react-native-quick-base64"
-import { useStore } from "./state"
-import { i18n } from "../i18n"
+import { useStore } from "../state"
+import { i18n } from "../../i18n"
 
 export const base64Decode = (str: string): string => {
     return cppBase64.atob(str)

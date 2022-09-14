@@ -1,8 +1,8 @@
-import storage from "../storage"
-import { getDownloadPath } from "../download"
-import { getFileExt } from "../helpers"
+import storage from "../../storage"
+import { getDownloadPath } from "../download/download"
+import { getFileExt } from "../../helpers"
 import { DeviceEventEmitter } from "react-native"
-import { updateLoadItemsCache, removeLoadItemsCache } from "./items"
+import { updateLoadItemsCache, removeLoadItemsCache } from "../items"
 import ReactNativeBlobUtil from "react-native-blob-util"
 
 export const getOfflineList = (): Promise<any[]> => {
