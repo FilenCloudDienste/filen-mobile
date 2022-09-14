@@ -1,4 +1,6 @@
-export const getImageForItem = (item: any) => {
+import type { Item } from "../lib/services/items"
+
+export const getImageForItem = (item: Item) => {
     if(item.type == "folder"){
         return require("./images/folder.png")
     }
@@ -7,7 +9,7 @@ export const getImageForItem = (item: any) => {
         return require("./images/types/jpg.png")
     }
 
-    let ex: string[] = item.name.split(".")
+    const ex: string[] = item.name.split(".")
 
     if(item.name.indexOf(".") !== -1){
         switch(ex[ex.length - 1]){

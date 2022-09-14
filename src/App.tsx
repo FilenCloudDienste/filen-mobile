@@ -140,11 +140,13 @@ export const App = memo(() => {
 
                                     if(typeof navState !== "undefined"){
                                         if(typeof navState.routes !== "undefined"){
-                                            if(navState.routes.filter(route => route.name == "SetupScreen" || route.name == "BiometricAuthScreen" || route.name == "LoginScreen").length == 0){
-                                                if(storage.getBoolean("isLoggedIn")){
-                                                    BackgroundTimer.clearInterval(wait)
-    
-                                                    return resolve(true)
+                                            if(Array.isArray(navState.routes)){
+                                                if(navState.routes.filter(route => route.name == "SetupScreen" || route.name == "BiometricAuthScreen" || route.name == "LoginScreen").length == 0){
+                                                    if(storage.getBoolean("isLoggedIn")){
+                                                        BackgroundTimer.clearInterval(wait)
+        
+                                                        return resolve(true)
+                                                    }
                                                 }
                                             }
                                         }
@@ -235,7 +237,7 @@ export const App = memo(() => {
                 if(Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && storage.getBoolean("biometricPinAuth:" + userId)){
                     setBiometricAuthScreenState("auth")
 
-                    storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + lockAppAfter))
+                    storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (lockAppAfter * 1000)))
                     
                     navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                 }
@@ -287,7 +289,13 @@ export const App = memo(() => {
                 if(storage.getBoolean("biometricPinAuth:" + userId)){
                     setBiometricAuthScreenState("auth")
 
-                    storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + 500000))
+                    let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+
+                    if(lockAppAfter == 0){
+                        lockAppAfter = 300
+                    }
+
+                    storage.set("biometricPinAuthTimeout:" + userId, (new Date().getTime() + (lockAppAfter * 1000)))
                     
                     navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                 }
@@ -315,7 +323,13 @@ export const App = memo(() => {
                         if(storage.getBoolean("biometricPinAuth:" + userId)){
                             setBiometricAuthScreenState("auth")
 
-                            storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + 500000))
+                            let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+
+                            if(lockAppAfter == 0){
+                                lockAppAfter = 300
+                            }
+
+                            storage.set("biometricPinAuthTimeout:" + userId, (new Date().getTime() + (lockAppAfter * 1000)))
                             
                             navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                         }
@@ -348,14 +362,6 @@ export const App = memo(() => {
         }
 
         storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, (new Date().getTime() - 5000))
-
-        let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
-
-        if(lockAppAfter == 0){
-            lockAppAfter = 300
-        }
-
-        storage.set("biometricPinAuthTimeout:" + userId, (new Date().getTime() + lockAppAfter))
 
         return () => {
             dimensionsListener.remove()

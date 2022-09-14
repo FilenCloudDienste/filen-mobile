@@ -1,4 +1,4 @@
-import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnail, getParent } from "../../helpers"
+import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnail } from "../../helpers"
 import RNFS from "react-native-fs"
 import { useStore } from "../../state"
 import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
@@ -7,12 +7,11 @@ import storage from "../../storage"
 import { i18n } from "../../../i18n"
 import { DeviceEventEmitter } from "react-native"
 import { getDownloadPath } from "../download/download"
-import { getThumbnailCacheKey } from "../items"
+import { getThumbnailCacheKey, buildFile } from "../items"
 import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "../../memoryCache"
 import BackgroundTimer from "react-native-background-timer"
-import { debounce } from "lodash"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -26,13 +25,6 @@ export interface UploadFile {
     mime: string,
     lastModified: number
 }
-
-const debouncedListUpdate = debounce(() => {
-    global.fetchItemList({ bypassCache: true, callStack: 0, loadFolderSizes: true }).catch(console.error)
-}, 1000, {
-    leading: true,
-    trailing: false
-})
 
 export const queueFileUpload = ({ file, parent, includeFileHash = false }: { file: UploadFile, parent: string, includeFileHash?: boolean }): Promise<any> => {
     return new Promise(async (resolve, reject) => {
@@ -49,7 +41,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             return reject("wifiOnly")
         }
 
-        let fileName = file.name.split("/").join("_").split("\\").join("_")
+        const fileName = file.name.split("/").join("_").split("\\").join("_")
         const item = {
             uuid: "",
             name: fileName,
@@ -66,18 +58,6 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             region: "",
             bucket: ""
         }
-
-        /*if(fileName.indexOf(".") !== -1){
-            let fileNameEx = fileName.split(".")
-            let lowerCaseFileEnding = fileNameEx[fileNameEx.length - 1].toLowerCase()
-            
-            fileNameEx.pop()
-            
-            const fileNameWithLowerCaseEnding = fileNameEx.join(".") + "." + lowerCaseFileEnding
-
-            fileName = striptags(fileNameWithLowerCaseEnding)
-        }*/
-
         const name = striptags(fileName)
         const size = file.size
         const mime = file.mime || ""
@@ -110,6 +90,23 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
 
         try{
             var key = await global.nodeThread.generateRandomString({ charLength: 32 })
+            var metadata = includeFileHash ? {
+                name,
+                size,
+                mime,
+                key,
+                lastModified,
+                hash: await global.nodeThread.getFileHash({
+                    path: file.path,
+                    hashName: "sha512"
+                })
+            } : {
+                name,
+                size,
+                mime,
+                key,
+                lastModified
+            }
 
             var [uuid, rm, uploadKey, nameEnc, nameH, mimeEnc, sizeEnc, metaData] = await Promise.all([
                 global.nodeThread.uuidv4(),
@@ -119,23 +116,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
                 global.nodeThread.hashFn({ string: name.toLowerCase() }),
                 encryptMetadata(mime, key),
                 encryptMetadata(size.toString(), key),
-                encryptMetadata(JSON.stringify(includeFileHash ? {
-                    name,
-                    size,
-                    mime,
-                    key,
-                    lastModified,
-                    hash: await global.nodeThread.getFileHash({
-                        path: file.path,
-                        hashName: "sha512"
-                    })
-                } : {
-                    name,
-                    size,
-                    mime,
-                    key,
-                    lastModified
-                }), masterKeys[masterKeys.length - 1])
+                encryptMetadata(JSON.stringify(metadata), masterKeys[masterKeys.length - 1])
             ])
 
             item.key = key
@@ -391,9 +372,31 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
 
         cleanup()
 
-        if(getParent() == parent){
-            debouncedListUpdate()
-        }
+        const builtFile = await buildFile({
+            file: {
+                bucket: item.bucket,
+                chunks: item.chunks,
+                favorited: 0,
+                metadata: item.metadata,
+                parent,
+                region: item.region,
+                rm: item.rm,
+                size: item.size,
+                timestamp: item.timestamp,
+                uuid: item.uuid,
+                version: item.version
+            },
+            masterKeys,
+            userId: storage.getNumber("userId")
+        })
+
+        DeviceEventEmitter.emit("event", {
+            type: "add-item",
+            data: {
+                item: builtFile,
+                parent: includeFileHash ? "photos" : parent
+            }
+        })
 
         return resolve(item)
 
