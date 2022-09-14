@@ -12,7 +12,7 @@ export const getImageForItem = (item: Item) => {
     const ex: string[] = item.name.split(".")
 
     if(item.name.indexOf(".") !== -1){
-        switch(ex[ex.length - 1]){
+        switch(ex[ex.length - 1].toLowerCase()){
             case "pdf":
                 return require("./images/types/pdf.png")
             break

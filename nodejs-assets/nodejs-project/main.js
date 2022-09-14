@@ -50,7 +50,7 @@ const axiosClient = axios.create({
 
 const httpsAPIAgent = new https.Agent({
     keepAlive: true,
-    maxSockets: 10
+    maxSockets: 16
 })
 
 const httpsUploadAgent = new https.Agent({
@@ -60,7 +60,7 @@ const httpsUploadAgent = new https.Agent({
 
 const httpsDownloadAgent = new https.Agent({
     keepAlive: true,
-    maxSockets: 64
+    maxSockets: 128
 })
 
 const cachedDerivedKeys = {}
