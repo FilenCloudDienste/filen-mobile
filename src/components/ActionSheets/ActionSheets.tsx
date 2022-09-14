@@ -3564,3 +3564,100 @@ export const SortByActionSheet = memo(() => {
         </ActionSheet>
     )
 })
+
+export const LockAppAfterActionSheet = memo(() => {
+    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+	const insets: EdgeInsets = useSafeAreaInsets()
+	const [lang, setLang] = useMMKVString("lang", storage)
+	const [userId, setUserId] = useMMKVNumber("userId", storage)
+	const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
+
+    return (
+		// @ts-ignore
+        <ActionSheet
+			id="LockAppAfterActionSheet"
+			gestureEnabled={true}
+			containerStyle={{
+				backgroundColor: darkMode ? "#171717" : "white",
+				borderTopLeftRadius: 15,
+				borderTopRightRadius: 15
+			}}
+			indicatorStyle={{
+				display: "none"
+			}}
+		>
+          	<View
+				style={{
+					paddingBottom: (insets.bottom + 25),
+					paddingTop: 15
+				}}
+			>
+				<ActionSheetIndicator />
+				<ActionButton
+					onPress={() => {
+						setLockAppAfter(1)
+
+						SheetManager.hide("LockAppAfterActionSheet")
+					}}
+					text={i18n(lang, "immediately")}
+				/>
+				<ActionButton
+					onPress={() => {
+						setLockAppAfter(60)
+
+						SheetManager.hide("LockAppAfterActionSheet")
+					}}
+					text={i18n(lang, "oneMinute")}
+				/>
+				<ActionButton
+					onPress={() => {
+						setLockAppAfter(180)
+
+						SheetManager.hide("LockAppAfterActionSheet")
+					}}
+					text={i18n(lang, "threeMinutes")}
+				/>
+				<ActionButton
+					onPress={() => {
+						setLockAppAfter(300)
+
+						SheetManager.hide("LockAppAfterActionSheet")
+					}}
+					text={i18n(lang, "fiveMinutes")}
+				/>
+				<ActionButton
+					onPress={() => {
+						setLockAppAfter(600)
+
+						SheetManager.hide("LockAppAfterActionSheet")
+					}}
+					text={i18n(lang, "tenMinutes")}
+				/>
+				<ActionButton
+					onPress={() => {
+						setLockAppAfter(900)
+
+						SheetManager.hide("LockAppAfterActionSheet")
+					}}
+					text={i18n(lang, "fifteenMinutes")}
+				/>
+				<ActionButton
+					onPress={() => {
+						setLockAppAfter(1800)
+
+						SheetManager.hide("LockAppAfterActionSheet")
+					}}
+					text={i18n(lang, "thirtyMinutes")}
+				/>
+				<ActionButton
+					onPress={() => {
+						setLockAppAfter(3600)
+
+						SheetManager.hide("LockAppAfterActionSheet")
+					}}
+					text={i18n(lang, "oneHour")}
+				/>
+          	</View>
+        </ActionSheet>
+    )
+})

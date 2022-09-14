@@ -15,7 +15,7 @@ import { SetupScreen } from "./screens/SetupScreen/SetupScreen"
 import { BottomBar } from "./components/BottomBar"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { SettingsScreen } from "./screens/SettingsScreen/SettingsScreen"
-import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet, ProfilePictureActionSheet, SortByActionSheet } from "./components/ActionSheets"
+import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, LockAppAfterActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet, ProfilePictureActionSheet, SortByActionSheet } from "./components/ActionSheets"
 import { useStore } from "./lib/state"
 import { FullscreenLoadingModal } from "./components/Modals"
 import { enableScreens } from "react-native-screens"
@@ -226,10 +226,16 @@ export const App = memo(() => {
             setAppState(nextAppState)
 
             if(nextAppState == "background"){
+                let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+
+                if(lockAppAfter == 0){
+                    lockAppAfter = 300
+                }
+
                 if(Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && storage.getBoolean("biometricPinAuth:" + userId)){
                     setBiometricAuthScreenState("auth")
 
-                    storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + 500000))
+                    storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + lockAppAfter))
                     
                     navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                 }
@@ -341,7 +347,15 @@ export const App = memo(() => {
             })
         }
 
-        storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, new Date().getTime() - 5000)
+        storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, (new Date().getTime() - 5000))
+
+        let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+
+        if(lockAppAfter == 0){
+            lockAppAfter = 300
+        }
+
+        storage.set("biometricPinAuthTimeout:" + userId, (new Date().getTime() + lockAppAfter))
 
         return () => {
             dimensionsListener.remove()
@@ -584,6 +598,7 @@ export const App = memo(() => {
                                 <FileVersionsActionSheet navigation={navigationRef} />
                                 <ProfilePictureActionSheet />
                                 <SortByActionSheet />
+                                <LockAppAfterActionSheet />
                             </View>
                         </SafeAreaView>
                     </SafeAreaProvider>

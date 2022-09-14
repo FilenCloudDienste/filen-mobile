@@ -393,6 +393,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
     const [onlyUsePINCode, setOnlyUsePINCode] = useMMKVBoolean("onlyUsePINCode:" + userId, storage)
+    const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
 
     return (
         <ScrollView
@@ -674,6 +675,29 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                             onValueChange={() => setOnlyUsePINCode(!onlyUsePINCode)}
                             value={onlyUsePINCode}
                         />
+                    }
+                />
+                <SettingsButtonLinkHighlight
+                    onPress={() => SheetManager.show("LockAppAfterActionSheet")}
+                    title={i18n(lang, "lockAppAfter")}
+                    rightText={
+                        lockAppAfter == 0
+                        ? i18n(lang, "fiveMinutes")
+                        : lockAppAfter == 1 
+                        ? i18n(lang, "immediately")
+                        : lockAppAfter == 60
+                        ? i18n(lang, "oneMinute")
+                        : lockAppAfter == 180
+                        ? i18n(lang, "threeMinutes")
+                        : lockAppAfter == 300
+                        ? i18n(lang, "fiveMinutes")
+                        : lockAppAfter == 600
+                        ? i18n(lang, "tenMinutes")
+                        : lockAppAfter == 900
+                        ? i18n(lang, "fifteenMinutes")
+                        : lockAppAfter == 1800
+                        ? i18n(lang, "thirtyMinutes")
+                        : i18n(lang, "oneHour")
                     }
                 />
             </SettingsGroup>
