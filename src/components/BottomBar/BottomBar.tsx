@@ -9,6 +9,7 @@ import { i18n } from "../../i18n"
 import { getParent, getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../../lib/style/colors"
+import { Gradient } from "../Gradient"
 
 export interface BottomBarProps {
     navigation: any

@@ -10,6 +10,7 @@ import { getParent, getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../../lib/style/colors"
 import type { NavigationContainerRef } from "@react-navigation/native"
+import { Gradient } from "../Gradient"
 
 export interface TopBarProps {
     navigation: NavigationContainerRef<{}>,
@@ -331,7 +332,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                 showHomeTabBar && (
                     <View
                         style={{
-                            paddingTop: 4,
+                            paddingTop: 3,
                             height: 40,
                             flexDirection: "row",
                             paddingLeft: 15,
@@ -343,7 +344,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                     >
                         <TouchableOpacity
                             style={{
-                                borderBottomWidth: isRecentsScreen ? Platform.OS == "ios" ? 1.5 : 2 : 0,
+                                borderBottomWidth: isRecentsScreen ? Platform.OS == "ios" ? 2 : 2 : 0,
                                 borderBottomColor: isRecentsScreen ? "#0A84FF" : "#171717",
                                 height: 27
                             }}

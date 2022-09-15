@@ -497,7 +497,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        if(typeof cache !== "undefined"){
+        /*if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
                     const responseString = JSON.stringify(response.data)
@@ -512,7 +512,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     console.log(e)
                 }
             }
-        }
+        }*/
 
         const privateKey = storage.getString("privateKey")
 
@@ -563,7 +563,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        if(typeof cache !== "undefined"){
+        /*if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
                     const responseString = JSON.stringify(response.data)
@@ -578,9 +578,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     console.log(e)
                 }
             }
-        }
-
-        var privateKey = storage.getString("privateKey")
+        }*/
 
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]
@@ -857,7 +855,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        if(typeof cache !== "undefined"){
+        if(typeof cache !== "undefined" && parent !== "links"){
             if(cache.length > 0){
                 try{
                     const responseString = JSON.stringify(response.data)
@@ -875,9 +873,8 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         }
 
         for(let i = 0; i < response.data.folders.length; i++){
-			let folder = response.data.folders[i]
-			
-            let item = await buildFolder({ folder, masterKeys, userId, routeURL, loadFolderSizes })
+			const folder = response.data.folders[i]
+            const item = await buildFolder({ folder, masterKeys, userId, routeURL, loadFolderSizes })
 
 			items.push(item)
 
@@ -885,9 +882,8 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 		}
 
         for(let i = 0; i < response.data.uploads.length; i++){
-            let file = response.data.uploads[i]
-
-            let item = await buildFile({ file, masterKeys, userId })
+            const file = response.data.uploads[i]
+            const item = await buildFile({ file, masterKeys, userId })
 
             items.push(item)
 
@@ -908,7 +904,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 }
 
 export const getFolderSizeCacheKey = ({ folder, routeURL }: { folder: Item, routeURL: string }): string => {
-    let cacheKey = "folderSize:"
+    let cacheKey: string = "folderSize:"
 
     if(routeURL.indexOf("shared-out") !== -1){
         cacheKey += "shared:" + folder.sharerId + ":" + folder.receiverId + ":" + folder.uuid
