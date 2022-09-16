@@ -191,6 +191,7 @@ export const ru: {
     eventFileUploadedInfo: "Файл __NAME__ загружен",
     eventFileVersionedInfo: "Файл __NAME__ версионирован",
     eventVersionedFileRestoredInfo: "Версия файла __NAME__ восстановлена",
+    eventFileRenamedInfo: "Файл __NAME__ переименован в __NEW__",
     eventFileMovedInfo: "Файл __NAME__ перемещён",
     fileRenamedInfo: "Файл __NAME__ переименован на __NEW__",
     eventFileTrashInfo: "Файл __NAME__ помещён в корзину",
@@ -394,5 +395,14 @@ export const ru: {
     cameraUploadEnableHeic: "Не конвертировать HEIC/HEIF",
     albums: "Альбомы",
     cameraUploadNoAlbumsFound: "Альбомы не найдены, включая все вложения",
-    onlyUsePINCode: "Использовать только PIN-код"
+    onlyUsePINCode: "Использовать только PIN-код",
+    lockAppAfter: "Блокировать приложение через",
+    immediately: "Мгновенно",
+    oneMinute: "1 минуту",
+    threeMinutes: "3 минуты",
+    fiveMinutes: "5 минут",
+    tenMinutes: "10 минут",
+    fifteenMinutes: "15 минут",
+    thirtyMinutes: "30 минут",
+    oneHour: "1 час"
 }
