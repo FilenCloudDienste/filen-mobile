@@ -971,25 +971,6 @@ const appendFileToFile = (first, second) => {
     })
 }
 
-const rotateImage = (buffer, orientation, mime) => {
-    const rotationMap = {
-        "1": 0,
-        "2": 0,
-        "3": 180,
-        "4": 180,
-        "5": 90,
-        "6": 90,
-        "7": 270,
-        "8": 270
-    }
-
-    return new Promise((resolve, reject) => {
-        jimp.read(buffer).then((image) => {
-            image.rotate(rotationMap[orientation]).getBufferAsync(mime).then(resolve).catch(reject)
-        }).catch(reject)
-    })
-}
-
 const convertHeic = (input, output, format) => {
     input = pathModule.normalize(input)
     output = pathModule.normalize(output)
@@ -1022,6 +1003,20 @@ const convertHeic = (input, output, format) => {
                     return reject(err)
                 })
             })
+        })
+    })
+}
+
+const readExif = (path) => {
+    return new Promise((resolve, reject) => {
+        path = pathModule.normalize(path)
+
+        fs.readFile(path, (err, buffer) => {
+            if(err){
+                return reject(err)
+            }
+
+            ExifReader.load(buffer).then(resolve).catch(reject)
         })
     })
 }
@@ -1456,6 +1451,25 @@ rn_bridge.channel.on("message", (message) => {
     }
     else if(request.type == "convertHeic"){
         convertHeic(request.input, request.output, request.format).then((res) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                response: res
+            })
+
+            tasksRunning -= 1
+        }).catch((err) => {
+            rn_bridge.channel.send({
+                id: request.id,
+                type: request.type,
+                err: err.toString()
+            })
+
+            tasksRunning -= 1
+        })
+    }
+    else if(request.type == "readExif"){
+        readExif(request.path).then((res) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,

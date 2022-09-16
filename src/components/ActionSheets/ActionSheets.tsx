@@ -409,7 +409,7 @@ export const BottomBarAddActionSheet = memo(() => {
 											}
 
 											RNDocumentPicker.pickMultiple({
-												mode: "open",
+												mode: "import",
 												allowMultiSelection: true
 											}).then(async (result) => {
 												const parent = getParent()
