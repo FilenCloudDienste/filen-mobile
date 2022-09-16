@@ -191,6 +191,7 @@ export const uk: {
     eventFileUploadedInfo: "Файл __NAME__ завантажено",
     eventFileVersionedInfo: "Файл __NAME__ версіоновано",
     eventVersionedFileRestoredInfo: "Версію файла __NAME__ відновлено",
+    eventFileRenamedInfo: "Файл __NAME__ перейменовано в __NEW__",
     eventFileMovedInfo: "Файл __NAME__ переміщено",
     fileRenamedInfo: "Файл __NAME__ перейменовано на __NEW__",
     eventFileTrashInfo: "Файл __NAME__ поміщено у кошик",
@@ -394,5 +395,14 @@ export const uk: {
     cameraUploadEnableHeic: "Не конвертувати HEIC/HEIF",
     albums: "Альбоми",
     cameraUploadNoAlbumsFound: "Альбоми не знайдені, включаючи всі вкладення",
-    onlyUsePINCode: "Використовувати тільки PIN-код"
+    onlyUsePINCode: "Використовувати тільки PIN-код",
+    lockAppAfter: "Блокувати додаток через",
+    immediately: "Моментально",
+    oneMinute: "1 хвилину",
+    threeMinutes: "3 хвилини",
+    fiveMinutes: "5 хвилин",
+    tenMinutes: "10 хвилин",
+    fifteenMinutes: "15 хвилин",
+    thirtyMinutes: "30 хвилин",
+    oneHour: "1 годину"
 }
