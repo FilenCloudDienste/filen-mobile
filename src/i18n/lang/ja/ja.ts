@@ -52,7 +52,7 @@ export const ja: {
     alreadyDownloadingFile: "__NAME__は現在ダウンロード中です",
     couldNotGetDownloadPath: "ダウンロードパスの取得に失敗しました",
     fileDownloaded: "__NAME__のダウンロードが完了",
-    onlyWifiUploads: "Wi-Fiでのみアップロード",
+    onlyWifiUploads: "Wi-Fiでのみダウンロード",
     onlyWifiDownloads: "Wi-Fiでのみアップロード",
     hideThumbnails: "サムネイルを非表示",
     hideFileNames: "ファイル名を非表示",
