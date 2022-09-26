@@ -144,7 +144,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         return sortedItems
     }, [items, photosRange, lang])
 
-    const getThumbnail = ({ item }: { item: any }) => {
+    const getThumbnail = useCallback(({ item }: { item: any }) => {
         if(item.type == "file"){
             if(canCompressThumbnail(getFileExt(item.name))){
                 if(typeof item.thumbnail !== "string"){
@@ -161,7 +161,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 }
             }
         }
-    }
+    }, [])
 
     const onViewableItemsChangedRef = useRef(({ viewableItems }: { viewableItems: any }) => {
         if(typeof viewableItems[0] == "object"){
@@ -200,7 +200,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         viewAreaCoveragePercentThreshold: 0
     })
 
-    const photosRangeItemClick = (item: any) => {
+    const photosRangeItemClick = useCallback((item: any) => {
         const currentRangeSelection = normalizePhotosRange(photosRange)
         let nextRangeSelection = "all"
 
@@ -235,9 +235,9 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
 
         setScrollIndex(scrollToIndex >= 0 && scrollToIndex <= itemsForIndexLoop.length ? scrollToIndex : 0)
         setPhotosRange(nextRangeSelection)
-    }
+    }, [photosRange, items, lang])
 
-    const getInitialScrollIndex = (): number => {
+    const getInitialScrollIndex = useCallback((): number => {
         const range = normalizePhotosRange(photosRange)
         const gridSize = calcPhotosGridSize(photosGridSize)
         const viewMode = routeURL.indexOf("photos") !== -1 ? "photos" : itemViewMode
@@ -255,9 +255,9 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         else{
             return scrollIndex >= 0 && scrollIndex <= itemsLength ? scrollIndex : 0
         }
-    }
+    }, [photosRange, photosGridSize, routeURL, currentItems])
 
-    const renderItem = ({ item, index, viewMode }: { item: any, index: number, viewMode: string }): JSX.Element => {
+    const renderItem = useCallback(({ item, index, viewMode }: { item: any, index: number, viewMode: string }): JSX.Element => {
         if(viewMode == "photos"){
             if(normalizePhotosRange(photosRange) !== "all"){
                 return (
@@ -351,7 +351,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 insets={insets} 
             />
         )
-    }
+    }, [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick])
 
     useEffect(() => {
         setCurrentItems(generateItemsForItemList(items, normalizePhotosRange(photosRange), lang))
