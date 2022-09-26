@@ -1282,7 +1282,7 @@ export const favoriteItem = ({ item, value }: { item: any, value: number | boole
             updateLoadItemsCache({
                 item,
                 prop: "favorited",
-                value
+                value: value == 1 ? true : false
             }).then(() => {
                 return resolve(true)
             })

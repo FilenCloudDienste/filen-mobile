@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from "react"
+import React, { memo, useState, useEffect, useMemo } from "react"
 import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, Dimensions, Pressable, Platform } from "react-native"
 import FastImage from "react-native-fast-image"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -52,7 +52,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 
             fetchFolderSize({ folder: item, routeURL: getRouteURL() }).then((fetchedSize) => {
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
-                storage.set("fetchFolderSizeTimeout:" + item.uuid, (new Date().getTime() + 30000))
+                storage.set("fetchFolderSizeTimeout:" + item.uuid, (new Date().getTime() + 60000))
 
                 if(isMounted()){
                     setFolderSize(fetchedSize)
@@ -246,7 +246,9 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 export interface GridItemProps extends ItemBaseProps { }
 
 export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideFileNames, hideThumbnails, lang }: GridItemProps) => {
-    const windowWidth = ((dimensions.window.width || window.width) - (insets.left + insets.right))
+    const windowWidth = useMemo(() => {
+        return ((dimensions.window.width || window.width) - (insets.left + insets.right))
+    }, [dimensions, insets, window])
 
     return (
         <Pressable
@@ -463,9 +465,13 @@ export interface PhotosItemProps extends ItemBaseProps {
 }
 
 export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets, dimensions, hideThumbnails }: PhotosItemProps) => {
-    const calcedGridSize = calcPhotosGridSize(photosGridSize)
-    const windowWidth = ((dimensions.window.width || window.width) - (insets.left + insets.right))
-    const imageWidthAndHeight = Math.floor(windowWidth / calcedGridSize) - 1.5
+    const [calcedGridSize, imageWidthAndHeight] = useMemo(() => {
+        const calcedGridSize = calcPhotosGridSize(photosGridSize)
+        const windowWidth = ((dimensions.window.width || window.width) - (insets.left + insets.right))
+        const imageWidthAndHeight = Math.floor(windowWidth / calcedGridSize) - 1.5
+
+        return [calcedGridSize, imageWidthAndHeight]
+    }, [photosGridSize, dimensions, window, insets])
 
     return (
         <Pressable
@@ -597,8 +603,12 @@ export interface PhotosRangeItemProps extends ItemBaseProps {
 }
 
 export const PhotosRangeItem = memo(({ item, index, darkMode, dimensions, hideThumbnails, photosRangeItemClick }: PhotosRangeItemProps) => {
-    const windowWidth = dimensions.window.width || window.width
-    const imageWidthAndHeight = Math.floor(windowWidth - 30)
+    const imageWidthAndHeight = useMemo(() => {
+        const windowWidth = dimensions.window.width || window.width
+        const imageWidthAndHeight = Math.floor(windowWidth - 30)
+
+        return imageWidthAndHeight
+    }, [dimensions, window])
 
     return (
         <TouchableOpacity
