@@ -3,6 +3,7 @@ import { Platform } from "react-native"
 import * as cppBase64 from "react-native-quick-base64"
 import { useStore } from "../state"
 import { i18n } from "../../i18n"
+import { memoize, values } from "lodash"
 
 export const base64Decode = (str: string): string => {
     return cppBase64.atob(str)
@@ -83,7 +84,7 @@ export const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: n
     return remaining > 0 ? remaining : 0
 }
 
-export const getFolderColor = (color: string | null | undefined): string => {
+export const getFolderColor = memoize((color: string | null | undefined): string => {
     const colors = getAvailableFolderColors()
 
     if(!color){
@@ -95,9 +96,9 @@ export const getFolderColor = (color: string | null | undefined): string => {
     }
 
     return colors['default']
-}
+})
 
-export const getAvailableFolderColors = (): { [key: string]: string } => {
+export const getAvailableFolderColors = memoize((): { [key: string]: string } => {
     return {
         "default": "#F6C358",
         "blue": "#2992E5",
@@ -106,7 +107,7 @@ export const getAvailableFolderColors = (): { [key: string]: string } => {
         "red": "#CB2E35",
         "gray": "gray"
     }
-}
+})
 
 export const fileAndFolderNameValidation = (name: string): boolean => {
     const regex = /[<>:"\/\\|?*\x00-\x1F]|^(?:aux|con|clock\$|nul|prn|com[1-9]|lpt[1-9])$/i
@@ -279,7 +280,7 @@ export const simpleDate = (timestamp: number): string => {
     }
 }
 
-export const normalizePhotosRange = (range: string | undefined): string => {
+export const normalizePhotosRange = memoize((range: string | undefined): string => {
     if(typeof range !== "string"){
         return "all"
     }
@@ -289,7 +290,7 @@ export const normalizePhotosRange = (range: string | undefined): string => {
     }
 
     return range
-}
+})
 
 export const randomIdUnsafe = (): string => {
     return Math.random().toString().slice(3) + Math.random().toString().slice(3) + Math.random().toString().slice(3)
@@ -373,7 +374,7 @@ export const canShowThumbnail = (ext: string): boolean => {
     }
 }
 
-export const getFilePreviewType = (ext: string, mime?: string): string => {
+export const getFilePreviewType = (ext: string): string => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -602,7 +603,7 @@ export function convertUint8ArrayToBinaryString(u8Array: Uint8Array | ArrayBuffe
     return b_str
 }
 
-export const calcCameraUploadCurrentDate = (from: number, to: number, lang: string = "en"): string => {
+export const calcCameraUploadCurrentDate = memoize((from: number, to: number, lang: string = "en"): string => {
     const fromDate = new Date(convertTimestampToMs(from))
     const toDate = new Date(convertTimestampToMs(to))
     const fromMonth = fromDate.getMonth()
@@ -629,17 +630,17 @@ export const calcCameraUploadCurrentDate = (from: number, to: number, lang: stri
     else{
         return i18n(lang, "monthShort_" + fromMonth) + " " + fromYear
     }
-}
+}, (...args) => values(args).join("_"))
 
-export const calcPhotosGridSize = (num: number): number => {
+export const calcPhotosGridSize = memoize((num: number): number => {
     if(num <= 0){
         return 3
     }
 
     return num
-}
+})
 
-export function orderItemsByType(items: any[], type: string): any[] {
+export const orderItemsByType = (items: any[], type: string): any[] => {
     let files = []
     let folders = []
 

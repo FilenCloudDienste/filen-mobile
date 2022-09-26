@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useRef } from "react"
+import React, { memo, useEffect, useState, useRef, useCallback } from "react"
 import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Animated, Pressable, Dimensions, ScaledSize } from "react-native"
 import { useStore } from "../../lib/state"
 import storage from "../../lib/storage"
@@ -6,7 +6,7 @@ import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import Image from "react-native-fast-image"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
-import { downloadFile, getDownloadPath } from "../../lib/services/download/download"
+import { downloadFile } from "../../lib/services/download/download"
 import RNFS from "react-native-fs"
 import { navigationAnimation } from "../../lib/state"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -20,7 +20,7 @@ import * as StatusBar from "expo-status-bar"
 import type { NavigationContainerRef } from "@react-navigation/native"
 import type { EdgeInsets } from "react-native-safe-area-context"
 import { showToast } from "../../components/Toasts"
-import { getFileExt, randomIdUnsafe } from "../../lib/helpers"
+import { getFileExt } from "../../lib/helpers"
 
 const THUMBNAIL_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 const minZoom: number = 0.99999999999
@@ -160,7 +160,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         loadImage(indexItem.item, indexItem.index)
     })
 
-    const updateItemThumbnail = (item: any, path: string): void => {
+    const updateItemThumbnail = useCallback((item: any, path: string): void => {
         if(typeof path !== "string"){
             return
         }
@@ -172,7 +172,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         if(isMounted()){
             setImagePreviewModalItems(prev => [...prev.map(mapItem => mapItem.file.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem)])
         }
-    }
+    }, [setImagePreviewModalItems])
 
     const viewabilityConfigRef = useRef({
         minimumViewTime: 0,
@@ -231,7 +231,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         }
     }, [])
 
-    const renderImage = (item: any, index: number) => {
+    const renderImage = useCallback((item: any, index: number) => {
         const image = item
 
         if(typeof image.thumbnail !== "string"){
@@ -415,9 +415,9 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 </Pressable>
             </ReactNativeZoomableView>
         )
-    }
+    }, [screenDimensions, images, THUMBNAIL_BASE_PATH, zoomLevel.current, viewRefs, tapCount.current, didNavBack.current, navigation, thumbnailListRef.current, listRef.current, setIsZooming, minZoom])
 
-    const renderThumb = (item: any, index: number) => {
+    const renderThumb = useCallback((item: any, index: number) => {
         const image = item
 
         return (
@@ -497,7 +497,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 </TouchableOpacity>
             </View>
         )
-    }
+    }, [THUMBNAIL_BASE_PATH, imagePreviewModalItems, setListScrollAgain.current, thumbnailListRef.current, listRef.current, viewRefs, currentIndex])
 
     return (
         <View

@@ -1,8 +1,8 @@
-import React, { useState, useRef, useCallback, useEffect, memo } from "react"
+import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from "react"
 import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, Dimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, convertTimestampToMs } from "../../lib/helpers"
+import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange } from "../../lib/helpers"
 import { ListItem, GridItem, PhotosItem, PhotosRangeItem } from "../Item"
 import { useStore } from "../../lib/state"
 import { i18n } from "../../i18n"
@@ -256,6 +256,26 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             return scrollIndex >= 0 && scrollIndex <= itemsLength ? scrollIndex : 0
         }
     }, [photosRange, photosGridSize, routeURL, currentItems])
+
+    const getItemLayout = useCallback((_: any, index: number) => ({
+        length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))),
+        offset: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))) * index,
+        index
+    }), [photosRange, dimensions, photosGridSize, insets, itemViewMode, routeURL])
+
+    const numColumns = useMemo(() => {
+        return routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : itemViewMode == "grid" ? 2 : 1
+    }, [routeURL, photosRange, photosGridSize, itemViewMode])
+
+    const initScrollIndex = useMemo(() => {
+        return (currentItems.length > 0 ? currentItems.length : generateItemsForItemList(items, normalizePhotosRange(photosRange), lang).length) > 0 ? getInitialScrollIndex() : undefined
+    }, [currentItems, items, photosRange, lang])
+
+    const listKey = useMemo(() => {
+        return routeURL.indexOf("photos") !== -1 ? "photos:" + (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : normalizePhotosRange(photosRange)) : itemViewMode == "grid" ? "grid" : "list"
+    }, [routeURL, photosRange, photosGridSize, itemViewMode])
+
+    const renderItemFn = useCallback(({ item, index }: { item: any, index: number }) => renderItem({ item, index, viewMode: routeURL.indexOf("photos") !== -1 ? "photos" : (itemViewMode as string) }), [routeURL, itemViewMode])
 
     const renderItem = useCallback(({ item, index, viewMode }: { item: any, index: number, viewMode: string }): JSX.Element => {
         if(viewMode == "photos"){
@@ -734,36 +754,40 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             }
             <FlatList
                 data={generateItemsForItemList(items, normalizePhotosRange(photosRange), lang)}
-                key={routeURL.indexOf("photos") !== -1 ? "photos:" + (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : normalizePhotosRange(photosRange)) : itemViewMode == "grid" ? "grid" : "list"}
-                renderItem={({ item, index }) => renderItem({ item, index, viewMode: routeURL.indexOf("photos") !== -1 ? "photos" : (itemViewMode as string) })}
+                key={listKey}
+                renderItem={renderItemFn}
                 keyExtractor={(_, index) => index.toString()}
                 windowSize={8}
                 initialNumToRender={32}
                 ref={itemListRef}
                 removeClippedSubviews={true}
-                initialScrollIndex={(currentItems.length > 0 ? currentItems.length : generateItemsForItemList(items, normalizePhotosRange(photosRange), lang).length) > 0 ? getInitialScrollIndex() : undefined}
-                numColumns={routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : itemViewMode == "grid" ? 2 : 1}
-                getItemLayout={(_, index) => ({
-                    length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))),
-                    offset: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))) * index,
-                    index
-                })}
+                initialScrollIndex={initScrollIndex}
+                numColumns={numColumns}
+                getItemLayout={getItemLayout}
                 ListEmptyComponent={() => {
                     return (
-                        <View style={{
-                            width: "100%",
-                            height: Math.floor(dimensions.screen.height - 250),
-                            justifyContent: "center",
-                            alignItems: "center",
-                            alignContent: "center"
-                        }}>
+                        <View
+                            style={{
+                                width: "100%",
+                                height: Math.floor(dimensions.screen.height - 250),
+                                justifyContent: "center",
+                                alignItems: "center",
+                                alignContent: "center"
+                            }}
+                        >
                             {
                                 !loadDone ? (
                                     <View>
-                                        <ActivityIndicator color={darkMode ? "white" : "black"} size="small" />
+                                        <ActivityIndicator
+                                            color={darkMode ? "white" : "black"}
+                                            size="small"
+                                        />
                                     </View>
                                 ) : (
-                                    <ListEmpty route={route} searchTerm={searchTerm} />
+                                    <ListEmpty
+                                        route={route}
+                                        searchTerm={searchTerm}
+                                    />
                                 )
                             }
                         </View>

@@ -10,7 +10,7 @@ import DeviceInfo from "react-native-device-info"
 
 const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(8192 * 8192)
-const fetchFolderSizeSemaphore = new Semaphore(1)
+const fetchFolderSizeSemaphore = new Semaphore(3)
 
 const endpointsToCache: string[] = [
     "/v1/dir/content",
