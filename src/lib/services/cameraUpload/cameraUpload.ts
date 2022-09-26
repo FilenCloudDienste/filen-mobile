@@ -278,18 +278,22 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
                 const file = remoteAssetsResponse.data.uploads[i]
                 const decrypted = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
 
-                remoteAssets.push({
-                    ...file,
-                    metadata: decrypted
-                })
-    
-                if(typeof decrypted.hash == "string"){
-                    if(decrypted.hash.length > 0){
-                        remoteHashes[decrypted.hash] = true
+                if(typeof decrypted.name == "string"){
+                    if(decrypted.name.length > 0){
+                        remoteAssets.push({
+                            ...file,
+                            metadata: decrypted
+                        })
+            
+                        if(typeof decrypted.hash == "string"){
+                            if(decrypted.hash.length > 0){
+                                remoteHashes[decrypted.hash] = true
+                            }
+                        }
+        
+                        remoteExtraChecks[decrypted.lastModified + ":" + decrypted.size] = true
                     }
                 }
-
-                remoteExtraChecks[decrypted.lastModified + ":" + decrypted.size] = true
             }
 
             storage.set("cameraUploadLastRemoteAssets:" + userId, JSON.stringify(remoteAssets))
