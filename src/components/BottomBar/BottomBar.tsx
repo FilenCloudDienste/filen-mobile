@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import React, { memo, useMemo } from "react"
 import { Text, View, Pressable } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -9,7 +9,6 @@ import { i18n } from "../../i18n"
 import { getParent, getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../../lib/style/colors"
-import { Gradient } from "../Gradient"
 
 export interface BottomBarProps {
     navigation: any
@@ -25,81 +24,85 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
     const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
     const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
 
-    const parent: string = getParent()
-    const routeURL: string = getRouteURL()
-    const baseName: string = defaultDriveOnly ? defaultDriveUUID as string : "base"
+    const [showHome, showCloud, canOpenBottomAddActionSheet, isPhotosScreen, showSettings] = useMemo(() => {
+        const parent: string = getParent()
+        const routeURL: string = getRouteURL()
+        const baseName: string = defaultDriveOnly ? defaultDriveUUID as string : "base"
 
-    let currentScreenName: string = "MainScreen"
-    let isRecentsScreen: boolean = false
-    let isTrashScreen: boolean = false
-    let isSharedScreen: boolean = false
-    let isPhotosScreen: boolean = false
-    let isFavoritesScreen: boolean = false
-    let isBaseScreen: boolean = false
-    let isOfflineScreen: boolean = false
+        let currentScreenName: string = "MainScreen"
+        let isRecentsScreen: boolean = false
+        let isTrashScreen: boolean = false
+        let isSharedScreen: boolean = false
+        let isPhotosScreen: boolean = false
+        let isFavoritesScreen: boolean = false
+        let isBaseScreen: boolean = false
+        let isOfflineScreen: boolean = false
 
-    if(typeof currentRoutes == "object"){
-        if(currentRoutes.length > 0){
-            const currentRoute = currentRoutes[currentRoutes.length - 1]
+        if(typeof currentRoutes == "object"){
+            if(currentRoutes.length > 0){
+                const currentRoute = currentRoutes[currentRoutes.length - 1]
 
-            currentScreenName = currentRoute.name
+                currentScreenName = currentRoute.name
 
-            isRecentsScreen = (routeURL.indexOf("recents") !== -1)
-            isTrashScreen = (routeURL.indexOf("trash") !== -1)
-            isPhotosScreen = (routeURL.indexOf("photos") !== -1)
-            isFavoritesScreen = (routeURL.indexOf("favorites") !== -1)
-            isSharedScreen = ((routeURL.indexOf("shared-in") !== -1) || (routeURL.indexOf("shared-out") !== -1) || (routeURL.indexOf("links") !== -1))
-            isBaseScreen = (routeURL.indexOf(baseName) !== -1)
-            isOfflineScreen = (routeURL.indexOf("offline") !== -1)
+                isRecentsScreen = (routeURL.indexOf("recents") !== -1)
+                isTrashScreen = (routeURL.indexOf("trash") !== -1)
+                isPhotosScreen = (routeURL.indexOf("photos") !== -1)
+                isFavoritesScreen = (routeURL.indexOf("favorites") !== -1)
+                isSharedScreen = ((routeURL.indexOf("shared-in") !== -1) || (routeURL.indexOf("shared-out") !== -1) || (routeURL.indexOf("links") !== -1))
+                isBaseScreen = (routeURL.indexOf(baseName) !== -1)
+                isOfflineScreen = (routeURL.indexOf("offline") !== -1)
+            }
         }
-    }
 
-    const canOpenBottomAddActionSheet = currentScreenName == "MainScreen"
-        && !isOfflineScreen 
-        && !isTrashScreen 
-        && !isFavoritesScreen 
-        && !isPhotosScreen 
-        && !isRecentsScreen 
-        && routeURL.indexOf("shared-in") == -1 
-        && parent !== "shared-out" 
-        && parent !== "links"
+        const canOpenBottomAddActionSheet = currentScreenName == "MainScreen"
+            && !isOfflineScreen 
+            && !isTrashScreen 
+            && !isFavoritesScreen 
+            && !isPhotosScreen 
+            && !isRecentsScreen 
+            && routeURL.indexOf("shared-in") == -1 
+            && parent !== "shared-out" 
+            && parent !== "links"
 
-    const showCloud = isBaseScreen 
-        && !isRecentsScreen 
-        && !isTrashScreen 
-        && !isSharedScreen 
-        && currentScreenName !== "SettingsAccountScreen" 
-        && currentScreenName !== "LanguageScreen" 
-        && currentScreenName !== "SettingsAdvancedScreen" 
-        && currentScreenName !== "CameraUploadScreen" 
-        && currentScreenName !== "CameraUploadAlbumsScreen" 
-        && currentScreenName !== "SettingsScreen" 
-        && currentScreenName !== "TransfersScreen" 
-        && currentScreenName !== "EventsScreen" 
-        && currentScreenName !== "EventsInfoScreen"
-        && currentScreenName !== "GDPRScreen"
-        && currentScreenName !== "InviteScreen"
-        && currentScreenName !== "TwoFactorScreen"
-        && currentScreenName !== "ChangeEmailPasswordScreen"
-    
-    const showSettings = currentScreenName == "SettingsScreen" 
-        || currentScreenName == "LanguageScreen" 
-        || currentScreenName == "SettingsAccountScreen" 
-        || currentScreenName == "SettingsAdvancedScreen" 
-        || currentScreenName == "CameraUploadScreen" 
-        || currentScreenName == "CameraUploadAlbumsScreen" 
-        || currentScreenName == "EventsScreen" 
-        || currentScreenName == "EventsInfoScreen" 
-        || isTrashScreen
-        || currentScreenName == "GDPRScreen"
-        || currentScreenName == "InviteScreen"
-        || currentScreenName == "TwoFactorScreen"
-        || currentScreenName == "ChangeEmailPasswordScreen"
-    
-    const showHome = isSharedScreen
-        || isRecentsScreen 
-        || isFavoritesScreen  
-        || isOfflineScreen
+        const showCloud = isBaseScreen 
+            && !isRecentsScreen 
+            && !isTrashScreen 
+            && !isSharedScreen 
+            && currentScreenName !== "SettingsAccountScreen" 
+            && currentScreenName !== "LanguageScreen" 
+            && currentScreenName !== "SettingsAdvancedScreen" 
+            && currentScreenName !== "CameraUploadScreen" 
+            && currentScreenName !== "CameraUploadAlbumsScreen" 
+            && currentScreenName !== "SettingsScreen" 
+            && currentScreenName !== "TransfersScreen" 
+            && currentScreenName !== "EventsScreen" 
+            && currentScreenName !== "EventsInfoScreen"
+            && currentScreenName !== "GDPRScreen"
+            && currentScreenName !== "InviteScreen"
+            && currentScreenName !== "TwoFactorScreen"
+            && currentScreenName !== "ChangeEmailPasswordScreen"
+        
+        const showSettings = currentScreenName == "SettingsScreen" 
+            || currentScreenName == "LanguageScreen" 
+            || currentScreenName == "SettingsAccountScreen" 
+            || currentScreenName == "SettingsAdvancedScreen" 
+            || currentScreenName == "CameraUploadScreen" 
+            || currentScreenName == "CameraUploadAlbumsScreen" 
+            || currentScreenName == "EventsScreen" 
+            || currentScreenName == "EventsInfoScreen" 
+            || isTrashScreen
+            || currentScreenName == "GDPRScreen"
+            || currentScreenName == "InviteScreen"
+            || currentScreenName == "TwoFactorScreen"
+            || currentScreenName == "ChangeEmailPasswordScreen"
+        
+        const showHome = isSharedScreen
+            || isRecentsScreen 
+            || isFavoritesScreen  
+            || isOfflineScreen
+
+        return [showHome, showCloud, canOpenBottomAddActionSheet, isPhotosScreen, showSettings]
+    }, [getParent(), getRouteURL()])
 
     return (
         <View

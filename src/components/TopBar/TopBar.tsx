@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from "react"
+import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
 import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
@@ -10,7 +10,6 @@ import { getParent, getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../../lib/style/colors"
 import type { NavigationContainerRef } from "@react-navigation/native"
-import { Gradient } from "../Gradient"
 
 export interface TopBarProps {
     navigation: NavigationContainerRef<{}>,
@@ -21,7 +20,7 @@ export interface TopBarProps {
 }
 
 export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSearchTerm }: TopBarProps) => {
-    const getTopBarTitle = ({ route, lang = "en" }: { route: any, lang: string | undefined }): string => {
+    const getTopBarTitle = useCallback(({ route, lang = "en" }: { route: any, lang: string | undefined }): string => {
         let title: string = "Cloud"
         const parent: string = getParent(route)
         const routeURL: string = getRouteURL(route)
@@ -98,7 +97,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
         }
     
         return title
-    }
+    }, [route])
 
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const itemsSelectedCount = useStore(state => state.itemsSelectedCount)
@@ -109,32 +108,39 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
 
-    const parent: string = getParent(route)
-    const routeURL: string = getRouteURL(route)
+    const [parent, routeURL] = useMemo(() => {
+        const parent: string = getParent(route)
+        const routeURL: string = getRouteURL(route)
 
-    const isMainScreen: boolean = (route.name == "MainScreen")
-    const isTransfersScreen: boolean = (route.name == "TransfersScreen")
-    const isSettingsScreen: boolean = (route.name == "SettingsScreen")
-    const isBaseScreen: boolean = (parent.indexOf("base") !== -1)
-    const isRecentsScreen: boolean = (parent.indexOf("recents") !== -1)
-    const isTrashScreen: boolean = (parent.indexOf("trash") !== -1)
-    const isSharedInScreen: boolean = (parent.indexOf("shared-in") !== -1)
-    const isSharedOutScreen: boolean = (parent.indexOf("shared-out") !== -1)
-    const isPublicLinksScreen: boolean = (parent.indexOf("links") !== -1)
-    const isOfflineScreen: boolean = (parent.indexOf("offline") !== -1)
-    const isFavoritesScreen: boolean = (parent.indexOf("favorites") !== -1)
-    const isPhotosScreen: boolean = (parent.indexOf("photos") !== -1)
-    const showHomeTabBar: boolean = (["shared-in", "shared-out", "links", "recents", "offline", "favorites"].includes(parent))
+        return [parent, routeURL]
+    }, [route])
 
-    let showBackButton: boolean = (typeof route.params !== "undefined" && !isBaseScreen && !isRecentsScreen && !isSharedInScreen && !isSharedOutScreen && !isPublicLinksScreen && !isFavoritesScreen && !isOfflineScreen && !isPhotosScreen)
+    const [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton] = useMemo(() => {
+        const isMainScreen: boolean = (route.name == "MainScreen")
+        const isTransfersScreen: boolean = (route.name == "TransfersScreen")
+        const isSettingsScreen: boolean = (route.name == "SettingsScreen")
+        const isBaseScreen: boolean = (parent.indexOf("base") !== -1)
+        const isRecentsScreen: boolean = (parent.indexOf("recents") !== -1)
+        const isTrashScreen: boolean = (parent.indexOf("trash") !== -1)
+        const isSharedInScreen: boolean = (parent.indexOf("shared-in") !== -1)
+        const isSharedOutScreen: boolean = (parent.indexOf("shared-out") !== -1)
+        const isPublicLinksScreen: boolean = (parent.indexOf("links") !== -1)
+        const isOfflineScreen: boolean = (parent.indexOf("offline") !== -1)
+        const isFavoritesScreen: boolean = (parent.indexOf("favorites") !== -1)
+        const isPhotosScreen: boolean = (parent.indexOf("photos") !== -1)
+        const showHomeTabBar: boolean = (["shared-in", "shared-out", "links", "recents", "offline", "favorites"].includes(parent))
+        let showBackButton: boolean = (typeof route.params !== "undefined" && !isBaseScreen && !isRecentsScreen && !isSharedInScreen && !isSharedOutScreen && !isPublicLinksScreen && !isFavoritesScreen && !isOfflineScreen && !isPhotosScreen)
 
-    if(isTransfersScreen && !showBackButton){
-        showBackButton = true
-    }
+        if(isTransfersScreen && !showBackButton){
+            showBackButton = true
+        }
 
-    if(isMainScreen && (routeURL.split("/").length - 1) == 0){
-        showBackButton = false
-    }
+        if(isMainScreen && (routeURL.split("/").length - 1) == 0){
+            showBackButton = false
+        }
+
+        return [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton]
+    }, [route, parent])
 
     useEffect(() => {
         setTitle(getTopBarTitle({ route, lang }))
