@@ -216,7 +216,7 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
         }
     }
 
-    const fileLastModified = typeof metadata.lastModified == "number" ? convertTimestampToMs(metadata.lastModified) : convertTimestampToMs(file.timestamp)
+    const fileLastModified = typeof metadata.lastModified == "number" && !isNaN(metadata.lastModified) && metadata.lastModified > 1348846653  ? convertTimestampToMs(metadata.lastModified) : convertTimestampToMs(file.timestamp)
 
     return {
         id: file.uuid,
