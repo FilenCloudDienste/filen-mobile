@@ -255,7 +255,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         else{
             return scrollIndex >= 0 && scrollIndex <= itemsLength ? scrollIndex : 0
         }
-    }, [photosRange, photosGridSize, routeURL, currentItems])
+    }, [photosRange, photosGridSize, routeURL, currentItems, items])
 
     const getItemLayout = useCallback((_: any, index: number) => ({
         length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))),
@@ -275,7 +275,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         return routeURL.indexOf("photos") !== -1 ? "photos:" + (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : normalizePhotosRange(photosRange)) : itemViewMode == "grid" ? "grid" : "list"
     }, [routeURL, photosRange, photosGridSize, itemViewMode])
 
-    const renderItemFn = useCallback(({ item, index }: { item: any, index: number }) => renderItem({ item, index, viewMode: routeURL.indexOf("photos") !== -1 ? "photos" : (itemViewMode as string) }), [routeURL, itemViewMode])
+    const renderItemFn = useCallback(({ item, index }: { item: any, index: number }) => renderItem({ item, index, viewMode: routeURL.indexOf("photos") !== -1 ? "photos" : (itemViewMode as string) }), [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick])
 
     const renderItem = useCallback(({ item, index, viewMode }: { item: any, index: number, viewMode: string }): JSX.Element => {
         if(viewMode == "photos"){

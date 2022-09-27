@@ -45,7 +45,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
     const thumbnailListRef = useRef<any>()
     const listRef = useRef<any>()
     const [currentIndex, setCurrentIndex] = useState<number>(imagePreviewModalIndex)
-    const [showControls, setShowControls] = useState<boolean>(true)
+    const [showControls, setShowControls] = useState<boolean>(false)
     const insets: EdgeInsets = useSafeAreaInsets()
     const viewRefs = useRef<any>({}).current
     const isMounted: () => boolean = useMountedState()
@@ -620,9 +620,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 ref={listRef}
                 data={imagePreviewModalItems}
                 initialScrollIndex={currentIndex}
-                renderItem={({ item, index }) => {
-                    return renderImage(item, index)
-                }}
+                renderItem={({ item, index }) => renderImage(item, index)}
                 key={portrait ? "portrait" : "landscape"}
                 extraData={portrait ? "portrait" : "landscape"}
                 keyExtractor={(item) => item.uuid}
@@ -664,11 +662,10 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     }}
                     ref={thumbnailListRef}
                     data={imagePreviewModalItems}
-                    renderItem={({ item, index }) => {
-                        return renderThumb(item, index)
-                    }}
-                    getItemLayout={(data, index) => ({ length: 30, offset: 30 * index, index })}
-                    keyExtractor={(item, index) => item.uuid}
+                    initialScrollIndex={currentIndex >= 0 ? currentIndex : 0}
+                    renderItem={({ item, index }) => renderThumb(item, index)}
+                    getItemLayout={(_, index) => ({ length: 30, offset: 30 * index, index })}
+                    keyExtractor={(item, _) => item.uuid}
                     horizontal={true}
                     scrollEnabled={true}
                     bounces={false}

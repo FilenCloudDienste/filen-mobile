@@ -205,12 +205,18 @@ export const BottomBarAddActionSheet = memo(() => {
 
 											const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
 												return new Promise((resolve, reject) => {
-													ReactNativeBlobUtil.fs.stat(asset.uri?.replace("file://", "") as string).then((info) => {
+													if(!asset.uri){
+														return reject(new Error("Could not copy file"))
+													}
+
+													const fileURI = decodeURIComponent(asset.uri.replace("file://", ""))
+
+													ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
 														return resolve({
-															path: asset.uri?.replace("file://", "") as string,
-															name: i18n(lang, getFilePreviewType(getFileExt(asset.uri as string)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(asset.uri as string),
+															path: fileURI,
+															name: i18n(lang, getFilePreviewType(getFileExt(fileURI)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(fileURI),
 															size: info.size as number,
-															mime: mimeTypes.lookup(asset.uri as string) || "",
+															mime: mimeTypes.lookup(fileURI) || "",
 															lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
 														})
 													}).catch(reject)
@@ -298,12 +304,18 @@ export const BottomBarAddActionSheet = memo(() => {
 
 												const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
 													return new Promise((resolve, reject) => {
-														ReactNativeBlobUtil.fs.stat(asset.uri?.replace("file://", "") as string).then((info) => {
+														if(!asset.uri){
+															return reject(new Error("Could not copy file"))
+														}
+
+														const fileURI = decodeURIComponent(asset.uri.replace("file://", ""))
+
+														ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
 															return resolve({
-																path: asset.uri?.replace("file://", "") as string,
-																name: i18n(lang, getFilePreviewType(getFileExt(asset.uri as string)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(asset.uri as string),
+																path: fileURI,
+																name: i18n(lang, getFilePreviewType(getFileExt(fileURI)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(fileURI),
 																size: info.size as number,
-																mime: mimeTypes.lookup(asset.uri as string) || "",
+																mime: mimeTypes.lookup(fileURI) || "",
 																lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
 															})
 														}).catch(reject)
@@ -392,10 +404,15 @@ export const BottomBarAddActionSheet = memo(() => {
 
 											const getFileInfo = (result: RNDocumentPicker.DocumentPickerResponse): Promise<UploadFile> => {
 												return new Promise((resolve, reject) => {
+													if(result.copyError){
+														return reject(new Error("Could not copy file"))
+													}
+
+													const fileURI = decodeURIComponent(result.uri.replace("file://", ""))
 													const tempPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + new Date().getTime() + "_" + result.name
 
-													ReactNativeBlobUtil.fs.stat(result.uri.replace("file://", "")).then((info) => {
-														ReactNativeBlobUtil.fs.cp(result.uri.replace("file://", ""), tempPath).then(() => {
+													ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
+														ReactNativeBlobUtil.fs.cp(fileURI, tempPath).then(() => {
 															return resolve({
 																path: tempPath,
 																name: result.name,

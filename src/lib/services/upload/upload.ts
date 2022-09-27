@@ -41,6 +41,9 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             return reject("wifiOnly")
         }
 
+        file.path = decodeURIComponent(file.path)
+        file.name = decodeURIComponent(file.name)
+
         const fileName = file.name.split("/").join("_").split("\\").join("_")
         const item = {
             uuid: "",

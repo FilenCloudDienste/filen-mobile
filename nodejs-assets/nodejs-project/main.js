@@ -635,7 +635,7 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
                     status: "progress",
                     data: {
                         uuid,
-                        bytes: bytes
+                        bytes
                     }
                 })
             }
@@ -667,8 +667,6 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
                     
                     return reject("Upload failed, status code: " + response.statusCode)
                 }
-
-                calcProgress(req.socket.bytesWritten)
 
                 const res = []
 
