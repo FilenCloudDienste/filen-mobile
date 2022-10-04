@@ -1618,3 +1618,11 @@ export const convertHeic = (item: Item, path: string): Promise<string> => {
         }).catch(reject)
     })
 }
+
+export const addToSavedToGallery = (item: Item) => {
+    const savedToGallery = JSON.parse(storage.getString("savedToGallery") || "{}")
+
+    savedToGallery[item.uuid] = true
+
+    storage.set("savedToGallery", JSON.stringify(savedToGallery))
+}

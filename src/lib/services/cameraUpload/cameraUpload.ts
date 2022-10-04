@@ -7,7 +7,6 @@ import BackgroundTimer from "react-native-background-timer"
 import * as MediaLibrary from "expo-media-library"
 import ReactNativeBlobUtil from "react-native-blob-util"
 import * as FileSystem from "expo-file-system"
-import { throttle } from "lodash"
 import NetInfo from "@react-native-community/netinfo"
 import RNFS from "react-native-fs"
 import mimeTypes from "mime-types"
@@ -16,6 +15,7 @@ const TIMEOUT: number = 5000
 const FAILED: { [key: string]: number } = {}
 const MAX_FAILED: number = 3
 const MAX_FETCH_TIME: number = 15000
+let isRunning: boolean = false
 
 export const disableCameraUpload = (resetFolder: boolean = false): void => {
     const userId = storage.getNumber("userId")
@@ -138,12 +138,20 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
     })
 }
 
-export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: boolean = false): Promise<boolean> => {
+export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = false): Promise<boolean> => {
+    if(isRunning){
+        return false
+    }
+
+    isRunning = true
+
     try{
         const isLoggedIn = storage.getBoolean("isLoggedIn")
         const userId = storage.getNumber("userId")
 
         if(!isLoggedIn || userId == 0){
+            isRunning = false
+
             if(runOnce){
                 return true
             }
@@ -169,6 +177,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         storage.set("cameraUploadUploaded", Object.keys(cameraUploadUploadedIds).length)
 
         if(!cameraUploadEnabled){
+            isRunning = false
+
             if(runOnce){
                 return true
             }
@@ -181,6 +191,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         }
 
         if(typeof cameraUploadFolderUUID !== "string"){
+            isRunning = false
+
             if(runOnce){
                 return true
             }
@@ -193,6 +205,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         }
 
         if(cameraUploadFolderUUID.length < 32){
+            isRunning = false
+
             if(runOnce){
                 return true
             }
@@ -207,6 +221,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         const netInfo = await NetInfo.fetch()
 
         if(!netInfo.isConnected || !netInfo.isInternetReachable){
+            isRunning = false
+
             if(runOnce){
                 return true
             }
@@ -219,6 +235,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         }
 
         if(storage.getBoolean("onlyWifiUploads:" + userId) && netInfo.type !== "wifi"){
+            isRunning = false
+
             if(runOnce){
                 return true
             }
@@ -240,6 +258,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         }
 
         if(!folderExists){
+            isRunning = false
+
             disableCameraUpload(true)
 
             if(runOnce){
@@ -254,6 +274,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         }
 
         if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
+            isRunning = false
+
             return true
         }
 
@@ -309,6 +331,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         }
 
         if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
+            isRunning = false
+
             return true
         }
 
@@ -317,6 +341,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         storage.set("cameraUploadTotal", assets.length)
 
         if(assets.length == 0){
+            isRunning = false
+
             if(runOnce){
                 return true
             }
@@ -329,6 +355,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
         }
 
         if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
+            isRunning = false
+
             return true
         }
 
@@ -533,6 +561,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
             await promiseAllSettled(uploads)
         }
 
+        isRunning = false
+
         if(runOnce){
             return true
         }
@@ -546,6 +576,8 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
     catch(e){
         console.log(e)
 
+        isRunning = false
+
         if(runOnce){
             return true
         }
@@ -556,4 +588,4 @@ export const runCameraUpload = throttle(async (maxQueue: number = 32, runOnce: b
 
         return true
     }
-}, TIMEOUT)
+}

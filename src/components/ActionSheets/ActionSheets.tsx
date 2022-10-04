@@ -18,7 +18,7 @@ import CameraRoll from "@react-native-community/cameraroll"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../lib/permissions"
 import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink, getPublicKeyFromEmail, shareItemToUser, trashItem, restoreItem, fileExists, folderExists, fetchFileVersionData, restoreArchivedFile, bulkFavorite, bulkTrash, bulkDeletePermanently, bulkRestore, bulkStopSharing, bulkRemoveSharedIn, emptyTrash, reportError } from "../../lib/api"
 import * as Clipboard from "expo-clipboard"
-import { previewItem } from "../../lib/services/items"
+import { previewItem, addToSavedToGallery } from "../../lib/services/items"
 import { removeFromOfflineStorage } from "../../lib/services/offline"
 import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../../lib/style/colors"
@@ -1029,6 +1029,8 @@ export const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) =
 																				file: item,
 																				saveToGalleryCallback: (path: string) => {
 																					CameraRoll.save(path).then(() => {
+																						addToSavedToGallery(item)
+
 																						showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
 																					}).catch((err) => {
 																						console.log(err)
@@ -1565,26 +1567,28 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 			setCanSaveToGallery(false)
 			setCanEdit(false)
 
-			if(Platform.OS == "ios"){
-				if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(getFileExt(currentActionSheetItem.name))){
-					if(netInfo.isInternetReachable && netInfo.isConnected){
-						setCanSaveToGallery(true)
-					}
-					else{
-						if(itemAvailableOffline){
+			if(getRouteURL().indexOf("photos") == -1){
+				if(Platform.OS == "ios"){
+					if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(getFileExt(currentActionSheetItem.name))){
+						if(netInfo.isInternetReachable && netInfo.isConnected){
 							setCanSaveToGallery(true)
+						}
+						else{
+							if(itemAvailableOffline){
+								setCanSaveToGallery(true)
+							}
 						}
 					}
 				}
-			}
-			else{
-				if(["jpg", "jpeg", "png", "gif", "mov", "mp4"].includes(getFileExt(currentActionSheetItem.name))){
-					if(netInfo.isInternetReachable && netInfo.isConnected){
-						setCanSaveToGallery(true)
-					}
-					else{
-						if(itemAvailableOffline){
+				else{
+					if(["jpg", "jpeg", "png", "gif", "mov", "mp4"].includes(getFileExt(currentActionSheetItem.name))){
+						if(netInfo.isInternetReachable && netInfo.isConnected){
 							setCanSaveToGallery(true)
+						}
+						else{
+							if(itemAvailableOffline){
+								setCanSaveToGallery(true)
+							}
 						}
 					}
 				}
@@ -1709,6 +1713,8 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 															file: currentActionSheetItem,
 															saveToGalleryCallback: (path: string) => {
 																CameraRoll.save(path).then(() => {
+																	addToSavedToGallery(currentActionSheetItem)
+
 																	showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
 																}).catch((err) => {
 																	console.log(err)
