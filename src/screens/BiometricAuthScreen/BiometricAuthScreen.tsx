@@ -194,6 +194,14 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
             setIsAuthing(false)
 
+            let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+
+            if(lockAppAfter == 0){
+                lockAppAfter = 300
+            }
+
+            storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (lockAppAfter * 1000)))
+
             if(wasSetupScreen){
                 navigationAnimation({ enable: true }).then(() => {
                     navigation.dispatch(CommonActions.reset({

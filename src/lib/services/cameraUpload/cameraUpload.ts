@@ -140,7 +140,15 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
 
 export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = false): Promise<boolean> => {
     if(isRunning){
-        return false
+        if(runOnce){
+            return true
+        }
+
+        BackgroundTimer.setTimeout(() => {
+            runCameraUpload(maxQueue, runOnce)
+        }, TIMEOUT)
+
+        return true
     }
 
     isRunning = true
