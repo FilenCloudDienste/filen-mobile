@@ -18,6 +18,7 @@
     "heic-convert": "^1.2.4",
     "jimp": "^0.16.1",
     "js-crypto-key-utils": "^1.0.4",
+    "progress-stream": "^2.0.0",
     "uuidv4": "^6.2.12"
   },
   "devDependencies": {

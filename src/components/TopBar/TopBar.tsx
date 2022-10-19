@@ -139,6 +139,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
             showBackButton = false
         }
 
+        if(isTrashScreen){
+            showBackButton = true
+        }
+
         return [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton]
     }, [route, parent])
 

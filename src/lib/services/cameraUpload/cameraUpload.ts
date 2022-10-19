@@ -16,6 +16,15 @@ const FAILED: { [key: string]: number } = {}
 const MAX_FAILED: number = 3
 const MAX_FETCH_TIME: number = 15000
 let isRunning: boolean = false
+let fallbackInterval: NodeJS.Timer | undefined = undefined
+
+export const startCameraUploadFallbackInterval = () => {
+    fallbackInterval = setInterval(() => {
+        if(!isRunning){
+            runCameraUpload(32, true)
+        }
+    }, TIMEOUT)
+}
 
 export const disableCameraUpload = (resetFolder: boolean = false): void => {
     const userId = storage.getNumber("userId")

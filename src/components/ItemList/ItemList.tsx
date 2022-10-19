@@ -257,11 +257,20 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         }
     }, [photosRange, photosGridSize, routeURL, currentItems, items])
 
-    const getItemLayout = useCallback((_: any, index: number) => ({
-        length: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))),
-        offset: (routeURL.indexOf("photos") !== -1 ? (photosRange == "all" ? (Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))) : (Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5))) : (itemViewMode == "grid" ? (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40) : (55))) * index,
-        index
-    }), [photosRange, dimensions, photosGridSize, insets, itemViewMode, routeURL])
+    const getItemLayout = useCallback((item: any, index: number) => {
+        const listLength: number = 55
+        const gridLengthDefault: number = (Math.floor((dimensions.window.width - (insets.left + insets.right)) / 2) - 19 + 40)
+        const gridLength: number = item.type == "folder" ? 40 : gridLengthDefault
+        const photosAllLength: number = Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))
+        const photosLength: number = Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5)
+        const length: number = routeURL.indexOf("photos") !== -1 ? photosRange == "all" ? photosAllLength : photosLength : itemViewMode == "grid" ? gridLength : listLength
+
+        return {
+            length,
+            offset: length * index,
+            index
+        }
+    }, [photosRange, dimensions, photosGridSize, insets, itemViewMode, routeURL])
 
     const numColumns = useMemo(() => {
         return routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : itemViewMode == "grid" ? 2 : 1

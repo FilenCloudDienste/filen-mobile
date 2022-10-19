@@ -246,7 +246,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 export interface GridItemProps extends ItemBaseProps { }
 
 export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideFileNames, hideThumbnails, lang }: GridItemProps) => {
-    const windowWidth = useMemo(() => {
+    const windowWidth: number = useMemo(() => {
         return ((dimensions.window.width || window.width) - (insets.left + insets.right))
     }, [dimensions, insets, window])
 
@@ -257,7 +257,7 @@ export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideF
                 margin: 2,
                 backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
                 borderRadius: 5,
-                height: Math.floor(windowWidth / 2) - 19 + 40,
+                height: (item.type == "folder" ? 0 : Math.floor(windowWidth / 2) - 19) + 40,
                 width: Math.floor(windowWidth / 2) - 19,
                 borderColor: getColor(darkMode, "primaryBorder"),
                 borderWidth: 1,
@@ -285,18 +285,14 @@ export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideF
                 <View
                     style={{
                         width: "100%",
-                        height: Math.floor(windowWidth / 2) - 19,
+                        height: item.type == "folder" ? 0 : Math.floor(windowWidth / 2) - 19,
                         alignItems: "center",
                         justifyContent: "center"
                     }}
                 >
                     {
                         item.type == "folder" ? (
-                            <Ionicon
-                                name="folder"
-                                size={40} 
-                                color={getFolderColor(item.color)} 
-                            />
+                            <></>
                         ) : (
                             <>
                                 <FastImage 
@@ -402,15 +398,41 @@ export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideF
                         justifyContent: "space-between"
                     }}
                     onPress={() => {
-                        DeviceEventEmitter.emit("event", {
-                            type: "open-item-actionsheet",
-                            data: item
-                        })
+                        if(item.type == "file"){
+                            DeviceEventEmitter.emit("event", {
+                                type: "open-item-actionsheet",
+                                data: item
+                            })
+                        }
+                        else{
+                            DeviceEventEmitter.emit("event", {
+                                type: "item-onpress",
+                                data: item
+                            })
+                        }
                     }}
                 >
+                    {
+                        item.type == "folder" && (
+                            <View
+                                style={{
+                                    height: "100%",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    paddingLeft: 8
+                                }}
+                            >
+                                <Ionicon
+                                    name="folder"
+                                    size={20} 
+                                    color={getFolderColor(item.color)} 
+                                />
+                            </View>
+                        )
+                    }
                     <View
                         style={{
-                            width: "80%",
+                            width: "68%",
                             paddingTop: 5,
                             paddingLeft: 8
                         }}
@@ -446,6 +468,12 @@ export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideF
                                 type: "open-item-actionsheet",
                                 data: item
                             })
+                        }}
+                        hitSlop={{
+                            top: 10,
+                            right: 10,
+                            left: 10,
+                            bottom: 10
                         }}
                     >
                         <Ionicon

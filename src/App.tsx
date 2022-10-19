@@ -48,6 +48,7 @@ import { setJSExceptionHandler, setNativeExceptionHandler } from "react-native-e
 import { reportError } from "./lib/api"
 import ImageViewerScreen from "./screens/ImageViewerScreen/ImageViewerScreen"
 import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen/CameraUploadAlbumsScreen"
+import { isRouteInStack } from "./lib/helpers"
 
 setJSExceptionHandler((err) => {
     reportError(err.toString())
@@ -135,22 +136,10 @@ export const App = memo(() => {
                     if(items.data.length > 0){
                         await new Promise((resolve) => {
                             const wait = BackgroundTimer.setInterval(() => {
-                                if(typeof navigationRef !== "undefined"){
-                                    const navState = navigationRef.getState()
-
-                                    if(typeof navState !== "undefined"){
-                                        if(typeof navState.routes !== "undefined"){
-                                            if(Array.isArray(navState.routes)){
-                                                if(navState.routes.filter(route => route.name == "SetupScreen" || route.name == "BiometricAuthScreen" || route.name == "LoginScreen").length == 0){
-                                                    if(storage.getBoolean("isLoggedIn")){
-                                                        BackgroundTimer.clearInterval(wait)
+                                if(!isRouteInStack(navigationRef, ["SetupScreen", "BiometricAuthScreen", "LoginScreen"]) && storage.getBoolean("isLoggedIn")){
+                                    BackgroundTimer.clearInterval(wait)
         
-                                                        return resolve(true)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                    return resolve(true)
                                 }
                             }, 250)
                         })
@@ -228,18 +217,18 @@ export const App = memo(() => {
             setAppState(nextAppState)
 
             if(nextAppState == "background"){
-                let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+                if(!isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
+                    let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
 
-                if(lockAppAfter == 0){
-                    lockAppAfter = 300
-                }
+                    if(lockAppAfter == 0){
+                        lockAppAfter = 300
+                    }
 
-                if(Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && storage.getBoolean("biometricPinAuth:" + userId)){
-                    setBiometricAuthScreenState("auth")
-
-                    storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (lockAppAfter * 1000)))
-                    
-                    navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
+                    if(Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && storage.getBoolean("biometricPinAuth:" + userId)){
+                        setBiometricAuthScreenState("auth")
+                        
+                        navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
+                    }
                 }
             }
 
@@ -286,7 +275,7 @@ export const App = memo(() => {
             setup({ navigation: navigationRef }).then(() => {
                 setSetupDone(true)
 
-                if(storage.getBoolean("biometricPinAuth:" + userId)){
+                if(storage.getBoolean("biometricPinAuth:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
                     setBiometricAuthScreenState("auth")
 
                     let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
@@ -294,8 +283,6 @@ export const App = memo(() => {
                     if(lockAppAfter == 0){
                         lockAppAfter = 300
                     }
-
-                    storage.set("biometricPinAuthTimeout:" + userId, (new Date().getTime() + (lockAppAfter * 1000)))
                     
                     navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                 }
@@ -320,7 +307,7 @@ export const App = memo(() => {
                     if(storage.getString("masterKeys").length > 16 && storage.getString("apiKey").length > 16 && storage.getString("privateKey").length > 16 && storage.getString("publicKey").length > 16 && storage.getNumber("userId") !== 0){
                         setSetupDone(true)
 
-                        if(storage.getBoolean("biometricPinAuth:" + userId)){
+                        if(storage.getBoolean("biometricPinAuth:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
                             setBiometricAuthScreenState("auth")
 
                             let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
@@ -328,8 +315,6 @@ export const App = memo(() => {
                             if(lockAppAfter == 0){
                                 lockAppAfter = 300
                             }
-
-                            storage.set("biometricPinAuthTimeout:" + userId, (new Date().getTime() + (lockAppAfter * 1000)))
                             
                             navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                         }

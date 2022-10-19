@@ -101,7 +101,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                     }}
                                     title={i18n(lang, "changeEmailPassword")}
                                 />
-                                <SettingsButtonLinkHighlight
+                                {/*<SettingsButtonLinkHighlight
                                     onPress={() => {
                                         navigationAnimation({ enable: true }).then(() => {
                                             navigation.dispatch(StackActions.push("TwoFactorScreen", {
@@ -110,7 +110,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                         })
                                     }}
                                     title={i18n(lang, accountSettings.twoFactorEnabled ? "disable2FA" : "enable2FA")}
-                                />
+                                />*/}
                                 <SettingsButtonLinkHighlight
                                     onPress={() => {
                                         navigationAnimation({ enable: true }).then(() => {

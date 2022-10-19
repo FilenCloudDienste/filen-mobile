@@ -29,7 +29,7 @@ const { Readable } = require("stream")
 const heicConvert = require("heic-convert")
 const { Semaphore } = require("await-semaphore")
 const ExifReader = require("exifreader")
-const jimp = require("jimp")
+const progress = require("progress-stream")
 
 const axiosClient = axios.create({
     timeout: 3600000,
@@ -718,9 +718,14 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
                 return reject(err)
             })
 
-            req.on("drain", () => calcProgress(req.socket.bytesWritten))
+            const str = progress({
+                length: encrypted.byteLength,
+                time: 100
+            })
+             
+            str.on("progress", (info) => calcProgress(info.transferred))
 
-            Readable.from([encrypted]).pipe(req)
+            Readable.from([encrypted]).pipe(str).pipe(req)
         }).catch(reject)
     })
 }
@@ -1019,7 +1024,7 @@ const readExif = (path) => {
     })
 }
 
-/*rn_bridge.app.on("pause", (pauseLock) => {
+rn_bridge.app.on("pause", (pauseLock) => {
     new Promise((resolve, _) => {
         const wait = setInterval(() => {
             if(tasksRunning <= 0){
@@ -1031,7 +1036,7 @@ const readExif = (path) => {
     }).then(() => {
         pauseLock.release()
     })
-})*/
+})
 
 rn_bridge.channel.on("message", (message) => {
     tasksRunning += 1
