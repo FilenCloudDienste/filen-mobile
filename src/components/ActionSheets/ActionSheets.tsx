@@ -3042,7 +3042,9 @@ export const FileVersionsActionSheet = memo(({ navigation }: FileVersionsActionS
 				setButtonsDisabled(false)
 				setIsLoading(false)
 
-                showToast({ message: err.toString() })
+                if(err.toString().toLowerCase().indexOf("not found") == -1){
+					showToast({ message: err.toString() })
+				}
             })
         }
 	}
@@ -3649,6 +3651,8 @@ export const LockAppAfterActionSheet = memo(() => {
 					onPress={() => {
 						setLockAppAfter(1)
 
+						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (1 * 1000)))
+
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "immediately")}
@@ -3665,6 +3669,8 @@ export const LockAppAfterActionSheet = memo(() => {
 				<ActionButton
 					onPress={() => {
 						setLockAppAfter(60)
+
+						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (60 * 1000)))
 
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
@@ -3683,6 +3689,8 @@ export const LockAppAfterActionSheet = memo(() => {
 					onPress={() => {
 						setLockAppAfter(180)
 
+						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (180 * 1000)))
+
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "threeMinutes")}
@@ -3699,6 +3707,8 @@ export const LockAppAfterActionSheet = memo(() => {
 				<ActionButton
 					onPress={() => {
 						setLockAppAfter(300)
+
+						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (300 * 1000)))
 
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
@@ -3717,6 +3727,8 @@ export const LockAppAfterActionSheet = memo(() => {
 					onPress={() => {
 						setLockAppAfter(600)
 
+						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (600 * 1000)))
+
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "tenMinutes")}
@@ -3733,6 +3745,8 @@ export const LockAppAfterActionSheet = memo(() => {
 				<ActionButton
 					onPress={() => {
 						setLockAppAfter(900)
+
+						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (900 * 1000)))
 
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
@@ -3751,6 +3765,8 @@ export const LockAppAfterActionSheet = memo(() => {
 					onPress={() => {
 						setLockAppAfter(1800)
 
+						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (1800 * 1000)))
+
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}
 					text={i18n(lang, "thirtyMinutes")}
@@ -3767,6 +3783,8 @@ export const LockAppAfterActionSheet = memo(() => {
 				<ActionButton
 					onPress={() => {
 						setLockAppAfter(3600)
+
+						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (3600 * 1000)))
 
 						SheetManager.hide("LockAppAfterActionSheet")
 					}}

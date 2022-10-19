@@ -218,12 +218,6 @@ export const App = memo(() => {
 
             if(nextAppState == "background"){
                 if(!isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
-                    let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
-
-                    if(lockAppAfter == 0){
-                        lockAppAfter = 300
-                    }
-
                     if(Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && storage.getBoolean("biometricPinAuth:" + userId)){
                         setBiometricAuthScreenState("auth")
                         
@@ -275,14 +269,8 @@ export const App = memo(() => {
             setup({ navigation: navigationRef }).then(() => {
                 setSetupDone(true)
 
-                if(storage.getBoolean("biometricPinAuth:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
+                if(storage.getBoolean("biometricPinAuth:" + userId) && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
                     setBiometricAuthScreenState("auth")
-
-                    let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
-
-                    if(lockAppAfter == 0){
-                        lockAppAfter = 300
-                    }
                     
                     navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                 }
@@ -307,14 +295,8 @@ export const App = memo(() => {
                     if(storage.getString("masterKeys").length > 16 && storage.getString("apiKey").length > 16 && storage.getString("privateKey").length > 16 && storage.getString("publicKey").length > 16 && storage.getNumber("userId") !== 0){
                         setSetupDone(true)
 
-                        if(storage.getBoolean("biometricPinAuth:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
+                        if(storage.getBoolean("biometricPinAuth:" + userId) && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
                             setBiometricAuthScreenState("auth")
-
-                            let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
-
-                            if(lockAppAfter == 0){
-                                lockAppAfter = 300
-                            }
                             
                             navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                         }

@@ -1115,6 +1115,22 @@ export const renameFolder = ({ folder, name }: { folder: any, name: string }): P
                             prop: "name",
                             value: name
                         }).then(() => {
+                            try{
+                                const folderItemCache = JSON.parse(storage.getString("itemCache:folder:" + folder.uuid) || "{}")
+
+                                if(typeof folderItemCache == "object"){
+                                    if(typeof folderItemCache.name == "string"){
+                                        storage.set("itemCache:folder:" + folder.uuid, JSON.stringify({
+                                            ...folderItemCache,
+                                            name
+                                        }))
+                                    }
+                                }
+                            }
+                            catch(e){
+                                console.log(e)
+                            }
+
                             return resolve(true)
                         })
                     }).catch(reject)
