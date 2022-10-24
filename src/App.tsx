@@ -76,7 +76,7 @@ setNativeExceptionHandler((err) => {
 
 NetInfo.configure({
     reachabilityUrl: "https://api.filen.io",
-    reachabilityTest: async (response) => response.status === 200,
+    reachabilityTest: async (response) => response.status == 200,
     reachabilityLongTimeout: 60 * 1000,
     reachabilityShortTimeout: 5 * 1000,
     reachabilityRequestTimeout: 15 * 1000,
@@ -115,7 +115,6 @@ export const App = memo(() => {
     const setNetInfo = useStore(state => state.setNetInfo)
     const showNavigationAnimation = useStore(state => state.showNavigationAnimation)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + userId, storage)
     const setBiometricAuthScreenState = useStore(state => state.setBiometricAuthScreenState)
     const setCurrentShareItems = useStore(state => state.setCurrentShareItems)
     const setAppState = useStore(state => state.setAppState)
@@ -265,59 +264,39 @@ export const App = memo(() => {
             setAppearance()
         })
 
-        if(isLoggedIn && !setupDone){
-            setup({ navigation: navigationRef }).then(() => {
-                setSetupDone(true)
+        const offlineSetup = () => {
+            if(
+                typeof storage.getString("masterKeys") == "string"
+                && typeof storage.getString("apiKey") == "string"
+                && typeof storage.getString("privateKey") == "string"
+                && typeof storage.getString("publicKey") == "string"
+                && typeof storage.getNumber("userId") == "number"
+            ){
+                // @ts-ignore
+                if(storage.getString("masterKeys").length > 16 && storage.getString("apiKey").length > 16 && storage.getString("privateKey").length > 16 && storage.getString("publicKey").length > 16 && storage.getNumber("userId") !== 0){
+                    setSetupDone(true)
 
-                if(storage.getBoolean("biometricPinAuth:" + userId) && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
-                    setBiometricAuthScreenState("auth")
-                    
-                    navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
-                }
-                else{
-                    navigationRef.current?.dispatch(CommonActions.reset({
-                        index: 0,
-                        routes: [
-                            {
-                                name: "MainScreen",
-                                params: {
-                                    parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
-                                }
-                            }
-                        ]
-                    }))
-                }
-            }).catch((err) => {
-                console.log(err)
-    
-                if(typeof storage.getString("masterKeys") == "string" && typeof storage.getString("apiKey") == "string" && typeof storage.getString("privateKey") == "string" && typeof storage.getString("publicKey") == "string" && typeof storage.getNumber("userId") == "number"){
-                    // @ts-ignore
-                    if(storage.getString("masterKeys").length > 16 && storage.getString("apiKey").length > 16 && storage.getString("privateKey").length > 16 && storage.getString("publicKey").length > 16 && storage.getNumber("userId") !== 0){
-                        setSetupDone(true)
-
-                        if(storage.getBoolean("biometricPinAuth:" + userId) && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
-                            setBiometricAuthScreenState("auth")
-                            
-                            navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
-                        }
-                        else{
-                            navigationRef.current?.dispatch(CommonActions.reset({
-                                index: 0,
-                                routes: [
-                                    {
-                                        name: "MainScreen",
-                                        params: {
-                                            parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
-                                        }
-                                    }
-                                ]
-                            }))
-                        }
+                    if(
+                        storage.getBoolean("biometricPinAuth:" + userId)
+                        && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId)
+                        && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])
+                    ){
+                        setBiometricAuthScreenState("auth")
+                        
+                        navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
                     }
                     else{
-                        setSetupDone(false)
-
-                        showToast({ message: i18n(lang, "appSetupNotPossible") })
+                        navigationRef.current?.dispatch(CommonActions.reset({
+                            index: 0,
+                            routes: [
+                                {
+                                    name: "MainScreen",
+                                    params: {
+                                        parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
+                                    }
+                                }
+                            ]
+                        }))
                     }
                 }
                 else{
@@ -325,6 +304,48 @@ export const App = memo(() => {
 
                     showToast({ message: i18n(lang, "appSetupNotPossible") })
                 }
+            }
+            else{
+                setSetupDone(false)
+
+                showToast({ message: i18n(lang, "appSetupNotPossible") })
+            }
+        }
+
+        if(isLoggedIn && !setupDone){
+            NetInfo.fetch().then((state) => {
+                if(!state.isConnected){
+                    return setTimeout(() => offlineSetup(), 2500)
+                }
+
+                setup({ navigation: navigationRef }).then(() => {
+                    setSetupDone(true)
+    
+                    if(storage.getBoolean("biometricPinAuth:" + userId) && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
+                        setBiometricAuthScreenState("auth")
+                        
+                        navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
+                    }
+                    else{
+                        navigationRef.current?.dispatch(CommonActions.reset({
+                            index: 0,
+                            routes: [
+                                {
+                                    name: "MainScreen",
+                                    params: {
+                                        parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
+                                    }
+                                }
+                            ]
+                        }))
+                    }
+                }).catch((err) => {
+                    console.log(err)
+        
+                    offlineSetup()
+                })
+            }).catch((err) => {
+                console.log(err)
             })
         }
 
@@ -547,7 +568,25 @@ export const App = memo(() => {
                                 </Stack.Navigator>
                                 <>
                                     {
-                                        setupDone && isLoggedIn && ["MainScreen", "SettingsScreen", "TransfersScreen", "CameraUploadScreen", "CameraUploadAlbumsScreen", "EventsScreen", "EventsInfoScreen", "SettingsAdvancedScreen", "SettingsAccountScreen", "LanguageScreen", "GDPRScreen", "InviteScreen", "TwoFactorScreen", "ChangeEmailPasswordScreen"].includes(currentScreenName) && (
+                                        setupDone
+                                        && isLoggedIn
+                                        && [
+                                            "MainScreen",
+                                            "SettingsScreen",
+                                            "TransfersScreen",
+                                            "CameraUploadScreen",
+                                            "CameraUploadAlbumsScreen",
+                                            "EventsScreen",
+                                            "EventsInfoScreen",
+                                            "SettingsAdvancedScreen",
+                                            "SettingsAccountScreen",
+                                            "LanguageScreen",
+                                            "GDPRScreen",
+                                            "InviteScreen",
+                                            "TwoFactorScreen",
+                                            "ChangeEmailPasswordScreen"
+                                        ].includes(currentScreenName)
+                                        && (
                                             <View
                                                 style={{
                                                     position: "relative",

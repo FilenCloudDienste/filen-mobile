@@ -1024,7 +1024,7 @@ const readExif = (path) => {
     })
 }
 
-rn_bridge.app.on("pause", (pauseLock) => {
+/*rn_bridge.app.on("pause", (pauseLock) => {
     new Promise((resolve, _) => {
         const wait = setInterval(() => {
             if(tasksRunning <= 0){
@@ -1036,7 +1036,7 @@ rn_bridge.app.on("pause", (pauseLock) => {
     }).then(() => {
         pauseLock.release()
     })
-})
+})*/
 
 rn_bridge.channel.on("message", (message) => {
     tasksRunning += 1

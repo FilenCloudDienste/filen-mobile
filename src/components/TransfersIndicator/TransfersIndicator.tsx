@@ -110,7 +110,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
     const allBytes = useRef<number>(0)
     const progressStarted = useRef<number>(-1)
 
-    const throttledUpdate = useCallback(throttle((currentUploads, currentDownloads, finishedTransfers) => {
+    const throttledUpdate = useCallback(throttle((currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible) => {
         setCurrentUploadsGlobal(currentUploads)
         setCurrentDownloadsGlobal(currentDownloads)
         setFinishedTransfersGlobal(finishedTransfers)
@@ -126,7 +126,12 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
             setProgress(0)
         }
 
-        if((Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0 && currentRouteName !== "TransfersScreen" && !biometricAuthScreenVisible){
+        if(
+            (Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0
+            && currentRouteName !== "TransfersScreen"
+            && !biometricAuthScreenVisible
+            && currentRouteName !== "BiometricAuthScreen"
+        ){
             setVisible(true)
         }
         else{
@@ -135,7 +140,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
     }, 250), [])
 
     useEffect(() => {
-        throttledUpdate(currentUploads, currentDownloads, finishedTransfers)
+        throttledUpdate(currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible)
     }, [JSON.stringify(currentUploads), JSON.stringify(currentDownloads), currentRouteName, biometricAuthScreenVisible, JSON.stringify(finishedTransfers)])
 
     useEffect(() => {

@@ -376,7 +376,11 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                         hitSlop={{
                             top: 20
                         }}
-                        onPress={() => scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: true })}
+                        onPress={() => {
+                            scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: true })
+
+                            setCurrentView("ongoing")
+                        }}
                     >
                         <Text
                             style={{
@@ -401,7 +405,11 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                         hitSlop={{
                             top: 20
                         }}
-                        onPress={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+                        onPress={() => {
+                            scrollViewRef.current?.scrollToEnd({ animated: true })
+                            
+                            setCurrentView("finished")
+                        }}
                     >
                         <Text
                             style={{
