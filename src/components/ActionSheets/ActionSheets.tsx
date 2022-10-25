@@ -2130,7 +2130,7 @@ export const FolderColorActionSheet = memo(() => {
 	const [lang, setLang] = useMMKVString("lang", storage)
 	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
-	const availableFolderColors: any = getAvailableFolderColors()
+	const availableFolderColors = getAvailableFolderColors()
 
 	useEffect(() => {
 		setButtonsDisabled(false)
@@ -2159,6 +2159,14 @@ export const FolderColorActionSheet = memo(() => {
 				<ItemActionSheetItemHeader />
 				{
 					Object.keys(availableFolderColors).map((prop) => {
+						if(prop == "default_ios"){
+							return null
+						}
+
+						if(Platform.OS == "ios" && prop == "blue"){
+							return null
+						}
+
 						return (
 							<ActionButton
 								key={prop}
@@ -2200,7 +2208,7 @@ export const FolderColorActionSheet = memo(() => {
 										showToast({ message: err.toString() })
 									})
 								}}
-								color={availableFolderColors[prop] as string}
+								color={Platform.OS == "ios" && prop == "default" ? availableFolderColors['default_ios'] as string : availableFolderColors[prop] as string}
 								text={i18n(lang, "color_" + prop)}
 							/>
 						)

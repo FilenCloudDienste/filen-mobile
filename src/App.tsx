@@ -352,6 +352,10 @@ export const App = memo(() => {
         storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, (new Date().getTime() - 5000))
 
         return () => {
+            setSetupDone(false)
+
+            global.nodeThread.ready = false
+
             dimensionsListener.remove()
             shareMenuListener.remove()
             navigationRef.removeListener("state", navigationRefListener)
@@ -360,7 +364,7 @@ export const App = memo(() => {
 
             netInfoListener()
         }
-    }, [])
+    }, [isLoggedIn])
 
   	return (
         <>

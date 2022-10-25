@@ -496,7 +496,7 @@ global.nodeThread = {
 }
 
 nodejs.channel.addListener("message", (message) => {
-    if(message == "ready" && !global.nodeThread.ready){
+    if(message == "ready"){
         return global.nodeThread.ready = true
     }
 

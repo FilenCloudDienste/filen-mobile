@@ -84,30 +84,35 @@ export const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: n
     return remaining > 0 ? remaining : 0
 }
 
-export const getFolderColor = memoize((color: string | null | undefined): string => {
+export const getFolderColor = (color: string | null | undefined): string => {
     const colors = getAvailableFolderColors()
 
     if(!color){
-        return colors['default']
+        return Platform.OS == "ios" ? colors['default_ios'] : colors['default']
     }
 
     if(typeof colors[color] !== "undefined"){
+        if(color == "default"){
+            return Platform.OS == "ios" ? colors['default_ios'] : colors['default']
+        }
+
         return colors[color]
     }
 
-    return colors['default']
-})
+    return Platform.OS == "ios" ? colors['default_ios'] : colors['default']
+}
 
-export const getAvailableFolderColors = memoize((): { [key: string]: string } => {
+export const getAvailableFolderColors = (): { [key: string]: string } => {
     return {
-        "default": "#F6C358",
+        "default": "#ffd04c",
         "blue": "#2992E5",
         "green": "#57A15B",
         "purple": "#8E3A9D",
         "red": "#CB2E35",
-        "gray": "gray"
+        "gray": "gray",
+        "default_ios": "#3ea0d5"
     }
-})
+}
 
 export const fileAndFolderNameValidation = (name: string): boolean => {
     const regex = /[<>:"\/\\|?*\x00-\x1F]|^(?:aux|con|clock\$|nul|prn|com[1-9]|lpt[1-9])$/i
