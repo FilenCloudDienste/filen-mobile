@@ -12,6 +12,10 @@ export const clearCacheDirectories = (): Promise<boolean> => {
         getDownloadPath({ type: "cachedDownloads" }).then((cachedDownloadsPath) => {
             RNFS.readDir(RNFS.TemporaryDirectoryPath).then(async (items) => {
                 for(let i = 0; i < items.length; i++){
+                    if(items[i].path.indexOf("SentryCrash") !== -1){
+                        continue
+                    }
+
                     try{
                         await RNFS.unlink(items[i].path)
                     }
@@ -22,6 +26,10 @@ export const clearCacheDirectories = (): Promise<boolean> => {
     
                 RNFS.readDir(RNFS.CachesDirectoryPath).then(async (items) => {
                     for(let i = 0; i < items.length; i++){
+                        if(items[i].path.indexOf("SentryCrash") !== -1){
+                            continue
+                        }
+
                         try{
                             await RNFS.unlink(items[i].path)
                         }
@@ -32,6 +40,10 @@ export const clearCacheDirectories = (): Promise<boolean> => {
         
                     RNFS.readDir(cachedDownloadsPath).then(async (items) => {
                         for(let i = 0; i < items.length; i++){
+                            if(items[i].path.indexOf("SentryCrash") !== -1){
+                                continue
+                            }
+                            
                             try{
                                 await RNFS.unlink(items[i].path)
                             }

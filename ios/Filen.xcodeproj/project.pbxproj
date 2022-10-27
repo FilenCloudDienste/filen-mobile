@@ -270,6 +270,7 @@
 				0A0243D4D4E5460AFF541DF1 /* [CP-User] [NODEJS MOBILE] Build Native Modules */,
 				7D7E2814EC2D1E0EB33093F1 /* [CP-User] [NODEJS MOBILE] Sign Native Modules */,
 				F0CEE26479448D6172F703CD /* [CP-User] [NODEJS MOBILE] Remove Simulator Strip */,
+				715AA44EA77A4D6C8878BA34 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -382,7 +383,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "export SENTRY_PROPERTIES=sentry.properties\nexport EXTRA_PACKAGER_ARGS=\"--sourcemap-output $DERIVED_FILE_DIR/main.jsbundle.map\"\nset -e\n\nexport NODE_BINARY=node\n../node_modules/@sentry/cli/bin/sentry-cli react-native xcode ../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		0A0243D4D4E5460AFF541DF1 /* [CP-User] [NODEJS MOBILE] Build Native Modules */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -537,6 +538,20 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ShareExtension/Pods-ShareExtension-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		715AA44EA77A4D6C8878BA34 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export SENTRY_PROPERTIES=sentry.properties\n../node_modules/@sentry/cli/bin/sentry-cli upload-dsym";
 		};
 		7D7E2814EC2D1E0EB33093F1 /* [CP-User] [NODEJS MOBILE] Sign Native Modules */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -714,7 +729,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Filen/Filen.entitlements;
-				CURRENT_PROJECT_VERSION = 218;
+				CURRENT_PROJECT_VERSION = 220;
 				DEVELOPMENT_TEAM = 7YTW5D2K7P;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Filen/Info.plist;
@@ -723,7 +738,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.18;
+				MARKETING_VERSION = 2.0.20;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -748,7 +763,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Filen/Filen.entitlements;
-				CURRENT_PROJECT_VERSION = 218;
+				CURRENT_PROJECT_VERSION = 220;
 				DEVELOPMENT_TEAM = 7YTW5D2K7P;
 				INFOPLIST_FILE = Filen/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -756,7 +771,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.18;
+				MARKETING_VERSION = 2.0.20;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

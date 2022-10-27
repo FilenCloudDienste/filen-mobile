@@ -469,6 +469,9 @@ PODS:
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
+  - RNSentry (4.7.1):
+    - React-Core
+    - Sentry (= 7.28.0)
   - RNShareMenu (6.0.0):
     - React
   - RNSVG (12.1.1):
@@ -479,6 +482,9 @@ PODS:
   - SDWebImageWebPCoder (0.8.4):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
+  - Sentry (7.28.0):
+    - Sentry/Core (= 7.28.0)
+  - Sentry/Core (7.28.0)
   - UMAppLoader (3.0.1)
   - UMTaskManagerInterface (7.1.1):
     - ExpoModulesCore
@@ -583,6 +589,7 @@ DEPENDENCIES:
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNShareMenu (from `../node_modules/react-native-share-menu`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
@@ -609,6 +616,7 @@ SPEC REPOS:
     - OpenSSL-Universal
     - SDWebImage
     - SDWebImageWebPCoder
+    - Sentry
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -756,6 +764,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSentry:
+    :path: "../node_modules/@sentry/react-native"
   RNShareMenu:
     :path: "../node_modules/react-native-share-menu"
   RNSVG:
@@ -856,10 +866,12 @@ SPEC CHECKSUMS:
   RNPermissions: bcd846e8f5a7f39e921cc7ca7172e2de0e698b6f
   RNReanimated: 46cdb89ca59ab7181334f4ed05a70e82ddb36751
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
+  RNSentry: 694aecc3d8240e4935374974a6636e360ae06394
   RNShareMenu: cb9dac548c8bf147d06f0bf07296ad51ea9f5fc3
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815
+  Sentry: 2c6053e4cfe6dea6608135dea1928ffbb4ecfba5
   UMAppLoader: 2ee9f1278d315672f4854c6a2310aa9988f61f72
   UMTaskManagerInterface: 3184c93ecc290bd422c6e344badc89b601e9c29b
   Yoga: 5cbf25add73edb290e1067017690f7ebf56c5468

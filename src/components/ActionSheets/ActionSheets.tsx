@@ -1489,7 +1489,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 					}
 					{hideSizes ? formatBytes(0) : formatBytes(currentActionSheetItem.type == "file" ? currentActionSheetItem.size : storage.getNumber("folderSizeCache:" + currentActionSheetItem.uuid))}
 					{
-						typeof currentActionSheetItem.sharerEmail == "string" && currentActionSheetItem.sharerEmail.length > 0 && (
+						typeof currentActionSheetItem.sharerEmail == "string" && currentActionSheetItem.sharerEmail.length > 0 && getParent().length < 32 && (
 							<>
 								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
 								<Text>{currentActionSheetItem.sharerEmail}</Text>
@@ -1497,10 +1497,15 @@ export const ItemActionSheetItemHeader = memo(() => {
 						)
 					}
 					{
-						typeof currentActionSheetItem.receiverEmail == "string" && currentActionSheetItem.receiverEmail.length > 0 && (
+						typeof currentActionSheetItem.receivers !== "undefined" && Array.isArray(currentActionSheetItem.receivers) && currentActionSheetItem.receivers.length > 0 && getParent().length < 32 && (
 							<>
 								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-								<Text>{currentActionSheetItem.receiverEmail}</Text>
+								<Ionicon
+									name="people-outline"
+									size={12}
+									color={darkMode ? "white" : "black"}
+								/>
+								<Text>&nbsp;{currentActionSheetItem.receivers.length}</Text>
 							</>
 						)
 					}
@@ -2079,7 +2084,7 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									)
 								}
 								{
-									isDeviceOnline && routeURL.indexOf("shared-in") !== -1 && (
+									isDeviceOnline && routeURL.indexOf("shared-in") !== -1 && getParent().length < 32 && (
 										<ActionButton
 											onPress={async () => {
 												await SheetManager.hide("ItemActionSheet")
@@ -2092,7 +2097,7 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									)
 								}
 								{
-									isDeviceOnline && routeURL.indexOf("shared-out") !== -1 && (
+									isDeviceOnline && routeURL.indexOf("shared-out") !== -1 && getParent().length < 32 && (
 										<ActionButton
 											onPress={async () => {
 												await SheetManager.hide("ItemActionSheet")

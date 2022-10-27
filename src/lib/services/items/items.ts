@@ -16,7 +16,12 @@ import { navigationAnimation } from "../../state"
 import memoryCache from "../../memoryCache"
 
 const isGeneratingThumbnailForItemUUID: any = {}
-const isCheckingThumbnailForItemUUID : any= {}
+const isCheckingThumbnailForItemUUID : any = {}
+
+export interface ItemReceiver {
+    id: number,
+    email: string
+}
 
 export interface Item {
     id: string,
@@ -48,7 +53,8 @@ export interface Item {
     chunks: number,
     thumbnail: string | undefined,
     version: number,
-    hash: string
+    hash: string,
+    receivers?: ItemReceiver[]
 }
 
 export const ItemTemplate: Item = {
@@ -601,6 +607,39 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
 			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
         }
+
+        const groups: Item[] = []
+        const sharedTo: { [key: string]: ItemReceiver[] } = {}
+        const added: { [key: string]: boolean } = {}
+
+        for(let i = 0; i < items.length; i++){
+            if(Array.isArray(sharedTo[items[i].uuid])){
+                sharedTo[items[i].uuid].push({
+                    id: items[i].receiverId,
+                    email: items[i].receiverEmail
+                })
+            }
+            else{
+                sharedTo[items[i].uuid] = [{
+                    id: items[i].receiverId,
+                    email: items[i].receiverEmail
+                }]
+            }
+        }
+
+        for(let i = 0; i < items.length; i++){
+            if(Array.isArray(sharedTo[items[i].uuid])){
+                items[i].receivers = sharedTo[items[i].uuid]
+            }
+
+            if(!added[items[i].uuid]){
+                added[items[i].uuid] = true
+
+                groups.push(items[i])
+            }
+        }
+
+        items = groups
     }
     else if(parent == "photos"){
         try{

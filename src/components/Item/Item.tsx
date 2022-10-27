@@ -3,7 +3,7 @@ import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, D
 import FastImage from "react-native-fast-image"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { getImageForItem } from "../../assets/thumbnails"
-import { formatBytes, getFolderColor, calcPhotosGridSize, getRouteURL } from "../../lib/helpers"
+import { formatBytes, getFolderColor, calcPhotosGridSize, getRouteURL, getParent } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 import { getColor } from "../../lib/style/colors"
 import RNFS from "react-native-fs"
@@ -52,7 +52,10 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 
             fetchFolderSize({ folder: item, routeURL: getRouteURL() }).then((fetchedSize) => {
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
-                storage.set("fetchFolderSizeTimeout:" + item.uuid, (new Date().getTime() + 60000))
+                
+                if(fetchedSize > 0){
+                    storage.set("fetchFolderSizeTimeout:" + item.uuid, (new Date().getTime() + 60000))
+                }
 
                 if(isMounted()){
                     setFolderSize(fetchedSize)
@@ -172,7 +175,8 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                 typeof item.offline == "boolean" && item.offline && (
                                     <>
                                         <Ionicon
-                                            name="arrow-down-circle" size={12}
+                                            name="arrow-down-circle"
+                                            size={12}
                                             color={"green"}
                                         />
                                         <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
@@ -193,7 +197,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                             }
                             {hideSizes ? formatBytes(0) : formatBytes(item.type == "file" ? item.size : folderSize)}
                             {
-                                typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && (
+                                typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && getParent().length < 32 && (
                                     <>
                                         <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
                                         <Text>{item.sharerEmail}</Text>
@@ -201,10 +205,15 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                 )
                             }
                             {
-                                typeof item.receiverEmail == "string" && item.receiverEmail.length > 0 && (
+                                typeof item.receivers !== "undefined" && Array.isArray(item.receivers) && item.receivers.length > 0 && getParent().length < 32 && (
                                     <>
                                         <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-                                        <Text>{item.receiverEmail}</Text>
+                                        <Ionicon
+                                            name="people-outline"
+                                            size={12}
+                                            color={darkMode ? "white" : "black"}
+                                        />
+                                        <Text>&nbsp;{item.receivers.length}</Text>
                                     </>
                                 )
                             }

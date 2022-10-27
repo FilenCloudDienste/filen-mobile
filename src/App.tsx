@@ -1,7 +1,7 @@
 import "./lib/globals"
 import "./lib/node"
 import React, { useState, useEffect, Fragment, memo } from "react"
-import { Dimensions, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState, Alert } from "react-native"
+import { Dimensions, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState } from "react-native"
 import { setup } from "./lib/services/setup/setup"
 import storage from "./lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -44,35 +44,15 @@ import { TextEditorScreen } from "./screens/TextEditorScreen/TextEditorScreen"
 import { checkAppVersion } from "./lib/services/versionCheck"
 import { UpdateScreen } from "./screens/UpdateScreen/UpdateScreen"
 import BackgroundTimer from "react-native-background-timer"
-import { setJSExceptionHandler, setNativeExceptionHandler } from "react-native-exception-handler"
-import { reportError } from "./lib/api"
 import ImageViewerScreen from "./screens/ImageViewerScreen/ImageViewerScreen"
 import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen/CameraUploadAlbumsScreen"
 import { isRouteInStack } from "./lib/helpers"
+import * as Sentry from "@sentry/react-native"
 
-setJSExceptionHandler((err) => {
-    reportError(err.toString())
-
-    Alert.alert("Unexpected error occured",
-        `
-        Error: ${err.name} ${err.message}
-
-        The error has been automatically reported to us. Please restart the app if it does not continue to work!
-        `,
-        [
-            {
-                text: "Close",
-                onPress: () => {
-                    return false
-                }
-            }
-        ]
-    )
-}, true)
-
-setNativeExceptionHandler((err) => {
-    reportError(err)
-}, false)
+Sentry.init({
+    dsn: "https://1aa0cbb262634a27a5887e91381e4251@o4504039703314432.ingest.sentry.io/4504039705804800",
+    tracesSampleRate: 1.0
+})
 
 NetInfo.configure({
     reachabilityUrl: "https://api.filen.io",
@@ -103,7 +83,7 @@ DeviceEventEmitter.addListener("event", (data) => {
 storage.set("cameraUploadUploaded", 0)
 storage.set("cameraUploadTotal", 0)
 
-export const App = memo(() => {
+export const App = Sentry.wrap(memo(() => {
     const [isLoggedIn, setIsLoggedIn] = useMMKVBoolean("isLoggedIn", storage)
     const setDimensions = useStore(state => state.setDimensions)
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -641,4 +621,4 @@ export const App = memo(() => {
             />
         </>
     )
-})
+}))

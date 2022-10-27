@@ -11,6 +11,7 @@ import { DeviceEventEmitter, Keyboard } from "react-native"
 import { logout } from "../../lib/services/auth/logout"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions, CommonActions } from "@react-navigation/native"
+import type { Item } from "../../lib/services/items"
 
 export const RenameDialog = memo(() => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
@@ -495,12 +496,30 @@ export const ConfirmStopSharingDialog = memo(() => {
                             label={i18n(lang, "stopSharing")}
                             disabled={buttonsDisabled}
                             onPress={() => {
+                                if(typeof currentActionSheetItem.receivers == "undefined" || !Array.isArray(currentActionSheetItem.receivers)){
+                                    return
+                                }
+
                                 setButtonsDisabled(true)
                                 setStopSharingDialogVisible(false)
 
                                 useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                                stopSharingItem({ item: currentActionSheetItem }).then(async () => {
+                                const promises = []
+
+                                for(let i = 0; i < currentActionSheetItem.receivers.length; i++){
+                                    const item: Item = {
+                                        ...currentActionSheetItem,
+                                        receiverId: currentActionSheetItem.receivers[i].id,
+                                        receiverEmail: currentActionSheetItem.receivers[i].email
+                                    } 
+
+                                    promises.push(new Promise((resolve, reject) => {
+                                        stopSharingItem({ item }).then(resolve).catch(reject)
+                                    }))
+                                }
+
+                                Promise.all(promises).then(() => {
                                     DeviceEventEmitter.emit("event", {
                                         type: "remove-item",
                                         data: {

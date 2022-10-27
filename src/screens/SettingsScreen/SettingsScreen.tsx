@@ -18,6 +18,7 @@ import { hasStoragePermissions } from "../../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../../lib/statusbar"
 import * as MediaLibrary from "expo-media-library"
+import * as Sentry from "@sentry/react-native"
 
 const MISC_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
 

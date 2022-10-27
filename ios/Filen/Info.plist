@@ -110,5 +110,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<string>background-fetch</string>
+		<string>expo-background-fetch</string>
+	</array>
 </dict>
 </plist>

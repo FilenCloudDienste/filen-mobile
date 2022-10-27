@@ -1,6 +1,6 @@
 {
   "name": "filen-mobile",
-  "version": "2.0.18",
+  "version": "2.0.20",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -8,7 +8,7 @@
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint .",
-    "dist-android": "./android/gradlew bundleRelease && ./android/gradlew assembleRelease",
+    "dist-android": "cd ./android && ./gradlew bundleRelease && ./gradlew assembleRelease && cd ..",
     "splash": "react-native generate-bootsplash bootsplash.png --background-color=#263179 --logo-width=100 --flavor=main --assets-path=src/assets",
     "icons": "react-native-svg-app-icon",
     "install-release-apk": "adb install android/app/build/outputs/apk/release/app-release.apk"
@@ -23,6 +23,7 @@
     "@react-navigation/bottom-tabs": "^6.2.0",
     "@react-navigation/native": "^6.0.8",
     "@react-navigation/native-stack": "^6.4.0",
+    "@sentry/react-native": "^4.7.1",
     "axios": "^0.27.1",
     "crypto-js": "^4.1.1",
     "expo": "^44.0.6",
