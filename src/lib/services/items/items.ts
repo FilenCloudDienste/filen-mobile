@@ -1435,6 +1435,12 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
 }
 
 export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }: { item: Item, setCurrentActionSheetItem?: boolean, navigation?: any }) => {
+    const netInfo = useStore.getState().netInfo
+
+    if(!netInfo.isConnected || !netInfo.isInternetReachable){
+        return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+    }
+
     if(item.size >= 134217728){
         return DeviceEventEmitter.emit("event", {
             type: "open-item-actionsheet",
@@ -1596,12 +1602,6 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
 
     if(existsOffline){
         return open(offlinePath, true)
-    }
-
-    const netInfo = useStore.getState().netInfo
-
-    if(!netInfo.isConnected || !netInfo.isInternetReachable){
-        return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
     }
 
     if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){

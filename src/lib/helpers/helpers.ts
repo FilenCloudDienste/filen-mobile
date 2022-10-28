@@ -1309,26 +1309,31 @@ export const promiseAllSettled = (promises: Promise<any>[]) => Promise.all(
 )
 
 export const isRouteInStack = (navigationRef: any, routeNames: string[]): boolean => {
-    if(typeof navigationRef == "undefined"){
-        return false
+    try{
+        if(typeof navigationRef == "undefined"){
+            return false
+        }
+    
+        const navState = navigationRef.getState()
+    
+        if(typeof navState == "undefined"){
+            return false
+        }
+    
+        if(typeof navState.routes == "undefined"){
+            return false
+        }
+    
+        if(!Array.isArray(navState.routes)){
+            return false
+        }
+    
+        if(navState.routes.filter((route: any) => routeNames.includes(route.name)).length > 0){
+            return true
+        }
     }
-
-    const navState = navigationRef.getState()
-
-    if(typeof navState == "undefined"){
-        return false
-    }
-
-    if(typeof navState.routes == "undefined"){
-        return false
-    }
-
-    if(!Array.isArray(navState.routes)){
-        return false
-    }
-
-    if(navState.routes.filter((route: any) => routeNames.includes(route.name)).length > 0){
-        return true
+    catch(e){
+        console.error(e)
     }
 
     return false

@@ -23,6 +23,11 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
     const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
+    const dimensions = useStore(state => state.dimensions)
+
+    const iconTextMaxWidth: number = useMemo(() => {
+        return (dimensions.window.width / 5) - 25
+    }, [dimensions])
 
     const [showHome, showCloud, canOpenBottomAddActionSheet, isPhotosScreen, showSettings] = useMemo(() => {
         const parent: string = getParent()
@@ -146,8 +151,10 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     style={{
                         color: showHome ? "#0A84FF" : (darkMode ? "gray" : "gray"),
                         fontSize: 10,
-                        marginTop: 3
+                        marginTop: 3,
+                        maxWidth: iconTextMaxWidth
                     }}
+                    numberOfLines={1}
                 >
                     {i18n(lang, "home")}
                 </Text>
@@ -182,8 +189,10 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     style={{
                         color: showCloud ? "#0A84FF" : (darkMode ? "gray" : "gray"),
                         fontSize: 10,
-                        marginTop: 3
+                        marginTop: 3,
+                        maxWidth: iconTextMaxWidth
                     }}
+                    numberOfLines={1}
                 >
                     {i18n(lang, "cloud")}
                 </Text>
@@ -236,8 +245,10 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     style={{
                         color: isPhotosScreen ? "#0A84FF" : (darkMode ? "gray" : "gray"),
                         fontSize: 10,
-                        marginTop: 3
+                        marginTop: 3,
+                        maxWidth: iconTextMaxWidth
                     }}
+                    numberOfLines={1}
                 >
                     {i18n(lang, "photos")}
                 </Text>
@@ -269,8 +280,10 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     style={{
                         color: showSettings ? "#0A84FF" : (darkMode ? "gray" : "gray"),
                         fontSize: 10,
-                        marginTop: 3
+                        marginTop: 3,
+                        maxWidth: iconTextMaxWidth
                     }}
+                    numberOfLines={1}
                 >
                     {i18n(lang, "settings")}
                 </Text>

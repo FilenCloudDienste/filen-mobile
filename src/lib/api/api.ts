@@ -40,7 +40,20 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
         const netInfo = useStore.getState().netInfo
 
         if(!netInfo.isConnected || !netInfo.isInternetReachable){
-            maxTries = 1
+            try{
+                const cache = storage.getString(cacheKey)
+
+                if(typeof cache == "string"){
+                    if(cache.length > 0){
+                        return resolve(JSON.parse(cache))
+                    }
+                }
+            }
+            catch(e){
+                console.error(e)
+            }
+
+            return reject(i18n(storage.getString("lang"), "deviceOffline"))
         }
 
         const request = async () => {

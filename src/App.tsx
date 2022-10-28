@@ -245,87 +245,92 @@ export const App = Sentry.wrap(memo(() => {
         })
 
         const offlineSetup = () => {
-            if(
-                typeof storage.getString("masterKeys") == "string"
-                && typeof storage.getString("apiKey") == "string"
-                && typeof storage.getString("privateKey") == "string"
-                && typeof storage.getString("publicKey") == "string"
-                && typeof storage.getNumber("userId") == "number"
-            ){
-                // @ts-ignore
-                if(storage.getString("masterKeys").length > 16 && storage.getString("apiKey").length > 16 && storage.getString("privateKey").length > 16 && storage.getString("publicKey").length > 16 && storage.getNumber("userId") !== 0){
-                    setSetupDone(true)
-
-                    if(
-                        storage.getBoolean("biometricPinAuth:" + userId)
-                        && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId)
-                        && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])
-                    ){
-                        setBiometricAuthScreenState("auth")
-                        
-                        navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
+            try{
+                if(
+                    typeof storage.getString("masterKeys") == "string"
+                    && typeof storage.getString("apiKey") == "string"
+                    && typeof storage.getString("privateKey") == "string"
+                    && typeof storage.getString("publicKey") == "string"
+                    && typeof storage.getNumber("userId") == "number"
+                ){
+                    // @ts-ignore
+                    if(storage.getString("masterKeys").length > 16 && storage.getString("apiKey").length > 16 && storage.getString("privateKey").length > 16 && storage.getString("publicKey").length > 16 && storage.getNumber("userId") !== 0){
+                        setSetupDone(true)
+    
+                        if(
+                            storage.getBoolean("biometricPinAuth:" + userId)
+                            && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId)
+                            && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])
+                        ){
+                            setBiometricAuthScreenState("auth")
+                            
+                            navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
+                        }
+                        else{
+                            navigationRef.current?.dispatch(CommonActions.reset({
+                                index: 0,
+                                routes: [
+                                    {
+                                        name: "MainScreen",
+                                        params: {
+                                            parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
+                                        }
+                                    }
+                                ]
+                            }))
+                        }
                     }
                     else{
-                        navigationRef.current?.dispatch(CommonActions.reset({
-                            index: 0,
-                            routes: [
-                                {
-                                    name: "MainScreen",
-                                    params: {
-                                        parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
-                                    }
-                                }
-                            ]
-                        }))
+                        setSetupDone(false)
+    
+                        showToast({ message: i18n(lang, "appSetupNotPossible") })
                     }
                 }
                 else{
                     setSetupDone(false)
-
+    
                     showToast({ message: i18n(lang, "appSetupNotPossible") })
                 }
             }
-            else{
-                setSetupDone(false)
+            catch(e){
+                console.error(e)
 
+                setSetupDone(false)
+    
                 showToast({ message: i18n(lang, "appSetupNotPossible") })
             }
         }
 
-        if(isLoggedIn && !setupDone){
-            NetInfo.fetch().then((state) => {
-                if(!state.isConnected){
-                    return setTimeout(() => offlineSetup(), 2500)
-                }
+        if(isLoggedIn && !setupDone && navigationRef && navigationRef.current){
+            setup({ navigation: navigationRef }).then(() => {
+                setSetupDone(true)
 
-                setup({ navigation: navigationRef }).then(() => {
-                    setSetupDone(true)
-    
-                    if(storage.getBoolean("biometricPinAuth:" + userId) && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
-                        setBiometricAuthScreenState("auth")
-                        
-                        navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
-                    }
-                    else{
-                        navigationRef.current?.dispatch(CommonActions.reset({
-                            index: 0,
-                            routes: [
-                                {
-                                    name: "MainScreen",
-                                    params: {
-                                        parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
-                                    }
+                if(
+                    storage.getBoolean("biometricPinAuth:" + userId)
+                    && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId)
+                    && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])
+                ){
+                    setBiometricAuthScreenState("auth")
+                    
+                    navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
+                }
+                else{
+                    navigationRef.current?.dispatch(CommonActions.reset({
+                        index: 0,
+                        routes: [
+                            {
+                                name: "MainScreen",
+                                params: {
+                                    parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
                                 }
-                            ]
-                        }))
-                    }
-                }).catch((err) => {
-                    console.log(err)
-        
-                    offlineSetup()
-                })
+                            }
+                        ]
+                    }))
+                }
             }).catch((err) => {
                 console.log(err)
+    
+                offlineSetup()
             })
         }
 

@@ -189,7 +189,8 @@ export const NormalToast = memo(({ message }: { message?: string | undefined }) 
 
     return (
         <View
-            pointerEvents="box-none" style={{
+            pointerEvents="box-none"
+            style={{
                 zIndex: 99999
             }}
         >

@@ -52,12 +52,17 @@ export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText }: 
                     paddingBottom: 8
                 }}
             >
-                <View>
+                <View
+                    style={{
+                        maxWidth: "85%"
+                    }}
+                >
                     <Text
                         style={{
                             color: darkMode ? "white" : "black",
                             paddingTop: Platform.OS == "ios" ? 4 : 3
                         }}
+                        numberOfLines={1}
                     >
                         {title}
                     </Text>
@@ -136,12 +141,17 @@ export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonPro
                     paddingBottom: 10
                 }}
             >
-                <View>
+                <View
+                    style={{
+                        maxWidth: "80%"
+                    }}
+                >
                     <Text
                         style={{
                             color: darkMode ? "white" : "black",
                             paddingTop: typeof rightComponent !== "undefined" ? (Platform.OS == "android" ? 3 : 7) : 0
                         }}
+                        numberOfLines={1}
                     >
                         {title}
                     </Text>
@@ -435,6 +445,16 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 
                                     showToast({ message: "Cleared" })
                                 }} 
+                            />
+                            <SettingsButtonLinkHighlight
+                                title={"get medialib"}
+                                onPress={() => {
+                                    MediaLibrary.getAlbumsAsync({
+                                        includeSmartAlbums: true
+                                    }).then((content) => {
+                                        console.log(content)
+                                    })
+                                }}
                             />
                             <SettingsButtonLinkHighlight
                                 title={"get medialib"}

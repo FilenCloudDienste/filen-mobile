@@ -419,8 +419,6 @@ PODS:
     - React-perflogger (= 0.67.1)
   - ReactNativeART (1.2.0):
     - React
-  - ReactNativeExceptionHandler (2.10.10):
-    - React-Core
   - RNCMaskedView (0.1.11):
     - React
   - RNCPicker (2.2.1):
@@ -578,7 +576,6 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "ReactNativeART (from `../node_modules/@react-native-community/art`)"
-  - ReactNativeExceptionHandler (from `../node_modules/react-native-exception-handler`)
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
@@ -742,8 +739,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeART:
     :path: "../node_modules/@react-native-community/art"
-  ReactNativeExceptionHandler:
-    :path: "../node_modules/react-native-exception-handler"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNCPicker:
@@ -855,7 +850,6 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 2c92a8bddd1a3e72c7513d1e74235c2d9c84875c
   ReactCommon: 2e816fad39f65f2a94a5999d5be463a6b620dcf6
   ReactNativeART: 78edc68dd4a1e675338cd0cd113319cf3a65f2ab
-  ReactNativeExceptionHandler: b11ff67c78802b2f62eed0e10e75cb1ef7947c60
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNDeviceInfo: 4944cf8787b9c5bffaf301fda68cc1a2ec003341

@@ -107,6 +107,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     const setTopBarHeight = useStore(state => state.setTopBarHeight)
     const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
+    const dimensions = useStore(state => state.dimensions)
 
     const [parent, routeURL] = useMemo(() => {
         const parent: string = getParent(route)
@@ -114,6 +115,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 
         return [parent, routeURL]
     }, [route])
+
+    const homeTabBarTextMaxWidth: number = useMemo(() => {
+        return (dimensions.window.width / 5) - 20
+    }, [dimensions])
 
     const [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton] = useMemo(() => {
         const isMainScreen: boolean = (route.name == "MainScreen")
@@ -379,8 +384,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                     color: isRecentsScreen ? "#0A84FF" : "gray",
                                     fontWeight: "bold",
                                     fontSize: 13,
-                                    paddingTop: 3
+                                    paddingTop: 3,
+                                    maxWidth: homeTabBarTextMaxWidth
                                 }}
+                                numberOfLines={1}
                             >
                                 {i18n(lang, "recents")}
                             </Text>
@@ -415,8 +422,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                                 color: isSharedInScreen ? "#0A84FF" : "gray",
                                                 fontWeight: "bold",
                                                 fontSize: 13,
-                                                paddingTop: 3
+                                                paddingTop: 3,
+                                                maxWidth: homeTabBarTextMaxWidth
                                             }}
+                                            numberOfLines={1}
                                         >
                                             {i18n(lang, "sharedIn")}
                                         </Text>
@@ -448,8 +457,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                                 color: isSharedOutScreen ? "#0A84FF" : "gray",
                                                 fontWeight: "bold",
                                                 fontSize: 13,
-                                                paddingTop: 3
+                                                paddingTop: 3,
+                                                maxWidth: homeTabBarTextMaxWidth
                                             }}
+                                            numberOfLines={1}
                                         >
                                             {i18n(lang, "sharedOut")}
                                         </Text>
@@ -484,8 +495,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                     color: isPublicLinksScreen ? "#0A84FF" : "gray",
                                     fontWeight: "bold",
                                     fontSize: 13,
-                                    paddingTop: 3
+                                    paddingTop: 3,
+                                    maxWidth: homeTabBarTextMaxWidth
                                 }}
+                                numberOfLines={1}
                             >
                                 {i18n(lang, "publicLinks")}
                             </Text>
@@ -517,8 +530,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                     color: isFavoritesScreen ? "#0A84FF" : "gray",
                                     fontWeight: "bold",
                                     fontSize: 13,
-                                    paddingTop: 3
+                                    paddingTop: 3,
+                                    maxWidth: homeTabBarTextMaxWidth
                                 }}
+                                numberOfLines={1}
                             >
                                 {i18n(lang, "favorites")}
                             </Text>
@@ -550,8 +565,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                     color: isOfflineScreen ? "#0A84FF" : "gray",
                                     fontWeight: "bold",
                                     fontSize: 13,
-                                    paddingTop: 3
+                                    paddingTop: 3,
+                                    maxWidth: homeTabBarTextMaxWidth
                                 }}
+                                numberOfLines={1}
                             >
                                 {i18n(lang, "offlineFiles")}
                             </Text>
