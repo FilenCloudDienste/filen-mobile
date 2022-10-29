@@ -44,25 +44,15 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 
     useEffect(() => {
         if(item.type == "folder"){
-            const fetchFolderSizeTimeout = storage.getNumber("fetchFolderSizeTimeout:" + item.uuid)
-
-            if(fetchFolderSizeTimeout > new Date().getTime()){
-                return
-            }
-
             fetchFolderSize({ folder: item, routeURL: getRouteURL() }).then((fetchedSize) => {
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
-                
-                if(fetchedSize > 0){
-                    storage.set("fetchFolderSizeTimeout:" + item.uuid, (new Date().getTime() + 60000))
-                }
 
                 if(isMounted()){
                     setFolderSize(fetchedSize)
                 }
             }).catch(console.error)
         }
-    }, [])
+    }, [item.uuid])
 
     return (
         <TouchableHighlight

@@ -1,5 +1,3 @@
-import "./lib/globals"
-import "./lib/node"
 import React, { useState, useEffect, Fragment, memo } from "react"
 import { Dimensions, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState } from "react-native"
 import { setup } from "./lib/services/setup/setup"
@@ -51,7 +49,12 @@ import * as Sentry from "@sentry/react-native"
 
 Sentry.init({
     dsn: "https://1aa0cbb262634a27a5887e91381e4251@o4504039703314432.ingest.sentry.io/4504039705804800",
-    tracesSampleRate: 1.0
+    enableNative: true,
+    enabled: true,
+    enableAppHangTracking: true,
+    enableNativeCrashHandling: true,
+    enableOutOfMemoryTracking: true,
+    enableAutoPerformanceTracking: true
 })
 
 NetInfo.configure({

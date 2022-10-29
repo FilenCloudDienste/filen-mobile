@@ -10,7 +10,7 @@ import DeviceInfo from "react-native-device-info"
 
 const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(8192 * 8192)
-const fetchFolderSizeSemaphore = new Semaphore(3)
+const fetchFolderSizeSemaphore = new Semaphore(16)
 
 const endpointsToCache: string[] = [
     "/v1/dir/content",
@@ -191,6 +191,7 @@ export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey:
                     if(
                         response.message.toString().toLowerCase().indexOf("chunks are not matching") !== -1
                         || response.message.toString().toLowerCase().indexOf("not matching") !== -1
+                        || response.message.toString().toLowerCase().indexOf("done yet") !== -1
                     ){
                         return setTimeout(req, timeout)
                     }

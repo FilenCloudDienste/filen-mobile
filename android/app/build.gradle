@@ -135,8 +135,8 @@ android {
         applicationId "io.filen.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 221
-        versionName "2.0.21"
+        versionCode 223
+        versionName "2.0.23"
     }
     splits {
         abi {
@@ -256,4 +256,4 @@ task copyDownloadableDepsToLibs(type: Copy) {
 apply from: "../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"
 applyNativeModulesAppBuildGradle(project)
 
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'

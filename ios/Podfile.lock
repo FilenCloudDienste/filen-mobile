@@ -15,7 +15,7 @@ PODS:
     - ExpoModulesCore
   - EXDocumentPicker (10.1.3):
     - ExpoModulesCore
-  - EXFileSystem (14.0.0):
+  - EXFileSystem (13.1.4):
     - ExpoModulesCore
   - EXFont (10.0.5):
     - ExpoModulesCore
@@ -335,8 +335,6 @@ PODS:
     - React-Core
   - react-native-blob-util (0.14.1):
     - React-Core
-  - react-native-cameraroll (4.1.2):
-    - React-Core
   - react-native-document-picker (8.1.1):
     - React-Core
   - react-native-image-picker (4.7.3):
@@ -346,7 +344,7 @@ PODS:
   - react-native-mmkv (2.0.1):
     - MMKV
     - React-Core
-  - react-native-netinfo (8.0.0):
+  - react-native-netinfo (7.1.3):
     - React-Core
   - react-native-quick-base64 (2.0.2):
     - React-Core
@@ -433,11 +431,11 @@ PODS:
     - React-Core
   - RNFS (2.19.0):
     - React-Core
-  - RNGestureHandler (2.4.1):
+  - RNGestureHandler (2.1.3):
     - React-Core
   - RNPermissions (3.3.0):
     - React-Core
-  - RNReanimated (2.8.0):
+  - RNReanimated (2.3.3):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -445,6 +443,7 @@ PODS:
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
+    - React
     - React-callinvoker
     - React-Core
     - React-Core/DevSupport
@@ -555,7 +554,6 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
-  - "react-native-cameraroll (from `../node_modules/@react-native-community/cameraroll`)"
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
@@ -697,8 +695,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-background-timer"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
-  react-native-cameraroll:
-    :path: "../node_modules/@react-native-community/cameraroll"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
   react-native-image-picker:
@@ -782,7 +778,7 @@ SPEC CHECKSUMS:
   EXClipboard: 8123fcda680538bb0e1f4e6511106553e52d3760
   EXConstants: 88bf79622fbd9b476c96d8ec57fe97ca44fe8e3c
   EXDocumentPicker: d3eb6a207e1f370e496bea959b3ac145126560f5
-  EXFileSystem: 2aa2d9289f84bca9532b9ccbd81504fa31eb1ded
+  EXFileSystem: 08a3033ac372b6346becf07839e1ccef26fb1058
   EXFont: 2597c10ac85a69d348d44d7873eccf5a7576ef5e
   EXImagePicker: bf4d62532cc2bf217edbe4abbb0014e73e079eac
   EXKeepAwake: bf48d7f740a5cd2befed6cf9a49911d385c6c47d
@@ -829,12 +825,11 @@ SPEC CHECKSUMS:
   React-logger: b08f354e4c928ff794ca477347fea0922aaf11c3
   react-native-background-timer: 17ea5e06803401a379ebf1f20505b793ac44d0fe
   react-native-blob-util: 7ac01cd4a4ba81016864727a756ce2c1af995e35
-  react-native-cameraroll: 2957f2bce63ae896a848fbe0d5352c1bd4d20866
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-image-picker: 4e6008ad8c2321622affa2c85432a5ebd02d480c
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-mmkv: bb1b8057949b5318bca2c0f6ba832051b713403c
-  react-native-netinfo: ba4ea50d836c60580c59079233c400753fe5bcb6
+  react-native-netinfo: 42c0965fca99069b92e3f7360ab2d425985e5104
   react-native-quick-base64: 5b0692872a9456fb4723f7b2a0083d51485baa95
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
   React-perflogger: 9a6172711d9c4c8c7ac0a426717317c3c6ecf85c
@@ -856,9 +851,9 @@ SPEC CHECKSUMS:
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNFileViewer: ce7ca3ac370e18554d35d6355cffd7c30437c592
   RNFS: fc610f78fdf8bfc89a9e5cc2f898519f4dba1002
-  RNGestureHandler: 4f4986408310a43f1606c391f38f76e0d6e790d5
+  RNGestureHandler: e1099204721a17a89c81fcd1cc2e92143dc040fb
   RNPermissions: bcd846e8f5a7f39e921cc7ca7172e2de0e698b6f
-  RNReanimated: 46cdb89ca59ab7181334f4ed05a70e82ddb36751
+  RNReanimated: 3ad6ec4e147462206be9d1c925df10b6ea850b0e
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   RNSentry: 694aecc3d8240e4935374974a6636e360ae06394
   RNShareMenu: cb9dac548c8bf147d06f0bf07296ad51ea9f5fc3

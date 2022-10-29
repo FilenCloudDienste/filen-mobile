@@ -14,7 +14,6 @@ import { queueFileUpload, UploadFile } from "../../lib/services/upload/upload"
 import { showToast } from "../Toasts"
 import { i18n } from "../../i18n"
 import { StackActions } from "@react-navigation/native"
-import CameraRoll from "@react-native-community/cameraroll"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../lib/permissions"
 import { changeFolderColor, favoriteItem, itemPublicLinkInfo, editItemPublicLink, getPublicKeyFromEmail, shareItemToUser, trashItem, restoreItem, fileExists, folderExists, fetchFileVersionData, restoreArchivedFile, bulkFavorite, bulkTrash, bulkDeletePermanently, bulkRestore, bulkStopSharing, bulkRemoveSharedIn, emptyTrash, reportError } from "../../lib/api"
 import * as Clipboard from "expo-clipboard"
@@ -28,6 +27,7 @@ import ReactNativeBlobUtil from "react-native-blob-util"
 import * as RNDocumentPicker from "react-native-document-picker"
 import * as RNImagePicker from "react-native-image-picker"
 import mimeTypes from "mime-types"
+import * as MediaLibrary from "expo-media-library"
 
 const THUMBNAIL_BASE_PATH: string = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/thumbnailCache/"
 
@@ -408,7 +408,11 @@ export const BottomBarAddActionSheet = memo(() => {
 														return reject(new Error("Could not copy file"))
 													}
 
-													const fileURI = decodeURIComponent(result.uri.replace("file://", ""))
+													if(typeof result.fileCopyUri !== "string"){
+														return reject(new Error("Could not copy file"))
+													}
+
+													const fileURI = decodeURIComponent(result.fileCopyUri.replace("file://", "").replace("file:", ""))
 													const tempPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + new Date().getTime() + "_" + result.name
 
 													ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
@@ -427,13 +431,16 @@ export const BottomBarAddActionSheet = memo(() => {
 
 											RNDocumentPicker.pickMultiple({
 												mode: "import",
-												allowMultiSelection: true
+												allowMultiSelection: true,
+												copyTo: "cachesDirectory"
 											}).then(async (result) => {
 												const parent = getParent()
 			
 												if(parent.length < 16){
 													return
 												}
+
+												console.log(result)
 
 												for(let i = 0; i < result.length; i++){
 													try{
@@ -1028,7 +1035,7 @@ export const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) =
 																			queueFileDownload({
 																				file: item,
 																				saveToGalleryCallback: (path: string) => {
-																					CameraRoll.save(path).then(() => {
+																					MediaLibrary.saveToLibraryAsync(path).then(() => {
 																						addToSavedToGallery(item)
 
 																						showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
@@ -1717,7 +1724,7 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 														queueFileDownload({
 															file: currentActionSheetItem,
 															saveToGalleryCallback: (path: string) => {
-																CameraRoll.save(path).then(() => {
+																MediaLibrary.saveToLibraryAsync(path).then(() => {
 																	addToSavedToGallery(currentActionSheetItem)
 
 																	showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })

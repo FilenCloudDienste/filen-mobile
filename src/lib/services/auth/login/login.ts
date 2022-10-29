@@ -280,10 +280,14 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
         navigation.replace("SetupScreen")
 
         setTimeout(() => {
+            console.log("setting up", global.nodeThread.ready)
+
             setup({ navigation }).then(() => {
                 setSetupDone(true)
+
+                console.log("setup done")
                 
-                navigation.replace("MainScreen")
+                //navigation.replace("MainScreen")
             }).catch((err) => {
                 console.log(err)
 

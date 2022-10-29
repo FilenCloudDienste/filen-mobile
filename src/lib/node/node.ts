@@ -38,19 +38,7 @@ declare global {
 }
 
 const isNodeInitialized = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-        if(global.nodeThread.ready){
-            return resolve(true)
-        }
-
-        let interval = setInterval(() => {
-            if(global.nodeThread.ready){
-                clearInterval(interval)
-
-                return resolve(true)
-            }
-        }, 10)
-    })
+    return Promise.resolve(true)
 }
 
 global.nodeThread = {

@@ -63,7 +63,11 @@ export const clearCacheDirectories = (): Promise<boolean> => {
 export const setup = ({ navigation }: { navigation: any }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         clearCacheDirectories().then(() => {
+            console.log("setup: cleared cache")
+
             updateKeys({ navigation }).then(() => {
+                console.log("setup: updated keys")
+
                 apiRequest({
                     method: "POST",
                     endpoint: "/v1/user/baseFolders",
@@ -87,6 +91,8 @@ export const setup = ({ navigation }: { navigation: any }): Promise<boolean> => 
                     else{
                         storage.set("defaultDriveOnly:" + storage.getNumber("userId"), false)
                     }
+
+                    console.log("setup: fetched default drive uuid")
 
                     return resolve(true)
                 })
