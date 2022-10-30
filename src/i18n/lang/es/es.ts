@@ -400,9 +400,9 @@ export const es: {
     immediately: "Immediatamente",
     oneMinute: "1 minuto",
     threeMinutes: "3 minutos",
-    fiveMinutes: "5 minutes",
+    fiveMinutes: "5 minutos",
     tenMinutes: "10 minutos",
-    fifteenMinutes: "15 minutes",
+    fifteenMinutes: "15 minutos",
     thirtyMinutes: "30 minutos",
     oneHour: "1 hora"
 }
