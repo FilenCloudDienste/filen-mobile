@@ -10,7 +10,6 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
 import { ListEmpty } from "../ListEmpty"
-import { getFolderSizeFromCache } from "../../lib/services/items"
 import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 
 export interface ItemListProps {
@@ -407,14 +406,6 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             })
         }
     }, [photosGridSize])
-
-    useEffect(() => {
-        items.forEach((item: any) => {
-            if(item.type == "folder"){
-                getFolderSizeFromCache({ folder: item, routeURL, load: true })
-            }
-        })
-    }, [items])
 
     return (
         <View
@@ -820,16 +811,6 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                 catch(e){
                                     console.log(e)
                                 }
-
-                                setTimeout(() => {
-                                    if(items.length > 0){
-                                        items.forEach((item: any) => {
-                                            if(item.type == "folder"){
-                                                getFolderSizeFromCache({ folder: item, routeURL, load: true })
-                                            }
-                                        })
-                                    }
-                                }, 250)
 
                                 setRefreshing(false)
                             }

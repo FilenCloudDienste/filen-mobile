@@ -137,48 +137,69 @@ export const getFilenameFromPath = (path: string): string => {
 }
 
 export const getRouteURL = (passedRoute?: any): string => {
-    if(typeof passedRoute !== "undefined"){
-        var route = passedRoute
-        var routeURL = getParent(passedRoute)
-    }
-    else{
-        var routes = useStore.getState().currentRoutes
-        var route = routes[routes.length - 1]
-        var routeURL = getParent()
-    }
-
-    if(typeof route !== "undefined"){
-        if(typeof route.params !== "undefined"){
-            if(typeof route.params.parent !== "undefined"){
-                routeURL = route.params.parent
+    try{
+        if(typeof passedRoute !== "undefined"){
+            var route = passedRoute
+            var routeURL = getParent(passedRoute)
+        }
+        else{
+            var routes = useStore.getState().currentRoutes
+            var route = routes[routes.length - 1]
+            var routeURL = getParent()
+        }
+    
+        if(typeof route !== "undefined"){
+            if(typeof route.params !== "undefined"){
+                if(typeof route.params.parent !== "undefined"){
+                    routeURL = route.params.parent
+                }
             }
         }
+    
+        return routeURL
+    }
+    catch(e){
+        console.error(e)
     }
 
-    return routeURL
+    return "base"
 }
 
 export const getParent = (passedRoute?: any): string => {
-    let routes = useStore.getState().currentRoutes
-    let route = routes[routes.length - 1]
+    try{
+        let routes = useStore.getState().currentRoutes
 
-    if(typeof passedRoute !== "undefined"){
-        route = passedRoute
-    }
+        if(typeof routes == "undefined"){
+            return "base"
+        }
 
-    if(typeof route !== "undefined"){
-        if(typeof route.params !== "undefined"){
-            if(typeof route.params.parent !== "undefined"){
-                if(route.params.parent.indexOf("/") !== -1){
-                    const ex = route.params.parent.split("/")
+        if(!Array.isArray(routes)){
+            return "base"
+        }
 
-                    return ex[ex.length - 1].trim()
-                }
-                else{
-                    return route.params.parent
+        let route = routes[routes.length - 1]
+
+        if(typeof passedRoute !== "undefined"){
+            route = passedRoute
+        }
+
+        if(typeof route !== "undefined"){
+            if(typeof route.params !== "undefined"){
+                if(typeof route.params.parent !== "undefined"){
+                    if(route.params.parent.indexOf("/") !== -1){
+                        const ex = route.params.parent.split("/")
+
+                        return ex[ex.length - 1].trim()
+                    }
+                    else{
+                        return route.params.parent
+                    }
                 }
             }
         }
+    }
+    catch(e){
+        console.error(e)
     }
 
     return "base"

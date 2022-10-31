@@ -302,83 +302,152 @@ export const BottomBarAddActionSheet = memo(() => {
 											hasStoragePermissions().then(() => {
 												storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
 
-												const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
-													return new Promise((resolve, reject) => {
-														if(!asset.uri){
-															return reject(new Error("Could not copy file"))
-														}
-
-														const fileURI = decodeURIComponent(asset.uri.replace("file://", ""))
-
-														ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
-															return resolve({
-																path: fileURI,
-																name: i18n(lang, getFilePreviewType(getFileExt(fileURI)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(fileURI),
-																size: info.size as number,
-																mime: mimeTypes.lookup(fileURI) || "",
-																lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
-															})
-														}).catch(reject)
-													})
-												}
-
-												RNImagePicker.launchImageLibrary({
-													mediaType: "mixed",
-													selectionLimit: 100,
-													quality: 1,
-													videoQuality: "high",
-													includeBase64: false,
-													includeExtra: true,
-													maxWidth: 999999999,
-													maxHeight: 999999999
-												}).then(async (response) => {
-													if(response.didCancel){
-														return
-													}
-
-													const parent = getParent()
+												if(Platform.OS == "ios"){
+													const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
+														return new Promise((resolve, reject) => {
+															if(!asset.uri){
+																return reject(new Error("Could not copy file"))
+															}
 	
-													if(parent.length < 16){
-														return
+															const fileURI = decodeURIComponent(asset.uri.replace("file://", ""))
+	
+															ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
+																return resolve({
+																	path: fileURI,
+																	name: i18n(lang, getFilePreviewType(getFileExt(fileURI)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(fileURI),
+																	size: info.size as number,
+																	mime: mimeTypes.lookup(fileURI) || "",
+																	lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
+																})
+															}).catch(reject)
+														})
 													}
-
-													if(response.errorMessage){
-														console.log(response.errorMessage)
-
-														return showToast({ message: response.errorMessage.toString() })
-													}
-
-													if(response.assets){
-														for(const asset of response.assets){
-															if(asset.uri){
-																try{
-																	const file = await getFileInfo(asset)
-			
-																	queueFileUpload({ file, parent }).catch((err) => {
-																		if(err == "wifiOnly"){
-																			return showToast({ message: i18n(lang, "onlyWifiUploads") })
-																		}
-			
-																		console.error(err)
-			
-																		showToast({ message: err.toString() })
-																	})
-																}
-																catch(e: any){
-																	console.log(e)
-			
-																	showToast({ message: e.toString() })
+	
+													RNImagePicker.launchImageLibrary({
+														mediaType: "mixed",
+														selectionLimit: 100,
+														quality: 1,
+														videoQuality: "high",
+														includeBase64: false,
+														includeExtra: true,
+														maxWidth: 999999999,
+														maxHeight: 999999999
+													}).then(async (response) => {
+														if(response.didCancel){
+															return
+														}
+	
+														const parent = getParent()
+		
+														if(parent.length < 16){
+															return
+														}
+	
+														if(response.errorMessage){
+															console.log(response.errorMessage)
+	
+															return showToast({ message: response.errorMessage.toString() })
+														}
+	
+														if(response.assets){
+															for(const asset of response.assets){
+																if(asset.uri){
+																	try{
+																		const file = await getFileInfo(asset)
+				
+																		queueFileUpload({ file, parent }).catch((err) => {
+																			if(err == "wifiOnly"){
+																				return showToast({ message: i18n(lang, "onlyWifiUploads") })
+																			}
+				
+																			console.error(err)
+				
+																			showToast({ message: err.toString() })
+																		})
+																	}
+																	catch(e: any){
+																		console.log(e)
+				
+																		showToast({ message: e.toString() })
+																	}
 																}
 															}
 														}
+													}).catch((err) => {
+														if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
+															console.log(err)
+	
+															showToast({ message: err.toString() })
+														}
+													})
+												}
+												else{
+													const getFileInfo = (result: RNDocumentPicker.DocumentPickerResponse): Promise<UploadFile> => {
+														return new Promise((resolve, reject) => {
+															if(result.copyError){
+																return reject(new Error("Could not copy file"))
+															}
+		
+															if(typeof result.fileCopyUri !== "string"){
+																return reject(new Error("Could not copy file"))
+															}
+		
+															const fileURI = decodeURIComponent(result.fileCopyUri.replace("file://", "").replace("file:", ""))
+		
+															ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
+																return resolve({
+																	path: fileURI,
+																	name: result.name,
+																	size: info.size as number,
+																	mime: mimeTypes.lookup(result.name) || result.type || "",
+																	lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
+																})
+															}).catch(reject)
+														})
 													}
-												}).catch((err) => {
-													if(err.toString().toLowerCase().indexOf("cancelled") == -1 && err.toString().toLowerCase().indexOf("canceled") == -1){
+		
+													RNDocumentPicker.pickMultiple({
+														type: [RNDocumentPicker.types.video, RNDocumentPicker.types.images],
+														copyTo: "cachesDirectory"
+													}).then(async (result) => {
+														const parent = getParent()
+					
+														if(parent.length < 16){
+															return
+														}
+		
+														console.log(result)
+		
+														for(let i = 0; i < result.length; i++){
+															try{
+																const file = await getFileInfo(result[i])
+		
+																queueFileUpload({ file, parent }).catch((err) => {
+																	if(err == "wifiOnly"){
+																		return showToast({ message: i18n(lang, "onlyWifiUploads") })
+																	}
+		
+																	console.error(err)
+		
+																	showToast({ message: err.toString() })
+																})
+															}
+															catch(e: any){
+																console.log(e)
+		
+																showToast({ message: e.toString() })
+															}
+														}
+													}).catch((err) => {
+														if(RNDocumentPicker.isCancel(err)){
+															return
+														}
+		
 														console.log(err)
-
+		
 														showToast({ message: err.toString() })
-													}
-												})
+													})
+												}
 											}).catch((err) => {
 												console.log(err)
 
@@ -413,25 +482,21 @@ export const BottomBarAddActionSheet = memo(() => {
 													}
 
 													const fileURI = decodeURIComponent(result.fileCopyUri.replace("file://", "").replace("file:", ""))
-													const tempPath = ReactNativeBlobUtil.fs.dirs.CacheDir + "/" + new Date().getTime() + "_" + result.name
 
 													ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
-														ReactNativeBlobUtil.fs.cp(fileURI, tempPath).then(() => {
-															return resolve({
-																path: tempPath,
-																name: result.name,
-																size: info.size as number,
-																mime: mimeTypes.lookup(result.name) || result.type || "",
-																lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
-															})
-														}).catch(reject)
+														return resolve({
+															path: fileURI,
+															name: result.name,
+															size: info.size as number,
+															mime: mimeTypes.lookup(result.name) || result.type || "",
+															lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
+														})
 													}).catch(reject)
 												})
 											}
 
 											RNDocumentPicker.pickMultiple({
-												mode: "import",
-												allowMultiSelection: true,
+												type: [RNDocumentPicker.types.allFiles],
 												copyTo: "cachesDirectory"
 											}).then(async (result) => {
 												const parent = getParent()

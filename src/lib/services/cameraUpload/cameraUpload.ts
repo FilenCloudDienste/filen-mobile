@@ -107,7 +107,8 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
                 const cachedTotal = cached.length
                 const currentTotal = await new Promise((resolve) => {
                     MediaLibrary.getAssetsAsync({
-                        first: 1
+                        first: 1,
+                        mediaType: ["photo", "video"]
                     }).then((fetched) => {
                         return resolve(fetched.totalCount)
                     }).catch(reject)
@@ -125,7 +126,8 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
         const fetch = (after: MediaLibrary.AssetRef | undefined) => {
             MediaLibrary.getAssetsAsync({
                 ...(typeof after !== "undefined" ? { after } : {}),
-                first: 256
+                first: 256,
+                mediaType: ["photo", "video"]
             }).then((fetched) => {
                 for(let i = 0; i < fetched.assets.length; i++){
                     assets.push(fetched.assets[i])

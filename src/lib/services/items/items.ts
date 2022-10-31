@@ -145,7 +145,6 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
         isBase: typeof folder.parent == "string" ? false : true,
         isSync: folder.is_sync || false,
         isDefault: folder.is_default || false,
-        //size: typeof routeURL == "string" ? getFolderSizeFromCache({ folder, routeURL, load: loadFolderSizes }) : 0,
         size: 0,
         selected: false,
         mime: "",
@@ -959,56 +958,6 @@ export const getFolderSizeCacheKey = ({ folder, routeURL }: { folder: Item, rout
     }
 
     return cacheKey
-}
-
-export const getFolderSizeFromCache = ({ folder, routeURL, load = true }: { folder: Item, routeURL: string, load?: boolean }): number => {
-    const cacheKey = getFolderSizeCacheKey({ folder, routeURL })
-    let timeout = 0
-    const cache = storage.getNumber(cacheKey)
-        
-    if(load){
-        timeout = storage.getNumber(cacheKey + ":timeout")
-    }
-
-    if(load){
-        const netInfo = useStore.getState().netInfo
-
-        if(Math.floor(+new Date()) > timeout && netInfo.isConnected && netInfo.isInternetReachable){
-            fetchFolderSize({ folder, routeURL }).then((size) => {
-                try{
-                    if(cache == size){
-                        storage.set(cacheKey + ":timeout", (Math.floor(+new Date()) + 15000))
-
-                        return false
-                    }
-
-                    storage.set(cacheKey, size)
-                    storage.set(cacheKey + ":timeout", (Math.floor(+new Date()) + 45000))
-                }
-                catch(e){
-                    return console.log(e)
-                }
-
-                updateLoadItemsCache({
-                    item: folder,
-                    prop: "size",
-                    value: size
-                }).then(() => {
-                    DeviceEventEmitter.emit("event", {
-                        type: "folder-size",
-                        data: {
-                            uuid: folder.uuid,
-                            size
-                        }
-                    })
-                })
-            }).catch((err) => {
-                console.log(err)
-            })
-        }
-    }
-
-    return (typeof cache == "number" ? cache : 0)
 }
 
 export const getThumbnailCacheKey = ({ uuid }: { uuid: string }): { width: number, height: number, quality: number, thumbnailVersion: string, cacheKey: string } => {

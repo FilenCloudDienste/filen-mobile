@@ -53,15 +53,15 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) requires camera access to upload photos.</string>
+	<string>Please allow access to your camera so that Filen can upload photos you take inside the app.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>$(PRODUCT_NAME) requires FaceID acces for quick and secure access.</string>
+	<string>Please allow Filen to lock itself with FaceID or TouchID.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>$(PRODUCT_NAME) requires microphone access to upload audios and videos.</string>
+	<string>Please allow access to your microphone so that Filen can capture audio when taking videos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>$(PRODUCT_NAME) would like to save images to your device.</string>
+	<string>Please allow access to your photo library so that Filen can save photos on your device.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>$(PRODUCT_NAME) requires library access to upload pictures.</string>
+	<string>Please allow access to your photos so that Filen can back them up.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>

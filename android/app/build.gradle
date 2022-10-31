@@ -135,8 +135,8 @@ android {
         applicationId "io.filen.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 223
-        versionName "2.0.23"
+        versionCode 225
+        versionName "2.0.25"
     }
     splits {
         abi {
@@ -225,6 +225,7 @@ dependencies {
     }
     
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
     }
