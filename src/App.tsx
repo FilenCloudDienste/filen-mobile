@@ -47,6 +47,8 @@ import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen/Cam
 import { isRouteInStack } from "./lib/helpers"
 import * as Sentry from "@sentry/react-native"
 
+enableScreens(false)
+
 Sentry.init({
     dsn: "https://1aa0cbb262634a27a5887e91381e4251@o4504039703314432.ingest.sentry.io/4504039705804800",
     enableNative: true,
@@ -63,13 +65,10 @@ NetInfo.configure({
     reachabilityLongTimeout: 60 * 1000,
     reachabilityShortTimeout: 5 * 1000,
     reachabilityRequestTimeout: 15 * 1000,
-    reachabilityShouldRun: () => true,
-    shouldFetchWiFiSSID: false
+    reachabilityShouldRun: () => true
 })
 
 LogBox.ignoreLogs(["new NativeEventEmitter"])
-
-enableScreens(true)
 
 const Stack = createNativeStackNavigator()
 const navigationRef = createNavigationContainerRef()
