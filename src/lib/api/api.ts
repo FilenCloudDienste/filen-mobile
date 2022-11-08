@@ -53,7 +53,7 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
                 console.error(e)
             }
 
-            return reject(i18n(storage.getString("lang"), "deviceOffline"))
+            //return reject(i18n(storage.getString("lang"), "deviceOffline"))
         }
 
         const request = async () => {
@@ -192,6 +192,7 @@ export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey:
                         response.message.toString().toLowerCase().indexOf("chunks are not matching") !== -1
                         || response.message.toString().toLowerCase().indexOf("not matching") !== -1
                         || response.message.toString().toLowerCase().indexOf("done yet") !== -1
+                        || response.message.toString().toLowerCase().indexOf("finished yet") !== -1
                     ){
                         return setTimeout(req, timeout)
                     }

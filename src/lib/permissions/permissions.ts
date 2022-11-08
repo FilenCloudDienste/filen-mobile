@@ -2,6 +2,7 @@ import { Platform } from "react-native"
 import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } from "react-native-permissions"
 import storage from "../storage"
 import { i18n } from "../../i18n"
+import * as MediaLibrary from "expo-media-library"
 
 export const hasWritePermissions = (requestPermissions: boolean = true): Promise<boolean> => {
     return new Promise((resolve, reject) => {
@@ -113,30 +114,59 @@ export const hasBiometricPermissions = (requestPermissions: boolean = true): Pro
 
 export const hasPhotoLibraryPermissions = (requestPermissions: boolean = true): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
-        if(Platform.OS == "android"){
-            hasStoragePermissions(requestPermissions).then(resolve).catch(reject)
-        }
-        else{
-            checkMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((statuses) => {
-                if(
-                    RESULTS.GRANTED == statuses[PERMISSIONS.IOS.PHOTO_LIBRARY]
-                    && RESULTS.GRANTED == statuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
-                ){
-                    return resolve(true)
-                }
-
-                requestMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((requestStatuses) => {
+        const rest = () => {
+            if(Platform.OS == "android"){
+                check(PERMISSIONS.ANDROID.ACCESS_MEDIA_LOCATION).then((status) => {
+                    if(status == RESULTS.GRANTED){
+                        return resolve(true)
+                    }
+    
+                    request(PERMISSIONS.ANDROID.ACCESS_MEDIA_LOCATION).then((requestStatus) => {
+                        if(requestStatus == RESULTS.GRANTED){
+                            return resolve(true)
+                        }
+    
+                        hasStoragePermissions(requestPermissions).then(resolve).catch(reject)
+                    }).catch(reject)
+                }).catch(reject)
+            }
+            else{
+                checkMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((statuses) => {
                     if(
-                        RESULTS.GRANTED == requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY]
-                        && RESULTS.GRANTED == requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
+                        RESULTS.GRANTED == statuses[PERMISSIONS.IOS.PHOTO_LIBRARY]
+                        && RESULTS.GRANTED == statuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
                     ){
                         return resolve(true)
                     }
     
-                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
+                    requestMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((requestStatuses) => {
+                        if(
+                            RESULTS.GRANTED == requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY]
+                            && RESULTS.GRANTED == requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
+                        ){
+                            return resolve(true)
+                        }
+        
+                        return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
+                    }).catch(reject)
                 }).catch(reject)
-            }).catch(reject)
+            }
         }
+
+        MediaLibrary.getPermissionsAsync(false).then((status) => {
+            if(!status.granted){
+                MediaLibrary.requestPermissionsAsync(false).then((status) => {
+                    if(!status.granted){
+                        return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
+                    }
+
+                    rest()
+                }).catch(reject)
+            }
+            else{
+                rest()
+            }
+        }).catch(reject)
     })
 }
 

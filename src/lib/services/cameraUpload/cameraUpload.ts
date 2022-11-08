@@ -5,18 +5,30 @@ import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, dec
 import { folderPresent, fileExists, apiRequest } from "../../api"
 import BackgroundTimer from "react-native-background-timer"
 import * as MediaLibrary from "expo-media-library"
-import ReactNativeBlobUtil from "react-native-blob-util"
 import * as FileSystem from "expo-file-system"
 import NetInfo from "@react-native-community/netinfo"
-import RNFS from "react-native-fs"
 import mimeTypes from "mime-types"
+import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
+// @ts-ignore
+import RNHeicConverter from "react-native-heic-converter"
+import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
+
+const log = logger.createLogger({
+    severity: "debug",
+    transport: [fileAsyncTransport, mapConsoleTransport],
+    transportOptions: {
+        FS: FileSystem,
+        fileName: "logs/cameraUpload.log"
+    }
+})
 
 const TIMEOUT: number = 5000
 const FAILED: { [key: string]: number } = {}
-const MAX_FAILED: number = 3
+const MAX_FAILED: number = 1
 const MAX_FETCH_TIME: number = 15000
 let isRunning: boolean = false
 let fallbackInterval: NodeJS.Timer | undefined = undefined
+let askedForPermissions: boolean = false
 
 export const startCameraUploadFallbackInterval = () => {
     fallbackInterval = setInterval(() => {
@@ -64,8 +76,10 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
         const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
         const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
         const cameraUploadLastAssetsCached = storage.getString("cameraUploadLastAssets:" + userId)
+        const cameraUploadLastAssetCached = storage.getString("cameraUploadLastAsset:" + userId)
+        const cameraUploadAssetFetchTimeout: number = storage.getNumber("cameraUploadAssetFetchTimeout:" + userId)
         let cameraUploadExcludedAlbums: any = storage.getString("cameraUploadExcludedAlbums:" + userId)
-        let assetTypes: string[] = ["photo", "video"]
+        let assetTypes: MediaLibrary.MediaTypeValue[] = ["photo", "video"]
 
         if(cameraUploadIncludeImages && !cameraUploadIncludeVideos){
             assetTypes = ["photo"]
@@ -92,7 +106,7 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
                 }
             }
             catch(e){
-                console.log(e)
+                log.error(e)
 
                 cameraUploadExcludedAlbums = {}
             }
@@ -101,21 +115,26 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
             cameraUploadExcludedAlbums = {}
         }
 
-        if(typeof cameraUploadLastAssetsCached == "string"){
+        if(typeof cameraUploadLastAssetsCached == "string" && typeof cameraUploadLastAssetCached == "string" && (new Date().getTime() < cameraUploadAssetFetchTimeout)){
             try{
-                const cached = JSON.parse(cameraUploadLastAssetsCached)
+                const cached: MediaLibrary.Asset[] = JSON.parse(cameraUploadLastAssetsCached)
+                const lastCached: MediaLibrary.Asset = JSON.parse(cameraUploadLastAssetCached)
                 const cachedTotal = cached.length
-                const currentTotal = await new Promise((resolve) => {
+                const current = await new Promise<{ total: number, last: MediaLibrary.Asset }>((resolve, reject) => {
                     MediaLibrary.getAssetsAsync({
                         first: 1,
-                        mediaType: ["photo", "video"]
+                        mediaType: ["photo", "video"],
+                        sortBy: MediaLibrary.SortBy.modificationTime
                     }).then((fetched) => {
-                        return resolve(fetched.totalCount)
+                        return resolve({
+                            total: fetched.totalCount,
+                            last: fetched.assets[0]
+                        })
                     }).catch(reject)
                 })
 
-                if(cachedTotal == currentTotal){
-                    return resolve((cached as MediaLibrary.Asset[]).sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined"))
+                if(cachedTotal == current.total && current.last.id == lastCached.id){
+                    return resolve(cached.sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined"))
                 }
             }
             catch(e){
@@ -127,7 +146,8 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
             MediaLibrary.getAssetsAsync({
                 ...(typeof after !== "undefined" ? { after } : {}),
                 first: 256,
-                mediaType: ["photo", "video"]
+                mediaType: ["photo", "video"],
+                sortBy: MediaLibrary.SortBy.modificationTime
             }).then((fetched) => {
                 for(let i = 0; i < fetched.assets.length; i++){
                     assets.push(fetched.assets[i])
@@ -140,6 +160,8 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
                 const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined")
 
                 storage.set("cameraUploadLastAssets:" + userId, JSON.stringify(sorted))
+                storage.set("cameraUploadLastAsset:" + userId, JSON.stringify(sorted[sorted.length - 1]))
+                storage.set("cameraUploadAssetFetchTimeout:" + userId, (new Date().getTime() + 300000))
 
                 return resolve(sorted)
             }).catch(reject)
@@ -182,6 +204,25 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
             return true
         }
 
+        if(!runOnce && !askedForPermissions){
+            if(
+                !(await hasStoragePermissions(true))
+                || !(await hasPhotoLibraryPermissions(true))
+                || !(await hasReadPermissions(true))
+                || !(await hasWritePermissions(true))
+            ){
+                isRunning = false
+    
+                BackgroundTimer.setTimeout(() => {
+                    runCameraUpload(maxQueue)
+                }, TIMEOUT)
+    
+                return true
+            }
+
+            askedForPermissions = true
+        }
+
         const cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
         const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
         const cameraUploadUploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
@@ -193,7 +234,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
         const now = new Date().getTime()
         const remoteExtraChecks: any = {}
 
-        storage.set("cameraUploadUploaded", Object.keys(cameraUploadUploadedIds).length)
+        storage.set("cameraUploadUploaded", (Object.keys(cameraUploadUploadedIds).length + Object.keys(FAILED).length))
 
         if(!cameraUploadEnabled){
             isRunning = false
@@ -393,7 +434,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                         uploadedIds[assetId] = true
 
                         storage.set("cameraUploadUploadedIds:" + userId, JSON.stringify(uploadedIds))
-                        storage.set("cameraUploadUploaded", Object.keys(uploadedIds).length)
+                        storage.set("cameraUploadUploaded", (Object.keys(uploadedIds).length + Object.keys(FAILED).length))
                     }
 
                     if(fileHash.length > 0){
@@ -427,80 +468,69 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
 
                     const getFile = (): Promise<UploadFile> => {
                         return new Promise((resolve, reject) => {
-                            if(Platform.OS == "ios" && asset.uri.indexOf("ph://") !== -1){
-                                if(cameraUploadEnableHeic){
-                                    const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
-                                    const path = tmp.replace("file://", "")
+                            MediaLibrary.getAssetInfoAsync(asset, {
+                                shouldDownloadFromNetwork: true
+                            }).then((assetInfo) => {
+                                const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
 
+                                if(typeof assetInfo.localUri == "string"){
                                     FileSystem.copyAsync({
-                                        from: asset.uri,
+                                        from: assetInfo.localUri,
                                         to: tmp
                                     }).then(() => {
-                                        ReactNativeBlobUtil.fs.stat(path).then((stat) => {
-                                            return resolve({
-                                                path,
-                                                name: asset.filename,
-                                                mime: stat.type || mimeTypes.lookup(tmp),
-                                                size: stat.size,
-                                                lastModified: convertTimestampToMs(asset.modificationTime)
-                                            })
-                                        }).catch(reject)
+                                        if(Platform.OS == "ios" && !cameraUploadEnableHeic && assetInfo.localUri?.toLowerCase().endsWith(".heic")){
+                                            RNHeicConverter.convert({
+                                                path: tmp,
+                                                quality: 1,
+                                                extension: "jpg"
+                                            }).then(({ success, path, error }: { success: boolean, path: string, error: any }) => {
+                                                if(!error && success && path){
+                                                    FileSystem.getInfoAsync(path).then((stat) => {
+                                                        if(stat.size){
+                                                            const fileNameEx = asset.filename.split(".")
+                                                            const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
+                                                            const newName = nameWithoutEx + ".JPG"
+
+                                                            return resolve({
+                                                                path: path.split("file://").join(""),
+                                                                name: newName,
+                                                                mime: mimeTypes.lookup(path) || "",
+                                                                size: stat.size,
+                                                                lastModified: convertTimestampToMs(asset.modificationTime)
+                                                            })
+                                                        }
+                                                        else{
+                                                            return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
+                                                        }
+                                                    }).catch(reject)
+                                                }
+                                                else{
+                                                    return new Error("HEICConverter error: " + error.toString())
+                                                }
+                                            }).catch(reject)
+                                        }
+                                        else{
+                                            FileSystem.getInfoAsync(tmp).then((stat) => {
+                                                if(stat.size){
+                                                    return resolve({
+                                                        path: tmp.split("file://").join(""),
+                                                        name: asset.filename,
+                                                        mime: mimeTypes.lookup(tmp) || "",
+                                                        size: stat.size,
+                                                        lastModified: convertTimestampToMs(asset.modificationTime)
+                                                    })
+                                                }
+                                                else{
+                                                    return reject(new Error("No size for asset " + asset.id))
+                                                }
+                                            }).catch(reject)
+                                        }
                                     }).catch(reject)
                                 }
                                 else{
-                                    if(asset.mediaType == "photo"){
-                                        const tmp = RNFS.CachesDirectoryPath + randomIdUnsafe() + ".jpg"
-                                        const path = tmp.replace("file://", "")
-
-                                        RNFS.copyAssetsFileIOS(convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), "jpg"), tmp, 0, 0).then(() => {
-                                            ReactNativeBlobUtil.fs.stat(path).then((stat) => {
-                                                return resolve({
-                                                    path,
-                                                    name: asset.filename.indexOf(".") !== -1 ? (asset.filename.split(".").slice(0, -1).join(".") + ".jpg") : asset.filename + ".jpg",
-                                                    mime: stat.type || mimeTypes.lookup(tmp),
-                                                    size: stat.size,
-                                                    lastModified: convertTimestampToMs(asset.modificationTime)
-                                                })
-                                            }).catch(reject)
-                                        }).catch(reject)
-                                    }
-                                    else{
-                                        const tmp = RNFS.CachesDirectoryPath + randomIdUnsafe() + ".mov"
-                                        const path = tmp.replace("file://", "")
-
-                                        RNFS.copyAssetsVideoIOS(convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), "mov"), tmp).then(() => {
-                                            ReactNativeBlobUtil.fs.stat(path).then((stat) => {
-                                                return resolve({
-                                                    path,
-                                                    name: asset.filename.indexOf(".") !== -1 ? (asset.filename.split(".").slice(0, -1).join(".") + ".mov") : asset.filename + ".mov",
-                                                    mime: stat.type || mimeTypes.lookup(tmp),
-                                                    size: stat.size,
-                                                    lastModified: convertTimestampToMs(asset.modificationTime)
-                                                })
-                                            }).catch(reject)
-                                        }).catch(reject)
-                                    }
+                                    return reject(new Error("No localURI for asset " + asset.id))
                                 }
-                            }
-                            else{
-                                const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
-                                const path = tmp.replace("file://", "")
-
-                                FileSystem.copyAsync({
-                                    from: asset.uri,
-                                    to: tmp
-                                }).then(() => {
-                                    ReactNativeBlobUtil.fs.stat(path).then((stat) => {
-                                        return resolve({
-                                            path,
-                                            name: asset.filename,
-                                            mime: stat.type || mimeTypes.lookup(tmp),
-                                            size: stat.size,
-                                            lastModified: convertTimestampToMs(asset.modificationTime)
-                                        })
-                                    }).catch(reject)
-                                }).catch(reject)
-                            }
+                            }).catch(reject)
                         })
                     }
 
@@ -522,16 +552,16 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                             queueFileUpload({
                                 file,
                                 parent: cameraUploadFolderUUID,
-                                includeFileHash: true
+                                includeFileHash: hash
                             }).then(() => {
                                 return add(hash)
                             }).catch((err) => {
-                                console.log(err)
+                                log.error(err)
     
                                 return resolve(true)
                             })
                         }).catch((err) => {
-                            console.log(err)
+                            log.error(err)
 
                             if(typeof FAILED[assetId] !== "number"){
                                 FAILED[assetId] = 1
@@ -543,7 +573,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                             return resolve(true)
                         })
                     }).catch((err) => {
-                        console.log(err)
+                        log.error(err)
 
                         if(typeof FAILED[assetId] !== "number"){
                             FAILED[assetId] = 1
@@ -555,7 +585,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                         return resolve(true)
                     })
                 }).catch((err) => {
-                    console.log(err)
+                    log.error(err)
 
                     return resolve(true)
                 })
@@ -593,7 +623,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
         return true
     }
     catch(e){
-        console.log(e)
+        log.error(e)
 
         isRunning = false
 

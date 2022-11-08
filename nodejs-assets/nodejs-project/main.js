@@ -6,11 +6,27 @@ delete process.env['HTTPS_PROXY']
 process.env.NODE_ENV = "production"
 
 process.on("uncaughtException", (err) => {
-    console.log(err)
+    try{
+        rn_bridge.channel.send({
+            nodeError: true,
+            err: err.toString()
+        })
+    }
+    catch(e){
+        console.error(e)
+    }
 })
 
 process.on("unhandledRejection", (err) => {
-    console.log(err)
+    try{
+        rn_bridge.channel.send({
+            nodeError: true,
+            err: err.toString()
+        })
+    }
+    catch(e){
+        console.error(e)
+    }
 })
 
 const rn_bridge = require("rn-bridge")
@@ -136,13 +152,13 @@ const randomString = (length) => {
 
 const encryptData = (data, key, convertToBase64 = true, isBase64 = true) => {
     return new Promise((resolve, reject) => {
-        let buffer = data
-
-        if(isBase64){
-            buffer = base64ToArrayBuffer(data)
-        }
-
         try{
+            let buffer = data
+
+            if(isBase64){
+                buffer = base64ToArrayBuffer(data)
+            }
+
             const iv = randomString(12)
             const cipher = crypto.createCipheriv("aes-256-gcm", utf8StringToArrayBuffer(key), utf8StringToArrayBuffer(iv))
             const encrypted = arrayBufferConcat(cipher.update(buffer), cipher.final())
@@ -163,30 +179,25 @@ const encryptData = (data, key, convertToBase64 = true, isBase64 = true) => {
 
 const decryptData = (data, key, version, returnBase64 = true, isBase64 = true) => {
     return new Promise((resolve, reject) => {
-        let encrypted = data
+        try{
+            let encrypted = data
 
-        if(isBase64){
-            encrypted = base64ToArrayBuffer(data)
-        }
+            if(isBase64){
+                encrypted = base64ToArrayBuffer(data)
+            }
 
-        if(version == 1){ //old & deprecated, not in use anymore, just here for backwards compatibility
-            const sliced = convertArrayBufferToUtf8String(new Uint8Array(encrypted).slice(0, 16)) + "_" + arrayBufferToBase64(new Uint8Array(encrypted).slice(0, 16))
+            if(version == 1){ //old & deprecated, not in use anymore, just here for backwards compatibility
+                const sliced = convertArrayBufferToUtf8String(new Uint8Array(encrypted).slice(0, 16)) + "_" + arrayBufferToBase64(new Uint8Array(encrypted).slice(0, 16))
 
-            if(sliced.indexOf("Salted") !== -1){
-                try{
+                if(sliced.indexOf("Salted") !== -1){
                     if(returnBase64){
-
+                        return resolve(arrayBufferToBase64(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(encrypted, key))))
                     }
                     else{
                         return resolve(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(encrypted, key)))
                     }
                 }
-                catch(e){
-                    return reject(e)
-                }
-            }
-            else if(sliced.indexOf("U2FsdGVk") !== -1){
-                try{
+                else if(sliced.indexOf("U2FsdGVk") !== -1){
                     if(returnBase64){
                         return resolve(arrayBufferToBase64(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(convertArrayBufferToUtf8String(new Uint8Array(encrypted)), key))))
                     }
@@ -194,12 +205,7 @@ const decryptData = (data, key, version, returnBase64 = true, isBase64 = true) =
                         return resolve(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(convertArrayBufferToUtf8String(new Uint8Array(encrypted)), key)))
                     }
                 }
-                catch(e){
-                    return reject(e)
-                }
-            }
-            else{
-                try{
+                else{
                     const decipher = crypto.createDecipheriv("aes-256-cbc", utf8StringToArrayBuffer(key), utf8StringToArrayBuffer(key).slice(0, 16))
                     const decrypted = arrayBufferConcat(decipher.update(encrypted), decipher.final())
 
@@ -210,13 +216,8 @@ const decryptData = (data, key, version, returnBase64 = true, isBase64 = true) =
                         return resolve(decrypted)
                     }
                 }
-                catch(e){
-                    return reject(e)
-                }
             }
-        }
-        else if(version == 2){
-            try{
+            else if(version == 2){
                 const iv = encrypted.slice(0, 12)
                 const encData = encrypted.slice(12)
                 const authTag = encData.slice(encData.byteLength - ((128 + 7) >> 3))
@@ -233,12 +234,12 @@ const decryptData = (data, key, version, returnBase64 = true, isBase64 = true) =
                     return resolve(arrayBufferConcat(decipher.update(ciphertext), decipher.final()))
                 }
             }
-            catch(e){
-                return reject(e)
+            else{
+                return reject("Invalid version: " + version)
             }
         }
-        else{
-            return reject("Invalid version: " + version)
+        catch(e){
+            return reject(e)
         }
     })
 }
@@ -252,40 +253,40 @@ const downloadAndDecryptChunk = (url, timeout, key, version) => {
                 "User-Agent": "filen-mobile"
             }
         }).then((response) => {
-            if(response.status !== 200){
-                return reject("Response status: " + response.status)
-            }
-
             try{
-                var dataBuffer = Buffer.from(response.data, "binary").toString("base64")
+                if(response.status !== 200){
+                    return reject("Response status: " + response.status)
+                }
+
+                const dataBuffer = Buffer.from(response.data, "binary").toString("base64")
+
+                if(typeof dataBuffer.length == "undefined"){
+                    return reject("Undefined base64 length")
+                }
+    
+                if(dataBuffer.length <= 0){
+                    return reject("Undefined base64 length")
+                }
+
+                decryptData(dataBuffer, key, version).then(resolve).catch(reject)
             }
             catch(e){
                 return reject(e)
             }
-
-            if(typeof dataBuffer.length == "undefined"){
-                return reject("Undefined base64 length")
-            }
-
-            if(dataBuffer.length <= 0){
-                return reject("Undefined base64 length")
-            }
-
-            decryptData(dataBuffer, key, version).then(resolve).catch(reject)
         }).catch(reject)
     })
 }
 
 const deriveKeyFromPassword = (password, salt, iterations, hash, bitLength, returnHex) => {
-    if(hash == "SHA-512"){
-        hash = "SHA512"
-    }
-
-    bitLength = (bitLength / 8)
-
-    const cacheKey = password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex.toString()
-
     return new Promise((resolve, reject) => {
+        if(hash == "SHA-512"){
+            hash = "SHA512"
+        }
+    
+        bitLength = (bitLength / 8)
+    
+        const cacheKey = password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex.toString()
+
         if(typeof cachedDerivedKeys[cacheKey] !== "undefined"){
             return resolve(cachedDerivedKeys[cacheKey])
         }
@@ -613,7 +614,6 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
     return new Promise((resolve, reject) => {
         encryptData(buffer, key, false, false).then((encrypted) => {
             let lastBytes = 0
-            let totalBytes = 0
             const urlParams = new URLSearchParams(queryParams)
             const uuid = urlParams.get("uuid") || ""
 
@@ -627,8 +627,6 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
                     bytes = Math.floor(written - lastBytes)
                     lastBytes = written
                 }
-
-                totalBytes += bytes
 
                 rn_bridge.channel.send({
                     type: "uploadProgress",
@@ -652,20 +650,7 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
                 }
             }, (response) => {
                 if(response.statusCode !== 200){
-                    if((-totalBytes) < 0){
-                        rn_bridge.channel.send({
-                            type: "uploadProgress",
-                            status: "progress",
-                            data: {
-                                uuid,
-                                bytes: -totalBytes
-                            }
-                        })
-                    }
-
-                    totalBytes = 0
-                    
-                    return reject("Upload failed, status code: " + response.statusCode)
+                    return reject("not200")
                 }
 
                 const res = []
@@ -679,18 +664,7 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
                         const obj = JSON.parse(Buffer.concat(res).toString())
 
                         if(!obj.status){
-                            if((-totalBytes) < 0){
-                                rn_bridge.channel.send({
-                                    type: "uploadProgress",
-                                    status: "progress",
-                                    data: {
-                                        uuid,
-                                        bytes: -totalBytes
-                                    }
-                                })
-                            }
-        
-                            totalBytes = 0
+                            return reject(obj.message)
                         }
         
                         return resolve(obj)
@@ -702,19 +676,6 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
             })
 
             req.on("error", (err) => {
-                if((-totalBytes) < 0){
-                    rn_bridge.channel.send({
-                        type: "uploadProgress",
-                        status: "progress",
-                        data: {
-                            uuid,
-                            bytes: -totalBytes
-                        }
-                    })
-                }
-
-                totalBytes = 0
-
                 return reject(err)
             })
 
@@ -743,7 +704,11 @@ const getFileHash = (path, hashName) => {
 
 const normalizeRNFilePath = (path) => {
     if(path.startsWith("file://")){
-        return path.replace("file://", "")
+        path = path.replace("file://", "")
+    }
+
+    if(path.startsWith("file:")){
+        path = path.replace("file:", "")
     }
 
     return path
@@ -754,9 +719,9 @@ const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize
         path = pathModule.normalize(normalizeRNFilePath(path))
 
         readChunk(path, (chunkIndex * chunkSize), chunkSize).then((buffer) => {
-            const maxTries = 1024
+            const maxTries = 8
             let currentTries = 0
-            const triesTimeout = 1000
+            const triesTimeout = 3000
 
             const doUpload = () => {
                 if(currentTries >= maxTries){
@@ -766,9 +731,11 @@ const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize
                 currentTries += 1
 
                 encryptAndUploadChunkBuffer(buffer, key, queryParams).then(resolve).catch((err) => {
-                    console.log(err)
+                    if(err == "not200"){
+                        return setTimeout(doUpload, triesTimeout)
+                    }
 
-                    return setTimeout(doUpload, triesTimeout)
+                    return reject(err)
                 })
             }
 
@@ -779,8 +746,6 @@ const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize
 
 const downloadFileChunk = (uuid, region, bucket, index) => {
     return new Promise((resolve, reject) => {
-        let totalBytes = 0
-
         const request = https.request({
             host: "down.filen.io",
             port: 443,
@@ -795,34 +760,21 @@ const downloadFileChunk = (uuid, region, bucket, index) => {
 
         request.on("response", (response) => {
             if(response.statusCode !== 200){
-                return reject(new Error("Invalid http statuscode: " + response.statusCode))
+                return reject("not200")
             }
 
             let res = []
 
             response.on("error", (err) => {
-                if((-totalBytes) < 0){
-                    rn_bridge.channel.send({
-                        type: "downloadProgress",
-                        status: "progress",
-                        data: {
-                            uuid,
-                            bytes: -totalBytes
-                        }
-                    })
-                }
-
                 return reject(err)
             })
 
             response.on("data", (chunk) => {
                 if(res == null){
-                    return false
+                    return
                 }
 
                 res.push(chunk)
-
-                totalBytes += chunk.length
 
                 rn_bridge.channel.send({
                     type: "downloadProgress",
@@ -835,48 +787,15 @@ const downloadFileChunk = (uuid, region, bucket, index) => {
             }).on("end", () => {
                 return resolve(Buffer.concat(res))
             }).on("error", (err) => {
-                if((-totalBytes) < 0){
-                    rn_bridge.channel.send({
-                        type: "downloadProgress",
-                        status: "progress",
-                        data: {
-                            uuid,
-                            bytes: -totalBytes
-                        }
-                    })
-                }
-
                 return reject(err)
             })
         })
 
         request.on("timeout", () => {
-            if((-totalBytes) < 0){
-                rn_bridge.channel.send({
-                    type: "downloadProgress",
-                    status: "progress",
-                    data: {
-                        uuid,
-                        bytes: -totalBytes
-                    }
-                })
-            }
-
             return reject(new Error("Request timed out"))
         })
 
         request.on("error", (err) => {
-            if((-totalBytes) < 0){
-                rn_bridge.channel.send({
-                    type: "downloadProgress",
-                    status: "progress",
-                    data: {
-                        uuid,
-                        bytes: -totalBytes
-                    }
-                })
-            }
-
             return reject(err)
         })
 
@@ -888,14 +807,14 @@ const downloadDecryptAndWriteFileChunk = (destPath, uuid, region, bucket, index,
     return new Promise((resolve, reject) => {
         destPath = pathModule.normalize(destPath)
 
-        const maxTries = 1024
+        const maxTries = 32
         let currentTries = 0
-        const triesTimeout = 1000
+        const triesTimeout = 3000
 
         const doDownload = () => {
             if(currentTries >= maxTries){
                 return fs.unlink(destPath, () => {
-                    return reject("max tries reached for download, returning")
+                    return reject("Maximum tries reached for download, returning")
                 })
             }
 
@@ -912,21 +831,17 @@ const downloadDecryptAndWriteFileChunk = (destPath, uuid, region, bucket, index,
                     stream.on("close", () => resolve(destPath))
     
                     stream.on("error", (err) => {
-                        console.log(err)
-
-                        return setTimeout(doDownload, triesTimeout)
+                        return reject(err)
                     })
     
                     Readable.from([decrypted]).pipe(stream)
-                }).catch((err) => {
-                    console.log(err)
-
-                    return setTimeout(doDownload, triesTimeout)
-                })
+                }).catch(reject)
             }).catch((err) => {
-                console.log(err)
+                if(err == "not200"){
+                    return setTimeout(doDownload, triesTimeout)
+                }
 
-                return setTimeout(doDownload, triesTimeout)
+                return reject(err)
             })
         }
 
@@ -975,10 +890,10 @@ const appendFileToFile = (first, second) => {
 }
 
 const convertHeic = (input, output, format) => {
-    input = pathModule.normalize(input)
-    output = pathModule.normalize(output)
-
     return new Promise((resolve, reject) => {
+        input = pathModule.normalize(input)
+        output = pathModule.normalize(output)
+
         convertHeicSemaphore.acquire().then((release) => {
             fs.readFile(input, (err, inputBuffer) => {
                 if(err){

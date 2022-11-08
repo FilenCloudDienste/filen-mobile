@@ -1,6 +1,5 @@
 import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnail } from "../../helpers"
 import RNFS from "react-native-fs"
-import { useStore } from "../../state"
 import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
 import { showToast } from "../../../components/Toasts"
 import storage from "../../storage"
@@ -12,6 +11,18 @@ import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "../../memoryCache"
 import BackgroundTimer from "react-native-background-timer"
+import NetInfo from "@react-native-community/netinfo"
+import * as FileSystem from "expo-file-system"
+import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
+
+const log = logger.createLogger({
+    severity: "debug",
+    transport: [fileAsyncTransport, mapConsoleTransport],
+    transportOptions: {
+        FS: FileSystem,
+        fileName: "logs/upload.log"
+    }
+})
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -26,16 +37,22 @@ export interface UploadFile {
     lastModified: number
 }
 
-export const queueFileUpload = ({ file, parent, includeFileHash = false }: { file: UploadFile, parent: string, includeFileHash?: boolean }): Promise<any> => {
+export const queueFileUpload = ({ file, parent, includeFileHash = false }: { file: UploadFile, parent: string, includeFileHash?: boolean | string }): Promise<any> => {
     return new Promise(async (resolve, reject) => {
         const masterKeys = getMasterKeys()
         const apiKey = getAPIKey()
 
         if(masterKeys.length <= 0){
+            log.error("master keys !== object")
+
             return reject("master keys !== object")
         }
 
-        const netInfo = useStore.getState().netInfo
+        const netInfo = await NetInfo.fetch()
+
+        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+            return reject(i18n(storage.getString("lang"), "deviceOffline"))
+        }
 
         if(storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
             return reject("wifiOnly")
@@ -93,16 +110,16 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
 
         try{
             var key = await global.nodeThread.generateRandomString({ charLength: 32 })
-            var metadata = includeFileHash ? {
+            var metadata = (typeof includeFileHash == "boolean" || typeof includeFileHash == "string") ? {
                 name,
                 size,
                 mime,
                 key,
                 lastModified,
-                hash: await global.nodeThread.getFileHash({
+                hash: typeof includeFileHash == "boolean" ? await global.nodeThread.getFileHash({
                     path: file.path,
                     hashName: "sha512"
-                })
+                }) : includeFileHash
             } : {
                 name,
                 size,
@@ -127,6 +144,8 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             item.metadata = metaData
         }
         catch(e){
+            log.error(e)
+
             BackgroundTimer.clearInterval(stopInterval)
 
             return reject(e)
@@ -167,8 +186,8 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             BackgroundTimer.clearInterval(stopInterval)
 
             if(
-                file.path.indexOf(RNFS.CachesDirectoryPath)
-                || file.path.indexOf(RNFS.TemporaryDirectoryPath)
+                file.path.indexOf(RNFS.CachesDirectoryPath) !== -1
+                || file.path.indexOf(RNFS.TemporaryDirectoryPath) !== -1
             ){
                 RNFS.unlink(file.path).catch(() => {})
             }
@@ -328,6 +347,8 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             else{
                 showToast({ message: err.toString() })
 
+                log.error(err)
+
                 return reject(err)
             }
         }
@@ -359,9 +380,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
 
             cleanup()
 
-            if(e.toString().toLowerCase().indexOf("upload chunks") == -1){
-                showToast({ message: e.toString() })
-            }
+            log.error(e)
 
             return reject(e)
         }

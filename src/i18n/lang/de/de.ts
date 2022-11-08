@@ -399,5 +399,6 @@ export const de: {
     tenMinutes: "10 Minuten",
     fifteenMinutes: "15 Minuten",
     thirtyMinutes: "30 Minuten",
-    oneHour: "1 Stunde"
+    oneHour: "1 Stunde",
+    saveLogs: "Logs speichern"
 }

@@ -1,5 +1,16 @@
 import nodejs from "nodejs-mobile-react-native"
 import { DeviceEventEmitter } from "react-native"
+import * as FileSystem from "expo-file-system"
+import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
+
+const log = logger.createLogger({
+    severity: "debug",
+    transport: [fileAsyncTransport, mapConsoleTransport],
+    transportOptions: {
+        FS: FileSystem,
+        fileName: "logs/node.log"
+    }
+})
 
 nodejs.start("main.js")
 
@@ -488,6 +499,13 @@ nodejs.channel.addListener("message", (message) => {
         return global.nodeThread.ready = true
     }
 
+    if(typeof message.nodeError !== "undefined"){
+        log.info("NODE SIDE ERROR")
+        log.error(message.err)
+
+        return
+    }
+
     if(typeof message.type == "string"){
         if(message.type == "uploadProgress"){
             DeviceEventEmitter.emit("uploadProgress", message)
@@ -507,6 +525,8 @@ nodejs.channel.addListener("message", (message) => {
         const reject = rejects[id]
 
         if(typeof reject !== "undefined"){
+            log.error(err)
+
             reject(err)
         }
     }

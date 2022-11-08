@@ -30,7 +30,7 @@ target 'Filen' do
   use_react_native!(
     :path => config[:reactNativePath],
     # to enable hermes on iOS, change `false` to `true` and then install pods
-    :hermes_enabled => false
+    :hermes_enabled => true
   )
 
 
@@ -67,7 +67,7 @@ end
 
 target 'ShareExtension' do
   use_react_native!(
-    :hermes_enabled => false
+    :hermes_enabled => true
   )
 
   pod 'RNShareMenu', :path => '../node_modules/react-native-share-menu'

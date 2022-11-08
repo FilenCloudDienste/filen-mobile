@@ -78,10 +78,10 @@ import com.android.build.OutputFile
  */
 
 project.ext.react = [
-    enableHermes: (findProperty('expo.jsEngine') ?: "jsc") == "hermes",
+    enableHermes: true,
     cliPath: "../../node_modules/react-native/cli.js",
     hermesCommand: "../../node_modules/hermes-engine/%OS-BIN%/hermesc",
-    composeSourceMapsPath: "../../node_modules/react-native/scripts/compose-source-maps.js",
+    composeSourceMapsPath: "../node_modules/react-native/scripts/compose-source-maps.js",
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
@@ -135,8 +135,8 @@ android {
         applicationId "io.filen.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 225
-        versionName "2.0.25"
+        versionCode 227
+        versionName "2.0.27"
     }
     splits {
         abi {

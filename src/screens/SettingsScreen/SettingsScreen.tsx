@@ -457,14 +457,9 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                                 }}
                             />
                             <SettingsButtonLinkHighlight
-                                title={"get medialib"}
-                                onPress={() => {
-                                    MediaLibrary.getAlbumsAsync({
-                                        includeSmartAlbums: true
-                                    }).then((content) => {
-                                        console.log(content)
-                                    })
-                                }}
+                                title={"hermes check"}
+                                // @ts-ignore
+                                onPress={() => console.log("isHermes", !!global.HermesInternal)}
                             />
                         </SettingsGroup>
                     </>

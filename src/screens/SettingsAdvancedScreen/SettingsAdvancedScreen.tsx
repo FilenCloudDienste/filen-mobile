@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo } from "react"
-import { View, Text, Platform, ScrollView, TouchableOpacity, Alert } from "react-native"
+import { View, Text, Platform, ScrollView, TouchableOpacity, Alert, Share } from "react-native"
 import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButtonLinkHighlight } from "../SettingsScreen/SettingsScreen"
@@ -12,6 +12,7 @@ import { getDownloadPath } from "../../lib/services/download/download"
 import DeviceInfo from "react-native-device-info"
 import { formatBytes } from "../../lib/helpers"
 import memoryCache from "../../lib/memoryCache"
+import * as Sentry from "@sentry/react-native"
 
 export const calculateFolderSize = async (folderPath: string, size: number = 0): Promise<number> => {
     try{
@@ -47,6 +48,8 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
     const [cachesLocalFolderSize, setCachesLocalFolderSize] = useState<number>(0)
     const [tempLocalFolderSize, setTempLocalFolderSize] = useState<number>(0)
     const [isCalculatingFolderSizes, setIsCalculatingFolderSizes] = useState<boolean>(true)
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [email, setEmail] = useMMKVString("email", storage)
 
     const calculateFolderSizes = () => {
         setIsCalculatingFolderSizes(true)
@@ -316,6 +319,63 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                             ], {
                                 cancelable: true
                             })
+                        }}
+                    />
+                </SettingsGroup>
+                <SettingsGroup>
+                    <SettingsButtonLinkHighlight
+                        title={i18n(lang, "saveLogs")}
+                        onPress={async () => {
+                            useStore.setState({ fullscreenLoadingModalVisible: true })
+
+                            try{
+                                const logFiles = await RNFS.readDir(RNFS.DocumentDirectoryPath + "/logs")
+
+                                const logs = await Promise.all(logFiles.map(file => new Promise<{ log: string, name: string }>((resolve, reject) => {
+                                    if(file.name == "logs.txt"){
+                                        return resolve({
+                                            log: "",
+                                            name: file.name
+                                        })
+                                    }
+
+                                    RNFS.readFile(file.path, "utf8").then((log) => {
+                                        return resolve({
+                                            log,
+                                            name: file.name
+                                        })
+                                    }).catch(reject)
+                                })))
+
+                                let comment: string[] = []
+
+                                for(let i = 0; i < logs.length; i++){
+                                    comment.push(logs[i].name)
+                                    comment.push(logs[i].log)
+                                }
+
+                                const logPath = RNFS.DocumentDirectoryPath + "/logs/logs.txt"
+
+                                if((await RNFS.exists(logPath))){
+                                    await RNFS.unlink(logPath)
+                                }
+
+                                await RNFS.writeFile(logPath, comment.join("\n\n"), "utf8")
+
+                                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                                await Share.share({
+                                    title: "logs.txt",
+                                    url: logPath.indexOf("file://") == -1 ? "file://" + logPath : logPath
+                                })
+                            }
+                            catch(e: any){
+                                console.error(e)
+
+                                showToast({ message: e.toString() })
+                            }
+
+                            useStore.setState({ fullscreenLoadingModalVisible: false })
                         }}
                     />
                 </SettingsGroup>

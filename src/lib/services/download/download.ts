@@ -13,6 +13,17 @@ import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "../setup/setup"
 import type { Item } from "../items"
 import memoryCache from "../../memoryCache"
+import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
+import * as FileSystem from "expo-file-system"
+
+const log = logger.createLogger({
+    severity: "debug",
+    transport: [fileAsyncTransport, mapConsoleTransport],
+    transportOptions: {
+        FS: FileSystem,
+        fileName: "logs/download.log"
+    }
+})
 
 const downloadSemaphore = new Semaphore(3)
 const maxThreads = 16
@@ -35,6 +46,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                     if(err.toString().toLowerCase().indexOf("already exists") !== -1){
                         return resolve(path + "/")
                     }
+                    
+                    log.error(err)
 
                     return reject(err)
                 })
@@ -49,6 +62,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                     if(err.toString().toLowerCase().indexOf("already exists") !== -1){
                         return resolve(path + "/")
                     }
+                    
+                    log.error(err)
 
                     return reject(err)
                 })
@@ -64,6 +79,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                         return resolve(path + "/")
                     }
 
+                    log.error(err)
+
                     return reject(err)
                 })
             }
@@ -77,6 +94,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                     if(err.toString().toLowerCase().indexOf("already exists") !== -1){
                         return resolve(path + "/")
                     }
+
+                    log.error(err)
 
                     return reject(err)
                 })
@@ -94,6 +113,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                     if(err.toString().toLowerCase().indexOf("already exists") !== -1){
                         return resolve(path + "/")
                     }
+
+                    log.error(err)
 
                     return reject(err)
                 })
@@ -114,6 +135,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                         return resolve(path + "/")
                     }
 
+                    log.error(err)
+
                     return reject(err)
                 })
             }
@@ -127,6 +150,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                     if(err.toString().toLowerCase().indexOf("already exists") !== -1){
                         return resolve(path + "/")
                     }
+
+                    log.error(err)
 
                     return reject(err)
                 })
@@ -142,6 +167,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                         return resolve(path + "/")
                     }
 
+                    log.error(err)
+
                     return reject(err)
                 })
             }
@@ -156,6 +183,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                         return resolve(path + "/")
                     }
 
+                    log.error(err)
+
                     return reject(err)
                 })
             }
@@ -169,6 +198,8 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
                     if(err.toString().toLowerCase().indexOf("already exists") !== -1){
                         return resolve(path + "/")
                     }
+
+                    log.error(err)
 
                     return reject(err)
                 })
@@ -239,6 +270,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     }
     catch(e){
         console.log(e)
+
+        log.error(e)
 
         callOptionalCallback(new Error("could not get download path"))
 
@@ -320,6 +353,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     showToast({ message: err.toString() })
 
                     callOptionalCallback(err)
+
+                    log.error(err)
     
                     return console.log(err)
                 })
@@ -327,6 +362,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 showToast({ message: err.toString() })
 
                 callOptionalCallback(err)
+
+                log.error(err)
 
                 return console.log(err)
             })
@@ -351,6 +388,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                             showToast({ message: err.toString() })
 
                             callOptionalCallback(err)
+
+                            log.error(err)
     
                             return console.log(err)
                         })
@@ -358,6 +397,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         showToast({ message: err.toString() })
 
                         callOptionalCallback(err)
+
+                        log.error(err)
     
                         return console.log(err)
                     })
@@ -384,6 +425,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         showToast({ message: err.toString() })
 
                         callOptionalCallback(err)
+
+                        log.error(err)
         
                         return console.log(err)
                     })
@@ -411,6 +454,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     showToast({ message: err.toString() })
 
                     callOptionalCallback(err)
+
+                    log.error(err)
     
                     return console.log(err)
                 })
@@ -428,7 +473,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 err: err.toString()
             })
 
-            console.log(err)
+            log.error(err)
         }
 
         return callOptionalCallback(err)
