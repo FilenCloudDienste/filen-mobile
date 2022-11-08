@@ -404,5 +404,6 @@ export const es: {
     tenMinutes: "10 minutos",
     fifteenMinutes: "15 minutos",
     thirtyMinutes: "30 minutos",
-    oneHour: "1 hora"
+    oneHour: "1 hora",
+    saveLogs: "Guardar registros"
 }
