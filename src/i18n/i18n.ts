@@ -10,6 +10,7 @@ import { zh } from "./lang/zh"
 import { tr } from "./lang/tr"
 import { de } from "./lang/de"
 import { el } from "./lang/el"
+import { es } from "./lang/es"
 
 const translations: { [key: string]: { [key: string]: string } } = {
     en,
@@ -23,7 +24,8 @@ const translations: { [key: string]: { [key: string]: string } } = {
     zh,
     tr,
     de,
-    el
+    el,
+    es
 }
 
 export const i18n = (lang: string = "en", text: string, firstUpperCase: boolean = true, replaceFrom: any[] = [], replaceTo: any[] = []): string => {
