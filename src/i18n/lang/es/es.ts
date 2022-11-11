@@ -5,7 +5,7 @@ export const es: {
     shared: "Compartido",
     recents: "Reciente",
     settings: "Ajustes",
-    transfers: "Subidas",
+    transfers: "Transacciones",
     home: "Inicio",
     photos: "Fotos",
     favorites: "Favoritos",
