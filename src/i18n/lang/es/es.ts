@@ -364,7 +364,7 @@ export const es: {
     descending: "Descendente",
     reset: "Reiniciar",
     ongoing: "En curso",
-    finished: "Terminado",
+    finished: "Terminadas",
     noFinishedTransfers: "Todavía no se han terminado las transferencias",
     emptyTrash: "Vaciar la papelera",
     emptyTrashWarning: "¿Está seguro de que quiere vaciar la paplera? ¡Esto eliminará de la misma todos los ficheros y carpetas, la acción no puede deshacerse!",
