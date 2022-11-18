@@ -404,5 +404,6 @@ export const uk: {
     tenMinutes: "10 хвилин",
     fifteenMinutes: "15 хвилин",
     thirtyMinutes: "30 хвилин",
-    oneHour: "1 годину"
+    oneHour: "1 годину",
+    saveLogs: "Зберегти журнал"
 }
