@@ -404,5 +404,6 @@ export const ru: {
     tenMinutes: "10 минут",
     fifteenMinutes: "15 минут",
     thirtyMinutes: "30 минут",
-    oneHour: "1 час"
+    oneHour: "1 час",
+    saveLogs: "Сохранить журнал"
 }
