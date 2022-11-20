@@ -403,5 +403,6 @@ export const pl: {
     tenMinutes: "10 minutach",
     fifteenMinutes: "15 minutach",
     thirtyMinutes: "30 minutach",
-    oneHour: "1 godzinie"
+    oneHour: "1 godzinie",
+    saveLogs: "Zapisz logi"
 }
