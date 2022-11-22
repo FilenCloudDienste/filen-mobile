@@ -405,5 +405,6 @@ export const en: {
     fifteenMinutes: "15 minutes",
     thirtyMinutes: "30 minutes",
     oneHour: "1 hour",
-    saveLogs: "Save logs"
+    saveLogs: "Save logs",
+    cameraUploadAfterEnabled: "Only upload after activation date"
 }

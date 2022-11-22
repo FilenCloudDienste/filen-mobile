@@ -9,6 +9,7 @@ import { i18n } from "../../i18n"
 import { getParent, getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../../lib/style/colors"
+import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 
 export interface BottomBarProps {
     navigation: any
@@ -18,12 +19,12 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const currentRoutes = useStore(state => state.currentRoutes)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const netInfo = useStore(state => state.netInfo)
     const setBottomBarHeight = useStore(state => state.setBottomBarHeight)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
     const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
     const dimensions = useStore(state => state.dimensions)
+    const networkInfo = useNetworkInfo()
 
     const iconTextMaxWidth: number = useMemo(() => {
         return (dimensions.window.width / 5) - 25
@@ -117,7 +118,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 flexDirection: "row",
                 justifyContent: "space-between",
                 borderTopColor: getColor(darkMode, "primaryBorder"),
-                borderTopWidth: 1
+                borderTopWidth: 0.5
             }}
             onLayout={(e) => setBottomBarHeight(e.nativeEvent.layout.height)}
         >
@@ -204,15 +205,15 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     paddingTop: 2
                 }}
                 onPress={() => {
-                    if(canOpenBottomAddActionSheet && netInfo.isConnected && netInfo.isInternetReachable){
+                    if(canOpenBottomAddActionSheet && networkInfo.online){
                         SheetManager.show("BottomBarAddActionSheet")
                     }
                 }}
             >
                 <Ionicon
-                    name={netInfo.isConnected && netInfo.isInternetReachable ? (canOpenBottomAddActionSheet ? "add-circle-outline" : "close-circle-outline") : "cloud-offline-outline"}
+                    name={networkInfo.online ? (canOpenBottomAddActionSheet ? "add-circle-outline" : "close-circle-outline") : "cloud-offline-outline"}
                     size={30}
-                    color={netInfo.isConnected && netInfo.isInternetReachable && canOpenBottomAddActionSheet ? darkMode ? "white" : "gray" : darkMode ? "gray" : "lightgray"}
+                    color={networkInfo.online && canOpenBottomAddActionSheet ? darkMode ? "white" : "gray" : darkMode ? "gray" : "lightgray"}
                 />
             </Pressable>
             <Pressable

@@ -1,72 +1,65 @@
 import React, { useState, useEffect, Fragment, memo } from "react"
 import { Dimensions, View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState } from "react-native"
-import { setup } from "./lib/services/setup/setup"
+import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { NavigationContainer, createNavigationContainerRef, StackActions, CommonActions } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import { MainScreen } from "./screens/MainScreen/MainScreen"
-import { LoginScreen } from "./screens/LoginScreen/LoginScreen"
+import { MainScreen } from "./screens/MainScreen"
+import { LoginScreen } from "./screens/LoginScreen"
 import ShareMenu from "react-native-share-menu"
 import { setStatusBarStyle } from "./lib/statusbar"
-import { SetupScreen } from "./screens/SetupScreen/SetupScreen"
+import { SetupScreen } from "./screens/SetupScreen"
 import { BottomBar } from "./components/BottomBar"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
-import { SettingsScreen } from "./screens/SettingsScreen/SettingsScreen"
+import { SettingsScreen } from "./screens/SettingsScreen"
 import { ItemActionSheet, TopBarActionSheet, BottomBarAddActionSheet, LockAppAfterActionSheet, FolderColorActionSheet, PublicLinkActionSheet, ShareActionSheet, FileVersionsActionSheet, ProfilePictureActionSheet, SortByActionSheet } from "./components/ActionSheets"
 import { useStore } from "./lib/state"
 import { FullscreenLoadingModal } from "./components/Modals"
 import { enableScreens } from "react-native-screens"
 import { generateItemThumbnail, checkItemThumbnail } from "./lib/services/items"
 import { TransfersIndicator } from "./components/TransfersIndicator"
-import { TransfersScreen } from "./screens/TransfersScreen/TransfersScreen"
+import { TransfersScreen } from "./screens/TransfersScreen"
 import { RenameDialog, CreateFolderDialog, ConfirmPermanentDeleteDialog, ConfirmRemoveFromSharedInDialog, ConfirmStopSharingDialog, CreateTextFileDialog, RedeemCodeDialog, DeleteAccountTwoFactorDialog, Disable2FATwoFactorDialog, BulkShareDialog } from "./components/Dialogs"
 import Toast from "react-native-toast-notifications"
-import NetInfo from "@react-native-community/netinfo"
-import { CameraUploadScreen } from "./screens/CameraUploadScreen/CameraUploadScreen"
-import { BiometricAuthScreen } from "./screens/BiometricAuthScreen/BiometricAuthScreen"
-import { LanguageScreen } from "./screens/LanguageScreen/LanguageScreen"
-import { SettingsAdvancedScreen } from "./screens/SettingsAdvancedScreen/SettingsAdvancedScreen"
-import { SettingsAccountScreen } from "./screens/SettingsAccountScreen/SettingsAccountScreen"
-import { EventsScreen, EventsInfoScreen } from "./screens/EventsScreen/EventsScreen"
+import { CameraUploadScreen } from "./screens/CameraUploadScreen"
+import { BiometricAuthScreen } from "./screens/BiometricAuthScreen"
+import { LanguageScreen } from "./screens/LanguageScreen"
+import { SettingsAdvancedScreen } from "./screens/SettingsAdvancedScreen"
+import { SettingsAccountScreen } from "./screens/SettingsAccountScreen"
+import { EventsScreen, EventsInfoScreen } from "./screens/EventsScreen"
 import { showToast } from "./components/Toasts"
 import { i18n } from "./i18n"
-import { RegisterScreen } from "./screens/RegisterScreen/RegisterScreen"
-import { ForgotPasswordScreen } from "./screens/ForgotPasswordScreen/ForgotPasswordScreen"
-import { ResendConfirmationScreen } from "./screens/ResendConfirmationScreen/ResendConfirmationScreen"
-import { GDPRScreen } from "./screens/GDPRScreen/GDPRScreen"
-import { InviteScreen } from "./screens/InviteScreen/InviteScreen"
-import { TwoFactorScreen } from "./screens/TwoFactorScreen/TwoFactorScreen"
-import { ChangeEmailPasswordScreen } from "./screens/ChangeEmailPasswordScreen/ChangeEmailPasswordScreen"
-import { TextEditorScreen } from "./screens/TextEditorScreen/TextEditorScreen"
+import { RegisterScreen } from "./screens/RegisterScreen"
+import { ForgotPasswordScreen } from "./screens/ForgotPasswordScreen"
+import { ResendConfirmationScreen } from "./screens/ResendConfirmationScreen"
+import { GDPRScreen } from "./screens/GDPRScreen"
+import { InviteScreen } from "./screens/InviteScreen"
+import { TwoFactorScreen } from "./screens/TwoFactorScreen"
+import { ChangeEmailPasswordScreen } from "./screens/ChangeEmailPasswordScreen"
+import { TextEditorScreen } from "./screens/TextEditorScreen"
 import { checkAppVersion } from "./lib/services/versionCheck"
-import { UpdateScreen } from "./screens/UpdateScreen/UpdateScreen"
+import { UpdateScreen } from "./screens/UpdateScreen"
 import BackgroundTimer from "react-native-background-timer"
 import ImageViewerScreen from "./screens/ImageViewerScreen/ImageViewerScreen"
-import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen/CameraUploadAlbumsScreen"
-import { isRouteInStack } from "./lib/helpers"
+import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen"
+import { isRouteInStack, isNavReady } from "./lib/helpers"
 import * as Sentry from "@sentry/react-native"
+import { runNetworkCheck } from "./lib/services/isOnline"
 
 enableScreens(false)
 
-Sentry.init({
-    dsn: "https://1aa0cbb262634a27a5887e91381e4251@o4504039703314432.ingest.sentry.io/4504039705804800",
-    enableNative: true,
-    enabled: true,
-    enableAppHangTracking: true,
-    enableNativeCrashHandling: true,
-    enableOutOfMemoryTracking: true,
-    enableAutoPerformanceTracking: true
-})
-
-NetInfo.configure({
-    reachabilityUrl: "https://api.filen.io",
-    reachabilityTest: async (response) => response.status == 200,
-    reachabilityLongTimeout: 60 * 1000,
-    reachabilityShortTimeout: 5 * 1000,
-    reachabilityRequestTimeout: 15 * 1000,
-    reachabilityShouldRun: () => true
-})
+if(!__DEV__){
+    Sentry.init({
+        dsn: "https://1aa0cbb262634a27a5887e91381e4251@o4504039703314432.ingest.sentry.io/4504039705804800",
+        enableNative: true,
+        enabled: true,
+        enableAppHangTracking: false,
+        enableNativeCrashHandling: true,
+        enableOutOfMemoryTracking: true,
+        enableAutoPerformanceTracking: false
+    })
+}
 
 LogBox.ignoreLogs(["new NativeEventEmitter"])
 
@@ -89,12 +82,12 @@ export const App = Sentry.wrap(memo(() => {
     const [isLoggedIn, setIsLoggedIn] = useMMKVBoolean("isLoggedIn", storage)
     const setDimensions = useStore(state => state.setDimensions)
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [setupDone, setSetupDone] = useState<boolean>(false)
     const [currentScreenName, setCurrentScreenName] = useState("MainScreen")
     const setCurrentRoutes = useStore(state => state.setCurrentRoutes)
     const toastBottomOffset = useStore(state => state.toastBottomOffset)
     const toastTopOffset = useStore(state => state.toastTopOffset)
-    const setNetInfo = useStore(state => state.setNetInfo)
+    const scrolledToBottom = useStore(state => state.scrolledToBottom)
+    const setScrolledToBottom = useStore(state => state.setScrolledToBottom)
     const showNavigationAnimation = useStore(state => state.showNavigationAnimation)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const setBiometricAuthScreenState = useStore(state => state.setBiometricAuthScreenState)
@@ -105,6 +98,7 @@ export const App = Sentry.wrap(memo(() => {
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
     const [currentDimensions, setCurrentDimensions] = useState({ window: Dimensions.get("window"), screen: Dimensions.get("screen") })
+    const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
 
     const handleShare = async (items: any) => {
         if(!items){
@@ -188,63 +182,32 @@ export const App = Sentry.wrap(memo(() => {
     }
 
     useEffect(() => {
-        NetInfo.fetch().then((state) => {
-            setNetInfo(state)
-        }).catch((err) => {
-            console.log(err)
-        })
-
-        const appStateListener = AppState.addEventListener("change", (nextAppState) => {
-            setAppState(nextAppState)
-
-            if(nextAppState == "background"){
-                if(!isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
-                    if(Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && storage.getBoolean("biometricPinAuth:" + userId)){
-                        setBiometricAuthScreenState("auth")
-                        
-                        navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
-                    }
-                }
+        const nav = () => {
+            if(
+                storage.getBoolean("biometricPinAuth:" + userId)
+                && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId)
+                && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])
+            ){
+                setBiometricAuthScreenState("auth")
+                
+                navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
+            }
+            else{
+                navigationRef.current?.dispatch(CommonActions.reset({
+                    index: 0,
+                    routes: [
+                        {
+                            name: "MainScreen",
+                            params: {
+                                parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
+                            }
+                        }
+                    ]
+                }))
             }
 
-            if(nextAppState == "active"){
-                checkAppVersion({ navigation: navigationRef })
-            }
-        })
-
-        const netInfoListener = NetInfo.addEventListener((state) => {
-            setNetInfo(state)
-        })
-
-        const dimensionsListener = Dimensions.addEventListener("change", ({ window, screen }) => {
-            setDimensions({ window, screen })
-            setCurrentDimensions({ window, screen })
-        })
-
-        const navigationRefListener = (event: any) => {
-            if(typeof event.data !== "undefined"){
-                if(typeof event.data.state !== "undefined"){
-                    if(typeof event.data.state.routes !== "undefined"){
-                        //console.log("Current Screen:", event.data.state.routes[event.data.state.routes.length - 1].name, event.data.state.routes[event.data.state.routes.length - 1].params)
-
-                        setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
-                        setCurrentRoutes(event.data.state.routes)
-                    }
-                }
-            }
+            setSetupDone(true)
         }
-
-        navigationRef.addListener("state", navigationRefListener)
-
-        ShareMenu.getInitialShare(handleShare)
-
-        const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
-
-        setAppearance()
-
-        const appearanceListener = Appearance.addChangeListener(() => {
-            setAppearance()
-        })
 
         const offlineSetup = () => {
             try{
@@ -257,30 +220,7 @@ export const App = Sentry.wrap(memo(() => {
                 ){
                     // @ts-ignore
                     if(storage.getString("masterKeys").length > 16 && storage.getString("apiKey").length > 16 && storage.getString("privateKey").length > 16 && storage.getString("publicKey").length > 16 && storage.getNumber("userId") !== 0){
-                        setSetupDone(true)
-    
-                        if(
-                            storage.getBoolean("biometricPinAuth:" + userId)
-                            && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId)
-                            && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])
-                        ){
-                            setBiometricAuthScreenState("auth")
-                            
-                            navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
-                        }
-                        else{
-                            navigationRef.current?.dispatch(CommonActions.reset({
-                                index: 0,
-                                routes: [
-                                    {
-                                        name: "MainScreen",
-                                        params: {
-                                            parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
-                                        }
-                                    }
-                                ]
-                            }))
-                        }
+                        nav()
                     }
                     else{
                         setSetupDone(false)
@@ -303,55 +243,96 @@ export const App = Sentry.wrap(memo(() => {
             }
         }
 
-        if(isLoggedIn && !setupDone && navigationRef && navigationRef.current){
-            setup({ navigation: navigationRef }).then(() => {
-                setSetupDone(true)
-
-                if(
-                    storage.getBoolean("biometricPinAuth:" + userId)
-                    && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId)
-                    && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])
-                ){
-                    setBiometricAuthScreenState("auth")
-                    
-                    navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
-                }
-                else{
-                    navigationRef.current?.dispatch(CommonActions.reset({
-                        index: 0,
-                        routes: [
-                            {
-                                name: "MainScreen",
-                                params: {
-                                    parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
-                                }
-                            }
-                        ]
-                    }))
-                }
-            }).catch((err) => {
-                console.log(err)
-    
-                offlineSetup()
-            })
-        }
-
-        storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, (new Date().getTime() - 5000))
-
-        return () => {
+        if(isLoggedIn){
             setSetupDone(false)
 
-            global.nodeThread.ready = false
+            isNavReady(navigationRef).then(() => {
+                if(storage.getBoolean("setupDone")){
+                    nav()
+                }
+                else{
+                    setup({ navigation: navigationRef }).then(() => {
+                        nav()
+                    }).catch((err) => {
+                        console.log(err)
+    
+                        offlineSetup()
+                    })
+                }
+            })
+        }
+    }, [isLoggedIn])
 
+    useEffect(() => {
+        runNetworkCheck(true)
+
+        const appStateListener = AppState.addEventListener("change", async (nextAppState) => {
+            setAppState(nextAppState)
+
+            await isNavReady(navigationRef)
+
+            if(nextAppState == "background"){
+                if(!isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
+                    if(Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && storage.getBoolean("biometricPinAuth:" + userId)){
+                        setBiometricAuthScreenState("auth")
+                        
+                        if(navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function"){
+                            navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
+                        }
+                    }
+                }
+            }
+
+            if(nextAppState == "active"){
+                runNetworkCheck(true)
+
+                checkAppVersion({ navigation: navigationRef })
+            }
+        })
+
+        const dimensionsListener = Dimensions.addEventListener("change", ({ window, screen }) => {
+            setDimensions({ window, screen })
+            setCurrentDimensions({ window, screen })
+            setScrolledToBottom(false)
+        })
+
+        const navigationRefListener = (event: any) => {
+            if(typeof event.data !== "undefined"){
+                if(typeof event.data.state !== "undefined"){
+                    if(typeof event.data.state.routes !== "undefined"){
+                        if(event.data.state.routes && Array.isArray(event.data.state.routes)){
+                            setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
+                            setCurrentRoutes(event.data.state.routes)
+                            setScrolledToBottom(false)
+                        }
+                    }
+                }
+            }
+        }
+
+        navigationRef.addListener("state", navigationRefListener)
+
+        ShareMenu.getInitialShare(handleShare)
+
+        const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
+
+        setAppearance()
+
+        const appearanceListener = Appearance.addChangeListener(() => {
+            setAppearance()
+        })
+
+        storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, (new Date().getTime() - 5000))
+        storage.set("setupDone", false)
+
+        return () => {
             dimensionsListener.remove()
             shareMenuListener.remove()
             navigationRef.removeListener("state", navigationRefListener)
             appearanceListener.remove()
             appStateListener.remove()
-
-            netInfoListener()
         }
-    }, [isLoggedIn])
+    }, [])
 
   	return (
         <>
@@ -620,11 +601,8 @@ export const App = Sentry.wrap(memo(() => {
             </NavigationContainer>
             <Toast
                 ref={(ref) => global.toast = ref}
-                offsetBottom={toastBottomOffset}
+                offsetBottom={scrolledToBottom ? 135 : toastBottomOffset}
                 offsetTop={toastTopOffset}
-                style={{
-                    zIndex: 99999
-                }}
             />
         </>
     )

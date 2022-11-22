@@ -11,9 +11,9 @@ import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "../../memoryCache"
 import BackgroundTimer from "react-native-background-timer"
-import NetInfo from "@react-native-community/netinfo"
 import * as FileSystem from "expo-file-system"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
+import { isOnline, isWifi } from "../isOnline"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -48,13 +48,11 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             return reject("master keys !== object")
         }
 
-        const netInfo = await NetInfo.fetch()
-
-        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+        if(!isOnline()){
             return reject(i18n(storage.getString("lang"), "deviceOffline"))
         }
 
-        if(storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
+        if(storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && !isWifi()){
             return reject("wifiOnly")
         }
 
@@ -293,13 +291,23 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
                                 }
             
                                 const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid })
-            
-                                ImageResizer.createResizedImage(file.path, width, height, "JPEG", quality).then((compressed) => {
-                                    RNFS.moveFile(compressed.uri, dest).then(() => {
-                                        storage.set(cacheKey, item.uuid + ".jpg")
-                                        memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
-            
+
+                                if(width <= 1 || height <= 1){
+                                    return resolve(true)
+                                }
+                        
+                                RNFS.stat(file.path).then((stat) => {
+                                    if(stat.size <= 1){
                                         return resolve(true)
+                                    }
+
+                                    ImageResizer.createResizedImage(file.path, width, height, "JPEG", quality).then((compressed) => {
+                                        RNFS.moveFile(compressed.uri, dest).then(() => {
+                                            storage.set(cacheKey, item.uuid + ".jpg")
+                                            memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
+                
+                                            return resolve(true)
+                                        }).catch(resolve)
                                     }).catch(resolve)
                                 }).catch(resolve)
                             }).catch(resolve)

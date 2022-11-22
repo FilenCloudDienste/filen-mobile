@@ -509,7 +509,6 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                     key="events"
                     windowSize={10}
                     initialNumToRender={32}
-                    removeClippedSubviews={true}
                     numColumns={1}
                     renderItem={({ item, index }) => <EventRow item={item} index={index} darkMode={darkMode} lang={lang} navigation={navigation} masterKeys={masterKeys} />}
                     onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}

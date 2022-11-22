@@ -1,11 +1,9 @@
 import { fetchUserInfo, fetchUserUsage } from "../../../api"
 import storage from "../../../storage"
-import { useStore } from "../../../state"
+import { isOnline } from "../../isOnline"
 
 export const updateUserUsage = (): void => {
-    const netInfo = useStore.getState().netInfo
-
-    if(netInfo.isConnected && netInfo.isInternetReachable){
+    if(isOnline()){
         fetchUserUsage().then((usage) => {
             storage.set("userUsage:" + storage.getNumber("userId"), JSON.stringify(usage))
         }).catch((err) => {
@@ -15,9 +13,7 @@ export const updateUserUsage = (): void => {
 }
 
 export const updateUserInfo = (): void => {
-    const netInfo = useStore.getState().netInfo
-
-    if(netInfo.isConnected && netInfo.isInternetReachable){
+    if(isOnline()){
         fetchUserInfo().then((info) => {
             storage.set("userInfo:" + storage.getNumber("userId"), JSON.stringify(info))
         }).catch((err) => {

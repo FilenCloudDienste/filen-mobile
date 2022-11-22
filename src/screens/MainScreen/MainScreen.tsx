@@ -221,22 +221,20 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         }
     }, [items, isFocused])
 
-    const fetchItemList = ({ bypassCache = false, callStack = 0, loadFolderSizes = false }: { bypassCache?: boolean, callStack?: number, loadFolderSizes?: boolean }) => {
-        return new Promise((resolve, reject) => {
-            // @ts-ignore
-            loadItems({
-                parent: getParent(route),
-                setItems,
-                masterKeys,
-                setLoadDone,
-                navigation,
-                isMounted,
-                bypassCache,
-                route,
-                setProgress,
-                callStack,
-                loadFolderSizes
-            }).then(resolve).catch(reject)
+    const fetchItemList = async ({ bypassCache = false, callStack = 0, loadFolderSizes = false }: { bypassCache?: boolean, callStack?: number, loadFolderSizes?: boolean }) => {
+        // @ts-ignore
+        return loadItems({
+            parent: getParent(route),
+            setItems,
+            masterKeys,
+            setLoadDone,
+            navigation,
+            isMounted,
+            bypassCache,
+            route,
+            setProgress,
+            callStack,
+            loadFolderSizes
         })
     }
 
@@ -250,7 +248,21 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         global.fetchItemList = fetchItemList
 
         const deviceListener = DeviceEventEmitter.addListener("event", (data) => {
-            const navigationRoutes = navigation.getState().routes
+            const navState = navigation.getState()
+
+            if(!navState){
+                return
+            }
+
+            if(typeof navState.routes == "undefined"){
+                return
+            }
+
+            if(!Array.isArray(navState.routes)){
+                return
+            }
+
+            const navigationRoutes = navState.routes
             const isListenerActive = typeof navigationRoutes == "object" ? (navigationRoutes[navigationRoutes.length - 1].key == route.key) : false
 
             if(data.type == "thumbnail-generated"){

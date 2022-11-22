@@ -39,6 +39,10 @@ export const showToast = ({ type = "normal", message, swipeEnabled = false, dura
     if(typeof global.toast == "undefined"){
         return false
     }
+
+    if(typeof global.toast.show !== "function"){
+        return false
+    }
     
     if(currentToastQueue >= toastQueueLimit){
         return BackgroundTimer.setTimeout(() => {
@@ -173,11 +177,19 @@ export const hideToast = ({ id }: { id: string | number }) => {
         return false
     }
 
+    if(typeof global.toast.hide !== "function"){
+        return false
+    }
+
     return global.toast.hide(id)
 }
 
 export const hideAllToasts = () => {
     if(typeof global.toast == "undefined"){
+        return false
+    }
+
+    if(typeof global.toast.hideAll !== "function"){
         return false
     }
 
@@ -542,7 +554,7 @@ export const UploadToast = memo(() => {
     }, [currentShareItems])
 
     if(items.length == 0){
-        return <></>
+        return null
     }
 
     return (

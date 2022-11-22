@@ -400,5 +400,6 @@ export const de: {
     fifteenMinutes: "15 Minuten",
     thirtyMinutes: "30 Minuten",
     oneHour: "1 Stunde",
-    saveLogs: "Logs speichern"
+    saveLogs: "Logs speichern",
+    cameraUploadAfterEnabled: "Nur nach Aktivierungszeit hochladen"
 }

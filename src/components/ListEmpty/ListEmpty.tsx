@@ -5,7 +5,7 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
-import { useStore } from "../../lib/state"
+import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 
 export interface ListEmptyProps {
     route: any,
@@ -15,11 +15,11 @@ export interface ListEmptyProps {
 export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
     const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const netInfo = useStore(state => state.netInfo)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
     const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
     const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
+    const networkInfo = useNetworkInfo()
 
     const routeURL: string = getRouteURL(route)
     const currentScreenName: string = route.name
@@ -53,7 +53,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                 ) : (
                     <>
                         {
-                            netInfo.isConnected && netInfo.isInternetReachable ? (
+                            networkInfo.online ? (
                                 <>
                                     {
                                         routeURL.indexOf("photos") !== -1 && (

@@ -62,8 +62,6 @@ export interface State {
 	setReRenderShareActionSheet: (reRenderShareActionSheet: number | string) => void,
 	reRenderPublicLinkActionSheet: number | string,
 	setReRenderPublicLinkActionSheet: (reRenderPublicLinkActionSheet: number | string) => void,
-	netInfo: any,
-	setNetInfo: (netInfo: any) => void,
 	showNavigationAnimation: boolean,
 	setShowNavigationAnimation: (showNavigationAnimation: boolean) => void,
 	isDeviceReady: boolean,
@@ -121,7 +119,9 @@ export interface State {
 	imagePreviewModalIndex: number,
 	setImagePreviewModalIndex: (imagePreviewModalIndex: number) => void,
 	finishedTransfers: any[],
-	setFinishedTransfers: (finishedTransfers: any[]) => void
+	setFinishedTransfers: (finishedTransfers: any[]) => void,
+	scrolledToBottom: boolean,
+	setScrolledToBottom: (scrolledToBottom: boolean) => void
 }
 
 export const useStore = create<State>()(subscribeWithSelector(set => ({
@@ -179,8 +179,6 @@ export const useStore = create<State>()(subscribeWithSelector(set => ({
 	setReRenderShareActionSheet: (reRenderShareActionSheet) => set({ reRenderShareActionSheet }),
 	reRenderPublicLinkActionSheet: 0,
 	setReRenderPublicLinkActionSheet: (reRenderPublicLinkActionSheet) => set({ reRenderPublicLinkActionSheet }),
-	netInfo: {isConnected: true, type: "wifi", isInternetReachable: true},
-	setNetInfo: (netInfo) => set({ netInfo }),
 	showNavigationAnimation: true,
 	setShowNavigationAnimation: (showNavigationAnimation) => set({ showNavigationAnimation }),
 	isDeviceReady: false,
@@ -238,7 +236,9 @@ export const useStore = create<State>()(subscribeWithSelector(set => ({
 	imagePreviewModalIndex: 0,
 	setImagePreviewModalIndex: (imagePreviewModalIndex) => set({ imagePreviewModalIndex }),
 	finishedTransfers: [],
-	setFinishedTransfers: (finishedTransfers) => set({ finishedTransfers })
+	setFinishedTransfers: (finishedTransfers) => set({ finishedTransfers }),
+	scrolledToBottom: false,
+	setScrolledToBottom: (scrolledToBottom) => set({ scrolledToBottom })
 })))
 
 export const navigationAnimation = ({ enable = true }): Promise<boolean> => {

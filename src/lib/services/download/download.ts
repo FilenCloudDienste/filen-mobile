@@ -15,6 +15,7 @@ import type { Item } from "../items"
 import memoryCache from "../../memoryCache"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import * as FileSystem from "expo-file-system"
+import { isOnline, isWifi } from "../isOnline"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -225,9 +226,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         }
     }
 
-    const netInfo = useStore.getState().netInfo
-
-    if(!netInfo.isInternetReachable || !netInfo.isInternetReachable){
+    if(!isOnline()){
         callOptionalCallback(new Error("device is offline"))
 
         return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
@@ -281,7 +280,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     }
 
     try{
-        if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
+        if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()){
             downloadSemaphore.release()
 
             return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })

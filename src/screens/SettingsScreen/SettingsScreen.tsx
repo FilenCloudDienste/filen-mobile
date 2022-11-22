@@ -8,7 +8,7 @@ import { formatBytes, getFilenameFromPath } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
-import { useStore, waitForStateUpdate } from "../../lib/state"
+import { waitForStateUpdate } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
 import { getColor } from "../../lib/style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
@@ -18,7 +18,7 @@ import { hasStoragePermissions } from "../../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../../lib/statusbar"
 import * as MediaLibrary from "expo-media-library"
-import * as Sentry from "@sentry/react-native"
+import { isOnline } from "../../lib/services/isOnline"
 
 const MISC_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
 
@@ -115,7 +115,7 @@ export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText }: 
 })
 
 export interface SettingsButtonProps {
-    title?: string,
+    title?: any,
     rightComponent?: any
 }
 
@@ -138,7 +138,7 @@ export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonPro
                     paddingLeft: 10,
                     paddingRight: 10,
                     paddingTop: 10,
-                    paddingBottom: 10
+                    paddingBottom: 10,
                 }}
             >
                 <View
@@ -146,15 +146,19 @@ export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonPro
                         maxWidth: "80%"
                     }}
                 >
-                    <Text
-                        style={{
-                            color: darkMode ? "white" : "black",
-                            paddingTop: typeof rightComponent !== "undefined" ? (Platform.OS == "android" ? 3 : 7) : 0
-                        }}
-                        numberOfLines={1}
-                    >
-                        {title}
-                    </Text>
+                    {
+                        typeof title == "string" ? (
+                            <Text
+                                style={{
+                                    color: darkMode ? "white" : "black",
+                                    paddingTop: typeof rightComponent !== "undefined" ? (Platform.OS == "android" ? 3 : 7) : 0
+                                }}
+                                numberOfLines={1}
+                            >
+                                {title}
+                            </Text>
+                        ) : title
+                    }
                 </View>
                 {
                     typeof rightComponent !== "undefined" && (
@@ -178,7 +182,6 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [email, setEmail] = useMMKVString("email", storage)
     const [lang, setLang] = useMMKVString("lang", storage)
-    const netInfo = useStore(state => state.netInfo)
     const [userInfo, setUserInfo]: any[] = useMMKVObject("userInfo:" + userId, storage)
     const [userAvatarCached, setUserAvatarCached] = useMMKVString("userAvatarCached:" + userId, storage)
 
@@ -282,7 +285,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
                     return false
                 }
 
-                if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                if(!isOnline()){
                     return showToast({ message: i18n(lang, "deviceOffline") })
                 }
 
@@ -297,7 +300,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
                         return false
                     }
 
-                    if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                    if(!isOnline()){
                         return showToast({ message: i18n(lang, "deviceOffline") })
                     }
                     
@@ -400,7 +403,6 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
     const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
     const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
     const [biometricPinAuth, setBiometricPinAuth] = useMMKVBoolean("biometricPinAuth:" + userId, storage)
-    const netInfo = useStore(state => state.netInfo)
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
     const [onlyUsePINCode, setOnlyUsePINCode] = useMMKVBoolean("onlyUsePINCode:" + userId, storage)
@@ -468,7 +470,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
             <SettingsGroup>
                 <SettingsButtonLinkHighlight
                     onPress={() => {
-                        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                        if(!isOnline()){
                             return showToast({ message: i18n(lang, "deviceOffline") })
                         }
 
@@ -482,7 +484,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                 />
                 <SettingsButtonLinkHighlight
                     onPress={() => {
-                        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                        if(!isOnline()){
                             return showToast({ message: i18n(lang, "deviceOffline") })
                         }
 
@@ -494,7 +496,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                 />
                 <SettingsButtonLinkHighlight
                     onPress={() => {
-                        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                        if(!isOnline()){
                             return showToast({ message: i18n(lang, "deviceOffline") })
                         }
                         
@@ -508,7 +510,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
             <SettingsGroup>
                 <SettingsButtonLinkHighlight
                     onPress={() => {
-                        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                        if(!isOnline()){
                             return showToast({ message: i18n(lang, "deviceOffline") })
                         }
 

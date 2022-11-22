@@ -184,11 +184,17 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
         navigationAnimation({ enable: false }).then(() => {
             let wasSetupScreen = false
 
-            const routes = navigation.getState().routes
+            if(typeof navigation !== "undefined" && typeof navigation.getState == "function"){
+                const navState = navigation.getState()
 
-            for(let i = 0; i < routes.length; i++){
-                if(routes[i].name == "SetupScreen"){
-                    wasSetupScreen = true
+                if(navState && typeof navState.routes !== "undefined" && Array.isArray(navState.routes)){
+                    const routes = navState.routes
+
+                    for(let i = 0; i < routes.length; i++){
+                        if(routes[i].name == "SetupScreen"){
+                            wasSetupScreen = true
+                        }
+                    }
                 }
             }
 
