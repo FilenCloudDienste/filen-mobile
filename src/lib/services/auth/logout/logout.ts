@@ -15,7 +15,7 @@ export const logout = ({ navigation }: { navigation: any }) => {
         }
     })
 
-    if(typeof navigation.replace !== "undefined"){
+    if(typeof navigation.replace == "function"){
         navigation.replace("LoginScreen")
     }
     else{

@@ -5,6 +5,7 @@ import { CommonActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../state"
 import { compareVersions } from "../../helpers"
 import { getLatestVersion } from "../../api"
+import { isOnline } from "../isOnline"
 
 const CHECK_TIMEOUT = 500 // In seconds
 
@@ -12,16 +13,16 @@ export const checkAppVersion = async ({ navigation }: { navigation: any }): Prom
     if(typeof navigation !== "undefined"){
         if(typeof navigation.current !== "undefined"){
             if(typeof navigation.current.routes !== "undefined"){
-                if(navigation.current.getState().routes.filter((route: any) => route.name == "UpdateScreen").length !== 0){
-                    return
+                if(navigation.current.routes && Array.isArray(navigation.current.routes)){
+                    if(navigation.current.getState().routes.filter((route: any) => route.name == "UpdateScreen").length !== 0){
+                        return
+                    }
                 }
             }
         }
     }
 
-    const netInfo = useStore.getState().netInfo
-
-    if(!netInfo.isConnected || !netInfo.isInternetReachable){
+    if(!isOnline()){
         return
     }
 

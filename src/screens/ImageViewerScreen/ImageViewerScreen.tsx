@@ -20,7 +20,7 @@ import * as StatusBar from "expo-status-bar"
 import type { NavigationContainerRef } from "@react-navigation/native"
 import type { EdgeInsets } from "react-native-safe-area-context"
 import { showToast } from "../../components/Toasts"
-import { getFileExt } from "../../lib/helpers"
+import { getFileExt, isBetween } from "../../lib/helpers"
 
 const THUMBNAIL_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
 const minZoom: number = 0.99999999999
@@ -619,7 +619,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 }}
                 ref={listRef}
                 data={imagePreviewModalItems}
-                initialScrollIndex={currentIndex}
+                initialScrollIndex={currentIndex >= 0 ? (isBetween(currentIndex, 0, imagePreviewModalItems.length) ? currentIndex : 0) : 0}
                 renderItem={({ item, index }) => renderImage(item, index)}
                 key={portrait ? "portrait" : "landscape"}
                 extraData={portrait ? "portrait" : "landscape"}
@@ -637,7 +637,6 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 showsHorizontalScrollIndicator={false}
                 onScrollBeginDrag={() => setIsSwiping(true)}
                 onScrollEndDrag={() => setIsSwiping(false)}
-                removeClippedSubviews={false}
             />
             <Animated.View
                 style={{
@@ -662,7 +661,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     }}
                     ref={thumbnailListRef}
                     data={imagePreviewModalItems}
-                    initialScrollIndex={currentIndex >= 0 ? currentIndex : 0}
+                    initialScrollIndex={currentIndex >= 0 ? (isBetween(currentIndex, 0, imagePreviewModalItems.length) ? currentIndex : 0) : 0}
                     renderItem={({ item, index }) => renderThumb(item, index)}
                     getItemLayout={(_, index) => ({ length: 30, offset: 30 * index, index })}
                     keyExtractor={(item, _) => item.uuid}
@@ -671,7 +670,6 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     bounces={false}
                     showsVerticalScrollIndicator={false}
                     showsHorizontalScrollIndicator={false}
-                    removeClippedSubviews={false}
                 />
                 <View
                     style={{

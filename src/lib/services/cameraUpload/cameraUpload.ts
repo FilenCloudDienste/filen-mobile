@@ -6,12 +6,12 @@ import { folderPresent, fileExists, apiRequest } from "../../api"
 import BackgroundTimer from "react-native-background-timer"
 import * as MediaLibrary from "expo-media-library"
 import * as FileSystem from "expo-file-system"
-import NetInfo from "@react-native-community/netinfo"
 import mimeTypes from "mime-types"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 // @ts-ignore
 import RNHeicConverter from "react-native-heic-converter"
 import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
+import { isOnline, isWifi } from "../isOnline"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -80,6 +80,7 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
         const cameraUploadAssetFetchTimeout: number = storage.getNumber("cameraUploadAssetFetchTimeout:" + userId)
         let cameraUploadExcludedAlbums: any = storage.getString("cameraUploadExcludedAlbums:" + userId)
         let assetTypes: MediaLibrary.MediaTypeValue[] = ["photo", "video"]
+        const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
 
         if(cameraUploadIncludeImages && !cameraUploadIncludeVideos){
             assetTypes = ["photo"]
@@ -134,7 +135,7 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
                 })
 
                 if(cachedTotal == current.total && current.last.id == lastCached.id){
-                    return resolve(cached.sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined"))
+                    return resolve(cached.sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.modificationTime >= cameraUploadAfterEnabledTime))
                 }
             }
             catch(e){
@@ -157,7 +158,7 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
                     return fetch(fetched.endCursor)
                 }
 
-                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined")
+                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.modificationTime >= cameraUploadAfterEnabledTime)
 
                 storage.set("cameraUploadLastAssets:" + userId, JSON.stringify(sorted))
                 storage.set("cameraUploadLastAsset:" + userId, JSON.stringify(sorted[sorted.length - 1]))
@@ -278,9 +279,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
             return true
         }
 
-        const netInfo = await NetInfo.fetch()
-
-        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+        if(!isOnline()){
             isRunning = false
 
             if(runOnce){
@@ -294,7 +293,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
             return true
         }
 
-        if(storage.getBoolean("onlyWifiUploads:" + userId) && netInfo.type !== "wifi"){
+        if(storage.getBoolean("onlyWifiUploads:" + userId) && !isWifi()){
             isRunning = false
 
             if(runOnce){
@@ -396,7 +395,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
             return true
         }
 
-        const assets = await fetchAssets()
+        let assets = await fetchAssets()
 
         storage.set("cameraUploadTotal", assets.length)
 
@@ -412,6 +411,10 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
             }, TIMEOUT)
 
             return true
+        }
+
+        if(runOnce){ // Limit BG uploads to photos since videos can take longer to upload (terminating the BG fetch process)
+            assets = assets.filter(asset => asset.mediaType == "photo")
         }
 
         if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
@@ -472,13 +475,38 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                                 shouldDownloadFromNetwork: true
                             }).then((assetInfo) => {
                                 const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
+                                let assetURI: string = ""
 
-                                if(typeof assetInfo.localUri == "string"){
+                                if(Platform.OS == "android"){
+                                    if(asset.uri.length > 0){
+                                        assetURI = asset.uri
+                                    }
+                                    else{
+                                        if(typeof assetInfo.localUri == "string" && assetInfo.localUri.length > 0){
+                                            assetURI = assetInfo.localUri
+                                        }
+                                    }
+                                }
+                                else{
+                                    if(typeof assetInfo.localUri == "string" && assetInfo.localUri.length > 0){
+                                        assetURI = assetInfo.localUri
+                                    }
+                                    else{
+                                        assetURI = assetInfo.uri
+                                    }
+                                }
+
+                                if(typeof assetURI == "string" && assetURI.length > 0){
                                     FileSystem.copyAsync({
-                                        from: assetInfo.localUri,
+                                        from: assetURI,
                                         to: tmp
                                     }).then(() => {
-                                        if(Platform.OS == "ios" && !cameraUploadEnableHeic && assetInfo.localUri?.toLowerCase().endsWith(".heic")){
+                                        if(
+                                            Platform.OS == "ios"
+                                            && !cameraUploadEnableHeic
+                                            && assetURI.toLowerCase().endsWith(".heic")
+                                            && asset.mediaType == "photo"
+                                        ){
                                             RNHeicConverter.convert({
                                                 path: tmp,
                                                 quality: 1,

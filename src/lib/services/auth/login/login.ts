@@ -1,7 +1,5 @@
 import { apiRequest } from "../../../api"
 import storage from "../../../storage"
-import { setup } from "../../setup/setup"
-import { logout } from "../logout"
 import { i18n } from "../../../../i18n/i18n"
 import { showToast } from "../../../../components/Toasts"
 import { useStore } from "../../../state"
@@ -263,6 +261,7 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
         storage.set("masterKeys", JSON.stringify([masterKey]))
         storage.set("authVersion", authVersion)
         storage.set("isLoggedIn", true)
+        storage.set("setupDone", false)
     }
     catch(e: any){
         console.log(e)
@@ -278,23 +277,5 @@ export const login = async ({ email, password, twoFactorKey, setEmail, setPasswo
 
     navigationAnimation({ enable: true }).then(() => {
         navigation.replace("SetupScreen")
-
-        setTimeout(() => {
-            console.log("setting up", global.nodeThread.ready)
-
-            setup({ navigation }).then(() => {
-                setSetupDone(true)
-
-                console.log("setup done")
-                
-                //navigation.replace("MainScreen")
-            }).catch((err) => {
-                console.log(err)
-
-                setSetupDone(false)
-
-                logout({ navigation })
-            })
-        }, 1000)
     })
 }

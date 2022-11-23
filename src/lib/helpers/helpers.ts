@@ -4,6 +4,8 @@ import * as cppBase64 from "react-native-quick-base64"
 import { useStore } from "../state"
 import { i18n } from "../../i18n"
 import { memoize, values } from "lodash"
+import { NavigationContainerRefWithCurrent } from "@react-navigation/native"
+import BackgroundTimer from "react-native-background-timer"
 
 export const base64Decode = (str: string): string => {
     return cppBase64.atob(str)
@@ -144,6 +146,15 @@ export const getRouteURL = (passedRoute?: any): string => {
         }
         else{
             var routes = useStore.getState().currentRoutes
+
+            if(typeof routes == "undefined"){
+                return "base"
+            }
+    
+            if(!Array.isArray(routes)){
+                return "base"
+            }
+
             var route = routes[routes.length - 1]
             var routeURL = getParent()
         }
@@ -1334,6 +1345,10 @@ export const isRouteInStack = (navigationRef: any, routeNames: string[]): boolea
         if(typeof navigationRef == "undefined"){
             return false
         }
+
+        if(typeof navigationRef.getState !== "function"){
+            return false
+        }
     
         const navState = navigationRef.getState()
     
@@ -1342,6 +1357,10 @@ export const isRouteInStack = (navigationRef: any, routeNames: string[]): boolea
         }
     
         if(typeof navState.routes == "undefined"){
+            return false
+        }
+
+        if(!navState.routes){
             return false
         }
     
@@ -1358,4 +1377,32 @@ export const isRouteInStack = (navigationRef: any, routeNames: string[]): boolea
     }
 
     return false
+}
+
+export const isBetween = (num: number, start: number, end: number) => {
+    if(num >= start && num <= end){
+        return true
+    }
+
+    return false
+}
+
+export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>): Promise<boolean> => {
+    return new Promise((resolve) => {
+        if(typeof navigationRef !== "undefined" && typeof navigationRef.isReady == "function"){
+            if(navigationRef.isReady()){
+                return resolve(true)
+            }
+        }
+
+        const wait = BackgroundTimer.setInterval(() => {
+            if(typeof navigationRef !== "undefined" && typeof navigationRef.isReady == "function"){
+                if(navigationRef.isReady()){
+                    BackgroundTimer.clearInterval(wait)
+
+                    return resolve(true)
+                }
+            }
+        }, 100)
+    })
 }

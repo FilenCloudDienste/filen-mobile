@@ -7,6 +7,7 @@ import { logout } from "../services/auth/logout"
 import { useStore } from "../state"
 import BackgroundTimer from "react-native-background-timer"
 import DeviceInfo from "react-native-device-info"
+import { isOnline } from "../services/isOnline"
 
 const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(8192 * 8192)
@@ -37,9 +38,7 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
             maxTries = 5
         }
 
-        const netInfo = useStore.getState().netInfo
-
-        if(!netInfo.isConnected || !netInfo.isInternetReachable){
+        if(!isOnline()){
             try{
                 const cache = storage.getString(cacheKey)
 
@@ -91,7 +90,10 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
     
                     if(!res.status){
                         if(typeof res.message == "string"){
-                            if(res.message.toLowerCase().indexOf("invalid api key") !== -1){
+                            if(
+                                res.message.toLowerCase().indexOf("invalid api key") !== -1
+                                || res.message.toLowerCase().indexOf("api key not found") !== -1
+                            ){
                                 const navigation = useStore.getState().navigation
     
                                 if(typeof navigation !== "undefined"){
@@ -193,6 +195,7 @@ export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey:
                         || response.message.toString().toLowerCase().indexOf("not matching") !== -1
                         || response.message.toString().toLowerCase().indexOf("done yet") !== -1
                         || response.message.toString().toLowerCase().indexOf("finished yet") !== -1
+                        || response.message.toString().toLowerCase().indexOf("chunks not found") !== -1
                     ){
                         return setTimeout(req, timeout)
                     }
@@ -1997,6 +2000,10 @@ export const fetchEventInfo = ({ uuid }: { uuid: string }): Promise<any> => {
 
 export const fetchFolderSize = ({ folder, routeURL }: { folder: any, routeURL: string }): Promise<number> => {
     return new Promise((resolve, reject) => {
+        if(folder.uuid.indexOf(".") !== -1){
+            return resolve(0)
+        }
+
         fetchFolderSizeSemaphore.acquire().then(() => {
             let payload = {}
 

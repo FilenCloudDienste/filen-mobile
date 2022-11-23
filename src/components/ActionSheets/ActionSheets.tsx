@@ -28,6 +28,8 @@ import * as RNDocumentPicker from "react-native-document-picker"
 import * as RNImagePicker from "react-native-image-picker"
 import mimeTypes from "mime-types"
 import * as MediaLibrary from "expo-media-library"
+import { isOnline } from "../../lib/services/isOnline"
+import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 
 const THUMBNAIL_BASE_PATH: string = ReactNativeBlobUtil.fs.dirs.DocumentDir + "/thumbnailCache/"
 
@@ -1593,18 +1595,20 @@ export const ActionSheetIndicator = memo(() => {
 	const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
 
 	return (
-		<View
-			style={{
-				height: 6,
-				width: 45,
-				borderRadius: 100,
-				backgroundColor: darkMode ? "#555555" : "lightgray",
-				marginVertical: 5,
-				alignSelf: "center",
-				position: "absolute",
-				zIndex: 2
-			}}
-		/>
+		<>
+			<View
+				style={{
+					height: 6,
+					width: 45,
+					borderRadius: 100,
+					backgroundColor: darkMode ? "#555555" : "lightgray",
+					marginVertical: 5,
+					alignSelf: "center",
+					position: "absolute",
+					zIndex: 2
+				}}
+			/>
+		</>
 	)
 })
 
@@ -1624,7 +1628,6 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	const setConfirmPermanentDeleteDialogVisible = useStore(state => state.setConfirmPermanentDeleteDialogVisible)
 	const setRemoveFromSharedInDialogVisible = useStore(state => state.setRemoveFromSharedInDialogVisible)
 	const setStopSharingDialogVisible = useStore(state => state.setStopSharingDialogVisible)
-	const netInfo = useStore(state => state.netInfo)
 	const [isDeviceOnline, setIsDeviceOnline] = useState<boolean>(false)
 	const [canDownload, setCanDownload] = useState<boolean>(false)
 	const [canEdit, setCanEdit] = useState<boolean>(false)
@@ -1635,6 +1638,7 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
 	const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
+	const networkInfo = useNetworkInfo()
 
 	const can = (): void => {
 		if(typeof currentActionSheetItem !== "undefined"){
@@ -1647,7 +1651,7 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 			if(getRouteURL().indexOf("photos") == -1){
 				if(Platform.OS == "ios"){
 					if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(getFileExt(currentActionSheetItem.name))){
-						if(netInfo.isInternetReachable && netInfo.isConnected){
+						if(isOnline()){
 							setCanSaveToGallery(true)
 						}
 						else{
@@ -1659,7 +1663,7 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				}
 				else{
 					if(["jpg", "jpeg", "png", "gif", "mov", "mp4"].includes(getFileExt(currentActionSheetItem.name))){
-						if(netInfo.isInternetReachable && netInfo.isConnected){
+						if(isOnline()){
 							setCanSaveToGallery(true)
 						}
 						else{
@@ -1677,7 +1681,7 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 			setCanDownload(false)
 
-			if(netInfo.isInternetReachable && netInfo.isConnected){
+			if(isOnline()){
 				setCanDownload(true)
 			}
 			else{
@@ -1689,12 +1693,12 @@ export const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}
 
 	useEffect(() => {
-		setIsDeviceOnline(netInfo.isInternetReachable && netInfo.isConnected)
+		setIsDeviceOnline(networkInfo.online)
 		can()
-	}, [netInfo])
+	}, [networkInfo])
 
 	useEffect(() => {
-		setIsDeviceOnline(netInfo.isInternetReachable && netInfo.isConnected)
+		setIsDeviceOnline(isOnline())
 
 		if(typeof currentActionSheetItem !== "undefined"){
 			can()

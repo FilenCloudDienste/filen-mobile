@@ -54,9 +54,13 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
         }
     }, [item.uuid])
 
+    if(item.uuid.indexOf(".") !== -1 || (typeof item.dummyGridFolder == "boolean" && item.dummyGridFolder)){
+        return null
+    }
+
     return (
         <TouchableHighlight
-            key={index.toString()}
+            key={item.uuid}
             underlayColor="#171717"
             style={{
                 width: "100%",
@@ -242,25 +246,43 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
     )
 })
 
-export interface GridItemProps extends ItemBaseProps { }
+export interface GridItemProps extends ItemBaseProps {
+    itemsPerRow: number
+}
 
-export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideFileNames, hideThumbnails, lang }: GridItemProps) => {
+export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow }: GridItemProps) => {
     const windowWidth: number = useMemo(() => {
         return ((dimensions.window.width || window.width) - (insets.left + insets.right))
     }, [dimensions, insets, window])
 
+    if(typeof item.dummyGridFolder == "boolean" && item.dummyGridFolder){
+        return (
+            <View
+                key={item.uuid}
+                style={{
+                    margin: 2,
+                    backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
+                    borderRadius: 5,
+                    height: (item.type == "folder" ? 0 : Math.floor(windowWidth / itemsPerRow) - 19) + 40,
+                    width: Math.floor(windowWidth / itemsPerRow) - 19,
+                    marginTop: 2
+                }}
+            />
+        )
+    }
+
     return (
         <Pressable
-            key={index.toString()}
+            key={item.uuid}
             style={{
                 margin: 2,
                 backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
                 borderRadius: 5,
-                height: (item.type == "folder" ? 0 : Math.floor(windowWidth / 2) - 19) + 40,
-                width: Math.floor(windowWidth / 2) - 19,
+                height: (item.type == "folder" ? 0 : Math.floor(windowWidth / itemsPerRow) - 19) + 40,
+                width: Math.floor(windowWidth / itemsPerRow) - 19,
                 borderColor: getColor(darkMode, "primaryBorder"),
                 borderWidth: 1,
-                marginTop: index <= 1 ? 10 : 0
+                marginTop: 2
             }}
             onPress={() => {
                 DeviceEventEmitter.emit("event", {
@@ -284,7 +306,7 @@ export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideF
                 <View
                     style={{
                         width: "100%",
-                        height: item.type == "folder" ? 0 : Math.floor(windowWidth / 2) - 19,
+                        height: item.type == "folder" ? 0 : Math.floor(windowWidth / itemsPerRow) - 19,
                         alignItems: "center",
                         justifyContent: "center"
                     }}
@@ -502,7 +524,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 
     return (
         <Pressable
-            key={index.toString()}
+            key={index}
             style={{
                 height: imageWidthAndHeight,
                 width: imageWidthAndHeight,
@@ -640,7 +662,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, dimensions, hideTh
     return (
         <TouchableOpacity
             activeOpacity={0.6}
-            key={index.toString()}
+            key={index}
             style={{
                 height: imageWidthAndHeight,
                 width: imageWidthAndHeight,

@@ -22,6 +22,8 @@ PODS:
   - EXMediaLibrary (14.0.1):
     - ExpoModulesCore
     - React-Core
+  - EXNetwork (4.1.1):
+    - ExpoModulesCore
   - Expo (44.0.6):
     - ExpoModulesCore
   - ExpoModulesCore (0.6.5):
@@ -358,8 +360,6 @@ PODS:
   - react-native-mmkv (2.0.1):
     - MMKV
     - React-Core
-  - react-native-netinfo (7.1.3):
-    - React-Core
   - react-native-quick-base64 (2.0.2):
     - React-Core
   - react-native-safe-area-context (3.3.2):
@@ -481,6 +481,7 @@ DEPENDENCIES:
   - EXKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - EXLocalAuthentication (from `../node_modules/expo-local-authentication/ios`)
   - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
+  - EXNetwork (from `../node_modules/expo-network/ios`)
   - Expo (from `../node_modules/expo/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core/ios`)
   - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
@@ -539,7 +540,6 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
-  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -615,6 +615,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-local-authentication/ios"
   EXMediaLibrary:
     :path: "../node_modules/expo-media-library/ios"
+  EXNetwork:
+    :path: "../node_modules/expo-network/ios"
   Expo:
     :path: "../node_modules/expo/ios"
   ExpoModulesCore:
@@ -679,8 +681,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-resizer"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
-  react-native-netinfo:
-    :path: "../node_modules/@react-native-community/netinfo"
   react-native-quick-base64:
     :path: "../node_modules/react-native-quick-base64"
   react-native-safe-area-context:
@@ -749,6 +749,7 @@ SPEC CHECKSUMS:
   EXKeepAwake: bf48d7f740a5cd2befed6cf9a49911d385c6c47d
   EXLocalAuthentication: 3c5f368ee954b79c3778158eb8000cbce4e2f8a2
   EXMediaLibrary: 843669e1d9d38965057830138609ee99ef260cf1
+  EXNetwork: 22ca5c25c0d8584c16d803648c39351d74ab5e9c
   Expo: 534e51e607aba8229293297da5585f4b26f50fa1
   ExpoModulesCore: 32c0ccb47f477d330ee93db72505380adf0de09a
   EXTaskManager: 889d62de7bae6b426f5656af836f8548f86eeae1
@@ -797,7 +798,6 @@ SPEC CHECKSUMS:
   react-native-image-picker: 4e6008ad8c2321622affa2c85432a5ebd02d480c
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-mmkv: bb1b8057949b5318bca2c0f6ba832051b713403c
-  react-native-netinfo: 42c0965fca99069b92e3f7360ab2d425985e5104
   react-native-quick-base64: 5b0692872a9456fb4723f7b2a0083d51485baa95
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
   React-perflogger: 9a6172711d9c4c8c7ac0a426717317c3c6ecf85c

@@ -26,6 +26,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
     const [cameraUploadFolderName, setCameraUploadFolderName] = useMMKVString("cameraUploadFolderName:" + userId, storage)
     const [hasPermissions, setHasPermissions] = useState<boolean>(false)
     const [cameraUploadEnableHeic, setCameraUploadEnableHeic] = useMMKVBoolean("cameraUploadEnableHeic:" + userId, storage)
+    const [cameraUploadAfterEnabled, setCameraUploadAfterEnabled] = useMMKVBoolean("cameraUploadAfterEnabled:" + userId, storage)
 
     const chooseFolder = (): void => {
         navigationAnimation({ enable: true }).then(() => {
@@ -192,6 +193,29 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                 ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
                                 onValueChange={() => setCameraUploadIncludeVideos(!cameraUploadIncludeVideos)}
                                 value={cameraUploadIncludeVideos}
+                            />
+                        }
+                    />
+                    <SettingsButton
+                        title={i18n(lang, "cameraUploadAfterEnabled")}
+                        rightComponent={
+                            <Switch
+                                trackColor={getColor(darkMode, "switchTrackColor")}
+                                thumbColor={cameraUploadAfterEnabled ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                                ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                                onValueChange={() => {
+                                    const newValue = !cameraUploadAfterEnabled
+
+                                    setCameraUploadAfterEnabled(newValue)
+
+                                    if(newValue){
+                                        storage.set("cameraUploadAfterEnabledTime:" + userId, new Date().getTime())
+                                    }
+                                    else{
+                                        storage.set("cameraUploadAfterEnabledTime:" + userId, 0)
+                                    }
+                                }}
+                                value={cameraUploadAfterEnabled}
                             />
                         }
                     />

@@ -1,4 +1,4 @@
-import { apiRequest, fetchOfflineFilesInfo, fetchFolderSize } from "../../api"
+import { apiRequest, fetchOfflineFilesInfo, folderPresent } from "../../api"
 import storage from "../../storage"
 import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate, convertTimestampToMs, randomIdUnsafe } from "../../helpers"
 import striptags from "striptags"
@@ -14,6 +14,7 @@ import ImageResizer from "react-native-image-resizer"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../state"
 import memoryCache from "../../memoryCache"
+import { isOnline, isWifi } from "../isOnline"
 
 const isGeneratingThumbnailForItemUUID: any = {}
 const isCheckingThumbnailForItemUUID : any = {}
@@ -54,7 +55,8 @@ export interface Item {
     thumbnail: string | undefined,
     version: number,
     hash: string,
-    receivers?: ItemReceiver[]
+    receivers?: ItemReceiver[],
+    dummyGridFolder?: boolean
 }
 
 export const ItemTemplate: Item = {
@@ -87,7 +89,9 @@ export const ItemTemplate: Item = {
     chunks: 0,
     thumbnail: undefined,
     version: 0,
-    hash: ""
+    hash: "",
+    receivers: [],
+    dummyGridFolder: false
 }
 
 export interface BuildFolder {
@@ -324,8 +328,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     }
     
     let items: Item[] = []
-    const netInfo = useStore.getState().netInfo
-    let isDeviceOnline = (netInfo.isConnected && netInfo.isInternetReachable)
+    let isDeviceOnline = isOnline()
     const routeURL = typeof route !== "undefined" ? getRouteURL(route) : getRouteURL()
     const cacheKey = "loadItemsCache:" + routeURL
     const cacheKeyLastResponse = "loadItemsCache:lastResponse:" + routeURL
@@ -449,7 +452,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        if(typeof cache !== "undefined"){
+        /*if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
                     const responseString = JSON.stringify(response.data)
@@ -464,7 +467,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     console.log(e)
                 }
             }
-        }
+        }*/
 
         for(let i = 0; i < response.data.length; i++){
             let file = response.data[i]
@@ -651,6 +654,23 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         if(typeof cameraUploadParent == "string"){
             if(cameraUploadParent.length > 16){
                 try{
+                    let folderExists: boolean = false
+
+                    const isFolderPresent = await folderPresent({ uuid: cameraUploadParent })
+
+                    if(isFolderPresent.present){
+                        if(!isFolderPresent.trash){
+                            folderExists = true
+                        }
+                    }
+
+                    if(!folderExists){
+                        setItems([])
+                        setLoadDone(true)
+
+                        return true
+                    }
+
                     var response = await apiRequest({
                         method: "POST",
                         endpoint: "/v1/dir/content",
@@ -730,7 +750,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                 if(!exists){
                     await removeFromOfflineStorage({ item: file })
 
-                    if(netInfo.isConnected && netInfo.isInternetReachable){
+                    if(isOnline()){
                         queueFileDownload({ file, storeOffline: true }).catch(console.error)
                     }
                 }
@@ -747,7 +767,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
 
         const offlineFilesToFetchInfo = items.map(item => item.uuid)
 
-        if(offlineFilesToFetchInfo.length > 0 && netInfo.isInternetReachable && netInfo.isConnected){
+        if(offlineFilesToFetchInfo.length > 0 && isOnline()){
             try{
                 var offlineFilesInfo = await fetchOfflineFilesInfo({ files: offlineFilesToFetchInfo })
             }
@@ -1169,10 +1189,8 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
         RNFS.exists(path + cache).then((exists) => {
             if(!exists){
                 delete isCheckingThumbnailForItemUUID[item.uuid]
-
-                const netInfo = useStore.getState().netInfo 
     
-                if(!netInfo.isConnected || !netInfo.isInternetReachable){
+                if(!isOnline()){
                     return
                 }
     
@@ -1184,6 +1202,7 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
                 thumbItem.thumbnail = undefined
     
                 global.visibleItems[thumbItem.uuid] = true
+
                 delete isGeneratingThumbnailForItemUUID[thumbItem.uuid]
     
                 void generateItemThumbnail({ item: thumbItem, skipInViewCheck: true })
@@ -1200,7 +1219,7 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
     })
 }
 
-export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = undefined, callback = undefined }: { item: Item, skipInViewCheck?: boolean, callback?: Function, path?: string }): any => {
+export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = undefined, callback = undefined }: { item: Item, skipInViewCheck?: boolean, callback?: Function, path?: string }) => {
     if(typeof item.thumbnail == "string"){
         if(typeof callback == "function"){
             callback(true)
@@ -1264,9 +1283,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
         }
     }
 
-    const netInfo = useStore.getState().netInfo 
-
-    if(!netInfo.isConnected || !netInfo.isInternetReachable){
+    if(!isOnline()){
         if(typeof callback == "function"){
             callback(true)
         }
@@ -1274,7 +1291,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
         return false
     }
 
-    if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
+    if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()){
         if(typeof callback == "function"){
             callback(true)
         }
@@ -1305,31 +1322,41 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
     }
 
     const compress = (path: string, dest: string) => {
-        ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
-            RNFS.moveFile(compressed.uri, dest).then(() => {
-                storage.set(cacheKey, item.uuid + ".jpg")
-                memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
+        if(width <= 1 || height <= 1){
+            return onError(new Error("Invalid width/height: " + width + " " + height))
+        }
 
-                updateLoadItemsCache({
-                    item,
-                    prop: "thumbnail",
-                    value: item.uuid + ".jpg"
-                }).then(() => {
-                    DeviceEventEmitter.emit("event", {
-                        type: "thumbnail-generated",
-                        data: {
-                            uuid: item.uuid,
-                            path: item.uuid + ".jpg"
-                        }
-                    })
+        RNFS.stat(path).then((stat) => {
+            if(stat.size <= 1){
+                return onError(new Error("Invalid image size: " + stat.size))
+            }
 
-                    delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-                    if(typeof callback == "function"){
-                        callback(null, item.uuid + ".jpg")
-                    }
+            ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
+                RNFS.moveFile(compressed.uri, dest).then(() => {
+                    storage.set(cacheKey, item.uuid + ".jpg")
+                    memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
     
-                    global.generateThumbnailSemaphore.release()
+                    updateLoadItemsCache({
+                        item,
+                        prop: "thumbnail",
+                        value: item.uuid + ".jpg"
+                    }).then(() => {
+                        DeviceEventEmitter.emit("event", {
+                            type: "thumbnail-generated",
+                            data: {
+                                uuid: item.uuid,
+                                path: item.uuid + ".jpg"
+                            }
+                        })
+    
+                        delete isGeneratingThumbnailForItemUUID[item.uuid]
+    
+                        if(typeof callback == "function"){
+                            callback(null, item.uuid + ".jpg")
+                        }
+        
+                        global.generateThumbnailSemaphore.release()
+                    }).catch(onError)
                 }).catch(onError)
             }).catch(onError)
         }).catch(onError)
@@ -1384,9 +1411,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
 }
 
 export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }: { item: Item, setCurrentActionSheetItem?: boolean, navigation?: any }) => {
-    const netInfo = useStore.getState().netInfo
-
-    if(!netInfo.isConnected || !netInfo.isInternetReachable){
+    if(!isOnline()){
         return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
     }
 
@@ -1553,7 +1578,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         return open(offlinePath, true)
     }
 
-    if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && netInfo.type !== "wifi"){
+    if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()){
         return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
     }
 
