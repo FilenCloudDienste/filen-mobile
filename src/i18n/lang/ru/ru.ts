@@ -405,5 +405,6 @@ export const ru: {
     fifteenMinutes: "15 минут",
     thirtyMinutes: "30 минут",
     oneHour: "1 час",
-    saveLogs: "Сохранить журнал"
+    saveLogs: "Сохранить журнал",
+    cameraUploadAfterEnabled: "Загружать только новые медиафайлы"
 }
