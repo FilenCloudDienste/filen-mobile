@@ -405,5 +405,6 @@ export const uk: {
     fifteenMinutes: "15 хвилин",
     thirtyMinutes: "30 хвилин",
     oneHour: "1 годину",
-    saveLogs: "Зберегти журнал"
+    saveLogs: "Зберегти журнал",
+    cameraUploadAfterEnabled: "Завантажувати тільки нові медіафайли"
 }
