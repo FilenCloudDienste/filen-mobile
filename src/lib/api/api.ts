@@ -1062,7 +1062,7 @@ export const renameFile = ({ file, name }: { file: any, name: string }): Promise
                     key: file.key,
                     lastModified: file.lastModified
                 }), masterKeys[masterKeys.length - 1]),
-                encryptMetadata(name, masterKeys[masterKeys.length - 1])
+                encryptMetadata(name, file.key)
             ]).then(([encrypted, encryptedName]) => {
                 apiRequest({
                     method: "POST",
