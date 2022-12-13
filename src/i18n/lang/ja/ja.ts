@@ -405,5 +405,6 @@ export const ja: {
     fifteenMinutes: "15分",
     thirtyMinutes: "30分",
     oneHour: "1時間",
-    saveLogs: "ログを保存"
+    saveLogs: "ログを保存",
+    cameraUploadAfterEnabled: "自動アップロードをオンにする前からある写真はアップロードしない"
 }
