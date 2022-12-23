@@ -123,7 +123,7 @@ export const es: {
     cameraUploadIncludeVideos: "Incluir vídeos",
     cameraUploadChooseFolder: "Elegir una carpeta",
     choose: "Elegir",
-    cameraUploadNotEnabler: "El autoguardado de las fotos está desactivado",
+    cameraUploadNotEnabled: "El autoguardado de las fotos está desactivado",
     enable: "Activar",
     cameraUploadEverythingUploaded: "Todo subido",
     cameraUploadProgress: "Subiendo __UPLOADED__ de __TOTAL__",
@@ -405,5 +405,6 @@ export const es: {
     fifteenMinutes: "15 minutos",
     thirtyMinutes: "30 minutos",
     oneHour: "1 hora",
-    saveLogs: "Guardar registros"
+    saveLogs: "Guardar registros",
+    cameraUploadAfterEnabled: "Subir solo tras la fecha de activación"
 }
