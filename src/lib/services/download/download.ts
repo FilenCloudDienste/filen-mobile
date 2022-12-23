@@ -1,6 +1,5 @@
 import ReactNativeBlobUtil from "react-native-blob-util"
-import { Semaphore, getFileExt, randomIdUnsafe } from "../../helpers"
-import RNFS from "react-native-fs"
+import { Semaphore, getFileExt, randomIdUnsafe, toExpoFsPath } from "../../helpers"
 import { Platform, DeviceEventEmitter } from "react-native"
 import { useStore } from "../../state"
 import { i18n } from "../../../i18n"
@@ -11,7 +10,7 @@ import { addItemToOfflineList } from "../offline"
 import { getItemOfflinePath } from "../offline"
 import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "../setup/setup"
-import type { Item } from "../items"
+import type { Item } from "../../../types"
 import memoryCache from "../../memoryCache"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import * as FileSystem from "expo-file-system"
@@ -236,7 +235,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         try{
             const offlinePath = await getDownloadPath({ type: "offline" })
     
-            if((await RNFS.exists(getItemOfflinePath(offlinePath, file)))){
+            if((await FileSystem.getInfoAsync(toExpoFsPath(getItemOfflinePath(offlinePath, file)))).exists){
                 callOptionalCallback(null, getItemOfflinePath(offlinePath, file))
 
                 return saveToGalleryCallback(getItemOfflinePath(offlinePath, file))
@@ -314,15 +313,18 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
             const offlinePath = getItemOfflinePath(downloadPath, file)
 
             try{
-                if((await RNFS.exists(offlinePath))){
-                    await RNFS.unlink(offlinePath)
+                if((await FileSystem.getInfoAsync(toExpoFsPath(offlinePath))).exists){
+                    await FileSystem.deleteAsync(toExpoFsPath(offlinePath))
                 }
             }
             catch(e){
-                console.log(e)
+                //console.log(e)
             }
 
-            RNFS.moveFile(path, offlinePath).then(() => {
+            FileSystem.moveAsync({
+                from: toExpoFsPath(path),
+                to: toExpoFsPath(offlinePath)
+            }).then(() => {
                 addItemToOfflineList({
                     item: file
                 }).then(() => {
@@ -375,7 +377,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         parentFolder: "",
                         mimeType: file.mime
                     }, "Download", path).then(() => {
-                        RNFS.unlink(path).then(() => {
+                        FileSystem.deleteAsync(toExpoFsPath(path)).then(() => {
                             if(showNotification || useStore.getState().imagePreviewModalVisible){
                                 showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                             }
@@ -404,15 +406,18 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 }
                 else{
                     try{
-                        if((await RNFS.exists(filePath))){
-                            await RNFS.unlink(filePath)
+                        if((await FileSystem.getInfoAsync(toExpoFsPath(filePath))).exists){
+                            await FileSystem.deleteAsync(toExpoFsPath(filePath))
                         }
                     }
                     catch(e){
-                        console.log(e)
+                        //console.log(e)
                     }
-
-                    RNFS.moveFile(path, filePath).then(() => {
+    
+                    FileSystem.moveAsync({
+                        from: toExpoFsPath(path),
+                        to: toExpoFsPath(filePath)
+                    }).then(() => {
                         if(showNotification || useStore.getState().imagePreviewModalVisible){
                             showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                         }
@@ -433,15 +438,18 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
             }
             else{
                 try{
-                    if((await RNFS.exists(filePath))){
-                        await RNFS.unlink(filePath)
+                    if((await FileSystem.getInfoAsync(toExpoFsPath(filePath))).exists){
+                        await FileSystem.deleteAsync(toExpoFsPath(filePath))
                     }
                 }
                 catch(e){
-                    console.log(e)
+                    //console.log(e)
                 }
 
-                RNFS.moveFile(path, filePath).then(() => {
+                FileSystem.moveAsync({
+                    from: toExpoFsPath(path),
+                    to: toExpoFsPath(filePath)
+                }).then(() => {
                     if(showNotification || useStore.getState().imagePreviewModalVisible){
                         showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                     }
@@ -554,16 +562,6 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 stopListener.remove()
                 pauseListener.remove()
                 resumeListener.remove()
-
-                RNFS.readDir(ReactNativeBlobUtil.fs.dirs.CacheDir).then((items) => {
-                    items.forEach((item) => {
-                        if(!item.isDirectory()){
-                            if(item.name.indexOf(file.uuid + ".chunk") !== -1){
-                                ReactNativeBlobUtil.fs.unlink(item.path).catch(() => {})
-                            }
-                        }
-                    })
-                }).catch(console.log)
             }
     
             const downloadTask = (index: number): Promise<{ index: number, path: string }> => {

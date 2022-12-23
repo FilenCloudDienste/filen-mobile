@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, memo } from "react"
+import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from "react"
 import { View, DeviceEventEmitter, Platform } from "react-native"
 import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVNumber, useMMKVString } from "react-native-mmkv"
+import { useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "../../components/TopBar"
 import { ItemList } from "../../components/ItemList"
 import { loadItems, sortItems } from "../../lib/services/items"
@@ -13,8 +13,9 @@ import { previewItem } from "../../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StackActions, useIsFocused } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
-import type { EdgeInsets } from "react-native-safe-area-context"
-import type { Item } from "../../lib/services/items"
+import type { Item } from "../../types"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
 
 export interface MainScreenProps {
     navigation: any,
@@ -22,7 +23,7 @@ export interface MainScreenProps {
 }
 
 export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [routeURL, setRouteURL] = useState<string>(getRouteURL(route))
     const cachedItemsRef = useRef<string | undefined>(storage.getString("loadItemsCache:" + routeURL)).current
@@ -39,7 +40,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const itemsRef = useRef<any>([])
     const setItemsSelectedCount = useStore(state => state.setItemsSelectedCount)
     const setInsets = useStore(state => state.setInsets)
-    const insets: EdgeInsets = useSafeAreaInsets()
+    const insets = useSafeAreaInsets()
     const [progress, setProgress] = useState<{ itemsDone: number, totalItems: number }>({ itemsDone: 0, totalItems: 1 })
     const selectedCountRef = useRef<number>(0)
     const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
@@ -49,11 +50,17 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const topBarHeight = useStore(state => state.topBarHeight)
     const contentHeight = useStore(state => state.contentHeight)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
-    const itemsSortBy = useStore(state => state.itemsSortBy)
     const [initialized, setInitialized] = useState<boolean>(false)
     const isFocused: boolean = useIsFocused()
+    const [sortByDb, setSortByDb] = useMMKVString("sortBy", storage)
 
-    const updateItemThumbnail = (item: Item, path: string): void => {
+    const sortBy: string | undefined = useMemo(() => {
+        const parsed = JSON.parse(sortByDb || "{}")
+
+        return parsed[routeURL]
+    }, [sortByDb, routeURL])
+
+    const updateItemThumbnail = useCallback((item: Item, path: string) => {
         if(typeof path !== "string"){
             return
         }
@@ -65,9 +72,9 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem))
         }
-    }
+    }, [])
     
-    const selectItem = (item: Item): void => {
+    const selectItem = useCallback((item: Item) => {
         if(getRouteURL(route).indexOf("photos") !== -1){
             if(calcPhotosGridSize(photosGridSize) >= 6){
                 return
@@ -77,21 +84,21 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: true} : mapItem))
         }
-    }
+    }, [photosGridSize, route])
     
-    const unselectItem = (item: Item): void => {
+    const unselectItem = useCallback((item: Item) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: false} : mapItem))
         }
-    }
+    }, [])
 
-    const unselectAllItems = (): void => {
+    const unselectAllItems = useCallback(() => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.selected ? {...mapItem, selected: false} : mapItem))
         }
-    }
+    }, [])
 
-    const selectAllItems = (): void => {
+    const selectAllItems = useCallback(() => {
         if(getRouteURL(route).indexOf("photos") !== -1){
             if(calcPhotosGridSize(photosGridSize) >= 6){
                 return
@@ -101,65 +108,65 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => !mapItem.selected ? {...mapItem, selected: true} : mapItem))
         }
-    }
+    }, [photosGridSize, route])
 
-    const removeItem = (uuid: string): void => {
+    const removeItem = useCallback((uuid: string) => {
         if(isMounted()){
             setItems(items => items.filter(mapItem => mapItem.uuid !== uuid && mapItem))
         }
-    }
+    }, [])
 
-    const markOffline = (uuid: string, value: boolean): void => {
+    const markOffline = useCallback((uuid: string, value: boolean) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, offline: value} : mapItem))
         }
-    }
+    }, [])
 
-    const markFavorite = (uuid: string, value: boolean): void => {
+    const markFavorite = useCallback((uuid: string, value: boolean) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, favorited: value} : mapItem))
         }
-    }
+    }, [])
 
-    const changeFolderColor = (uuid: string, color: string | null): void => {
+    const changeFolderColor = useCallback((uuid: string, color: string | null) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, color} : mapItem))
         }
-    }
+    }, [])
 
-    const changeItemName = (uuid: string, name: string): void => {
+    const changeItemName = useCallback((uuid: string, name: string) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, name} : mapItem))
         }
-    }
+    }, [])
 
-    const addItem = (item: Item, parent: string): void => {
+    const addItem = useCallback((item: Item, parent: string) => {
         const currentParent: string = getParent(route)
 
         if(isMounted() && (currentParent == parent || (item.offline && parent == "offline"))){
             setItems(items => sortItems({ items: [...items.filter(filterItem => filterItem.name.toLowerCase() !== item.name.toLowerCase()), item], passedRoute: route }))
         }
-    }
+    }, [route])
 
-    const changeWholeItem = (item: Item, uuid: string): void => {
+    const changeWholeItem = useCallback((item: Item, uuid: string) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid ? item : mapItem))
         }
-    }
+    }, [])
 
-    const reloadList = (parent: string): void => {
+    const reloadList = useCallback((parent: string) => {
         const currentParent: string = getParent(route)
 
         if(isMounted() && currentParent == parent){
             fetchItemList({ bypassCache: true, callStack: 1 })
         }
-    }
+    }, [route])
 
-    const updateFolderSize = (uuid: string, size: number): void => {
+    const updateFolderSize = useCallback((uuid: string, size: number) => {
         if(isMounted()){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, size} : mapItem))
         }
-    }
+    }, [])
 
     useEffect(() => {
         if(isMounted() && initialized){
@@ -192,7 +199,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 
             setItems(sorted)
         }
-    }, [itemsSortBy])
+    }, [sortBy])
 
     useEffect(() => {
         if(isFocused){
@@ -221,7 +228,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         }
     }, [items, isFocused])
 
-    const fetchItemList = async ({ bypassCache = false, callStack = 0, loadFolderSizes = false }: { bypassCache?: boolean, callStack?: number, loadFolderSizes?: boolean }) => {
+    const fetchItemList = useCallback(({ bypassCache = false, callStack = 0, loadFolderSizes = false }: { bypassCache?: boolean, callStack?: number, loadFolderSizes?: boolean }) => {
         // @ts-ignore
         return loadItems({
             parent: getParent(route),
@@ -236,7 +243,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             callStack,
             loadFolderSizes
         })
-    }
+    }, [route, masterKeys, navigation, isMounted, route, setProgress, setItems])
 
     useEffect(() => {
         setNavigation(navigation)
@@ -383,7 +390,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             style={{
                 height: "100%",
                 width: "100%",
-                backgroundColor: darkMode ? "black" : "white"
+                backgroundColor: getColor(darkMode, "backgroundPrimary")
             }}
         >
             <TopBar
@@ -395,7 +402,9 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             />
             <View
                 style={{
-                    height: routeURL.indexOf("photos") !== -1 ? (contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26)) : (contentHeight - topBarHeight - bottomBarHeight + 30)
+                    height: routeURL.indexOf("photos") !== -1
+                            ? (contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26))
+                            : (contentHeight - topBarHeight - bottomBarHeight + 30)
                 }}
             >
                 <ItemList

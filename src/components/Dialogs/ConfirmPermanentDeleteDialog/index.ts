@@ -1,0 +1,3 @@
+import ConfirmPermanentDeleteDialog from "./ConfirmPermanentDeleteDialog"
+
+export default ConfirmPermanentDeleteDialog

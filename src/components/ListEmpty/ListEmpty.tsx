@@ -6,6 +6,9 @@ import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
 export interface ListEmptyProps {
     route: any,
@@ -13,8 +16,8 @@ export interface ListEmptyProps {
 }
 
 export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
     const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
@@ -39,7 +42,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                         <Ionicon
                             name="search-outline"
                             size={70}
-                            color={darkMode ? "gray" : "gray"}
+                            color={getColor(darkMode, "textSecondary")}
                         />
                         <Text
                             style={{
@@ -64,7 +67,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                             <Ionicon
                                                                 name="image-outline"
                                                                 size={70}
-                                                                color={darkMode ? "gray" : "gray"}
+                                                                color={getColor(darkMode, "textSecondary")}
                                                             />
                                                             <Text
                                                                 style={{
@@ -80,7 +83,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                             <Ionicon
                                                                 name="image-outline"
                                                                 size={70}
-                                                                color={darkMode ? "gray" : "gray"}
+                                                                color={getColor(darkMode, "textSecondary")}
                                                             />
                                                             <Text
                                                                 style={{
@@ -102,7 +105,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="document-outline"
                                                     size={70}
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -121,7 +124,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="time-outline"
                                                     size={70}
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -140,7 +143,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="people-outline"
                                                     size={70}
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -159,7 +162,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="people-outline"
                                                     size={70} 
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -178,7 +181,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="link-outline"
                                                     size={70}
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -197,7 +200,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="heart-outline"
                                                     size={70}
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -216,7 +219,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="cloud-offline-outline"
                                                     size={70}
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -235,7 +238,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="trash-outline"
                                                     size={70}
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -254,7 +257,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                                 <Ionicon
                                                     name="alert-circle-outline"
                                                     size={70}
-                                                    color={darkMode ? "gray" : "gray"}
+                                                    color={getColor(darkMode, "textSecondary")}
                                                 />
                                                 <Text
                                                     style={{
@@ -273,7 +276,7 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
                                     <Ionicon
                                         name="cloud-offline-outline"
                                         size={70}
-                                        color={darkMode ? "gray" : "gray"}
+                                        color={getColor(darkMode, "textSecondary")}
                                     />
                                     <Text
                                         style={{

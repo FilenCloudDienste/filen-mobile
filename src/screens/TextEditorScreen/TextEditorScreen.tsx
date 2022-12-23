@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, memo } from "react"
-import { View, Text, Platform, TouchableOpacity, TextInput, KeyboardAvoidingView, Keyboard, Alert } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { View, TouchableOpacity, TextInput, KeyboardAvoidingView, Keyboard, Alert, ScaledSize, useWindowDimensions } from "react-native"
+import useLang from "../../lib/hooks/useLang"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { showToast } from "../../components/Toasts"
@@ -9,16 +8,18 @@ import RNFS from "react-native-fs"
 import { getDownloadPath } from "../../lib/services/download/download"
 import { queueFileUpload } from "../../lib/services/upload/upload"
 import { useStore } from "../../lib/state"
-import { getColor } from "../../lib/style/colors"
+import { getColor } from "../../style/colors"
 import { getParent } from "../../lib/helpers"
+import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import useDarkMode from "../../lib/hooks/useDarkMode"
 
 export interface TextEditorScreenProps {
     navigation: any
 }
 
 export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const textEditorText = useStore(state => state.textEditorText)
     const textEditorState = useStore(state => state.textEditorState)
     const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
@@ -26,7 +27,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
     const [value, setValue] = useState<string>("")
     const [initialValue, setInitialValue] = useState<string>("")
     const createTextFileDialogName = useStore(state => state.createTextFileDialogName)
-    const dimensions = useStore(state => state.dimensions)
+    const dimensions: ScaledSize = useWindowDimensions()
     const textEditorParent = useStore(state => state.textEditorParent)
     const [offset, setOffset] = useState<number>(0)
     const setTextEditorState = useStore(state => state.setTextEditorState)
@@ -86,12 +87,16 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                     file: {
                         path: decodeURIComponent(path).replace("file://", ""),
                         name: fileName,
-                        size: stat.size,
+                        size: parseInt(stat.size),
                         mime: "text/plain",
                         lastModified: new Date().getTime()
                     },
                     parent
                 }).catch((err) => {
+                    if(err == "stopped"){
+                        return
+                    }
+                    
                     if(err == "wifiOnly"){
                         return showToast({ message: i18n(lang, "onlyWifiUploads") })
                     }
@@ -146,103 +151,65 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
     }, [])
 
     return (
-        <View onLayout={(e) => setOffset(dimensions.window.height - e.nativeEvent.layout.height)}>
-            <View
-                style={{
-                    height: 35,
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    backgroundColor: darkMode ? "black" : "white",
-                    borderBottomColor: getColor(darkMode, "primaryBorder"),
-                    borderBottomWidth: 1,
-                    marginTop: Platform.OS == "ios" ? 15 : 0
-                }}
-            >
-                <View
-                    style={{
-                        justifyContent: "space-between",
-                        flexDirection: "row"
-                    }}
-                >
-                    <View
-                        style={{
-                            marginLeft: 0,
-                            width: "70%",
-                            flexDirection: "row"
-                        }}
-                    >
-                        <TouchableOpacity onPress={() => close()}>
-                            <Ionicon
-                                name="chevron-back-outline"
-                                size={21}
-                                color={darkMode ? "white" : "black"}
-                                style={{
-                                    marginTop: Platform.OS == "android" ? 4 : 2.5
-                                }}
-                            />
-                        </TouchableOpacity>
-                        <Text
+        <View
+            onLayout={(e) => setOffset(dimensions.height - e.nativeEvent.layout.height)}
+        >
+            <DefaultTopBar
+                leftText={i18n(lang, "back")}
+                middleText={fileName}
+                onPressBack={() => close()}
+                rightComponent={
+                    textEditorState == "edit" ? (
+                        <View
                             style={{
-                                fontSize: 20,
-                                color: darkMode ? "white" : "black",
-                                marginLeft: 10
+                                flexDirection: "row",
+                                width: "33%",
+                                justifyContent: "flex-end",
+                                paddingRight: 15
                             }}
-                            numberOfLines={1}
                         >
-                            {fileName}
-                        </Text>
-                    </View>
-                    {
-                        textEditorState == "edit" && (
-                            <View
-                                style={{
-                                    alignItems: "flex-start",
-                                    flexDirection: "row"
-                                }}
-                            >
-                                {
-                                    textEditorFocused && (
-                                        <TouchableOpacity
-                                            onPress={() => Keyboard.dismiss()}
+                            {
+                                textEditorFocused && (
+                                    <TouchableOpacity
+                                        onPress={() => Keyboard.dismiss()}
+                                        style={{
+                                            marginRight: initialValue !== value ? 15 : 0
+                                        }}
+                                    >
+                                        <Ionicon
+                                            name="chevron-down-outline"
+                                            size={21}
+                                            color={getColor(darkMode, "textPrimary")}
                                             style={{
-                                                marginRight: initialValue !== value ? 25 : 0
+                                                marginTop: 5
                                             }}
-                                        >
-                                            <Ionicon
-                                                name="chevron-down-outline"
-                                                size={21}
-                                                color={darkMode ? "white" : "black"}
-                                                style={{
-                                                    marginTop: 5
-                                                }}
-                                            />
-                                        </TouchableOpacity>
-                                    )
-                                }
-                                {
-                                    initialValue !== value && (
-                                        <TouchableOpacity onPress={() => save()}>
-                                            <Ionicon
-                                                name="save-outline"
-                                                size={21}
-                                                color={darkMode ? "white" : "black"}
-                                                style={{
-                                                    marginTop: 5
-                                                }}
-                                            />
-                                        </TouchableOpacity>
-                                    )
-                                }
-                            </View>
-                        )
-                    }
-                </View>
-            </View>
+                                        />
+                                    </TouchableOpacity>
+                                )
+                            }
+                            {
+                                initialValue !== value && (
+                                    <TouchableOpacity onPress={() => save()}>
+                                        <Ionicon
+                                            name="save-outline"
+                                            size={21}
+                                            color={getColor(darkMode, "textPrimary")}
+                                            style={{
+                                                marginTop: 5
+                                            }}
+                                        />
+                                    </TouchableOpacity>
+                                )
+                            }
+                        </View>
+                    ) : undefined
+                }
+            />
             <KeyboardAvoidingView
                 behavior="padding"
                 keyboardVerticalOffset={offset}
                 style={{
-                    backgroundColor: darkMode ? "black" : "white"
+                    backgroundColor: getColor(darkMode, "backgroundPrimary")
                 }}
             >
                 <TextInput
@@ -267,22 +234,23 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                     autoFocus={false}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    autoComplete="off"
                     spellCheck={false}
                     keyboardType="default"
                     underlineColorAndroid="transparent"
                     placeholder={i18n(lang, "textEditorPlaceholder")}
                     selection={textEditorActive ? undefined : { start: 0 }}
-                    placeholderTextColor={darkMode ? "white" : "black"}
+                    placeholderTextColor={getColor(darkMode, "textPrimary")}
                     style={{
                         width: "100%",
                         height: "100%",
-                        color: darkMode ? "white" : "black",
-                        backgroundColor: darkMode ? "black" : "white",
+                        color: getColor(darkMode, "textPrimary"),
+                        backgroundColor: getColor(darkMode, "backgroundPrimary"),
                         paddingLeft: 15,
                         paddingRight: 15,
-                        paddingTop: 10,
-                        paddingBottom: 0
+                        paddingTop: 15,
+                        paddingBottom: 0,
+                        fontSize: 15,
+                        fontWeight: "400"
                     }}
                 />
             </KeyboardAvoidingView>

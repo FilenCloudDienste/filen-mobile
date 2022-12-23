@@ -1,43 +1,37 @@
-import React, { useState, memo } from "react"
-import { Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import React, { useState, memo, useMemo } from "react"
+import { Text, TextInput, TouchableOpacity, useWindowDimensions, View } from "react-native"
+import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { apiRequest } from "../../lib/api"
 import { useStore } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
 import { Keyboard } from "react-native"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import AuthContainer from "../../components/AuthContainer"
 
 export interface ResendConfirmationScreenProps {
     navigation: any
 }
 
 export const ResendConfirmationScreen = memo(({ navigation }: ResendConfirmationScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [email, setEmail] = useState<string>("")
+    const dimensions = useWindowDimensions()
+
+    const contentWidth = useMemo(() => {
+        const scaled = Math.floor(dimensions.width * 0.7)
+
+        if(scaled > 300){
+            return 300
+        }
+
+        return 300
+    }, [dimensions])
 
     return (
-        <KeyboardAvoidingView
-            behavior="padding"
-            style={{
-                flex: 1,
-                width: "100%",
-                alignSelf: "center",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: darkMode ? "black" : "white"
-            }}
-        >
-            <Image
-                source={darkMode ? require("../../assets/images/light_logo.png") : require("../../assets/images/dark_logo.png")}
-                style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 90,
-                    marginBottom: 20
-                }}
-            />
+        <AuthContainer>
             <TextInput
                 onChangeText={setEmail}
                 value={email}
@@ -49,27 +43,26 @@ export const ResendConfirmationScreen = memo(({ navigation }: ResendConfirmation
                 returnKeyType="next"
                 secureTextEntry={false}
                 style={{
-                    height: 35,
-                    width: "100%",
-                    maxWidth: "70%",
+                    height: 44,
+                    width: contentWidth,
                     padding: 5,
                     paddingLeft: 10,
                     paddingRight: 10,
-                    backgroundColor: darkMode ? "#222222" : "lightgray",
+                    backgroundColor: getColor(darkMode, "backgroundSecondary"),
                     color: "gray",
                     borderRadius: 10,
-                    marginTop: 20
+                    marginTop: 10,
+                    fontSize: 15
                 }}
             />
             <TouchableOpacity
                 style={{
-                    backgroundColor: darkMode ? "#444444" : "gray",
+                    backgroundColor: getColor(darkMode, "indigo"),
                     borderRadius: 10,
-                    width: "100%",
-                    maxWidth: "70%",
-                    height: 30,
-                    padding: 5,
+                    width: contentWidth,
+                    height: 40,
                     alignItems: "center",
+                    justifyContent: "center",
                     marginTop: 12
                 }}
                 onPress={async () => {
@@ -117,12 +110,23 @@ export const ResendConfirmationScreen = memo(({ navigation }: ResendConfirmation
             >
                 <Text
                     style={{
-                        color: "white"
+                        color: "white",
+                        fontSize: 15,
+                        fontWeight: "bold"
                     }}
                 >
                     {i18n(lang, "resendConfirmationBtn")}
                 </Text>
             </TouchableOpacity>
+            <View
+                style={{
+                    width: contentWidth,
+                    height: 0,
+                    borderBottomColor: "rgba(84, 84, 88, 0.2)",
+                    borderBottomWidth: 0.5,
+                    marginTop: 50
+                }}
+            />
             <TouchableOpacity
                 style={{
                     width: "100%",
@@ -135,12 +139,14 @@ export const ResendConfirmationScreen = memo(({ navigation }: ResendConfirmation
             >
                 <Text
                     style={{
-                        color: "#0A84FF"
+                        color: getColor(darkMode, "linkPrimary"),
+                        fontSize: 15,
+                        fontWeight: "400"
                     }}
                 >
                     {i18n(lang, "back")}
                 </Text>
             </TouchableOpacity>
-        </KeyboardAvoidingView>
+        </AuthContainer>
     )
 })

@@ -1,8 +1,6 @@
 import React, { useState, useEffect, memo } from "react"
-import { View, Text, Platform, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
-import Ionicon from "@expo/vector-icons/Ionicons"
+import { View, ScrollView, Linking, Alert, ActivityIndicator, DeviceEventEmitter } from "react-native"
+import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButtonLinkHighlight } from "../SettingsScreen/SettingsScreen"
 import { navigationAnimation } from "../../lib/state"
@@ -13,16 +11,16 @@ import { StackActions } from "@react-navigation/native"
 import { logout } from "../../lib/services/auth/logout"
 import { formatBytes } from "../../lib/helpers"
 import { useMountedState } from "react-use"
+import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import useDarkMode from "../../lib/hooks/useDarkMode"
 
 export interface SettingsAccountScreenProps {
     navigation: any
 }
 
 export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
-    const setRedeemCodeDialogVisible = useStore(state => state.setRedeemCodeDialogVisible)
-    const setDeleteAccountTwoFactorDialogVisible = useStore(state => state.setDeleteAccountTwoFactorDialogVisible)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [accountSettings, setAccountSettings] = useState<any>({})
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const isMounted: () => boolean = useMountedState()
@@ -42,38 +40,11 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 
     return (
         <>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    backgroundColor: darkMode ? "black" : "white"
-                }}
-            >
-                <TouchableOpacity
-                    style={{
-                        marginTop: Platform.OS == "ios" ? 17 : 4,
-                        marginLeft: 15,
-                    }}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicon
-                        name="chevron-back"
-                        size={24}
-                        color={darkMode ? "white" : "black"}
-                    />
-                </TouchableOpacity>
-                <Text
-                    style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 24,
-                        marginLeft: 10,
-                        marginTop: Platform.OS == "ios" ? 15 : 0
-                    }}
-                >
-                    {i18n(lang, "accountSettings")}
-                </Text>
-            </View>
+            <DefaultTopBar
+                onPressBack={() => navigation.goBack()}
+                leftText={i18n(lang, "settings")}
+                middleText={i18n(lang, "accountSettings")}
+            />
             <ScrollView
                 style={{
                     height: "100%",
@@ -95,22 +66,27 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                             <SettingsGroup marginTop={15}>
                                 <SettingsButtonLinkHighlight
                                     onPress={() => {
-                                        navigationAnimation({ enable: true }).then(() => {
-                                            navigation.dispatch(StackActions.push("ChangeEmailPasswordScreen"))
-                                        })
+                                        Linking.canOpenURL("https://drive.filen.io").then((supported) => {
+                                            if(supported){
+                                                Linking.openURL("https://drive.filen.io").catch(console.error)
+                                            }
+                                        }).catch(console.error)
                                     }}
                                     title={i18n(lang, "changeEmailPassword")}
+                                    withBottomBorder={true}
+                                    borderTopRadius={10}
                                 />
-                                {/*<SettingsButtonLinkHighlight
+                                <SettingsButtonLinkHighlight
                                     onPress={() => {
-                                        navigationAnimation({ enable: true }).then(() => {
-                                            navigation.dispatch(StackActions.push("TwoFactorScreen", {
-                                                accountSettings
-                                            }))
-                                        })
+                                        Linking.canOpenURL("https://drive.filen.io").then((supported) => {
+                                            if(supported){
+                                                Linking.openURL("https://drive.filen.io").catch(console.error)
+                                            }
+                                        }).catch(console.error)
                                     }}
                                     title={i18n(lang, accountSettings.twoFactorEnabled ? "disable2FA" : "enable2FA")}
-                                />*/}
+                                    withBottomBorder={true}
+                                />
                                 <SettingsButtonLinkHighlight
                                     onPress={() => {
                                         navigationAnimation({ enable: true }).then(() => {
@@ -118,6 +94,16 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                         })
                                     }}
                                     title={i18n(lang, "showGDPR")}
+                                    withBottomBorder={true}
+                                />
+                                <SettingsButtonLinkHighlight
+                                    onPress={() => {
+                                        navigationAnimation({ enable: true }).then(() => {
+                                            navigation.dispatch(StackActions.push("InviteScreen"))
+                                        })
+                                    }}
+                                    title={i18n(lang, "invite")}
+                                    borderBottomRadius={10}
                                 />
                             </SettingsGroup>
                             <SettingsGroup>
@@ -175,6 +161,8 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                         })
                                     }}
                                     title={i18n(lang, "deleteAllFiles")}
+                                    withBottomBorder={true}
+                                    borderTopRadius={10}
                                 />
                                 <SettingsButtonLinkHighlight
                                     rightText={formatBytes(accountSettings.versionedStorage)}
@@ -231,20 +219,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                         })
                                     }}
                                     title={i18n(lang, "deleteAllVersionedFiles")}
-                                />
-                            </SettingsGroup>
-                            <SettingsGroup>
-                                <SettingsButtonLinkHighlight
-                                    onPress={() => setRedeemCodeDialogVisible(true)}
-                                    title={i18n(lang, "redeemACode")}
-                                />
-                                <SettingsButtonLinkHighlight
-                                    onPress={() => {
-                                        navigationAnimation({ enable: true }).then(() => {
-                                            navigation.dispatch(StackActions.push("InviteScreen"))
-                                        })
-                                    }}
-                                    title={i18n(lang, "invite")}
+                                    borderBottomRadius={10}
                                 />
                             </SettingsGroup>
                             <SettingsGroup>
@@ -268,9 +243,9 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                         })
                                     }}
                                     title={i18n(lang, "logout")}
+                                    withBottomBorder={true}
+                                    borderTopRadius={10}
                                 />
-                            </SettingsGroup>
-                            <SettingsGroup>
                                 <SettingsButtonLinkHighlight
                                     onPress={() => {
                                         Alert.alert(i18n(lang, "deleteAccount"), i18n(lang, "deleteAccountInfo"), [
@@ -301,7 +276,9 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                                                     if(settings.twoFactorEnabled){
                                                                         useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                                                                        return setDeleteAccountTwoFactorDialogVisible(true)
+                                                                        DeviceEventEmitter.emit("openDeleteAccountTwoFactorDialog")
+
+                                                                        return
                                                                     }
 
                                                                     deleteAccount({ twoFactorKey: "XXXXXX" }).then(() => {
@@ -336,6 +313,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                                         })
                                     }}
                                     title={i18n(lang, "deleteAccount")}
+                                    borderBottomRadius={10}
                                 />
                             </SettingsGroup>
                             <View 

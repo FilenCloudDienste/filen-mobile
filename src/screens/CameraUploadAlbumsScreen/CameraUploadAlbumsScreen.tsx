@@ -1,16 +1,18 @@
 import React, { useEffect, useState, memo } from "react"
-import { View, Text, Switch, Platform, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native"
+import { View, Text, Switch, Platform, ScrollView, ActivityIndicator } from "react-native"
 import storage from "../../lib/storage"
-import { useMMKVString, useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
-import Ionicon from "@expo/vector-icons/Ionicons"
+import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButton } from "../SettingsScreen/SettingsScreen"
 import { showToast } from "../../components/Toasts"
-import { getColor } from "../../lib/style/colors"
+import { getColor } from "../../style/colors"
 import * as MediaLibrary from "expo-media-library"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../lib/permissions"
 import { Semaphore } from "../../lib/helpers"
 import pathModule from "path"
+import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
 const fetchAssetsSemaphore = new Semaphore(3)
 
@@ -19,8 +21,8 @@ export interface CameraUploadAlbumsScreenProps {
 }
 
 export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbumsScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadExcludedAlbumns, setCameraUploadAlbums] = useMMKVString("cameraUploadExcludedAlbums:" + userId, storage)
     const [excludedAlbums, setExcludedAlbums] = useState<any>({})
@@ -129,43 +131,16 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 
     return (
         <>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    backgroundColor: darkMode ? "black" : "white"
-                }}
-            >
-                <TouchableOpacity
-                    style={{
-                        marginTop: Platform.OS == "ios" ? 17 : 4,
-                        marginLeft: 15,
-                    }}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicon
-                        name="chevron-back"
-                        size={24}
-                        color={darkMode ? "white" : "black"}
-                    />
-                </TouchableOpacity>
-                <Text
-                    style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 24,
-                        marginLeft: 10,
-                        marginTop: Platform.OS == "ios" ? 15 : 0
-                    }}
-                >
-                    {i18n(lang, "albums")}
-                </Text>
-            </View>
+            <DefaultTopBar
+                onPressBack={() => navigation.goBack()}
+                leftText={i18n(lang, "cameraUpload")}
+                middleText={i18n(lang, "albums")}
+            />
             <ScrollView
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: darkMode ? "black" : "white"
+                    backgroundColor: getColor(darkMode, "backgroundPrimary")
                 }}
             >
                 <SettingsGroup>
@@ -178,13 +153,15 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                             >
                                 <ActivityIndicator
                                     size="small"
-                                    color={darkMode ? "white" : "black"}
+                                    color={getColor(darkMode, "textPrimary")}
                                 />
                             </View>
                         ) : !hasPermissions ? (
                             <Text
                                 style={{
-                                    color: darkMode ? "white" : "black"
+                                    color: getColor(darkMode, "textPrimary"),
+                                    fontSize: 17,
+                                    fontWeight: "400"
                                 }}
                             >
                                 {i18n(lang, "pleaseGrantPermission")}
@@ -205,8 +182,9 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                                                     >
                                                         <Text
                                                             style={{
-                                                                color: darkMode ? "white" : "black",
-                                                                paddingTop: (Platform.OS == "android" ? 3 : 7)
+                                                                color: getColor(darkMode, "textPrimary"),
+                                                                paddingTop: (Platform.OS == "android" ? 3 : 7),
+                                                                fontSize: 17
                                                             }}
                                                             numberOfLines={1}
                                                         >
@@ -217,7 +195,8 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                                                                 <Text
                                                                     style={{
                                                                         color: "gray",
-                                                                        marginTop: 5
+                                                                        marginTop: 5,
+                                                                        fontSize: 14
                                                                     }}
                                                                 >
                                                                     {album.path.split("file://").join("")}
@@ -255,8 +234,10 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                         ) : (
                             <Text
                                 style={{
-                                    color: darkMode ? "white" : "black",
-                                    padding: 10
+                                    color: getColor(darkMode, "textPrimary"),
+                                    padding: 10,
+                                    fontSize: 17,
+                                    fontWeight: "400"
                                 }}
                             >
                                 {i18n(lang, "cameraUploadNoAlbumsFound")}

@@ -1,5 +1,4 @@
 import { updateKeys } from "../user/keys"
-import RNFS from "react-native-fs"
 import { apiRequest } from "../../api"
 import { getAPIKey } from "../../helpers"
 import storage from "../../storage"
@@ -8,6 +7,7 @@ import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-lo
 import * as FileSystem from "expo-file-system"
 import { showToast } from "../../../components/Toasts"
 import { promiseAllSettled } from "../../helpers"
+import path from "path"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -20,13 +20,47 @@ const log = logger.createLogger({
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 
+const DONT_DELETE: string[] = [
+    "sentry",
+    "expo",
+    "http-cache",
+    "image-cache",
+    "webview",
+    "shareCache",
+    "image_manager",
+    "log",
+    "logs"
+]
+
 export const clearCacheDirectories = async (): Promise<boolean> => {
     const cachedDownloadsPath = await getDownloadPath({ type: "cachedDownloads" })
-    const cacheDownloadsItems = await FileSystem.readDirectoryAsync(cachedDownloadsPath.indexOf("file://") == -1 ? "file://" + cachedDownloadsPath : cachedDownloadsPath)
+    const cachedDownloadsPathAbsolute = cachedDownloadsPath.indexOf("file://") == -1 ? "file://" + cachedDownloadsPath : cachedDownloadsPath
+    const cacheDownloadsItems = await FileSystem.readDirectoryAsync(cachedDownloadsPathAbsolute)
+
+    const tmpPath = await getDownloadPath({ type: "cachedDownloads" })
+    const tmpPathAbsolute = tmpPath.indexOf("file://") == -1 ? "file://" + tmpPath : tmpPath
+    const tmpItems = await FileSystem.readDirectoryAsync(tmpPathAbsolute)
 
     for(let i = 0; i < cacheDownloadsItems.length; i++){
-        if(cacheDownloadsItems[i].indexOf("SentryCrash") == -1){
-            FileSystem.deleteAsync(cacheDownloadsItems[i]).catch(() => {})
+        if(DONT_DELETE.filter(d => cacheDownloadsItems[i].toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0){
+            FileSystem.deleteAsync(path.join(cachedDownloadsPathAbsolute, cacheDownloadsItems[i])).catch(() => {})
+        }
+    }
+
+    for(let i = 0; i < tmpItems.length; i++){
+        if(DONT_DELETE.filter(d => tmpItems[i].toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0){
+            FileSystem.deleteAsync(path.join(tmpPathAbsolute, tmpItems[i])).catch(() => {})
+        }
+    }
+
+    if(FileSystem.cacheDirectory){
+        const cachePath = FileSystem.cacheDirectory.indexOf("file://") == -1 ? "file://" + FileSystem.cacheDirectory : FileSystem.cacheDirectory
+        const cacheItems = await FileSystem.readDirectoryAsync(cachePath)
+
+        for(let i = 0; i < cacheItems.length; i++){
+            if(DONT_DELETE.filter(d => cacheItems[i].toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0){
+                FileSystem.deleteAsync(path.join(cachePath, cacheItems[i])).catch(() => {})
+            }
         }
     }
 
@@ -43,7 +77,7 @@ export const clearLogs = async (): Promise<boolean> => {
     for(let i = 0; i < items.length; i++){
         const info = await FileSystem.getInfoAsync(items[i])
 
-        if(info.size && info.size > (1024 * 1024 * 3)){
+        if(info.exists && info.size && info.size > (1024 * 1024 * 3)){
             FileSystem.deleteAsync(items[i]).catch(() => {})
         }
     }
@@ -52,10 +86,10 @@ export const clearLogs = async (): Promise<boolean> => {
 }
 
 export const setup = async ({ navigation }: { navigation: any }): Promise<boolean> => {
-    await promiseAllSettled([
+    promiseAllSettled([
         clearLogs(),
         clearCacheDirectories()
-    ])
+    ]).catch(log.error)
 
     await updateKeys({ navigation })
     

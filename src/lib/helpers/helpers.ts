@@ -1,19 +1,10 @@
 import storage from "../storage"
 import { Platform } from "react-native"
-import * as cppBase64 from "react-native-quick-base64"
 import { useStore } from "../state"
 import { i18n } from "../../i18n"
 import { memoize, values } from "lodash"
-import { NavigationContainerRefWithCurrent } from "@react-navigation/native"
+import type { NavigationContainerRefWithCurrent } from "@react-navigation/native"
 import BackgroundTimer from "react-native-background-timer"
-
-export const base64Decode = (str: string): string => {
-    return cppBase64.atob(str)
-}
-
-export const base64Encode = (str: string): string => {
-    return cppBase64.btoa(str)
-}
 
 export const getAPIServer = (): string => {
     const servers = [
@@ -86,25 +77,25 @@ export const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: n
     return remaining > 0 ? remaining : 0
 }
 
-export const getFolderColor = (color: string | null | undefined): string => {
+export const getFolderColor = memoize((color: string | null | undefined): string => {
     const colors = getAvailableFolderColors()
 
     if(!color){
-        return Platform.OS == "ios" ? colors['default_ios'] : colors['default']
+        return Platform.OS == "ios" ? colors['default_ios'] : colors['default_ios']
     }
 
     if(typeof colors[color] !== "undefined"){
         if(color == "default"){
-            return Platform.OS == "ios" ? colors['default_ios'] : colors['default']
+            return Platform.OS == "ios" ? colors['default_ios'] : colors['default_ios']
         }
 
         return colors[color]
     }
 
-    return Platform.OS == "ios" ? colors['default_ios'] : colors['default']
-}
+    return Platform.OS == "ios" ? colors['default_ios'] : colors['default_ios']
+})
 
-export const getAvailableFolderColors = (): { [key: string]: string } => {
+export const getAvailableFolderColors = memoize((): { [key: string]: string } => {
     return {
         "default": "#ffd04c",
         "blue": "#2992E5",
@@ -112,11 +103,11 @@ export const getAvailableFolderColors = (): { [key: string]: string } => {
         "purple": "#8E3A9D",
         "red": "#CB2E35",
         "gray": "gray",
-        "default_ios": "#3ea0d5"
+        "default_ios": "#79CCFC"
     }
-}
+})
 
-export const fileAndFolderNameValidation = (name: string): boolean => {
+export const fileAndFolderNameValidation = memoize((name: string): boolean => {
     const regex = /[<>:"\/\\|?*\x00-\x1F]|^(?:aux|con|clock\$|nul|prn|com[1-9]|lpt[1-9])$/i
 
     if(regex.test(name)){
@@ -124,19 +115,19 @@ export const fileAndFolderNameValidation = (name: string): boolean => {
     }
 
     return true
-}
+})
 
-export const getFileParentPath = (filePath: string): string => {
+export const getFileParentPath = memoize((filePath: string): string => {
 	const ex = filePath.split("/")
   
     ex.pop()
   
  	return ex.join("/")
-}
+})
 
-export const getFilenameFromPath = (path: string): string => {
+export const getFilenameFromPath = memoize((path: string): string => {
     return path.split("\\")?.pop()?.split("/")?.pop() as string
-}
+})
 
 export const getRouteURL = (passedRoute?: any): string => {
     try{
@@ -242,10 +233,6 @@ export const arrayBufferToHex = (buffer: ArrayBuffer): string => {
     return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, "0")).join("")
 }
 
-export const base64ToArrayBuffer = (b64: string): ArrayBuffer => {
-    return cppBase64.toByteArray(b64)
-}
-
 export function convertBinaryStringToUint8Array(bStr: string): ArrayBuffer {
     var i: number, len: number = bStr.length, u8_array: Uint8Array = new Uint8Array(len);
     for (var i = 0; i < len; i++) {
@@ -271,8 +258,68 @@ export function convertWordArrayToUint8Array(wordArray: any): ArrayBuffer {
     return uInt8Array
 }
 
-export const arrayBufferToBase64 = (arrayBuffer: ArrayBuffer): string => {
-    return cppBase64.fromByteArray(new Uint8Array(arrayBuffer)) 
+const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+// Use a lookup table to find the index.
+const lookup = typeof Uint8Array === 'undefined' ? [] : new Uint8Array(256);
+for (let i = 0; i < chars.length; i++) {
+    lookup[chars.charCodeAt(i)] = i;
+}
+
+export const arrayBufferToBase64 = (arraybuffer: ArrayBuffer): string => {
+    let bytes = new Uint8Array(arraybuffer),
+        i,
+        len = bytes.length,
+        base64 = '';
+
+    for (i = 0; i < len; i += 3) {
+        base64 += chars[bytes[i] >> 2];
+        base64 += chars[((bytes[i] & 3) << 4) | (bytes[i + 1] >> 4)];
+        base64 += chars[((bytes[i + 1] & 15) << 2) | (bytes[i + 2] >> 6)];
+        base64 += chars[bytes[i + 2] & 63];
+    }
+
+    if (len % 3 === 2) {
+        base64 = base64.substring(0, base64.length - 1) + '=';
+    } else if (len % 3 === 1) {
+        base64 = base64.substring(0, base64.length - 2) + '==';
+    }
+
+    return base64;
+};
+
+export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+    let bufferLength = base64.length * 0.75,
+        len = base64.length,
+        i,
+        p = 0,
+        encoded1,
+        encoded2,
+        encoded3,
+        encoded4;
+
+    if (base64[base64.length - 1] === '=') {
+        bufferLength--;
+        if (base64[base64.length - 2] === '=') {
+            bufferLength--;
+        }
+    }
+
+    const arraybuffer = new ArrayBuffer(bufferLength),
+        bytes = new Uint8Array(arraybuffer);
+
+    for (i = 0; i < len; i += 4) {
+        encoded1 = lookup[base64.charCodeAt(i)];
+        encoded2 = lookup[base64.charCodeAt(i + 1)];
+        encoded3 = lookup[base64.charCodeAt(i + 2)];
+        encoded4 = lookup[base64.charCodeAt(i + 3)];
+
+        bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
+        bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
+        bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
+    }
+
+    return arraybuffer;
 }
 
 export const uInt8ArrayConcat = (arrays: Uint8Array[]): Uint8Array => {
@@ -293,7 +340,7 @@ export const uInt8ArrayConcat = (arrays: Uint8Array[]): Uint8Array => {
     return result;
 }
 
-export const convertTimestampToMs = (timestamp: number): number => {
+export const convertTimestampToMs = memoize((timestamp: number): number => {
     const date = new Date(timestamp * 1000)
 
     if(date.getFullYear() > 2100){
@@ -302,9 +349,9 @@ export const convertTimestampToMs = (timestamp: number): number => {
     else{
         return Math.floor(timestamp * 1000)
     }
-}
+})
 
-export const simpleDate = (timestamp: number): string => {
+export const simpleDate = memoize((timestamp: number): string => {
     try{
         const date = new Date(convertTimestampToMs(timestamp))
 
@@ -315,7 +362,7 @@ export const simpleDate = (timestamp: number): string => {
 
         return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
     }
-}
+})
 
 export const normalizePhotosRange = memoize((range: string | undefined): string => {
     if(typeof range !== "string"){
@@ -343,7 +390,7 @@ export function unixTimestamp(): number {
     return Math.floor((+new Date()) / 1000)
 }
 
-export const canCompressThumbnail = (ext: string): boolean => {
+export const canCompressThumbnail = memoize((ext: string): boolean => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -374,9 +421,9 @@ export const canCompressThumbnail = (ext: string): boolean => {
             break
         }
     }
-}
+})
 
-export const canShowThumbnail = (ext: string): boolean => {
+export const canShowThumbnail = memoize((ext: string): boolean => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -409,9 +456,9 @@ export const canShowThumbnail = (ext: string): boolean => {
             break
         }
     }
-}
+})
 
-export const getFilePreviewType = (ext: string): string => {
+export const getFilePreviewType = memoize((ext: string): string => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -627,7 +674,7 @@ export const getFilePreviewType = (ext: string): string => {
             break
           }
     }
-}
+})
 
 export function convertUint8ArrayToBinaryString(u8Array: Uint8Array | ArrayBuffer): string {
     const arr: Uint8Array = new Uint8Array(u8Array)
@@ -822,14 +869,14 @@ export const orderItemsByType = (items: any[], type: string): any[] => {
         return sortedFolders.concat(sortedFiles)
     }
     else{
-        //default, dateDesc
+        //default, nameAsc
 
-        let sortedFiles = files.sort((a, b) => {
-            return b.timestamp - a.timestamp
+        const sortedFiles = files.sort((a, b) => {
+            return a.name.localeCompare(b.name)
         })
 
-        let sortedFolders = folders.sort((a, b) => {
-            return b.timestamp - a.timestamp
+        const sortedFolders = folders.sort((a, b) => {
+            return a.name.localeCompare(b.name)
         })
 
         return sortedFolders.concat(sortedFiles)
@@ -1065,6 +1112,109 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
             return resolve(file)
         })
     })
+}
+
+export const decryptFileMetadataLink = async (metadata: string, linkKey: string): Promise<any> => {
+	const cacheKey = "metadataCache:decryptFileMetadataLink:" + metadata
+    const cached = storage.getString(cacheKey)
+
+	if(cached){
+		if(cached.length > 0){
+            try{
+                const parsed = JSON.parse(cached)
+
+                if(typeof parsed.name == "string"){
+                    if(parsed.name.length > 0){
+                        return parsed
+                    }
+                }
+            }
+            catch(e){
+                //console.log8e
+            }
+        }
+	}
+
+	let fileName = ""
+	let fileSize = 0
+	let fileMime = ""
+	let fileKey = ""
+	let fileLastModified = 0
+
+	try{
+		const obj = JSON.parse(await decryptMetadata(metadata, linkKey))
+
+		if(obj && typeof obj == "object"){
+			if(typeof obj.name == "string"){
+				if(obj.name.length > 0){
+					fileName = obj.name
+					fileSize = parseInt(obj.size)
+					fileMime = obj.mime
+					fileKey = obj.key
+					fileLastModified = parseInt(obj.lastModified)
+				}
+			}
+		}
+	}
+	catch(e){
+		console.error(e)
+	}
+
+	const obj = {
+		name: fileName,
+		size: fileSize,
+		mime: fileMime,
+		key: fileKey,
+		lastModified: convertTimestampToMs(fileLastModified)
+	}
+
+	if(typeof obj.name == "string"){
+		if(obj.name.length >= 1){
+			storage.set(cacheKey, JSON.stringify(obj))
+		}
+	}
+
+	return obj
+}
+
+export const decryptFolderNameLink = async (metadata: string, linkKey: string): Promise<string> => {
+	if(metadata.toLowerCase() == "default"){
+		return "Default"
+	}
+
+	const cacheKey = "metadataCache:decryptFolderNameLink:" + metadata
+    const cached = storage.getString(cacheKey)
+
+    if(cached){
+        if(cached.length > 0){
+            return cached
+        }
+    }
+
+	let folderName = ""
+
+	try{
+		const obj = JSON.parse(await decryptMetadata(metadata, linkKey))
+
+		if(obj && typeof obj == "object"){
+			if(typeof obj.name == "string"){
+				if(obj.name.length > 0){
+					folderName = obj.name
+				}
+			}
+		}
+	}
+	catch(e){
+		console.error(e)
+	}
+
+	if(typeof folderName == "string"){
+		if(folderName.length > 0){
+			storage.set(cacheKey, folderName)
+		}
+	}
+
+	return folderName
 }
 
 export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string, uuid: string): Promise<string> => {
@@ -1317,7 +1467,7 @@ export const getAPIKey = (): string => {
     }
 }
 
-export const getFileExt = (name: string): string => {
+export const getFileExt = memoize((name: string): string => {
     if(name.indexOf(".") == -1){
         return ""
     }
@@ -1325,7 +1475,7 @@ export const getFileExt = (name: string): string => {
     let ex = name.split(".")
 
     return ex[ex.length - 1].toLowerCase()
-}
+})
 
 export const promiseAllSettled = (promises: Promise<any>[]) => Promise.all(
     promises.map(p => p
@@ -1406,3 +1556,15 @@ export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<Reac
         }, 100)
     })
 }
+
+export const toExpoFsPath = memoize((path: string) => {
+    if(path.indexOf("file://") == -1){
+        return "file://" + path
+    }
+
+    return path
+})
+
+export const toBlobUtilFsPath = memoize((path: string) => {
+    return path.split("file://").join("").split("file:/").join("").split("file:").join("")
+})

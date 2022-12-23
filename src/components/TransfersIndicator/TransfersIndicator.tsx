@@ -1,55 +1,32 @@
 import React, { useState, useEffect, memo, useCallback, useRef } from "react"
 import { ActivityIndicator, TouchableOpacity, View, DeviceEventEmitter } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean } from "react-native-mmkv"
+import useDarkMode from "../../lib/hooks/useDarkMode"
 import { StackActions } from "@react-navigation/native"
 import { useStore } from "../../lib/state"
 import { navigationAnimation } from "../../lib/state"
 import { calcSpeed, calcTimeLeft } from "../../lib/helpers"
-// @ts-ignore
-import AnimatedProgressWheel from "react-native-progress-wheel"
 import { throttle } from "lodash"
 import memoryCache from "../../lib/memoryCache"
-import type { Item } from "../../lib/services/items"
-
-export interface TransfersIndicatorProps {
-    navigation: any
-}
-
-export interface IndicatorProps {
-    darkMode: boolean,
-    visible: boolean,
-    navigation: any,
-    progress: number,
-    currentRouteName: string
-}
-
-export interface Download {
-    data: Item,
-    type: string
-}
-
-export interface ProgressData {
-    type: string,
-    data: {
-        uuid: string,
-        bytes: number
-    }
-}
+import { getColor } from "../../style"
+import { Circle } from "react-native-progress"
+import type { TransfersIndicatorProps, IndicatorProps, Download, ProgressData } from "../../types"
 
 export const Indicator = memo(({ darkMode, visible, navigation, progress, currentRouteName }: IndicatorProps) => {
+    if(!visible){
+        return null
+    }
+
     return (
         <TouchableOpacity
             style={{
                 width: 50,
                 height: 50,
                 borderRadius: 50,
-                backgroundColor: darkMode ? "#171717" : "lightgray",
+                backgroundColor: getColor(darkMode, "backgroundSecondary"),
                 position: "absolute",
                 bottom: 60,
                 right: 10,
-                zIndex: 999999,
-                display: visible ? "flex" : "none"
+                zIndex: 999999
             }}
             onPress={() => {
                 if(currentRouteName == "TransfersScreen"){
@@ -64,25 +41,21 @@ export const Indicator = memo(({ darkMode, visible, navigation, progress, curren
             <View
                 style={{
                     justifyContent: "center",
-                    alignContent: "center",
-                    transform: [
-                        {
-                            rotate: "270deg"
-                        }
-                    ]
+                    alignContent: "center"
                 }}
             >
-                <AnimatedProgressWheel
-                    size={50} 
-                    width={4}
-                    color={isNaN(progress) ? 0 : progress > 0 ? "#0A84FF" : darkMode ? "#171717" : "lightgray"}
-                    progress={progress}
-                    backgroundColor={darkMode ? "#171717" : "lightgray"}
-                    containerColor={darkMode ? "#171717" : "lightgray"}
+                <Circle
+                    size={50}
+                    borderWidth={0}
+                    color="#0A84FF"
+                    progress={parseFloat((progress / 100).toFixed(2))}
+                    thickness={4}
+                    animated={true}
+                    indeterminate={false}
                 />
                 <ActivityIndicator
                     size="small"
-                    color={darkMode ? "white" : "black"}
+                    color={getColor(darkMode, "textPrimary")}
                     style={{
                         position: "absolute",
                         marginLeft: 15
@@ -94,7 +67,7 @@ export const Indicator = memo(({ darkMode, visible, navigation, progress, curren
 })
 
 export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
     const [visible, setVisible] = useState<boolean>(false)
     const [progress, setProgress] = useState<number>(0)
     const currentRoutes = useStore(state => state.currentRoutes)
@@ -137,11 +110,11 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
         else{
             setVisible(false)
         }
-    }, 250), [])
+    }, 1000), [])
 
     useEffect(() => {
         throttledUpdate(currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible)
-    }, [JSON.stringify(currentUploads), JSON.stringify(currentDownloads), currentRouteName, biometricAuthScreenVisible, JSON.stringify(finishedTransfers)])
+    }, [currentUploads, currentDownloads, currentRouteName, biometricAuthScreenVisible, finishedTransfers])
 
     useEffect(() => {
         if(typeof currentRoutes !== "undefined"){

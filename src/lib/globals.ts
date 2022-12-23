@@ -1,9 +1,10 @@
 import { Semaphore } from "./helpers"
+import Toast from "react-native-toast-notifications"
 
 declare global {
     var generateThumbnailSemaphore: any;
     var items: any;
-    var toast: any;
+    var toast: Toast | null;
     var setItems: any;
     var fetchItemList: any;
     var currentReceiverId: undefined | number;

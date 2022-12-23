@@ -1,4 +1,18 @@
-import { getAPIServer, getAPIKey, getMasterKeys, decryptFolderLinkKey, encryptMetadata, decryptFileMetadata, decryptFolderName, Semaphore } from "../helpers"
+import {
+    getAPIServer,
+    getAPIKey,
+    getMasterKeys,
+    decryptFolderLinkKey,
+    encryptMetadata,
+    decryptFileMetadata,
+    decryptFolderName,
+    Semaphore,
+    decryptFolderNamePrivateKey,
+    decryptFolderNameLink,
+    decryptFileMetadataPrivateKey,
+    decryptFileMetadataLink,
+    convertTimestampToMs
+} from "../helpers"
 import storage from "../storage"
 import { i18n } from "../../i18n"
 import { DeviceEventEmitter, Platform } from "react-native"
@@ -8,10 +22,14 @@ import { useStore } from "../state"
 import BackgroundTimer from "react-native-background-timer"
 import DeviceInfo from "react-native-device-info"
 import { isOnline } from "../services/isOnline"
+import type { Item } from "../../types"
+
+const striptags = require("striptags")
 
 const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(8192 * 8192)
 const fetchFolderSizeSemaphore = new Semaphore(16)
+const linkItemsSemaphore = new Semaphore(8)
 
 const endpointsToCache: string[] = [
     "/v1/dir/content",
@@ -35,7 +53,7 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
         const retryTimeout = 1000
 
         if(endpointsToCache.includes(endpoint)){
-            maxTries = 5
+            maxTries = 3
         }
 
         if(!isOnline()){
@@ -79,7 +97,7 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
                 global.nodeThread.apiRequest({
                     method: method.toUpperCase(),
                     url: getAPIServer() + endpoint,
-                    timeout: 500000,
+                    timeout: 60000,
                     data
                 }).then(async (res) => {
                     apiRequestSemaphore.release()
@@ -211,12 +229,19 @@ export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey:
     })
 }
 
-export const getFolderContents = ({ uuid }: { uuid: string }): Promise<any> => {
-    return new Promise((resolve, reject) => {
+export const getFolderContents = ({ uuid, type = "normal", linkUUID = undefined, linkHasPassword = undefined, linkPassword = undefined, linkSalt = undefined }: { uuid: string, type?: "normal" | "shared" | "linked", linkUUID?: string | undefined, linkHasPassword?: boolean | undefined, linkPassword?: string | undefined, linkSalt?: string | undefined }): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
         apiRequest({
             method: "POST",
-            endpoint: "/v1/download/dir",
-            data: {
+            endpoint: type == "shared" ? "/v1/download/dir/shared" : type == "linked" ? "/v1/download/dir/link" : "/v1/download/dir",
+            data: type == "shared" ? {
+                apiKey: getAPIKey(),
+                uuid
+            } : type == "linked" ? {
+                uuid: linkUUID,
+                parent: uuid,
+                password: linkHasPassword && linkSalt && linkPassword ? (linkSalt.length == 32 ? (await global.nodeThread.deriveKeyFromPassword({ password: linkPassword, salt: linkSalt, iterations: 200000, hash: "SHA-512", bitLength: 512, returnHex: true }) as string) : (await global.nodeThread.hashFn({ string: linkPassword.length == 0 ? "empty" : linkPassword }))) : (await global.nodeThread.hashFn({ string: "empty" }))
+            } : {
                 apiKey: getAPIKey(),
                 uuid
             }
@@ -1349,245 +1374,483 @@ export const itemPublicLinkInfo = ({ item }: { item: any }): Promise<any> => {
     })
 }
 
-export const editItemPublicLink = ({ item, type, linkUUID, expires, password, downloadBtn, progressCallback, isEdit = false }: { item: any, type: boolean, linkUUID: string, expires: string, password: string, downloadBtn: string, progressCallback: (doneItems: number, totalItems: number) => void, isEdit: boolean }): Promise<{ linkUUID: string, linkKey: string }> => {
-    return new Promise((resolve, reject) => {
-        const pass = (password.length > 0 ? "notempty" : "empty")
-        const passH = (password.length > 0 ? password : "empty")
-        
-        global.nodeThread.uuidv4().then((uuid) => {
-            if(typeof linkUUID !== "string"){
-                linkUUID = uuid
-            }
-            else{
-                if(linkUUID.length == 0){
-                    linkUUID = uuid
-                }
-            }
+export const enableItemPublicLink = (item: Item, progressCallback?: (current: number, total: number) => any): Promise<boolean> => {
+    return new Promise(async (resolve, reject) => {
+        if(item.type == "file"){
+            const linkUUID: string = await global.nodeThread.uuidv4()
 
-            global.nodeThread.generateRandomString({ charLength: 32 }).then((salt) => {
-                global.nodeThread.deriveKeyFromPassword({ password: passH, salt, iterations: 200000, hash: "SHA-512", bitLength: 512, returnHex: true }).then((passwordHashed) => {
-                    if(item.type == "file"){
-                        apiRequest({
-                            method: "POST",
-                            endpoint: "/v1/link/edit",
-                            data: {
-                                apiKey: getAPIKey(),
-                                uuid: linkUUID,
-                                fileUUID: item.uuid,
-                                expiration: expires,
-                                password: pass,
-                                passwordHashed,
-                                salt, 
-                                downloadBtn,
-                                type: (type ? "enable" : "disable")
-                            }
-                        }).then((response) => {
-                            if(!response.status){
-                                return reject(response.message)
-                            }
-                
-                            return resolve({
-                                linkUUID,
-                                linkKey: ""
-                            })
-                        }).catch(reject)
-                    }
-                    else{
-                        if(type){
-                            if(isEdit){
-                                apiRequest({
-                                    method: "POST",
-                                    endpoint: "/v1/dir/link/edit",
-                                    data: {
-                                        apiKey: getAPIKey(),
-                                        uuid: item.uuid,
-                                        expiration: expires,
-                                        password: pass,
-                                        passwordHashed,
-                                        salt, 
-                                        downloadBtn
-                                    }
-                                }).then((response) => {
-                                    if(!response.status){
-                                        return reject(response.message)
-                                    }
-                        
-                                    return resolve({
-                                        linkUUID,
-                                        linkKey: ""
-                                    })
-                                }).catch(reject)
-                            }
-                            else{
-                                createFolderPublicLink({ item, progressCallback }).then((data) => {
-                                    return resolve(data)
-                                }).catch(reject)
-                            }
-                        }
-                        else{
-                            apiRequest({
-                                method: "POST",
-                                endpoint: "/v1/dir/link/remove",
-                                data: {
-                                    apiKey: getAPIKey(),
-                                    uuid: item.uuid
-                                }
-                            }).then((response) => {
-                                if(!response.status){
-                                    return reject(response.message)
-                                }
-                    
-                                return resolve({
-                                    linkUUID,
-                                    linkKey: ""
-                                })
-                            }).catch(reject)
-                        }
-                    }
-                }).catch(reject)
-            }).catch(reject)
-        }).catch(reject)
-    })
-}
-
-export const addItemToFolderPublicLink = ({ data }: { data: any }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        shareSemaphore.acquire().then(() => {
             apiRequest({
                 method: "POST",
-                endpoint: "/v1/dir/link/add",
-                data
+                endpoint: "/v1/link/edit",
+                data: {
+                    apiKey: getAPIKey(),
+                    uuid: linkUUID,
+                    fileUUID: item.uuid,
+                    expiration: "never",
+                    password: "empty",
+                    passwordHashed: await global.nodeThread.hashFn({ string: "empty" }),
+                    salt: await global.nodeThread.generateRandomString({ charLength: 32 }),
+                    downloadBtn: "enable",
+                    type: "enable"
+                }
             }).then((response) => {
-                shareSemaphore.release()
+                if(typeof progressCallback == "function"){
+                    progressCallback(1, 1)
+                }
 
                 if(!response.status){
                     return reject(response.message)
                 }
     
                 return resolve(true)
-            }).catch((err) => {
-                shareSemaphore.release()
+            }).catch(reject) 
+        }
+        else{
+            createFolderPublicLink(item, progressCallback).then(() => {
+                return resolve(true)
+            }).catch(reject)
+        }
+    })
+}
 
-                return reject(err)
+export const disableItemPublicLink = (item: Item, linkUUID: string): Promise<boolean> => {
+    return new Promise(async (resolve, reject) => {
+        if(item.type == "file"){
+            if(typeof linkUUID !== "string"){
+                return reject(new Error("Invalid linkUUID"))
+            }
+
+            if(linkUUID.length < 32){
+                return reject(new Error("Invalid linkUUID"))
+            }
+
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/link/edit",
+                data: {
+                    apiKey: getAPIKey(),
+                    uuid: linkUUID,
+                    fileUUID: item.uuid,
+                    expiration: "never",
+                    password: "empty",
+                    passwordHashed: await global.nodeThread.hashFn({ string: "empty" }),
+                    salt: await global.nodeThread.generateRandomString({ charLength: 32 }),
+                    downloadBtn: "enable",
+                    type: "disable"
+                }
+            }).then((response) => {
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve(true)
+            }).catch(reject) 
+        }
+        else{
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/dir/link/remove",
+                data: {
+                    apiKey: getAPIKey(),
+                    uuid: item.uuid
+                }
+            }).then((response) => {
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve(true)
+            }).catch(reject)
+        }
+    })
+}
+
+export const addItemToFolderPublicLink = (data: {
+    apiKey: string,
+    uuid: string,
+    parent: string,
+    linkUUID: string,
+    type: string,
+    metadata: string,
+    key: string,
+    expiration: string,
+    password: string,
+    passwordHashed: string,
+    downloadBtn: string
+}): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+        apiRequest({
+            method: "POST",
+            endpoint: "/v1/dir/link/add",
+            data
+        }).then((response) => {
+            if(!response.status){
+                return reject(response.message)
+            }
+
+            return resolve(true)
+        }).catch(reject)
+    })
+}
+
+export interface GetDirectoryTreeResult {
+    path: string,
+    item: Item
+}
+
+export const getDirectoryTree = (uuid: string, type: "normal" | "shared" | "linked" = "normal", linkUUID: string | undefined = undefined, linkHasPassword: boolean | undefined = undefined, linkPassword: string | undefined = undefined, linkSalt: string | undefined = undefined, linkKey: string | undefined = undefined): Promise<GetDirectoryTreeResult[]> => {
+    return new Promise((resolve, reject) => {
+        getFolderContents({ uuid, type, linkUUID, linkHasPassword, linkPassword, linkSalt }).then(async (content) => {
+            const treeItems = []
+            const baseFolderUUID = content.folders[0].uuid
+            const baseFolderMetadata = content.folders[0].name
+            const baseFolderParent = content.folders[0].parent
+            const masterKeys = getMasterKeys()
+            const privateKey = storage.getString("privateKey") || ""
+            const baseFolderName = type == "normal" ? await decryptFolderName(masterKeys, baseFolderMetadata, baseFolderUUID) : (type == "shared" ? await decryptFolderNamePrivateKey(privateKey, baseFolderMetadata, baseFolderUUID) : await decryptFolderNameLink(baseFolderMetadata, linkKey as string))
+
+            if(baseFolderParent !== "base"){
+                return reject(new Error("Invalid base folder parent"))
+            }
+
+            if(baseFolderName.length <= 0){
+                return reject(new Error("Could not decrypt base folder name"))
+            }
+
+            treeItems.push({
+                uuid: baseFolderUUID,
+                name: baseFolderName,
+                parent: "base",
+                type: "folder"
+            })
+
+            const addedFolders: any = {}
+            const addedFiles: any = {}
+
+            for(let i = 0; i < content.folders.length; i++){
+                const { uuid, name: metadata, parent } = content.folders[i]
+
+                if(uuid == baseFolderUUID){
+                    continue
+                }
+
+                const name = type == "normal" ? await decryptFolderName(masterKeys, metadata, uuid) : (type == "shared" ? await decryptFolderNamePrivateKey(privateKey, metadata, uuid) : await decryptFolderNameLink(metadata, linkKey as string))
+
+                if(name.length > 0 && !addedFolders[parent + ":" + name]){
+                    addedFolders[parent + ":" + name] = true
+
+                    treeItems.push({
+                        uuid,
+                        name,
+                        parent,
+                        type: "folder"
+                    })
+                }
+            }
+
+            for(let i = 0; i < content.files.length; i++){
+                const { uuid, bucket, region, chunks, parent, metadata, version } = content.files[i]
+                const decrypted = type == "normal" ? await decryptFileMetadata(masterKeys, metadata, uuid) : (type == "shared" ? await decryptFileMetadataPrivateKey(privateKey, metadata, uuid) : await decryptFileMetadataLink(metadata, linkKey as string))
+
+                if(typeof decrypted.lastModified == "number"){
+                    if(decrypted.lastModified <= 0){
+                        decrypted.lastModified = new Date().getTime()
+                    }
+                }
+                else{
+                    decrypted.lastModified = new Date().getTime()
+                }
+
+                decrypted.lastModified = convertTimestampToMs(decrypted.lastModified)
+
+                if(decrypted.name.length > 0 && !addedFiles[parent + ":" + decrypted.name]){
+                    addedFiles[parent + ":" + decrypted.name] = true
+
+                    treeItems.push({
+                        uuid,
+                        region,
+                        bucket,
+                        chunks,
+                        parent,
+                        metadata: decrypted,
+                        version,
+                        type: "file"
+                    })
+                }
+            }
+
+            const nest = (items: any, uuid: string = "base", currentPath: string = "", link: string = "parent"): any => {
+                return items.filter((item: any) => item[link] == uuid).map((item: any) => ({ 
+                    ...item,
+                    path: item.type == "folder" ? (currentPath + "/" + item.name) : (currentPath + "/" + item.metadata.name),
+                    children: nest(items, item.uuid, item.type == "folder" ? (currentPath + "/" + item.name) : (currentPath + "/" + item.metadata.name), link)
+                }))
+            }
+
+            const tree = nest(treeItems)
+            let reading: number = 0
+            const folders: any = {}
+            const files: any = {}
+
+            const iterateTree = (parent: any, callback: Function) => {
+                if(parent.type == "folder"){
+                    folders[parent.path] = parent
+                }
+                else{
+                    files[parent.path] = parent
+                }
+
+                if(parent.children.length > 0){
+                    for(let i = 0; i < parent.children.length; i++){
+                        reading += 1
+        
+                        iterateTree(parent.children[i], callback)
+                    }
+                }
+        
+                reading -= 1
+        
+                if(reading == 0){
+                    return callback()
+                }
+            }
+        
+            reading += 1
+
+            iterateTree(tree[0], async () => {
+                const result: GetDirectoryTreeResult[] = []
+
+                for(const prop in folders){
+                    result.push({
+                        path: prop.slice(1),
+                        item: {
+                            id: folders[prop].uuid,
+                            type: "folder",
+                            uuid: folders[prop].uuid,
+                            name: striptags(folders[prop].name),
+                            date: "",
+                            timestamp: 0,
+                            lastModified: 0,
+                            lastModifiedSort: 0,
+                            parent: folders[prop].parent,
+                            receiverId: 0,
+                            receiverEmail: "",
+                            sharerId: 0,
+                            sharerEmail: "",
+                            color: "default",
+                            favorited: false,
+                            isBase: false,
+                            isSync: false,
+                            isDefault: false,
+                            size: 0,
+                            selected: false,
+                            mime: "",
+                            key: "",
+                            offline: false,
+                            bucket: "",
+                            region: "",
+                            rm: "",
+                            chunks: 0,
+                            thumbnail: undefined,
+                            version: 0,
+                            hash: ""
+                        }
+                    })
+                }
+
+                for(const prop in files){
+                    result.push({
+                        path: prop.slice(1),
+                        item: {
+                            id: files[prop].uuid,
+                            type: "file",
+                            uuid: files[prop].uuid,
+                            name: striptags(files[prop].metadata.name),
+                            date: "",
+                            timestamp: parseInt(striptags(files[prop].metadata.lastModified.toString())),
+                            lastModified: parseInt(striptags(files[prop].metadata.lastModified.toString())),
+                            lastModifiedSort: parseInt(striptags(files[prop].metadata.lastModified.toString())),
+                            parent: files[prop].parent,
+                            receiverId: 0,
+                            receiverEmail: "",
+                            sharerId: 0,
+                            sharerEmail: "",
+                            color: "default",
+                            favorited: false,
+                            isBase: false,
+                            isSync: false,
+                            isDefault: false,
+                            size: parseInt(striptags(files[prop].metadata.size.toString())),
+                            selected: false,
+                            mime: striptags(files[prop].metadata.mime),
+                            key: striptags(files[prop].metadata.key),
+                            offline: false,
+                            bucket: files[prop].bucket,
+                            region: files[prop].region,
+                            rm: "",
+                            chunks: files[prop].chunks,
+                            thumbnail: undefined,
+                            version: files[prop].version,
+                            hash: ""
+                        }
+                    })
+                }
+
+                return resolve(result)
             })
         }).catch(reject)
     })
 }
 
-export const createFolderPublicLink = ({ item, progressCallback }: { item: any, progressCallback: (doneItems: number, totalItems: number) => void }): Promise<{ linkUUID: string, linkKey: string }> => {
+export const editItemPublicLink = (item: Item, linkUUID: string, expiration: string = "30d", password: string = "", downloadBtn: "enable" | "disable" = "enable"): Promise<boolean> => {
+    return new Promise(async (resolve, reject) => {
+        if(password == null){
+            password = ""
+        }
+
+        if(typeof downloadBtn !== "string"){
+            downloadBtn = "enable"
+        }
+
+        const pass: string = (password.length > 0 ? "notempty" : "empty")
+        const passH: string = (password.length > 0 ? password : "empty")
+        const salt: string = await global.nodeThread.generateRandomString({ charLength: 32 })
+
+        if(item.type == "file"){
+            if(typeof linkUUID !== "string"){
+                return reject(new Error("Invalid linkUUID"))
+            }
+
+            if(linkUUID.length < 32){
+                return reject(new Error("Invalid linkUUID"))
+            }
+
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/link/edit",
+                data: {
+                    apiKey: getAPIKey(),
+                    uuid: linkUUID,
+                    fileUUID: item.uuid,
+                    expiration,
+                    password: pass,
+                    passwordHashed: await global.nodeThread.deriveKeyFromPassword({ password: passH, salt, iterations: 200000, hash: "SHA-512", bitLength: 512, returnHex: true }),
+                    salt,
+                    downloadBtn,
+                    type: "enable"
+                }
+            }).then((response) => {
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve(true)
+            }).catch(reject) 
+        }
+        else{
+            apiRequest({
+                method: "POST",
+                endpoint: "/v1/dir/link/edit",
+                data: {
+                    apiKey: getAPIKey(),
+                    uuid: item.uuid,
+                    expiration,
+                    password: pass,
+                    passwordHashed: await global.nodeThread.deriveKeyFromPassword({ password: passH, salt, iterations: 200000, hash: "SHA-512", bitLength: 512, returnHex: true }),
+                    salt, 
+                    downloadBtn
+                }
+            }).then((response) => {
+                if(!response.status){
+                    return reject(response.message)
+                }
+    
+                return resolve(true)
+            }).catch(reject)
+        }
+    })
+}
+
+export const createFolderPublicLink = (item: Item, progressCallback?: (current: number, total: number) => any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        getFolderContents({ uuid: item.uuid }).then((contents) => {
-            global.nodeThread.generateRandomString({ charLength: 32 }).then((key) => {
-                const masterKeys = getMasterKeys()
+        if(item.type !== "folder"){
+            return reject(new Error("Invalid item type"))
+        }
 
-                encryptMetadata(key, masterKeys[masterKeys.length - 1]).then((encryptedKey) => {
-                    global.nodeThread.uuidv4().then((linkUUID) => {
-                        const folders = contents.folders
-                        const files = contents.files
-                        const totalItems = (folders.length + files.length)
-                        let doneItems = 0
+        getDirectoryTree(item.uuid).then(async (content) => {
+            if(content.length == 0){
+                return resolve(true)
+            }
 
-                        const itemAdded = () => {
-                            doneItems += 1
+            try{
+                var masterKeys = getMasterKeys()
+                var key = await global.nodeThread.generateRandomString({ charLength: 32 })
+                var [encryptedKey, linkUUID, emptyHashed] = await Promise.all([
+                    encryptMetadata(key, masterKeys[masterKeys.length - 1]),
+                    global.nodeThread.uuidv4(),
+                    global.nodeThread.hashFn({ string: "empty" })
+                ])
+            }
+            catch(e){
+                return reject(e)
+            }
+
+            const sorted = content.sort((a, b) => b.item.parent.length - a.item.parent.length)
+            let done: number = 0
+            const promises = []
+
+            for(let i = 0; i < sorted.length; i++){
+                promises.push(new Promise(async (resolve, reject) => {
+                    await linkItemsSemaphore.acquire()
+
+                    const metadata = JSON.stringify(sorted[i].item.type == "file" ? {
+                        name: sorted[i].item.name,
+                        mime: sorted[i].item.mime,
+                        key: sorted[i].item.key,
+                        size: sorted[i].item.size,
+                        lastModified: sorted[i].item.lastModified
+                    } : {
+                        name: sorted[i].item.name
+                    })
+
+                    encryptMetadata(metadata, key).then((encrypted) => {
+                        addItemToFolderPublicLink({
+                            apiKey: getAPIKey(),
+                            uuid: sorted[i].item.uuid,
+                            parent: sorted[i].item.parent,
+                            linkUUID,
+                            type: sorted[i].item.type,
+                            metadata: encrypted,
+                            key: encryptedKey,
+                            expiration: "never",
+                            password: "empty",
+                            passwordHashed: emptyHashed,
+                            downloadBtn: "enable"
+                        }).then(() => {
+                            done += 1
 
                             if(typeof progressCallback == "function"){
-                                progressCallback(doneItems, totalItems)
+                                progressCallback(done, sorted.length)
                             }
 
-                            if(doneItems >= totalItems){
-                                resolve({
-                                    linkUUID,
-                                    linkKey: key
-                                })
-                            }
+                            linkItemsSemaphore.release()
 
-                            return true
-                        }
+                            return resolve(true)
+                        }).catch((err) => {
+                            linkItemsSemaphore.release()
 
-                        const addItem = (itemType: string, itemToAdd: { name?: string, mime?: string, key?: string, size?: number, lastModified?: number, uuid?: string, parent?: string }) => {
-                            let itemMetadata = ""
+                            return reject(err)
+                        })
+                    }).catch((err) => {
+                        linkItemsSemaphore.release()
 
-                            if(itemType == "file"){
-                                itemMetadata = JSON.stringify({
-                                    name: itemToAdd.name,
-                                    mime: itemToAdd.mime,
-                                    key: itemToAdd.key,
-                                    size: itemToAdd.size,
-                                    lastModified: itemToAdd.lastModified
-                                })
-                            }
-                            else{
-                                itemMetadata = JSON.stringify({
-                                    name: itemToAdd.name
-                                })
-                            }
+                        return reject(err)
+                    })
+                }))
+            }
 
-                            encryptMetadata(itemMetadata, key).then((encrypted) => {
-                                addItemToFolderPublicLink({
-                                    data: {
-                                        apiKey: getAPIKey(),
-                                        uuid: itemToAdd.uuid,
-                                        parent: itemToAdd.parent,
-                                        linkUUID,
-                                        type: itemType,
-                                        metadata: encrypted,
-                                        key: encryptedKey,
-                                        expiration: "never",
-                                        password: "empty",
-                                        passwordHashed: "8f83dfba6522ce8c34c5afefa64878e3a4ac554d", //hashFn("empty")
-                                        downloadBtn: "enable"
-                                    }
-                                }).then(() => {
-                                    itemAdded()
-                                }).catch((err) => {
-                                    console.log(err)
-
-                                    itemAdded()
-                                })
-                            }).catch((err) => {
-                                console.log(err)
-
-                                itemAdded()
-                            })
-                        }
-
-                        for(let i = 0; i < folders.length; i++){
-                            const folder = folders[i]
-
-                            decryptFolderName(masterKeys, folder.name, folder.uuid).then((decrypted) => {
-                                addItem("folder", {
-                                    uuid: folder.uuid,
-                                    parent: folder.parent,
-                                    name: decrypted
-                                })
-                            }).catch((err) => {
-                                console.log(err)
-
-                                itemAdded()
-                            })
-                        }
-
-                        for(let i = 0; i < files.length; i++){
-                            const file = files[i]
-
-                            decryptFileMetadata(masterKeys, file.metadata, file.uuid).then((decrypted) => {
-                                addItem("file", {
-                                    uuid: file.uuid,
-                                    parent: file.parent,
-                                    name: decrypted.name,
-                                    mime: decrypted.mime,
-                                    key: decrypted.key,
-                                    size: decrypted.size,
-                                    lastModified: decrypted.lastModified
-                                })
-                            }).catch((err) => {
-                                console.log(err)
-
-                                itemAdded()
-                            })
-                        }
-                    }).catch(reject)
-                }).catch(reject)
+            Promise.all(promises).then(() => {
+                return resolve(true)
             }).catch(reject)
         }).catch(reject)
     })

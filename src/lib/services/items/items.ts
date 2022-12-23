@@ -1,9 +1,9 @@
 import { apiRequest, fetchOfflineFilesInfo, folderPresent } from "../../api"
 import storage from "../../storage"
-import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate, convertTimestampToMs, randomIdUnsafe } from "../../helpers"
+import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate, convertTimestampToMs, toExpoFsPath } from "../../helpers"
 import striptags from "striptags"
 import { getDownloadPath, queueFileDownload, downloadFile } from "../download/download"
-import RNFS from "react-native-fs"
+import * as Filesystem from "expo-file-system"
 import { DeviceEventEmitter, Platform } from "react-native"
 import { useStore } from "../../state"
 import FileViewer from "react-native-file-viewer"
@@ -15,95 +15,11 @@ import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../state"
 import memoryCache from "../../memoryCache"
 import { isOnline, isWifi } from "../isOnline"
+import pathModule from "path"
+import type { Item, BuildFolder, ItemReceiver } from "../../../types"
 
 const isGeneratingThumbnailForItemUUID: any = {}
 const isCheckingThumbnailForItemUUID : any = {}
-
-export interface ItemReceiver {
-    id: number,
-    email: string
-}
-
-export interface Item {
-    id: string,
-    type: "folder" | "file",
-    uuid: string,
-    name: string,
-    date: string,
-    timestamp: number,
-    lastModified: number,
-    lastModifiedSort: number,
-    parent: string,
-    receiverId: number,
-    receiverEmail: string,
-    sharerId: number,
-    sharerEmail: string,
-    color: string | null,
-    favorited: boolean,
-    isBase: boolean,
-    isSync: boolean,
-    isDefault: boolean,
-    size: number,
-    selected: boolean,
-    mime: string,
-    key: string,
-    offline: boolean,
-    bucket: string,
-    region: string,
-    rm: string,
-    chunks: number,
-    thumbnail: string | undefined,
-    version: number,
-    hash: string,
-    receivers?: ItemReceiver[],
-    dummyGridFolder?: boolean
-}
-
-export const ItemTemplate: Item = {
-    id: "",
-    type: "file",
-    uuid: "",
-    name: "",
-    date: "",
-    timestamp: 0,
-    lastModified: 0,
-    lastModifiedSort: 0,
-    parent: "",
-    receiverId: 0,
-    receiverEmail: "",
-    sharerId: 0,
-    sharerEmail: "",
-    color: null,
-    favorited: false,
-    isBase: false,
-    isSync: false,
-    isDefault: false,
-    size: 0,
-    selected: false,
-    mime: "",
-    key: "",
-    offline: false,
-    bucket: "",
-    region: "",
-    rm: "",
-    chunks: 0,
-    thumbnail: undefined,
-    version: 0,
-    hash: "",
-    receivers: [],
-    dummyGridFolder: false
-}
-
-export interface BuildFolder {
-    folder: any,
-    name?: string,
-    masterKeys?: string[],
-    sharedIn?: boolean,
-    privateKey?: string,
-    routeURL?: string,
-    userId?: number,
-    loadFolderSizes?: boolean
-}
 
 export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
@@ -286,11 +202,13 @@ export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], p
         })]
     }
 
+    const sortBy = JSON.parse(storage.getString("sortBy") || "{}")
+
     if(routeURL.indexOf("recents") !== -1){
         items = items
     }
     else{
-        items = orderItemsByType(items, useStore.getState().itemsSortBy)
+        items = orderItemsByType(items, sortBy[routeURL])
     }
 
     return items
@@ -745,9 +663,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             const itemOfflinePath = getItemOfflinePath(offlinePath, file)
 
             try{
-                const exists = await RNFS.exists(itemOfflinePath)
-
-                if(!exists){
+                if(!(await Filesystem.getInfoAsync(toExpoFsPath(itemOfflinePath))).exists){
                     await removeFromOfflineStorage({ item: file })
 
                     if(isOnline()){
@@ -1173,45 +1089,39 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
     isCheckingThumbnailForItemUUID[item.uuid] = true
 
     const { cacheKey } = getThumbnailCacheKey({ uuid: item.uuid })
-
-    try{
-        var cache = storage.getString(cacheKey)
-    }
-    catch(e){
-        //console.log(e)
-    }
+    const cache = storage.getString(cacheKey)
 
     if(typeof cache !== "string"){
         return
     }
 
     getDownloadPath({ type: "thumbnail" }).then((path) => {
-        RNFS.exists(path + cache).then((exists) => {
-            if(!exists){
-                delete isCheckingThumbnailForItemUUID[item.uuid]
-    
-                if(!isOnline()){
-                    return
-                }
-    
-                storage.delete(cacheKey)
-                memoryCache.delete("cachedThumbnailPaths:" + item.uuid)
-    
-                let thumbItem = item
-    
-                thumbItem.thumbnail = undefined
-    
-                global.visibleItems[thumbItem.uuid] = true
-
-                delete isGeneratingThumbnailForItemUUID[thumbItem.uuid]
-    
-                void generateItemThumbnail({ item: thumbItem, skipInViewCheck: true })
-            }
-        }).catch((err) => {
-            console.log(err)
-
+        const remove = () => {
             delete isCheckingThumbnailForItemUUID[item.uuid]
-        })
+    
+            if(!isOnline()){
+                return
+            }
+
+            storage.delete(cacheKey)
+            memoryCache.delete("cachedThumbnailPaths:" + item.uuid)
+
+            let thumbItem = item
+
+            thumbItem.thumbnail = undefined
+
+            global.visibleItems[thumbItem.uuid] = true
+
+            delete isGeneratingThumbnailForItemUUID[thumbItem.uuid]
+
+            void generateItemThumbnail({ item: thumbItem, skipInViewCheck: true })
+        }
+
+        Filesystem.getInfoAsync(toExpoFsPath(pathModule.join(path, cache))).then((stat) => {
+            if(!stat.exists){
+                remove()
+            }
+        }).catch(() => remove())
     }).catch((err) => {
         console.log(err)
 
@@ -1326,13 +1236,24 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
             return onError(new Error("Invalid width/height: " + width + " " + height))
         }
 
-        RNFS.stat(path).then((stat) => {
+        Filesystem.getInfoAsync(toExpoFsPath(path)).then((stat) => {
+            if(!stat.exists){
+                return onError(new Error(path + " not found"))
+            }
+
+            if(!stat.size){
+                return onError(new Error("Invalid image size: " + stat.size))
+            }
+
             if(stat.size <= 1){
                 return onError(new Error("Invalid image size: " + stat.size))
             }
 
             ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
-                RNFS.moveFile(compressed.uri, dest).then(() => {
+                Filesystem.moveAsync({
+                    from: toExpoFsPath(compressed.uri),
+                    to: toExpoFsPath(dest)
+                }).then(() => {
                     storage.set(cacheKey, item.uuid + ".jpg")
                     memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
     
@@ -1390,8 +1311,8 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
                 dest = dest + item.uuid + ".jpg"
     
                 try{
-                    if((await RNFS.exists(dest))){
-                        await RNFS.unlink(dest)
+                    if((await Filesystem.getInfoAsync(toExpoFsPath(dest))).exists){
+                        await Filesystem.deleteAsync(toExpoFsPath(dest))
                     }
                 }
                 catch(e){
@@ -1502,7 +1423,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
     try{
         offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
 
-        if((await RNFS.exists(offlinePath))){
+        if((await Filesystem.getInfoAsync(toExpoFsPath(offlinePath))).exists){
             existsOffline = true
         }
     }
@@ -1552,7 +1473,9 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
                 })
             }
             else if(previewType == "text" || previewType == "code"){
-                RNFS.readFile(path, "utf8").then((content) => {
+                Filesystem.readAsStringAsync(toExpoFsPath(path), {
+                    encoding: "utf8"
+                }).then((content) => {
                     if(setCurrentActionSheetItem){
                         useStore.setState({ currentActionSheetItem: item })
                     }
@@ -1599,6 +1522,10 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         },
         isPreview: true
     }).catch((err) => {
+        if(err == "stopped"){
+            return
+        }
+
         if(err == "wifiOnly"){
             return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
         }
@@ -1615,7 +1542,7 @@ export const convertHeic = (item: Item, path: string): Promise<string> => {
             const outputPath: string = tempPath + item.uuid + "_convertHeic.jpg"
 
             try{
-                if((await RNFS.exists(outputPath))){
+                if((await Filesystem.getInfoAsync(toExpoFsPath(outputPath))).exists){
                     return resolve(outputPath)
                 }
             }
@@ -1632,7 +1559,7 @@ export const convertHeic = (item: Item, path: string): Promise<string> => {
     })
 }
 
-export const addToSavedToGallery = (item: Item) => {
+export const addToSavedToGallery = (item: Item): void => {
     const savedToGallery = JSON.parse(storage.getString("savedToGallery") || "{}")
 
     savedToGallery[item.uuid] = true

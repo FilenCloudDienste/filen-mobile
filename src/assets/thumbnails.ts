@@ -1,4 +1,4 @@
-import type { Item } from "../lib/services/items"
+import type { Item } from "../types"
 
 export const getImageForItem = (item: Item) => {
     if(item.type == "folder"){

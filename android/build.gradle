@@ -6,17 +6,14 @@ buildscript {
         minSdkVersion = 24
         compileSdkVersion = 31
         targetSdkVersion = 31
-        kotlinVersion = '1.4.0'
+        kotlinVersion = '1.6.0'
     }
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
-        maven { url='https://jitpack.io'}
-        maven { url='https://repo1.maven.org/maven2/'}
+        jcenter()
     }
     dependencies {
-        //classpath 'com.google.gms:google-services:4.3.3'
         classpath("com.android.tools.build:gradle:4.1.0")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 
@@ -25,9 +22,12 @@ buildscript {
     }
 }
 
-def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
-
 allprojects {
+    configurations.all {
+        resolutionStrategy {
+            force 'com.facebook.react:react-native:0.64.3'
+        }
+    }
     repositories {
         mavenLocal()
         maven {
@@ -41,19 +41,12 @@ allprojects {
 
         google()
         mavenCentral()
+        jcenter()
         maven { url 'https://www.jitpack.io' }
-        maven { url='https://repo1.maven.org/maven2/'}
 
         maven {
             // All of Detox' artifacts are provided via the npm module
             url "$rootDir/../node_modules/detox/Detox-android"
-        }
-    }
-
-    configurations.all {
-        resolutionStrategy {
-            // Remove this override in 0.65+, as a proper fix is included in react-native itself.
-            force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
         }
     }
 }

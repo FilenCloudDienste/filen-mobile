@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, memo } from "react"
-import { View, Text, TouchableOpacity, Dimensions, Animated, AppState, ScaledSize } from "react-native"
+import { View, Text, TouchableOpacity, useWindowDimensions, Animated, AppState, ScaledSize, AppStateStatus } from "react-native"
 import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { useStore } from "../../lib/state"
@@ -9,8 +9,10 @@ import { navigationAnimation } from "../../lib/state"
 import { CommonActions } from "@react-navigation/native"
 import { SheetManager } from "react-native-actions-sheet"
 import * as LocalAuthentication from "expo-local-authentication"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
-const window: ScaledSize = Dimensions.get("window")
 let canGoBack: boolean = false
 
 export interface PINCodeRowProps {
@@ -20,12 +22,12 @@ export interface PINCodeRowProps {
 }
 
 export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }: PINCodeRowProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
 
     const buttonWidthHeight: number = 70
     const buttonFontSize: number = 22
     const buttonColor: string = darkMode ? "#333333" : "lightgray"
-    const buttonFontColor: string = darkMode ? "white" : "black"
+    const buttonFontColor: string = getColor(darkMode, "textPrimary")
 
     return (
         <View
@@ -142,8 +144,8 @@ export interface BiometricAuthScreenProps {
 }
 
 export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const biometricAuthScreenState = useStore(state => state.biometricAuthScreenState)
     const [pinCode, setPinCode] = useState<string>("")
@@ -157,6 +159,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
     const appState = useRef(AppState.currentState)
     const setBiometricAuthScreenVisible = useStore(state => state.setBiometricAuthScreenVisible)
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
+    const dimensions: ScaledSize = useWindowDimensions()
 
     const startShake = (): void => {
         Animated.sequence([
@@ -360,16 +363,17 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
         navigation.addListener("beforeRemove", removeListener)
 
-        const appStateListener = AppState.addEventListener("change", (nextAppState) => {
+        const appStateListener = (nextAppState: AppStateStatus) => {
             appState.current = nextAppState
-        })
+        }
+
+        AppState.addEventListener("change", appStateListener)
 
         setTimeout(promptBiometrics, 250)
 
         return () => {
             navigation.removeListener("beforeRemove", removeListener)
-
-            appStateListener.remove()
+            AppState.removeEventListener("change", appStateListener)
 
             setBiometricAuthScreenVisible(false)
         }
@@ -378,9 +382,9 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
     return (
         <View
             style={{
-                height: window.height,
+                height: dimensions.height,
                 width: "100%",
-                backgroundColor: darkMode ? "black" : "white",
+                backgroundColor: getColor(darkMode, "backgroundPrimary"),
                 justifyContent: "center",
                 alignItems: "center"
             }}

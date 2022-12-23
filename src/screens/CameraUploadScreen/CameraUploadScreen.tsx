@@ -1,23 +1,25 @@
 import React, { useEffect, useState, memo } from "react"
-import { View, Text, Switch, Platform, ScrollView, TouchableOpacity, Alert } from "react-native"
+import { View, Text, Switch, Platform, ScrollView, Alert } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
-import { SettingsGroup, SettingsButton, SettingsButtonLinkHighlight } from "../SettingsScreen/SettingsScreen"
+import { SettingsGroup, SettingsButtonLinkHighlight } from "../SettingsScreen/SettingsScreen"
 import { showToast } from "../../components/Toasts"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../lib/permissions"
-import { getColor } from "../../lib/style/colors"
+import { getColor } from "../../style/colors"
+import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
 export interface CameraUploadScreenProps {
     navigation: any
 }
 
 export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + userId, storage)
     const [cameraUploadIncludeImages, setCameraUploadIncludeImages] = useMMKVBoolean("cameraUploadIncludeImages:" + userId, storage)
@@ -56,48 +58,23 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 
     return (
         <>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    backgroundColor: darkMode ? "black" : "white"
-                }}
-            >
-                <TouchableOpacity
-                    style={{
-                        marginTop: Platform.OS == "ios" ? 17 : 4,
-                        marginLeft: 15,
-                    }}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicon
-                        name="chevron-back"
-                        size={24}
-                        color={darkMode ? "white" : "black"}
-                    />
-                </TouchableOpacity>
-                <Text
-                    style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 24,
-                        marginLeft: 10,
-                        marginTop: Platform.OS == "ios" ? 15 : 0
-                    }}
-                >
-                    {i18n(lang, "cameraUpload")}
-                </Text>
-            </View>
+            <DefaultTopBar
+                onPressBack={() => navigation.goBack()}
+                leftText={i18n(lang, "settings")}
+                middleText={i18n(lang, "cameraUpload")}
+            />
             <ScrollView
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: darkMode ? "black" : "white"
+                    backgroundColor: getColor(darkMode, "backgroundPrimary")
                 }}
             >
                 <SettingsGroup>
-                    <SettingsButton
+                    <SettingsButtonLinkHighlight
                         title={i18n(lang, "enabled")}
+                        borderBottomRadius={10}
+                        borderTopRadius={10}
                         rightComponent={
                             <Switch
                                 trackColor={getColor(darkMode, "switchTrackColor")}
@@ -132,7 +109,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                         <Text
                             style={{
                                 color: "gray",
-                                fontSize: 11,
+                                fontSize: 12,
                                 paddingLeft: 17,
                                 paddingTop: 5,
                                 paddingRight: 17
@@ -145,15 +122,17 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                 <SettingsGroup>
                     {
                         cameraUploadEnabled ? (
-                            <SettingsButton
+                            <SettingsButtonLinkHighlight
                                 title={i18n(lang, "cameraUploadFolder")}
+                                borderBottomRadius={10}
+                                borderTopRadius={10}
+                                withBottomBorder={true}
                                 rightComponent={
                                     <Text
                                         style={{
                                             color: "gray",
-                                            paddingTop: 5,
-                                            paddingRight: 10,
-                                            fontSize: 13,
+                                            paddingRight: 5,
+                                            fontSize: 17,
                                             maxWidth: 200
                                         }}
                                         numberOfLines={1}
@@ -168,12 +147,16 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                 onPress={() => {
                                     chooseFolder()
                                 }}
+                                borderBottomRadius={10}
+                                borderTopRadius={10}
                                 title={i18n(lang, "cameraUploadFolder")}
+                                withBottomBorder={true}
                             />
                         )
                     }
-                    <SettingsButton
+                    <SettingsButtonLinkHighlight
                         title={i18n(lang, "cameraUploadIncludeImages")}
+                        withBottomBorder={true}
                         rightComponent={
                             <Switch
                                 trackColor={getColor(darkMode, "switchTrackColor")}
@@ -184,8 +167,9 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             />
                         }
                     />
-                    <SettingsButton
+                    <SettingsButtonLinkHighlight
                         title={i18n(lang, "cameraUploadIncludeVideos")}
+                        withBottomBorder={true}
                         rightComponent={
                             <Switch
                                 trackColor={getColor(darkMode, "switchTrackColor")}
@@ -196,8 +180,9 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             />
                         }
                     />
-                    <SettingsButton
+                    <SettingsButtonLinkHighlight
                         title={i18n(lang, "cameraUploadAfterEnabled")}
+                        withBottomBorder={true}
                         rightComponent={
                             <Switch
                                 trackColor={getColor(darkMode, "switchTrackColor")}
@@ -221,8 +206,9 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                     />
                     {
                         Platform.OS == "ios" && (
-                            <SettingsButton
+                            <SettingsButtonLinkHighlight
                                 title={i18n(lang, "cameraUploadEnableHeic")}
+                                borderBottomRadius={10}
                                 rightComponent={
                                     <Switch
                                         trackColor={getColor(darkMode, "switchTrackColor")}
@@ -244,6 +230,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                     })
                                 }}
                                 title={i18n(lang, "albums")}
+                                borderBottomRadius={10}
                             />
                         )
                     }
@@ -251,6 +238,8 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                 <SettingsGroup>
                     <SettingsButtonLinkHighlight
                         title={i18n(lang, "cameraUploadReset")}
+                        borderBottomRadius={10}
+                        borderTopRadius={10}
                         onPress={() => {
                             Alert.alert(i18n(lang, "cameraUploadReset"), i18n(lang, "cameraUploadResetInfo"), [
                                 {

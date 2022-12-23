@@ -1,43 +1,37 @@
-import React, { useState, memo } from "react"
-import { Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import React, { useState, memo, useMemo } from "react"
+import { Text, TextInput, TouchableOpacity, View, useWindowDimensions, Linking } from "react-native"
+import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { register } from "../../lib/services/auth/register"
 import { navigationAnimation } from "../../lib/state"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import AuthContainer from "../../components/AuthContainer"
 
 export interface RegisterScreenProps {
     navigation: any
 }
 
 export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [email, setEmail] = useState<string>("")
     const [password, setPassword] = useState<string>("")
     const [confirmPassword, setConfirmPassword] = useState<string>("")
+    const dimensions = useWindowDimensions()
+
+    const contentWidth = useMemo(() => {
+        const scaled = Math.floor(dimensions.width * 0.7)
+
+        if(scaled > 300){
+            return 300
+        }
+
+        return 300
+    }, [dimensions])
 
     return (
-        <KeyboardAvoidingView
-            behavior="padding"
-            style={{
-                flex: 1,
-                width: "100%",
-                alignSelf: "center",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: darkMode ? "black" : "white"
-            }}
-        >
-            <Image
-                source={require("../../assets/images/appstore.png")}
-                style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 90,
-                    marginBottom: 20
-                }}
-            />
+        <AuthContainer>
             <TextInput
                 onChangeText={setEmail}
                 value={email}
@@ -49,16 +43,16 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
                 returnKeyType="next"
                 secureTextEntry={false}
                 style={{
-                    height: 35,
-                    width: "100%",
-                    maxWidth: "70%",
+                    height: 44,
+                    width: contentWidth,
                     padding: 5,
                     paddingLeft: 10,
                     paddingRight: 10,
-                    backgroundColor: darkMode ? "#222222" : "lightgray",
+                    backgroundColor: getColor(darkMode, "backgroundSecondary"),
                     color: "gray",
                     borderRadius: 10,
-                    marginTop: 10
+                    marginTop: 10,
+                    fontSize: 15
                 }}
             />
             <TextInput
@@ -69,16 +63,16 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
                 returnKeyType="done"
                 secureTextEntry
                 style={{
-                    height: 35,
-                    width: "100%",
-                    maxWidth: "70%",
+                    height: 44,
+                    width: contentWidth,
                     padding: 5,
                     paddingLeft: 10,
                     paddingRight: 10,
-                    backgroundColor: darkMode ? "#222222" : "lightgray",
+                    backgroundColor: getColor(darkMode, "backgroundSecondary"),
                     color: "gray",
                     borderRadius: 10,
-                    marginTop: 12
+                    marginTop: 10,
+                    fontSize: 15
                 }}
             />
             <TextInput
@@ -89,52 +83,112 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
                 returnKeyType="done"
                 secureTextEntry
                 style={{
-                    height: 35,
-                    width: "100%",
-                    maxWidth: "70%",
+                    height: 44,
+                    width: contentWidth,
                     padding: 5,
                     paddingLeft: 10,
                     paddingRight: 10,
-                    backgroundColor: darkMode ? "#222222" : "lightgray",
+                    backgroundColor: getColor(darkMode, "backgroundSecondary"),
                     color: "gray",
                     borderRadius: 10,
-                    marginTop: 12
+                    marginTop: 10,
+                    fontSize: 15
                 }}
             />
             <TouchableOpacity
                 style={{
-                    backgroundColor: darkMode ? "#444444" : "gray",
+                    backgroundColor: getColor(darkMode, "indigo"),
                     borderRadius: 10,
-                    width: "100%",
-                    maxWidth: "70%",
-                    height: 30,
-                    padding: 5,
+                    width: contentWidth,
+                    height: 40,
                     alignItems: "center",
+                    justifyContent: "center",
                     marginTop: 12
                 }}
                 onPress={() => register({ email, password, confirmPassword, setEmail, setPassword, setConfirmPassword, navigation })}
             >
                 <Text
                     style={{
-                        color: "white"
+                        color: "white",
+                        fontSize: 15,
+                        fontWeight: "bold"
                     }}
                 >
                     {i18n(lang, "registerBtn")}
                 </Text>
             </TouchableOpacity>
+            <Text
+                style={{
+                    color: getColor(darkMode, "textSecondary"),
+                    width: contentWidth,
+                    textAlign: "center",
+                    marginTop: 12,
+                    fontSize: 12,
+                    alignItems: "center"
+                }}
+            >
+                <Text>
+                    By creating an account you automatically agree to our
+                </Text>
+                <Text
+                    style={{
+                        color: getColor(darkMode, "linkPrimary")
+                    }}
+                    onPress={() => {
+                        Linking.canOpenURL("https://filen.io/terms").then((supported) => {
+                            if(supported){
+                                Linking.openURL("https://filen.io/terms").catch(console.error)
+                            }
+                        }).catch(console.error)
+                    }}
+                >
+                    &nbsp;Terms of Service
+                </Text>
+                <Text>
+                    &nbsp;and
+                </Text>
+                <Text
+                    style={{
+                        color: getColor(darkMode, "linkPrimary")
+                    }}
+                    onPress={() => {
+                        Linking.canOpenURL("https://filen.io/privacy").then((supported) => {
+                            if(supported){
+                                Linking.openURL("https://filen.io/privacy").catch(console.error)
+                            }
+                        }).catch(console.error)
+                    }}
+                >
+                    &nbsp;Privacy Policy
+                </Text>
+            </Text>
+            <View
+                style={{
+                    width: contentWidth,
+                    height: 0,
+                    borderBottomColor: "rgba(84, 84, 88, 0.2)",
+                    borderBottomWidth: 0.5,
+                    marginTop: 50
+                }}
+            />
             <TouchableOpacity
                 style={{
-                    width: "100%",
-                    maxWidth: "70%",
-                    height: "auto",
+                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
+                    borderColor: getColor(darkMode, "backgroundTertiary"),
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    width: contentWidth,
+                    height: 40,
                     alignItems: "center",
+                    justifyContent: "center",
                     marginTop: 30
                 }}
                 onPress={() => navigation.goBack()}
             >
                 <Text
                     style={{
-                        color: "#0A84FF"
+                        color: getColor(darkMode, "textPrimary"),
+                        fontSize: 15
                     }}
                 >
                     {i18n(lang, "loginBtn")}
@@ -142,8 +196,7 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
             </TouchableOpacity>
             <TouchableOpacity
                 style={{
-                    width: "100%",
-                    maxWidth: "70%",
+                    width: contentWidth,
                     height: "auto",
                     alignItems: "center",
                     marginTop: 20
@@ -156,12 +209,13 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
             >
                 <Text
                     style={{
-                        color: "#0A84FF"
+                        color: getColor(darkMode, "linkPrimary"),
+                        fontSize: 15
                     }}
                 >
                     {i18n(lang, "resendConfirmationBtn")}
                 </Text>
             </TouchableOpacity>
-        </KeyboardAvoidingView>
+        </AuthContainer>
     )
 })

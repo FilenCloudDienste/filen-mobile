@@ -1,7 +1,5 @@
 import React, { useEffect, useState, Component, memo, useRef } from "react"
-import { View, Text, Platform, ScrollView, TouchableOpacity, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { View, Text, ScrollView, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight, useWindowDimensions, ScaledSize } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButton } from "../SettingsScreen/SettingsScreen"
@@ -10,10 +8,14 @@ import { showToast } from "../../components/Toasts"
 import { useStore } from "../../lib/state"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
-import { getMasterKeys, decryptFileMetadata, decryptFolderName } from "../../lib/helpers"
+import { getMasterKeys, decryptFileMetadata, decryptFolderName, convertTimestampToMs, simpleDate } from "../../lib/helpers"
 import striptags from "striptags"
 import { ListEmpty } from "../../components/ListEmpty"
 import { useMountedState } from "react-use"
+import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
 export interface EventsInfoScreenProps {
     navigation: any,
@@ -21,8 +23,8 @@ export interface EventsInfoScreenProps {
 }
 
 export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [eventInfo, setEventInfo] = useState<any>(undefined)
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [eventText, setEventText] = useState<string>("")
@@ -53,50 +55,23 @@ export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenPro
 
     return (
         <>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    backgroundColor: darkMode ? "black" : "white"
-                }}
-            >
-                <TouchableOpacity
-                    style={{
-                        marginTop: Platform.OS == "ios" ? 17 : 4,
-                        marginLeft: 15,
-                    }}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicon
-                        name="chevron-back"
-                        size={24}
-                        color={darkMode ? "white" : "black"}
-                    />
-                </TouchableOpacity>
-                <Text
-                    style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 24,
-                        marginLeft: 10,
-                        marginTop: Platform.OS == "ios" ? 15 : 0
-                    }}
-                >
-                    {i18n(lang, "eventInfo")}
-                </Text>
-            </View>
+            <DefaultTopBar
+                onPressBack={() => navigation.goBack()}
+                leftText={i18n(lang, "events")}
+                middleText={i18n(lang, "eventInfo")}
+            />
             <ScrollView
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: darkMode ? "black" : "white"
+                    backgroundColor: getColor(darkMode, "backgroundPrimary")
                 }}
             >
                 {
                     isLoading ? (
                         <ActivityIndicator
                             size="small"
-                            color={darkMode ? "white" : "black"}
+                            color={getColor(darkMode, "textPrimary")}
                             style={{
                                 marginTop: 100
                             }}
@@ -104,16 +79,63 @@ export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenPro
                     ) : (
                         <>
                             <SettingsGroup>
-                                <SettingsButton title={eventText} />
+                                <SettingsButton
+                                    title={
+                                        <Text
+                                            style={{
+                                                color: getColor(darkMode, "textPrimary"),
+                                                fontSize: 17,
+                                                fontWeight: "400"
+                                            }}
+                                        >
+                                            {eventText}
+                                        </Text>
+                                    }
+                                />
                             </SettingsGroup>
-                            <SettingsGroup marginTop={10}>
-                                <SettingsButton title={new Date(eventInfo.timestamp * 1000).toLocaleDateString() + " " + new Date(eventInfo.timestamp * 1000).toLocaleTimeString()} />
+                            <Text
+                                style={{
+                                    color: "gray",
+                                    fontSize: 13,
+                                    marginLeft: 15,
+                                    marginTop: 10
+                                }}
+                            >
+                                {simpleDate(convertTimestampToMs(eventInfo.timestamp))}
+                            </Text>
+                            <SettingsGroup
+                                marginTop={15}
+                            >
+                                <SettingsButton
+                                    title={
+                                        <Text
+                                            style={{
+                                                color: getColor(darkMode, "textPrimary"),
+                                                fontSize: 17,
+                                                fontWeight: "400"
+                                            }}
+                                        >
+                                            {eventInfo.info.userAgent}
+                                        </Text>
+                                    }
+                                />
                             </SettingsGroup>
-                            <SettingsGroup marginTop={10}>
-                                <SettingsButton title={eventInfo.info.userAgent} />
-                            </SettingsGroup>
-                            <SettingsGroup marginTop={10}>
-                                <SettingsButton title={eventInfo.info.ip} />
+                            <SettingsGroup
+                                marginTop={10}
+                            >
+                                <SettingsButton
+                                    title={
+                                        <Text
+                                            style={{
+                                                color: getColor(darkMode, "textPrimary"),
+                                                fontSize: 17,
+                                                fontWeight: "400"
+                                            }}
+                                        >
+                                            {eventInfo.info.ip}
+                                        </Text>
+                                    }
+                                />
                             </SettingsGroup>
                         </>
                     )
@@ -321,7 +343,7 @@ export class EventRow extends Component<EventRowProps> {
         return (
             <View
                 key={index.toString()} style={{
-                    height: 35,
+                    height: 44,
                     width: "100%",
                     paddingLeft: 15,
                     paddingRight: 15,
@@ -330,17 +352,17 @@ export class EventRow extends Component<EventRowProps> {
             >
                 <View
                     style={{
-                        height: "auto",
+                        height: 44,
                         width: "100%",
-                        backgroundColor: darkMode ? "#171717" : "lightgray",
+                        backgroundColor: getColor(darkMode, "backgroundSecondary"),
                         borderRadius: 10
                     }}
                 >
                     <TouchableHighlight
-                        underlayColor={"gray"}
+                        underlayColor={getColor(darkMode, "underlaySettingsButton")}
                         style={{
                             width: "100%",
-                            height: "auto",
+                            height: 44,
                             borderRadius: 10
                         }}
                         onPress={() => {
@@ -354,20 +376,22 @@ export class EventRow extends Component<EventRowProps> {
                         <View
                             style={{
                                 width: "100%",
-                                height: "auto",
+                                height: 44,
                                 flexDirection: "row",
                                 justifyContent: "space-between",
                                 paddingLeft: 10,
                                 paddingRight: 10,
-                                paddingTop: 9,
-                                paddingBottom: 10
+                                alignItems: "center",
+                                flex: 1
                             }}
                         >
                             <Text
                                 style={{
-                                    color: darkMode ? "white" : "black",
-                                    fontSize: 13,
-                                    width: "45%"
+                                    color: getColor(darkMode, "textPrimary"),
+                                    fontSize: 17,
+                                    fontWeight: "400",
+                                    flex: 1,
+                                    paddingRight: 10
                                 }}
                                 numberOfLines={1}
                             >
@@ -375,26 +399,23 @@ export class EventRow extends Component<EventRowProps> {
                             </Text>
                             <View
                                 style={{
-                                    flexDirection: "row",
-                                    paddingTop: 2
+                                    flexDirection: "row"
                                 }}
                             >
                                 <Text
                                     style={{
                                         color: "gray",
-                                        paddingRight: 10,
-                                        fontSize: 12
+                                        paddingRight: 5,
+                                        fontSize: 13,
+                                        paddingTop: 2
                                     }}
                                 >
-                                    {new Date(item.timestamp * 1000).toLocaleDateString()} {new Date(item.timestamp * 1000).toLocaleTimeString()}
+                                    {new Date(convertTimestampToMs(item.timestamp)).toLocaleDateString()}
                                 </Text>
                                 <Ionicon
                                     name="chevron-forward-outline" 
-                                    size={15} 
-                                    color="gray" 
-                                    style={{
-                                        marginTop: 0
-                                    }}
+                                    size={18} 
+                                    color="gray"
                                 />
                             </View>
                         </View>
@@ -411,14 +432,14 @@ export interface EventsScreenProps {
 }
 
 export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [events, setEvents] = useState<any>([])
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [filter, setFilter] = useState<string>("all")
     const [limit, setLimit] = useState<number>(0)
     const [refreshing, setRefreshing] = useState<boolean>(false)
-    const dimensions = useStore(state => state.dimensions)
+    const dimensions: ScaledSize = useWindowDimensions()
     const [masterKeys, setMasterKeys] = useState<string[]>(getMasterKeys())
     const isMounted: () => boolean = useMountedState()
     const [topHeight, setTopHeight] = useState<number>(0)
@@ -462,44 +483,16 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 
     return (
         <>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    backgroundColor: darkMode ? "black" : "white"
-                }}
-                onLayout={(e) => setTopHeight(e.nativeEvent.layout.height)}
-            >
-                <TouchableOpacity
-                    style={{
-                        marginTop: Platform.OS == "ios" ? 17 : 4,
-                        marginLeft: 15,
-                    }}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicon
-                        name="chevron-back"
-                        size={24}
-                        color={darkMode ? "white" : "black"}
-                    />
-                </TouchableOpacity>
-                <Text
-                    style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 24,
-                        marginLeft: 10,
-                        marginTop: Platform.OS == "ios" ? 15 : 0
-                    }}
-                >
-                    {i18n(lang, "events")}
-                </Text>
-            </View>
+            <DefaultTopBar
+                onPressBack={() => navigation.goBack()}
+                leftText={i18n(lang, "settings")}
+                middleText={i18n(lang, "events")}
+            />
             <View
                 style={{
                     height: Math.floor(contentHeight - topHeight - bottomBarHeight + 31),
                     width: "100%",
-                    backgroundColor: darkMode ? "black" : "white",
+                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
                     paddingTop: 15
                 }}
             >
@@ -507,8 +500,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                     data={events}
                     keyExtractor={(_, index) => index.toString()}
                     key="events"
-                    windowSize={10}
-                    initialNumToRender={32}
+                    windowSize={3}
                     numColumns={1}
                     renderItem={({ item, index }) => <EventRow item={item} index={index} darkMode={darkMode} lang={lang} navigation={navigation} masterKeys={masterKeys} />}
                     onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}
@@ -520,13 +512,13 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                             getEvents(lastEventId.current)
                         }
                     }}
-                    getItemLayout={(_, index) => ({ length: 45, offset: 45 * index, index })}
+                    getItemLayout={(_, index) => ({ length: 54, offset: 54 * index, index })}
                     ListEmptyComponent={() => {
                         return (
                             <View
                                 style={{
                                     width: "100%",
-                                    height: Math.floor(dimensions.screen.height - 255),
+                                    height: Math.floor(dimensions.height - 255),
                                     justifyContent: "center",
                                     alignItems: "center",
                                     alignContent: "center"
@@ -536,13 +528,15 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                                     isLoading ? (
                                         <View>
                                             <ActivityIndicator
-                                                color={darkMode ? "white" : "black"}
+                                                color={getColor(darkMode, "textPrimary")}
                                                 size="small"
                                             />
                                             <Text
                                                 style={{
-                                                    color: darkMode ? "white" : "black",
-                                                    marginTop: 15
+                                                    color: getColor(darkMode, "textPrimary"),
+                                                    marginTop: 15,
+                                                    fontWeight: "400",
+                                                    fontSize: 17
                                                 }}
                                             >
                                                 {i18n(lang, "loading")}
@@ -570,7 +564,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
             
                                 getEvents(0)
                             }}
-                            tintColor={darkMode ? "white" : "black"}
+                            tintColor={getColor(darkMode, "textPrimary")}
                         />
                     }
                     style={{
@@ -589,7 +583,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                                     }}
                                 >
                                     <ActivityIndicator
-                                        color={darkMode ? "white" : "black"}
+                                        color={getColor(darkMode, "textPrimary")}
                                         size="small"
                                     />
                                 </View>

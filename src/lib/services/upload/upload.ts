@@ -1,5 +1,4 @@
-import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnail } from "../../helpers"
-import RNFS from "react-native-fs"
+import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnail, toExpoFsPath } from "../../helpers"
 import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
 import { showToast } from "../../../components/Toasts"
 import storage from "../../storage"
@@ -182,13 +181,6 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             resumeListener.remove()
             stopListener.remove()
             BackgroundTimer.clearInterval(stopInterval)
-
-            if(
-                file.path.indexOf(RNFS.CachesDirectoryPath) !== -1
-                || file.path.indexOf(RNFS.TemporaryDirectoryPath) !== -1
-            ){
-                RNFS.unlink(file.path).catch(() => {})
-            }
         }
 
         let err = undefined
@@ -282,8 +274,8 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
                                 dest = dest + uuid + ".jpg"
                 
                                 try{
-                                    if((await RNFS.exists(dest))){
-                                        await RNFS.unlink(dest)
+                                    if((await FileSystem.getInfoAsync(toExpoFsPath(dest))).exists){
+                                        await FileSystem.deleteAsync(toExpoFsPath(dest))
                                     }
                                 }
                                 catch(e){
@@ -296,13 +288,24 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
                                     return resolve(true)
                                 }
                         
-                                RNFS.stat(file.path).then((stat) => {
+                                FileSystem.getInfoAsync(file.path).then((stat) => {
+                                    if(!stat.exists){
+                                        return resolve(true)
+                                    }
+                                    
+                                    if(!stat.size){
+                                        return resolve(true)
+                                    }
+
                                     if(stat.size <= 1){
                                         return resolve(true)
                                     }
 
                                     ImageResizer.createResizedImage(file.path, width, height, "JPEG", quality).then((compressed) => {
-                                        RNFS.moveFile(compressed.uri, dest).then(() => {
+                                        FileSystem.moveAsync({
+                                            from: toExpoFsPath(compressed.uri),
+                                            to: toExpoFsPath(dest)
+                                        }).then(() => {
                                             storage.set(cacheKey, item.uuid + ".jpg")
                                             memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
                 

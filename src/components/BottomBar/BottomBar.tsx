@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from "react"
-import { Text, View, Pressable } from "react-native"
+import { Text, View, Pressable, useWindowDimensions, ScaledSize } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
@@ -8,26 +8,28 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { getParent, getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
-import { getColor } from "../../lib/style/colors"
+import { getColor } from "../../style/colors"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
 export interface BottomBarProps {
     navigation: any
 }
 
 export const BottomBar = memo(({ navigation }: BottomBarProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
     const currentRoutes = useStore(state => state.currentRoutes)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const lang = useLang()
     const setBottomBarHeight = useStore(state => state.setBottomBarHeight)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
     const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
-    const dimensions = useStore(state => state.dimensions)
+    const dimensions: ScaledSize = useWindowDimensions()
     const networkInfo = useNetworkInfo()
 
     const iconTextMaxWidth: number = useMemo(() => {
-        return (dimensions.window.width / 5) - 25
+        return (dimensions.width / 5) - 25
     }, [dimensions])
 
     const [showHome, showCloud, canOpenBottomAddActionSheet, isPhotosScreen, showSettings] = useMemo(() => {
@@ -146,11 +148,11 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 <Ionicon
                     name={showHome ? "home" : "home-outline"}
                     size={22}
-                    color={showHome ? "#0A84FF" : (darkMode ? "gray" : "gray")}
+                    color={showHome ? "#0A84FF" : "gray"}
                 />
                 <Text
                     style={{
-                        color: showHome ? "#0A84FF" : (darkMode ? "gray" : "gray"),
+                        color: showHome ? "#0A84FF" : "gray",
                         fontSize: 10,
                         marginTop: 3,
                         maxWidth: iconTextMaxWidth
@@ -184,11 +186,11 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 <Ionicon
                     name={showCloud ? "cloud" : "cloud-outline"}
                     size={22}
-                    color={showCloud ? "#0A84FF" : (darkMode ? "gray" : "gray")}
+                    color={showCloud ? "#0A84FF" : "gray"}
                 />
                 <Text
                     style={{
-                        color: showCloud ? "#0A84FF" : (darkMode ? "gray" : "gray"),
+                        color: showCloud ? "#0A84FF" : "gray",
                         fontSize: 10,
                         marginTop: 3,
                         maxWidth: iconTextMaxWidth
@@ -240,11 +242,11 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 <Ionicon
                     name={isPhotosScreen ? "image" : "image-outline"}
                     size={22}
-                    color={isPhotosScreen ? "#0A84FF" : (darkMode ? "gray" : "gray")}
+                    color={isPhotosScreen ? "#0A84FF" : "gray"}
                 />
                 <Text
                     style={{
-                        color: isPhotosScreen ? "#0A84FF" : (darkMode ? "gray" : "gray"),
+                        color: isPhotosScreen ? "#0A84FF" : "gray",
                         fontSize: 10,
                         marginTop: 3,
                         maxWidth: iconTextMaxWidth
@@ -275,11 +277,11 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 <Ionicon
                     name={showSettings ? "settings" : "settings-outline"}
                     size={22}
-                    color={showSettings ? "#0A84FF" : (darkMode ? "gray" : "gray")}
+                    color={showSettings ? "#0A84FF" : "gray"}
                 />
                 <Text
                     style={{
-                        color: showSettings ? "#0A84FF" : (darkMode ? "gray" : "gray"),
+                        color: showSettings ? "#0A84FF" : "gray",
                         fontSize: 10,
                         marginTop: 3,
                         maxWidth: iconTextMaxWidth

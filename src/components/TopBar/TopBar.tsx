@@ -1,15 +1,17 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
-import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform } from "react-native"
+import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform, useWindowDimensions, ScaledSize } from "react-native"
 import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVString } from "react-native-mmkv"
 import { i18n } from "../../i18n"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { SheetManager } from "react-native-actions-sheet"
 import { useStore, navigationAnimation } from "../../lib/state"
 import { getParent, getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
-import { getColor } from "../../lib/style/colors"
+import { getColor } from "../../style/colors"
 import type { NavigationContainerRef } from "@react-navigation/native"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
 export interface TopBarProps {
     navigation: NavigationContainerRef<{}>,
@@ -99,15 +101,15 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
         return title
     }, [route])
 
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
     const itemsSelectedCount = useStore(state => state.itemsSelectedCount)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const lang = useLang()
     const [showTextClearButton, setShowTextClearButton] = useState(false)
     const [title, setTitle] = useState<string>(getTopBarTitle({ route, lang }))
     const setTopBarHeight = useStore(state => state.setTopBarHeight)
     const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
-    const dimensions = useStore(state => state.dimensions)
+    const dimensions: ScaledSize = useWindowDimensions()
 
     const [parent, routeURL] = useMemo(() => {
         const parent: string = getParent(route)
@@ -117,7 +119,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     }, [route])
 
     const homeTabBarTextMaxWidth: number = useMemo(() => {
-        return (dimensions.window.width / 5) - 20
+        return (dimensions.width / 5) - 20
     }, [dimensions])
 
     const [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton] = useMemo(() => {
@@ -151,25 +153,25 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
         return [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton]
     }, [route, parent])
 
-    useEffect(() => {
-        setTitle(getTopBarTitle({ route, lang }))
-    }, [])
-
-    const goBack = (): void => {
+    const goBack = useCallback((): void => {
         if(typeof setLoadDone !== "undefined"){
             setLoadDone(false)
         }
 
         navigation.goBack()
-    }
+    }, [])
+
+    useEffect(() => {
+        setTitle(getTopBarTitle({ route, lang }))
+    }, [])
 
     return (
-        <View onLayout={(e) => setTopBarHeight(e.nativeEvent.layout.height)}>
+        <View
+            onLayout={(e) => setTopBarHeight(e.nativeEvent.layout.height)}
+        >
             <View
                 style={{
-                    height: showHomeTabBar ? 75 : isMainScreen && !isPhotosScreen ? 80 : 35,
-                    borderBottomColor: getColor(darkMode, "primaryBorder"),
-                    borderBottomWidth: 0, //showHomeTabBar || routeURL.indexOf("photos") !== -1 ? 0 : 1
+                    height: showHomeTabBar ? 85 : isMainScreen && !isPhotosScreen ? 85 : 35,
                     marginTop: Platform.OS == "ios" ? 10 : 0
                 }}
             >
@@ -177,15 +179,21 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                     style={{
                         justifyContent: "space-between",
                         flexDirection: "row",
-                        paddingLeft: 15,
-                        paddingRight: 15
+                        paddingLeft: !showBackButton ? 15 : 10,
+                        paddingRight: 15,
+                        alignItems: "center",
+                        width: "100%",
+                        height: 30
                     }}
                 >
                     {
                         itemsSelectedCount > 0 && isMainScreen ? (
                             <TouchableOpacity
                                 style={{
-                                    marginTop: Platform.OS == "android" ? 1 : 0
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    width: "33%",
+                                    justifyContent: "flex-start"
                                 }}
                                 onPress={() => {
                                     DeviceEventEmitter.emit("event", {
@@ -194,44 +202,72 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                 }}
                             >
                                 <Ionicon
-                                    name="chevron-back"
-                                    size={24}
-                                    color={darkMode ? "white" : "black"}
+                                    name="chevron-back-outline"
+                                    size={28}
+                                    color="#0A84FF"
                                 />
+                                <Text
+                                    style={{
+                                        fontSize: 17,
+                                        color: "#0A84FF",
+                                        fontWeight: "400"
+                                    }}
+                                    numberOfLines={1}
+                                >
+                                    {itemsSelectedCount + " " + i18n(lang, "items", false)}
+                                </Text>
                             </TouchableOpacity>
                         ) : (
                             showBackButton && (
                                 <TouchableOpacity
                                     style={{
-                                        marginTop: Platform.OS == "android" ? 1 : 0
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        width: "33%",
+                                        justifyContent: "flex-start"
                                     }}
                                     onPress={() => goBack()}
                                 >
                                     <Ionicon
-                                        name="chevron-back"
-                                        size={24}
-                                        color={darkMode ? "white" : "black"}
+                                        name="chevron-back-outline"
+                                        size={28}
+                                        color="#0A84FF"
                                     />
+                                    <Text
+                                        style={{
+                                            fontSize: 17,
+                                            color: "#0A84FF",
+                                            fontWeight: "400",
+                                            maxWidth: "70%"
+                                        }}
+                                        numberOfLines={1}
+                                    >
+                                        {isTrashScreen ? i18n(lang, "settings") : i18n(lang, "back")}
+                                    </Text>
                                 </TouchableOpacity>
                             )
                         )
                     }
                     <View
                         style={{
-                            marginLeft: showBackButton ? 5 : 0,
-                            width: showBackButton ? "80%" : "85%"
+                            width: "33%",
+                            alignItems: !showBackButton ? "flex-start" : "center"
                         }}
                     >
-                        <Text
-                            style={{
-                                fontSize: 20,
-                                color: darkMode ? "white" : "black",
-                                fontWeight: "bold"
-                            }}
-                            numberOfLines={1}
-                        >
-                            {itemsSelectedCount > 0 && isMainScreen ? itemsSelectedCount + " " + i18n(lang, "items", false) : title}
-                        </Text>
+                        {
+                            itemsSelectedCount <= 0 && (
+                                <Text
+                                    style={{
+                                        fontSize: 17,
+                                        color: getColor(darkMode, "textPrimary"),
+                                        fontWeight: "600"
+                                    }}
+                                    numberOfLines={1}
+                                >
+                                    {title}
+                                </Text>
+                            )
+                        }
                     </View>
                     <TouchableOpacity
                         hitSlop={{
@@ -244,8 +280,9 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                             alignItems: "flex-end",
                             flexDirection: "row",
                             backgroundColor: "transparent",
-                            height: "100%",
-                            paddingLeft: 0
+                            width: "33%",
+                            paddingLeft: 0,
+                            justifyContent: "flex-end"
                         }}
                         onPress={() => SheetManager.show("TopBarActionSheet")}
                     >
@@ -253,9 +290,9 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                             !isSettingsScreen && (
                                 <View>
                                     <Ionicon
-                                        name="ellipsis-horizontal-sharp"
-                                        size={24}
-                                        color={darkMode ? "white" : "black"}
+                                        name="ellipsis-horizontal-circle-outline"
+                                        size={23}
+                                        color="#0A84FF"
                                     />
                                 </View>
                             )
@@ -277,40 +314,43 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                 style={{
                                     position: "absolute",
                                     zIndex: 2,
-                                    marginTop: 17,
+                                    marginTop: 19,
                                     marginLeft: 23
                                 }}
                             />
-                            <TouchableOpacity
-                                hitSlop={{
-                                    top: 10,
-                                    left: 10,
-                                    right: 10,
-                                    bottom: 10
-                                }}
-                                style={{
-                                    position: "absolute",
-                                    zIndex: 2,
-                                    right: 0,
-                                    marginTop: 17,
-                                    display: showTextClearButton ? "flex" : "none",
-                                    width: 43,
-                                    height: 30
-                                }}
-                                onPress={() => {
-                                    setSearchTerm("")
+                            {
+                                showTextClearButton && (
+                                    <TouchableOpacity
+                                        hitSlop={{
+                                            top: 10,
+                                            left: 10,
+                                            right: 10,
+                                            bottom: 10
+                                        }}
+                                        style={{
+                                            position: "absolute",
+                                            zIndex: 2,
+                                            right: 0,
+                                            marginTop: 19,
+                                            width: 43,
+                                            height: 30
+                                        }}
+                                        onPress={() => {
+                                            setSearchTerm("")
 
-                                    Keyboard.dismiss()
+                                            Keyboard.dismiss()
 
-                                    setShowTextClearButton(false)
-                                }}
-                            >
-                                <Ionicon
-                                    name="close-circle"
-                                    size={18}
-                                    color="gray"
-                                />
-                            </TouchableOpacity>
+                                            setShowTextClearButton(false)
+                                        }}
+                                    >
+                                        <Ionicon
+                                            name="close-circle"
+                                            size={18}
+                                            color="gray"
+                                        />
+                                    </TouchableOpacity>
+                                )
+                            }
                             <TextInput
                                 onChangeText={(val) => {
                                     if(val.length > 0){
@@ -326,17 +366,17 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                 placeholder={i18n(lang, "searchInThisFolder")}
                                 placeholderTextColor="gray"
                                 autoCapitalize="none"
-                                autoComplete="off"
                                 style={{
-                                    height: 32,
+                                    height: 36,
                                     marginTop: 10,
                                     zIndex: 1,
                                     padding: 5,
-                                    backgroundColor: darkMode ? "#171717" : "lightgray",
+                                    backgroundColor: getColor(darkMode, "backgroundSecondary"),
                                     color: "gray",
                                     borderRadius: 10,
                                     paddingLeft: 35,
-                                    paddingRight: 40
+                                    paddingRight: 40,
+                                    fontSize: 16
                                 }}
                             />
                         </View>
@@ -383,8 +423,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                 style={{
                                     color: isRecentsScreen ? "#0A84FF" : "gray",
                                     fontWeight: "bold",
-                                    fontSize: 13,
-                                    paddingTop: 3,
+                                    fontSize: 14,
+                                    paddingTop: 2,
                                     maxWidth: homeTabBarTextMaxWidth
                                 }}
                                 numberOfLines={1}
@@ -421,8 +461,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                             style={{
                                                 color: isSharedInScreen ? "#0A84FF" : "gray",
                                                 fontWeight: "bold",
-                                                fontSize: 13,
-                                                paddingTop: 3,
+                                                fontSize: 14,
+                                                paddingTop: 2,
                                                 maxWidth: homeTabBarTextMaxWidth
                                             }}
                                             numberOfLines={1}
@@ -456,8 +496,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                             style={{
                                                 color: isSharedOutScreen ? "#0A84FF" : "gray",
                                                 fontWeight: "bold",
-                                                fontSize: 13,
-                                                paddingTop: 3,
+                                                fontSize: 14,
+                                                paddingTop: 2,
                                                 maxWidth: homeTabBarTextMaxWidth
                                             }}
                                             numberOfLines={1}
@@ -494,8 +534,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                 style={{
                                     color: isPublicLinksScreen ? "#0A84FF" : "gray",
                                     fontWeight: "bold",
-                                    fontSize: 13,
-                                    paddingTop: 3,
+                                    fontSize: 14,
+                                    paddingTop: 2,
                                     maxWidth: homeTabBarTextMaxWidth
                                 }}
                                 numberOfLines={1}
@@ -529,8 +569,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                 style={{
                                     color: isFavoritesScreen ? "#0A84FF" : "gray",
                                     fontWeight: "bold",
-                                    fontSize: 13,
-                                    paddingTop: 3,
+                                    fontSize: 14,
+                                    paddingTop: 2,
                                     maxWidth: homeTabBarTextMaxWidth
                                 }}
                                 numberOfLines={1}
@@ -564,8 +604,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                 style={{
                                     color: isOfflineScreen ? "#0A84FF" : "gray",
                                     fontWeight: "bold",
-                                    fontSize: 13,
-                                    paddingTop: 3,
+                                    fontSize: 14,
+                                    paddingTop: 2,
                                     maxWidth: homeTabBarTextMaxWidth
                                 }}
                                 numberOfLines={1}

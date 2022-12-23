@@ -514,7 +514,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                                             }).then(({ success, path, error }: { success: boolean, path: string, error: any }) => {
                                                 if(!error && success && path){
                                                     FileSystem.getInfoAsync(path).then((stat) => {
-                                                        if(stat.size){
+                                                        if(stat.exists && stat.size){
                                                             const fileNameEx = asset.filename.split(".")
                                                             const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
                                                             const newName = nameWithoutEx + ".JPG"
@@ -539,7 +539,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                                         }
                                         else{
                                             FileSystem.getInfoAsync(tmp).then((stat) => {
-                                                if(stat.size){
+                                                if(stat.exists && stat.size){
                                                     return resolve({
                                                         path: tmp.split("file://").join(""),
                                                         name: asset.filename,

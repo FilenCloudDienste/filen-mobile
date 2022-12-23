@@ -1,22 +1,28 @@
 import React, { memo } from "react"
-import { View, ActivityIndicator } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean } from "react-native-mmkv"
+import { View, Image } from "react-native"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import { getColor } from "../../style"
 
 export const SetupScreen = memo(() => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
 
     return (
         <View
             style={{
                 height: "100%",
-                backgroundColor: darkMode ? "black" : "white",
-                justifyContent: "center"
+                backgroundColor: getColor(darkMode, "backgroundPrimary"),
+                justifyContent: "center",
+                alignItems: "center"
             }}
         >
-            <ActivityIndicator
-                size={"small"}
-                color={darkMode ? "white" : "black"}
+            <Image
+                source={require("../../assets/images/logo_animated.gif")}
+                style={{
+                    width: 100,
+                    height: 100
+                }}
+                width={100}
+                height={100}
             />
         </View>
     )

@@ -1,22 +1,23 @@
 import React, { useState, useEffect, memo } from "react"
-import { View, Text, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Pressable, Share } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
-import Ionicon from "@expo/vector-icons/Ionicons"
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Pressable, Share } from "react-native"
+import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { showToast } from "../../components/Toasts"
 import { getAccount } from "../../lib/api"
 import { SettingsGroup } from "../SettingsScreen/SettingsScreen"
 import * as Clipboard from "expo-clipboard"
 import { useMountedState } from "react-use"
+import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
 
 export interface InviteScreenProps {
     navigation: any
 }
 
 export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [accountData, setAccountData] = useState<any>({})
     const isMounted: () => boolean = useMountedState()
@@ -36,50 +37,23 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
 
     return (
         <>
-            <View 
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    backgroundColor: darkMode ? "black" : "white"
-                }}
-            >
-                <TouchableOpacity
-                    style={{
-                        marginTop: Platform.OS == "ios" ? 17 : 4,
-                        marginLeft: 15,
-                    }}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicon
-                        name="chevron-back"
-                        size={24}
-                        color={darkMode ? "white" : "black"}
-                    />
-                </TouchableOpacity>
-                <Text 
-                    style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 24,
-                        marginLeft: 10,
-                        marginTop: Platform.OS == "ios" ? 15 : 0
-                    }}
-                >
-                    {i18n(lang, "invite")}
-                </Text>
-            </View>
+            <DefaultTopBar
+                onPressBack={() => navigation.goBack()}
+                leftText={i18n(lang, "accountSettings")}
+                middleText={i18n(lang, "invite")}
+            />
             <ScrollView
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: darkMode ? "black" : "white"
+                    backgroundColor: getColor(darkMode, "backgroundPrimary")
                 }}
             >
                 {
                     isLoading ? (
                         <ActivityIndicator
                             size="small"
-                            color={darkMode ? "white" : "black"}
+                            color={getColor(darkMode, "textPrimary")}
                             style={{
                                 marginTop: "70%"
                             }}
@@ -108,7 +82,9 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                                         <View>
                                             <Text
                                                 style={{
-                                                    color: darkMode ? "white" : "black"
+                                                    color: getColor(darkMode, "textPrimary"),
+                                                    fontWeight: "400",
+                                                    fontSize: 17
                                                 }}
                                             >
                                                 {i18n(lang, "inviteInfo")}
@@ -139,7 +115,9 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                                         <View>
                                             <Text
                                                 style={{
-                                                    color: darkMode ? "white" : "black"
+                                                    color: getColor(darkMode, "textPrimary"),
+                                                    fontWeight: "400",
+                                                    fontSize: 17
                                                 }}
                                             >
                                                 {i18n(lang, "inviteCount")}
@@ -147,7 +125,9 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                                         </View>
                                         <Text
                                             style={{
-                                                color: darkMode ? "white" : "black"
+                                                color: "gray",
+                                                fontWeight: "400",
+                                                fontSize: 17
                                             }}
                                         >
                                             {accountData.referCount > accountData.refLimit ? accountData.refLimit : accountData.referCount}/{accountData.refLimit}
@@ -181,8 +161,10 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                                     >
                                         <Text
                                             style={{
-                                                color: darkMode ? "white" : "black",
-                                                width: "70%"
+                                                color: getColor(darkMode, "textPrimary"),
+                                                width: "65%",
+                                                fontWeight: "400",
+                                                fontSize: 17
                                             }}
                                             numberOfLines={1}
                                         >
@@ -198,7 +180,9 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                                         >
                                             <Text
                                                 style={{
-                                                    color: "#0A84FF"
+                                                    color: "#0A84FF",
+                                                    fontWeight: "400",
+                                                    fontSize: 17
                                                 }}
                                             >
                                                 {i18n(lang, "share")}
@@ -213,7 +197,9 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                                         >
                                             <Text
                                                 style={{
-                                                    color: "#0A84FF"
+                                                    color: "#0A84FF",
+                                                    fontWeight: "400",
+                                                    fontSize: 17
                                                 }}
                                             >
                                                 {i18n(lang, "copy")}
@@ -247,7 +233,7 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                                         <Text
                                             style={{
                                                 color: "gray",
-                                                fontSize: 10
+                                                fontSize: 12
                                             }}
                                         >
                                             {i18n(lang, "inviteInfo2")}

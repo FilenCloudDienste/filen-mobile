@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from "react"
-import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, Dimensions } from "react-native"
+import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, ScaledSize, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, isBetween } from "../../lib/helpers"
@@ -11,8 +11,11 @@ import { StackActions } from "@react-navigation/native"
 import { ListEmpty } from "../ListEmpty"
 import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
-import { Item, ItemTemplate } from "../../lib/services/items"
+import { Item } from "../../lib/services/items"
 import { useStore } from "../../lib/state"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
 export interface ItemListProps {
     navigation: any,
@@ -29,11 +32,11 @@ export interface ItemListProps {
 }
 
 export const ItemList = memo(({ navigation, route, items, showLoader, setItems, searchTerm, isMounted, fetchItemList, progress, setProgress, loadDone }: ItemListProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
     const [refreshing, setRefreshing] = useState<boolean>(false)
-    const [itemViewMode, setItemViewMode] = useMMKVString("itemViewMode", storage)
-    const dimensions = { window: Dimensions.get("window"), screen: Dimensions.get("screen") }
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const [viewMode, setViewMode] = useMMKVString("viewMode", storage)
+    const dimensions: ScaledSize = useWindowDimensions()
+    const lang = useLang()
     const [cameraUploadTotal, setCameraUploadTotal] = useMMKVNumber("cameraUploadTotal", storage)
     const [cameraUploadUploaded, setCameraUploadUploaded] = useMMKVNumber("cameraUploadUploaded", storage)
     const [userId, setUserId] = useMMKVNumber("userId", storage)
@@ -51,50 +54,25 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const insets: EdgeInsets = useSafeAreaInsets()
     const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
     const networkInfo = useNetworkInfo()
-    const [portrait, setPortrait] = useState<boolean>(dimensions.screen.height >= dimensions.screen.width)
+    const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
     const setScrolledToBottom = useStore(state => state.setScrolledToBottom)
 
+    const viewModeParsed = useMemo(() => {
+		if(!viewMode){
+			return {}
+		}
+
+		return JSON.parse(viewMode)
+	}, [viewMode])
+
     const itemsPerRow: number = useMemo(() => {
-        return Math.round(dimensions.window.width / 200)
-    }, [dimensions.window])
+        return Math.round(dimensions.width / 150)
+    }, [dimensions])
 
     const generateItemsForItemList = useCallback((items: Item[], range: string, lang: string = "en") => {
         range = normalizePhotosRange(range)
     
         if(range == "all"){
-            if(itemViewMode == "grid"){
-                const numFolders: number = items.filter(item => item.type == "folder").length
-
-                if(numFolders % itemsPerRow !== 0){
-                    let insertIndex = -1
-
-                    for(let i = 0; i < items.length; i++){
-                        if(items[i].type !== "folder" && insertIndex == -1){
-                            insertIndex = i
-                        }
-                    }
-
-                    const dummyFoldersNeeded: number = (() => {
-                        let found: number = numFolders
-
-                        while(found % itemsPerRow !== 0){
-                            found += 1
-                        }
-
-                        return (found - numFolders)
-                    })()
-
-                    for(let i = 0; i < dummyFoldersNeeded; i++){
-                        items.splice(insertIndex, 0, {
-                            ...ItemTemplate,
-                            uuid: Math.random().toString(),
-                            type: "folder",
-                            dummyGridFolder: true
-                        })
-                    }
-                }
-            }
-
             return items
         }
     
@@ -182,7 +160,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         }
         
         return sortedItems
-    }, [items, photosRange, lang, itemsPerRow, itemViewMode])
+    }, [items, photosRange, lang, itemsPerRow, viewModeParsed])
 
     const getThumbnail = useCallback(({ item }: { item: any }) => {
         if(item.type == "file"){
@@ -277,10 +255,10 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         setPhotosRange(nextRangeSelection)
     }, [photosRange, items, lang])
 
-    const getInitialScrollIndex = useCallback((): number => {
+    const getInitialScrollIndex = useCallback(() => {
         const range = normalizePhotosRange(photosRange)
         const gridSize = calcPhotosGridSize(photosGridSize)
-        const viewMode = routeURL.indexOf("photos") !== -1 ? "photos" : itemViewMode
+        const viewMode = routeURL.indexOf("photos") !== -1 ? "photos" : viewModeParsed[routeURL]
         const itemsLength = currentItems.length > 0 ? currentItems.length : items.length
 
         if(viewMode == "list"){
@@ -295,44 +273,56 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         else{
             return scrollIndex >= 0 && scrollIndex <= itemsLength ? scrollIndex : 0
         }
-    }, [photosRange, photosGridSize, routeURL, currentItems, items])
+    }, [photosRange, photosGridSize, routeURL, currentItems, items, viewModeParsed])
 
     const getItemLayout = useCallback((item: any, index: number) => {
-        const listLength: number = 55
-        const gridLengthDefault: number = (Math.floor((dimensions.window.width - (insets.left + insets.right)) / itemsPerRow) - 19 + 40)
+        const listItemHeight: number = 60
+        const gridLengthDefault: number = (Math.floor((dimensions.width - (insets.left + insets.right)) / itemsPerRow) + 55)
         const gridLength: number = item.type == "folder" ? 40 : gridLengthDefault
-        const photosAllLength: number = Math.floor(dimensions.window.width / calcPhotosGridSize(photosGridSize))
-        const photosLength: number = Math.floor((dimensions.window.width - (insets.left + insets.right)) - 1.5)
-        const length: number = routeURL.indexOf("photos") !== -1 ? photosRange == "all" ? photosAllLength : photosLength : itemViewMode == "grid" ? gridLength : listLength
+        const photosAllLength: number = Math.floor(dimensions.width / calcPhotosGridSize(photosGridSize))
+        const photosLength: number = Math.floor((dimensions.width - (insets.left + insets.right)) - 1.5)
+        const length: number = routeURL.indexOf("photos") !== -1 ? photosRange == "all" ? photosAllLength : photosLength : viewModeParsed[routeURL] == "grid" ? gridLength : listItemHeight
 
         return {
             length,
             offset: length * index,
             index
         }
-    }, [photosRange, dimensions, photosGridSize, insets, itemViewMode, routeURL, itemsPerRow])
+    }, [photosRange, dimensions, photosGridSize, insets, viewModeParsed, routeURL, itemsPerRow])
 
     const numColumns = useMemo(() => {
-        return routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : itemViewMode == "grid" ? itemsPerRow : 1
-    }, [routeURL, photosRange, photosGridSize, itemViewMode, itemsPerRow])
+        return routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : viewModeParsed[routeURL] == "grid" ? itemsPerRow : 1
+    }, [routeURL, photosRange, photosGridSize, viewModeParsed, itemsPerRow])
 
-    const initScrollIndex = useMemo<number>(() => {
+    const initScrollIndex = useMemo(() => {
         return (currentItems.length > 0 ? currentItems.length : generateItemsForItemList(items, normalizePhotosRange(photosRange), lang).length) > 0 ? getInitialScrollIndex() : 0
     }, [currentItems, items, photosRange, lang])
 
     const listKey = useMemo(() => {
-        const base = routeURL.indexOf("photos") !== -1 ? "photos:" + (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : normalizePhotosRange(photosRange)) : itemViewMode == "grid" ? "grid-" + itemsPerRow : "list"
+        const base = routeURL.indexOf("photos") !== -1 ? "photos:" + (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : normalizePhotosRange(photosRange)) : viewModeParsed[routeURL] == "grid" ? "grid-" + itemsPerRow : "list"
 
         return base + "-" + (portrait ? "portrait" : "landscape") + "-" + itemsPerRow
-    }, [routeURL, photosRange, photosGridSize, itemViewMode, itemsPerRow, portrait])
+    }, [routeURL, photosRange, photosGridSize, viewModeParsed, itemsPerRow, portrait])
 
     const generatedItemList = useMemo<Item[]>(() => {
         return generateItemsForItemList(items, normalizePhotosRange(photosRange), lang)
     }, [items, photosRange, lang])
 
-    const renderItemFn = useCallback(({ item, index }: { item: Item, index: number }) => renderItem({ item, index, viewMode: routeURL.indexOf("photos") !== -1 ? "photos" : (itemViewMode as string) }), [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick, itemsPerRow, portrait, listKey])
+    const onListScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if(e.nativeEvent.layoutMeasurement.height > e.nativeEvent.contentSize.height){
+            return
+        }
 
-    const renderItem = useCallback(({ item, index, viewMode }: { item: Item, index: number, viewMode: string }): JSX.Element => {
+        setScrolledToBottom(e.nativeEvent.layoutMeasurement.height + e.nativeEvent.contentOffset.y >= e.nativeEvent.contentSize.height - 40)
+    }, [])
+
+    const keyExtractor = useCallback((_, index) => index.toString(), [])
+
+    const renderItemFn = useCallback(({ item, index }: { item: Item, index: number }) => {
+        return renderItem({ item, index, viewMode: routeURL.indexOf("photos") !== -1 ? "photos" : (viewModeParsed[routeURL] == "grid" ? "grid" : "list") })
+    }, [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick, itemsPerRow, portrait, listKey, viewModeParsed, route])
+
+    const renderItem = useCallback(({ item, index, viewMode }: { item: Item, index: number, viewMode: string }) => {
         if(viewMode == "photos"){
             if(normalizePhotosRange(photosRange) !== "all"){
                 return (
@@ -350,8 +340,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                         photosGridSize={photosGridSize} 
                         hideFileNames={hideFileNames} 
                         hideThumbnails={hideThumbnails} 
-                        lang={lang} 
-                        dimensions={dimensions} 
+                        lang={lang}
                         hideSizes={hideSizes} 
                         photosRange={normalizePhotosRange(photosRange)} 
                         photosRangeItemClick={photosRangeItemClick} 
@@ -375,8 +364,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                     photosGridSize={photosGridSize} 
                     hideFileNames={hideFileNames} 
                     hideThumbnails={hideThumbnails} 
-                    lang={lang} 
-                    dimensions={dimensions}
+                    lang={lang}
                     hideSizes={hideSizes}
                     insets={insets}
                 />
@@ -398,11 +386,11 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                     offline={item.offline} 
                     hideFileNames={hideFileNames} 
                     hideThumbnails={hideThumbnails} 
-                    lang={lang} 
-                    dimensions={dimensions} 
+                    lang={lang}
                     hideSizes={hideSizes} 
                     insets={insets}
                     itemsPerRow={itemsPerRow}
+                    route={route}
                 />
             )
         }
@@ -421,17 +409,17 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 offline={item.offline} 
                 hideFileNames={hideFileNames} 
                 hideThumbnails={hideThumbnails} 
-                lang={lang} 
-                dimensions={dimensions} 
+                lang={lang}
                 hideSizes={hideSizes} 
-                insets={insets} 
+                insets={insets}
+                route={route}
             />
         )
-    }, [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick, itemsPerRow])
+    }, [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick, itemsPerRow, route])
 
     useEffect(() => {
         setCurrentItems(generateItemsForItemList(items, normalizePhotosRange(photosRange), lang))
-    }, [items, photosRange, lang, itemViewMode, portrait])
+    }, [items, photosRange, lang, viewModeParsed, portrait])
 
     useEffect(() => {
         if(items.length > 0){
@@ -445,7 +433,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 }
             }
         }
-    }, [items, itemViewMode])
+    }, [items, viewModeParsed])
 
     useEffect(() => {
         if(calcPhotosGridSize(photosGridSize) >= 6){
@@ -460,27 +448,19 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     }, [listKey, items])
 
     useEffect(() => {
-        const dimensionsListener = Dimensions.addEventListener("change", ({ screen }) => {
-            if(!isMounted()){
-                return false
-            }
-
-            setPortrait(screen.height >= screen.width)
+        if(isMounted()){
+            setPortrait(dimensions.height >= dimensions.width)
             setScrolledToBottom(false)
-        })
-
-        return () => {
-            dimensionsListener.remove()
         }
-    }, [])
+    }, [dimensions])
 
     return (
         <View
             style={{
                 width: "100%",
                 height: "100%",
-                paddingLeft: itemViewMode == "grid" && routeURL.indexOf("photos") == -1 ? 15 : 0,
-                paddingRight: itemViewMode == "grid" && routeURL.indexOf("photos") == -1 ? 15 : 0
+                paddingLeft: viewModeParsed[routeURL] == "grid" && routeURL.indexOf("photos") == -1 ? 15 : 0,
+                paddingRight: viewModeParsed[routeURL] == "grid" && routeURL.indexOf("photos") == -1 ? 15 : 0
             }}
         >
             {
@@ -490,9 +470,6 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                             style={{
                                 paddingBottom: 10,
                                 paddingTop: 5,
-                                borderBottomColor: darkMode ? "#111111" : "gray",
-                                //borderBottomWidth: items.length > 0 ? 0 : 1,
-                                borderBottomWidth: 0,
                                 marginBottom: 3,
                                 height: 35
                             }}
@@ -528,7 +505,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                             ) : cameraUploadTotal > 0 ? cameraUploadTotal > cameraUploadUploaded ? (
                                                 <>
                                                     <ActivityIndicator
-                                                        color={darkMode ? "white" : "black"}
+                                                        color={getColor(darkMode, "textPrimary")}
                                                         size="small"
                                                     />
                                                     <Text
@@ -578,7 +555,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                             ) : (
                                                 <>
                                                     <ActivityIndicator
-                                                        color={darkMode ? "white" : "black"}
+                                                        color={getColor(darkMode, "textPrimary")}
                                                         size="small"
                                                     />
                                                     <Text
@@ -823,26 +800,19 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 data={generatedItemList}
                 key={listKey}
                 renderItem={renderItemFn}
-                keyExtractor={(_, index) => index.toString()}
-                windowSize={8}
-                initialNumToRender={32}
+                keyExtractor={keyExtractor}
+                windowSize={3}
                 ref={itemListRef}
                 initialScrollIndex={typeof initScrollIndex == "number" ? (isBetween(initScrollIndex, 0, generatedItemList.length) ? initScrollIndex : 0) : 0}
                 numColumns={numColumns}
                 getItemLayout={getItemLayout}
-                onScroll={(e) => {
-                    if(e.nativeEvent.layoutMeasurement.height > e.nativeEvent.contentSize.height){
-                        return
-                    }
-
-                    setScrolledToBottom(e.nativeEvent.layoutMeasurement.height + e.nativeEvent.contentOffset.y >= e.nativeEvent.contentSize.height - 40)
-                }}
+                onScroll={onListScroll}
                 ListEmptyComponent={() => {
                     return (
                         <View
                             style={{
                                 width: "100%",
-                                height: Math.floor(dimensions.screen.height - 250),
+                                height: Math.floor(dimensions.height - 250),
                                 justifyContent: "center",
                                 alignItems: "center",
                                 alignContent: "center"
@@ -852,7 +822,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                 !loadDone ? (
                                     <View>
                                         <ActivityIndicator
-                                            color={darkMode ? "white" : "black"}
+                                            color={getColor(darkMode, "textPrimary")}
                                             size="small"
                                         />
                                     </View>
@@ -871,7 +841,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                         refreshing={refreshing}
                         onRefresh={async () => {
                             if(!loadDone){
-                                return false
+                                return
                             }
 
                             setRefreshing(true)
@@ -888,7 +858,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                 setRefreshing(false)
                             }
                         }}
-                        tintColor={darkMode ? "white" : "black"}
+                        tintColor={getColor(darkMode, "textPrimary")}
                     />
                 }
                 style={{

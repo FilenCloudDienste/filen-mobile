@@ -1,75 +1,138 @@
-import React, { memo, useEffect, useState, useRef } from "react"
-import { View, Text, TouchableOpacity, Platform, FlatList, ScrollView, DeviceEventEmitter } from "react-native"
-import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import React, { memo, useEffect, useState, useRef, useCallback } from "react"
+import { View, Text, TouchableOpacity, Platform, FlatList, ScrollView, DeviceEventEmitter, useWindowDimensions, ScaledSize, Image, LayoutChangeEvent } from "react-native"
+import useLang from "../../lib/hooks/useLang"
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
-import { getColor } from "../../lib/style/colors"
+import { getColor } from "../../style/colors"
 import { SheetManager } from "react-native-actions-sheet"
+import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import { Bar } from "react-native-progress"
+import { getImageForItem } from "../../assets/thumbnails"
+import type { Item } from "../../types"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
+
+const TRANSFER_ITEM_HEIGHT: number = 60
 
 export interface FinishedTransfersListProps {
     finishedTransfers: any
 }
 
 export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransfersListProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
+    const dimensions = useWindowDimensions()
+    const [containerWidth, setContainerWidth] = useState<number>(dimensions.width - 30)
+    const [containerHeight, setContainerHeight] = useState<number>(dimensions.height - 100)
+    const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
+    const insets = useSafeAreaInsets()
+
+    const renderItem = useCallback(({ item, index }) => {
+        const transfer = item
+            
+        return (
+            <View
+                key={index.toString()}
+                style={{
+                    width: "100%",
+                    height: TRANSFER_ITEM_HEIGHT,
+                    paddingLeft: 15,
+                    paddingRight: 15,
+                    flexDirection: "row"
+                }}
+            >
+                <View
+                    style={{
+                        justifyContent: "center",
+                        alignItems: "center"
+                    }}
+                >
+                    <Image
+                        source={getImageForItem({ name: transfer.name, type: "file" } as Item)}
+                        style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 5
+                        }}
+                        onError={() => {
+                            if(typeof item.thumbnail == "string"){
+                                DeviceEventEmitter.emit("event", {
+                                    type: "check-thumbnail",
+                                    item
+                                })
+                            }
+                        }}
+                    />
+                </View>
+                <View
+                    style={{
+                        justifyContent: "center",
+                        marginLeft: 10,
+                        maxWidth: (containerWidth - 60),
+                        paddingRight: 10
+                    }}
+                >
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center"
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: getColor(darkMode, "textPrimary"),
+                                fontSize: 16,
+                                fontWeight: "400"
+                            }}
+                            numberOfLines={1}
+                        >
+                            {transfer.name}
+                        </Text>
+                    </View>
+                    <View
+                        style={{
+                            marginTop: 7
+                        }}
+                    >
+                        <Bar
+                            animated={true}
+                            indeterminate={false}
+                            progress={1}
+                            color={getColor(darkMode, "green")}
+                            width={containerWidth - 71}
+                            height={4}
+                            borderColor={getColor(darkMode, "backgroundPrimary")}
+                            unfilledColor={getColor(darkMode, "backgroundSecondary")}
+                        />
+                    </View>
+                </View>
+            </View>
+        )
+    }, [containerWidth, portrait])
+
+    const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
+    const keyExtractor = useCallback((_, index) => index.toString(), [])
+    const onLayout = useCallback((e: LayoutChangeEvent) => {
+        setContainerWidth(e.nativeEvent.layout.width - insets.left - insets.right)
+        setContainerHeight(e.nativeEvent.layout.height)
+    }, [])
+
+    useEffect(() => {
+        setPortrait(dimensions.height >= dimensions.width)
+    }, [dimensions])
 
     return (
         <FlatList
             data={finishedTransfers}
-            keyExtractor={(_, index) => index.toString()}
-            key="finished"
-            windowSize={10}
-            initialNumToRender={32}
+            scrollEnabled={finishedTransfers.length > 0}
+            keyExtractor={keyExtractor}
+            key={"finished-list-" + (portrait ? "portrait" : "landscape")}
+            windowSize={3}
             numColumns={1}
-            renderItem={({ item, index }) => {
-                const transfer = item
-                    
-                return (
-                    <View
-                        key={index.toString()}
-                        style={{
-                            width: "100%",
-                            height: 40,
-                            paddingTop: 10,
-                            paddingBottom: 10,
-                            paddingLeft: 15,
-                            paddingRight: 15,
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            borderBottomColor: getColor(darkMode, "primaryBorder"),
-                            borderBottomWidth: 1
-                        }}
-                    >
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                width: "90%"
-                            }}
-                        >
-                            <Ionicon
-                                name={transfer.transferType == "upload" ? "arrow-up-outline" : "arrow-down-outline"}
-                                size={20}
-                                color={darkMode ? "white" : "black"}
-                            />
-                            <Text
-                                style={{
-                                    color: darkMode ? "white" : "black",
-                                    marginLeft: 10,
-                                    paddingTop: 2
-                                }}
-                                numberOfLines={1}
-                            >
-                                {transfer.name}
-                            </Text>
-                        </View>
-                    </View>
-                )
-            }}
-            getItemLayout={(_, index) => ({ length: 40, offset: 40 * index, index })}
+            renderItem={renderItem}
+            getItemLayout={getItemLayout}
+            onLayout={onLayout}
             style={{
                 height: "100%",
                 width: "100%"
@@ -78,9 +141,10 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
                 return (
                     <View
                         style={{
-                            marginTop: "60%",
+                            marginTop: (containerHeight / 2) - 60,
                             justifyContent: "center",
-                            alignItems: "center"
+                            alignItems: "center",
+                            marginLeft: !portrait && insets.left > 0  && insets.right > 0 ? -(insets.left + insets.right) : 0
                         }}
                     >
                         <Ionicon
@@ -108,9 +172,159 @@ export interface OngoingTransfersListProps {
 }
 
 export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfersListProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
-    const [pausedTransfers, setPausedTransfers] = useState<any>({})
+    const darkMode = useDarkMode()
+    const lang = useLang()
+    const [pausedTransfers, setPausedTransfers] = useState<{ [key: string]: boolean }>({})
+    const dimensions = useWindowDimensions()
+    const [containerWidth, setContainerWidth] = useState<number>(dimensions.width - 30)
+    const [containerHeight, setContainerHeight] = useState<number>(dimensions.height - 100)
+    const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
+    const insets = useSafeAreaInsets()
+
+    const renderItem = useCallback(({ item, index }) => {
+        const transfer = item
+        const progress = parseFloat((parseFloat(isNaN(transfer.percent) ? 0 : transfer.percent >= 100 ? 100 : transfer.percent.toFixed(2)) / 100).toFixed(2))
+        const isPaused = typeof pausedTransfers[transfer.uuid] == "boolean" ? pausedTransfers[transfer.uuid] : false
+            
+        return (
+            <View
+                key={index.toString()}
+                style={{
+                    width: "100%",
+                    height: TRANSFER_ITEM_HEIGHT,
+                    paddingLeft: 15,
+                    paddingRight: 15,
+                    flexDirection: "row"
+                }}
+            >
+                <View
+                    style={{
+                        justifyContent: "center",
+                        alignItems: "center"
+                    }}
+                >
+                    <Image
+                        source={getImageForItem({ name: transfer.name, type: "file" } as Item)}
+                        style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 5
+                        }}
+                        onError={() => {
+                            if(typeof item.thumbnail == "string"){
+                                DeviceEventEmitter.emit("event", {
+                                    type: "check-thumbnail",
+                                    item
+                                })
+                            }
+                        }}
+                    />
+                </View>
+                <View
+                    style={{
+                        justifyContent: "center",
+                        marginLeft: 10,
+                        maxWidth: (containerWidth - (isPaused ? 170 : 160)),
+                        paddingRight: 10
+                    }}
+                >
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center"
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: getColor(darkMode, "textPrimary"),
+                                fontSize: 16,
+                                fontWeight: "400"
+                            }}
+                            numberOfLines={1}
+                        >
+                            {transfer.name}
+                        </Text>
+                    </View>
+                    <View
+                        style={{
+                            marginTop: 7
+                        }}
+                    >
+                        <Bar
+                            animated={true}
+                            indeterminate={isPaused}
+                            progress={progress}
+                            color={getColor(darkMode, "green")}
+                            width={containerWidth - 67}
+                            height={4}
+                            borderColor={getColor(darkMode, "backgroundPrimary")}
+                            unfilledColor={getColor(darkMode, "backgroundSecondary")}
+                        />
+                    </View>
+                </View>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        paddingTop: 11
+                    }}
+                >
+                    {
+                        progress > 0 && progress <= 0.99 && (
+                            <>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setPausedTransfers(prev => ({
+                                            ...prev,
+                                            [transfer.uuid]: !isPaused
+                                        }))
+                    
+                                        DeviceEventEmitter.emit(isPaused ? "resumeTransfer" : "pauseTransfer", transfer.uuid)
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: "#0A84FF",
+                                            fontSize: 16,
+                                            fontWeight: "400"
+                                        }}
+                                    >
+                                        {isPaused ? i18n(lang, "resume") : i18n(lang, "pause")}
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={{
+                                        marginLeft: 10
+                                    }}
+                                    onPress={() => DeviceEventEmitter.emit("stopTransfer", transfer.uuid)}
+                                >
+                                    <Text
+                                        style={{
+                                            color: "#0A84FF",
+                                            fontSize: 16,
+                                            fontWeight: "400"
+                                        }}
+                                    >
+                                        {i18n(lang, "stop")}
+                                    </Text>
+                                </TouchableOpacity>
+                            </>
+                        )
+                    }
+                </View>
+            </View>
+        )
+    }, [containerWidth, portrait, pausedTransfers])
+
+    const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
+    const keyExtractor = useCallback((_, index) => index.toString(), [])
+    const onLayout = useCallback((e: LayoutChangeEvent) => {
+        setContainerWidth(e.nativeEvent.layout.width - insets.left - insets.right)
+        setContainerHeight(e.nativeEvent.layout.height)
+    }, [])
+
+    useEffect(() => {
+        setPortrait(dimensions.height >= dimensions.width)
+    }, [dimensions])
 
     useEffect(() => {
         if(currentTransfers.length == 0){
@@ -121,106 +335,14 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
     return (
         <FlatList
             data={currentTransfers}
-            keyExtractor={(_, index) => index.toString()}
-            key="ongoing"
-            windowSize={10}
-            initialNumToRender={32}
+            scrollEnabled={currentTransfers.length > 0}
+            keyExtractor={keyExtractor}
+            key={"ongoing-list-" + (portrait ? "portrait" : "landscape")}
+            windowSize={3}
             numColumns={1}
-            renderItem={({ item, index }) => {
-                const transfer = item
-                const isPaused = typeof pausedTransfers[transfer.uuid] == "boolean" ? pausedTransfers[transfer.uuid] : false
-                
-                return (
-                    <View
-                        key={index.toString()}
-                        style={{
-                            width: "100%",
-                            height: 40,
-                            paddingTop: 10,
-                            paddingBottom: 10,
-                            paddingLeft: 15,
-                            paddingRight: 15,
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            borderBottomColor: getColor(darkMode, "primaryBorder"),
-                            borderBottomWidth: 1
-                        }}
-                    >
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                width: "50%"
-                            }}
-                        >
-                            <Ionicon
-                                name={isPaused ? "pause-circle-outline" : transfer.transferType == "upload" ? "arrow-up-outline" : "arrow-down-outline"}
-                                size={20}
-                                color={darkMode ? "white" : "black"}
-                            />
-                            <Text
-                                style={{
-                                    color: darkMode ? "white" : "black",
-                                    marginLeft: 10,
-                                    paddingTop: 2
-                                }}
-                                numberOfLines={1}
-                            >
-                                {transfer.name}
-                            </Text>
-                        </View>
-                        <View
-                            style={{
-                                marginLeft: 20
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: darkMode ? "white" : "black"
-                                }}
-                            >
-                                {
-                                    isPaused ? "" : transfer.percent == 0 ? (
-                                        <>{i18n(lang, "queued")}</>
-                                    ) : (
-                                        <>{isNaN(transfer.percent) ? 0 : transfer.percent >= 100 ? 100 : transfer.percent.toFixed(2)}%</>
-                                    )
-                                }
-                            </Text>
-                        </View>
-                        <TouchableOpacity
-                            onPress={() => {
-                                setPausedTransfers((prev: any) => ({
-                                    ...prev,
-                                    [transfer.uuid]: !isPaused
-                                }))
-
-                                DeviceEventEmitter.emit(isPaused ? "resumeTransfer" : "pauseTransfer", transfer.uuid)
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: "#0A84FF"
-                                }}
-                            >
-                                {isPaused ? i18n(lang, "resume") : i18n(lang, "pause")}
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => DeviceEventEmitter.emit("stopTransfer", transfer.uuid)}
-                        >
-                            <Text
-                                style={{
-                                    color: "#0A84FF"
-                                }}
-                            >
-                                {i18n(lang, "stop")}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                )
-            }}
-            getItemLayout={(_, index) => ({ length: 40, offset: 40 * index, index })}
+            renderItem={renderItem}
+            getItemLayout={getItemLayout}
+            onLayout={onLayout}
             style={{
                 height: "100%",
                 width: "100%"
@@ -229,9 +351,10 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
                 return (
                     <View
                         style={{
-                            marginTop: "60%",
+                            marginTop: (containerHeight / 2) - 60,
                             justifyContent: "center",
-                            alignItems: "center"
+                            alignItems: "center",
+                            marginLeft: !portrait && insets.left > 0  && insets.right > 0 ? -(insets.left + insets.right) : 0
                         }}
                     >
                         <Ionicon
@@ -259,101 +382,75 @@ export interface TransfersScreenBodyProps {
     currentUploads: any,
     currentDownloads: any,
     finishedTransfers: any,
-    navigation: any,
+    navigation: any
 }
 
 export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, currentDownloads, finishedTransfers, navigation }: TransfersScreenBodyProps) => {
     const bottomBarHeight = useStore(state => state.bottomBarHeight)
     const contentHeight = useStore(state => state.contentHeight)
-    const dimensions = useStore(state => state.dimensions)
+    const dimensions: ScaledSize = useWindowDimensions()
     const [topBarHeight, setTopBarHeight] = useState<number>(useStore.getState().topBarHeight)
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
-    const [currentView, setCurrentView] = useState<string>("ongoing")
+    const darkMode = useDarkMode()
+    const lang = useLang()
+    const [currentView, setCurrentView] = useState<"ongoing" | "finished">("ongoing")
     const scrollViewRef = useRef<any>()
+    const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
+
+    useEffect(() => {
+        setPortrait(dimensions.height >= dimensions.width)
+    }, [dimensions])
 
     return (
         <View
             style={{
                 height: "100%",
                 width: "100%",
-                backgroundColor: darkMode ? "black" : "white"
+                backgroundColor: getColor(darkMode, "backgroundPrimary")
             }}
         >
             <View
                 style={{
                     width: "100%",
-                    height: Platform.OS == "android" ? 75 : 87
+                    height: 78
                 }}
                 onLayout={(e) => setTopBarHeight(e.nativeEvent.layout.height)}
             >
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        backgroundColor: darkMode ? "black" : "white"
-                    }}
-                >
-                    <View
-                        style={{
-                            flexDirection: "row"
-                        }}
-                    >
+                <DefaultTopBar
+                    onPressBack={() => navigation.goBack()}
+                    leftText={i18n(lang, "settings")}
+                    middleText={i18n(lang, "transfers")}
+                    rightComponent={
                         <TouchableOpacity
-                            style={{
-                                marginTop: Platform.OS == "ios" ? 16 : 3,
-                                marginLeft: 15,
+                            hitSlop={{
+                                top: 10,
+                                right: 10,
+                                left: 10,
+                                bottom: 10
                             }}
-                            onPress={() => navigation.goBack()}
+                            style={{
+                                alignItems: "flex-end",
+                                flexDirection: "row",
+                                backgroundColor: "transparent",
+                                height: "100%",
+                                paddingLeft: 0,
+                                paddingRight: 15
+                            }}
+                            onPress={() => SheetManager.show("TopBarActionSheet")}
                         >
-                            <Ionicon
-                                name="chevron-back"
-                                size={24}
-                                color={darkMode ? "white" : "black"}
-                            />
+                            {
+                                (Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0 ? (
+                                    <View>
+                                        <Ionicon
+                                            name="ellipsis-horizontal-sharp"
+                                            size={24}
+                                            color={getColor(darkMode, "textPrimary")}
+                                        />
+                                    </View>
+                                ) : <View style={{ width: "33%" }} />
+                            }
                         </TouchableOpacity>
-                        <Text
-                            style={{
-                                color: darkMode ? "white" : "black",
-                                fontWeight: "bold",
-                                fontSize: 22,
-                                marginLeft: 10,
-                                marginTop: Platform.OS == "ios" ? 15 : 0
-                            }}
-                        >
-                            {i18n(lang, "transfers")}
-                        </Text>
-                    </View>
-                    <TouchableOpacity
-                        hitSlop={{
-                            top: 10,
-                            right: 10,
-                            left: 10,
-                            bottom: 10
-                        }}
-                        style={{
-                            alignItems: "flex-end",
-                            flexDirection: "row",
-                            backgroundColor: "transparent",
-                            height: "100%",
-                            paddingLeft: 0,
-                            paddingRight: 15
-                        }}
-                        onPress={() => SheetManager.show("TopBarActionSheet")}
-                    >
-                        {
-                            (Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0 && (
-                                <View>
-                                    <Ionicon
-                                        name="ellipsis-horizontal-sharp"
-                                        size={24}
-                                        color={darkMode ? "white" : "black"}
-                                    />
-                                </View>
-                            )
-                        }
-                    </TouchableOpacity>
-                </View>
+                    }
+                />
                 <View
                     style={{
                         height: "auto",
@@ -386,7 +483,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                             style={{
                                 color: currentView == "ongoing" ? "#0A84FF" : "gray",
                                 fontWeight: "bold",
-                                fontSize: 14
+                                fontSize: 15
                             }}
                         >
                             {i18n(lang, "ongoing")}
@@ -415,7 +512,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                             style={{
                                 color: currentView == "finished" ? "#0A84FF" : "gray",
                                 fontWeight: "bold",
-                                fontSize: 14
+                                fontSize: 15
                             }}
                         >
                             {i18n(lang, "finished")}
@@ -425,7 +522,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
             </View>
             <ScrollView
                 style={{
-                    width: dimensions.window.width,
+                    width: dimensions.width,
                     height: (contentHeight - topBarHeight - bottomBarHeight + 30)
                 }}
                 pagingEnabled={true}
@@ -433,12 +530,13 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                 showsHorizontalScrollIndicator={false}
                 disableIntervalMomentum={true} 
                 snapToAlignment="center"
+                key={"transfers-list-" + (portrait ? "portrait" : "landscape")}
                 onMomentumScrollEnd={(e) => setCurrentView(e.nativeEvent.contentOffset.x == 0 ? "ongoing" : "finished")}
                 ref={scrollViewRef}
             >
                 <View
                     style={{
-                        width: dimensions.window.width,
+                        width: dimensions.width,
                         height: (contentHeight - topBarHeight - bottomBarHeight + 30)
                     }}
                 >
@@ -448,11 +546,13 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                 </View>
                 <View
                     style={{
-                        width: dimensions.window.width,
+                        width: dimensions.width,
                         height: (contentHeight - topBarHeight - bottomBarHeight + 30)
                     }}
                 >
-                    <FinishedTransfersList finishedTransfers={finishedTransfers} />
+                    <FinishedTransfersList
+                        finishedTransfers={finishedTransfers}
+                    />
                 </View>
             </ScrollView>
         </View>

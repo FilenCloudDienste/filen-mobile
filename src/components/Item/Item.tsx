@@ -1,21 +1,16 @@
 import React, { memo, useState, useEffect, useMemo } from "react"
-import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, Dimensions, Pressable, Platform } from "react-native"
-import FastImage from "react-native-fast-image"
+import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, useWindowDimensions, ScaledSize, Pressable, Platform, Image } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { getImageForItem } from "../../assets/thumbnails"
 import { formatBytes, getFolderColor, calcPhotosGridSize, getRouteURL, getParent } from "../../lib/helpers"
 import { i18n } from "../../i18n"
-import { getColor } from "../../lib/style/colors"
-import RNFS from "react-native-fs"
-import type { ScaledSize } from "react-native"
+import { getColor } from "../../style/colors"
 import type { EdgeInsets } from "react-native-safe-area-context"
-import type { Item } from "../../lib/services/items"
+import type { Item } from "../../types"
 import { fetchFolderSize } from "../../lib/api"
 import storage from "../../lib/storage"
 import { useMountedState } from "react-use"
-
-const window = Dimensions.get("window")
-const THUMBNAIL_BASE_PATH = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "thumbnailCache/"
+import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 
 export interface ItemBaseProps {
     item: Item,
@@ -31,20 +26,22 @@ export interface ItemBaseProps {
     hideFileNames: boolean,
     hideThumbnails: boolean,
     lang: string | undefined,
-    dimensions: { window: ScaledSize, screen: ScaledSize }
     hideSizes: boolean,
     insets: EdgeInsets
 }
 
-export interface ListItemProps extends ItemBaseProps { }
+export interface ListItemProps extends ItemBaseProps {
+    route: any
+}
 
-export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang }: ListItemProps) => {
+export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
     const [folderSize, setFolderSize] = useState<number>(item.type == "folder" ? storage.getNumber("folderSizeCache:" + item.uuid) : 0)
     const isMounted: () => boolean = useMountedState()
+    const routeURL = getRouteURL(route)
 
     useEffect(() => {
         if(item.type == "folder"){
-            fetchFolderSize({ folder: item, routeURL: getRouteURL() }).then((fetchedSize) => {
+            fetchFolderSize({ folder: item, routeURL }).then((fetchedSize) => {
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
 
                 if(isMounted()){
@@ -52,9 +49,9 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                 }
             }).catch(console.error)
         }
-    }, [item.uuid])
+    }, [item.uuid, routeURL])
 
-    if(item.uuid.indexOf(".") !== -1 || (typeof item.dummyGridFolder == "boolean" && item.dummyGridFolder)){
+    if(item.uuid.indexOf(".") !== -1){
         return null
     }
 
@@ -64,7 +61,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
             underlayColor="#171717"
             style={{
                 width: "100%",
-                height: 55
+                height: 60
             }}
             onPress={() => {
                 DeviceEventEmitter.emit("event", {
@@ -81,42 +78,33 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
         >
             <View
                 style={{
-                    backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
+                    backgroundColor: item.selected ? getColor(darkMode, "backgroundTertiary") : getColor(darkMode, "backgroundPrimary"),
                     width: "100%",
-                    height: 55,
+                    height: 60,
                     flexDirection: "row",
-                    alignItems: "flex-start",
+                    alignItems: "center",
                     paddingLeft: 15,
-                    paddingRight: 15,
-                    marginBottom: 0,
-                    paddingTop: 10
+                    paddingRight: 25
                 }}
             >
                 <View
                     style={{
-                        width: 30,
-                        height: 30
+                        width: 40
                     }}
                 >
                     {
                         item.type == "folder" ? (
                             <Ionicon
-                                name="folder"
-                                size={29}
+                                name="ios-folder"
+                                size={40}
                                 color={getFolderColor(item.color)}
-                                style={{
-                                    paddingLeft: 3,
-                                    paddingTop: 2
-                                }}
                             />
                         ) : (
-                            <FastImage
+                            <Image
                                 source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                                 style={{
-                                    width: 30,
-                                    height: 30,
-                                    marginTop: 4,
-                                    marginLeft: 2,
+                                    width: 40,
+                                    height: 40,
                                     borderRadius: 5
                                 }}
                                 onError={() => {
@@ -135,8 +123,9 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                     style={{
                         flexDirection: "row",
                         justifyContent: "space-between",
-                        height: "100%",
+                        alignItems: "center",
                         width: "100%",
+                        height: "100%",
                         marginLeft: 15,
                         borderBottomColor: getColor(darkMode, "primaryBorder"),
                         borderBottomWidth: 0.5
@@ -150,18 +139,19 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                     >
                         <Text
                             style={{
-                                color: darkMode ? "white" : "black",
-                                fontWeight: "bold",
-                                fontSize: 12
-                            }} numberOfLines={1}
+                                color: getColor(darkMode, "textPrimary"),
+                                fontSize: 15,
+                                fontWeight: "400"
+                            }}
+                            numberOfLines={1}
                         >
                             {hideFileNames ? i18n(lang, item.type == "folder" ? "folder" : "file") : item.name}
                         </Text>
                         <Text
                             style={{
-                                color: darkMode ? "white" : "black",
+                                color: "gray",
                                 fontSize: 11,
-                                paddingTop: 3
+                                marginTop: 4
                             }}
                             numberOfLines={1}
                         >
@@ -173,7 +163,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                             size={12}
                                             color={"green"}
                                         />
-                                        <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+                                        <Text>&nbsp;&nbsp;</Text>
                                     </>
                                 )
                             }
@@ -183,9 +173,9 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                         <Ionicon
                                             name="heart"
                                             size={12}
-                                            color={darkMode ? "white" : "black"}
+                                            color={getColor(darkMode, "textPrimary")}
                                         />
-                                        <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+                                        <Text>&nbsp;&nbsp;</Text>
                                     </>
                                 )
                             }
@@ -193,7 +183,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                             {
                                 typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && getParent().length < 32 && (
                                     <>
-                                        <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+                                        <Text>&nbsp;&#8226;&nbsp;</Text>
                                         <Text>{item.sharerEmail}</Text>
                                     </>
                                 )
@@ -201,11 +191,11 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                             {
                                 typeof item.receivers !== "undefined" && Array.isArray(item.receivers) && item.receivers.length > 0 && getParent().length < 32 && (
                                     <>
-                                        <Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+                                        <Text>&nbsp;&#8226;&nbsp;</Text>
                                         <Ionicon
                                             name="people-outline"
                                             size={12}
-                                            color={darkMode ? "white" : "black"}
+                                            color={getColor(darkMode, "textPrimary")}
                                         />
                                         <Text>&nbsp;{item.receivers.length}</Text>
                                     </>
@@ -223,7 +213,6 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                             left: 15
                         }}
                         style={{
-                            paddingTop: 5,
                             backgroundColor: "transparent",
                             position: "absolute",
                             right: 45
@@ -237,7 +226,8 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                     >
                         <Ionicon
                             name="ellipsis-horizontal-sharp"
-                            size={20} color={darkMode ? "white" : "black"}
+                            size={18}
+                            color={getColor(darkMode, "textSecondary")}
                         />
                     </TouchableOpacity>
                 </View>
@@ -247,42 +237,43 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 })
 
 export interface GridItemProps extends ItemBaseProps {
-    itemsPerRow: number
+    itemsPerRow: number,
+    route: any
 }
 
-export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow }: GridItemProps) => {
-    const windowWidth: number = useMemo(() => {
-        return ((dimensions.window.width || window.width) - (insets.left + insets.right))
-    }, [dimensions, insets, window])
+export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow, hideSizes, route }: GridItemProps) => {
+    const dimensions: ScaledSize = useWindowDimensions()
+    const [folderSize, setFolderSize] = useState<number>(item.type == "folder" ? storage.getNumber("folderSizeCache:" + item.uuid) : 0)
+    const isMounted: () => boolean = useMountedState()
+    const routeURL = getRouteURL(route)
 
-    if(typeof item.dummyGridFolder == "boolean" && item.dummyGridFolder){
-        return (
-            <View
-                key={item.uuid}
-                style={{
-                    margin: 2,
-                    backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
-                    borderRadius: 5,
-                    height: (item.type == "folder" ? 0 : Math.floor(windowWidth / itemsPerRow) - 19) + 40,
-                    width: Math.floor(windowWidth / itemsPerRow) - 19,
-                    marginTop: 2
-                }}
-            />
-        )
-    }
+    const windowWidth: number = useMemo(() => {
+        return (dimensions.width - (insets.left + insets.right)) - 40
+    }, [dimensions, insets])
+
+    useEffect(() => {
+        if(item.type == "folder"){
+            fetchFolderSize({ folder: item, routeURL }).then((fetchedSize) => {
+                storage.set("folderSizeCache:" + item.uuid, fetchedSize)
+
+                if(isMounted()){
+                    setFolderSize(fetchedSize)
+                }
+            }).catch(console.error)
+        }
+    }, [item.uuid, routeURL])
 
     return (
         <Pressable
             key={item.uuid}
             style={{
                 margin: 2,
-                backgroundColor: darkMode ? (item.selected ? "#171717" : "black") : (item.selected ? "lightgray" : "white"),
-                borderRadius: 5,
-                height: (item.type == "folder" ? 0 : Math.floor(windowWidth / itemsPerRow) - 19) + 40,
-                width: Math.floor(windowWidth / itemsPerRow) - 19,
-                borderColor: getColor(darkMode, "primaryBorder"),
-                borderWidth: 1,
-                marginTop: 2
+                backgroundColor: item.selected ? getColor(darkMode, "backgroundTertiary") : getColor(darkMode, "backgroundPrimary"),
+                height: Math.floor(windowWidth / itemsPerRow) + 55,
+                width: Math.floor(windowWidth / itemsPerRow),
+                borderRadius: 10,
+                marginTop: 2,
+                paddingTop: 10
             }}
             onPress={() => {
                 DeviceEventEmitter.emit("event", {
@@ -306,23 +297,28 @@ export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideF
                 <View
                     style={{
                         width: "100%",
-                        height: item.type == "folder" ? 0 : Math.floor(windowWidth / itemsPerRow) - 19,
-                        alignItems: "center",
-                        justifyContent: "center"
+                        height: Math.floor(windowWidth / itemsPerRow),
+                        alignItems: "center"
                     }}
                 >
                     {
                         item.type == "folder" ? (
-                            <></>
+                            <>
+                                <Ionicon
+                                    name="ios-folder"
+                                    size={75} 
+                                    color={getFolderColor(item.color)} 
+                                />
+                            </>
                         ) : (
                             <>
-                                <FastImage 
+                                <Image 
                                     source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                                     style={{
-                                        width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? "100%" : 35,
-                                        height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? "100%" : 35,
-                                        borderTopLeftRadius: 4,
-                                        borderTopRightRadius: 4
+                                        width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
+                                        height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
+                                        borderRadius: 5,
+                                        marginTop: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 0 : 15
                                     }}
                                     onError={() => {
                                         if(typeof item.thumbnail == "string"){
@@ -333,79 +329,6 @@ export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideF
                                         }
                                     }}
                                 />
-                                {
-                                    typeof item.favorited == "boolean" && item.favorited && (
-                                        <Ionicon
-                                            name="heart"
-                                            size={19}
-                                            color={"white"}
-                                            style={{
-                                                position: "absolute",
-                                                bottom: 3,
-                                                left: 3,
-                                                zIndex: 100
-                                            }}
-                                        />
-                                    )
-                                }
-                                {
-                                    typeof item.offline == "boolean" && item.offline && (
-                                        <>
-                                            <Ionicon
-                                                name="arrow-down-circle"
-                                                size={18}
-                                                color={"green"}
-                                                style={{
-                                                    position: "absolute",
-                                                    top: 3,
-                                                    right: 2.8,
-                                                    zIndex: 100
-                                                }}
-                                                />
-                                            <View
-                                                style={{
-                                                    position: "absolute",
-                                                    top: 3,
-                                                    right: 3,
-                                                    width: 19,
-                                                    height: 19,
-                                                    borderRadius: 19,
-                                                    zIndex: 10,
-                                                    backgroundColor: "white"
-                                                }}
-                                            />
-                                        </>
-                                    )
-                                }
-                                {
-                                    typeof item.selected == "boolean" && item.selected && (
-                                        <>
-                                            <Ionicon
-                                                name="checkmark-circle"
-                                                size={18}
-                                                color="#0A84FF" 
-                                                style={{
-                                                    position: "absolute",
-                                                    bottom: 2.5,
-                                                    right: 2.8,
-                                                    zIndex: 100
-                                                }}
-                                            />
-                                            <View
-                                                style={{
-                                                    position: "absolute",
-                                                    bottom: 3,
-                                                    right: 3,
-                                                    width: 19,
-                                                    height: 19,
-                                                    borderRadius: 19,
-                                                    zIndex: 10,
-                                                    backgroundColor: "white"
-                                                }}
-                                            />
-                                        </>
-                                    )
-                                }
                             </>
                         )
                     }
@@ -414,95 +337,75 @@ export const GridItem = memo(({ dimensions, insets, item, index, darkMode, hideF
                     style={{
                         width: "100%",
                         height: "100%",
-                        flexDirection: "row",
-                        alignItems: "flex-start",
-                        justifyContent: "space-between"
+                        flexDirection: "column",
+                        marginTop: -30,
+                        paddingLeft: 10,
+                        paddingRight: 10
                     }}
                     onPress={() => {
-                        if(item.type == "file"){
-                            DeviceEventEmitter.emit("event", {
-                                type: "open-item-actionsheet",
-                                data: item
-                            })
-                        }
-                        else{
-                            DeviceEventEmitter.emit("event", {
-                                type: "item-onpress",
-                                data: item
-                            })
-                        }
+                        DeviceEventEmitter.emit("event", {
+                            type: "open-item-actionsheet",
+                            data: item
+                        })
                     }}
                 >
-                    {
-                        item.type == "folder" && (
-                            <View
-                                style={{
-                                    height: "100%",
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    paddingLeft: 8
-                                }}
-                            >
-                                <Ionicon
-                                    name="folder"
-                                    size={20} 
-                                    color={getFolderColor(item.color)} 
-                                />
-                            </View>
-                        )
-                    }
-                    <View
+                    <Text
                         style={{
-                            width: "68%",
-                            paddingTop: 5,
-                            paddingLeft: 8
+                            color: getColor(darkMode, "textPrimary"),
+                            fontWeight: "400",
+                            fontSize: 15,
+                            textAlign: "center"
                         }}
+                        numberOfLines={2}
                     >
-                        <Text
-                            style={{
-                                color: darkMode ? "white" : "black",
-                                fontWeight: "bold",
-                                fontSize: 11
-                            }}
-                            numberOfLines={1}
-                        >
-                            {hideFileNames ? i18n(lang, item.type == "folder" ? "folder" : "file") : item.name}
-                        </Text>
-                        <Text
-                            style={{
-                                color: darkMode ? "white" : "black",
-                                fontSize: 10,
-                                paddingTop: 1
-                            }}
-                            numberOfLines={1}
-                        >
-                            {item.date}
-                        </Text>
-                    </View>
-                    <TouchableOpacity
+                        {hideFileNames ? i18n(lang, item.type == "folder" ? "folder" : "file") : item.name}
+                    </Text>
+                    <Text
                         style={{
-                            paddingTop: 9,
-                            paddingRight: 5
+                            color: "gray",
+                            fontSize: 11,
+                            paddingTop: 3,
+                            textAlign: "center"
                         }}
-                        onPress={() => {
-                            DeviceEventEmitter.emit("event", {
-                                type: "open-item-actionsheet",
-                                data: item
-                            })
-                        }}
-                        hitSlop={{
-                            top: 10,
-                            right: 10,
-                            left: 10,
-                            bottom: 10
-                        }}
+                        numberOfLines={1}
                     >
-                        <Ionicon
-                            name="ellipsis-horizontal-sharp"
-                            size={18}
-                            color={darkMode ? "white" : "black"} 
-                        />
-                    </TouchableOpacity>
+                        {
+                            typeof item.offline == "boolean" && item.offline && (
+                                <>
+                                    <Ionicon
+                                        name="arrow-down-circle"
+                                        size={11}
+                                        color={"green"}
+                                    />
+                                    <Text>&nbsp;</Text>
+                                </>
+                            )
+                        }
+                        {
+                            typeof item.favorited == "boolean" && item.favorited && (
+                                <>
+                                    <Ionicon
+                                        name="heart"
+                                        size={11}
+                                        color={getColor(darkMode, "textPrimary")}
+                                    />
+                                    <Text>&nbsp;</Text>
+                                </>
+                            )
+                        }
+                        {new Date(item.lastModified).toLocaleDateString()}
+                    </Text>
+                    <Text
+                        style={{
+                            color: "gray",
+                            fontSize: 11,
+                            paddingTop: 2,
+                            textAlign: "center"
+                        }}
+                        numberOfLines={1}
+                    >
+                        {hideSizes ? formatBytes(0) : formatBytes(item.type == "file" ? item.size : folderSize)}
+                    </Text>
                 </Pressable>
             </View>
         </Pressable>
@@ -513,14 +416,16 @@ export interface PhotosItemProps extends ItemBaseProps {
     photosGridSize: number
 }
 
-export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets, dimensions, hideThumbnails }: PhotosItemProps) => {
+export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets, hideThumbnails }: PhotosItemProps) => {
+    const dimensions: ScaledSize = useWindowDimensions()
+
     const [calcedGridSize, imageWidthAndHeight] = useMemo(() => {
         const calcedGridSize = calcPhotosGridSize(photosGridSize)
-        const windowWidth = ((dimensions.window.width || window.width) - (insets.left + insets.right))
+        const windowWidth = (dimensions.width - (insets.left + insets.right))
         const imageWidthAndHeight = Math.floor(windowWidth / calcedGridSize) - 1.5
 
         return [calcedGridSize, imageWidthAndHeight]
-    }, [photosGridSize, dimensions, window, insets])
+    }, [photosGridSize, dimensions, insets])
 
     return (
         <Pressable
@@ -545,7 +450,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
                 })
             }}
         >
-            <FastImage
+            <Image
                 source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                 style={{
                     width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
@@ -651,13 +556,14 @@ export interface PhotosRangeItemProps extends ItemBaseProps {
     item: any
 }
 
-export const PhotosRangeItem = memo(({ item, index, darkMode, dimensions, hideThumbnails, photosRangeItemClick }: PhotosRangeItemProps) => {
+export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, photosRangeItemClick }: PhotosRangeItemProps) => {
+    const dimensions: ScaledSize = useWindowDimensions()
+
     const imageWidthAndHeight = useMemo(() => {
-        const windowWidth = dimensions.window.width || window.width
-        const imageWidthAndHeight = Math.floor(windowWidth - 30)
+        const imageWidthAndHeight = Math.floor(dimensions.width - 30)
 
         return imageWidthAndHeight
-    }, [dimensions, window])
+    }, [dimensions])
 
     return (
         <TouchableOpacity
@@ -673,7 +579,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, dimensions, hideTh
             }}
             onPress={() => photosRangeItemClick(item)}
         >
-            <FastImage
+            <Image
                 source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                 style={{
                     width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,

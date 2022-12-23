@@ -1,113 +1,102 @@
 import React, { memo } from "react"
-import { View, Text, Platform, ScrollView, TouchableOpacity } from "react-native"
+import { View, ScrollView } from "react-native"
+import useLang from "../../lib/hooks/useLang"
 import storage from "../../lib/storage"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
-import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButtonLinkHighlight } from "../SettingsScreen/SettingsScreen"
 import type { NavigationContainerRef } from "@react-navigation/native"
+import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import { getColor } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
 
 export interface LanguageScreenProps {
     navigation: NavigationContainerRef<{}>
 }
 
 export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
 
     return (
         <>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    backgroundColor: darkMode ? "black" : "white"
-                }}
-            >
-                <TouchableOpacity
-                    style={{
-                        marginTop: Platform.OS == "ios" ? 17 : 4,
-                        marginLeft: 15,
-                    }}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicon
-                        name="chevron-back"
-                        size={24}
-                        color={darkMode ? "white" : "black"}
-                    />
-                </TouchableOpacity>
-                <Text
-                    style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 24,
-                        marginLeft: 10,
-                        marginTop: Platform.OS == "ios" ? 15 : 0
-                    }}
-                >
-                    {i18n(lang, "language")}
-                </Text>
-            </View>
+            <DefaultTopBar
+                onPressBack={() => navigation.goBack()}
+                leftText={i18n(lang, "settings")}
+                middleText={i18n(lang, "language")}
+            />
             <ScrollView
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: darkMode ? "black" : "white"
+                    backgroundColor: getColor(darkMode, "backgroundPrimary")
                 }}
             >
                 <SettingsGroup>
                     <SettingsButtonLinkHighlight
                         title="English"
-                        onPress={() => setLang("en")}
+                        onPress={() => storage.set("lang", "en")}
+                        withBottomBorder={true}
+                        borderTopRadius={10}
                     />
                     <SettingsButtonLinkHighlight
                         title="Deutsch"
-                        onPress={() => setLang("de")}
+                        onPress={() => storage.set("lang", "de")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Español"
-                        onPress={() => setLang("es")}
+                        onPress={() => storage.set("lang", "es")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Français"
-                        onPress={() => setLang("fr")}
+                        onPress={() => storage.set("lang", "fr")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Italiano"
-                        onPress={() => setLang("it")}
+                        onPress={() => storage.set("lang", "it")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Nederlands"
-                        onPress={() => setLang("nl")}
+                        onPress={() => storage.set("lang", "nl")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Polski"
-                        onPress={() => setLang("pl")}
+                        onPress={() => storage.set("lang", "pl")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Русский"
-                        onPress={() => setLang("ru")}
+                        onPress={() => storage.set("lang", "ru")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Українська"
-                        onPress={() => setLang("uk")}
+                        onPress={() => storage.set("lang", "uk")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="日本語"
-                        onPress={() => setLang("ja")} 
+                        onPress={() => storage.set("lang", "ja")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="简体字"
-                        onPress={() => setLang("zh")}
+                        onPress={() => storage.set("lang", "zh")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Türk"
-                        onPress={() => setLang("tr")}
+                        onPress={() => storage.set("lang", "tr")}
+                        withBottomBorder={true}
                     />
                     <SettingsButtonLinkHighlight
                         title="Ελληνικά"
-                        onPress={() => setLang("el")}
+                        onPress={() => storage.set("lang", "el")}
+                        borderBottomRadius={10}
                     />
                 </SettingsGroup>
                 <View style={{ height: 25 }}></View>

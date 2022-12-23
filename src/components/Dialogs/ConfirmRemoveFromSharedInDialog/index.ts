@@ -1,0 +1,3 @@
+import ConfirmRemoveFromSharedInDialog from "./ConfirmRemoveFromSharedInDialog"
+
+export default ConfirmRemoveFromSharedInDialog

@@ -1,113 +1,171 @@
 import React, { useEffect, memo } from "react"
-import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
+import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import FastImage from "react-native-fast-image"
 import { formatBytes, getFilenameFromPath } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
 import { waitForStateUpdate } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
-import { getColor } from "../../lib/style/colors"
+import { getColor } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
 import RNFS from "react-native-fs"
 import { getDownloadPath } from "../../lib/services/download/download"
 import { hasStoragePermissions } from "../../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../../lib/statusbar"
-import * as MediaLibrary from "expo-media-library"
 import { isOnline } from "../../lib/services/isOnline"
+import useDarkMode from "../../lib/hooks/useDarkMode"
+import useLang from "../../lib/hooks/useLang"
 
 const MISC_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
 
 export interface SettingsButtonLinkHighlightProps {
-    onPress: any,
+    onPress?: () => any,
     title?: string,
-    rightText?: string
+    rightText?: string,
+    iconBackgroundColor?: string,
+    iconName?: string,
+    borderBottomRadius?: number,
+    borderTopRadius?: number,
+    withBottomBorder?: boolean,
+    rightComponent?: React.ReactNode
 }
 
-export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText }: SettingsButtonLinkHighlightProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText, iconBackgroundColor, iconName, borderBottomRadius, borderTopRadius, withBottomBorder, rightComponent }: SettingsButtonLinkHighlightProps) => {
+    const darkMode = useDarkMode()
+    const withIcon: boolean = typeof iconBackgroundColor == "string" && typeof iconName == "string"
 
     return (
         <TouchableHighlight
-            underlayColor={getColor(darkMode, "underlaySettingsButton")} style={{
+            underlayColor={getColor(darkMode, "underlaySettingsButton")}
+            style={{
                 width: "100%",
-                height: "auto",
-                borderRadius: 10
+                height: 45,
+                borderBottomLeftRadius: typeof borderBottomRadius !== "undefined" ? borderBottomRadius : 0,
+                borderBottomRightRadius: typeof borderBottomRadius !== "undefined" ? borderBottomRadius : 0,
+                borderTopLeftRadius: typeof borderTopRadius !== "undefined" ? borderTopRadius : 0,
+                borderTopRightRadius: typeof borderTopRadius !== "undefined" ? borderTopRadius : 0,
             }}
-            onPress={onPress}
+            onPress={typeof onPress !== "undefined" ? onPress : undefined}
         >
             <View
                 style={{
-                    width: "100%",
-                    height: "auto",
                     flexDirection: "row",
-                    justifyContent: "space-between",
-                    paddingLeft: 10,
-                    paddingRight: 10,
-                    paddingTop: 8,
-                    paddingBottom: 8
+                    width: "100%",
+                    height: 45
                 }}
             >
+                {
+                    withIcon && (
+                        <View
+                            style={{
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexDirection: "row",
+                                paddingLeft: 15
+                            }}
+                        >
+                            <View
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    borderRadius: 5,
+                                    backgroundColor: iconBackgroundColor as string,
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                }}
+                            >
+                                <Ionicon
+                                    name={iconName as any}
+                                    color="white"
+                                    size={22}
+                                    style={{
+                                        marginLeft: 1
+                                    }}
+                                />
+                            </View>
+                        </View>
+                    )
+                }
                 <View
                     style={{
-                        maxWidth: "85%"
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginLeft: 15,
+                        borderBottomWidth: withBottomBorder ? 0.5 : undefined,
+                        borderBottomColor: withBottomBorder ? (darkMode ? "rgba(84, 84, 88, 0.3)" : "rgba(84, 84, 88, 0.15)") : undefined, 
+                        height: 45,
+                        flex: 1
                     }}
                 >
                     <Text
                         style={{
-                            color: darkMode ? "white" : "black",
-                            paddingTop: Platform.OS == "ios" ? 4 : 3
+                            color: getColor(darkMode, "textPrimary"),
+                            fontWeight: "400",
+                            fontSize: 17,
+                            flex: 1,
+                            paddingRight: 15
                         }}
                         numberOfLines={1}
+                        lineBreakMode="middle"
                     >
                         {title}
                     </Text>
-                </View>
-                <View
-                    style={{
-                        flexDirection: "row"
-                    }}
-                >
-                    {
-                        typeof rightText !== "undefined" && (
-                            <>
-                                {
-                                    rightText == "ActivityIndicator" ? (
-                                        <ActivityIndicator
-                                            size="small"
-                                            color={darkMode ? "white" : "gray"}
-                                            style={{
-                                                marginRight: 5
-                                            }}
-                                        />
-                                    ) : (
-                                        <Text
-                                            style={{
-                                                color: "gray",
-                                                paddingTop: Platform.OS == "android" ? 3 : 4,
-                                                paddingRight: 10,
-                                                fontSize: 13
-                                            }}
-                                        >
-                                            {rightText}
-                                        </Text>
-                                    )
-                                }
-                            </>
-                        )
-                    }
-                    <Ionicon
-                        name="chevron-forward-outline"
-                        size={22}
-                        color="gray"
+                    <View
                         style={{
-                            marginTop: 1
+                            flexDirection: "row",
+                            alignItems: "center",
+                            marginRight: typeof rightComponent !== "undefined" ? 15 : 10
                         }}
-                    />
+                    >
+                        {
+                            typeof rightComponent !== "undefined" ? rightComponent : (
+                                <>
+                                    {
+                                        typeof rightText !== "undefined" && (
+                                            <>
+                                                {
+                                                    rightText == "ActivityIndicator" ? (
+                                                        <ActivityIndicator
+                                                            size="small"
+                                                            color={darkMode ? "white" : "gray"}
+                                                            style={{
+                                                                marginRight: 5
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <Text
+                                                            style={{
+                                                                color: "gray",
+                                                                paddingRight: 10,
+                                                                fontSize: 17
+                                                            }}
+                                                            numberOfLines={1}
+                                                            lineBreakMode="middle"
+                                                        >
+                                                            {rightText}
+                                                        </Text>
+                                                    )
+                                                }
+                                            </>
+                                        )
+                                    }
+                                    <Ionicon
+                                        name="chevron-forward-outline"
+                                        size={18}
+                                        color="gray"
+                                        style={{
+                                            marginTop: 2
+                                        }}
+                                    />
+                                </>
+                            )
+                        }
+                    </View>
                 </View>
             </View>
         </TouchableHighlight>
@@ -120,7 +178,7 @@ export interface SettingsButtonProps {
 }
 
 export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
 
     return (
         <View
@@ -135,22 +193,22 @@ export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonPro
                     height: "auto",
                     flexDirection: "row",
                     justifyContent: "space-between",
-                    paddingLeft: 10,
-                    paddingRight: 10,
+                    paddingLeft: 15,
+                    paddingRight: 15,
                     paddingTop: 10,
                     paddingBottom: 10,
                 }}
             >
                 <View
                     style={{
-                        maxWidth: "80%"
+                        maxWidth: typeof rightComponent !== "undefined" ? "80%" : "100%"
                     }}
                 >
                     {
                         typeof title == "string" ? (
                             <Text
                                 style={{
-                                    color: darkMode ? "white" : "black",
+                                    color: getColor(darkMode, "textPrimary"),
                                     paddingTop: typeof rightComponent !== "undefined" ? (Platform.OS == "android" ? 3 : 7) : 0
                                 }}
                                 numberOfLines={1}
@@ -178,10 +236,10 @@ export interface SettingsHeaderProps {
 }
 
 export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: SettingsHeaderProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [email, setEmail] = useMMKVString("email", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const lang = useLang()
     const [userInfo, setUserInfo]: any[] = useMMKVObject("userInfo:" + userId, storage)
     const [userAvatarCached, setUserAvatarCached] = useMMKVString("userAvatarCached:" + userId, storage)
 
@@ -260,18 +318,18 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
     }
 
     useEffect(() => {
-        updateUserInfo()
-    }, [])
-
-    useEffect(() => {
         cacheUserAvatar()
     }, [userInfo])
+
+    useEffect(() => {
+        updateUserInfo()
+    }, [])
 
     return (
         <Pressable
             style={{
                 width: "100%",
-                height: "auto",
+                height: 80,
                 flexDirection: "row",
                 justifyContent: "space-between",
                 paddingLeft: 10,
@@ -282,11 +340,13 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
             }}
             onPress={() => {
                 if(!navigationEnabled){
-                    return false
+                    return
                 }
 
                 if(!isOnline()){
-                    return showToast({ message: i18n(lang, "deviceOffline") })
+                    showToast({ message: i18n(lang, "deviceOffline") })
+
+                    return
                 }
 
                 navigationAnimation({ enable: true }).then(() => {
@@ -296,37 +356,41 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
         >
             <TouchableOpacity
                 onPress={() => {
+                    return
+
                     if(Platform.OS == "android"){ // @ TODO fix android avatar upload
-                        return false
+                        return
                     }
 
                     if(!isOnline()){
-                        return showToast({ message: i18n(lang, "deviceOffline") })
+                        showToast({ message: i18n(lang, "deviceOffline") })
+
+                        return
                     }
                     
                     SheetManager.show("ProfilePictureActionSheet")
                 }}
             >
-                <FastImage
+                <Image
                     source={typeof userAvatarCached == "string" && userAvatarCached.length > 4 ? ({ uri: "file://" + MISC_BASE_PATH + userAvatarCached }) : (typeof userInfo !== "undefined" && userInfo.avatarURL.indexOf("https://down.") !== -1 ? { uri: userInfo.avatarURL } : require("../../assets/images/appstore.png"))}
                     style={{
-                        width: 50,
-                        height: 50,
-                        borderRadius: 50
+                        width: 60,
+                        height: 60,
+                        borderRadius: 60
                     }}
                 />
             </TouchableOpacity>
             <View
                 style={{
-                    width: "79%",
+                    width: "75%",
                     paddingLeft: 15
                 }}
             >
                 <Text
                     style={{
-                        color: darkMode ? "white" : "black",
-                        fontWeight: "bold",
-                        fontSize: 19
+                        color: getColor(darkMode, "textPrimary"),
+                        fontWeight: "500",
+                        fontSize: 22
                     }}
                     numberOfLines={1}
                 >
@@ -334,9 +398,10 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
                 </Text>
                 <Text
                     style={{
-                        color: "gray",
-                        fontSize: 12,
-                        marginTop: 1
+                        color: getColor(darkMode, "textPrimary"),
+                        fontSize: 13,
+                        marginTop: 5,
+                        fontWeight: "400"
                     }}
                     numberOfLines={1}
                 >
@@ -350,7 +415,8 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
             </View>
             <Ionicon
                 name="chevron-forward-outline"
-                size={22} color={navigationEnabled ? "gray" : "transparent"}
+                size={22}
+                color={navigationEnabled ? "gray" : "transparent"}
             />
         </Pressable>
     )
@@ -362,7 +428,7 @@ export interface SettingsGroupProps {
 }
 
 export const SettingsGroup = memo((props: SettingsGroupProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
+    const darkMode = useDarkMode()
 
     return (
         <View
@@ -378,7 +444,7 @@ export const SettingsGroup = memo((props: SettingsGroupProps) => {
                 style={{
                     height: "auto",
                     width: "100%",
-                    backgroundColor: darkMode ? "#171717" : "lightgray",
+                    backgroundColor: getColor(darkMode, "backgroundSecondary"),
                     borderRadius: 10
                 }}
             >
@@ -394,8 +460,8 @@ export interface SettingsScreenProps {
 }
 
 export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) => {
-    const [darkMode, setDarkMode] = useMMKVBoolean("darkMode", storage)
-    const [lang, setLang] = useMMKVString("lang", storage)
+    const darkMode = useDarkMode()
+    const lang = useLang()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
     const [onlyWifiDownloads, setOnlyWifiDownloads] = useMMKVBoolean("onlyWifiDownloads:" + userId, storage)
@@ -413,12 +479,12 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
             style={{
                 height: "100%",
                 width: "100%",
-                backgroundColor: darkMode ? "black" : "white"
+                backgroundColor: getColor(darkMode, "backgroundPrimary")
             }}
         >
             <Text
                 style={{
-                    color: darkMode ? "white" : "black",
+                    color: getColor(darkMode, "textPrimary"),
                     fontWeight: "bold",
                     fontSize: 24,
                     marginLeft: 15,
@@ -430,43 +496,6 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
             <SettingsGroup marginTop={15}>
                 <SettingsHeader navigation={navigation} />
             </SettingsGroup>
-            {
-                __DEV__ && (
-                    <>
-                        <SettingsGroup>
-                            <SettingsButtonLinkHighlight
-                                title={"Clear loadItemsCache"}
-                                onPress={() => {
-                                    const keys = storage.getAllKeys()
-
-                                    keys.forEach(key => {
-                                        if(key.indexOf("loadItemsCache:") !== -1 || key.indexOf("folderSize:") !== -1){
-                                            storage.delete(key)
-                                        }
-                                    })
-
-                                    showToast({ message: "Cleared" })
-                                }} 
-                            />
-                            <SettingsButtonLinkHighlight
-                                title={"get medialib"}
-                                onPress={() => {
-                                    MediaLibrary.getAlbumsAsync({
-                                        includeSmartAlbums: true
-                                    }).then((content) => {
-                                        console.log(content)
-                                    })
-                                }}
-                            />
-                            <SettingsButtonLinkHighlight
-                                title={"hermes check"}
-                                // @ts-ignore
-                                onPress={() => console.log("isHermes", !!global.HermesInternal)}
-                            />
-                        </SettingsGroup>
-                    </>
-                )
-            }
             <SettingsGroup>
                 <SettingsButtonLinkHighlight
                     onPress={() => {
@@ -481,6 +510,10 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         })
                     }}
                     title={i18n(lang, "trash")}
+                    withBottomBorder={true}
+                    borderTopRadius={10}
+                    iconBackgroundColor={getColor(darkMode, "red")}
+                    iconName="trash-outline"
                 />
                 <SettingsButtonLinkHighlight
                     onPress={() => {
@@ -493,6 +526,9 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         })
                     }}
                     title={i18n(lang, "transfers")}
+                    withBottomBorder={true}
+                    iconBackgroundColor={getColor(darkMode, "blue")}
+                    iconName="repeat-outline"
                 />
                 <SettingsButtonLinkHighlight
                     onPress={() => {
@@ -505,6 +541,9 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         })
                     }}
                     title={i18n(lang, "events")}
+                    borderBottomRadius={10}
+                    iconBackgroundColor={getColor(darkMode, "orange")}
+                    iconName="list-outline"
                 />
             </SettingsGroup>
             <SettingsGroup>
@@ -519,11 +558,19 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         })
                     }}
                     title={i18n(lang, "cameraUpload")}
+                    borderBottomRadius={10}
+                    iconBackgroundColor={getColor(darkMode, "green")}
+                    iconName="camera-outline"
+                    borderTopRadius={10}
                 />
             </SettingsGroup>
             <SettingsGroup>
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "darkMode")}
+                    withBottomBorder={true}
+                    borderTopRadius={10}
+                    iconBackgroundColor="gray"
+                    iconName="contrast-outline"
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -532,21 +579,26 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                             onValueChange={(value) => {
                                 if(value){
                                     setUserSelectedTheme("dark")
-                                    setDarkMode(true)
                                     setStatusBarStyle(true)
+
+                                    storage.set("darkMode", true)
                                 }
                                 else{
                                     setUserSelectedTheme("light")
-                                    setDarkMode(false)
                                     setStatusBarStyle(false)
+
+                                    storage.set("darkMode", false)
                                 }
                             }}
                             value={typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 ? userSelectedTheme == "dark" : darkMode}
                         />
                     }
                 />
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "startOnCloudScreen")}
+                    withBottomBorder={true}
+                    iconBackgroundColor={getColor(darkMode, "orange")}
+                    iconName="home-outline"
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -557,8 +609,11 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         />
                     }
                 />
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "onlyWifiUploads")}
+                    iconBackgroundColor={getColor(darkMode, "blue")}
+                    iconName="wifi-outline"
+                    withBottomBorder={true}
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -569,8 +624,10 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         />
                     }
                 />
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "onlyWifiDownloads")}
+                    iconBackgroundColor={getColor(darkMode, "blue")}
+                    iconName="wifi-outline"
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -583,8 +640,11 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                 />
             </SettingsGroup>
             <SettingsGroup>
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "hideThumbnails")}
+                    withBottomBorder={true}
+                    iconBackgroundColor={getColor(darkMode, "indigo")}
+                    iconName="image-outline"
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -595,8 +655,11 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         />
                     }
                 />
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "hideFileNames")}
+                    withBottomBorder={true}
+                    iconBackgroundColor={getColor(darkMode, "indigo")}
+                    iconName="text-outline"
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -607,8 +670,10 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         />
                     }
                 />
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "hideFileFolderSize")}
+                    iconBackgroundColor={getColor(darkMode, "indigo")}
+                    iconName="analytics-outline"
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -621,8 +686,11 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                 />
             </SettingsGroup>
             <SettingsGroup>
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "biometricPinAuth")}
+                    withBottomBorder={true}
+                    iconBackgroundColor={getColor(darkMode, "red")}
+                    iconName="lock-closed-outline"
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -683,8 +751,11 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         />
                     }
                 />
-                <SettingsButton
+                <SettingsButtonLinkHighlight
                     title={i18n(lang, "onlyUsePINCode")}
+                    withBottomBorder={true}
+                    iconBackgroundColor={getColor(darkMode, "red")}
+                    iconName="barcode-outline"
                     rightComponent={
                         <Switch
                             trackColor={getColor(darkMode, "switchTrackColor")}
@@ -698,6 +769,8 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                 <SettingsButtonLinkHighlight
                     onPress={() => SheetManager.show("LockAppAfterActionSheet")}
                     title={i18n(lang, "lockAppAfter")}
+                    iconBackgroundColor={getColor(darkMode, "pink")}
+                    iconName="time-outline"
                     rightText={
                         lockAppAfter == 0
                         ? i18n(lang, "fiveMinutes")
@@ -727,6 +800,10 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         })
                     }}
                     title={i18n(lang, "language")}
+                    iconBackgroundColor={getColor(darkMode, "purple")}
+                    iconName="language-outline"
+                    borderTopRadius={10}
+                    withBottomBorder={true}
                 />
                 <SettingsButtonLinkHighlight
                     onPress={() => {
@@ -735,6 +812,9 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         })
                     }}
                     title={i18n(lang, "advanced")}
+                    iconBackgroundColor="gray"
+                    iconName="cog-outline"
+                    borderBottomRadius={10}
                 />
             </SettingsGroup>
             <View
