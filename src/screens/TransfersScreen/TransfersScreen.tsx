@@ -128,7 +128,7 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
             scrollEnabled={finishedTransfers.length > 0}
             keyExtractor={keyExtractor}
             key={"finished-list-" + (portrait ? "portrait" : "landscape")}
-            windowSize={3}
+            windowSize={5}
             numColumns={1}
             renderItem={renderItem}
             getItemLayout={getItemLayout}
@@ -283,7 +283,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
                                 >
                                     <Text
                                         style={{
-                                            color: "#0A84FF",
+                                            color: getColor(darkMode, "linkPrimary"),
                                             fontSize: 16,
                                             fontWeight: "400"
                                         }}
@@ -299,7 +299,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
                                 >
                                     <Text
                                         style={{
-                                            color: "#0A84FF",
+                                            color: getColor(darkMode, "linkPrimary"),
                                             fontSize: 16,
                                             fontWeight: "400"
                                         }}
@@ -338,7 +338,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
             scrollEnabled={currentTransfers.length > 0}
             keyExtractor={keyExtractor}
             key={"ongoing-list-" + (portrait ? "portrait" : "landscape")}
-            windowSize={3}
+            windowSize={5}
             numColumns={1}
             renderItem={renderItem}
             getItemLayout={getItemLayout}
@@ -463,7 +463,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                     <TouchableOpacity
                         style={{
                             borderBottomWidth: currentView == "ongoing" ? Platform.OS == "ios" ? 1.5 : 2 : 1,
-                            borderBottomColor: currentView == "ongoing" ? "#0A84FF" : getColor(darkMode, "primaryBorder"),
+                            borderBottomColor: currentView == "ongoing" ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "primaryBorder"),
                             height: 27,
                             paddingLeft: 15,
                             paddingRight: 15,
@@ -481,7 +481,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                     >
                         <Text
                             style={{
-                                color: currentView == "ongoing" ? "#0A84FF" : "gray",
+                                color: currentView == "ongoing" ? getColor(darkMode, "linkPrimary") : "gray",
                                 fontWeight: "bold",
                                 fontSize: 15
                             }}
@@ -492,7 +492,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                     <TouchableOpacity
                         style={{
                             borderBottomWidth: currentView == "finished" ? Platform.OS == "ios" ? 1.5 : 2 : 1,
-                            borderBottomColor: currentView == "finished" ? "#0A84FF" : getColor(darkMode, "primaryBorder"),
+                            borderBottomColor: currentView == "finished" ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "primaryBorder"),
                             height: 27,
                             paddingLeft: 15,
                             paddingRight: 15,
@@ -510,7 +510,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                     >
                         <Text
                             style={{
-                                color: currentView == "finished" ? "#0A84FF" : "gray",
+                                color: currentView == "finished" ? getColor(darkMode, "linkPrimary") : "gray",
                                 fontWeight: "bold",
                                 fontSize: 15
                             }}

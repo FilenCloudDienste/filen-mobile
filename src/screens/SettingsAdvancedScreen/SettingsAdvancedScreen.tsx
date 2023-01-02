@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from "react"
+import React, { useState, useEffect, memo, useCallback } from "react"
 import { View, Text, ScrollView, Alert, Share } from "react-native"
 import storage from "../../lib/storage"
 import useLang from "../../lib/hooks/useLang"
@@ -23,14 +23,14 @@ export const calculateFolderSize = async (folderPath: string, size: number = 0):
         const item = dirList[i]
 
         try{
-            const stat = await FileSystem.getInfoAsync(toExpoFsPath(pathModule.join(folderPath, item)))
+            const stat = await FileSystem.getInfoAsync(pathModule.join(folderPath, item))
 
             if(!stat.exists){
                 continue
             }
 
             if(stat.isDirectory){
-                size = await calculateFolderSize(toExpoFsPath(pathModule.join(folderPath, item)), size)
+                size = await calculateFolderSize(pathModule.join(folderPath, item), size)
             }
             else{
                 size = size + (stat.size || 0)
@@ -55,20 +55,28 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
     const [cachesLocalFolderSize, setCachesLocalFolderSize] = useState<number>(0)
     const [isCalculatingFolderSizes, setIsCalculatingFolderSizes] = useState<boolean>(true)
 
-    const calculateFolderSizes = () => {
+    const calculateFolderSizes = useCallback(async () => {
         setIsCalculatingFolderSizes(true)
 
-        getDownloadPath({ type: "thumbnail" }).then((thumbnailCachePath) => {
-            calculateFolderSize(thumbnailCachePath).then((thumbnailCacheSize) => {
-                setThumbnailCacheLocalFolderSize(thumbnailCacheSize)
+        try{
+            const thumbnailCachePath = await getDownloadPath({ type: "thumbnail" })
 
-                calculateFolderSize(FileSystem.cacheDirectory as string).then((cachesSize) => {
-                    setCachesLocalFolderSize(cachesSize)
-                    setIsCalculatingFolderSizes(false)
-                })
-            })
-        })
-    }
+            const [thumbnailCacheSize, cachesSize] = await Promise.all([
+                calculateFolderSize(thumbnailCachePath),
+                calculateFolderSize(FileSystem.cacheDirectory as string)
+            ])
+
+            setThumbnailCacheLocalFolderSize(thumbnailCacheSize)
+            setCachesLocalFolderSize(cachesSize)
+        }
+        catch(e: any){
+            console.error(e)
+
+            showToast({ message: e.toString() })
+        }
+
+        setIsCalculatingFolderSizes(false)
+    }, [])
 
     useEffect(() => {
         calculateFolderSizes()

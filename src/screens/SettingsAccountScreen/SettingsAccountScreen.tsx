@@ -13,6 +13,7 @@ import { formatBytes } from "../../lib/helpers"
 import { useMountedState } from "react-use"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
+import { getColor } from "../../style"
 
 export interface SettingsAccountScreenProps {
     navigation: any
@@ -49,14 +50,14 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: darkMode ? "black" : "white"
+                    backgroundColor: getColor(darkMode, "backgroundPrimary")
                 }}
             >
                 {
                     isLoading ? (
                         <ActivityIndicator
                             size="small"
-                            color={darkMode ? "white" : "black"}
+                            color={getColor(darkMode, "textPrimary")}
                             style={{
                                 marginTop: "70%"
                             }}

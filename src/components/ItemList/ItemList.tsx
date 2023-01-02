@@ -11,7 +11,7 @@ import { StackActions } from "@react-navigation/native"
 import { ListEmpty } from "../ListEmpty"
 import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
-import { Item } from "../../lib/services/items"
+import type { Item } from "../../types"
 import { useStore } from "../../lib/state"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -801,7 +801,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 key={listKey}
                 renderItem={renderItemFn}
                 keyExtractor={keyExtractor}
-                windowSize={3}
+                windowSize={5}
                 ref={itemListRef}
                 initialScrollIndex={typeof initScrollIndex == "number" ? (isBetween(initScrollIndex, 0, generatedItemList.length) ? initScrollIndex : 0) : 0}
                 numColumns={numColumns}

@@ -473,6 +473,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
     const [onlyUsePINCode, setOnlyUsePINCode] = useMMKVBoolean("onlyUsePINCode:" + userId, storage)
     const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
+    const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 
     return (
         <ScrollView
@@ -770,6 +771,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                     onPress={() => SheetManager.show("LockAppAfterActionSheet")}
                     title={i18n(lang, "lockAppAfter")}
                     iconBackgroundColor={getColor(darkMode, "pink")}
+                    withBottomBorder={true}
                     iconName="time-outline"
                     rightText={
                         lockAppAfter == 0
@@ -789,6 +791,21 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                         : lockAppAfter == 1800
                         ? i18n(lang, "thirtyMinutes")
                         : i18n(lang, "oneHour")
+                    }
+                />
+                <SettingsButtonLinkHighlight
+                    title={i18n(lang, "keepAppAwake")}
+                    iconBackgroundColor={getColor(darkMode, "blue")}
+                    iconName="hourglass-outline"
+                    borderBottomRadius={10}
+                    rightComponent={
+                        <Switch
+                            trackColor={getColor(darkMode, "switchTrackColor")}
+                            thumbColor={keepAppAwake ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                            onValueChange={() => setKeepAppAwake(!keepAppAwake)}
+                            value={keepAppAwake}
+                        />
                     }
                 />
             </SettingsGroup>

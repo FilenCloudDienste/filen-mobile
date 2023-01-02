@@ -28,6 +28,7 @@
     "expo-clipboard": "~2.1.0",
     "expo-file-system": "~13.1.4",
     "expo-font": "^10.0.4",
+    "expo-keep-awake": "~10.0.1",
     "expo-local-authentication": "~12.1.0",
     "expo-media-library": "~14.0.0",
     "expo-navigation-bar": "^1.1.2",

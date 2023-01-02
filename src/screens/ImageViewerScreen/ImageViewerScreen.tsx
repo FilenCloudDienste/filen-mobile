@@ -583,7 +583,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 key={portrait ? "portrait" : "landscape"}
                 extraData={portrait ? "portrait" : "landscape"}
                 keyExtractor={(item) => item.uuid}
-                windowSize={3}
+                windowSize={5}
                 initialNumToRender={1}
                 horizontal={true}
                 bounces={true}

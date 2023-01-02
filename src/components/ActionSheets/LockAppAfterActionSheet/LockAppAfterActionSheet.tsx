@@ -35,7 +35,7 @@ const LockAppAfterActionSheet = memo(() => {
           	<View
 				style={{
 					paddingBottom: (insets.bottom + 25),
-					paddingTop: 15
+					paddingTop: 50
 				}}
 			>
 				<ActionSheetIndicator />

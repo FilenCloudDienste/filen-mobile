@@ -1536,26 +1536,23 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
     })
 }
 
-export const convertHeic = (item: Item, path: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        getDownloadPath({ type: "temp" }).then(async (tempPath) => {
-            const outputPath: string = tempPath + item.uuid + "_convertHeic.jpg"
+export const convertHeic = async (item: Item, path: string): Promise<string> => {
+    const tmpPath = await getDownloadPath({ type: "temp" })
+    const outputPath: string = tmpPath + item.uuid + "_convertHeic.jpg"
 
-            try{
-                if((await Filesystem.getInfoAsync(toExpoFsPath(outputPath))).exists){
-                    return resolve(outputPath)
-                }
-            }
-            catch(e){
-                console.log(e)
-            }
+    try{
+        if((await Filesystem.getInfoAsync(toExpoFsPath(outputPath))).exists){
+            return outputPath
+        }
+    }
+    catch(e){
+        console.log(e)
+    }
 
-            global.nodeThread.convertHeic({
-                input: path,
-                output: outputPath,
-                format: "JPEG"
-            }).then(resolve).catch(reject)
-        }).catch(reject)
+    return global.nodeThread.convertHeic({
+        input: path,
+        output: outputPath,
+        format: "JPEG"
     })
 }
 

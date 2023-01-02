@@ -60,6 +60,7 @@ import FullscreenLoadingModal from "./components/Modals/FullscreenLoadingModal"
 import useDarkMode from "./lib/hooks/useDarkMode"
 import useIsLoggedIn from "./lib/hooks/useIsLoggedIn"
 import useLang from "./lib/hooks/useLang"
+import { activateKeepAwake, deactivateKeepAwake } from "expo-keep-awake"
 
 enableScreens(true)
 
@@ -111,6 +112,7 @@ export const App = Sentry.wrap(memo(() => {
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
     const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
+    const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 
     const handleShare = useCallback(async (items: any) => {
         if(!items){
@@ -169,16 +171,18 @@ export const App = Sentry.wrap(memo(() => {
         }
     }, [])
 
-    const setAppearance = useCallback(() => {
+    const setAppearance = useCallback((isInit: boolean = false) => {
         setTimeout(() => {
-            if(typeof userSelectedTheme == "string" && userSelectedTheme.length > 1){
+            if(typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 && isInit){
                 if(userSelectedTheme == "dark"){
                     storage.set("darkMode", true)
+                    storage.set("userSelectedTheme", "dark")
 
                     setStatusBarStyle(true)
                 }
                 else{
                     storage.set("darkMode", false)
+                    storage.set("userSelectedTheme", "light")
 
                     setStatusBarStyle(false)
                 }
@@ -186,17 +190,28 @@ export const App = Sentry.wrap(memo(() => {
             else{
                 if(Appearance.getColorScheme() == "dark"){
                     storage.set("darkMode", true)
+                    storage.set("userSelectedTheme", "dark")
 
                     setStatusBarStyle(true)
                 }
                 else{
                     storage.set("darkMode", false)
+                    storage.set("userSelectedTheme", "light")
 
                     setStatusBarStyle(false)
                 }
             }
         }, 1000) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
     }, [userSelectedTheme])
+
+    useEffect(() => {
+        if(keepAppAwake){
+            activateKeepAwake()
+        }
+        else{
+            deactivateKeepAwake()
+        }
+    }, [keepAppAwake])
 
     useEffect(() => {
         const nav = () => {
@@ -326,9 +341,9 @@ export const App = Sentry.wrap(memo(() => {
 
         const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
 
-        setAppearance()
+        setAppearance(true)
 
-        const appearanceListener = () => setAppearance()
+        const appearanceListener = () => setAppearance(false)
 
         Appearance.addChangeListener(appearanceListener)
 
