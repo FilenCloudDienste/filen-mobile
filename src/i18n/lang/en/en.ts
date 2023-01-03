@@ -407,5 +407,5 @@ export const en: {
     oneHour: "1 hour",
     saveLogs: "Save logs",
     cameraUploadAfterEnabled: "Only upload after activation date",
-    keepAppAwake: "Keep app awake"
+    keepAppAwake: "Keep screen awake"
 }

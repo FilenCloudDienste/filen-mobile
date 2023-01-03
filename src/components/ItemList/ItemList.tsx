@@ -423,7 +423,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
 
     useEffect(() => {
         if(items.length > 0){
-            const max = 32
+            const max = viewModeParsed[routeURL] == "grid" ? (itemsPerRow / (Math.floor(dimensions.height / itemsPerRow) + 55) + itemsPerRow) : Math.round(dimensions.height / 60 + 1)
 
             for(let i = 0; i < items.length; i++){
                 if(i < max){
@@ -433,7 +433,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 }
             }
         }
-    }, [items, viewModeParsed])
+    }, [items, viewModeParsed, dimensions, routeURL, itemsPerRow])
 
     useEffect(() => {
         if(calcPhotosGridSize(photosGridSize) >= 6){
@@ -481,7 +481,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                             flexDirection: "row",
                                             justifyContent: "flex-start",
                                             paddingLeft: 15,
-                                            paddingRight: 15
+                                            paddingRight: 15,
+                                            alignItems: "center"
                                         }}
                                     >
                                         {
@@ -496,7 +497,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         style={{
                                                             marginLeft: 10,
                                                             color: "gray",
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                            fontSize: 14,
+                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
                                                         }}
                                                     >
                                                         {i18n(lang, "onlyWifiUploads")}
@@ -512,7 +514,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         style={{
                                                             marginLeft: 10,
                                                             color: "gray",
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                            fontSize: 14,
+                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
                                                         }}
                                                     >
                                                         {i18n(lang, "cameraUploadProgress", true, ["__TOTAL__", "__UPLOADED__"], [cameraUploadTotal, cameraUploadUploaded])}
@@ -529,7 +532,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         style={{
                                                             marginLeft: 10,
                                                             color: "gray",
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                            fontSize: 14,
+                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
                                                         }}
                                                     >
                                                         {i18n(lang, "cameraUploadEverythingUploaded")}
@@ -546,7 +550,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         style={{
                                                             marginLeft: 10,
                                                             color: "gray",
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                            fontSize: 14,
+                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
                                                         }}
                                                     >
                                                         {i18n(lang, "cameraUploadEverythingUploaded")}
@@ -562,7 +567,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         style={{
                                                             marginLeft: 10,
                                                             color: "gray",
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                            fontSize: 14,
+                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
                                                         }}
                                                     >
                                                         {i18n(lang, "cameraUploadFetchingAssetsFromLocal")}
@@ -579,7 +585,8 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                                                         style={{
                                                             marginLeft: 10,
                                                             color: "gray",
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 1
+                                                            fontSize: 14,
+                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
                                                         }}
                                                     >
                                                         {i18n(lang, "deviceOffline")}

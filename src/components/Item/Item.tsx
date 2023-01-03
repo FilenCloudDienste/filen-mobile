@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useMemo } from "react"
+import React, { memo, useEffect, useMemo } from "react"
 import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, useWindowDimensions, ScaledSize, Pressable, Platform, Image } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { getImageForItem } from "../../assets/thumbnails"
@@ -9,7 +9,6 @@ import type { EdgeInsets } from "react-native-safe-area-context"
 import type { Item } from "../../types"
 import { fetchFolderSize } from "../../lib/api"
 import storage from "../../lib/storage"
-import { useMountedState } from "react-use"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 
 export interface ItemBaseProps {
@@ -35,30 +34,26 @@ export interface ListItemProps extends ItemBaseProps {
 }
 
 export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
-    const [folderSize, setFolderSize] = useState<number>(item.type == "folder" ? storage.getNumber("folderSizeCache:" + item.uuid) : 0)
-    const isMounted: () => boolean = useMountedState()
-    const routeURL = getRouteURL(route)
-
     useEffect(() => {
         if(item.type == "folder"){
-            fetchFolderSize({ folder: item, routeURL }).then((fetchedSize) => {
+            fetchFolderSize({ folder: item, routeURL: getRouteURL(route) }).then((fetchedSize) => {
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
 
-                if(isMounted()){
-                    setFolderSize(fetchedSize)
-                }
+                DeviceEventEmitter.emit("event", {
+                    type: "folder-size",
+                    data: {
+                        uuid: item.uuid,
+                        size: fetchedSize
+                    }
+                })
             }).catch(console.error)
         }
-    }, [item.uuid, routeURL])
-
-    if(item.uuid.indexOf(".") !== -1){
-        return null
-    }
+    }, [item.uuid, item.name, index, route])
 
     return (
         <TouchableHighlight
             key={item.uuid}
-            underlayColor="#171717"
+            underlayColor={getColor(darkMode, "backgroundTertiary")}
             style={{
                 width: "100%",
                 height: 60
@@ -156,7 +151,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                             numberOfLines={1}
                         >
                             {
-                                typeof item.offline == "boolean" && item.offline && (
+                                item.offline ? (
                                     <>
                                         <Ionicon
                                             name="arrow-down-circle"
@@ -165,10 +160,10 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                         />
                                         <Text>&nbsp;&nbsp;</Text>
                                     </>
-                                )
+                                ) : <></>
                             }
                             {
-                                typeof item.favorited == "boolean" && item.favorited && (
+                                item.favorited ? (
                                     <>
                                         <Ionicon
                                             name="heart"
@@ -177,11 +172,11 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                         />
                                         <Text>&nbsp;&nbsp;</Text>
                                     </>
-                                )
+                                ) : <></>
                             }
-                            {hideSizes ? formatBytes(0) : formatBytes(item.type == "file" ? item.size : folderSize)}
+                            {hideSizes ? formatBytes(0) : formatBytes(item.size)}
                             {
-                                typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && getParent().length < 32 && (
+                                typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && getParent(route).length < 32 && (
                                     <>
                                         <Text>&nbsp;&#8226;&nbsp;</Text>
                                         <Text>{item.sharerEmail}</Text>
@@ -189,7 +184,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                 )
                             }
                             {
-                                typeof item.receivers !== "undefined" && Array.isArray(item.receivers) && item.receivers.length > 0 && getParent().length < 32 && (
+                                typeof item.receivers !== "undefined" && Array.isArray(item.receivers) && item.receivers.length > 0 && getParent(route).length < 32 && (
                                     <>
                                         <Text>&nbsp;&#8226;&nbsp;</Text>
                                         <Ionicon
@@ -243,9 +238,6 @@ export interface GridItemProps extends ItemBaseProps {
 
 export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow, hideSizes, route }: GridItemProps) => {
     const dimensions: ScaledSize = useWindowDimensions()
-    const [folderSize, setFolderSize] = useState<number>(item.type == "folder" ? storage.getNumber("folderSizeCache:" + item.uuid) : 0)
-    const isMounted: () => boolean = useMountedState()
-    const routeURL = getRouteURL(route)
 
     const windowWidth: number = useMemo(() => {
         return (dimensions.width - (insets.left + insets.right)) - 40
@@ -253,15 +245,19 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
 
     useEffect(() => {
         if(item.type == "folder"){
-            fetchFolderSize({ folder: item, routeURL }).then((fetchedSize) => {
+            fetchFolderSize({ folder: item, routeURL: getRouteURL(route) }).then((fetchedSize) => {
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
 
-                if(isMounted()){
-                    setFolderSize(fetchedSize)
-                }
+                DeviceEventEmitter.emit("event", {
+                    type: "folder-size",
+                    data: {
+                        uuid: item.uuid,
+                        size: fetchedSize
+                    }
+                })
             }).catch(console.error)
         }
-    }, [item.uuid, routeURL])
+    }, [item.uuid, item.name, index, route])
 
     return (
         <Pressable
@@ -370,7 +366,7 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
                         numberOfLines={1}
                     >
                         {
-                            typeof item.offline == "boolean" && item.offline && (
+                            item.offline ? (
                                 <>
                                     <Ionicon
                                         name="arrow-down-circle"
@@ -379,10 +375,10 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
                                     />
                                     <Text>&nbsp;</Text>
                                 </>
-                            )
+                            ) : <></>
                         }
                         {
-                            typeof item.favorited == "boolean" && item.favorited && (
+                            item.favorited ? (
                                 <>
                                     <Ionicon
                                         name="heart"
@@ -391,7 +387,7 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
                                     />
                                     <Text>&nbsp;</Text>
                                 </>
-                            )
+                            ) : <></>
                         }
                         {new Date(item.lastModified).toLocaleDateString()}
                     </Text>
@@ -404,7 +400,7 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
                         }}
                         numberOfLines={1}
                     >
-                        {hideSizes ? formatBytes(0) : formatBytes(item.type == "file" ? item.size : folderSize)}
+                        {hideSizes ? formatBytes(0) : formatBytes(item.size)}
                     </Text>
                 </Pressable>
             </View>

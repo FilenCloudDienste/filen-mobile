@@ -46,6 +46,8 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
 
     const folderLastModified = convertTimestampToMs(folder.timestamp)
 
+    console.log(storage.getNumber("folderSizeCache:" + folder.uuid), name)
+
     return {
         id: folder.uuid,
         type: "folder",
@@ -65,7 +67,7 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
         isBase: typeof folder.parent == "string" ? false : true,
         isSync: folder.is_sync || false,
         isDefault: folder.is_default || false,
-        size: 0,
+        size: storage.getNumber("folderSizeCache:" + folder.uuid),
         selected: false,
         mime: "",
         key: "",
@@ -875,25 +877,6 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     }
 
     return true
-}
-
-export const getFolderSizeCacheKey = ({ folder, routeURL }: { folder: Item, routeURL: string }): string => {
-    let cacheKey: string = "folderSize:"
-
-    if(routeURL.indexOf("shared-out") !== -1){
-        cacheKey += "shared:" + folder.sharerId + ":" + folder.receiverId + ":" + folder.uuid
-    }
-    else if(routeURL.indexOf("shared-in") !== -1){
-        cacheKey += "shared:" + folder.sharerId + ":" + folder.receiverId + ":" + folder.uuid
-    }
-    else if(routeURL.indexOf("trash") !== -1){
-        cacheKey += "trash:" + folder.uuid
-    }
-    else{
-        cacheKey += "normal:" + folder.uuid
-    }
-
-    return cacheKey
 }
 
 export const getThumbnailCacheKey = ({ uuid }: { uuid: string }): { width: number, height: number, quality: number, thumbnailVersion: string, cacheKey: string } => {

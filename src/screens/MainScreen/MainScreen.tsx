@@ -164,7 +164,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 
     const updateFolderSize = useCallback((uuid: string, size: number) => {
         if(isMounted()){
-            setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, size} : mapItem))
+            setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? { ...mapItem, size } : mapItem))
         }
     }, [])
 
@@ -250,7 +250,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         setRoute(route)
         setInsets(insets)
         
-        fetchItemList({ bypassCache: false, callStack: 0, loadFolderSizes: false }).catch((err) => console.log(err))
+        fetchItemList({ bypassCache: false, callStack: 0, loadFolderSizes: false }).catch(console.error)
 
         global.fetchItemList = fetchItemList
 

@@ -28,7 +28,7 @@ const striptags = require("striptags")
 
 const shareSemaphore = new Semaphore(4)
 const apiRequestSemaphore = new Semaphore(8192 * 8192)
-const fetchFolderSizeSemaphore = new Semaphore(16)
+const fetchFolderSizeSemaphore = new Semaphore(8192)
 const linkItemsSemaphore = new Semaphore(8)
 
 const endpointsToCache: string[] = [
@@ -2263,10 +2263,6 @@ export const fetchEventInfo = ({ uuid }: { uuid: string }): Promise<any> => {
 
 export const fetchFolderSize = ({ folder, routeURL }: { folder: any, routeURL: string }): Promise<number> => {
     return new Promise((resolve, reject) => {
-        if(folder.uuid.indexOf(".") !== -1){
-            return resolve(0)
-        }
-
         fetchFolderSizeSemaphore.acquire().then(() => {
             let payload = {}
 
