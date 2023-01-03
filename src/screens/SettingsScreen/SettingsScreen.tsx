@@ -19,8 +19,7 @@ import { setStatusBarStyle } from "../../lib/statusbar"
 import { isOnline } from "../../lib/services/isOnline"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-
-const MISC_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
+import { MISC_BASE_PATH } from "../../lib/constants"
 
 export interface SettingsButtonLinkHighlightProps {
     onPress?: () => any,

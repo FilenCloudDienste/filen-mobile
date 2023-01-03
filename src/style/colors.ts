@@ -87,7 +87,7 @@ export const colors = {
         pink: "rgba(255, 45, 85, 1)",
         brown: "rgba(162, 132, 94, 1)",
         switchTrackColor: {
-            false: "white",
+            false: "#E3E3E9",
             true: "rgba(52, 199, 89, 1)"
         },
         backgroundPrimary: "#F2F2F7",
