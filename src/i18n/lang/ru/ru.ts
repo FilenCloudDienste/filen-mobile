@@ -406,5 +406,6 @@ export const ru: {
     thirtyMinutes: "30 минут",
     oneHour: "1 час",
     saveLogs: "Сохранить журнал",
-    cameraUploadAfterEnabled: "Загружать только новые медиафайлы"
+    cameraUploadAfterEnabled: "Загружать только новые медиафайлы",
+    keepAppAwake: "Не выключать экран"
 }
