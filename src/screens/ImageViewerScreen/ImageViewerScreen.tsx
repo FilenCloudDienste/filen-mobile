@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Animated, Pressable, ScaledSize, useWindowDimensions } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Animated, Pressable, ScaledSize, useWindowDimensions, Image } from "react-native"
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
@@ -364,16 +364,34 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                         >
                             {
                                 typeof images[image.uuid] == "string" && (
-                                    <FastImage
-                                        source={{
-                                            uri: decodeURIComponent(images[image.uuid].startsWith("file://") ? images[image.uuid] : "file://" + images[image.uuid])
-                                        }}
-                                        resizeMode="contain"
-                                        style={{
-                                            width: dimensions.width,
-                                            height: dimensions.height
-                                        }}
-                                    />
+                                    <>
+                                        {
+                                            // Fallback to RN's Image Component when image is a GIF since FastImage has a bug which makes GIF's playback speed jittery and too fast
+                                            image.name.toLowerCase().indexOf(".gif") !== -1 ? (
+                                                <Image
+                                                    source={{
+                                                        uri: decodeURIComponent(images[image.uuid].startsWith("file://") ? images[image.uuid] : "file://" + images[image.uuid])
+                                                    }}
+                                                    resizeMode="contain"
+                                                    style={{
+                                                        width: dimensions.width,
+                                                        height: dimensions.height
+                                                    }}
+                                                />
+                                            ) : (
+                                                <FastImage
+                                                    source={{
+                                                        uri: decodeURIComponent(images[image.uuid].startsWith("file://") ? images[image.uuid] : "file://" + images[image.uuid])
+                                                    }}
+                                                    resizeMode="contain"
+                                                    style={{
+                                                        width: dimensions.width,
+                                                        height: dimensions.height
+                                                    }}
+                                                />
+                                            )
+                                        }
+                                    </>
                                 )
                             }
                         </ImageBackground>
