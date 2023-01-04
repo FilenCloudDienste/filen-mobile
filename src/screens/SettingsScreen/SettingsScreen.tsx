@@ -1,5 +1,5 @@
 import React, { useEffect, memo } from "react"
-import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from "react-native"
+import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -20,6 +20,7 @@ import { isOnline } from "../../lib/services/isOnline"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { MISC_BASE_PATH } from "../../lib/constants"
+import FastImage from "react-native-fast-image"
 
 export interface SettingsButtonLinkHighlightProps {
     onPress?: () => any,
@@ -370,7 +371,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
                     SheetManager.show("ProfilePictureActionSheet")
                 }}
             >
-                <Image
+                <FastImage
                     source={typeof userAvatarCached == "string" && userAvatarCached.length > 4 ? ({ uri: "file://" + MISC_BASE_PATH + userAvatarCached }) : (typeof userInfo !== "undefined" && userInfo.avatarURL.indexOf("https://down.") !== -1 ? { uri: userInfo.avatarURL } : require("../../assets/images/appstore.png"))}
                     style={{
                         width: 60,

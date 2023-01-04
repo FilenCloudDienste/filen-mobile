@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Animated, Pressable, ScaledSize, useWindowDimensions, Image } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Animated, Pressable, ScaledSize, useWindowDimensions } from "react-native"
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
@@ -17,6 +17,7 @@ import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useIsOnline from "../../lib/hooks/useIsOnline"
 import { getItemOfflinePath } from "../../lib/services/offline"
 import * as FileSystem from "expo-file-system"
+import FastImage from "react-native-fast-image"
 
 const minZoom: number = 0.99999999999
 
@@ -363,7 +364,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                         >
                             {
                                 typeof images[image.uuid] == "string" && (
-                                    <Image
+                                    <FastImage
                                         source={{
                                             uri: decodeURIComponent(images[image.uuid].startsWith("file://") ? images[image.uuid] : "file://" + images[image.uuid])
                                         }}
@@ -448,7 +449,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 >
                     {
                         typeof image.thumbnail !== "string" ? (
-                            <Image
+                            <FastImage
                                 source={getImageForItem(image.file)}
                                 resizeMode="cover"
                                 style={{
@@ -459,7 +460,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                                 }}
                             />
                         ) : (
-                            <Image
+                            <FastImage
                                 source={{
                                     uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
                                 }}
@@ -605,7 +606,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 key={portrait ? "portrait" : "landscape"}
                 extraData={portrait ? "portrait" : "landscape"}
                 keyExtractor={(item) => item.uuid}
-                windowSize={5}
+                windowSize={2}
                 initialNumToRender={1}
                 horizontal={true}
                 bounces={true}

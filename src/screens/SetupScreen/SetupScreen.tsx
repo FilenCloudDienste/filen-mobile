@@ -1,7 +1,8 @@
 import React, { memo } from "react"
-import { View, Image } from "react-native"
+import { View } from "react-native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../style"
+import FastImage from "react-native-fast-image"
 
 export const SetupScreen = memo(() => {
     const darkMode = useDarkMode()
@@ -15,14 +16,12 @@ export const SetupScreen = memo(() => {
                 alignItems: "center"
             }}
         >
-            <Image
+            <FastImage
                 source={require("../../assets/images/logo_animated.gif")}
                 style={{
                     width: 100,
                     height: 100
                 }}
-                width={100}
-                height={100}
             />
         </View>
     )

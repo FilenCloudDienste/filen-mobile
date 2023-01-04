@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { View, Text, TouchableOpacity, Platform, FlatList, ScrollView, DeviceEventEmitter, useWindowDimensions, ScaledSize, Image, LayoutChangeEvent } from "react-native"
+import { View, Text, TouchableOpacity, Platform, FlatList, ScrollView, DeviceEventEmitter, useWindowDimensions, ScaledSize, LayoutChangeEvent } from "react-native"
 import useLang from "../../lib/hooks/useLang"
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -12,6 +12,7 @@ import { Bar } from "react-native-progress"
 import { getImageForItem } from "../../assets/thumbnails"
 import type { Item } from "../../types"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import FastImage from "react-native-fast-image"
 
 const TRANSFER_ITEM_HEIGHT: number = 60
 
@@ -48,7 +49,7 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
                         alignItems: "center"
                     }}
                 >
-                    <Image
+                    <FastImage
                         source={getImageForItem({ name: transfer.name, type: "file" } as Item)}
                         style={{
                             width: 28,
@@ -128,7 +129,7 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
             scrollEnabled={finishedTransfers.length > 0}
             keyExtractor={keyExtractor}
             key={"finished-list-" + (portrait ? "portrait" : "landscape")}
-            windowSize={5}
+            windowSize={10}
             numColumns={1}
             renderItem={renderItem}
             getItemLayout={getItemLayout}
@@ -203,7 +204,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
                         alignItems: "center"
                     }}
                 >
-                    <Image
+                    <FastImage
                         source={getImageForItem({ name: transfer.name, type: "file" } as Item)}
                         style={{
                             width: 28,
@@ -338,7 +339,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
             scrollEnabled={currentTransfers.length > 0}
             keyExtractor={keyExtractor}
             key={"ongoing-list-" + (portrait ? "portrait" : "landscape")}
-            windowSize={5}
+            windowSize={10}
             numColumns={1}
             renderItem={renderItem}
             getItemLayout={getItemLayout}

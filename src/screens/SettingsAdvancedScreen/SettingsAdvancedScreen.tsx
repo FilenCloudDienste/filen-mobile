@@ -15,6 +15,7 @@ import pathModule from "path"
 import RNFS from "react-native-fs"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
+import FastImage from "react-native-fast-image"
 
 export const calculateFolderSize = async (folderPath: string, size: number = 0): Promise<number> => {
     const dirList = await FileSystem.readDirectoryAsync(toExpoFsPath(folderPath))
@@ -165,6 +166,11 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                                                         for(let i = 0; i < dirList.length; i++){
                                                             await FileSystem.deleteAsync(toExpoFsPath(pathModule.join(tempPath, dirList[i])))
                                                         }
+
+                                                        await Promise.all([
+                                                            FastImage.clearDiskCache(),
+                                                            FastImage.clearMemoryCache()
+                                                        ])
                                                     }
                                                     catch(e){
                                                         console.log(e)
@@ -226,6 +232,11 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                                                                 await FileSystem.deleteAsync(toExpoFsPath(pathModule.join(FileSystem.cacheDirectory, dirList[i])))
                                                             }
                                                         }
+
+                                                        await Promise.all([
+                                                            FastImage.clearDiskCache(),
+                                                            FastImage.clearMemoryCache()
+                                                        ])
                                                     }
                                                     catch(e){
                                                         console.log(e)

@@ -5,4 +5,4 @@ export const THUMBNAIL_BASE_PATH: string = ReactNativeBlobUtil.fs.dirs.DocumentD
 export const MISC_BASE_PATH: string = RNFS.DocumentDirectoryPath + (RNFS.DocumentDirectoryPath.slice(-1) == "/" ? "" : "/") + "misc/"
 export const MB = 1024 * 1024
 export const GB = MB * 1024
-export const MAX_CAMERA_UPLOAD_QUEUE = 64
+export const MAX_CAMERA_UPLOAD_QUEUE = 30

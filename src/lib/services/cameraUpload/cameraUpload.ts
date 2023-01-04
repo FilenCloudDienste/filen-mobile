@@ -341,6 +341,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         }
 
         let remoteHashes: { [key: string]: boolean } = {}
+        const remoteNames: { [key: string]: boolean } = {}
 
         if(now > cameraUploadFetchRemoteAssetsTimeout){
             const remoteAssetsResponse = await apiRequest({
@@ -375,12 +376,13 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                         }
         
                         remoteExtraChecks[decrypted.lastModified + ":" + decrypted.size] = true
+                        remoteNames[decrypted.name.toLowerCase()] = true
                     }
                 }
             }
 
             storage.set("cameraUploadLastRemoteAssets:" + userId, JSON.stringify(remoteAssets))
-            storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, now + 3600000)
+            storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, now + 300000)
             storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify(remoteHashes))
         }
         else{
@@ -388,6 +390,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
 
             for(let i = 0; i < cameraUploadLastRemoteAssets.length; i++){
                 remoteExtraChecks[cameraUploadLastRemoteAssets[i].metadata.lastModified + ":" + cameraUploadLastRemoteAssets[i].metadata.size] = true
+                remoteNames[cameraUploadLastRemoteAssets[i].metadata.name.toLowerCase()] = true
             }
         }
 
@@ -427,14 +430,13 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
 
         let currentQueue = 0
         const uploads = []
+        let uploadedThisRun = 0
 
         const upload = (asset: MediaLibrary.Asset): Promise<boolean> => {
             return new Promise((resolve) => {
                 const assetId = getAssetId(asset)
 
                 const add = async (fileHash: string = "") => {
-                    await addMutex.acquire()
-
                     try{
                         storage.set("cameraUploadUploaded", storage.getNumber("cameraUploadUploaded") + 1)
 
@@ -466,8 +468,6 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                         console.error(e)
                         log.error(e)
                     }
-
-                    addMutex.release()
 
                     return resolve(true)
                 }
@@ -608,6 +608,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                                 parent: cameraUploadFolderUUID,
                                 includeFileHash: hash
                             }).then(() => {
+                                uploadedThisRun += 1
+
                                 add(hash).catch(console.error)
 
                                 FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
@@ -655,6 +657,21 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         for(let i = 0; i < assets.length; i++){
             const assetId = getAssetId(assets[i])
 
+            if(remoteNames[assets[i].filename.toLowerCase()]){
+                if(typeof assetsLastModified[assetId] !== "undefined"){
+                    if(assets[i].modificationTime == assetsLastModified[assetId]){
+                        storage.set("cameraUploadUploaded", storage.getNumber("cameraUploadUploaded") + 1)
+
+                        continue
+                    }
+                }
+                else{
+                    storage.set("cameraUploadUploaded", storage.getNumber("cameraUploadUploaded") + 1)
+
+                    continue
+                }
+            }
+
             if(
                 maxQueue > currentQueue
                 && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED
@@ -677,7 +694,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
 
         BackgroundTimer.setTimeout(() => {
             runCameraUpload(maxQueue)
-        }, TIMEOUT)
+        }, uploadedThisRun > 0 ? 100 : TIMEOUT)
 
         return true
     }

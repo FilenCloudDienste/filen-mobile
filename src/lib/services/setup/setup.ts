@@ -8,6 +8,7 @@ import * as FileSystem from "expo-file-system"
 import { showToast } from "../../../components/Toasts"
 import { promiseAllSettled } from "../../helpers"
 import path from "path"
+import FastImage from "react-native-fast-image"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -63,6 +64,11 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
             }
         }
     }
+
+    await Promise.all([
+        FastImage.clearDiskCache(),
+        FastImage.clearMemoryCache()
+    ]).catch(() => {})
 
     return true
 }
