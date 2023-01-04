@@ -58,6 +58,8 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
         storage.delete("cameraUploadFetchRemoteAssetsTimeout:" + userId)
         storage.delete("cameraUploadRemoteHashes:" + userId)
         storage.delete("cameraUploadLastRemoteAssets:" + userId)
+        storage.delete("loadItemsCache:photos")
+        storage.delete("loadItemsCache:lastResponse:photos")
     }
 }
 

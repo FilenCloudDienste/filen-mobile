@@ -17,6 +17,7 @@ import memoryCache from "../../memoryCache"
 import { isOnline, isWifi } from "../isOnline"
 import pathModule from "path"
 import type { Item, BuildFolder, ItemReceiver } from "../../../types"
+import { MB } from "../../constants"
 
 const isGeneratingThumbnailForItemUUID: any = {}
 const isCheckingThumbnailForItemUUID : any = {}
@@ -45,8 +46,6 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
     }
 
     const folderLastModified = convertTimestampToMs(folder.timestamp)
-
-    console.log(storage.getNumber("folderSizeCache:" + folder.uuid), name)
 
     return {
         id: folder.uuid,
@@ -1315,15 +1314,13 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
 }
 
 export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }: { item: Item, setCurrentActionSheetItem?: boolean, navigation?: any }) => {
-    if(!isOnline()){
-        return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
-    }
-
-    if(item.size >= 134217728){
-        return DeviceEventEmitter.emit("event", {
+    if(item.size >= (MB * 512)){
+        DeviceEventEmitter.emit("event", {
             type: "open-item-actionsheet",
             data: item
         })
+
+        return
     }
 
     const previewType = getFilePreviewType(getFileExt(item.name))
@@ -1335,7 +1332,21 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
             data: item
         })
 
-        return false
+        return
+    }
+
+    let existsOffline = false
+    let offlinePath = ""
+
+    try{
+        offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
+
+        if((await Filesystem.getInfoAsync(toExpoFsPath(offlinePath))).exists){
+            existsOffline = true
+        }
+    }
+    catch(e){
+        //console.log(e)
     }
 
     if(previewType == "image"){
@@ -1345,18 +1356,24 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
                 data: item
             })
     
-            return false
+            return
         }
 
         if(typeof item.thumbnail !== "string"){
-            return false
+            return
+        }
+
+        if(!isOnline() && !existsOffline){
+            showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+
+            return
         }
         
         return setImmediate(() => {
             const currentItems = useStore.getState().currentItems
 
             if(!Array.isArray(currentItems)){
-                return false
+                return
             }
 
             const currentImages: any = []
@@ -1398,20 +1415,6 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
                 })
             }
         })
-    }
-
-    let existsOffline = false
-    let offlinePath = ""
-
-    try{
-        offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
-
-        if((await Filesystem.getInfoAsync(toExpoFsPath(offlinePath))).exists){
-            existsOffline = true
-        }
-    }
-    catch(e){
-        //console.log(e)
     }
 
     const open = (path: string, offlineMode: boolean = false) => {
@@ -1481,11 +1484,21 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
     }
 
     if(existsOffline){
-        return open(offlinePath, true)
+        open(offlinePath, true)
+
+        return
+    }
+
+    if(!isOnline() && !existsOffline){
+        showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+
+        return
     }
 
     if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()){
-        return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+        showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+
+        return
     }
 
     useStore.setState({ fullscreenLoadingModalVisible: true, fullscreenLoadingModalDismissable: true })
@@ -1498,10 +1511,12 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
             if(err){
                 console.log(err)
 
-                return showToast({ message: err.toString() })
+                showToast({ message: err.toString() })
+
+                return
             }
 
-            return open(path)
+            open(path)
         },
         isPreview: true
     }).catch((err) => {
@@ -1510,7 +1525,9 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         }
 
         if(err == "wifiOnly"){
-            return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+            showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+
+            return
         }
 
         console.error(err)

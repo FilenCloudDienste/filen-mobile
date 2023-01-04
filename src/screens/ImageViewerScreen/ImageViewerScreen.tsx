@@ -3,7 +3,7 @@ import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, Im
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
-import { downloadFile } from "../../lib/services/download/download"
+import { downloadFile, getDownloadPath } from "../../lib/services/download/download"
 import { navigationAnimation } from "../../lib/state"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useMountedState } from "react-use"
@@ -12,8 +12,11 @@ import { getImageForItem } from "../../assets/thumbnails"
 import type { NavigationContainerRef } from "@react-navigation/native"
 import type { EdgeInsets } from "react-native-safe-area-context"
 import { showToast } from "../../components/Toasts"
-import { getFileExt, isBetween } from "../../lib/helpers"
+import { getFileExt, isBetween, toExpoFsPath } from "../../lib/helpers"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
+import useIsOnline from "../../lib/hooks/useIsOnline"
+import { getItemOfflinePath } from "../../lib/services/offline"
+import * as FileSystem from "expo-file-system"
 
 const minZoom: number = 0.99999999999
 
@@ -47,8 +50,9 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
     const imageActionsVisible = useRef<boolean>(false)
     const dimensions: ScaledSize = useWindowDimensions()
     const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
+    const isOnline = useIsOnline()
 
-    const loadImage = (image: any, index: number) => {
+    const loadImage = async (image: any, index: number) => {
         if(!isMounted()){
             return false
         }
@@ -86,19 +90,33 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 
         currentImagePreviewDownloads[image.uuid] = true
 
+        try{
+            const offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), image.file)
+    
+            if((await FileSystem.getInfoAsync(toExpoFsPath(offlinePath))).exists && isMounted()){
+                return setImages((prev: any) => ({
+                    ...prev,
+                    [image.uuid]: toExpoFsPath(offlinePath)
+                }))
+            }
+        }
+        catch(e){
+            //console.log(e)
+        }
+
         downloadFile(image.file, false, true).then((path) => {
             delete currentImagePreviewDownloads[image.uuid]
 
             if(!isMounted()){
-                return false
+                return
             }
 
             generateItemThumbnail({
                 item: image.file,
                 skipInViewCheck: true,
-                callback: (err: any, thumbPath: string) => {
+                callback: (err: Error, thumbPath: string) => {
                     if(!isMounted()){
-                        return false
+                        return
                     }
 
                     if(!err && typeof thumbPath == "string"){
@@ -130,7 +148,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         }).catch((err) => {
             delete currentImagePreviewDownloads[image.uuid]
 
-            console.log(err)
+            console.error(err)
 
             return showToast({ message: err.toString() })
         })
@@ -381,6 +399,10 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
     }, [dimensions, images, THUMBNAIL_BASE_PATH, zoomLevel.current, viewRefs, tapCount.current, didNavBack.current, navigation, thumbnailListRef.current, listRef.current, setIsZooming, minZoom])
 
     const renderThumb = useCallback((item: any, index: number) => {
+        if(!isOnline || imagePreviewModalItems.length <= 1){
+            return null
+        }
+
         const image = item
 
         return (
@@ -460,7 +482,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 </TouchableOpacity>
             </View>
         )
-    }, [THUMBNAIL_BASE_PATH, imagePreviewModalItems, setListScrollAgain.current, thumbnailListRef.current, listRef.current, viewRefs, currentIndex])
+    }, [THUMBNAIL_BASE_PATH, imagePreviewModalItems, setListScrollAgain.current, thumbnailListRef.current, listRef.current, viewRefs, currentIndex, isOnline])
 
     return (
         <View
@@ -588,7 +610,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 horizontal={true}
                 bounces={true}
                 getItemLayout={(_, index) => ({ length: dimensions.width, offset: dimensions.width * index, index })}
-                scrollEnabled={!isZooming}
+                scrollEnabled={!isZooming && isOnline}
                 pagingEnabled={true}
                 onViewableItemsChanged={onViewableItemsChangedRef?.current}
                 viewabilityConfig={viewabilityConfigRef?.current}
@@ -607,8 +629,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     backgroundColor: "rgba(0, 0, 0, 1)",
                     paddingTop: 1,
                     opacity: showControls ? 0 : 1,
-                    paddingBottom: insets.bottom,
-                    display: imagePreviewModalItems.length >= 2 ? "flex" : "none"
+                    paddingBottom: insets.bottom
                 }}
             />
             <FlatList
@@ -619,8 +640,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     top: (dimensions.height - insets.bottom - 120),
                     opacity: showControls ? 0 : 1,
                     zIndex: showControls ? 0 : 10000,
-                    backgroundColor: "rgba(0, 0, 0, 1)",
-                    display: imagePreviewModalItems.length >= 2 ? "flex" : "none"
+                    backgroundColor: "rgba(0, 0, 0, 1)"
                 }}
                 ref={thumbnailListRef}
                 data={imagePreviewModalItems}
