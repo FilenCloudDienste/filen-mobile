@@ -1,7 +1,7 @@
 import storage from "../../storage"
 import { queueFileUpload, UploadFile } from "../upload/upload"
 import { Platform } from "react-native"
-import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, decryptFileMetadata, getMasterKeys } from "../../helpers"
+import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, decryptFileMetadata, getMasterKeys, Semaphore, toExpoFsPath } from "../../helpers"
 import { folderPresent, fileExists, apiRequest } from "../../api"
 import BackgroundTimer from "react-native-background-timer"
 import * as MediaLibrary from "expo-media-library"
@@ -12,6 +12,7 @@ import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-lo
 import RNHeicConverter from "react-native-heic-converter"
 import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
 import { isOnline, isWifi } from "../isOnline"
+import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -29,11 +30,12 @@ const MAX_FETCH_TIME: number = 15000
 let isRunning: boolean = false
 let fallbackInterval: NodeJS.Timer | undefined = undefined
 let askedForPermissions: boolean = false
+const addMutex = new Semaphore(1)
 
 export const startCameraUploadFallbackInterval = () => {
     fallbackInterval = setInterval(() => {
         if(!isRunning){
-            runCameraUpload(32, true)
+            runCameraUpload(MAX_CAMERA_UPLOAD_QUEUE, true)
         }
     }, TIMEOUT)
 }
@@ -172,7 +174,7 @@ export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
     })
 }
 
-export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = false): Promise<boolean> => {
+export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE, runOnce: boolean = false): Promise<boolean> => {
     if(isRunning){
         if(runOnce){
             return true
@@ -226,16 +228,14 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
 
         const cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
         const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
-        const cameraUploadUploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
         const cameraUploadLastRemoteAssets = JSON.parse(storage.getString("cameraUploadLastRemoteAssets:" + userId) || "[]")
         const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
         const cameraUploadFetchRemoteAssetsTimeout = storage.getNumber("cameraUploadFetchRemoteAssetsTimeout:" + userId)
+        const assetsLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
         const apiKey = getAPIKey()
         const masterKeys = getMasterKeys()
         const now = new Date().getTime()
         const remoteExtraChecks: any = {}
-
-        storage.set("cameraUploadUploaded", (Object.keys(cameraUploadUploadedIds).length + Object.keys(FAILED).length))
 
         if(!cameraUploadEnabled){
             isRunning = false
@@ -430,33 +430,42 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
             return new Promise((resolve) => {
                 const assetId = getAssetId(asset)
 
-                const add = (fileHash: string = ""): void => {
-                    const uploadedIds = JSON.parse(storage.getString("cameraUploadUploadedIds:" + userId) || "{}")
-    
-                    if(typeof uploadedIds[assetId] == "undefined"){
-                        uploadedIds[assetId] = true
+                const add = async (fileHash: string = "") => {
+                    await addMutex.acquire()
 
-                        storage.set("cameraUploadUploadedIds:" + userId, JSON.stringify(uploadedIds))
-                        storage.set("cameraUploadUploaded", (Object.keys(uploadedIds).length + Object.keys(FAILED).length))
-                    }
+                    try{
+                        storage.set("cameraUploadUploaded", storage.getNumber("cameraUploadUploaded") + 1)
 
-                    if(fileHash.length > 0){
-                        const uploadedHashes = JSON.parse(storage.getString("cameraUploadUploadedHashes:" + userId) || "{}")
-    
-                        if(typeof uploadedHashes[fileHash] == "undefined"){
-                            uploadedHashes[fileHash] = true
+                        if(fileHash.length > 0){
+                            const uploadedHashes = JSON.parse(storage.getString("cameraUploadUploadedHashes:" + userId) || "{}")
+        
+                            if(typeof uploadedHashes[fileHash] == "undefined"){
+                                uploadedHashes[fileHash] = true
 
-                            storage.set("cameraUploadUploadedHashes:" + userId, JSON.stringify(uploadedHashes))
+                                storage.set("cameraUploadUploadedHashes:" + userId, JSON.stringify(uploadedHashes))
+                            }
+
+                            const remote = JSON.parse(storage.getString("cameraUploadRemoteHashes:" + userId) || "{}")
+
+                            if(typeof remote[fileHash] == "undefined"){
+                                remote[fileHash] = true
+
+                                storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify(remote))
+                            }
                         }
 
-                        const remote = JSON.parse(storage.getString("cameraUploadRemoteHashes:" + userId) || "{}")
+                        const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
 
-                        if(typeof remote[fileHash] == "undefined"){
-                            remote[fileHash] = true
+                        cameraUploadLastModified[assetId] = asset.modificationTime
 
-                            storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify(remote))
-                        }
+                        storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
                     }
+                    catch(e){
+                        console.error(e)
+                        log.error(e)
+                    }
+
+                    addMutex.release()
 
                     return resolve(true)
                 }
@@ -466,7 +475,18 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                     parent: cameraUploadFolderUUID
                 }).then((exists) => {
                     if(exists.exists){
-                        return add()
+                        if(typeof assetsLastModified[assetId] !== "undefined"){
+                            if(asset.modificationTime == assetsLastModified[assetId]){
+                                add().catch(console.error)
+        
+                                return
+                            }
+                        }
+                        else{
+                            add().catch(console.error)
+        
+                            return
+                        }
                     }
 
                     const getFile = (): Promise<UploadFile> => {
@@ -574,7 +594,11 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                                 || typeof remoteHashes[hash] !== "undefined"
                                 || typeof remoteExtraChecks[file.lastModified + ":" + file.size] !== "undefined"
                             ){
-                                return add(hash)
+                                add(hash).catch(console.error)
+
+                                FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
+
+                                return
                             }
 
                             queueFileUpload({
@@ -582,9 +606,13 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                                 parent: cameraUploadFolderUUID,
                                 includeFileHash: hash
                             }).then(() => {
-                                return add(hash)
+                                add(hash).catch(console.error)
+
+                                FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
                             }).catch((err) => {
                                 log.error(err)
+
+                                FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
     
                                 return resolve(true)
                             })
@@ -597,6 +625,8 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
                             else{
                                 FAILED[assetId] += 1
                             }
+
+                            FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
 
                             return resolve(true)
                         })
@@ -624,8 +654,7 @@ export const runCameraUpload = async (maxQueue: number = 32, runOnce: boolean = 
             const assetId = getAssetId(assets[i])
 
             if(
-                typeof cameraUploadUploadedIds[assetId] == "undefined"
-                && maxQueue > currentQueue
+                maxQueue > currentQueue
                 && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED
             ){
                 currentQueue += 1

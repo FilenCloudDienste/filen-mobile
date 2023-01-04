@@ -20,7 +20,7 @@ const registerBackgroundFetch = async () => {
 }
 
 TaskManager.defineTask("background-fetch", async () => {
-    const max = new Date().getTime() + 15000
+    const max = new Date().getTime() + 25000
 
     const task = async () => {
         if(new Date().getTime() >= max){
@@ -33,7 +33,7 @@ TaskManager.defineTask("background-fetch", async () => {
             await runCameraUpload(1, true)
         }
         catch(e){
-            console.log(e)
+            console.error(e)
         }
 
         const timeTaken = new Date().getTime() - start
@@ -42,12 +42,12 @@ TaskManager.defineTask("background-fetch", async () => {
             return true
         }
 
-        return task()
+        task().catch(console.error)
+
+        return true
     }
 
-    await task()
-
-    console.log("BG FETCH DONE")
+    await task().catch(console.error)
 
     return BackgroundFetch.BackgroundFetchResult.NewData
 })
@@ -56,6 +56,6 @@ runCameraUpload()
 
 registerBackgroundFetch().then(() => {
     console.log("BG fetch registered")
-}).catch(console.log)
+}).catch(console.error)
 
 AppRegistry.registerComponent(appName, () => App)

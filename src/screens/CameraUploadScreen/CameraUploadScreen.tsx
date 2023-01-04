@@ -235,7 +235,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                         )
                     }
                 </SettingsGroup>
-                <SettingsGroup>
+                {/*<SettingsGroup>
                     <SettingsButtonLinkHighlight
                         title={i18n(lang, "cameraUploadReset")}
                         borderBottomRadius={10}
@@ -264,7 +264,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                                 text: i18n(lang, "ok"),
                                                 onPress: () => {
                                                     try{
-                                                        storage.delete("cameraUploadUploadedIds:" + userId)
                                                         storage.delete("cameraUploadUploadedHashes:" + userId)
                                                         storage.delete("cameraUploadFetchRemoteAssetsTimeout:" + userId)
                                                         storage.delete("cameraUploadRemoteHashes:" + userId)
@@ -289,7 +288,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             })
                         }}
                     />
-                </SettingsGroup>
+                </SettingsGroup>*/}
                 <View
                     style={{
                         height: 25
