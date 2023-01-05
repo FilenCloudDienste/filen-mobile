@@ -233,7 +233,6 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         const cameraUploadLastRemoteAssets = JSON.parse(storage.getString("cameraUploadLastRemoteAssets:" + userId) || "[]")
         const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
         const cameraUploadFetchRemoteAssetsTimeout = storage.getNumber("cameraUploadFetchRemoteAssetsTimeout:" + userId)
-        const assetsLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
         const apiKey = getAPIKey()
         const masterKeys = getMasterKeys()
         const now = new Date().getTime()
@@ -457,12 +456,6 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                                 storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify(remote))
                             }
                         }
-
-                        const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
-
-                        cameraUploadLastModified[assetId] = asset.modificationTime
-
-                        storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
                     }
                     catch(e){
                         console.error(e)
@@ -477,18 +470,9 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                     parent: cameraUploadFolderUUID
                 }).then((exists) => {
                     if(exists.exists){
-                        if(typeof assetsLastModified[assetId] !== "undefined"){
-                            if(asset.modificationTime == assetsLastModified[assetId]){
-                                add().catch(console.error)
+                        add().catch(console.error)
         
-                                return
-                            }
-                        }
-                        else{
-                            add().catch(console.error)
-        
-                            return
-                        }
+                        return
                     }
 
                     const getFile = (): Promise<UploadFile> => {
@@ -546,7 +530,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                                                                 name: newName,
                                                                 mime: mimeTypes.lookup(path) || "",
                                                                 size: stat.size,
-                                                                lastModified: convertTimestampToMs(asset.modificationTime)
+                                                                lastModified: convertTimestampToMs(asset.creationTime)
                                                             })
                                                         }
                                                         else{
@@ -567,7 +551,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                                                         name: asset.filename,
                                                         mime: mimeTypes.lookup(tmp) || "",
                                                         size: stat.size,
-                                                        lastModified: convertTimestampToMs(asset.modificationTime)
+                                                        lastModified: convertTimestampToMs(asset.creationTime)
                                                     })
                                                 }
                                                 else{
@@ -658,18 +642,9 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             const assetId = getAssetId(assets[i])
 
             if(remoteNames[assets[i].filename.toLowerCase()]){
-                if(typeof assetsLastModified[assetId] !== "undefined"){
-                    if(assets[i].modificationTime == assetsLastModified[assetId]){
-                        storage.set("cameraUploadUploaded", storage.getNumber("cameraUploadUploaded") + 1)
+                storage.set("cameraUploadUploaded", storage.getNumber("cameraUploadUploaded") + 1)
 
-                        continue
-                    }
-                }
-                else{
-                    storage.set("cameraUploadUploaded", storage.getNumber("cameraUploadUploaded") + 1)
-
-                    continue
-                }
+                continue
             }
 
             if(

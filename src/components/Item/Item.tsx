@@ -11,6 +11,7 @@ import { fetchFolderSize } from "../../lib/api"
 import storage from "../../lib/storage"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import FastImage from "react-native-fast-image"
+import { isOnline } from "../../lib/services/isOnline"
 
 export interface ItemBaseProps {
     item: Item,
@@ -36,7 +37,7 @@ export interface ListItemProps extends ItemBaseProps {
 
 export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
     useEffect(() => {
-        if(item.type == "folder"){
+        if(item.type == "folder" && isOnline()){
             fetchFolderSize({ folder: item, routeURL: getRouteURL(route) }).then((fetchedSize) => {
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
 
@@ -245,7 +246,7 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
     }, [dimensions, insets])
 
     useEffect(() => {
-        if(item.type == "folder"){
+        if(item.type == "folder" && isOnline()){
             fetchFolderSize({ folder: item, routeURL: getRouteURL(route) }).then((fetchedSize) => {
                 storage.set("folderSizeCache:" + item.uuid, fetchedSize)
 
