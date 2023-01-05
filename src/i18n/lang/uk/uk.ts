@@ -406,5 +406,6 @@ export const uk: {
     thirtyMinutes: "30 хвилин",
     oneHour: "1 годину",
     saveLogs: "Зберегти журнал",
-    cameraUploadAfterEnabled: "Завантажувати тільки нові медіафайли"
+    cameraUploadAfterEnabled: "Завантажувати тільки нові медіафайли",
+    keepAppAwake: "Не вимикати екран"
 }
