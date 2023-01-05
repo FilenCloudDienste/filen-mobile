@@ -1,7 +1,7 @@
 import storage from "../../storage"
 import { queueFileUpload, UploadFile } from "../upload/upload"
-import { Platform } from "react-native"
-import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, decryptFileMetadata, getMasterKeys, Semaphore, toExpoFsPath } from "../../helpers"
+import { Platform, InteractionManager } from "react-native"
+import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, decryptFileMetadata, getMasterKeys, toExpoFsPath } from "../../helpers"
 import { folderPresent, fileExists, apiRequest } from "../../api"
 import BackgroundTimer from "react-native-background-timer"
 import * as MediaLibrary from "expo-media-library"
@@ -13,6 +13,7 @@ import RNHeicConverter from "react-native-heic-converter"
 import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
 import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
+import { memoize } from "lodash"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -30,7 +31,6 @@ const MAX_FETCH_TIME: number = 15000
 let isRunning: boolean = false
 let fallbackInterval: NodeJS.Timer | undefined = undefined
 let askedForPermissions: boolean = false
-const addMutex = new Semaphore(1)
 
 export const startCameraUploadFallbackInterval = () => {
     fallbackInterval = setInterval(() => {
@@ -63,116 +63,118 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
     }
 }
 
-export const convertPhAssetToAssetsLibrary = (localId: string, ext: string): string => {
+export const convertPhAssetToAssetsLibrary = memoize((localId: string, ext: string): string => {
     const hash = localId.split("/")[0]
 
     return "assets-library://asset/asset." + ext + "?id=" + hash + "&ext=" + ext
-}
+}, (localId: string, ext: string) => localId + ":" + ext)
 
-export const getAssetId = (asset: MediaLibrary.Asset): string => {
+export const getAssetId = memoize((asset: MediaLibrary.Asset): string => {
     return asset.uri.indexOf("ph://") !== -1 && ["photo", "video"].includes(asset.mediaType) ? convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), asset.mediaType == "photo" ? "jpg" : "mov") : asset.uri
-}
+}, (asset: MediaLibrary.Asset) => asset.uri + ":" + asset.mediaType)
 
 export const fetchAssets = (): Promise<MediaLibrary.Asset[]> => {
-    return new Promise(async (resolve, reject) => {
-        const assets: MediaLibrary.Asset[] = []
-        const userId: number = storage.getNumber("userId")
-        const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
-        const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
-        const cameraUploadLastAssetsCached = storage.getString("cameraUploadLastAssets:" + userId)
-        const cameraUploadLastAssetCached = storage.getString("cameraUploadLastAsset:" + userId)
-        const cameraUploadAssetFetchTimeout: number = storage.getNumber("cameraUploadAssetFetchTimeout:" + userId)
-        let cameraUploadExcludedAlbums: any = storage.getString("cameraUploadExcludedAlbums:" + userId)
-        let assetTypes: MediaLibrary.MediaTypeValue[] = ["photo", "video"]
-        const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
+    return new Promise((resolve, reject) => {
+        InteractionManager.runAfterInteractions(async () => {
+            const assets: MediaLibrary.Asset[] = []
+            const userId: number = storage.getNumber("userId")
+            const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
+            const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
+            const cameraUploadLastAssetsCached = storage.getString("cameraUploadLastAssets:" + userId)
+            const cameraUploadLastAssetCached = storage.getString("cameraUploadLastAsset:" + userId)
+            const cameraUploadAssetFetchTimeout: number = storage.getNumber("cameraUploadAssetFetchTimeout:" + userId)
+            let cameraUploadExcludedAlbums: any = storage.getString("cameraUploadExcludedAlbums:" + userId)
+            let assetTypes: MediaLibrary.MediaTypeValue[] = ["photo", "video"]
+            const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
 
-        if(cameraUploadIncludeImages && !cameraUploadIncludeVideos){
-            assetTypes = ["photo"]
-        }
+            if(cameraUploadIncludeImages && !cameraUploadIncludeVideos){
+                assetTypes = ["photo"]
+            }
 
-        if(!cameraUploadIncludeImages && cameraUploadIncludeVideos){
-            assetTypes = ["video"]
-        }
+            if(!cameraUploadIncludeImages && cameraUploadIncludeVideos){
+                assetTypes = ["video"]
+            }
 
-        if(cameraUploadIncludeImages && cameraUploadIncludeVideos){
-            assetTypes = ["photo", "video"]
-        }
+            if(cameraUploadIncludeImages && cameraUploadIncludeVideos){
+                assetTypes = ["photo", "video"]
+            }
 
-        if(userId == 0){
-            assetTypes = ["photo"]
-        }
+            if(userId == 0){
+                assetTypes = ["photo"]
+            }
 
-        if(typeof cameraUploadExcludedAlbums == "string"){
-            try{
-                cameraUploadExcludedAlbums = JSON.parse(cameraUploadExcludedAlbums)
+            if(typeof cameraUploadExcludedAlbums == "string"){
+                try{
+                    cameraUploadExcludedAlbums = JSON.parse(cameraUploadExcludedAlbums)
 
-                if(typeof cameraUploadExcludedAlbums !== "object"){
+                    if(typeof cameraUploadExcludedAlbums !== "object"){
+                        cameraUploadExcludedAlbums = {}
+                    }
+                }
+                catch(e){
+                    log.error(e)
+
                     cameraUploadExcludedAlbums = {}
                 }
             }
-            catch(e){
-                log.error(e)
-
+            else{
                 cameraUploadExcludedAlbums = {}
             }
-        }
-        else{
-            cameraUploadExcludedAlbums = {}
-        }
 
-        if(typeof cameraUploadLastAssetsCached == "string" && typeof cameraUploadLastAssetCached == "string" && (new Date().getTime() < cameraUploadAssetFetchTimeout)){
-            try{
-                const cached: MediaLibrary.Asset[] = JSON.parse(cameraUploadLastAssetsCached)
-                const lastCached: MediaLibrary.Asset = JSON.parse(cameraUploadLastAssetCached)
-                const cachedTotal = cached.length
-                const current = await new Promise<{ total: number, last: MediaLibrary.Asset }>((resolve, reject) => {
-                    MediaLibrary.getAssetsAsync({
-                        first: 1,
-                        mediaType: ["photo", "video"],
-                        sortBy: MediaLibrary.SortBy.modificationTime
-                    }).then((fetched) => {
-                        return resolve({
-                            total: fetched.totalCount,
-                            last: fetched.assets[0]
-                        })
-                    }).catch(reject)
-                })
+            if(typeof cameraUploadLastAssetsCached == "string" && typeof cameraUploadLastAssetCached == "string" && (new Date().getTime() < cameraUploadAssetFetchTimeout)){
+                try{
+                    const cached: MediaLibrary.Asset[] = JSON.parse(cameraUploadLastAssetsCached)
+                    const lastCached: MediaLibrary.Asset = JSON.parse(cameraUploadLastAssetCached)
+                    const cachedTotal = cached.length
+                    const current = await new Promise<{ total: number, last: MediaLibrary.Asset }>((resolve, reject) => {
+                        MediaLibrary.getAssetsAsync({
+                            first: 1,
+                            mediaType: ["photo", "video"],
+                            sortBy: MediaLibrary.SortBy.creationTime
+                        }).then((fetched) => {
+                            return resolve({
+                                total: fetched.totalCount,
+                                last: fetched.assets[0]
+                            })
+                        }).catch(reject)
+                    })
 
-                if(cachedTotal == current.total && current.last.id == lastCached.id){
-                    return resolve(cached.sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.modificationTime >= cameraUploadAfterEnabledTime))
+                    if(cachedTotal == current.total && current.last.id == lastCached.id){
+                        return resolve(cached.sort((a, b) => a.creationTime - b.creationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.creationTime >= cameraUploadAfterEnabledTime))
+                    }
+                }
+                catch(e){
+                    return reject(e)
                 }
             }
-            catch(e){
-                return reject(e)
+
+            const fetch = (after: MediaLibrary.AssetRef | undefined) => {
+                MediaLibrary.getAssetsAsync({
+                    ...(typeof after !== "undefined" ? { after } : {}),
+                    first: 256,
+                    mediaType: ["photo", "video"],
+                    sortBy: MediaLibrary.SortBy.creationTime
+                }).then((fetched) => {
+                    for(let i = 0; i < fetched.assets.length; i++){
+                        assets.push(fetched.assets[i])
+                    }
+
+                    if(fetched.hasNextPage){
+                        return fetch(fetched.endCursor)
+                    }
+
+                    const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.creationTime - b.creationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.creationTime >= cameraUploadAfterEnabledTime)
+
+                    storage.set("cameraUploadLastAssets:" + userId, JSON.stringify(sorted))
+                    storage.set("cameraUploadLastAsset:" + userId, JSON.stringify(sorted[sorted.length - 1]))
+                    storage.set("cameraUploadAssetFetchTimeout:" + userId, (new Date().getTime() + 300000))
+
+                    return resolve(sorted)
+                }).catch(reject)
             }
-        }
 
-        const fetch = (after: MediaLibrary.AssetRef | undefined) => {
-            MediaLibrary.getAssetsAsync({
-                ...(typeof after !== "undefined" ? { after } : {}),
-                first: 256,
-                mediaType: ["photo", "video"],
-                sortBy: MediaLibrary.SortBy.modificationTime
-            }).then((fetched) => {
-                for(let i = 0; i < fetched.assets.length; i++){
-                    assets.push(fetched.assets[i])
-                }
-
-                if(fetched.hasNextPage){
-                    return fetch(fetched.endCursor)
-                }
-
-                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.modificationTime - b.modificationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.modificationTime >= cameraUploadAfterEnabledTime)
-
-                storage.set("cameraUploadLastAssets:" + userId, JSON.stringify(sorted))
-                storage.set("cameraUploadLastAsset:" + userId, JSON.stringify(sorted[sorted.length - 1]))
-                storage.set("cameraUploadAssetFetchTimeout:" + userId, (new Date().getTime() + 300000))
-
-                return resolve(sorted)
-            }).catch(reject)
-        }
-
-        return fetch(undefined)
+            return fetch(undefined)
+        })
     })
 }
 
@@ -236,7 +238,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         const apiKey = getAPIKey()
         const masterKeys = getMasterKeys()
         const now = new Date().getTime()
-        const remoteExtraChecks: any = {}
+        const lastProcessed = storage.getString("cameraUploadLastProcessed:" + userId)
 
         if(!cameraUploadEnabled){
             isRunning = false
@@ -333,6 +335,52 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             return true
         }
 
+        let assets = await fetchAssets()
+
+        storage.set("cameraUploadTotal", assets.length)
+
+        if(assets.length == 0){
+            isRunning = false
+
+            if(runOnce){
+                return true
+            }
+
+            BackgroundTimer.setTimeout(() => {
+                runCameraUpload(maxQueue)
+            }, TIMEOUT)
+
+            return true
+        }
+
+        if(typeof lastProcessed !== "undefined"){
+            const lastProcessedParsed = JSON.parse(lastProcessed) as { count: number, first: MediaLibrary.Asset, last: MediaLibrary.Asset }
+
+            if(
+                lastProcessedParsed.count == assets.length
+                && lastProcessedParsed.first.id == assets[0].id
+                && lastProcessedParsed.last.id == assets[assets.length - 1].id
+            ){
+                storage.set("cameraUploadUploaded", assets.length)
+
+                isRunning = false
+
+                if(runOnce){
+                    return true
+                }
+
+                BackgroundTimer.setTimeout(() => {
+                    runCameraUpload(maxQueue)
+                }, TIMEOUT)
+
+                return true
+            }
+        }
+
+        if(runOnce){ // Limit BG uploads to photos since videos can take longer to upload (terminating the BG fetch process)
+            assets = assets.filter(asset => asset.mediaType == "photo")
+        }
+
         if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
             isRunning = false
 
@@ -373,8 +421,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                                 remoteHashes[decrypted.hash] = true
                             }
                         }
-        
-                        remoteExtraChecks[decrypted.lastModified + ":" + decrypted.size] = true
+
                         remoteNames[decrypted.name.toLowerCase()] = true
                     }
                 }
@@ -388,7 +435,6 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             remoteHashes = JSON.parse(storage.getString("cameraUploadRemoteHashes:" + userId) || "{}")
 
             for(let i = 0; i < cameraUploadLastRemoteAssets.length; i++){
-                remoteExtraChecks[cameraUploadLastRemoteAssets[i].metadata.lastModified + ":" + cameraUploadLastRemoteAssets[i].metadata.size] = true
                 remoteNames[cameraUploadLastRemoteAssets[i].metadata.name.toLowerCase()] = true
             }
         }
@@ -399,37 +445,10 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             return true
         }
 
-        let assets = await fetchAssets()
-
-        storage.set("cameraUploadTotal", assets.length)
-
-        if(assets.length == 0){
-            isRunning = false
-
-            if(runOnce){
-                return true
-            }
-
-            BackgroundTimer.setTimeout(() => {
-                runCameraUpload(maxQueue)
-            }, TIMEOUT)
-
-            return true
-        }
-
-        if(runOnce){ // Limit BG uploads to photos since videos can take longer to upload (terminating the BG fetch process)
-            assets = assets.filter(asset => asset.mediaType == "photo")
-        }
-
-        if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
-            isRunning = false
-
-            return true
-        }
-
         let currentQueue = 0
-        const uploads = []
+        const uploads: Promise<boolean>[] = []
         let uploadedThisRun = 0
+        let addedThisRun = 0
 
         const upload = (asset: MediaLibrary.Asset): Promise<boolean> => {
             return new Promise((resolve) => {
@@ -461,6 +480,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                         console.error(e)
                         log.error(e)
                     }
+
+                    addedThisRun += 1
 
                     return resolve(true)
                 }
@@ -578,7 +599,6 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                             if(
                                 typeof uploadedHashes[hash] !== "undefined"
                                 || typeof remoteHashes[hash] !== "undefined"
-                                || typeof remoteExtraChecks[file.lastModified + ":" + file.size] !== "undefined"
                             ){
                                 add(hash).catch(console.error)
 
@@ -638,28 +658,43 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             })
         }
 
-        for(let i = 0; i < assets.length; i++){
-            const assetId = getAssetId(assets[i])
+        let uploadedCount = 0
 
-            if(remoteNames[assets[i].filename.toLowerCase()]){
-                storage.set("cameraUploadUploaded", storage.getNumber("cameraUploadUploaded") + 1)
+        await new Promise((resolve) => {
+            InteractionManager.runAfterInteractions(() => {
+                for(let i = 0; i < assets.length; i++){
+                    const assetId = getAssetId(assets[i])
+        
+                    if(remoteNames[assets[i].filename.toLowerCase()]){
+                        uploadedCount += 1
+        
+                        continue
+                    }
+        
+                    if(
+                        maxQueue > currentQueue
+                        && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED
+                    ){
+                        currentQueue += 1
+        
+                        uploads.push(upload(assets[i]))
+                    }
+                }
 
-                continue
-            }
-
-            if(
-                maxQueue > currentQueue
-                && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED
-            ){
-                currentQueue += 1
-
-                uploads.push(upload(assets[i]))
-            }
-        }
+                return resolve(true)
+            })
+        })
 
         if(uploads.length > 0){
             await promiseAllSettled(uploads)
         }
+
+        storage.set("cameraUploadUploaded", (uploadedCount + addedThisRun))
+        storage.set("cameraUploadLastProcessed:" + userId, JSON.stringify({
+            count: assets.length,
+            first: assets[0],
+            last: assets[assets.length - 1]
+        }))
 
         isRunning = false
 
