@@ -353,6 +353,7 @@ export const App = Sentry.wrap(memo(() => {
         storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, (new Date().getTime() - 5000))
         storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify({}))
         storage.set("cameraUploadUploadedHashes:" + userId, JSON.stringify({}))
+        storage.set("cameraUploadUploadedIds", JSON.stringify({}))
 
         return () => {
             shareMenuListener.remove()

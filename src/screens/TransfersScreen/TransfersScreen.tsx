@@ -253,7 +253,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
                     >
                         <Bar
                             animated={true}
-                            indeterminate={isPaused}
+                            indeterminate={isPaused || (progress <= 0 || progress >= 0.99)}
                             progress={progress}
                             color={getColor(darkMode, "green")}
                             width={containerWidth - 67}
@@ -418,7 +418,7 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
             >
                 <DefaultTopBar
                     onPressBack={() => navigation.goBack()}
-                    leftText={i18n(lang, "settings")}
+                    leftText={i18n(lang, "back")}
                     middleText={i18n(lang, "transfers")}
                     rightComponent={
                         <TouchableOpacity

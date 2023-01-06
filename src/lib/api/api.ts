@@ -19,7 +19,6 @@ import { DeviceEventEmitter, Platform } from "react-native"
 import { updateLoadItemsCache, removeLoadItemsCache, emptyTrashLoadItemsCache, clearLoadItemsCacheLastResponse } from "../services/items"
 import { logout } from "../services/auth/logout"
 import { useStore } from "../state"
-import BackgroundTimer from "react-native-background-timer"
 import DeviceInfo from "react-native-device-info"
 import { isOnline } from "../services/isOnline"
 import type { Item } from "../../types"
@@ -127,7 +126,7 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
 
                     console.log(err)
     
-                    return BackgroundTimer.setTimeout(request, retryTimeout)
+                    return setTimeout(request, retryTimeout)
                 })
             })
         }

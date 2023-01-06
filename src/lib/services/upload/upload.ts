@@ -9,7 +9,6 @@ import { getThumbnailCacheKey, buildFile } from "../items"
 import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "../../memoryCache"
-import BackgroundTimer from "react-native-background-timer"
 import * as FileSystem from "expo-file-system"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import { isOnline, isWifi } from "../isOnline"
@@ -95,11 +94,11 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
         item.chunks = fileChunks
         item.name = name
 
-        const stopInterval = BackgroundTimer.setInterval(() => {
+        const stopInterval = setInterval(() => {
             if(stopped && !didStop){
                 didStop = true
 
-                BackgroundTimer.clearInterval(stopInterval)
+                clearInterval(stopInterval)
 
                 return true
             }
@@ -143,7 +142,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
         catch(e){
             log.error(e)
 
-            BackgroundTimer.clearInterval(stopInterval)
+            clearInterval(stopInterval)
 
             return reject(e)
         }
@@ -180,7 +179,8 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             pauseListener.remove()
             resumeListener.remove()
             stopListener.remove()
-            BackgroundTimer.clearInterval(stopInterval)
+
+            clearInterval(stopInterval)
         }
 
         let err = undefined
@@ -189,9 +189,9 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             return new Promise(async (resolve, reject) => {
                 if(paused){
                     await new Promise((resolve) => {
-                        const wait = BackgroundTimer.setInterval(() => {
+                        const wait = setInterval(() => {
                             if(!paused || stopped){
-                                BackgroundTimer.clearInterval(wait)
+                                clearInterval(wait)
 
                                 return resolve(true)
                             }

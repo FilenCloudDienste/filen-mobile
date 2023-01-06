@@ -149,10 +149,9 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
                             storage.set("cameraUploadFolderUUID:" + userId, parent)
                             storage.set("cameraUploadFolderName:" + userId, folderName)
                             storage.set("cameraUploadUploaded", 0)
-                            storage.set("cameraUploadLastRemoteAssets:" + userId, JSON.stringify({}))
-                            storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, (new Date().getTime() - 5000))
-                            storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify({}))
-                            storage.set("cameraUploadUploadedHashes:" + userId, JSON.stringify({}))
+                            storage.set("cameraUploadTotal", 0)
+                            storage.delete("loadItemsCache:photos")
+                            storage.delete("loadItemsCache:lastResponse:photos")
                         }
                         catch(e){
                             console.log(e)

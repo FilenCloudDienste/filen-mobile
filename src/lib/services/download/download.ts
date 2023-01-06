@@ -5,7 +5,6 @@ import { useStore } from "../../state"
 import { i18n } from "../../../i18n"
 import storage from "../../storage"
 import { showToast } from "../../../components/Toasts"
-import BackgroundTimer from "react-native-background-timer"
 import { addItemToOfflineList } from "../offline"
 import { getItemOfflinePath } from "../offline"
 import DeviceInfo from "react-native-device-info"
@@ -507,7 +506,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
                     await clearCacheDirectories()
     
-                    await new Promise((resolve) => BackgroundTimer.setTimeout(() => resolve(true), 5000))
+                    await new Promise((resolve) => setTimeout(() => resolve(true), 5000))
     
                     if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
                         return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
@@ -531,11 +530,11 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
             let paused = false
             let stopped = false
     
-            const stopInterval = BackgroundTimer.setInterval(() => {
+            const stopInterval = setInterval(() => {
                 if(stopped && !didStop){
                     didStop = true
     
-                    BackgroundTimer.clearInterval(stopInterval)
+                    clearInterval(stopInterval)
                 }
             }, 250)
 
@@ -558,7 +557,8 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
             })
 
             const cleanup = () => {
-                BackgroundTimer.clearInterval(stopInterval)
+                clearInterval(stopInterval)
+
                 stopListener.remove()
                 pauseListener.remove()
                 resumeListener.remove()
@@ -568,9 +568,9 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 return new Promise(async (resolve, reject) => {
                     if(paused){
                         await new Promise((resolve) => {
-                            const wait = BackgroundTimer.setInterval(() => {
+                            const wait = setInterval(() => {
                                 if(!paused || stopped){
-                                    BackgroundTimer.clearInterval(wait)
+                                    clearInterval(wait)
         
                                     return resolve(true)
                                 }
@@ -603,7 +603,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
     
             const write = (index: number, path: string) => {
                 if(index !== currentWriteIndex){
-                    return BackgroundTimer.setTimeout(() => {
+                    return setTimeout(() => {
                         write(index, path)
                     }, 25)
                 }
@@ -670,7 +670,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                         return resolve(true)
                     }
     
-                    const wait = BackgroundTimer.setInterval(() => {
+                    const wait = setInterval(() => {
                         if(currentWriteIndex >= file.chunks){
                             clearInterval(wait)
     

@@ -4,7 +4,7 @@ import { useStore } from "../state"
 import { i18n } from "../../i18n"
 import { memoize, values } from "lodash"
 import type { NavigationContainerRefWithCurrent } from "@react-navigation/native"
-import BackgroundTimer from "react-native-background-timer"
+import * as MediaLibrary from "expo-media-library"
 
 export const getAPIServer = (): string => {
     const servers = [
@@ -1545,10 +1545,10 @@ export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<Reac
             }
         }
 
-        const wait = BackgroundTimer.setInterval(() => {
+        const wait = setInterval(() => {
             if(typeof navigationRef !== "undefined" && typeof navigationRef.isReady == "function"){
                 if(navigationRef.isReady()){
-                    BackgroundTimer.clearInterval(wait)
+                    clearInterval(wait)
 
                     return resolve(true)
                 }
@@ -1568,3 +1568,13 @@ export const toExpoFsPath = memoize((path: string) => {
 export const toBlobUtilFsPath = memoize((path: string) => {
     return path.split("file://").join("").split("file:/").join("").split("file:").join("")
 })
+
+export const convertPhAssetToAssetsLibrary = memoize((localId: string, ext: string): string => {
+    const hash = localId.split("/")[0]
+
+    return "assets-library://asset/asset." + ext + "?id=" + hash + "&ext=" + ext
+}, (localId: string, ext: string) => localId + ":" + ext)
+
+export const getAssetId = memoize((asset: MediaLibrary.Asset): string => {
+    return asset.uri.indexOf("ph://") !== -1 && ["photo", "video"].includes(asset.mediaType) ? convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), asset.mediaType == "photo" ? "jpg" : "mov") : asset.uri
+}, (asset: MediaLibrary.Asset) => asset.uri + ":" + asset.mediaType)

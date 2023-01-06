@@ -52,10 +52,8 @@ TaskManager.defineTask("background-fetch", async () => {
     return BackgroundFetch.BackgroundFetchResult.NewData
 })
 
-runCameraUpload()
+setTimeout(() => runCameraUpload(), 5000)
 
-registerBackgroundFetch().then(() => {
-    console.log("BG fetch registered")
-}).catch(console.error)
+registerBackgroundFetch().then(() => console.log("BG fetch registered")).catch(console.error)
 
 AppRegistry.registerComponent(appName, () => App)
