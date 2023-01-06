@@ -13,11 +13,7 @@ import { ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import type { Item } from "../../../types"
 
-export interface FileVersionsActionSheetProps {
-	navigation: any
-}
-
-const FileVersionsActionSheet = memo(({ navigation }: FileVersionsActionSheetProps) => {
+const FileVersionsActionSheet = memo(() => {
     const darkMode = useDarkMode()
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
@@ -47,6 +43,59 @@ const FileVersionsActionSheet = memo(({ navigation }: FileVersionsActionSheetPro
             })
         }
 	}, [])
+
+	const deleteItem = useCallback(async (item: any) => {
+		await SheetManager.hide("FileVersionsActionSheet")
+
+		decryptFileMetadata(getMasterKeys(), item.metadata, item.uuid).then((decrypted) => {
+			item.name = decrypted.name
+			item.size = decrypted.size
+			item.mime = decrypted.mime
+			item.key = decrypted.key
+			item.lastModified = decrypted.lastModified
+			item.type = "file"
+
+			DeviceEventEmitter.emit("openConfirmPermanentDeleteDialog", item)
+		}).catch((err) => {
+			console.error(err)
+
+			showToast({ message: err.toString() })
+		})
+	}, [currentItem])
+
+	const restoreItem = useCallback((item: any) => {
+		if(typeof currentItem == "undefined"){
+			return
+		}
+
+		if(item.uuid !== currentItem.uuid){
+			setButtonsDisabled(true)
+			setIsLoading(true)
+
+			const oldUUID = currentItem.uuid
+
+			restoreArchivedFile({ uuid: item.uuid, currentUUID: currentItem.uuid }).then(() => {
+				currentItem.uuid = item.uuid
+
+				DeviceEventEmitter.emit("event", {
+					type: "change-whole-item",
+					data: {
+						item: currentItem,
+						uuid: oldUUID
+					}
+				})
+
+				fetchVersions()
+			}).catch((err) => {
+				console.error(err)
+
+				setButtonsDisabled(false)
+				setIsLoading(false)
+
+				showToast({ message: err.toString() })
+			})
+		}
+	}, [currentItem])
 
 	useEffect(() => {
 		const openFileVersionsActionSheetListener = (item: Item) => {
@@ -163,24 +212,7 @@ const FileVersionsActionSheet = memo(({ navigation }: FileVersionsActionSheetPro
 																	}}
 																>
 																	<TouchableOpacity
-																		onPress={async () => {
-																			await SheetManager.hide("FileVersionsActionSheet")
-
-																			decryptFileMetadata(getMasterKeys(), item.metadata, item.uuid).then((decrypted) => {
-																				item.name = decrypted.name
-																				item.size = decrypted.size
-																				item.mime = decrypted.mime
-																				item.key = decrypted.key
-																				item.lastModified = decrypted.lastModified
-																				item.type = "file"
-
-																				DeviceEventEmitter.emit("openConfirmPermanentDeleteDialog", item)
-																			}).catch((err) => {
-																				console.log(err)
-
-																				showToast({ message: err.toString() })
-																			})
-																		}}
+																		onPress={() => deleteItem(item)}
 																	>
 																		<Text
 																			style={{
@@ -192,7 +224,7 @@ const FileVersionsActionSheet = memo(({ navigation }: FileVersionsActionSheetPro
 																			{i18n(lang, "delete")}
 																		</Text>
 																	</TouchableOpacity>
-																	<TouchableOpacity
+																	{/*<TouchableOpacity
 																		style={{
 																			marginLeft: 15
 																		}}
@@ -223,40 +255,12 @@ const FileVersionsActionSheet = memo(({ navigation }: FileVersionsActionSheetPro
 																		>
 																			{i18n(lang, "preview")}
 																		</Text>
-																	</TouchableOpacity>
+																	</TouchableOpacity>*/}
 																	<TouchableOpacity
 																		style={{
 																			marginLeft: 15
 																		}}
-																		onPress={() => {
-																			if(item.uuid !== currentItem.uuid){
-																				setButtonsDisabled(true)
-																				setIsLoading(true)
-
-																				const oldUUID = currentItem.uuid
-
-																				restoreArchivedFile({ uuid: item.uuid, currentUUID: currentItem.uuid }).then(() => {
-																					currentItem.uuid = item.uuid
-
-																					DeviceEventEmitter.emit("event", {
-																						type: "change-whole-item",
-																						data: {
-																							item: currentItem,
-																							uuid: oldUUID
-																						}
-																					})
-
-																					fetchVersions()
-																				}).catch((err) => {
-																					console.log(err)
-
-																					setButtonsDisabled(false)
-																					setIsLoading(false)
-
-																					showToast({ message: err.toString() })
-																				})
-																			}
-																		}}
+																		onPress={() => restoreItem(item)}
 																	>
 																		<Text
 																			style={{
