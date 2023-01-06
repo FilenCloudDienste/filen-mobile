@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo } from "react"
+import React, { useEffect, useState, memo, useCallback } from "react"
 import { View, DeviceEventEmitter, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
@@ -20,6 +20,49 @@ const FolderColorActionSheet = memo(() => {
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
 	const availableFolderColors = getAvailableFolderColors()
+
+	const changeColor = useCallback(async (color: string) => {
+		if(typeof currentItem == "undefined"){
+			return
+		}
+
+		if(buttonsDisabled){
+			return
+		}
+
+		setButtonsDisabled(true)
+
+		await SheetManager.hide("FolderColorActionSheet")
+
+		useStore.setState({ fullscreenLoadingModalVisible: true })
+
+		changeFolderColor({
+			folder: currentItem,
+			color
+		}).then(async () => {
+			DeviceEventEmitter.emit("event", {
+				type: "change-folder-color",
+				data: {
+					uuid: currentItem.uuid,
+					color
+				}
+			})
+
+			setButtonsDisabled(false)
+
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+
+			showToast({ message: i18n(lang, "folderColorChanged", true, ["__NAME__", "__COLOR__"], [currentItem.name, i18n(lang, "color_" + color)]) })
+		}).catch((err) => {
+			console.error(err)
+
+			setButtonsDisabled(false)
+
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+
+			showToast({ message: err.toString() })
+		})
+	}, [buttonsDisabled, currentItem])
 
 	useEffect(() => {
 		const openFolderColorActionSheetListener = (item: Item) => {
@@ -73,44 +116,7 @@ const FolderColorActionSheet = memo(() => {
 						return (
 							<ActionButton
 								key={prop}
-								onPress={async () => {
-									if(buttonsDisabled){
-										return false
-									}
-
-									setButtonsDisabled(true)
-
-									await SheetManager.hide("FolderColorActionSheet")
-
-									useStore.setState({ fullscreenLoadingModalVisible: true })
-				
-									changeFolderColor({
-										folder: currentItem,
-										color: prop
-									}).then(async () => {
-										DeviceEventEmitter.emit("event", {
-											type: "change-folder-color",
-											data: {
-												uuid: currentItem.uuid,
-												color: prop
-											}
-										})
-
-										setButtonsDisabled(false)
-
-										useStore.setState({ fullscreenLoadingModalVisible: false })
-
-										showToast({ message: i18n(lang, "folderColorChanged", true, ["__NAME__", "__COLOR__"], [currentItem.name, i18n(lang, "color_" + prop)]) })
-									}).catch((err) => {
-										console.log(err)
-
-										setButtonsDisabled(false)
-
-										useStore.setState({ fullscreenLoadingModalVisible: false })
-
-										showToast({ message: err.toString() })
-									})
-								}}
+								onPress={() => changeColor(prop)}
 								color={Platform.OS == "ios" && prop == "default" ? availableFolderColors['default_ios'] as string : availableFolderColors[prop] as string}
 								text={i18n(lang, "color_" + prop)}
 							/>

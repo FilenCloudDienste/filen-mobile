@@ -34,7 +34,7 @@ const FileVersionsActionSheet = memo(() => {
                 setButtonsDisabled(false)
 				setIsLoading(false)
             }).catch((err) => {
-                console.log(err)
+                console.error(err)
 
 				setButtonsDisabled(false)
 				setIsLoading(false)

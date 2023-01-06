@@ -8,10 +8,11 @@ export interface DefaultTopBarProps {
     onPressBack: Function,
     leftText: string,
     middleText: string,
-    rightComponent?: React.ReactNode | undefined
+    rightComponent?: React.ReactNode | undefined,
+    height?: number
 }
 
-const DefaultTopBar = memo(({ onPressBack, leftText, middleText, rightComponent }: DefaultTopBarProps) => {
+const DefaultTopBar = memo(({ onPressBack, leftText, middleText, rightComponent, height }: DefaultTopBarProps) => {
     const darkMode = useDarkMode()
 
     return (
@@ -19,7 +20,8 @@ const DefaultTopBar = memo(({ onPressBack, leftText, middleText, rightComponent 
             style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                alignItems: "center"
+                alignItems: "center",
+                height: typeof height !== "undefined" ? height : undefined
             }}
         >
             <TouchableOpacity

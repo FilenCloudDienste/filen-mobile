@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, memo } from "react"
-import { View, TouchableOpacity, TextInput, KeyboardAvoidingView, Keyboard, Alert, ScaledSize, useWindowDimensions } from "react-native"
+import React, { useState, useEffect, memo, useCallback } from "react"
+import { View, TouchableOpacity, Alert, useWindowDimensions, Platform } from "react-native"
 import useLang from "../../lib/hooks/useLang"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
@@ -9,12 +9,73 @@ import { getDownloadPath } from "../../lib/services/download/download"
 import { queueFileUpload } from "../../lib/services/upload/upload"
 import { useStore } from "../../lib/state"
 import { getColor } from "../../style/colors"
-import { getParent } from "../../lib/helpers"
+import { getParent, getFileExt } from "../../lib/helpers"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
+import CodeEditor, { CodeEditorSyntaxStyles } from "@rivascva/react-native-code-editor"
+import type { NavigationContainerRef } from "@react-navigation/native"
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
+import { useKeyboard } from "@react-native-community/hooks"
+import { useMountedState } from "react-use"
+
+export const getLanguageOfFile = (name: string) => {
+    const ext: string = getFileExt(name)
+
+    switch(ext){
+        case "json":
+            return "json"
+        break
+        case "xml":
+            return "xml"
+        break
+        case "rs":
+            return "rust"
+        break
+        case "py":
+            return "python"
+        break
+        case "css":
+            return "css"
+        break
+        case "cpp":
+            return "cpp"
+        break
+        case "md":
+            return "markdown"
+        break
+        case "php":
+            return "php"
+        break
+        case "java":
+            return "java"
+        break
+        case "html":
+        case "html5":
+            return "html"
+        break
+        case "sql":
+            return "sql"
+        break
+        case "ts":
+            return "typescript"
+        break
+        case "tsx":
+            return "typescript"
+        break
+        case "jsx":
+            return "javascript"
+        break
+        case "js":
+            return "javascript"
+        break
+        default:
+            return "plaintext"
+        break
+    }
+}
 
 export interface TextEditorScreenProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => {
@@ -23,25 +84,24 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
     const textEditorText = useStore(state => state.textEditorText)
     const textEditorState = useStore(state => state.textEditorState)
     const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
-    const inputRef = useRef<any>()
     const [value, setValue] = useState<string>("")
-    const [initialValue, setInitialValue] = useState<string>("")
     const createTextFileDialogName = useStore(state => state.createTextFileDialogName)
-    const dimensions: ScaledSize = useWindowDimensions()
     const textEditorParent = useStore(state => state.textEditorParent)
-    const [offset, setOffset] = useState<number>(0)
     const setTextEditorState = useStore(state => state.setTextEditorState)
-    const [textEditorActive, setTextEditorActive] = useState<boolean>(false)
-    const [textEditorFocused, setTextEditorFocused] = useState<boolean>(false)
+    const keyboard = useKeyboard()
+    const insets = useSafeAreaInsets()
+    const dimensions = useWindowDimensions()
+    const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
+    const isMounted = useMountedState()
 
     const fileName: string = textEditorState == "edit" ? createTextFileDialogName : currentActionSheetItem?.name as string
 
-    const save = (): void => {
+    const save = useCallback(() => {
         if(value.length <= 0){
             return
         }
 
-        if(value == initialValue){
+        if(value == textEditorText){
             return navigation.goBack()
         }
 
@@ -76,11 +136,13 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                 catch(e: any){
                     console.log(e)
 
-                    return showToast({ message: e.toString() })
+                    showToast({ message: e.toString() })
+
+                    return
                 }
 
                 if(typeof stat !== "object"){
-                    return false
+                    return
                 }
 
                 queueFileUpload({
@@ -98,10 +160,12 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                     }
                     
                     if(err == "wifiOnly"){
-                        return showToast({ message: i18n(lang, "onlyWifiUploads") })
+                        showToast({ message: i18n(lang, "onlyWifiUploads") })
+
+                        return
                     }
     
-                    console.log(err)
+                    console.error(err)
     
                     showToast({ message: err.toString() })
                 })
@@ -111,11 +175,11 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                 showToast({ message: err.toString() })
             })
         })
-    }
+    }, [textEditorText, value, textEditorParent])
 
-    const close = (): void => {
-        if(initialValue !== value){
-            return Alert.alert(i18n(lang, "exit"), i18n(lang, "exitWithoutSavingChanges"), [
+    const close = useCallback(() => {
+        if(textEditorText !== value){
+            Alert.alert(i18n(lang, "exit"), i18n(lang, "exitWithoutSavingChanges"), [
                 {
                     text: i18n(lang, "cancel"),
                     onPress: () => {
@@ -137,27 +201,30 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
         else{
             navigation.goBack()
         }
-    }
+    }, [textEditorText, value])
+
+    useEffect(() => {
+        if(isMounted()){
+            setPortrait(dimensions.height >= dimensions.width)
+        }
+    }, [dimensions])
 
     useEffect(() => {
         if(textEditorText.length > 0){
             setValue(textEditorText)
-            setInitialValue(textEditorText)
         }
         else{
             setValue("")
-            setInitialValue("")
         }
-    }, [])
+    }, [textEditorText])
 
     return (
-        <View
-            onLayout={(e) => setOffset(dimensions.height - e.nativeEvent.layout.height)}
-        >
+        <>
             <DefaultTopBar
                 leftText={i18n(lang, "back")}
                 middleText={fileName}
                 onPressBack={() => close()}
+                height={44}
                 rightComponent={
                     textEditorState == "edit" ? (
                         <View
@@ -169,31 +236,12 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                             }}
                         >
                             {
-                                textEditorFocused && (
-                                    <TouchableOpacity
-                                        onPress={() => Keyboard.dismiss()}
-                                        style={{
-                                            marginRight: initialValue !== value ? 15 : 0
-                                        }}
-                                    >
-                                        <Ionicon
-                                            name="chevron-down-outline"
-                                            size={21}
-                                            color={getColor(darkMode, "textPrimary")}
-                                            style={{
-                                                marginTop: 5
-                                            }}
-                                        />
-                                    </TouchableOpacity>
-                                )
-                            }
-                            {
-                                initialValue !== value && (
+                                textEditorText !== value && (
                                     <TouchableOpacity onPress={() => save()}>
                                         <Ionicon
                                             name="save-outline"
                                             size={21}
-                                            color={getColor(darkMode, "textPrimary")}
+                                            color={getColor(darkMode, "linkPrimary")}
                                             style={{
                                                 marginTop: 5
                                             }}
@@ -205,55 +253,28 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                     ) : undefined
                 }
             />
-            <KeyboardAvoidingView
-                behavior="padding"
-                keyboardVerticalOffset={offset}
-                style={{
-                    backgroundColor: getColor(darkMode, "backgroundPrimary")
-                }}
-            >
-                <TextInput
-                    ref={inputRef}
-                    value={value}
-                    onChangeText={(e) => {
+            <SafeAreaView>
+                <CodeEditor
+                    style={{
+                        marginTop: portrait && Platform.OS == "ios" ? -60 : 0,
+                        fontSize: 15,
+                        inputLineHeight: 21,
+                        highlighterLineHeight: 21,
+                        ...(keyboard.keyboardShown
+                            ? { marginBottom: keyboard.keyboardHeight - insets.bottom }
+                            : {}),
+                    }}
+                    autoFocus={true}
+                    onChange={(e) => {
                         setValue(e)
                         setTextEditorState("edit")
                     }}
-                    onFocus={() => {
-                        setTextEditorActive(true)
-                        setTextEditorState("edit")
-                        setTextEditorFocused(true)
-                    }}
-                    onBlur={() => {
-                        setTextEditorFocused(false)
-                    }}
-                    multiline={true}
-                    numberOfLines={10}
-                    textAlign="left"
-                    textAlignVertical="top"
-                    autoFocus={false}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    spellCheck={false}
-                    keyboardType="default"
-                    underlineColorAndroid="transparent"
-                    placeholder={i18n(lang, "textEditorPlaceholder")}
-                    selection={textEditorActive ? undefined : { start: 0 }}
-                    placeholderTextColor={getColor(darkMode, "textPrimary")}
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                        color: getColor(darkMode, "textPrimary"),
-                        backgroundColor: getColor(darkMode, "backgroundPrimary"),
-                        paddingLeft: 15,
-                        paddingRight: 15,
-                        paddingTop: 15,
-                        paddingBottom: 0,
-                        fontSize: 15,
-                        fontWeight: "400"
-                    }}
+                    initialValue={textEditorText.length > 0 ? textEditorText : ""}
+                    language={getLanguageOfFile(fileName) as any}
+                    syntaxStyle={darkMode ? CodeEditorSyntaxStyles.monokai : CodeEditorSyntaxStyles.github}
+                    showLineNumbers={true}
                 />
-            </KeyboardAvoidingView>
-        </View>
+            </SafeAreaView>
+        </>
     )
 })

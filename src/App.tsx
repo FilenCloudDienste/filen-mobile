@@ -606,7 +606,7 @@ export const App = Sentry.wrap(memo(() => {
                                 <FolderColorActionSheet />
                                 <PublicLinkActionSheet />
                                 <ShareActionSheet />
-                                <FileVersionsActionSheet navigation={navigationRef} />
+                                <FileVersionsActionSheet />
                                 <ProfilePictureActionSheet />
                                 <SortByActionSheet />
                                 <LockAppAfterActionSheet />
