@@ -61,6 +61,7 @@ import useDarkMode from "./lib/hooks/useDarkMode"
 import useIsLoggedIn from "./lib/hooks/useIsLoggedIn"
 import useLang from "./lib/hooks/useLang"
 import { activateKeepAwake, deactivateKeepAwake } from "expo-keep-awake"
+import ImagePickerScreen from "./screens/ImagePickerScreen"
 
 enableScreens(true)
 
@@ -551,6 +552,15 @@ export const App = Sentry.wrap(memo(() => {
                                         options={{
                                             title: "ImageViewerScreen",
                                             animation: showNavigationAnimation ? "default" : "none"
+                                        }}
+                                    />
+                                    <Stack.Screen
+                                        name="ImagePickerScreen"
+                                        component={ImagePickerScreen}
+                                        options={{
+                                            title: "ImagePickerScreen",
+                                            animation: showNavigationAnimation ? "default" : "none",
+                                            presentation: "modal"
                                         }}
                                     />
                                 </Stack.Navigator>

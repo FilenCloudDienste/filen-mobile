@@ -14,6 +14,8 @@ import memoryCache from "../../memoryCache"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import * as FileSystem from "expo-file-system"
 import { isOnline, isWifi } from "../isOnline"
+import { MB } from "../../constants"
+import { memoize } from "lodash"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -25,11 +27,11 @@ const log = logger.createLogger({
 })
 
 const downloadSemaphore = new Semaphore(3)
-const maxThreads = 16
+const maxThreads = 32
 const downloadThreadsSemaphore = new Semaphore(maxThreads)
-const downloadWriteThreadsSemaphore = new Semaphore(128)
+const downloadWriteThreadsSemaphore = new Semaphore(256)
 
-export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<string> => {
+export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Promise<string> => {
     return new Promise((resolve, reject) => {
         if(Platform.OS == "android"){
             if(type == "temp"){
@@ -205,7 +207,7 @@ export const getDownloadPath = ({ type = "temp" }: { type: string }): Promise<st
             }
         }
     })
-}
+}, ({ type = "temp" }: { type: string }) => type)
 
 export interface QueueFileDownload {
     file: Item,
@@ -494,7 +496,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
             const cachePath = cachedDownloadsPath + file.uuid + "." + getFileExt(file.name)
 
             try{
-                if((await ReactNativeBlobUtil.fs.exists(cachePath))){
+                if((await FileSystem.getInfoAsync(toExpoFsPath(cachePath))).exists){
                     return resolve(cachePath)
                 }
             }
@@ -503,12 +505,12 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
             }
 
             try{
-                if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
+                if((await DeviceInfo.getFreeDiskStorage()) < ((MB * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
                     await clearCacheDirectories()
     
                     await new Promise((resolve) => setTimeout(() => resolve(true), 5000))
     
-                    if((await DeviceInfo.getFreeDiskStorage()) < (((1024 * 1024) * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
+                    if((await DeviceInfo.getFreeDiskStorage()) < ((MB * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
                         return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
                     }
                 }
@@ -605,16 +607,17 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 if(index !== currentWriteIndex){
                     return setTimeout(() => {
                         write(index, path)
-                    }, 25)
+                    }, 10)
                 }
     
                 if(index == 0){
-                    ReactNativeBlobUtil.fs.mv(path, tmpPath).then(() => {
+                    FileSystem.moveAsync({
+                        from: toExpoFsPath(path),
+                        to: toExpoFsPath(tmpPath)
+                    }).then(() => {
                         currentWriteIndex += 1
 
                         downloadWriteThreadsSemaphore.release()
-    
-                        ReactNativeBlobUtil.fs.unlink(path).catch(console.log)
                     }).catch(reject)
                 }
                 else{
@@ -625,8 +628,6 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                         currentWriteIndex += 1
 
                         downloadWriteThreadsSemaphore.release()
-    
-                        ReactNativeBlobUtil.fs.unlink(path).catch(console.log)
                     }).catch(reject)
                 }
             }
@@ -679,8 +680,11 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                     }, 100)
                 })
     
-                if(file.size < ((1024 * 1024) * 64)){
-                    ReactNativeBlobUtil.fs.cp(tmpPath, cachePath).catch(console.log)
+                if(file.size < (MB * 64)){
+                    FileSystem.copyAsync({
+                        from: toExpoFsPath(tmpPath),
+                        to: toExpoFsPath(cachePath)
+                    }).catch(console.error)
                 }
             }
             catch(e: any){
