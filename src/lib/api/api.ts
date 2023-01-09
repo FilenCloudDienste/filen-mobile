@@ -22,11 +22,12 @@ import { useStore } from "../state"
 import DeviceInfo from "react-native-device-info"
 import { isOnline } from "../services/isOnline"
 import type { Item } from "../../types"
+import axios from "axios"
 
 const striptags = require("striptags")
 
-const shareSemaphore = new Semaphore(4)
-const apiRequestSemaphore = new Semaphore(8192 * 8192)
+const shareSemaphore = new Semaphore(8)
+const apiRequestSemaphore = new Semaphore(8192)
 const fetchFolderSizeSemaphore = new Semaphore(8192)
 const linkItemsSemaphore = new Semaphore(8)
 
@@ -40,14 +41,17 @@ const endpointsToCache: string[] = [
     "/v1/user/keyPair/update",
     "/v1/user/keyPair/set",
     "/v1/dir/size",
-    "/v1/user/masterKeys"
+    "/v1/user/masterKeys",
+    "/v1/dir/present",
+    "/v1/file/exists",
+    "/v1/dir/exists"
 ]
 
 export const apiRequest = ({ method, endpoint, data }: { method: string, endpoint: string, data: any }): Promise<any> => {
     return new Promise((resolve, reject) => {
         const cacheKey = "apiCache:" + method.toUpperCase() + ":" + endpoint + ":" + JSON.stringify(data)
 
-        let maxTries = 1024
+        let maxTries = 16
         let tries = 0
         const retryTimeout = 1000
 
@@ -72,7 +76,7 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
             //return reject(i18n(storage.getString("lang"), "deviceOffline"))
         }
 
-        const request = async () => {
+        const request = () => {
             if(tries >= maxTries){
                 try{
                     const cache = storage.getString(cacheKey)
@@ -93,39 +97,39 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
             tries += 1
 
             apiRequestSemaphore.acquire().then(() => {
-                global.nodeThread.apiRequest({
-                    method: method.toUpperCase(),
+                axios({
+                    method: method.toLowerCase(),
                     url: getAPIServer() + endpoint,
                     timeout: 60000,
                     data
-                }).then(async (res) => {
+                }).then((response) => {
                     apiRequestSemaphore.release()
 
-                    if(endpointsToCache.includes(endpoint)){
-                        storage.set(cacheKey, JSON.stringify(res))
-                    }
-    
-                    if(!res.status){
-                        if(typeof res.message == "string"){
+                    if(response.status !== 200){
+                        if(typeof response.data.message == "string"){
                             if(
-                                res.message.toLowerCase().indexOf("invalid api key") !== -1
-                                || res.message.toLowerCase().indexOf("api key not found") !== -1
+                                response.data.message.toLowerCase().indexOf("invalid api key") !== -1
+                                || response.data.message.toLowerCase().indexOf("api key not found") !== -1
                             ){
                                 const navigation = useStore.getState().navigation
-    
+                
                                 if(typeof navigation !== "undefined"){
                                     return logout({ navigation })
                                 }
                             }
                         }
                     }
-    
-                    return resolve(res)
+
+                    if(endpointsToCache.includes(endpoint)){
+                        storage.set(cacheKey, JSON.stringify(response.data))
+                    }
+
+                    return resolve(response.data)
                 }).catch((err) => {
                     apiRequestSemaphore.release()
 
                     console.log(err)
-    
+
                     return setTimeout(request, retryTimeout)
                 })
             })

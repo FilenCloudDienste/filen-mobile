@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo } from "react"
+import React, { useEffect, useState, memo, useCallback } from "react"
 import { View, ScrollView, DeviceEventEmitter, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
@@ -23,9 +23,10 @@ import useNetworkInfo from "../../../lib/services/isOnline/useNetworkInfo"
 import { ActionButton, ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
+import type { NavigationContainerRef } from "@react-navigation/native"
 
 export interface ItemActionSheetProps {
-	navigation: any
+	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
@@ -48,15 +49,16 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
 	const networkInfo = useNetworkInfo()
 
-	const can = (): void => {
+	const can = useCallback(() => {
 		if(typeof currentActionSheetItem !== "undefined"){
 			const userId: number = storage.getNumber("userId")
 			const itemAvailableOffline: boolean = (typeof userId !== "undefined" ? (storage.getBoolean(userId + ":offlineItems:" + currentActionSheetItem.uuid) ? true : false) : false)
+			const routeURL: string = getRouteURL()
 
 			setCanSaveToGallery(false)
 			setCanEdit(false)
 
-			if(getRouteURL().indexOf("photos") == -1){
+			if(routeURL.indexOf("photos") == -1){
 				if(Platform.OS == "ios"){
 					if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(getFileExt(currentActionSheetItem.name))){
 						if(isOnline()){
@@ -83,7 +85,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				}
 			}
 
-			if(["text", "code"].includes(getFilePreviewType(getFileExt(currentActionSheetItem.name)))){
+			if(["text", "code"].includes(getFilePreviewType(getFileExt(currentActionSheetItem.name))) && routeURL.indexOf("shared") == -1){
 				setCanEdit(true)
 			}
 
@@ -98,7 +100,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				}
 			}
 		}
-	}
+	}, [currentActionSheetItem])
 
 	useEffect(() => {
 		setIsDeviceOnline(networkInfo.online)

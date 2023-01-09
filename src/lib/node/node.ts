@@ -2,6 +2,7 @@ import nodejs from "nodejs-mobile-react-native"
 import { DeviceEventEmitter } from "react-native"
 import * as FileSystem from "expo-file-system"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
+import { memoize } from "lodash"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -249,7 +250,7 @@ global.nodeThread = {
             })
 		})
     },
-    hashPassword: ({ password }) => {
+    hashPassword: memoize(({ password }) => {
         const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
@@ -264,8 +265,8 @@ global.nodeThread = {
                 })
             })
 		})
-    },
-    hashFn: ({ string }) => {
+    }, ({ password }) => password),
+    hashFn: memoize(({ string }) => {
         const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
@@ -280,7 +281,7 @@ global.nodeThread = {
                 })
             })
 		})
-    },
+    }, ({ string }) => string),
     apiRequest: ({ method, url, timeout, data }) => {
         const id = currentId += 1
 
@@ -403,7 +404,7 @@ global.nodeThread = {
             })
 		})
     },
-    getDataDir: () => {
+    getDataDir: memoize(() => {
         const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
@@ -417,7 +418,7 @@ global.nodeThread = {
                 })
             })
 		})
-    },
+    }),
     appendFileToFile: ({ first, second }) => {
         const id = currentId += 1
 
@@ -457,7 +458,7 @@ global.nodeThread = {
             })
 		})
     },
-    getFileHash: ({ path, hashName }) => {
+    getFileHash: memoize(({ path, hashName }) => {
         const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
@@ -473,7 +474,7 @@ global.nodeThread = {
                 })
             })
 		})
-    },
+    }, ({ path, hashName }) => path + ":" + hashName),
     convertHeic: ({ input, output, format }) => {
         const id = currentId += 1
 

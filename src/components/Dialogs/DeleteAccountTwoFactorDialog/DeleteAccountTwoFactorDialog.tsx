@@ -8,9 +8,10 @@ import { i18n } from "../../../i18n"
 import { Keyboard } from "react-native"
 import { logout } from "../../../lib/services/auth/logout"
 import { DeviceEventEmitter } from "react-native"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface DeleteAccountTwoFactorDialogProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFactorDialogProps) => {

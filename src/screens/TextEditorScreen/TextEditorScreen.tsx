@@ -18,7 +18,9 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useKeyboard } from "@react-native-community/hooks"
 import { useMountedState } from "react-use"
 
-export const getLanguageOfFile = (name: string) => {
+export type Languages = '1c' | 'abnf' | 'accesslog' | 'actionscript' | 'ada' | 'angelscript' | 'apache' | 'applescript' | 'arcade' | 'arduino' | 'armasm' | 'asciidoc' | 'aspectj' | 'autohotkey' | 'autoit' | 'avrasm' | 'awk' | 'axapta' | 'bash' | 'basic' | 'bnf' | 'brainfuck' | 'c-like' | 'c' | 'cal' | 'capnproto' | 'ceylon' | 'clean' | 'clojure-repl' | 'clojure' | 'cmake' | 'coffeescript' | 'coq' | 'cos' | 'cpp' | 'crmsh' | 'crystal' | 'csharp' | 'csp' | 'css' | 'd' | 'dart' | 'delphi' | 'diff' | 'django' | 'dns' | 'dockerfile' | 'dos' | 'dsconfig' | 'dts' | 'dust' | 'ebnf' | 'elixir' | 'elm' | 'erb' | 'erlang-repl' | 'erlang' | 'excel' | 'fix' | 'flix' | 'fortran' | 'fsharp' | 'gams' | 'gauss' | 'gcode' | 'gherkin' | 'glsl' | 'gml' | 'go' | 'golo' | 'gradle' | 'groovy' | 'haml' | 'handlebars' | 'haskell' | 'haxe' | 'hsp' | 'htmlbars' | 'http' | 'hy' | 'inform7' | 'ini' | 'irpf90' | 'isbl' | 'java' | 'javascript' | 'jboss-cli' | 'json' | 'julia-repl' | 'julia' | 'kotlin' | 'lasso' | 'latex' | 'ldif' | 'leaf' | 'less' | 'lisp' | 'livecodeserver' | 'livescript' | 'llvm' | 'lsl' | 'lua' | 'makefile' | 'markdown' | 'mathematica' | 'matlab' | 'maxima' | 'mel' | 'mercury' | 'mipsasm' | 'mizar' | 'mojolicious' | 'monkey' | 'moonscript' | 'n1ql' | 'nginx' | 'nim' | 'nix' | 'node-repl' | 'nsis' | 'objectivec' | 'ocaml' | 'openscad' | 'oxygene' | 'parser3' | 'perl' | 'pf' | 'pgsql' | 'php-template' | 'php' | 'plaintext' | 'pony' | 'powershell' | 'processing' | 'profile' | 'prolog' | 'properties' | 'protobuf' | 'puppet' | 'purebasic' | 'python-repl' | 'python' | 'q' | 'qml' | 'r' | 'reasonml' | 'rib' | 'roboconf' | 'routeros' | 'rsl' | 'ruby' | 'ruleslanguage' | 'rust' | 'sas' | 'scala' | 'scheme' | 'scilab' | 'scss' | 'shell' | 'smali' | 'smalltalk' | 'sml' | 'sqf' | 'sql' | 'stan' | 'stata' | 'step21' | 'stylus' | 'subunit' | 'swift' | 'taggerscript' | 'tap' | 'tcl' | 'thrift' | 'tp' | 'twig' | 'typescript' | 'vala' | 'vbnet' | 'vbscript-html' | 'vbscript' | 'verilog' | 'vhdl' | 'vim' | 'x86asm' | 'xl' | 'xml' | 'xquery' | 'yaml' | 'zephir'
+
+export const getLanguageOfFile = (name: string): Languages => {
     const ext: string = getFileExt(name)
 
     switch(ext){
@@ -51,7 +53,7 @@ export const getLanguageOfFile = (name: string) => {
         break
         case "html":
         case "html5":
-            return "html"
+            return "htmlbars"
         break
         case "sql":
             return "sql"
@@ -264,13 +266,13 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                             ? { marginBottom: keyboard.keyboardHeight - insets.bottom }
                             : {}),
                     }}
-                    autoFocus={true}
+                    autoFocus={false}
                     onChange={(e) => {
                         setValue(e)
                         setTextEditorState("edit")
                     }}
                     initialValue={textEditorText.length > 0 ? textEditorText : ""}
-                    language={getLanguageOfFile(fileName) as any}
+                    language={getLanguageOfFile(fileName) as Languages}
                     syntaxStyle={darkMode ? CodeEditorSyntaxStyles.monokai : CodeEditorSyntaxStyles.github}
                     showLineNumbers={true}
                 />

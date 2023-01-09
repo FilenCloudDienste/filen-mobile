@@ -9,6 +9,8 @@ import { showToast } from "../../../components/Toasts"
 import { promiseAllSettled } from "../../helpers"
 import path from "path"
 import FastImage from "react-native-fast-image"
+import type { NavigationContainerRef } from "@react-navigation/native"
+import { memoize } from "lodash"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -24,14 +26,15 @@ const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 const DONT_DELETE: string[] = [
     "sentry",
     "expo",
-    "http-cache",
-    "image-cache",
     "webview",
-    "shareCache",
     "image_manager",
     "log",
     "logs"
 ]
+
+export const canDelete = memoize((name: string) => {
+    return DONT_DELETE.filter(d => name.toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0
+})
 
 export const clearCacheDirectories = async (): Promise<boolean> => {
     const cachedDownloadsPath = await getDownloadPath({ type: "cachedDownloads" })
@@ -43,15 +46,19 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
     const tmpItems = await FileSystem.readDirectoryAsync(tmpPathAbsolute)
 
     for(let i = 0; i < cacheDownloadsItems.length; i++){
-        if(DONT_DELETE.filter(d => cacheDownloadsItems[i].toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0){
+        if(canDelete(cacheDownloadsItems[i])){
             FileSystem.deleteAsync(path.join(cachedDownloadsPathAbsolute, cacheDownloadsItems[i])).catch(() => {})
         }
+
+        console.log(cacheDownloadsItems[i])
     }
 
     for(let i = 0; i < tmpItems.length; i++){
-        if(DONT_DELETE.filter(d => tmpItems[i].toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0){
+        if(canDelete(tmpItems[i])){
             FileSystem.deleteAsync(path.join(tmpPathAbsolute, tmpItems[i])).catch(() => {})
         }
+
+        console.log(tmpItems[i])
     }
 
     if(FileSystem.cacheDirectory){
@@ -59,7 +66,7 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
         const cacheItems = await FileSystem.readDirectoryAsync(cachePath)
 
         for(let i = 0; i < cacheItems.length; i++){
-            if(DONT_DELETE.filter(d => cacheItems[i].toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0){
+            if(canDelete(cacheItems[i])){
                 FileSystem.deleteAsync(path.join(cachePath, cacheItems[i])).catch(() => {})
             }
         }
@@ -91,7 +98,7 @@ export const clearLogs = async (): Promise<boolean> => {
     return true
 }
 
-export const setup = async ({ navigation }: { navigation: any }): Promise<boolean> => {
+export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
     promiseAllSettled([
         clearLogs(),
         clearCacheDirectories()

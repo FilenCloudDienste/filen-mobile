@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useRef } from "react"
+import React, { useState, useEffect, memo, useRef, useCallback } from "react"
 import { View, Text, TouchableOpacity, DeviceEventEmitter } from "react-native"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
@@ -18,6 +18,179 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
     const currentRoutes = useStore(state => state.currentRoutes) as any
     const [currentParent, setCurrentParent] = useState("")
     const [currentRouteURL, setCurrentRouteURL] = useState("")
+
+    const move = useCallback(() => {
+        if(buttonsDisabled){
+            return false
+        }
+
+        if(
+            currentRouteURL.indexOf("shared-in") !== -1 ||
+            currentRouteURL.indexOf("recents") !== -1 ||
+            currentRouteURL.indexOf("trash") !== -1 ||
+            currentRouteURL.indexOf("photos") !== -1 ||
+            currentRouteURL.indexOf("offline") !== -1
+        ){
+            showToast({ message: i18n(lang, "cannotMoveFileHere") })
+
+            return false
+        }
+
+        const parent = getParent()
+
+        if([
+            "recents",
+            "shared-in",
+            "shared-out",
+            "links",
+            "favorites",
+            "offline",
+            "cloud",
+            "photos",
+            "settings"
+        ].includes(parent)){
+            showToast({ message: i18n(lang, "cannotMoveFileHere") })
+
+            return false
+        }
+
+        if(parent.length <= 32){ //&& currentActionSheetItem.type == "file"
+            showToast({ message: i18n(lang, "cannotMoveFileHere") })
+
+            return false
+        }
+
+        if(typeof currentActionSheetItem !== "object"){
+            return false
+        }
+
+        if(currentActionSheetItem.parent == parent){
+            showToast({ message: i18n(lang, "moveSameParentFolder") })
+
+            return false
+        }
+
+        if(getRouteURL().indexOf("shared-in") !== -1){
+            showToast({ message: i18n(lang, "cannotMoveFileHere") })
+
+            return false
+        }
+
+        setButtonsDisabled(true)
+
+        useStore.setState({ fullscreenLoadingModalVisible: true })
+
+        if(currentActionSheetItem.type == "file"){
+            fileExists({
+                name: currentActionSheetItem.name,
+                parent
+            }).then((res) => {
+                if(res.exists){
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                }
+
+                moveFile({
+                    file: currentActionSheetItem,
+                    parent
+                }).then(() => {
+                    DeviceEventEmitter.emit("event", {
+                        type: "reload-list",
+                        data: {
+                            parent: initParent.current
+                        }
+                    })
+
+                    DeviceEventEmitter.emit("event", {
+                        type: "reload-list",
+                        data: {
+                            parent
+                        }
+                    })
+
+                    setTimeout(() => {
+                        setButtonsDisabled(false)
+
+                        useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                        hideAllToasts()
+
+                        //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                    }, 500)
+                }).catch((err) => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: err.toString() })
+                })
+            }).catch((err) => {
+                setButtonsDisabled(false)
+
+                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                showToast({ message: err.toString() })
+            })
+        }
+        else{
+            folderExists({
+                name: currentActionSheetItem.name,
+                parent
+            }).then((res) => {
+                if(res.exists){
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                }
+
+                moveFolder({
+                    folder: currentActionSheetItem,
+                    parent
+                }).then(() => {
+                    DeviceEventEmitter.emit("event", {
+                        type: "reload-list",
+                        data: {
+                            parent: initParent
+                        }
+                    })
+
+                    DeviceEventEmitter.emit("event", {
+                        type: "reload-list",
+                        data: {
+                            parent
+                        }
+                    })
+
+                    setTimeout(() => {
+                        setButtonsDisabled(false)
+
+                        useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                        hideAllToasts()
+
+                        //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                    }, 500)
+                }).catch((err) => {
+                    setButtonsDisabled(false)
+
+                    useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                    showToast({ message: err.toString() })
+                })
+            }).catch((err) => {
+                setButtonsDisabled(false)
+
+                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                showToast({ message: err.toString() })
+            })
+        }
+    }, [currentActionSheetItem, currentRouteURL, buttonsDisabled])
 
     useEffect(() => {
         if(Array.isArray(currentRoutes)){
@@ -109,178 +282,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
                     style={{
                         marginLeft: 20
                     }}
-                    onPress={() => {
-                        if(buttonsDisabled){
-                            return false
-                        }
-
-                        if(
-                            currentRouteURL.indexOf("shared-in") !== -1 ||
-                            currentRouteURL.indexOf("recents") !== -1 ||
-                            currentRouteURL.indexOf("trash") !== -1 ||
-                            currentRouteURL.indexOf("photos") !== -1 ||
-                            currentRouteURL.indexOf("offline") !== -1
-                        ){
-                            showToast({ message: i18n(lang, "cannotMoveFileHere") })
-
-                            return false
-                        }
-
-                        const parent = getParent()
-
-                        if([
-                            "recents",
-                            "shared-in",
-                            "shared-out",
-                            "links",
-                            "favorites",
-                            "offline",
-                            "cloud",
-                            "photos",
-                            "settings"
-                        ].includes(parent)){
-                            showToast({ message: i18n(lang, "cannotMoveFileHere") })
-
-                            return false
-                        }
-
-                        if(parent.length <= 32){ //&& currentActionSheetItem.type == "file"
-                            showToast({ message: i18n(lang, "cannotMoveFileHere") })
-
-                            return false
-                        }
-
-                        if(typeof currentActionSheetItem !== "object"){
-                            return false
-                        }
-
-                        if(currentActionSheetItem.parent == parent){
-                            showToast({ message: i18n(lang, "moveSameParentFolder") })
-
-                            return false
-                        }
-
-                        if(getRouteURL().indexOf("shared-in") !== -1){
-                            showToast({ message: i18n(lang, "cannotMoveFileHere") })
-
-                            return false
-                        }
-
-                        setButtonsDisabled(true)
-
-                        useStore.setState({ fullscreenLoadingModalVisible: true })
-
-                        if(currentActionSheetItem.type == "file"){
-                            fileExists({
-                                name: currentActionSheetItem.name,
-                                parent
-                            }).then((res) => {
-                                if(res.exists){
-                                    setButtonsDisabled(false)
-
-                                    useStore.setState({ fullscreenLoadingModalVisible: false })
-        
-                                    return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                }
-
-                                moveFile({
-                                    file: currentActionSheetItem,
-                                    parent
-                                }).then(() => {
-                                    DeviceEventEmitter.emit("event", {
-                                        type: "reload-list",
-                                        data: {
-                                            parent: initParent.current
-                                        }
-                                    })
-
-                                    DeviceEventEmitter.emit("event", {
-                                        type: "reload-list",
-                                        data: {
-                                            parent
-                                        }
-                                    })
-
-                                    setTimeout(() => {
-                                        setButtonsDisabled(false)
-
-                                        useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                        hideAllToasts()
-
-                                        //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                    }, 500)
-                                }).catch((err) => {
-                                    setButtonsDisabled(false)
-
-                                    useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                    showToast({ message: err.toString() })
-                                })
-                            }).catch((err) => {
-                                setButtonsDisabled(false)
-
-                                useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                showToast({ message: err.toString() })
-                            })
-                        }
-                        else{
-                            folderExists({
-                                name: currentActionSheetItem.name,
-                                parent
-                            }).then((res) => {
-                                if(res.exists){
-                                    setButtonsDisabled(false)
-
-                                    useStore.setState({ fullscreenLoadingModalVisible: false })
-        
-                                    return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                }
-
-                                moveFolder({
-                                    folder: currentActionSheetItem,
-                                    parent
-                                }).then(() => {
-                                    DeviceEventEmitter.emit("event", {
-                                        type: "reload-list",
-                                        data: {
-                                            parent: initParent
-                                        }
-                                    })
-
-                                    DeviceEventEmitter.emit("event", {
-                                        type: "reload-list",
-                                        data: {
-                                            parent
-                                        }
-                                    })
-
-                                    setTimeout(() => {
-                                        setButtonsDisabled(false)
-
-                                        useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                        hideAllToasts()
-
-                                        //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                    }, 500)
-                                }).catch((err) => {
-                                    setButtonsDisabled(false)
-
-                                    useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                    showToast({ message: err.toString() })
-                                })
-                            }).catch((err) => {
-                                setButtonsDisabled(false)
-
-                                useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                showToast({ message: err.toString() })
-                            })
-                        }
-                    }}
+                    onPress={move}
                 >
                     <Text
                         style={{

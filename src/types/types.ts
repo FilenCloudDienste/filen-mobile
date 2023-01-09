@@ -1,3 +1,5 @@
+import type { NavigationContainerRef } from "@react-navigation/native"
+
 export interface ItemReceiver {
     id: number,
     email: string
@@ -83,7 +85,7 @@ export interface BuildFolder {
 }
 
 export interface TransfersIndicatorProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 export interface IndicatorProps {

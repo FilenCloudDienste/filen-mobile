@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from "react"
+import React, { useState, useEffect, memo, useCallback } from "react"
 import { View, Text, Platform, TouchableOpacity } from "react-native"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
@@ -22,6 +22,112 @@ const UploadToast = memo(() => {
     const currentRoutes = useStore(state => state.currentRoutes) as any
     const [currentParent, setCurrentParent] = useState("")
     const [currentRouteURL, setCurrentRouteURL] = useState("")
+
+    const upload = useCallback(async () => {
+        if(
+            currentRouteURL.indexOf("shared-in") !== -1 ||
+            currentRouteURL.indexOf("recents") !== -1 ||
+            currentRouteURL.indexOf("trash") !== -1 ||
+            currentRouteURL.indexOf("photos") !== -1 ||
+            currentRouteURL.indexOf("offline") !== -1
+        ){
+            return false
+        }
+
+        if(!Array.isArray(items)){
+            return false
+        }
+        
+        const parent = getParent()
+
+        if(parent.length < 16){
+            return false
+        }
+
+        try{
+            await hasStoragePermissions()
+        }
+        catch(e: any){
+            console.log(e)
+
+            return showToast({ message: e.toString() })
+        }
+
+        const copyFile = (item: string): Promise<{ path: string, ext: string, type: string, size: number, name: string }> => {
+            return new Promise((resolve, reject) => {
+                getDownloadPath({ type: "temp" }).then((path) => {
+                    path = path + randomIdUnsafe()
+                    
+                    if(Platform.OS == "ios"){
+                        item = decodeURIComponent(item)
+                        path = decodeURIComponent(path)
+                    }
+
+                    Filesystem.getInfoAsync(item).then((stat) => {
+                        if(stat.isDirectory){
+                            return reject(i18n(lang, "cannotShareDirIntoApp"))
+                        }
+
+                        Filesystem.copyAsync({
+                            from: item,
+                            to: path
+                        }).then(() => {
+                            const name = getFilenameFromPath(item)
+                            const type = mime.lookup(name) || ""
+                            const ext = mime.extension(type as string) || ""
+                            const size = stat.size as number
+                            
+                            return resolve({ path, ext, type, size, name })
+                        }).catch((err) => {
+                            return reject(err)
+                        })
+                    })
+                }).catch((err) => {
+                    return reject(err)
+                })
+            })
+        }
+
+        const limit = 100
+
+        if(items.length >= limit){
+            return showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
+        }
+
+        const uploads = []
+
+        for(let i = 0; i < items.length; i++){
+            uploads.push(new Promise((resolve, reject) => {
+                copyFile(items[i]).then(({ path, type, size, name }) => {
+                    queueFileUpload({
+                        file: {
+                            path: path.replace("file://", ""),
+                            name,
+                            size,
+                            mime: type,
+                            lastModified: new Date().getTime()
+                        },
+                        parent
+                    }).then(resolve).catch(reject)
+                }).catch(reject)
+            }))
+        }
+
+        setCurrentShareItems(undefined)
+        hideAllToasts()
+
+        promiseAllSettled(uploads).then((values) => {
+            values.forEach((value) => {
+                if(value.status == "rejected"){
+                    // @ts-ignore
+                    console.log(value.reason)
+
+                    // @ts-ignore
+                    showToast({ message: value.reason.toString() })
+                }
+            })
+        }).catch(console.error)
+    }, [currentRouteURL, items, currentShareItems])
 
     useEffect(() => {
         if(Array.isArray(currentRoutes)){
@@ -131,111 +237,7 @@ const UploadToast = memo(() => {
                                 style={{
                                     marginLeft: 20
                                 }}
-                                onPress={async () => {
-                                    if(
-                                        currentRouteURL.indexOf("shared-in") !== -1 ||
-                                        currentRouteURL.indexOf("recents") !== -1 ||
-                                        currentRouteURL.indexOf("trash") !== -1 ||
-                                        currentRouteURL.indexOf("photos") !== -1 ||
-                                        currentRouteURL.indexOf("offline") !== -1
-                                    ){
-                                        return false
-                                    }
-
-                                    if(!Array.isArray(items)){
-                                        return false
-                                    }
-                                    
-                                    const parent = getParent()
-                
-                                    if(parent.length < 16){
-                                        return false
-                                    }
-
-                                    try{
-                                        await hasStoragePermissions()
-                                    }
-                                    catch(e: any){
-                                        console.log(e)
-
-                                        return showToast({ message: e.toString() })
-                                    }
-
-                                    const copyFile = (item: string): Promise<{ path: string, ext: string, type: string, size: number, name: string }> => {
-                                        return new Promise((resolve, reject) => {
-                                            getDownloadPath({ type: "temp" }).then((path) => {
-                                                path = path + randomIdUnsafe()
-                                                
-                                                if(Platform.OS == "ios"){
-                                                    item = decodeURIComponent(item)
-                                                    path = decodeURIComponent(path)
-                                                }
-
-                                                Filesystem.getInfoAsync(item).then((stat) => {
-                                                    if(stat.isDirectory){
-                                                        return reject(i18n(lang, "cannotShareDirIntoApp"))
-                                                    }
-
-                                                    Filesystem.copyAsync({
-                                                        from: item,
-                                                        to: path
-                                                    }).then(() => {
-                                                        const name = getFilenameFromPath(item)
-                                                        const type = mime.lookup(name) || ""
-                                                        const ext = mime.extension(type as string) || ""
-                                                        const size = stat.size as number
-                                                        
-                                                        return resolve({ path, ext, type, size, name })
-                                                    }).catch((err) => {
-                                                        return reject(err)
-                                                    })
-                                                })
-                                            }).catch((err) => {
-                                                return reject(err)
-                                            })
-                                        })
-                                    }
-
-                                    const limit = 100
-
-                                    if(items.length >= limit){
-                                        return showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
-                                    }
-
-                                    const uploads = []
-                
-                                    for(let i = 0; i < items.length; i++){
-                                        uploads.push(new Promise((resolve, reject) => {
-                                            copyFile(items[i]).then(({ path, type, size, name }) => {
-                                                queueFileUpload({
-                                                    file: {
-                                                        path: path.replace("file://", ""),
-                                                        name,
-                                                        size,
-                                                        mime: type,
-                                                        lastModified: new Date().getTime()
-                                                    },
-                                                    parent
-                                                }).then(resolve).catch(reject)
-                                            }).catch(reject)
-                                        }))
-                                    }
-
-                                    setCurrentShareItems(undefined)
-                                    hideAllToasts()
-
-                                    promiseAllSettled(uploads).then((values) => {
-                                        values.forEach((value) => {
-                                            if(value.status == "rejected"){
-                                                // @ts-ignore
-                                                console.log(value.reason)
-
-                                                // @ts-ignore
-                                                showToast({ message: value.reason.toString() })
-                                            }
-                                        })
-                                    }).catch(console.error)
-                                }}
+                                onPress={upload}
                             >
                                 <Text
                                     style={{

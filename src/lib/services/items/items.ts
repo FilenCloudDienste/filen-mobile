@@ -18,6 +18,7 @@ import { isOnline, isWifi } from "../isOnline"
 import pathModule from "path"
 import type { Item, BuildFolder, ItemReceiver } from "../../../types"
 import { MB } from "../../constants"
+import { memoize } from "lodash"
 
 const isGeneratingThumbnailForItemUUID: any = {}
 const isCheckingThumbnailForItemUUID : any = {}
@@ -178,7 +179,7 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
     }
 }
 
-export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }): Item[] => {
+export const sortItems = memoize(({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }): Item[] => {
     let routeURL = ""
 
     if(typeof passedRoute !== "undefined"){
@@ -213,7 +214,7 @@ export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], p
     }
 
     return items
-}
+}, ({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }) => JSON.stringify(items) + ":" + JSON.stringify(passedRoute))
 
 export interface LoadItems {
     parent: string,
@@ -878,7 +879,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     return true
 }
 
-export const getThumbnailCacheKey = ({ uuid }: { uuid: string }): { width: number, height: number, quality: number, thumbnailVersion: string, cacheKey: string } => {
+export const getThumbnailCacheKey = memoize(({ uuid }: { uuid: string }): { width: number, height: number, quality: number, thumbnailVersion: string, cacheKey: string } => {
     const width = 512, height = 512, quality = 80, thumbnailVersion = "2.0.7"
     const cacheKey = "thumbnailCache:" + uuid + ":" + width + ":" + height + ":" + quality + ":" + thumbnailVersion
 
@@ -889,7 +890,7 @@ export const getThumbnailCacheKey = ({ uuid }: { uuid: string }): { width: numbe
         thumbnailVersion,
         cacheKey
     }
-}
+}, ({ uuid }: { uuid: string }) => uuid)
 
 /*
 Clear last response cache
@@ -1546,7 +1547,7 @@ export const convertHeic = async (item: Item, path: string): Promise<string> => 
         }
     }
     catch(e){
-        console.log(e)
+        //console.log(e)
     }
 
     return global.nodeThread.convertHeic({

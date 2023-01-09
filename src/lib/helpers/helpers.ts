@@ -5,6 +5,7 @@ import { i18n } from "../../i18n"
 import { memoize, values } from "lodash"
 import type { NavigationContainerRefWithCurrent } from "@react-navigation/native"
 import * as MediaLibrary from "expo-media-library"
+import type { Item } from "../../types"
 
 export const getAPIServer = (): string => {
     const servers = [
@@ -215,7 +216,7 @@ export const sleep = (ms: number = 1000): Promise<void> => {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export const formatBytes = (bytes: number, decimals: number = 2) => {
+export const formatBytes = memoize((bytes: number, decimals: number = 2) => {
     if(bytes == 0){
         return "0 Bytes"
     }
@@ -227,7 +228,7 @@ export const formatBytes = (bytes: number, decimals: number = 2) => {
     let i = Math.floor(Math.log(bytes) / Math.log(k))
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
-}
+}, (bytes: number, decimals: number = 2) => bytes + ":" + decimals)
 
 export const arrayBufferToHex = (buffer: ArrayBuffer): string => {
     return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, "0")).join("")
@@ -724,7 +725,7 @@ export const calcPhotosGridSize = memoize((num: number): number => {
     return num
 })
 
-export const orderItemsByType = (items: any[], type: string): any[] => {
+export const orderItemsByType = memoize((items: Item[], type: "nameAsc" | "sizeAsc" | "dateAsc" | "typeAsc" | "lastModifiedAsc" | "nameDesc" | "sizeDesc" | "dateDesc" | "typeDesc" | "lastModifiedDesc"): any[] => {
     let files = []
     let folders = []
 
@@ -881,7 +882,7 @@ export const orderItemsByType = (items: any[], type: string): any[] => {
 
         return sortedFolders.concat(sortedFiles)
     }
-}
+}, (items: Item[], type: string) => JSON.stringify(items) + ":" + type)
 
 export function compareVersions(current: string, got: string): string {
 	function compare(a: string, b: string) {
@@ -1418,7 +1419,7 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
 
                     return resolve(file)
                 }
-            }).catch((err) => {
+            }).catch(() => {
                 iterated += 1
             })
         }

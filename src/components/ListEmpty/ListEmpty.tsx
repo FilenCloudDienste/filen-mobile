@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import React, { memo, useMemo } from "react"
 import { getRouteURL } from "../../lib/helpers"
 import { Text, View } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -24,9 +24,13 @@ export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
     const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
     const networkInfo = useNetworkInfo()
 
-    const routeURL: string = getRouteURL(route)
-    const currentScreenName: string = route.name
-    const baseName: string = defaultDriveOnly ? defaultDriveUUID as string : "base"
+    const [routeURL, currentScreenName, baseName] = useMemo(() => {
+        const routeURL = getRouteURL(route)
+        const currentScreenName: string = route.name
+        const baseName: string = defaultDriveOnly ? defaultDriveUUID as string : "base"
+
+        return [routeURL, currentScreenName, baseName]
+    }, [route, defaultDriveOnly, defaultDriveUUID])
 
     return (
         <View

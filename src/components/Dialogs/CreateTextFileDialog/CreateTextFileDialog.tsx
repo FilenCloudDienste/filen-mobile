@@ -7,9 +7,10 @@ import { i18n } from "../../../i18n"
 import { navigationAnimation } from "../../../lib/state"
 import { StackActions } from "@react-navigation/native"
 import { DeviceEventEmitter } from "react-native"
+import type { NavigationContainerRef } from "@react-navigation/native"
 
 export interface CreateTextFileDialogProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 const CreateTextFileDialog = memo(({ navigation }: CreateTextFileDialogProps) => {

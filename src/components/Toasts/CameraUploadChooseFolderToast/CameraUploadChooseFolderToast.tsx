@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from "react"
+import React, { useState, useEffect, memo, useCallback } from "react"
 import { View, Text, TouchableOpacity } from "react-native"
 import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
@@ -16,6 +16,77 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
     const currentRoutes = useStore(state => state.currentRoutes) as any
     const [currentParent, setCurrentParent] = useState("")
     const [currentRouteURL, setCurrentRouteURL] = useState("")
+
+    const choose = useCallback(() => {
+        if(
+            currentRouteURL.indexOf("shared-in") !== -1 ||
+            currentRouteURL.indexOf("shared-out") !== -1 ||
+            currentRouteURL.indexOf("recents") !== -1 ||
+            currentRouteURL.indexOf("trash") !== -1 ||
+            currentRouteURL.indexOf("photos") !== -1 ||
+            currentRouteURL.indexOf("offline") !== -1 ||
+            currentRouteURL.split("/").length < 2
+        ){
+            return false
+        }
+
+        const parent = getParent()
+        let folderName = undefined
+
+        if(parent.length < 32){
+            return false
+        }
+
+        try{
+            var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent) as string)
+        }
+        catch(e){
+            console.error(e)
+            console.log(currentRouteURL)
+
+            return false
+        }
+
+        if(typeof folderCache == "object"){
+            folderName = folderCache.name
+        }
+
+        if(typeof folderName == "undefined"){
+            return false
+        }
+
+        try{
+            const userId = storage.getNumber("userId")
+
+            storage.set("cameraUploadFolderUUID:" + userId, parent)
+            storage.set("cameraUploadFolderName:" + userId, folderName)
+            storage.set("cameraUploadUploaded", 0)
+            storage.set("cameraUploadTotal", 0)
+            storage.delete("loadItemsCache:photos")
+            storage.delete("loadItemsCache:lastResponse:photos")
+        }
+        catch(e){
+            console.log(e)
+
+            return false
+        }
+
+        hideAllToasts()
+
+        navigationAnimation({ enable: false }).then(() => {
+            navigation.dispatch(CommonActions.reset({
+                index: 1,
+                routes: [
+                    {
+                        name: "SettingsScreen"
+                    },
+                    {
+                        name: "CameraUploadScreen"
+                    }
+                ]
+            }))
+        })
+    }, [currentRouteURL])
 
     useEffect(() => {
         if(Array.isArray(currentRoutes)){
@@ -105,76 +176,7 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
                     style={{
                         marginLeft: 20
                     }}
-                    onPress={() => {
-                        if(
-                            currentRouteURL.indexOf("shared-in") !== -1 ||
-                            currentRouteURL.indexOf("shared-out") !== -1 ||
-                            currentRouteURL.indexOf("recents") !== -1 ||
-                            currentRouteURL.indexOf("trash") !== -1 ||
-                            currentRouteURL.indexOf("photos") !== -1 ||
-                            currentRouteURL.indexOf("offline") !== -1 ||
-                            currentRouteURL.split("/").length < 2
-                        ){
-                            return false
-                        }
-
-                        const parent = getParent()
-                        let folderName = undefined
-
-                        if(parent.length < 32){
-                            return false
-                        }
-
-                        try{
-                            var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent) as string)
-                        }
-                        catch(e){
-                            console.log(e)
-                            console.log(currentRouteURL)
-
-                            return false
-                        }
-                
-                        if(typeof folderCache == "object"){
-                            folderName = folderCache.name
-                        }
-
-                        if(typeof folderName == "undefined"){
-                            return false
-                        }
-
-                        try{
-                            const userId = storage.getNumber("userId")
-
-                            storage.set("cameraUploadFolderUUID:" + userId, parent)
-                            storage.set("cameraUploadFolderName:" + userId, folderName)
-                            storage.set("cameraUploadUploaded", 0)
-                            storage.set("cameraUploadTotal", 0)
-                            storage.delete("loadItemsCache:photos")
-                            storage.delete("loadItemsCache:lastResponse:photos")
-                        }
-                        catch(e){
-                            console.log(e)
-
-                            return false
-                        }
-
-                        hideAllToasts()
-
-                        navigationAnimation({ enable: false }).then(() => {
-                            navigation.dispatch(CommonActions.reset({
-                                index: 1,
-                                routes: [
-                                    {
-                                        name: "SettingsScreen"
-                                    },
-                                    {
-                                        name: "CameraUploadScreen"
-                                    }
-                                ]
-                            }))
-                        })
-                    }}
+                    onPress={choose}
                 >
                     <Text
                         style={{

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo, useMemo } from "react"
+import React, { useEffect, useState, memo, useMemo, useCallback } from "react"
 import { View, DeviceEventEmitter, Platform, Alert } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
@@ -20,9 +20,10 @@ import * as MediaLibrary from "expo-media-library"
 import { ActionButton, ActionSheetIndicator } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
+import type { NavigationContainerRef } from "@react-navigation/native"
 
 export interface TopBarActionSheetProps {
-	navigation: any
+	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
@@ -66,31 +67,31 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		return JSON.parse(viewMode)
 	}, [viewMode])
 
-	const doesSelectedItemsContainOfflineStoredItems = (): boolean => {
+	const doesSelectedItemsContainOfflineStoredItems = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.offline && item.selected).length > 0 ? true : false
-	}
+	}, [currentItems])
 
-	const doesSelectedItemsContainFavoritedItems = (): boolean => {
+	const doesSelectedItemsContainFavoritedItems = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.favorited && item.selected).length > 0 ? true : false
-	}
+	}, [currentItems])
 
-	const doesSelectedItemsContainUnmovableItems = (): boolean => {
+	const doesSelectedItemsContainUnmovableItems = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => (item.isDefault || item.isSync) && item.selected).length > 0 ? true : false
-	}
+	}, [currentItems])
 
-	const doesSelecteditemsContainGallerySaveableItems = (): boolean => {
+	const doesSelecteditemsContainGallerySaveableItems = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
@@ -105,17 +106,17 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		}
 
 		return currentItems.filter(item => item.selected && extArray.includes(getFileExt(item.name))).length > 0 ? true : false
-	}
+	}, [currentItems])
 
-	const doesSelectedItemsContainFolders = (): boolean => {
+	const doesSelectedItemsContainFolders = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.type == "folder" && item.selected).length > 0 ? true : false
-	}
+	}, [currentItems])
 
-	const updateBulkItems = (): any[] => {
+	const updateBulkItems = useCallback(() => {
 		const bulkItems: any[] = []
 
 		for(let i = 0; i < currentItems.length; i++){
@@ -127,9 +128,9 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		setCurrentBulkItems(bulkItems)
 
 		return bulkItems
-	}
+	}, [currentItems])
 
-	const can = (): void => {
+	const can = useCallback(() => {
 		setCanShowTransfersButton(true)
 		setCanShowSelectAllItems(true)
 		setCanShowUnselectAllItems(true)
@@ -209,16 +210,16 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 			setCanDownload(false)
 			setCanMakeAvailableOffline(false)
 		}
-	}
+	}, [routeURL])
 
-	const updateRouteURL = (): void => {
+	const updateRouteURL = useCallback(() => {
 		if(typeof currentRoutes !== "undefined"){
 			if(typeof currentRoutes[currentRoutes.length - 1] !== "undefined"){
 				setRouteURL(getRouteURL(currentRoutes[currentRoutes.length - 1]))
 				setCurrentRouteName(currentRoutes[currentRoutes.length - 1].name)
 			}
 		}
-	}
+	}, [currentRoutes])
 
 	useEffect(() => {
 		can()
@@ -839,7 +840,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 											await SheetManager.hide("TopBarActionSheet")
 						
 											navigationAnimation({ enable: true }).then(() => {
-												navigation.current.dispatch(StackActions.push("TransfersScreen"))
+												navigation.dispatch(StackActions.push("TransfersScreen"))
 											})
 										}}
 										icon="repeat-outline"

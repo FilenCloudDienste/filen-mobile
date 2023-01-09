@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import React, { memo, useCallback } from "react"
 import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
@@ -16,18 +16,18 @@ import * as RNImagePicker from "react-native-image-picker"
 import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 
+const allowedTypes: string[] = [
+	"image/jpg",
+	"image/png",
+	"image/jpeg"
+]
+
 const ProfilePictureActionSheet = memo(() => {
     const darkMode = useDarkMode()
 	const insets: EdgeInsets = useSafeAreaInsets()
 	const lang = useLang()
 
-	const allowedTypes: string[] = [
-		"image/jpg",
-		"image/png",
-		"image/jpeg"
-	]
-
-	const uploadAvatarImage = (uri: string): void => {
+	const uploadAvatarImage = useCallback((uri: string) => {
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
 		ReactNativeBlobUtil.fs.readFile(uri, "base64").then((base64) => {
@@ -42,20 +42,20 @@ const ProfilePictureActionSheet = memo(() => {
 
 				updateUserInfo()
 			}).catch((err) => {
-				console.log(err)
+				console.error(err)
 	
 				useStore.setState({ fullscreenLoadingModalVisible: false })
 	
 				showToast({ message: err.toString() })
 			})
 		}).catch((err) => {
-			console.log(err)
+			console.error(err)
 
 			useStore.setState({ fullscreenLoadingModalVisible: false })
 
 			showToast({ message: err.toString() })
 		})
-	}
+	}, [])
 
     return (
 		// @ts-ignore
@@ -211,12 +211,12 @@ const ProfilePictureActionSheet = memo(() => {
 										uploadAvatarImage(decodeURIComponent(image.uri as string))
 									})
 								}).catch((err) => {
-									console.log(err)
+									console.error(err)
 
 									showToast({ message: err.toString() })
 								})
 							}).catch((err) => {
-								console.log(err)
+								console.error(err)
 
 								showToast({ message: err.toString() })
 							})

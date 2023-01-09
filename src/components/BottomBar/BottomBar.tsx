@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from "react"
-import { Text, View, Pressable, useWindowDimensions, ScaledSize } from "react-native"
+import { Text, View, Pressable, useWindowDimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
@@ -12,9 +12,10 @@ import { getColor } from "../../style/colors"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
+import type { NavigationContainerRef } from "@react-navigation/native"
 
 export interface BottomBarProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 export const BottomBar = memo(({ navigation }: BottomBarProps) => {
@@ -25,7 +26,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
     const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
     const networkInfo = useNetworkInfo()
 
     const iconTextMaxWidth: number = useMemo(() => {
@@ -131,7 +132,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 }}
                 onPress={() => {
                     navigationAnimation({ enable: false }).then(() => {
-                        navigation.current.dispatch(CommonActions.reset({
+                        navigation.dispatch(CommonActions.reset({
                             index: 0,
                             routes: [
                                 {
@@ -169,7 +170,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 }}
                 onPress={() => {
                     navigationAnimation({ enable: false }).then(() => {
-                        navigation.current.dispatch(CommonActions.reset({
+                        navigation.dispatch(CommonActions.reset({
                             index: 0,
                             routes: [
                                 {
@@ -225,7 +226,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 }}
                 onPress={() => {
                     navigationAnimation({ enable: false }).then(() => {
-                        navigation.current.dispatch(CommonActions.reset({
+                        navigation.dispatch(CommonActions.reset({
                             index: 0,
                             routes: [
                                 {
@@ -263,7 +264,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 }}
                 onPress={() => {
                     navigationAnimation({ enable: false }).then(() => {
-                        navigation.current.dispatch(CommonActions.reset({
+                        navigation.dispatch(CommonActions.reset({
                             index: 0,
                             routes: [
                                 {
