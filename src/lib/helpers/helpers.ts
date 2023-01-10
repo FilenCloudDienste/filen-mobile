@@ -531,7 +531,7 @@ export const getFilePreviewType = memoize((ext: string): string => {
             case "properties":
             case "cfg":
             case "ahk":
-            //case "ts":
+            case "ts":
             case "tsx":
               return "code"
             break
@@ -639,7 +639,7 @@ export const getFilePreviewType = memoize((ext: string): string => {
             case "properties":
             case "cfg":
             case "ahk":
-            //case "ts":
+            case "ts":
             case "tsx":
               return "code"
             break

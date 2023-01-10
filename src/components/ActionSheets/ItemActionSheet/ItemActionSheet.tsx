@@ -102,6 +102,343 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		}
 	}, [currentActionSheetItem])
 
+	const selection = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("event", {
+			type: currentActionSheetItem.selected ? "unselect-item" : "select-item",
+			data: currentActionSheetItem
+		})
+	}, [currentActionSheetItem])
+
+	const share = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("openShareActionSheet", currentActionSheetItem)
+	}, [currentActionSheetItem])
+
+	const publicLink = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("showPublicLinkActionSheet", currentActionSheetItem)
+	}, [currentActionSheetItem])
+
+	const saveToGallery = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		useStore.setState({ fullscreenLoadingModalVisible: false })
+
+		hasStoragePermissions().then(() => {
+			hasPhotoLibraryPermissions().then(() => {
+				queueFileDownload({
+					file: currentActionSheetItem,
+					saveToGalleryCallback: (path: string) => {
+						MediaLibrary.saveToLibraryAsync(path).then(() => {
+							addToSavedToGallery(currentActionSheetItem)
+
+							showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
+						}).catch((err) => {
+							console.log(err)
+
+							showToast({ message: err.toString() })
+						})
+					}
+				}).catch((err) => {
+					if(err == "stopped"){
+						return
+					}
+
+					if(err == "wifiOnly"){
+						return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+					}
+
+					console.error(err)
+
+					showToast({ message: err.toString() })
+				})
+			}).catch((err) => {
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		}).catch((err) => {
+			console.error(err)
+
+			showToast({ message: err.toString() })
+		})
+	}, [currentActionSheetItem, lang])
+
+	const edit = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		hasStoragePermissions().then(() => {
+			downloadFile(currentActionSheetItem, false, false).then((path) => {
+				ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
+					setTextEditorState("edit")
+					setTextEditorParent(currentActionSheetItem.parent)
+					setCreateTextFileDialogName(currentActionSheetItem.name)
+					setTextEditorText(data)
+					
+					navigationAnimation({ enable: true }).then(() => {
+						navigation.dispatch(StackActions.push("TextEditorScreen"))
+					})
+				}).catch((err) => {
+					console.error(err)
+
+					showToast({ message: err.toString() })
+				})
+			}).catch((err) => {
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		}).catch((err) => {
+			console.error(err)
+
+			showToast({ message: err.toString() })
+		})
+	}, [currentActionSheetItem])
+
+	const download = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		hasStoragePermissions().then(() => {
+			queueFileDownload({ file: currentActionSheetItem, showNotification: true }).catch((err) => {
+				if(err == "stopped"){
+					return
+				}
+
+				if(err == "wifiOnly"){
+					return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+				}
+
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		}).catch((err) => {
+			console.log(err)
+
+			showToast({ message: err.toString() })
+		})
+	}, [currentActionSheetItem, lang])
+
+	const removeFromOffline = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		hasStoragePermissions().then(() => {
+			removeFromOfflineStorage({ item: currentActionSheetItem }).then(() => {
+				//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
+			}).catch((err) => {
+				console.log(err)
+
+				showToast({ message: err.toString() })
+			})
+		}).catch((err) => {
+			console.log(err)
+
+			showToast({ message: err.toString() })
+		})
+	}, [currentActionSheetItem])
+
+	const makeOffline = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		hasStoragePermissions().then(() => {
+			queueFileDownload({ file: currentActionSheetItem, storeOffline: true }).catch((err) => {
+				if(err == "stopped"){
+					return
+				}
+				
+				if(err == "wifiOnly"){
+					return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+				}
+
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		}).catch((err) => {
+			console.error(err)
+
+			showToast({ message: err.toString() })
+		})
+	}, [currentActionSheetItem, lang])
+
+	const versions = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("openFileVersionsActionSheet", currentActionSheetItem)
+	}, [currentActionSheetItem])
+
+	const favorite = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		useStore.setState({ fullscreenLoadingModalVisible: true })
+
+		const value = currentActionSheetItem.favorited ? 0 : 1
+
+		favoriteItem({
+			item: currentActionSheetItem,
+			value
+		}).then(async () => {
+			DeviceEventEmitter.emit("event", {
+				type: "mark-item-favorite",
+				data: {
+					uuid: currentActionSheetItem.uuid,
+					value: value == 1 ? true : false
+				}
+			})
+
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+
+			//showToast({ message: i18n(lang, value == 1 ? "itemFavorited" : "itemUnfavorited", true, ["__NAME__"], [currentActionSheetItem.name]) })
+		}).catch((err) => {
+			console.error(err)
+
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+
+			showToast({ message: err.toString() })
+		})
+	}, [currentActionSheetItem])
+
+	const folderColor = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("openFolderColorActionSheet", currentActionSheetItem)
+	}, [currentActionSheetItem])
+
+	const move = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		showToast({ type: "move", message: i18n(lang, "moveItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
+	}, [currentActionSheetItem])
+
+	const trash = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		useStore.setState({ fullscreenLoadingModalVisible: true })
+
+		trashItem({ item: currentActionSheetItem }).then(() => {
+			DeviceEventEmitter.emit("event", {
+				type: "remove-item",
+				data: {
+					uuid: currentActionSheetItem.uuid
+				}
+			})
+
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+
+			//showToast({ message: i18n(lang, "itemTrashed", true, ["__NAME__"], [currentActionSheetItem.name]) })
+		}).catch((err) => {
+			console.error(err)
+
+			if(err.toString().toLowerCase().indexOf("already in the trash") !== -1){
+				DeviceEventEmitter.emit("event", {
+					type: "remove-item",
+					data: {
+						uuid: currentActionSheetItem.uuid
+					}
+				})
+			}
+			else{
+				showToast({ message: err.toString() })
+			}
+
+			useStore.setState({ fullscreenLoadingModalVisible: false })
+		})
+	}, [currentActionSheetItem])
+
+	const rename = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("openRenameDialog", currentActionSheetItem)
+	}, [currentActionSheetItem])
+
+	const permanentDelete = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("openConfirmPermanentDeleteDialog", currentActionSheetItem)
+	}, [currentActionSheetItem])
+
+	const restore = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		useStore.setState({ fullscreenLoadingModalVisible: true })
+
+		const restore = () => {
+			restoreItem({ item: currentActionSheetItem }).then(() => {
+				DeviceEventEmitter.emit("event", {
+					type: "remove-item",
+					data: {
+						uuid: currentActionSheetItem.uuid
+					}
+				})
+
+				useStore.setState({ fullscreenLoadingModalVisible: false })
+
+				showToast({ message: i18n(lang, "itemRestored", true, ["__NAME__"], [currentActionSheetItem.name]) })
+			}).catch((err) => {
+				console.error(err)
+
+				showToast({ message: err.toString() })
+
+				useStore.setState({ fullscreenLoadingModalVisible: false })
+			})
+		}
+
+		if(currentActionSheetItem.type == "file"){
+			fileExists({ name: currentActionSheetItem.name, parent: currentActionSheetItem.parent }).then((res) => {
+				if(res.exists){
+					useStore.setState({ fullscreenLoadingModalVisible: false })
+
+					return showToast({ message: i18n(lang, "alreadyExistsAtRestoreDestination", true, ["__NAME__"], [currentActionSheetItem.name]) })
+				}
+
+				restore()
+			}).catch((err) => {
+				console.error(err)
+
+				showToast({ message: err.toString() })
+
+				useStore.setState({ fullscreenLoadingModalVisible: false })
+			})
+		}
+		else{
+			folderExists({ name: currentActionSheetItem.name, parent: currentActionSheetItem.parent }).then((res) => {
+				if(res.exists){
+					useStore.setState({ fullscreenLoadingModalVisible: false })
+
+					return showToast({ message: i18n(lang, "alreadyExistsAtRestoreDestination", true, ["__NAME__"], [currentActionSheetItem.name]) })
+				}
+
+				restore()
+			}).catch((err) => {
+				console.error(err)
+
+				showToast({ message: err.toString() })
+
+				useStore.setState({ fullscreenLoadingModalVisible: false })
+			})
+		}
+	}, [currentActionSheetItem, lang])
+
+	const removeSharedIn = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("openConfirmRemoveFromSharedInDialog", currentActionSheetItem)
+	}, [currentActionSheetItem])
+
+	const stopSharing = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+
+		DeviceEventEmitter.emit("openConfirmStopSharingDialog", currentActionSheetItem)
+	}, [currentActionSheetItem])
+
+	const deviceOffline = useCallback(async () => {
+		await SheetManager.hide("ItemActionSheet")
+	}, [])
+
 	useEffect(() => {
 		setIsDeviceOnline(networkInfo.online)
 		can()
@@ -149,14 +486,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									routeURL.indexOf("photos") !== -1 && calcPhotosGridSize(photosGridSize) < 6 && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-
-												DeviceEventEmitter.emit("event", {
-													type: currentActionSheetItem.selected ? "unselect-item" : "select-item",
-													data: currentActionSheetItem
-												})
-											}}
+											onPress={selection}
 											icon="checkmark-circle-outline"
 											text={i18n(lang, currentActionSheetItem.selected ? "unselect" : "select")}
 										/>
@@ -166,20 +496,12 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									isDeviceOnline && itemListParent !== "trash" && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && typeof publicKey == "string" && typeof privateKey == "string" && publicKey.length > 16 && privateKey.length > 16 && (
 										<>
 											<ActionButton
-												onPress={async () => {
-													await SheetManager.hide("ItemActionSheet")
-				
-													DeviceEventEmitter.emit("openShareActionSheet", currentActionSheetItem)
-												}}
+												onPress={share}
 												icon="share-social-outline"
 												text={i18n(lang, "share")}
 											/>
 											<ActionButton
-												onPress={async () => {
-													await SheetManager.hide("ItemActionSheet")
-
-													DeviceEventEmitter.emit("showPublicLinkActionSheet", currentActionSheetItem)
-												}}
+												onPress={publicLink}
 												icon="link-outline"
 												text={i18n(lang, "publicLink")}
 											/>
@@ -189,50 +511,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									canSaveToGallery && currentActionSheetItem.type == "file" && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-
-												useStore.setState({ fullscreenLoadingModalVisible: false })
-
-												hasStoragePermissions().then(() => {
-													hasPhotoLibraryPermissions().then(() => {
-														queueFileDownload({
-															file: currentActionSheetItem,
-															saveToGalleryCallback: (path: string) => {
-																MediaLibrary.saveToLibraryAsync(path).then(() => {
-																	addToSavedToGallery(currentActionSheetItem)
-
-																	showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
-																}).catch((err) => {
-																	console.log(err)
-			
-																	showToast({ message: err.toString() })
-																})
-															}
-														}).catch((err) => {
-															if(err == "stopped"){
-																return
-															}
-
-															if(err == "wifiOnly"){
-																return showToast({ message: i18n(lang, "onlyWifiDownloads") })
-															}
-
-															console.error(err)
-
-															showToast({ message: err.toString() })
-														})
-													}).catch((err) => {
-														console.log(err)
-
-														showToast({ message: err.toString() })
-													})
-												}).catch((err) => {
-													console.log(err)
-
-													showToast({ message: err.toString() })
-												})
-											}}
+											onPress={saveToGallery}
 											icon="image-outline"
 											text={i18n(lang, "saveToGallery")} 
 										/>
@@ -241,36 +520,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									canEdit && currentActionSheetItem.type == "file" && itemListParent !== "offline" && routeURL.indexOf("shared-in") == -1 && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-			
-												hasStoragePermissions().then(() => {
-													downloadFile(currentActionSheetItem, false, false).then((path) => {
-														ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
-															setTextEditorState("edit")
-															setTextEditorParent(currentActionSheetItem.parent)
-															setCreateTextFileDialogName(currentActionSheetItem.name)
-															setTextEditorText(data)
-															
-															navigationAnimation({ enable: true }).then(() => {
-																navigation.dispatch(StackActions.push("TextEditorScreen"))
-															})
-														}).catch((err) => {
-															console.log(err)
-
-															showToast({ message: err.toString() })
-														})
-													}).catch((err) => {
-														console.log(err)
-		
-														showToast({ message: err.toString() })
-													})
-												}).catch((err) => {
-													console.log(err)
-
-													showToast({ message: err.toString() })
-												})
-											}}
+											onPress={edit}
 											icon="create-outline"
 											text={i18n(lang, "edit")}
 										/>
@@ -279,29 +529,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									canDownload && currentActionSheetItem.type == "file" && itemListParent !== "offline" && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-			
-												hasStoragePermissions().then(() => {
-													queueFileDownload({ file: currentActionSheetItem, showNotification: true }).catch((err) => {
-														if(err == "stopped"){
-															return
-														}
-
-														if(err == "wifiOnly"){
-															return showToast({ message: i18n(lang, "onlyWifiDownloads") })
-														}
-
-														console.error(err)
-
-														showToast({ message: err.toString() })
-													})
-												}).catch((err) => {
-													console.log(err)
-
-													showToast({ message: err.toString() })
-												})
-											}}
+											onPress={download}
 											icon="download-outline"
 											text={i18n(lang, "download")}
 										/>
@@ -310,23 +538,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									currentActionSheetItem.type == "file" && itemListParent !== "trash" && currentActionSheetItem.offline && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-			
-												hasStoragePermissions().then(() => {
-													removeFromOfflineStorage({ item: currentActionSheetItem }).then(() => {
-														//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
-													}).catch((err) => {
-														console.log(err)
-		
-														showToast({ message: err.toString() })
-													})
-												}).catch((err) => {
-													console.log(err)
-
-													showToast({ message: err.toString() })
-												})
-											}}
+											onPress={removeFromOffline}
 											icon="close-circle-outline"
 											text={i18n(lang, "removeFromOfflineStorage")}
 										/>
@@ -335,29 +547,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									isDeviceOnline && currentActionSheetItem.type == "file" && itemListParent !== "trash" && !currentActionSheetItem.offline && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-			
-												hasStoragePermissions().then(() => {
-													queueFileDownload({ file: currentActionSheetItem, storeOffline: true }).catch((err) => {
-														if(err == "stopped"){
-															return
-														}
-														
-														if(err == "wifiOnly"){
-															return showToast({ message: i18n(lang, "onlyWifiDownloads") })
-														}
-
-														console.error(err)
-
-														showToast({ message: err.toString() })
-													})
-												}).catch((err) => {
-													console.log(err)
-
-													showToast({ message: err.toString() })
-												})
-											}}
+											onPress={makeOffline}
 											icon="save-outline"
 											text={i18n(lang, "makeAvailableOffline")}
 										/>
@@ -366,11 +556,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									isDeviceOnline && currentActionSheetItem.type == "file" && itemListParent !== "trash" && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && (
 										<ActionButton 
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-			
-												DeviceEventEmitter.emit("openFileVersionsActionSheet", currentActionSheetItem)
-											}}
+											onPress={versions}
 											icon="time-outline"
 											text={i18n(lang, "versionHistory")}
 										/>
@@ -379,36 +565,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									isDeviceOnline && itemListParent !== "trash" && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-
-												useStore.setState({ fullscreenLoadingModalVisible: true })
-			
-												const value = currentActionSheetItem.favorited ? 0 : 1
-			
-												favoriteItem({
-													item: currentActionSheetItem,
-													value
-												}).then(async () => {
-													DeviceEventEmitter.emit("event", {
-														type: "mark-item-favorite",
-														data: {
-															uuid: currentActionSheetItem.uuid,
-															value: value == 1 ? true : false
-														}
-													})
-			
-													useStore.setState({ fullscreenLoadingModalVisible: false })
-			
-													//showToast({ message: i18n(lang, value == 1 ? "itemFavorited" : "itemUnfavorited", true, ["__NAME__"], [currentActionSheetItem.name]) })
-												}).catch((err) => {
-													console.log(err)
-			
-													useStore.setState({ fullscreenLoadingModalVisible: false })
-			
-													showToast({ message: err.toString() })
-												})
-											}}
+											onPress={favorite}
 											icon="heart-outline"
 											text={currentActionSheetItem.favorited ? i18n(lang, "unfavorite") : i18n(lang, "favorite")}
 										/>
@@ -417,11 +574,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									isDeviceOnline && currentActionSheetItem.type == "folder" && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-
-												DeviceEventEmitter.emit("openFolderColorActionSheet", currentActionSheetItem)
-											}}
+											onPress={folderColor}
 											icon="color-fill-outline"
 											text={i18n(lang, "color")}
 										/>
@@ -430,11 +583,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									isDeviceOnline && !currentActionSheetItem.isSync && !currentActionSheetItem.isDefault && itemListParent !== "trash" && routeURL.indexOf("shared-in") == -1 && routeURL.indexOf("shared-out") == -1 && routeURL.indexOf("links") == -1 && routeURL.indexOf("favorites") == -1 && routeURL.indexOf("offline") == -1 && routeURL.indexOf("recents") == -1 && routeURL.indexOf("photos") == -1 && (
 										<ActionButton 
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-			
-												showToast({ type: "move", message: i18n(lang, "moveItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
-											}}
+											onPress={move}
 											icon="move-outline"
 											text={i18n(lang, "move")}
 										/>
@@ -443,11 +592,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									!currentActionSheetItem.isSync && isDeviceOnline && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && routeURL.indexOf("photos") == -1 && (
 										<ActionButton 
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-			
-												DeviceEventEmitter.emit("openRenameDialog", currentActionSheetItem)
-											}}
+											onPress={rename}
 											icon="text-outline"
 											text={i18n(lang, "rename")}
 										/>
@@ -456,40 +601,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									isDeviceOnline && !currentActionSheetItem.isSync && !currentActionSheetItem.isDefault && itemListParent !== "trash" && routeURL.indexOf("shared-in") == -1 && itemListParent !== "offline" && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-
-												useStore.setState({ fullscreenLoadingModalVisible: true })
-			
-												trashItem({ item: currentActionSheetItem }).then(async () => {
-													DeviceEventEmitter.emit("event", {
-														type: "remove-item",
-														data: {
-															uuid: currentActionSheetItem.uuid
-														}
-													})
-
-													useStore.setState({ fullscreenLoadingModalVisible: false })
-
-													//showToast({ message: i18n(lang, "itemTrashed", true, ["__NAME__"], [currentActionSheetItem.name]) })
-												}).catch(async (err) => {
-													console.log(err)
-
-													if(err.toString().toLowerCase().indexOf("already in the trash") !== -1){
-														DeviceEventEmitter.emit("event", {
-															type: "remove-item",
-															data: {
-																uuid: currentActionSheetItem.uuid
-															}
-														})
-													}
-													else{
-														showToast({ message: err.toString() })
-													}
-
-													useStore.setState({ fullscreenLoadingModalVisible: false })
-												})
-											}}
+											onPress={trash}
 											icon="trash-outline"
 											text={i18n(lang, "trash")}
 										/>
@@ -499,76 +611,12 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									typeof currentActionSheetItem == "object" && isDeviceOnline && itemListParent == "trash" && routeURL.indexOf("shared-in") == -1 && (
 										<>
 											<ActionButton
-												onPress={async () => {
-													await SheetManager.hide("ItemActionSheet")
-
-													DeviceEventEmitter.emit("openConfirmPermanentDeleteDialog", currentActionSheetItem)
-												}}
+												onPress={permanentDelete}
 												icon="close-circle-outline"
 												text={i18n(lang, "deletePermanently")}
 											/>
 											<ActionButton
-												onPress={async () => {
-													await SheetManager.hide("ItemActionSheet")
-
-													useStore.setState({ fullscreenLoadingModalVisible: true })
-
-													const restore = () => {
-														restoreItem({ item: currentActionSheetItem }).then(async () => {
-															DeviceEventEmitter.emit("event", {
-																type: "remove-item",
-																data: {
-																	uuid: currentActionSheetItem.uuid
-																}
-															})
-		
-															useStore.setState({ fullscreenLoadingModalVisible: false })
-		
-															showToast({ message: i18n(lang, "itemRestored", true, ["__NAME__"], [currentActionSheetItem.name]) })
-														}).catch((err) => {
-															console.log(err)
-
-															showToast({ message: err.toString() })
-		
-															useStore.setState({ fullscreenLoadingModalVisible: false })
-														})
-													}
-
-													if(currentActionSheetItem.type == "file"){
-														fileExists({ name: currentActionSheetItem.name, parent: currentActionSheetItem.parent }).then((res) => {
-															if(res.exists){
-																useStore.setState({ fullscreenLoadingModalVisible: false })
-
-																return showToast({ message: i18n(lang, "alreadyExistsAtRestoreDestination", true, ["__NAME__"], [currentActionSheetItem.name]) })
-															}
-
-															restore()
-														}).catch((err) => {
-															console.log(err)
-		
-															showToast({ message: err.toString() })
-		
-															useStore.setState({ fullscreenLoadingModalVisible: false })
-														})
-													}
-													else{
-														folderExists({ name: currentActionSheetItem.name, parent: currentActionSheetItem.parent }).then((res) => {
-															if(res.exists){
-																useStore.setState({ fullscreenLoadingModalVisible: false })
-
-																return showToast({ message: i18n(lang, "alreadyExistsAtRestoreDestination", true, ["__NAME__"], [currentActionSheetItem.name]) })
-															}
-
-															restore()
-														}).catch((err) => {
-															console.log(err)
-		
-															showToast({ message: err.toString() })
-		
-															useStore.setState({ fullscreenLoadingModalVisible: false })
-														})
-													}
-												}}
+												onPress={restore}
 												icon="refresh-outline"
 												text={i18n(lang, "restore")}
 											/>
@@ -578,11 +626,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									isDeviceOnline && routeURL.indexOf("shared-in") !== -1 && getParent().length < 32 && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-
-												DeviceEventEmitter.emit("openConfirmRemoveFromSharedInDialog", currentActionSheetItem)
-											}}
+											onPress={removeSharedIn}
 											icon="close-circle-outline"
 											text={i18n(lang, "removeFromSharedIn")}
 										/>
@@ -591,11 +635,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									isDeviceOnline && routeURL.indexOf("shared-out") !== -1 && getParent().length < 32 && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-
-												DeviceEventEmitter.emit("openConfirmStopSharingDialog", currentActionSheetItem)
-											}}
+											onPress={stopSharing}
 											icon="close-circle-outline"
 											text={i18n(lang, "stopSharing")}
 										/>
@@ -604,9 +644,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 								{
 									!isDeviceOnline && (
 										<ActionButton
-											onPress={async () => {
-												await SheetManager.hide("ItemActionSheet")
-											}}
+											onPress={deviceOffline}
 											icon="cloud-offline-outline"
 											text={i18n(lang, "deviceOffline")}
 										/>

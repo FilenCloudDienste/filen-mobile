@@ -57,6 +57,159 @@ const ProfilePictureActionSheet = memo(() => {
 		})
 	}, [])
 
+	const takePhoto = useCallback(async () => {
+		await SheetManager.hide("ProfilePictureActionSheet")
+
+		setTimeout(() => {
+			hasCameraPermissions().then(() => {
+				storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+
+				RNImagePicker.launchCamera({
+					maxWidth: 999999999,
+					maxHeight: 999999999,
+					videoQuality: "low",
+					cameraType: "back",
+					quality: 0.2,
+					includeBase64: false,
+					saveToPhotos: false,
+					mediaType: "photo"
+				}, (response) => {
+					if(response.errorMessage){
+						console.log(response.errorMessage)
+
+						showToast({ message: response.errorMessage })
+
+						return
+					}
+					
+					if(response.didCancel){
+						return
+					}
+
+					if(response.errorMessage){
+						console.error(response.errorMessage)
+
+						showToast({ message: response.errorMessage.toString() })
+
+						return
+					}
+
+					if(typeof response.assets == "undefined"){
+						return
+					}
+
+					if(!Array.isArray(response.assets)){
+						return
+					}
+
+					if(typeof response.assets[0] == "undefined"){
+						return
+					}
+
+					const image = response.assets[0]
+
+					if(!allowedTypes.includes(image.type as string)){
+						showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+						return
+					}
+
+					if(image.fileSize as number > ((1024 * 1024) * 2.99)){
+						useStore.setState({ fullscreenLoadingModalVisible: false })
+			
+						showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
+
+						return
+					}
+
+					uploadAvatarImage(decodeURIComponent(image.uri as string))
+				})
+			}).catch((err) => {
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		}, 500)
+	}, [lang])
+
+	const fromGallery = useCallback(async () => {
+		await SheetManager.hide("ProfilePictureActionSheet")
+
+		setTimeout(() => {
+			hasPhotoLibraryPermissions().then(() => {
+				hasStoragePermissions().then(() => {
+					storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+
+					RNImagePicker.launchImageLibrary({
+						mediaType: "photo",
+						selectionLimit: 1,
+						quality: 0.2,
+						videoQuality: "low",
+						includeBase64: false,
+						maxWidth: 999999999,
+						maxHeight: 999999999
+					}, (response) => {
+						if(response.didCancel){
+							return
+						}
+
+						if(response.errorMessage){
+							console.error(response.errorMessage)
+
+							showToast({ message: response.errorMessage.toString() })
+
+							return
+						}
+
+						if(typeof response.assets == "undefined"){
+							showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+							return
+						}
+	
+						if(!Array.isArray(response.assets)){
+							showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+							return
+						}
+	
+						if(typeof response.assets[0] == "undefined"){
+							showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+							return
+						}
+	
+						const image = response.assets[0]
+
+						if(!allowedTypes.includes(image.type as string)){
+							showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+							return
+						}
+
+						if(image.fileSize as number > ((1024 * 1024) * 2.99)){
+							useStore.setState({ fullscreenLoadingModalVisible: false })
+				
+							showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
+
+							return
+						}
+
+						uploadAvatarImage(decodeURIComponent(image.uri as string))
+					})
+				}).catch((err) => {
+					console.error(err)
+
+					showToast({ message: err.toString() })
+				})
+			}).catch((err) => {
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		}, 500)
+	}, [])
+
     return (
 		// @ts-ignore
         <ActionSheet
@@ -83,145 +236,12 @@ const ProfilePictureActionSheet = memo(() => {
 					}}
 				/>
 				<ActionButton
-					onPress={async () => {
-						await SheetManager.hide("ProfilePictureActionSheet")
-
-						setTimeout(() => {
-							hasCameraPermissions().then(() => {
-								storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
-
-								RNImagePicker.launchCamera({
-									maxWidth: 999999999,
-									maxHeight: 999999999,
-									videoQuality: "low",
-									cameraType: "back",
-									quality: 0.2,
-									includeBase64: false,
-									saveToPhotos: false,
-									mediaType: "photo"
-								}, (response) => {
-									if(response.errorMessage){
-										console.log(response.errorMessage)
-
-										showToast({ message: response.errorMessage })
-
-										return
-									}
-									
-									if(response.didCancel){
-										return
-									}
-
-									if(response.errorMessage){
-										console.log(response.errorMessage)
-
-										showToast({ message: response.errorMessage.toString() })
-
-										return
-									}
-
-									if(typeof response.assets == "undefined"){
-										return
-									}
-				
-									if(!Array.isArray(response.assets)){
-										return
-									}
-				
-									if(typeof response.assets[0] == "undefined"){
-										return
-									}
-				
-									const image = response.assets[0]
-
-									if(!allowedTypes.includes(image.type as string)){
-										return showToast({ message: i18n(lang, "avatarInvalidImage") })
-									}
-
-									if(image.fileSize as number > ((1024 * 1024) * 2.99)){
-										useStore.setState({ fullscreenLoadingModalVisible: false })
-							
-										return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
-									}
-
-									uploadAvatarImage(decodeURIComponent(image.uri as string))
-								})
-							}).catch((err) => {
-								console.log(err)
-
-								showToast({ message: err.toString() })
-							})
-						}, 500)
-					}}
+					onPress={takePhoto}
 					icon="camera-outline"
 					text={i18n(lang, "takePhotoAndUpload")}
 				/>
 				<ActionButton
-					onPress={async () => {
-						await SheetManager.hide("ProfilePictureActionSheet")
-
-						setTimeout(() => {
-							hasPhotoLibraryPermissions().then(() => {
-								hasStoragePermissions().then(() => {
-									storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
-
-									RNImagePicker.launchImageLibrary({
-										mediaType: "photo",
-										selectionLimit: 1,
-										quality: 0.2,
-										videoQuality: "low",
-										includeBase64: false,
-										maxWidth: 999999999,
-										maxHeight: 999999999
-									}, (response) => {
-										if(response.didCancel){
-											return
-										}
-
-										if(response.errorMessage){
-											console.log(response.errorMessage)
-
-											return showToast({ message: response.errorMessage.toString() })
-										}
-
-										if(typeof response.assets == "undefined"){
-											return showToast({ message: i18n(lang, "avatarInvalidImage") })
-										}
-					
-										if(!Array.isArray(response.assets)){
-											return showToast({ message: i18n(lang, "avatarInvalidImage") })
-										}
-					
-										if(typeof response.assets[0] == "undefined"){
-											return showToast({ message: i18n(lang, "avatarInvalidImage") })
-										}
-					
-										const image = response.assets[0]
-
-										if(!allowedTypes.includes(image.type as string)){
-											return showToast({ message: i18n(lang, "avatarInvalidImage") })
-										}
-
-										if(image.fileSize as number > ((1024 * 1024) * 2.99)){
-											useStore.setState({ fullscreenLoadingModalVisible: false })
-								
-											return showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
-										}
-
-										uploadAvatarImage(decodeURIComponent(image.uri as string))
-									})
-								}).catch((err) => {
-									console.error(err)
-
-									showToast({ message: err.toString() })
-								})
-							}).catch((err) => {
-								console.error(err)
-
-								showToast({ message: err.toString() })
-							})
-						}, 500)
-					}}
+					onPress={fromGallery}
 					icon="image-outline"
 					text={i18n(lang, "uploadFromGallery")}
 				/>

@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react"
+import React, { memo, useMemo, useCallback } from "react"
 import { Text, View, Pressable, useWindowDimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -113,6 +113,87 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
         return [showHome, showCloud, canOpenBottomAddActionSheet, isPhotosScreen, showSettings]
     }, [getParent(), getRouteURL()])
 
+    const navTo = useCallback((to: "recents" | "cloud" | "photos" | "settings") => {
+        if(to == "recents"){
+            navigationAnimation({ enable: false }).then(() => {
+                navigation.dispatch(CommonActions.reset({
+                    index: 0,
+                    routes: [
+                        {
+                            name: "MainScreen",
+                            params: {
+                                parent: "recents"
+                            }
+                        }
+                    ]
+                }))
+            })
+        }
+        else if(to == "cloud"){
+            navigationAnimation({ enable: false }).then(() => {
+                navigation.dispatch(CommonActions.reset({
+                    index: 0,
+                    routes: [
+                        {
+                            name: "MainScreen",
+                            params: {
+                                parent: (defaultDriveOnly ? defaultDriveUUID : "base")
+                            }
+                        }
+                    ]
+                }))
+            })
+        }
+        else if(to == "photos"){
+            navigationAnimation({ enable: false }).then(() => {
+                navigation.dispatch(CommonActions.reset({
+                    index: 0,
+                    routes: [
+                        {
+                            name: "MainScreen",
+                            params: {
+                                parent: "photos"
+                            }
+                        }
+                    ]
+                }))
+            })
+        }
+        else if(to == "settings"){
+            navigationAnimation({ enable: false }).then(() => {
+                navigation.dispatch(CommonActions.reset({
+                    index: 0,
+                    routes: [
+                        {
+                            name: "SettingsScreen"
+                        }
+                    ]
+                }))
+            })
+        }
+        else{
+            navigationAnimation({ enable: false }).then(() => {
+                navigation.dispatch(CommonActions.reset({
+                    index: 0,
+                    routes: [
+                        {
+                            name: "MainScreen",
+                            params: {
+                                parent: (defaultDriveOnly ? defaultDriveUUID : "base")
+                            }
+                        }
+                    ]
+                }))
+            })
+        }
+    }, [defaultDriveOnly, defaultDriveUUID])
+
+    const openAddSheet = useCallback(() => {
+        if(canOpenBottomAddActionSheet && networkInfo.online){
+            SheetManager.show("BottomBarAddActionSheet")
+        }
+    }, [canOpenBottomAddActionSheet, networkInfo.online])
+
     return (
         <View
             style={{
@@ -130,21 +211,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     alignItems: "center",
                     width: "20%",
                 }}
-                onPress={() => {
-                    navigationAnimation({ enable: false }).then(() => {
-                        navigation.dispatch(CommonActions.reset({
-                            index: 0,
-                            routes: [
-                                {
-                                    name: "MainScreen",
-                                    params: {
-                                        parent: "recents"
-                                    }
-                                }
-                            ]
-                        }))
-                    })
-                }}
+                onPress={() => navTo("recents")}
             >
                 <Ionicon
                     name={showHome ? "home" : "home-outline"}
@@ -168,21 +235,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     alignItems: "center",
                     width: "20%",
                 }}
-                onPress={() => {
-                    navigationAnimation({ enable: false }).then(() => {
-                        navigation.dispatch(CommonActions.reset({
-                            index: 0,
-                            routes: [
-                                {
-                                    name: "MainScreen",
-                                    params: {
-                                        parent: (defaultDriveOnly ? defaultDriveUUID : "base")
-                                    }
-                                }
-                            ]
-                        }))
-                    })
-                }}
+                onPress={() => navTo("cloud")}
             >
                 <Ionicon
                     name={showCloud ? "cloud" : "cloud-outline"}
@@ -207,11 +260,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     width: "20%",
                     paddingTop: 2
                 }}
-                onPress={() => {
-                    if(canOpenBottomAddActionSheet && networkInfo.online){
-                        SheetManager.show("BottomBarAddActionSheet")
-                    }
-                }}
+                onPress={openAddSheet}
             >
                 <Ionicon
                     name={networkInfo.online ? (canOpenBottomAddActionSheet ? "add-circle-outline" : "close-circle-outline") : "cloud-offline-outline"}
@@ -224,21 +273,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     alignItems: "center",
                     width: "20%"
                 }}
-                onPress={() => {
-                    navigationAnimation({ enable: false }).then(() => {
-                        navigation.dispatch(CommonActions.reset({
-                            index: 0,
-                            routes: [
-                                {
-                                    name: "MainScreen",
-                                    params: {
-                                        parent: "photos"
-                                    }
-                                }
-                            ]
-                        }))
-                    })
-                }}
+                onPress={() => navTo("photos")}
             >
                 <Ionicon
                     name={isPhotosScreen ? "image" : "image-outline"}
@@ -262,18 +297,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                     alignItems: "center",
                     width: "20%",
                 }}
-                onPress={() => {
-                    navigationAnimation({ enable: false }).then(() => {
-                        navigation.dispatch(CommonActions.reset({
-                            index: 0,
-                            routes: [
-                                {
-                                    name: "SettingsScreen"
-                                }
-                            ]
-                        }))
-                    })
-                }}
+                onPress={() => navTo("settings")}
             >
                 <Ionicon
                     name={showSettings ? "settings" : "settings-outline"}

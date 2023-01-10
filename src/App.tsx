@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment, memo, useCallback } from "react"
-import { View, Platform, DeviceEventEmitter, LogBox, Appearance, AppState } from "react-native"
+import { View, Platform, DeviceEventEmitter, Appearance, AppState } from "react-native"
 import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -76,8 +76,6 @@ if(!__DEV__){
         enableAutoPerformanceTracking: false
     })
 }
-
-LogBox.ignoreLogs(["new NativeEventEmitter"])
 
 const Stack = createNativeStackNavigator()
 const navigationRef = createNavigationContainerRef()

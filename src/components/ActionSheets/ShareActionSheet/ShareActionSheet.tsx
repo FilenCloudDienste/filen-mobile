@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo, useRef } from "react"
+import React, { useEffect, useState, memo, useRef, useCallback } from "react"
 import { View, ActivityIndicator, Text, TextInput, TouchableOpacity, DeviceEventEmitter } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
@@ -22,6 +22,77 @@ const ShareActionSheet = memo(() => {
 	const [progress, setProgress] = useState<{ itemsDone: number, totalItems: number }>({ itemsDone: 0, totalItems: 1 })
 	const inputRef = useRef<any>()
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
+
+	const share = useCallback(() => {
+		if(buttonsDisabled || isLoading){
+			return
+		}
+
+		if(email == storage.getString("email")){
+			return
+		}
+
+		setButtonsDisabled(true)
+		setIsLoading(true)
+
+		getPublicKeyFromEmail({ email }).then((publicKey) => {
+			if(typeof publicKey !== "string"){
+				setButtonsDisabled(false)
+				setIsLoading(false)
+				setEmail("")
+
+				showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
+
+				return
+			}
+
+			if(publicKey.length < 16){
+				setButtonsDisabled(false)
+				setIsLoading(false)
+				setEmail("")
+
+				showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
+
+				return
+			}
+
+			shareItemToUser({
+				item: currentItem,
+				publicKey,
+				email,
+				progressCallback: (itemsDone: number, totalItems: number) => {
+					setProgress({ itemsDone, totalItems })
+				}
+			}).then(() => {
+				setButtonsDisabled(false)
+				setIsLoading(false)
+				setEmail("")
+
+				showToast({ message: i18n(lang, "sharedWithSuccess", true, ["__EMAIL__"], [email]), placement: "top" })
+			}).catch((err) => {
+				console.error(err)
+
+				showToast({ message: err.toString(), placement: "top" })
+
+				setButtonsDisabled(false)
+				setIsLoading(false)
+			})
+		}).catch((err) => {
+			console.error(err)
+
+			if(err.toString().toLowerCase().indexOf("not found") !== -1){
+				showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
+
+				setEmail("")
+			}
+			else{
+				showToast({ message: err.toString(), placement: "top" })
+			}
+
+			setButtonsDisabled(false)
+			setIsLoading(false)
+		})
+	}, [buttonsDisabled, currentItem, email, isLoading, lang])
 
 	useEffect(() => {
 		const openShareActionSheetListener = (item: Item) => {
@@ -140,72 +211,7 @@ const ShareActionSheet = memo(() => {
 								{
 									email.length > 0 && (
 										<TouchableOpacity
-											onPress={() => {
-												if(buttonsDisabled){
-													return
-												}
-
-												if(email == storage.getString("email")){
-													return
-												}
-			
-												setButtonsDisabled(true)
-												setIsLoading(true)
-
-												getPublicKeyFromEmail({ email }).then((publicKey) => {
-													if(typeof publicKey !== "string"){
-														setButtonsDisabled(false)
-														setIsLoading(false)
-														setEmail("")
-
-														return showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
-													}
-
-													if(publicKey.length < 16){
-														setButtonsDisabled(false)
-														setIsLoading(false)
-														setEmail("")
-
-														return showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
-													}
-
-													shareItemToUser({
-														item: currentItem,
-														publicKey,
-														email,
-														progressCallback: (itemsDone: number, totalItems: number) => {
-															setProgress({ itemsDone, totalItems })
-														}
-													}).then(() => {
-														setButtonsDisabled(false)
-														setIsLoading(false)
-														setEmail("")
-
-														showToast({ message: i18n(lang, "sharedWithSuccess", true, ["__EMAIL__"], [email]), placement: "top" })
-													}).catch((err) => {
-														console.log(err)
-
-														showToast({ message: err.toString(), placement: "top" })
-
-														setButtonsDisabled(false)
-														setIsLoading(false)
-													})
-												}).catch((err) => {
-													console.log(err)
-
-													if(err.toString().toLowerCase().indexOf("not found") !== -1){
-														showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
-
-														setEmail("")
-													}
-													else{
-														showToast({ message: err.toString(), placement: "top" })
-													}
-
-													setButtonsDisabled(false)
-													setIsLoading(false)
-												})
-											}}
+											onPress={share}
 										>
 											{
 												!buttonsDisabled && (

@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef, memo } from "react"
-import { View, Text, TouchableOpacity, useWindowDimensions, Animated, AppState, ScaledSize, AppStateStatus } from "react-native"
+import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "react"
+import { View, Text, TouchableOpacity, useWindowDimensions, Animated, AppState, AppStateStatus } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -24,10 +24,14 @@ export interface PINCodeRowProps {
 export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }: PINCodeRowProps) => {
     const darkMode = useDarkMode()
 
-    const buttonWidthHeight: number = 70
-    const buttonFontSize: number = 22
-    const buttonColor: string = darkMode ? "#333333" : "lightgray"
-    const buttonFontColor: string = getColor(darkMode, "textPrimary")
+    const [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor] = useMemo(() => {
+        const buttonWidthHeight: number = 70
+        const buttonFontSize: number = 22
+        const buttonColor: string = darkMode ? "#333333" : "lightgray"
+        const buttonFontColor: string = getColor(darkMode, "textPrimary")
+
+        return [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor]
+    }, [darkMode])
 
     return (
         <View
@@ -159,9 +163,9 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
     const appState = useRef(AppState.currentState)
     const setBiometricAuthScreenVisible = useStore(state => state.setBiometricAuthScreenVisible)
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
 
-    const startShake = (): void => {
+    const startShake = useCallback(() => {
         Animated.sequence([
             Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
             Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
@@ -174,9 +178,9 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
         setTimeout(() => {
             setDotColor(headerTextColor)
         }, 700)
-    }
+    }, [])
 
-    const authed = (): void => {
+    const authed = useCallback(() => {
         setConfirmPinCode("")
         setPinCode("")
         setConfirmPinCodeVisible(false)
@@ -230,9 +234,9 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
                 navigation.goBack()
             }
         })
-    }
+    }, [startOnCloudScreen, navigation])
 
-    const updatePinCode = (num: number): void => {
+    const updatePinCode = useCallback((num: number) => {
         setDotColor(headerTextColor)
 
         if(num == -1){
@@ -285,18 +289,10 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
                 }
             }
         }
-    }
+    }, [confirmPinCodeVisible, biometricAuthScreenState, confirmPinCode, pinCode])
 
-    const promptBiometrics = async (): Promise<void> => {
-        if(biometricAuthScreenState == "setup"){
-            return
-        }
-
-        if(showingBiometrics){
-            return
-        }
-
-        if(storage.getBoolean("onlyUsePINCode:" + storage.getNumber("userId"))){
+    const promptBiometrics = useCallback(async () => {
+        if(biometricAuthScreenState == "setup" || showingBiometrics || storage.getBoolean("onlyUsePINCode:" + storage.getNumber("userId"))){
             return
         }
 
@@ -332,7 +328,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
                 authed()
             }).catch(console.log)
         }).catch(console.log)
-    }
+    }, [biometricAuthScreenState, showingBiometrics, lang])
 
     useEffect(() => {
         setIsAuthing(true)
@@ -345,12 +341,8 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
         useStore.setState({
             renameDialogVisible: false,
             createFolderDialogVisible: false,
-            confirmPermanentDeleteDialogVisible: false,
-            removeFromSharedInDialogVisible: false,
-            stopSharingDialogVisible: false,
             createTextFileDialogVisible: false,
             redeemCodeDialogVisible: false,
-            deleteAccountTwoFactorDialogVisible: false,
             disable2FATwoFactorDialogVisible: false,
             bulkShareDialogVisible: false
         })

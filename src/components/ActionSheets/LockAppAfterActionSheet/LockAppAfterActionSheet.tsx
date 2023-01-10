@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import React, { memo, useCallback } from "react"
 import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
@@ -17,6 +17,14 @@ const LockAppAfterActionSheet = memo(() => {
 	const lang = useLang()
 	const [userId, setUserId] = useMMKVNumber("userId", storage)
 	const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
+
+	const setLock = useCallback(async (seconds: number) => {
+		setLockAppAfter(seconds)
+
+		storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (seconds * 1000)))
+
+		await SheetManager.hide("LockAppAfterActionSheet")
+	}, [userId])
 
     return (
 		// @ts-ignore
@@ -40,13 +48,7 @@ const LockAppAfterActionSheet = memo(() => {
 			>
 				<ActionSheetIndicator />
 				<ActionButton
-					onPress={() => {
-						setLockAppAfter(1)
-
-						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (1 * 1000)))
-
-						SheetManager.hide("LockAppAfterActionSheet")
-					}}
+					onPress={() => setLock(1)}
 					text={i18n(lang, "immediately")}
 					rightComponent={
 						lockAppAfter == 1 ? (
@@ -59,13 +61,7 @@ const LockAppAfterActionSheet = memo(() => {
 					}
 				/>
 				<ActionButton
-					onPress={() => {
-						setLockAppAfter(60)
-
-						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (60 * 1000)))
-
-						SheetManager.hide("LockAppAfterActionSheet")
-					}}
+					onPress={() => setLock(60)}
 					text={i18n(lang, "oneMinute")}
 					rightComponent={
 						lockAppAfter == 60 ? (
@@ -78,13 +74,7 @@ const LockAppAfterActionSheet = memo(() => {
 					}
 				/>
 				<ActionButton
-					onPress={() => {
-						setLockAppAfter(180)
-
-						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (180 * 1000)))
-
-						SheetManager.hide("LockAppAfterActionSheet")
-					}}
+					onPress={() => setLock(180)}
 					text={i18n(lang, "threeMinutes")}
 					rightComponent={
 						lockAppAfter == 180 ? (
@@ -97,13 +87,7 @@ const LockAppAfterActionSheet = memo(() => {
 					}
 				/>
 				<ActionButton
-					onPress={() => {
-						setLockAppAfter(300)
-
-						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (300 * 1000)))
-
-						SheetManager.hide("LockAppAfterActionSheet")
-					}}
+					onPress={() => setLock(300)}
 					text={i18n(lang, "fiveMinutes")}
 					rightComponent={
 						lockAppAfter == 300 ? (
@@ -116,13 +100,7 @@ const LockAppAfterActionSheet = memo(() => {
 					}
 				/>
 				<ActionButton
-					onPress={() => {
-						setLockAppAfter(600)
-
-						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (600 * 1000)))
-
-						SheetManager.hide("LockAppAfterActionSheet")
-					}}
+					onPress={() => setLock(600)}
 					text={i18n(lang, "tenMinutes")}
 					rightComponent={
 						lockAppAfter == 600 ? (
@@ -135,13 +113,7 @@ const LockAppAfterActionSheet = memo(() => {
 					}
 				/>
 				<ActionButton
-					onPress={() => {
-						setLockAppAfter(900)
-
-						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (900 * 1000)))
-
-						SheetManager.hide("LockAppAfterActionSheet")
-					}}
+					onPress={() => setLock(900)}
 					text={i18n(lang, "fifteenMinutes")}
 					rightComponent={
 						lockAppAfter == 900 ? (
@@ -154,13 +126,7 @@ const LockAppAfterActionSheet = memo(() => {
 					}
 				/>
 				<ActionButton
-					onPress={() => {
-						setLockAppAfter(1800)
-
-						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (1800 * 1000)))
-
-						SheetManager.hide("LockAppAfterActionSheet")
-					}}
+					onPress={() => setLock(1800)}
 					text={i18n(lang, "thirtyMinutes")}
 					rightComponent={
 						lockAppAfter == 1800 ? (
@@ -173,13 +139,7 @@ const LockAppAfterActionSheet = memo(() => {
 					}
 				/>
 				<ActionButton
-					onPress={() => {
-						setLockAppAfter(3600)
-
-						storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (3600 * 1000)))
-
-						SheetManager.hide("LockAppAfterActionSheet")
-					}}
+					onPress={() => setLock(3600)}
 					text={i18n(lang, "oneHour")}
 					rightComponent={
 						lockAppAfter == 3600 ? (

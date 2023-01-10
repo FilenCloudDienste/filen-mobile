@@ -62,7 +62,7 @@ const FolderColorActionSheet = memo(() => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [buttonsDisabled, currentItem])
+	}, [buttonsDisabled, currentItem, lang])
 
 	useEffect(() => {
 		const openFolderColorActionSheetListener = (item: Item) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from "react"
+import React, { useState, useEffect, memo, useCallback } from "react"
 import Dialog from "react-native-dialog"
 import { useStore } from "../../../lib/state"
 import useLang from "../../../lib/hooks/useLang"
@@ -13,6 +13,58 @@ const ConfirmStopSharingDialog = memo(() => {
     const lang = useLang()
     const [open, setOpen] = useState<boolean>(false)
     const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
+
+    const stopSharing = useCallback(() => {
+        if(typeof currentItem == "undefined" || buttonsDisabled){
+            return
+        }
+
+        if(typeof currentItem.receivers == "undefined" || !Array.isArray(currentItem.receivers)){
+            return
+        }
+
+        setButtonsDisabled(true)
+        setOpen(false)
+
+        useStore.setState({ fullscreenLoadingModalVisible: true })
+
+        const promises = []
+
+        for(let i = 0; i < currentItem.receivers.length; i++){
+            const item: Item = {
+                ...currentItem,
+                receiverId: currentItem.receivers[i].id,
+                receiverEmail: currentItem.receivers[i].email
+            } 
+
+            promises.push(new Promise((resolve, reject) => {
+                stopSharingItem({ item }).then(resolve).catch(reject)
+            }))
+        }
+
+        Promise.all(promises).then(() => {
+            DeviceEventEmitter.emit("event", {
+                type: "remove-item",
+                data: {
+                    uuid: currentItem.uuid
+                }
+            })
+
+            setButtonsDisabled(false)
+
+            useStore.setState({ fullscreenLoadingModalVisible: false })
+
+            //showToast({ message: i18n(lang, "stoppedSharingItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
+        }).catch((err) => {
+            console.error(err)
+            
+            setButtonsDisabled(false)
+
+            useStore.setState({ fullscreenLoadingModalVisible: false })
+
+            showToast({ message: err.toString() })
+        })
+    }, [currentItem, buttonsDisabled, lang])
 
     useEffect(() => {
         const openConfirmStopSharingDialogListener = (item: Item) => {
@@ -47,51 +99,7 @@ const ConfirmStopSharingDialog = memo(() => {
                         <Dialog.Button
                             label={i18n(lang, "stopSharing")}
                             disabled={buttonsDisabled}
-                            onPress={() => {
-                                if(typeof currentItem.receivers == "undefined" || !Array.isArray(currentItem.receivers)){
-                                    return
-                                }
-
-                                setButtonsDisabled(true)
-                                setOpen(false)
-
-                                useStore.setState({ fullscreenLoadingModalVisible: true })
-
-                                const promises = []
-
-                                for(let i = 0; i < currentItem.receivers.length; i++){
-                                    const item: Item = {
-                                        ...currentItem,
-                                        receiverId: currentItem.receivers[i].id,
-                                        receiverEmail: currentItem.receivers[i].email
-                                    } 
-
-                                    promises.push(new Promise((resolve, reject) => {
-                                        stopSharingItem({ item }).then(resolve).catch(reject)
-                                    }))
-                                }
-
-                                Promise.all(promises).then(() => {
-                                    DeviceEventEmitter.emit("event", {
-                                        type: "remove-item",
-                                        data: {
-                                            uuid: currentItem.uuid
-                                        }
-                                    })
-
-                                    setButtonsDisabled(false)
-
-                                    useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                    //showToast({ message: i18n(lang, "stoppedSharingItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
-                                }).catch((err) => {
-                                    setButtonsDisabled(false)
-
-                                    useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                    showToast({ message: err.toString() })
-                                })
-                            }}
+                            onPress={stopSharing}
                         />
                     </Dialog.Container>
                 )

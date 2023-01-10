@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from "react"
+import React, { useState, useEffect, useRef, memo, useCallback } from "react"
 import Dialog from "react-native-dialog"
 import { useStore } from "../../../lib/state"
 import useLang from "../../../lib/hooks/useLang"
@@ -20,6 +20,41 @@ const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFacto
     const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
     const lang = useLang()
     const [open, setOpen] = useState<boolean>(false)
+
+    const deleteAcc = useCallback(() => {
+        if(buttonsDisabled){
+            return
+        }
+
+        setButtonsDisabled(true)
+        setOpen(false)
+
+        Keyboard.dismiss()
+
+        useStore.setState({ fullscreenLoadingModalVisible: true })
+
+        const twoFactorKey = value.trim()
+
+        if(twoFactorKey.length == 0){
+            return
+        }
+
+        deleteAccount({ twoFactorKey }).then(() => {
+            setButtonsDisabled(false)
+
+            useStore.setState({ fullscreenLoadingModalVisible: false })
+
+            logout({ navigation })
+        }).catch((err) => {
+            console.error(err)
+
+            setButtonsDisabled(false)
+
+            useStore.setState({ fullscreenLoadingModalVisible: false })
+
+            showToast({ message: err.toString() })
+        })
+    }, [buttonsDisabled, value, lang])
 
     useEffect(() => {
         const openDeleteAccountTwoFactorDialogListener = () => {
@@ -61,34 +96,7 @@ const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFacto
             <Dialog.Button
                 label={i18n(lang, "delete")}
                 disabled={buttonsDisabled}
-                onPress={() => {
-                    setButtonsDisabled(true)
-                    setOpen(false)
-
-                    Keyboard.dismiss()
-
-                    useStore.setState({ fullscreenLoadingModalVisible: true })
-
-                    const twoFactorKey = value.trim()
-
-                    if(twoFactorKey.length == 0){
-                        return false
-                    }
-
-                    deleteAccount({ twoFactorKey }).then(() => {
-                        setButtonsDisabled(false)
-
-                        useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                        logout({ navigation })
-                    }).catch((err) => {
-                        setButtonsDisabled(false)
-
-                        useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                        showToast({ message: err.toString() })
-                    })
-                }}
+                onPress={deleteAcc}
             />
         </Dialog.Container>
     )

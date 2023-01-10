@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useRef } from "react"
+import React, { useState, useEffect, memo, useRef, useCallback } from "react"
 import Dialog from "react-native-dialog"
 import { useStore } from "../../../lib/state"
 import useLang from "../../../lib/hooks/useLang"
@@ -22,6 +22,30 @@ const CreateTextFileDialog = memo(({ navigation }: CreateTextFileDialogProps) =>
     const setCreateTextFileDialogName = useStore(state => state.setCreateTextFileDialogName)
     const setTextEditorParent = useStore(state => state.setTextEditorParent)
     const [open, setOpen] = useState<boolean>(false)
+
+    const create = useCallback(() => {
+        const name = value.trim()
+
+        if(!name){
+            return
+        }
+
+        if(name.length == 0){
+            return
+        }
+        
+        setCreateTextFileDialogName(name)
+        setTextEditorText("")
+        setTextEditorParent(getParent())
+        setTextEditorState("edit")
+        setValue(".txt")
+                                            
+        navigationAnimation({ enable: true }).then(() => {
+            navigation.dispatch(StackActions.push("TextEditorScreen"))
+
+            setOpen(false)
+        })
+    }, [value])
 
     useEffect(() => {
         const openCreateTextFileDialogListener = () => {
@@ -61,23 +85,7 @@ const CreateTextFileDialog = memo(({ navigation }: CreateTextFileDialogProps) =>
             />
             <Dialog.Button
                 label={i18n(lang, "create")}
-                onPress={() => {
-                    if(value.length == 0){
-                        return false
-                    }
-                    
-                    setCreateTextFileDialogName(value)
-                    setTextEditorText("")
-                    setTextEditorParent(getParent())
-                    setTextEditorState("edit")
-                    setValue(".txt")
-                                                        
-                    navigationAnimation({ enable: true }).then(() => {
-                        navigation.dispatch(StackActions.push("TextEditorScreen"))
-
-                        setOpen(false)
-                    })
-                }}
+                onPress={create}
             />
         </Dialog.Container>
     )
