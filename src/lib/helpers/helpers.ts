@@ -1559,6 +1559,8 @@ export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<Reac
 }
 
 export const toExpoFsPath = memoize((path: string) => {
+    path = encodeURI(path)
+    
     if(path.indexOf("file://") == -1){
         return "file://" + path
     }

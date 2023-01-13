@@ -22,7 +22,7 @@ const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
 
     const move = useCallback(() => {
         if(buttonsDisabled){
-            return false
+            return
         }
 
         if(
@@ -34,13 +34,13 @@ const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
         ){
             showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
-            return false
+            return
         }
 
         if(currentBulkItems.length == 0){
             hideAllToasts()
 
-            return false
+            return
         }
 
         const parent = getParent()
@@ -58,29 +58,29 @@ const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
         ].includes(parent)){
             showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
-            return false
+            return
         }
 
         if(parent.length <= 32 && currentBulkItems.filter((item: any) => item.type == "file").length >= 1){
             showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
-            return false
+            return
         }
 
         if(typeof currentActionSheetItem !== "object"){
-            return false
+            return
         }
 
         if(currentActionSheetItem.parent == parent){
             showToast({ message: i18n(lang, "moveSameParentFolder") })
 
-            return false
+            return
         }
 
         if(getRouteURL().indexOf("shared-in") !== -1){
             showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
-            return false
+            return
         }
 
         setButtonsDisabled(true)
@@ -116,7 +116,7 @@ const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
 
             showToast({ message: err.toString() })
         })
-    }, [currentActionSheetItem, currentRouteURL, currentBulkItems, buttonsDisabled])
+    }, [currentActionSheetItem, currentRouteURL, currentBulkItems, buttonsDisabled, lang])
 
     useEffect(() => {
         if(Array.isArray(currentRoutes)){

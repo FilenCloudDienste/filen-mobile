@@ -5,8 +5,7 @@ import { useStore } from "../../state"
 import { i18n } from "../../../i18n"
 import storage from "../../storage"
 import { showToast } from "../../../components/Toasts"
-import { addItemToOfflineList } from "../offline"
-import { getItemOfflinePath } from "../offline"
+import { addItemToOfflineList, getItemOfflinePath } from "../offline"
 import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "../setup/setup"
 import type { Item } from "../../../types"
@@ -336,17 +335,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                             value: true
                         }
                     })
-
-                    if(isOfflineUpdate){
-                        if(showNotification || useStore.getState().imagePreviewModalVisible){
-                            showToast({ message: i18n(storage.getString("lang"), "fileStoredOfflineUpdate", true, ["__NAME__"], [file.name]) })
-                        }
-                    }
-                    else{
-                        if(showNotification || useStore.getState().imagePreviewModalVisible){
-                            showToast({ message: i18n(storage.getString("lang"), "fileStoredOffline", true, ["__NAME__"], [file.name]) })
-                        }
-                    }
 
                     callOptionalCallback(null, offlinePath)
 

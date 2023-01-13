@@ -20,8 +20,8 @@ const UploadToast = memo(() => {
     const setCurrentShareItems = useStore(state => state.setCurrentShareItems)
     const [items, setItems] = useState([])
     const currentRoutes = useStore(state => state.currentRoutes) as any
-    const [currentParent, setCurrentParent] = useState("")
-    const [currentRouteURL, setCurrentRouteURL] = useState("")
+    const [currentParent, setCurrentParent] = useState(getParent())
+    const [currentRouteURL, setCurrentRouteURL] = useState(getRouteURL())
 
     const upload = useCallback(async () => {
         if(
@@ -31,26 +31,28 @@ const UploadToast = memo(() => {
             currentRouteURL.indexOf("photos") !== -1 ||
             currentRouteURL.indexOf("offline") !== -1
         ){
-            return false
+            return
         }
 
         if(!Array.isArray(items)){
-            return false
+            return
         }
         
         const parent = getParent()
 
         if(parent.length < 16){
-            return false
+            return
         }
 
         try{
             await hasStoragePermissions()
         }
         catch(e: any){
-            console.log(e)
+            console.error(e)
 
-            return showToast({ message: e.toString() })
+            showToast({ message: e.toString() })
+            
+            return
         }
 
         const copyFile = (item: string): Promise<{ path: string, ext: string, type: string, size: number, name: string }> => {
@@ -78,20 +80,18 @@ const UploadToast = memo(() => {
                             const size = stat.size as number
                             
                             return resolve({ path, ext, type, size, name })
-                        }).catch((err) => {
-                            return reject(err)
-                        })
+                        }).catch(reject)
                     })
-                }).catch((err) => {
-                    return reject(err)
-                })
+                }).catch(reject)
             })
         }
 
         const limit = 100
 
         if(items.length >= limit){
-            return showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
+            showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
+
+            return
         }
 
         const uploads = []
@@ -127,7 +127,7 @@ const UploadToast = memo(() => {
                 }
             })
         }).catch(console.error)
-    }, [currentRouteURL, items, currentShareItems])
+    }, [currentRouteURL, items, currentShareItems, lang])
 
     useEffect(() => {
         if(Array.isArray(currentRoutes)){

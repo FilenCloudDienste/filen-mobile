@@ -21,6 +21,7 @@ import { ActionButton, ActionSheetIndicator } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 import type { NavigationContainerRef } from "@react-navigation/native"
+import type { Item } from "../../../types"
 
 export interface TopBarActionSheetProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -65,31 +66,31 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		return JSON.parse(viewMode)
 	}, [viewMode])
 
-	const doesSelectedItemsContainOfflineStoredItems = useCallback(() => {
+	const doesSelectedItemsContainOfflineStoredItems = () => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.offline && item.selected).length > 0 ? true : false
-	}, [currentItems])
+	}
 
-	const doesSelectedItemsContainFavoritedItems = useCallback(() => {
+	const doesSelectedItemsContainFavoritedItems = () => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.favorited && item.selected).length > 0 ? true : false
-	}, [currentItems])
+	}
 
-	const doesSelectedItemsContainUnmovableItems = useCallback(() => {
+	const doesSelectedItemsContainUnmovableItems = () => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => (item.isDefault || item.isSync) && item.selected).length > 0 ? true : false
-	}, [currentItems])
+	}
 
-	const doesSelecteditemsContainGallerySaveableItems = useCallback(() => {
+	const doesSelecteditemsContainGallerySaveableItems = () => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
@@ -104,29 +105,25 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		}
 
 		return currentItems.filter(item => item.selected && extArray.includes(getFileExt(item.name))).length > 0 ? true : false
-	}, [currentItems])
+	}
 
-	const doesSelectedItemsContainFolders = useCallback(() => {
+	const doesSelectedItemsContainFolders = () => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.type == "folder" && item.selected).length > 0 ? true : false
-	}, [currentItems])
+	}
 
-	const updateBulkItems = useCallback(() => {
-		const bulkItems: any[] = []
+	const updateBulkItems = () => {
+		const bulkItems: Item[] = currentItems.filter(item => item.selected)
 
-		for(let i = 0; i < currentItems.length; i++){
-			if(currentItems[i].selected){
-				bulkItems.push(currentItems[i])
-			}
-		}
+		console.log(bulkItems.length, currentItems.length)
 
 		setCurrentBulkItems(bulkItems)
 
 		return bulkItems
-	}, [currentItems])
+	}
 
 	const can = useCallback(() => {
 		setCanShowTransfersButton(true)
@@ -693,13 +690,8 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 								useStore.setState({ fullscreenLoadingModalVisible: true })
 
 								emptyTrash().then(() => {
-									currentItems.map((item) => {
-										DeviceEventEmitter.emit("event", {
-											type: "remove-item",
-											data: {
-												uuid: item.uuid
-											}
-										})
+									DeviceEventEmitter.emit("event", {
+										type: "clear-list"
 									})
 
 									useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -722,7 +714,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		], {
 			cancelable: true
 		})
-	}, [lang, currentItems])
+	}, [lang])
 
 	useEffect(() => {
 		can()
@@ -911,7 +903,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 													/>
 												)
 											}
-											{
+											{/*
 												canShowBulkItemsActions && canShowStopSharing && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
 													<ActionButton
 														onPress={stopSharing}
@@ -928,7 +920,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 														text={i18n(lang, "remove")}
 													/>
 												)
-											}
+											*/}
 										</>
 									)
 								}

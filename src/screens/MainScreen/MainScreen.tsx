@@ -373,6 +373,11 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             else if(data.type == "folder-size"){
                 updateFolderSize(data.data.uuid, data.data.size)
             }
+            else if(data.type == "clear-list"){
+                if(isMounted()){
+                    setItems([])
+                }
+            }
         })
 
         setIsDeviceReady(true)

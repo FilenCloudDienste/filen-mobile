@@ -27,14 +27,14 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
             currentRouteURL.indexOf("offline") !== -1 ||
             currentRouteURL.split("/").length < 2
         ){
-            return false
+            return
         }
 
         const parent = getParent()
         let folderName = undefined
 
         if(parent.length < 32){
-            return false
+            return
         }
 
         try{
@@ -44,7 +44,7 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
             console.error(e)
             console.log(currentRouteURL)
 
-            return false
+            return
         }
 
         if(typeof folderCache == "object"){
@@ -52,7 +52,7 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
         }
 
         if(typeof folderName == "undefined"){
-            return false
+            return
         }
 
         try{
@@ -68,7 +68,7 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
         catch(e){
             console.log(e)
 
-            return false
+            return
         }
 
         hideAllToasts()

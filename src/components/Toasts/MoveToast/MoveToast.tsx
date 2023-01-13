@@ -21,7 +21,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
 
     const move = useCallback(() => {
         if(buttonsDisabled){
-            return false
+            return
         }
 
         if(
@@ -33,7 +33,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
         ){
             showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
-            return false
+            return
         }
 
         const parent = getParent()
@@ -51,29 +51,29 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
         ].includes(parent)){
             showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
-            return false
+            return
         }
 
         if(parent.length <= 32){ //&& currentActionSheetItem.type == "file"
             showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
-            return false
+            return
         }
 
         if(typeof currentActionSheetItem !== "object"){
-            return false
+            return
         }
 
         if(currentActionSheetItem.parent == parent){
             showToast({ message: i18n(lang, "moveSameParentFolder") })
 
-            return false
+            return
         }
 
         if(getRouteURL().indexOf("shared-in") !== -1){
             showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
-            return false
+            return
         }
 
         setButtonsDisabled(true)
@@ -90,7 +90,9 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
 
                     useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                    return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                    showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
+
+                    return
                 }
 
                 moveFile({
@@ -145,7 +147,9 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
 
                     useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                    return showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
+                    showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name]) })
+
+                    return
                 }
 
                 moveFolder({
@@ -176,6 +180,8 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
                         //showToast({ message: i18n(lang, "itemMoved", true, ["__NAME__"], [currentActionSheetItem.name]) })
                     }, 500)
                 }).catch((err) => {
+                    console.error(err)
+
                     setButtonsDisabled(false)
 
                     useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -183,6 +189,8 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
                     showToast({ message: err.toString() })
                 })
             }).catch((err) => {
+                console.error(err)
+
                 setButtonsDisabled(false)
 
                 useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -190,7 +198,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
                 showToast({ message: err.toString() })
             })
         }
-    }, [currentActionSheetItem, currentRouteURL, buttonsDisabled])
+    }, [currentActionSheetItem, currentRouteURL, buttonsDisabled, lang])
 
     useEffect(() => {
         if(Array.isArray(currentRoutes)){
