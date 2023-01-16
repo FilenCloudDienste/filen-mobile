@@ -1,7 +1,8 @@
 import storage from "../../../storage"
 import { StackActions } from "@react-navigation/native"
+import type { NavigationContainerRef } from "@react-navigation/native"
 
-export const logout = ({ navigation }: { navigation: any }) => {
+export const logout = ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
     try{
         storage.delete("apiKey")
         storage.delete("userId")
@@ -16,10 +17,13 @@ export const logout = ({ navigation }: { navigation: any }) => {
             }
         })
 
+        // @ts-ignore
         if(typeof navigation.replace == "function"){
+            // @ts-ignore
             navigation.replace("LoginScreen")
         }
         else{
+            // @ts-ignore
             navigation.current.dispatch(StackActions.replace("LoginScreen"))
         }
     }

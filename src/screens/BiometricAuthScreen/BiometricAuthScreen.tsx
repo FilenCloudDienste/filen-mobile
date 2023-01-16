@@ -207,13 +207,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
             setIsAuthing(false)
 
-            let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
-
-            if(lockAppAfter == 0){
-                lockAppAfter = 300
-            }
-
-            storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (lockAppAfter * 1000)))
+            storage.set("lastBiometricScreen:" + userId, new Date().getTime())
 
             if(wasSetupScreen){
                 navigationAnimation({ enable: true }).then(() => {
@@ -234,7 +228,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
                 navigation.goBack()
             }
         })
-    }, [startOnCloudScreen, navigation])
+    }, [startOnCloudScreen, navigation, userId])
 
     const updatePinCode = useCallback((num: number) => {
         setDotColor(headerTextColor)
@@ -289,10 +283,10 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
                 }
             }
         }
-    }, [confirmPinCodeVisible, biometricAuthScreenState, confirmPinCode, pinCode])
+    }, [confirmPinCodeVisible, biometricAuthScreenState, confirmPinCode, pinCode, userId])
 
     const promptBiometrics = useCallback(async () => {
-        if(biometricAuthScreenState == "setup" || showingBiometrics || storage.getBoolean("onlyUsePINCode:" + storage.getNumber("userId"))){
+        if(biometricAuthScreenState == "setup" || showingBiometrics || storage.getBoolean("onlyUsePINCode:" + userId)){
             return
         }
 
@@ -308,7 +302,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
         LocalAuthentication.hasHardwareAsync().then((available) => {
             if(!available){
-                console.log("Biometrics not available")
+                console.error("Biometrics not available")
 
                 return
             }
@@ -326,9 +320,9 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
                 }
 
                 authed()
-            }).catch(console.log)
-        }).catch(console.log)
-    }, [biometricAuthScreenState, showingBiometrics, lang])
+            }).catch(console.error)
+        }).catch(console.error)
+    }, [biometricAuthScreenState, showingBiometrics, lang, userId])
 
     useEffect(() => {
         setIsAuthing(true)

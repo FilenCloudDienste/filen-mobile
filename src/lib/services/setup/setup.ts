@@ -49,16 +49,12 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
         if(canDelete(cacheDownloadsItems[i])){
             FileSystem.deleteAsync(path.join(cachedDownloadsPathAbsolute, cacheDownloadsItems[i])).catch(() => {})
         }
-
-        console.log(cacheDownloadsItems[i])
     }
 
     for(let i = 0; i < tmpItems.length; i++){
         if(canDelete(tmpItems[i])){
             FileSystem.deleteAsync(path.join(tmpPathAbsolute, tmpItems[i])).catch(() => {})
         }
-
-        console.log(tmpItems[i])
     }
 
     if(FileSystem.cacheDirectory){

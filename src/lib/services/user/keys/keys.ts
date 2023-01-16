@@ -3,8 +3,9 @@ import { apiRequest } from "../../../api"
 import { logout } from "../../auth/logout"
 import { getMasterKeys, encryptMetadata, getAPIKey, decryptMetadata } from "../../../helpers"
 import { showToast } from "../../../../components/Toasts"
+import type { NavigationContainerRef } from "@react-navigation/native"
 
-export const updateKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: any }): Promise<boolean> => {
+export const updateKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         const masterKeys: string[] = getMasterKeys()
         const apiKey: string = getAPIKey()
@@ -43,7 +44,7 @@ export const updateKeypair = ({ publicKey, privateKey, navigation }: { publicKey
     })
 }
 
-export const setKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: any }): Promise<boolean> => {
+export const setKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         const masterKeys: string[] = getMasterKeys()
         const apiKey: string = getAPIKey()
@@ -82,7 +83,7 @@ export const setKeypair = ({ publicKey, privateKey, navigation }: { publicKey: s
     })
 }
 
-export const updatePublicAndPrivateKey = ({ navigation }: { navigation: any }): Promise<boolean> => {
+export const updatePublicAndPrivateKey = ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         const masterKeys: string[] = getMasterKeys()
         const apiKey: string = getAPIKey()
@@ -181,7 +182,7 @@ export const updatePublicAndPrivateKey = ({ navigation }: { navigation: any }): 
     })
 }
 
-export const updateKeys = ({ navigation }: { navigation: any }): Promise<boolean> => {
+export const updateKeys = ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         let masterKeys = getMasterKeys()
         let apiKey = getAPIKey()

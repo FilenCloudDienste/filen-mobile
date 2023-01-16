@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment, memo, useCallback } from "react"
-import { View, Platform, DeviceEventEmitter, Appearance, AppState } from "react-native"
+import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus } from "react-native"
 import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -37,7 +37,6 @@ import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen"
 import { isRouteInStack, isNavReady } from "./lib/helpers"
 import * as Sentry from "@sentry/react-native"
 import { runNetworkCheck } from "./lib/services/isOnline"
-import type { AppStateStatus } from "react-native"
 import { getColor } from "./style"
 import PublicLinkActionSheet from "./components/ActionSheets/PublicLinkActionSheet"
 import BottomBarAddActionSheet from "./components/ActionSheets/BottomBarAddActionSheet"
@@ -89,13 +88,10 @@ DeviceEventEmitter.addListener("event", (data) => {
     }
 })
 
-storage.set("cameraUploadUploaded", 0)
-storage.set("cameraUploadTotal", 0)
-
 export const App = Sentry.wrap(memo(() => {
     const isLoggedIn = useIsLoggedIn()
     const darkMode = useDarkMode()
-    const [currentScreenName, setCurrentScreenName] = useState("MainScreen")
+    const [currentScreenName, setCurrentScreenName] = useState<string>("MainScreen")
     const setCurrentRoutes = useStore(state => state.setCurrentRoutes)
     const toastBottomOffset = useStore(state => state.toastBottomOffset)
     const toastTopOffset = useStore(state => state.toastTopOffset)
@@ -175,28 +171,28 @@ export const App = Sentry.wrap(memo(() => {
             if(typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 && isInit){
                 if(userSelectedTheme == "dark"){
                     storage.set("darkMode", true)
-                    storage.set("userSelectedTheme", "dark")
-
+                    
+                    setUserSelectedTheme("dark")
                     setStatusBarStyle(true)
                 }
                 else{
                     storage.set("darkMode", false)
-                    storage.set("userSelectedTheme", "light")
 
+                    setUserSelectedTheme("light")
                     setStatusBarStyle(false)
                 }
             }
             else{
                 if(Appearance.getColorScheme() == "dark"){
                     storage.set("darkMode", true)
-                    storage.set("userSelectedTheme", "dark")
 
+                    setUserSelectedTheme("dark")
                     setStatusBarStyle(true)
                 }
                 else{
                     storage.set("darkMode", false)
-                    storage.set("userSelectedTheme", "light")
-
+                    
+                    setUserSelectedTheme("light")
                     setStatusBarStyle(false)
                 }
             }
@@ -214,9 +210,17 @@ export const App = Sentry.wrap(memo(() => {
 
     useEffect(() => {
         const nav = () => {
+            let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+
+            if(lockAppAfter == 0){
+                lockAppAfter = 300
+            }
+
+            lockAppAfter = Math.floor(lockAppAfter * 1000)
+
             if(
                 storage.getBoolean("biometricPinAuth:" + userId)
-                && Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId)
+                && new Date().getTime() >= (storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter)
                 && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])
             ){
                 setBiometricAuthScreenState("auth")
@@ -303,7 +307,15 @@ export const App = Sentry.wrap(memo(() => {
 
             if(nextAppState == "background"){
                 if(!isRouteInStack(navigationRef, ["BiometricAuthScreen"])){
-                    if(Math.floor(+new Date()) > storage.getNumber("biometricPinAuthTimeout:" + userId) && storage.getBoolean("biometricPinAuth:" + userId)){
+                    let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+
+                    if(lockAppAfter == 0){
+                        lockAppAfter = 300
+                    }
+
+                    lockAppAfter = Math.floor(lockAppAfter * 1000)
+
+                    if(new Date().getTime() >= (storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter) && storage.getBoolean("biometricPinAuth:" + userId)){
                         setBiometricAuthScreenState("auth")
                         
                         if(navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function"){
@@ -348,6 +360,7 @@ export const App = Sentry.wrap(memo(() => {
 
         storage.set("setupDone", false)
         storage.set("cameraUploadUploaded", 0)
+        storage.set("cameraUploadTotal", 0)
         storage.set("cameraUploadLastRemoteAssets:" + userId, JSON.stringify({}))
         storage.set("cameraUploadFetchRemoteAssetsTimeout:" + userId, (new Date().getTime() - 5000))
         storage.set("cameraUploadRemoteHashes:" + userId, JSON.stringify({}))

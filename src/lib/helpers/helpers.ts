@@ -1491,7 +1491,7 @@ export const promiseAllSettled = (promises: Promise<any>[]) => Promise.all(
     )
 )
 
-export const isRouteInStack = (navigationRef: any, routeNames: string[]): boolean => {
+export const isRouteInStack = (navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>, routeNames: string[]): boolean => {
     try{
         if(typeof navigationRef == "undefined"){
             return false
