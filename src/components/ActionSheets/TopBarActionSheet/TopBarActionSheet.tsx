@@ -54,6 +54,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 	const [currentRouteName, setCurrentRouteName] = useState<string>("")
 	const [canMakeAvailableOffline, setCanMakeAvailableOffline] = useState<boolean>(false)
 	const [canDownload, setCanDownload] = useState<boolean>(false)
+	const [bulkItems, setBulkItems] = useState<Item[]>([])
 
 	const maxBulkActionsItemsCount: number = 10000
 	const minBulkActionsItemCount: number = 2
@@ -66,36 +67,36 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		return JSON.parse(viewMode)
 	}, [viewMode])
 
-	const doesSelectedItemsContainOfflineStoredItems = () => {
+	const doesSelectedItemsContainOfflineStoredItems = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.offline && item.selected).length > 0 ? true : false
-	}
+	}, [JSON.stringify(currentItems)])
 
-	const doesSelectedItemsContainFavoritedItems = () => {
+	const doesSelectedItemsContainFavoritedItems = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.favorited && item.selected).length > 0 ? true : false
-	}
+	}, [JSON.stringify(currentItems)])
 
-	const doesSelectedItemsContainUnmovableItems = () => {
+	const doesSelectedItemsContainUnmovableItems = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => (item.isDefault || item.isSync) && item.selected).length > 0 ? true : false
-	}
+	}, [JSON.stringify(currentItems)])
 
-	const doesSelecteditemsContainGallerySaveableItems = () => {
+	const doesSelecteditemsContainGallerySaveableItems = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
-		let extArray: any[] = []
+		let extArray: string[] = []
 
 		if(Platform.OS == "ios"){
 			extArray = ["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"]
@@ -105,25 +106,15 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		}
 
 		return currentItems.filter(item => item.selected && extArray.includes(getFileExt(item.name))).length > 0 ? true : false
-	}
+	}, [JSON.stringify(currentItems)])
 
-	const doesSelectedItemsContainFolders = () => {
+	const doesSelectedItemsContainFolders = useCallback(() => {
 		if(!Array.isArray(currentItems)){
 			return false
 		}
 
 		return currentItems.filter(item => item.type == "folder" && item.selected).length > 0 ? true : false
-	}
-
-	const updateBulkItems = () => {
-		const bulkItems: Item[] = currentItems.filter(item => item.selected)
-
-		console.log(bulkItems.length, currentItems.length)
-
-		setCurrentBulkItems(bulkItems)
-
-		return bulkItems
-	}
+	}, [JSON.stringify(currentItems)])
 
 	const can = useCallback(() => {
 		setCanShowTransfersButton(true)
@@ -239,7 +230,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 	const restore = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -258,12 +249,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const permanentDelete = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -299,24 +290,24 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		], {
 			cancelable: true
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const move = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
 		}
 
 		showToast({ type: "moveBulk", message: i18n(lang, "moveItems") })
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const favorite = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -335,12 +326,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const unfavorite = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -359,12 +350,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const saveToGallery = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -425,12 +416,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const makeOffline = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -461,12 +452,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const removeFromOffline = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -489,12 +480,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const download = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -523,12 +514,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const trash = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -551,12 +542,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 			showToast({ message: err.toString() })
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const stopSharing = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -596,12 +587,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		], {
 			cancelable: true
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const removeSharedIn = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
 
-		const items = updateBulkItems()
+		const items = bulkItems
 
 		if(items.length == 0){
 			return
@@ -641,7 +632,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		], {
 			cancelable: true
 		})
-	}, [lang])
+	}, [lang, JSON.stringify(bulkItems)])
 
 	const updateViewMode = useCallback(async () => {
 		await SheetManager.hide("TopBarActionSheet")
@@ -726,7 +717,12 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 	useEffect(() => {
 		can()
-	}, [currentItems])
+		
+		const bulk = currentItems.filter(item => item.selected)
+
+		setBulkItems(bulk)
+		setCurrentBulkItems(bulk)
+	}, [JSON.stringify(currentItems)])
 
 	useEffect(() => {
 		updateRouteURL()
