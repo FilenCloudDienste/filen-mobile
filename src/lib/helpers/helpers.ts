@@ -1519,7 +1519,7 @@ export const isRouteInStack = (navigationRef: NavigationContainerRefWithCurrent<
             return false
         }
     
-        if(navState.routes.filter((route: any) => routeNames.includes(route.name)).length > 0){
+        if(navState.routes.filter(route => routeNames.includes(route.name)).length > 0){
             return true
         }
     }

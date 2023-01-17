@@ -196,7 +196,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 			setCanDownload(false)
 			setCanMakeAvailableOffline(false)
 		}
-	}, [routeURL])
+	}, [routeURL, photosGridSize])
 
 	const updateRouteURL = useCallback(() => {
 		if(typeof currentRoutes !== "undefined"){

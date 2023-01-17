@@ -566,7 +566,6 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             return true
         }
 
-        const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
         let currentQueue = 0
         const uploads: Promise<boolean>[] = []
         let uploadedThisRun = 0
@@ -585,10 +584,6 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                         uploadedThisRun += 1
 
                         storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
-
-                        cameraUploadLastModified[assetId] = asset.modificationTime
-
-                        storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
 
                         return resolve(true)
                     }).catch((err) => {
@@ -635,6 +630,15 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         if(uploads.length > 0){
             await promiseAllSettled(uploads)
 
+            const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+
+            for(const prop in local){
+                const assetId = getAssetId(local[prop].asset)
+
+                cameraUploadLastModified[assetId] = local[prop].asset.modificationTime
+            }
+
+            storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
             storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
         }
         else{

@@ -1,3 +1,5 @@
+import { memoize } from "lodash"
+
 export type SwitchTrackColors = {
     false: string,
     true: string
@@ -99,7 +101,7 @@ export const colors = {
     }
 }
 
-export const getColor = (darkMode: boolean, value: Color): any => {
+export const getColor = memoize((darkMode: boolean, value: Color): any => {
     const color = colors[darkMode ? 'dark' : 'light'][value]
 
     if(typeof color == "undefined"){
@@ -107,4 +109,4 @@ export const getColor = (darkMode: boolean, value: Color): any => {
     }
 
     return color
-}
+}, (darkMode: boolean, value: Color) => darkMode.toString() + ":" + value)
