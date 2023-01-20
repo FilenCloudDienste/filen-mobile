@@ -43,7 +43,7 @@ const RenameDialog = memo(() => {
             return
         }
 
-        if(item.type == "file"){
+        if(item.type == "file" && ext.length > 0){
             name = name + "." + ext
         }
 
@@ -182,6 +182,7 @@ const RenameDialog = memo(() => {
                 }
                 else{
                     setValue(item.name.trim())
+                    setExt("")
                 }
             }
 
