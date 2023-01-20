@@ -252,8 +252,8 @@ export const getDeltas = (local: CameraUploadItems, remote: CameraUploadItems) =
         else{
             const assetId = getAssetId(local[name].asset)
 
-            if(typeof cameraUploadLastModified[assetId] !== "undefined"){
-                if(cameraUploadLastModified[assetId] !== local[name].lastModified){
+            if(typeof cameraUploadLastModified[assetId] == "number"){
+                if(Math.floor(cameraUploadLastModified[assetId]) < local[name].lastModified){
                     deltas.push({
                         type: "UPDATE",
                         item: local[name]
@@ -585,6 +585,12 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
 
                         storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
 
+                        const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+
+                        cameraUploadLastModified[assetId] = Math.floor(asset.modificationTime)
+
+                        storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
+
                         return resolve(true)
                     }).catch((err) => {
                         log.error(err)
@@ -630,15 +636,6 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         if(uploads.length > 0){
             await promiseAllSettled(uploads)
 
-            const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
-
-            for(const prop in local){
-                const assetId = getAssetId(local[prop].asset)
-
-                cameraUploadLastModified[assetId] = local[prop].asset.modificationTime
-            }
-
-            storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
             storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
         }
         else{
