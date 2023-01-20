@@ -169,6 +169,7 @@ const RenameDialog = memo(() => {
 
 			if(item.type == "folder"){
                 setValue(item.name.trim())
+                setExt("")
             }
             else{
                 if(item.name.indexOf(".") !== -1){

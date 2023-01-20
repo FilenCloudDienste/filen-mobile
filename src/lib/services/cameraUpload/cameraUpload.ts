@@ -12,6 +12,7 @@ import RNHeicConverter from "react-native-heic-converter"
 import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
 import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
+import { memoize } from "lodash"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -156,8 +157,8 @@ export const loadLocal = async (): Promise<CameraUploadItems> => {
 
         items[asset.filename.toLowerCase()] = {
             name: asset.filename,
-            lastModified: asset.modificationTime,
-            creation: asset.creationTime,
+            lastModified: Math.floor(asset.modificationTime),
+            creation: Math.floor(asset.creationTime),
             id: getAssetId(asset),
             type: "local",
             asset
@@ -238,7 +239,7 @@ export interface Delta {
     item: CameraUploadItem
 }
 
-export const getDeltas = (local: CameraUploadItems, remote: CameraUploadItems) => {
+export const getDeltas = memoize((local: CameraUploadItems, remote: CameraUploadItems) => {
     const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
     const deltas: Delta[] = []
 
@@ -264,7 +265,7 @@ export const getDeltas = (local: CameraUploadItems, remote: CameraUploadItems) =
     }
 
     return deltas
-}
+}, (local: CameraUploadItems, remote: CameraUploadItems) => JSON.stringify(local) + ":" + JSON.stringify(remote))
 
 export const getFile = (asset: MediaLibrary.Asset): Promise<UploadFile> => {
     return new Promise((resolve, reject) => {

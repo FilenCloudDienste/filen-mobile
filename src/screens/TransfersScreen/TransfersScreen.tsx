@@ -269,48 +269,42 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
                         paddingTop: 11
                     }}
                 >
-                    {
-                        progress > 0 && progress <= 0.99 && (
-                            <>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setPausedTransfers(prev => ({
-                                            ...prev,
-                                            [transfer.uuid]: !isPaused
-                                        }))
-                    
-                                        DeviceEventEmitter.emit(isPaused ? "resumeTransfer" : "pauseTransfer", transfer.uuid)
-                                    }}
-                                >
-                                    <Text
-                                        style={{
-                                            color: getColor(darkMode, "linkPrimary"),
-                                            fontSize: 16,
-                                            fontWeight: "400"
-                                        }}
-                                    >
-                                        {isPaused ? i18n(lang, "resume") : i18n(lang, "pause")}
-                                    </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={{
-                                        marginLeft: 10
-                                    }}
-                                    onPress={() => DeviceEventEmitter.emit("stopTransfer", transfer.uuid)}
-                                >
-                                    <Text
-                                        style={{
-                                            color: getColor(darkMode, "linkPrimary"),
-                                            fontSize: 16,
-                                            fontWeight: "400"
-                                        }}
-                                    >
-                                        {i18n(lang, "stop")}
-                                    </Text>
-                                </TouchableOpacity>
-                            </>
-                        )
-                    }
+                    <TouchableOpacity
+                        onPress={() => {
+                            setPausedTransfers(prev => ({
+                                ...prev,
+                                [transfer.uuid]: !isPaused
+                            }))
+        
+                            DeviceEventEmitter.emit(isPaused ? "resumeTransfer" : "pauseTransfer", transfer.uuid)
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: getColor(darkMode, "linkPrimary"),
+                                fontSize: 16,
+                                fontWeight: "400"
+                            }}
+                        >
+                            {isPaused ? i18n(lang, "resume") : i18n(lang, "pause")}
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={{
+                            marginLeft: 10
+                        }}
+                        onPress={() => DeviceEventEmitter.emit("stopTransfer", transfer.uuid)}
+                    >
+                        <Text
+                            style={{
+                                color: getColor(darkMode, "linkPrimary"),
+                                fontSize: 16,
+                                fontWeight: "400"
+                            }}
+                        >
+                            {i18n(lang, "stop")}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         )
@@ -429,26 +423,23 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                                 bottom: 10
                             }}
                             style={{
-                                alignItems: "flex-end",
+                                alignItems: "center",
+                                justifyContent: "flex-end",
                                 flexDirection: "row",
                                 backgroundColor: "transparent",
                                 height: "100%",
                                 paddingLeft: 0,
-                                paddingRight: 15
+                                paddingRight: 15,
+                                width: "33%",
+                                opacity: (Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0 ? 1 : 0
                             }}
                             onPress={() => SheetManager.show("TopBarActionSheet")}
                         >
-                            {
-                                (Object.keys(currentUploads).length + Object.keys(currentDownloads).length) > 0 ? (
-                                    <View>
-                                        <Ionicon
-                                            name="ellipsis-horizontal-sharp"
-                                            size={24}
-                                            color={getColor(darkMode, "textPrimary")}
-                                        />
-                                    </View>
-                                ) : <View style={{ width: "33%" }} />
-                            }
+                            <Ionicon
+                                name="ellipsis-horizontal-sharp"
+                                size={24}
+                                color={getColor(darkMode, "textPrimary")}
+                            />
                         </TouchableOpacity>
                     }
                 />

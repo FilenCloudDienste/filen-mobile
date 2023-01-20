@@ -76,8 +76,8 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 							style={{
 								paddingTop: 5,
 								marginLeft: 15,
-								borderBottomColor: getColor(darkMode, "actionSheetBorder"),
-								borderBottomWidth: 1,
+								borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
+                        		borderBottomWidth: darkMode ? 1 : 0.5,
 								width: "100%",
 								justifyContent: "space-between",
 								alignItems: "center",
@@ -101,8 +101,8 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 							style={{
 								paddingTop: 14,
 								marginLeft: 15,
-								borderBottomColor: getColor(darkMode, "actionSheetBorder"),
-								borderBottomWidth: 1,
+								borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
+                        		borderBottomWidth: darkMode ? 1 : 0.5,
 								width: "100%"
 							}}
 						>
