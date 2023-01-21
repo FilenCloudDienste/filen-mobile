@@ -50,6 +50,8 @@ export const i18n = memoize((lang: string = "en", text: string, firstUpperCase: 
         }
     }
 
+    gotText = gotText.trim()
+
     if(firstUpperCase){
         gotText = gotText.charAt(0).toUpperCase() + gotText.slice(1)
     }
