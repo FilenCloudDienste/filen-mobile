@@ -576,12 +576,11 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                 const assetId = getAssetId(asset)
 
                 getFile(asset).then((file) => {
-                    queueFileUpload({
-                        file,
-                        parent: cameraUploadFolderUUID
-                    }).then(() => {
-                        FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
+                    const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
 
+                    if(file.size == cameraUploadLastSize[assetId]){
+                        FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
+    
                         uploadedThisRun += 1
 
                         storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
@@ -593,13 +592,36 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                         storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
 
                         return resolve(true)
-                    }).catch((err) => {
-                        log.error(err)
-
-                        FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
-
-                        return resolve(true)
-                    })
+                    }
+                    else{
+                        queueFileUpload({
+                            file,
+                            parent: cameraUploadFolderUUID
+                        }).then(() => {
+                            FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
+    
+                            uploadedThisRun += 1
+    
+                            storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
+    
+                            const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+                            const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
+    
+                            cameraUploadLastModified[assetId] = Math.floor(asset.modificationTime)
+                            cameraUploadLastSize[assetId] = file.size
+    
+                            storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
+                            storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
+    
+                            return resolve(true)
+                        }).catch((err) => {
+                            log.error(err)
+    
+                            FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
+    
+                            return resolve(true)
+                        })
+                    }
                 }).catch((err) => {
                     log.error(err)
 
@@ -630,7 +652,12 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             ){
                 currentQueue += 1
 
-                uploads.push(upload(delta.item.asset))
+                if(
+                    delta.type == "UPLOAD"
+                    || delta.type == "UPDATE"
+                ){
+                    uploads.push(upload(delta.item.asset))
+                }
             }
         }
 
