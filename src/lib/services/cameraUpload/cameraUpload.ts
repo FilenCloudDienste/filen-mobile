@@ -596,7 +596,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                     else{
                         queueFileUpload({
                             file,
-                            parent: cameraUploadFolderUUID
+                            parent: cameraUploadFolderUUID,
+                            isCameraUpload: true
                         }).then(() => {
                             FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
     

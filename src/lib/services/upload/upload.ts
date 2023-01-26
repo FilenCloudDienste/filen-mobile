@@ -35,7 +35,7 @@ export interface UploadFile {
     lastModified: number
 }
 
-export const queueFileUpload = ({ file, parent, includeFileHash = false }: { file: UploadFile, parent: string, includeFileHash?: boolean | string }): Promise<any> => {
+export const queueFileUpload = ({ file, parent, includeFileHash = false, isCameraUpload = false }: { file: UploadFile, parent: string, includeFileHash?: boolean | string, isCameraUpload?: boolean }): Promise<any> => {
     return new Promise(async (resolve, reject) => {
         const masterKeys = getMasterKeys()
         const apiKey = getAPIKey()
@@ -425,7 +425,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false }: { fil
             type: "add-item",
             data: {
                 item: builtFile,
-                parent: includeFileHash ? "photos" : parent
+                parent: isCameraUpload ? "photos" : parent
             }
         })
 
