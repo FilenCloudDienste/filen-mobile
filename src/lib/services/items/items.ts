@@ -15,7 +15,6 @@ import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../state"
 import memoryCache from "../../memoryCache"
 import { isOnline, isWifi } from "../isOnline"
-import pathModule from "path"
 import type { Item, BuildFolder, ItemReceiver } from "../../../types"
 import { MB } from "../../constants"
 import { memoize } from "lodash"
@@ -1102,7 +1101,7 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
             void generateItemThumbnail({ item: thumbItem, skipInViewCheck: true })
         }
 
-        Filesystem.getInfoAsync(toExpoFsPath(pathModule.join(path, cache))).then((stat) => {
+        Filesystem.getInfoAsync(toExpoFsPath(path + cache)).then((stat) => {
             if(!stat.exists){
                 remove()
             }

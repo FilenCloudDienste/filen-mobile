@@ -18,20 +18,24 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import FastImage from "react-native-fast-image"
 
 export const calculateFolderSize = async (folderPath: string, size: number = 0): Promise<number> => {
+    if(folderPath.slice(0, -1) == "/"){
+        folderPath = folderPath.slice(0, -1)
+    }
+
     const dirList = await FileSystem.readDirectoryAsync(toExpoFsPath(folderPath))
   
     for(let i = 0; i < dirList.length; i++){
         const item = dirList[i]
 
         try{
-            const stat = await FileSystem.getInfoAsync(pathModule.join(folderPath, item))
+            const stat = await FileSystem.getInfoAsync(toExpoFsPath(folderPath + "/" + item))
 
             if(!stat.exists){
                 continue
             }
 
             if(stat.isDirectory){
-                size = await calculateFolderSize(pathModule.join(folderPath, item), size)
+                size = await calculateFolderSize(toExpoFsPath(folderPath + "/" + item), size)
             }
             else{
                 size = size + (stat.size || 0)
@@ -160,11 +164,11 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                                                     })
 
                                                     try{
-                                                        const tempPath = toExpoFsPath(await getDownloadPath({ type: "thumbnail" }))
-                                                        var dirList = await FileSystem.readDirectoryAsync(tempPath)
+                                                        const tempPath = await getDownloadPath({ type: "thumbnail" })
+                                                        var dirList = await FileSystem.readDirectoryAsync(toExpoFsPath(tempPath))
 
                                                         for(let i = 0; i < dirList.length; i++){
-                                                            await FileSystem.deleteAsync(toExpoFsPath(pathModule.join(tempPath, dirList[i])))
+                                                            await FileSystem.deleteAsync(toExpoFsPath(tempPath + dirList[i]))
                                                         }
 
                                                         await Promise.all([
@@ -229,7 +233,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                                                             var dirList = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
 
                                                             for(let i = 0; i < dirList.length; i++){
-                                                                await FileSystem.deleteAsync(toExpoFsPath(pathModule.join(FileSystem.cacheDirectory, dirList[i])))
+                                                                await FileSystem.deleteAsync(toExpoFsPath(FileSystem.cacheDirectory + "/" + dirList[i]))
                                                             }
                                                         }
 

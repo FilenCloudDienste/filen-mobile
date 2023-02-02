@@ -209,7 +209,7 @@ export const fetchLocalAssets = (): Promise<MediaLibrary.Asset[]> => {
                     return fetch(fetched.endCursor)
                 }
 
-                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.creationTime - b.creationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.creationTime >= cameraUploadAfterEnabledTime && (isExtensionAllowed(getFileExt(asset.filename)) || isExtensionAllowed(getFileExt(asset.uri))))
+                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.creationTime - b.creationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.creationTime >= cameraUploadAfterEnabledTime && isExtensionAllowed(getFileExt(asset.filename)))
 
                 return resolve(sorted)
             }).catch(reject)
@@ -323,8 +323,10 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
     return items
 }
 
+export type DeltaType = "UPLOAD" | "UPDATE"
+
 export interface Delta {
-    type: "UPLOAD" | "UPDATE",
+    type: DeltaType,
     item: CameraUploadItem
 }
 
@@ -352,6 +354,8 @@ export const getDeltas = memoize((local: CameraUploadItems, remote: CameraUpload
             }
         }
     }
+
+    console.log(deltas)
 
     return deltas
 }, (local: CameraUploadItems, remote: CameraUploadItems) => JSON.stringify(local) + ":" + JSON.stringify(remote))
@@ -660,14 +664,14 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         const uploads: Promise<boolean>[] = []
         let uploadedThisRun = 0
 
-        const upload = (asset: MediaLibrary.Asset): Promise<boolean> => {
+        const upload = (asset: MediaLibrary.Asset, deltaType: DeltaType): Promise<boolean> => {
             return new Promise((resolve) => {
                 const assetId = getAssetId(asset)
 
                 getFile(asset).then((file) => {
                     const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
 
-                    if(file.size == cameraUploadLastSize[assetId]){
+                    if(file.size == cameraUploadLastSize[assetId] && deltaType == "UPDATE"){
                         FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
     
                         uploadedThisRun += 1
@@ -746,7 +750,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                     delta.type == "UPLOAD"
                     || delta.type == "UPDATE"
                 ){
-                    uploads.push(upload(delta.item.asset))
+                    uploads.push(upload(delta.item.asset, delta.type))
                 }
             }
         }
