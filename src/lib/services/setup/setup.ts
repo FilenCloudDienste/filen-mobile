@@ -1,16 +1,16 @@
 import { updateKeys } from "../user/keys"
 import { apiRequest } from "../../api"
-import { getAPIKey } from "../../helpers"
+import { getAPIKey, toExpoFsPath, promiseAllSettled } from "../../helpers"
 import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import * as FileSystem from "expo-file-system"
 import { showToast } from "../../../components/Toasts"
-import { promiseAllSettled } from "../../helpers"
-import path from "path"
 import FastImage from "react-native-fast-image"
 import type { NavigationContainerRef } from "@react-navigation/native"
 import { memoize } from "lodash"
+import { getOfflineList, removeItemFromOfflineList } from "../offline"
+import { validate } from "uuid"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -29,7 +29,9 @@ const DONT_DELETE: string[] = [
     "webview",
     "image_manager",
     "log",
-    "logs"
+    "logs",
+    "com.hackemist",
+    "com.apple"
 ]
 
 export const canDelete = memoize((name: string) => {
@@ -37,40 +39,169 @@ export const canDelete = memoize((name: string) => {
 })
 
 export const clearCacheDirectories = async (): Promise<boolean> => {
-    const cachedDownloadsPath = await getDownloadPath({ type: "cachedDownloads" })
-    const cachedDownloadsPathAbsolute = cachedDownloadsPath.indexOf("file://") == -1 ? "file://" + cachedDownloadsPath : cachedDownloadsPath
-    const cacheDownloadsItems = await FileSystem.readDirectoryAsync(cachedDownloadsPathAbsolute)
-
-    const tmpPath = await getDownloadPath({ type: "cachedDownloads" })
-    const tmpPathAbsolute = tmpPath.indexOf("file://") == -1 ? "file://" + tmpPath : tmpPath
-    const tmpItems = await FileSystem.readDirectoryAsync(tmpPathAbsolute)
-
-    for(let i = 0; i < cacheDownloadsItems.length; i++){
-        if(canDelete(cacheDownloadsItems[i])){
-            FileSystem.deleteAsync(path.join(cachedDownloadsPathAbsolute, cacheDownloadsItems[i])).catch(() => {})
-        }
-    }
-
-    for(let i = 0; i < tmpItems.length; i++){
-        if(canDelete(tmpItems[i])){
-            FileSystem.deleteAsync(path.join(tmpPathAbsolute, tmpItems[i])).catch(() => {})
-        }
-    }
-
-    if(FileSystem.cacheDirectory){
-        const cachePath = FileSystem.cacheDirectory.indexOf("file://") == -1 ? "file://" + FileSystem.cacheDirectory : FileSystem.cacheDirectory
-        const cacheItems = await FileSystem.readDirectoryAsync(cachePath)
-
-        for(let i = 0; i < cacheItems.length; i++){
-            if(canDelete(cacheItems[i])){
-                FileSystem.deleteAsync(path.join(cachePath, cacheItems[i])).catch(() => {})
-            }
-        }
-    }
-
     await Promise.all([
         FastImage.clearDiskCache(),
-        FastImage.clearMemoryCache()
+        FastImage.clearMemoryCache(),
+        new Promise(async (resolve, reject) => {
+            try{
+                const cachedDownloadsPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
+                const cacheDownloadsItems = await FileSystem.readDirectoryAsync(toExpoFsPath(cachedDownloadsPath))
+
+                for(let i = 0; i < cacheDownloadsItems.length; i++){
+                    if(canDelete(cacheDownloadsItems[i])){
+                        FileSystem.deleteAsync(toExpoFsPath(cachedDownloadsPath) + "/" + cacheDownloadsItems[i]).catch((err) => {
+                            console.log("Could not delete", toExpoFsPath(cachedDownloadsPath) + "/" + cacheDownloadsItems[i], err)
+                        })
+                    }
+                }
+            }
+            catch(e){
+                console.log(e)
+
+                return reject(e)
+            }
+
+            return resolve(true)
+        }),
+        new Promise(async (resolve, reject) => {
+            try{
+                if(FileSystem.cacheDirectory){
+                    const cachePath = FileSystem.cacheDirectory.indexOf("file://") == -1 ? "file://" + FileSystem.cacheDirectory : FileSystem.cacheDirectory
+                    const cacheItems = await FileSystem.readDirectoryAsync(toExpoFsPath(cachePath))
+            
+                    for(let i = 0; i < cacheItems.length; i++){
+                        if(canDelete(cacheItems[i])){
+                            FileSystem.deleteAsync(toExpoFsPath(cachePath) + "/" + cacheItems[i]).catch((err) => {
+                                console.log("Could not delete", toExpoFsPath(cachePath) + "/" + cacheItems[i], err)
+                            })
+                        }
+                    }
+                }
+            }
+            catch(e){
+                console.log(e)
+
+                return reject(e)
+            }
+
+            return resolve(true)
+        }),
+        new Promise(async (resolve, reject) => {
+            try{
+                const tmpPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
+                const tmpItems = await FileSystem.readDirectoryAsync(toExpoFsPath(tmpPath))
+
+                for(let i = 0; i < tmpItems.length; i++){
+                    if(canDelete(tmpItems[i])){
+                        FileSystem.deleteAsync(toExpoFsPath(tmpPath) + "/" + tmpItems[i]).catch((err) => {
+                            console.error("Could not delete", toExpoFsPath(tmpPath) + "/" + tmpItems[i], err)
+                        })
+                    }
+                }
+            }
+            catch(e){
+                console.log(e)
+
+                return reject(e)
+            }
+
+            return resolve(true)
+        }),
+        new Promise(async (resolve, reject) => {
+            try{
+                const tmpPath = (await getDownloadPath({ type: "temp" })).slice(0, -1)
+                const tmpItems = await FileSystem.readDirectoryAsync(toExpoFsPath(tmpPath))
+
+                for(let i = 0; i < tmpItems.length; i++){
+                    if(canDelete(tmpItems[i])){
+                        FileSystem.deleteAsync(toExpoFsPath(tmpPath) + "/" + tmpItems[i]).catch((err) => {
+                            console.log("Could not delete", toExpoFsPath(tmpPath) + "/" + tmpItems[i], err)
+                        })
+                    }
+                }
+            }
+            catch(e){
+                console.log(e)
+
+                return reject(e)
+            }
+
+            return resolve(true)
+        }),
+        new Promise(async (resolve, reject) => {
+            try{
+                let [ list, offlinePath ] = await Promise.all([
+                    getOfflineList(),
+                    getDownloadPath({ type: "offline" })
+                ])
+
+                offlinePath = offlinePath.slice(0, -1)
+
+                const items: string[] = await FileSystem.readDirectoryAsync(toExpoFsPath(offlinePath))
+                const inList: string[] = list.map(item => item.uuid)
+                const inDir: string[] = items.filter(item => item.indexOf("_") !== -1 && item.split("_").length == 2 && validate(item.split("_")[1].split(".")[0])).map(item => item.split("_")[1].split(".")[0])
+                const toDelete: string[] = []
+                const toRemove: string[] = []
+
+                for(let i = 0; i < items.length; i++){
+                    if(items[i].indexOf("_") !== -1 && items[i].split("_").length == 2 && validate(items[i].split("_")[1].split(".")[0])){
+                        let found = false
+
+                        for(let x = 0; x < inList.length; x++){
+                            if(items[i].indexOf(inList[x]) !== -1){
+                                found = true
+                            }
+                        }
+
+                        if(!found){
+                            toDelete.push(items[i])
+                        }
+                    }
+                    else{
+                        toDelete.push(items[i])
+                    }
+                }
+
+                for(let i = 0; i < inList.length; i++){
+                    let found = false
+
+                    for(let x = 0; x < inDir.length; x++){
+                        if(inList[i] == inDir[x]){
+                            found = true
+                        }
+                    }
+
+                    if(!found){
+                        toRemove.push(items[i])
+                    }
+                }
+
+                for(let i = 0; i < toDelete.length; i++){
+                    if(canDelete(toDelete[i])){
+                        FileSystem.deleteAsync(toExpoFsPath(offlinePath) + "/" + toDelete[i]).catch((err) => {
+                            console.log("Could not delete", toExpoFsPath(offlinePath) + "/" + toDelete[i], err)
+                        })
+                    }
+                }
+
+                for(let i = 0; i < toRemove.length; i++){
+                    removeItemFromOfflineList({
+                        item: {
+                            uuid: toRemove[i]
+                        }
+                    }).catch((err) => {
+                        console.log("Could not remove", toRemove[i], err)
+                    })
+                }
+            }
+            catch(e){
+                console.log(e)
+
+                return reject(e)
+            }
+
+            return resolve(true)
+        }), 
     ]).catch(() => {})
 
     return true
@@ -87,7 +218,7 @@ export const clearLogs = async (): Promise<boolean> => {
         const info = await FileSystem.getInfoAsync(items[i])
 
         if(info.exists && info.size && info.size > (1024 * 1024 * 3)){
-            FileSystem.deleteAsync(items[i]).catch(() => {})
+            FileSystem.deleteAsync(items[i]).catch(console.log)
         }
     }
 

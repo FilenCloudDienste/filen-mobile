@@ -648,8 +648,10 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     }
     else if(parent == "offline"){
         try{
-            var list = await getOfflineList()
-            var offlinePath = await getDownloadPath({ type: "offline" })
+            var [ list, offlinePath ] = await Promise.all([
+                getOfflineList(),
+                getDownloadPath({ type: "offline" })
+            ])
         }
         catch(e){
             console.log(e)

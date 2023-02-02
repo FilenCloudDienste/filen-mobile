@@ -1,7 +1,7 @@
 import storage from "../../storage"
 import { queueFileUpload, UploadFile } from "../upload/upload"
 import { Platform } from "react-native"
-import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, decryptFileMetadata, getMasterKeys, toExpoFsPath, getAssetId, Semaphore } from "../../helpers"
+import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, decryptFileMetadata, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt } from "../../helpers"
 import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import * as FileSystem from "expo-file-system"
@@ -61,31 +61,120 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
     }
 }
 
+export const isExtensionAllowed = (ext: string) => {
+    if(ext.length == 0){
+        return false
+    }
+
+    ext = ext.toLowerCase()
+
+    if(ext.indexOf(".") !== -1){
+        ext = ext.split(".").join("")
+    }
+
+    const userId: number = storage.getNumber("userId")
+    const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
+    const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
+    const photoExts: string[] = [
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "heic",
+        "heif",
+        "apng",
+        "avif",
+        "jfif",
+        "pjpeg",
+        "pjp",
+        "svg",
+        "webp",
+        "bmp",
+        "ico",
+        "cur",
+        "tif",
+        "tiff"
+    ]
+    const videoExts: string[] = [
+        "hevc",
+        "webm",
+        "mkv",
+        "flv",
+        "vob",
+        "ogv",
+        "ogg",
+        "drc",
+        "gifv",
+        "mng",
+        "avi",
+        "mts",
+        "m2ts2",
+        "ts",
+        "mov",
+        "wmv",
+        "mp4",
+        "m4p",
+        "m4v",
+        "mpg",
+        "mp2",
+        "mpeg",
+        "m2v",
+        "m4v",
+        "3gp"
+    ]
+    const allowed: string[] = []
+    
+    if(cameraUploadIncludeImages && !cameraUploadIncludeVideos){
+        allowed.push(...photoExts)
+    }
+
+    if(!cameraUploadIncludeImages && cameraUploadIncludeVideos){
+        allowed.push(...videoExts)
+    }
+
+    if(cameraUploadIncludeImages && cameraUploadIncludeVideos){
+        allowed.push(...photoExts, ...videoExts)
+    }
+
+    if(userId == 0){
+        allowed.push(...photoExts)
+    }
+
+    return allowed.filter(allowedExt => allowedExt == ext).length > 0
+}
+
+export const getMediaTypes = () => {
+    const userId: number = storage.getNumber("userId")
+    const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
+    const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
+    let assetTypes: MediaLibrary.MediaTypeValue[] = ["photo", "video", "unknown"]
+
+    if(cameraUploadIncludeImages && !cameraUploadIncludeVideos){
+        assetTypes = ["photo", "unknown"]
+    }
+
+    if(!cameraUploadIncludeImages && cameraUploadIncludeVideos){
+        assetTypes = ["video", "unknown"]
+    }
+
+    if(cameraUploadIncludeImages && cameraUploadIncludeVideos){
+        assetTypes = ["photo", "video", "unknown"]
+    }
+
+    if(userId == 0){
+        assetTypes = ["photo", "unknown"]
+    }
+
+    return assetTypes
+}
+
 export const fetchLocalAssets = (): Promise<MediaLibrary.Asset[]> => {
     return new Promise(async (resolve, reject) => {
         const assets: MediaLibrary.Asset[] = []
         const userId: number = storage.getNumber("userId")
-        const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
-        const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
         let cameraUploadExcludedAlbums: any = storage.getString("cameraUploadExcludedAlbums:" + userId)
-        let assetTypes: MediaLibrary.MediaTypeValue[] = ["photo", "video"]
         const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
-
-        if(cameraUploadIncludeImages && !cameraUploadIncludeVideos){
-            assetTypes = ["photo"]
-        }
-
-        if(!cameraUploadIncludeImages && cameraUploadIncludeVideos){
-            assetTypes = ["video"]
-        }
-
-        if(cameraUploadIncludeImages && cameraUploadIncludeVideos){
-            assetTypes = ["photo", "video"]
-        }
-
-        if(userId == 0){
-            assetTypes = ["photo"]
-        }
+        const assetTypes = getMediaTypes()
 
         if(typeof cameraUploadExcludedAlbums == "string"){
             try{
@@ -109,7 +198,7 @@ export const fetchLocalAssets = (): Promise<MediaLibrary.Asset[]> => {
             MediaLibrary.getAssetsAsync({
                 ...(typeof after !== "undefined" ? { after } : {}),
                 first: 256,
-                mediaType: ["photo", "video"],
+                mediaType: ["photo", "video", "unknown"],
                 sortBy: MediaLibrary.SortBy.creationTime
             }).then((fetched) => {
                 for(let i = 0; i < fetched.assets.length; i++){
@@ -120,7 +209,7 @@ export const fetchLocalAssets = (): Promise<MediaLibrary.Asset[]> => {
                     return fetch(fetched.endCursor)
                 }
 
-                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.creationTime - b.creationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.creationTime >= cameraUploadAfterEnabledTime)
+                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.creationTime - b.creationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.creationTime >= cameraUploadAfterEnabledTime && (isExtensionAllowed(getFileExt(asset.filename)) || isExtensionAllowed(getFileExt(asset.uri))))
 
                 return resolve(sorted)
             }).catch(reject)
