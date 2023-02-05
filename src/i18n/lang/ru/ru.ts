@@ -407,5 +407,6 @@ export const ru: {
     oneHour: "1 час",
     saveLogs: "Сохранить журнал",
     cameraUploadAfterEnabled: "Загружать только новые медиафайлы",
-    keepAppAwake: "Не выключать экран"
+    keepAppAwake: "Не выключать экран",
+    followSystemTheme: "Следовать системным настройкам"
 }
