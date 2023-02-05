@@ -235,60 +235,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                         )
                     }
                 </SettingsGroup>
-                {/*<SettingsGroup>
-                    <SettingsButtonLinkHighlight
-                        title={i18n(lang, "cameraUploadReset")}
-                        borderBottomRadius={10}
-                        borderTopRadius={10}
-                        onPress={() => {
-                            Alert.alert(i18n(lang, "cameraUploadReset"), i18n(lang, "cameraUploadResetInfo"), [
-                                {
-                                    text: i18n(lang, "cancel"),
-                                    onPress: () => {
-                                        return false
-                                    },
-                                    style: "cancel"
-                                },
-                                {
-                                    text: i18n(lang, "ok"),
-                                    onPress: () => {
-                                        Alert.alert(i18n(lang, "cameraUploadReset"), i18n(lang, "areYouReallySure"), [
-                                            {
-                                                text: i18n(lang, "cancel"),
-                                                onPress: () => {
-                                                    return false
-                                                },
-                                                style: "cancel"
-                                            },
-                                            {
-                                                text: i18n(lang, "ok"),
-                                                onPress: () => {
-                                                    try{
-                                                        storage.delete("cameraUploadUploadedHashes:" + userId)
-                                                        storage.delete("cameraUploadFetchRemoteAssetsTimeout:" + userId)
-                                                        storage.delete("cameraUploadRemoteHashes:" + userId)
-                                                        storage.delete("cameraUploadLastRemoteAssets:" + userId)
-                                                    }
-                                                    catch(e){
-                                                        console.log(e)
-                                                    }
-                
-                                                    return true
-                                                },
-                                                style: "default"
-                                            }
-                                        ], {
-                                            cancelable: true
-                                        })
-                                    },
-                                    style: "default"
-                                }
-                            ], {
-                                cancelable: true
-                            })
-                        }}
-                    />
-                </SettingsGroup>*/}
                 <View
                     style={{
                         height: 25
