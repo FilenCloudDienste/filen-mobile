@@ -379,8 +379,8 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 						queueFileDownload({
 							file: item,
 							saveToGalleryCallback: (path: string) => {
-								MediaLibrary.saveToLibraryAsync(path).then(() => {
-									addToSavedToGallery(item)
+								MediaLibrary.createAssetAsync(path).then((asset) => {
+									addToSavedToGallery(asset)
 
 									showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
 								}).catch((err) => {

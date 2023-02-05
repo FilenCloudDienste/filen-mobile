@@ -18,11 +18,14 @@ import { isOnline, isWifi } from "../isOnline"
 import type { Item, BuildFolder, ItemReceiver } from "../../../types"
 import { MB } from "../../constants"
 import { memoize } from "lodash"
+import { getAssetId } from "../../helpers"
+import { Asset } from "expo-media-library"
+import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 
-const isGeneratingThumbnailForItemUUID: any = {}
-const isCheckingThumbnailForItemUUID : any = {}
+const isGeneratingThumbnailForItemUUID: { [key: string]: boolean } = {}
+const isCheckingThumbnailForItemUUID: { [key: string]: boolean } = {}
 
-export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
+export const buildFolder = memoize(async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
 
     if(memoryCache.has(cacheKey)){
@@ -79,7 +82,7 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
         version: 0,
         hash: ""
     }
-}
+}, (args) => JSON.stringify(args))
 
 export interface BuildFile {
     file: any,
@@ -98,7 +101,7 @@ export interface BuildFile {
     userId?: number
 }
 
-export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0, hash: "" }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
+export const buildFile = memoize(async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0, hash: "" }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
     const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn.toString()
 
     if(memoryCache.has(cacheKey)){
@@ -176,7 +179,7 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
         isDefault: false,
         hash: typeof metadata.hash == "string" && metadata.hash.length > 0 ? metadata.hash : ""
     }
-}
+}, (args) => JSON.stringify(args))
 
 export const sortItems = memoize(({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }): Item[] => {
     let routeURL = ""
@@ -235,13 +238,13 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
     const userId = storage.getNumber("userId")
 
     if(typeof userId !== "number"){
-        console.log("userId in storage !== number")
+        console.error("userId in storage !== number")
 
         return false
     }
 
     if(userId == 0){
-        console.log("userId in storage invalid (0)")
+        console.error("userId in storage invalid (0)")
 
         return false
     }
@@ -257,7 +260,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         var cache = typeof cacheRaw == "string" ? JSON.parse(cacheRaw) : undefined
     }
     catch(e){
-        console.log(e)
+        console.error(e)
 
         var cache = undefined
         
@@ -1558,10 +1561,28 @@ export const convertHeic = async (item: Item, path: string): Promise<string> => 
     })
 }
 
-export const addToSavedToGallery = (item: Item): void => {
-    const savedToGallery = JSON.parse(storage.getString("savedToGallery") || "{}")
+export const addToSavedToGallery = async (asset: Asset) => {
+    await getLocalAssetsMutex.acquire()
 
-    savedToGallery[item.uuid] = true
+    try{
+        const assetId = getAssetId(asset)
+        const assetURI = await getAssetURI(asset)
+        const stat = await Filesystem.getInfoAsync(toExpoFsPath(assetURI))
+        const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+        const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
+        const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
 
-    storage.set("savedToGallery", JSON.stringify(savedToGallery))
+        cameraUploadLastModified[assetId] = asset.modificationTime
+        cameraUploadLastSize[assetId] = stat.size
+        cameraUploadLastModifiedStat[assetId] = stat.modificationTime
+
+        storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
+        storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
+        storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
+    }
+    catch(e){
+        console.error(e)
+    }
+
+    getLocalAssetsMutex.release()
 }

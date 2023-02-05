@@ -31,7 +31,9 @@ const DONT_DELETE: string[] = [
     "log",
     "logs",
     "com.hackemist",
-    "com.apple"
+    "com.apple",
+    "nsird",
+    "io.filen"
 ]
 
 export const canDelete = memoize((name: string) => {
@@ -226,10 +228,12 @@ export const clearLogs = async (): Promise<boolean> => {
 }
 
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
-    promiseAllSettled([
-        clearLogs(),
-        clearCacheDirectories()
-    ]).catch(log.error)
+    if(!__DEV__){
+        promiseAllSettled([
+            clearLogs(),
+            clearCacheDirectories()
+        ]).catch(log.error)
+    }
 
     await updateKeys({ navigation })
     

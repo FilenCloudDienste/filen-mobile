@@ -58,28 +58,26 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 			setCanSaveToGallery(false)
 			setCanEdit(false)
 
-			if(routeURL.indexOf("photos") == -1){
-				if(Platform.OS == "ios"){
-					if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(getFileExt(currentActionSheetItem.name))){
-						if(isOnline()){
+			if(Platform.OS == "ios"){
+				if(["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(getFileExt(currentActionSheetItem.name))){
+					if(isOnline()){
+						setCanSaveToGallery(true)
+					}
+					else{
+						if(itemAvailableOffline){
 							setCanSaveToGallery(true)
-						}
-						else{
-							if(itemAvailableOffline){
-								setCanSaveToGallery(true)
-							}
 						}
 					}
 				}
-				else{
-					if(["jpg", "jpeg", "png", "gif", "mov", "mp4"].includes(getFileExt(currentActionSheetItem.name))){
-						if(isOnline()){
+			}
+			else{
+				if(["jpg", "jpeg", "png", "gif", "mov", "mp4"].includes(getFileExt(currentActionSheetItem.name))){
+					if(isOnline()){
+						setCanSaveToGallery(true)
+					}
+					else{
+						if(itemAvailableOffline){
 							setCanSaveToGallery(true)
-						}
-						else{
-							if(itemAvailableOffline){
-								setCanSaveToGallery(true)
-							}
 						}
 					}
 				}
@@ -133,8 +131,8 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				queueFileDownload({
 					file: currentActionSheetItem,
 					saveToGalleryCallback: (path: string) => {
-						MediaLibrary.saveToLibraryAsync(path).then(() => {
-							addToSavedToGallery(currentActionSheetItem)
+						MediaLibrary.createAssetAsync(path).then((asset) => {
+							addToSavedToGallery(asset)
 
 							showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
 						}).catch((err) => {

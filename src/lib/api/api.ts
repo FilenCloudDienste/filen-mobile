@@ -23,8 +23,7 @@ import DeviceInfo from "react-native-device-info"
 import { isOnline } from "../services/isOnline"
 import type { Item } from "../../types"
 import axios from "axios"
-
-const striptags = require("striptags")
+import striptags from "striptags"
 
 const shareSemaphore = new Semaphore(8)
 const apiRequestSemaphore = new Semaphore(8192)

@@ -32,6 +32,8 @@ let fallbackInterval: any = undefined
 let askedForPermissions: boolean = false
 const getFileMutex = new Semaphore(1)
 
+export const getLocalAssetsMutex = new Semaphore(1)
+
 export const startCameraUploadFallbackInterval = () => {
     clearInterval(fallbackInterval)
 
@@ -170,6 +172,8 @@ export const getMediaTypes = () => {
 
 export const fetchLocalAssets = (): Promise<MediaLibrary.Asset[]> => {
     return new Promise(async (resolve, reject) => {
+        await getLocalAssetsMutex.acquire()
+
         const assets: MediaLibrary.Asset[] = []
         const userId: number = storage.getNumber("userId")
         let cameraUploadExcludedAlbums: any = storage.getString("cameraUploadExcludedAlbums:" + userId)
@@ -211,8 +215,14 @@ export const fetchLocalAssets = (): Promise<MediaLibrary.Asset[]> => {
 
                 const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.creationTime - b.creationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.creationTime >= cameraUploadAfterEnabledTime && isExtensionAllowed(getFileExt(asset.filename)))
 
+                getLocalAssetsMutex.release()
+
                 return resolve(sorted)
-            }).catch(reject)
+            }).catch((err) => {
+                getLocalAssetsMutex.release()
+
+                return reject(err)
+            })
         }
 
         return fetch(undefined)
@@ -246,8 +256,8 @@ export const loadLocal = async (): Promise<CameraUploadItems> => {
 
         items[asset.filename.toLowerCase()] = {
             name: asset.filename,
-            lastModified: Math.floor(asset.modificationTime),
-            creation: Math.floor(asset.creationTime),
+            lastModified: asset.modificationTime,
+            creation: asset.creationTime,
             id: getAssetId(asset),
             type: "local",
             asset
@@ -335,17 +345,27 @@ export const getDeltas = memoize((local: CameraUploadItems, remote: CameraUpload
     const deltas: Delta[] = []
 
     for(const name in local){
+        const assetId = getAssetId(local[name].asset)
+
         if(!remote[name]){
-            deltas.push({
-                type: "UPLOAD",
-                item: local[name]
-            })
+            if(typeof cameraUploadLastModified[assetId] == "number"){
+                if(cameraUploadLastModified[assetId] !== local[name].lastModified){
+                    deltas.push({
+                        type: "UPLOAD",
+                        item: local[name]
+                    })
+                }
+            }
+            else{
+                deltas.push({
+                    type: "UPLOAD",
+                    item: local[name]
+                })
+            }
         }
         else{
-            const assetId = getAssetId(local[name].asset)
-
             if(typeof cameraUploadLastModified[assetId] == "number"){
-                if(Math.floor(cameraUploadLastModified[assetId]) < local[name].lastModified){
+                if(cameraUploadLastModified[assetId] !== local[name].lastModified){
                     deltas.push({
                         type: "UPDATE",
                         item: local[name]
@@ -355,114 +375,86 @@ export const getDeltas = memoize((local: CameraUploadItems, remote: CameraUpload
         }
     }
 
-    console.log(deltas)
-
     return deltas
 }, (local: CameraUploadItems, remote: CameraUploadItems) => JSON.stringify(local) + ":" + JSON.stringify(remote))
 
-export const getFile = (asset: MediaLibrary.Asset): Promise<UploadFile> => {
+export const getAssetURI = async (asset: MediaLibrary.Asset) => {
+    const info = await MediaLibrary.getAssetInfoAsync(asset, {
+        shouldDownloadFromNetwork: true
+    })
+
+    let assetURI: string = ""
+
+    if(Platform.OS == "android"){
+        if(asset.uri.length > 0){
+            assetURI = asset.uri
+        }
+        else{
+            if(typeof info.localUri == "string" && info.localUri.length > 0){
+                assetURI = info.localUri
+            }
+        }
+    }
+    else{
+        if(typeof info.localUri == "string" && info.localUri.length > 0){
+            assetURI = info.localUri
+        }
+        else{
+            assetURI = info.uri
+        }
+    }
+
+    if(typeof assetURI == "string" && assetURI.length > 0){
+        return assetURI
+    }
+
+    throw new Error("No asset URI found for " + asset.id)
+}
+
+export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<UploadFile> => {
     return new Promise((resolve, reject) => {
         const userId = storage.getNumber("userId")
         const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
 
         getFileMutex.acquire().then(() => {
-            MediaLibrary.getAssetInfoAsync(asset, {
-                shouldDownloadFromNetwork: true
-            }).then((assetInfo) => {
-                const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
-                let assetURI: string = ""
+            const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
 
-                if(Platform.OS == "android"){
-                    if(asset.uri.length > 0){
-                        assetURI = asset.uri
-                    }
-                    else{
-                        if(typeof assetInfo.localUri == "string" && assetInfo.localUri.length > 0){
-                            assetURI = assetInfo.localUri
-                        }
-                    }
-                }
-                else{
-                    if(typeof assetInfo.localUri == "string" && assetInfo.localUri.length > 0){
-                        assetURI = assetInfo.localUri
-                    }
-                    else{
-                        assetURI = assetInfo.uri
-                    }
-                }
-
-                if(typeof assetURI == "string" && assetURI.length > 0){
-                    FileSystem.copyAsync({
-                        from: assetURI,
-                        to: tmp
-                    }).then(() => {
-                        if(
-                            Platform.OS == "ios"
-                            && !cameraUploadEnableHeic
-                            && assetURI.toLowerCase().endsWith(".heic")
-                            && asset.mediaType == "photo"
-                        ){
-                            RNHeicConverter.convert({
-                                path: tmp,
-                                quality: 1,
-                                extension: "jpg"
-                            }).then(({ success, path, error }: { success: boolean, path: string, error: any }) => {
-                                if(!error && success && path){
-                                    FileSystem.getInfoAsync(path).then((stat) => {
-                                        if(stat.exists && stat.size){
-                                            const fileNameEx = asset.filename.split(".")
-                                            const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
-                                            const newName = nameWithoutEx + ".JPG"
-
-                                            getFileMutex.release()
-
-                                            return resolve({
-                                                path: path.split("file://").join(""),
-                                                name: newName,
-                                                mime: mimeTypes.lookup(path) || "",
-                                                size: stat.size,
-                                                lastModified: convertTimestampToMs(asset.creationTime)
-                                            })
-                                        }
-                                        else{
-                                            getFileMutex.release()
-
-                                            return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
-                                        }
-                                    }).catch((err) => {
-                                        getFileMutex.release()
-        
-                                        return reject(err)
-                                    })
-                                }
-                                else{
-                                    getFileMutex.release()
-
-                                    return new Error("HEICConverter error: " + error.toString())
-                                }
-                            }).catch((err: Error) => {
-                                getFileMutex.release()
-
-                                return reject(err)
-                            })
-                        }
-                        else{
-                            FileSystem.getInfoAsync(tmp).then((stat) => {
+            FileSystem.copyAsync({
+                from: toExpoFsPath(assetURI),
+                to: toExpoFsPath(tmp)
+            }).then(() => {
+                if(
+                    Platform.OS == "ios"
+                    && !cameraUploadEnableHeic
+                    && assetURI.toLowerCase().endsWith(".heic")
+                    && asset.mediaType == "photo"
+                ){
+                    RNHeicConverter.convert({
+                        path: tmp,
+                        quality: 1,
+                        extension: "jpg"
+                    }).then(({ success, path, error }: { success: boolean, path: string, error: any }) => {
+                        if(!error && success && path){
+                            FileSystem.getInfoAsync(toExpoFsPath(path)).then((stat) => {
                                 if(stat.exists && stat.size){
+                                    const fileNameEx = asset.filename.split(".")
+                                    const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
+                                    const newName = nameWithoutEx + ".JPG"
+
                                     getFileMutex.release()
 
                                     return resolve({
-                                        path: tmp.split("file://").join(""),
-                                        name: asset.filename,
-                                        mime: mimeTypes.lookup(tmp) || "",
+                                        path: path.split("file://").join(""),
+                                        name: newName,
+                                        mime: mimeTypes.lookup(path) || "",
                                         size: stat.size,
                                         lastModified: convertTimestampToMs(asset.creationTime)
                                     })
                                 }
                                 else{
                                     getFileMutex.release()
-                                    
-                                    return reject(new Error("No size for asset " + asset.id))
+
+                                    return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
                                 }
                             }).catch((err) => {
                                 getFileMutex.release()
@@ -470,16 +462,40 @@ export const getFile = (asset: MediaLibrary.Asset): Promise<UploadFile> => {
                                 return reject(err)
                             })
                         }
-                    }).catch((err) => {
+                        else{
+                            getFileMutex.release()
+
+                            return new Error("HEICConverter error: " + error.toString())
+                        }
+                    }).catch((err: Error) => {
                         getFileMutex.release()
 
                         return reject(err)
                     })
                 }
                 else{
-                    getFileMutex.release()
+                    FileSystem.getInfoAsync(toExpoFsPath(tmp)).then((stat) => {
+                        if(stat.exists && stat.size){
+                            getFileMutex.release()
 
-                    return reject(new Error("No localURI for asset " + asset.id))
+                            return resolve({
+                                path: tmp.split("file://").join(""),
+                                name: asset.filename,
+                                mime: mimeTypes.lookup(tmp) || "",
+                                size: stat.size,
+                                lastModified: convertTimestampToMs(asset.creationTime)
+                            })
+                        }
+                        else{
+                            getFileMutex.release()
+                            
+                            return reject(new Error("No size for asset " + asset.id))
+                        }
+                    }).catch((err) => {
+                        getFileMutex.release()
+
+                        return reject(err)
+                    })
                 }
             }).catch((err) => {
                 getFileMutex.release()
@@ -664,71 +680,84 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         const uploads: Promise<boolean>[] = []
         let uploadedThisRun = 0
 
-        const upload = (asset: MediaLibrary.Asset, deltaType: DeltaType): Promise<boolean> => {
-            return new Promise((resolve) => {
-                const assetId = getAssetId(asset)
+        const upload = async (asset: MediaLibrary.Asset): Promise<boolean> => {
+            const assetId = getAssetId(asset)
 
-                getFile(asset).then((file) => {
-                    const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
+            try{
+                const assetURI = await getAssetURI(asset)
+                var stat = await FileSystem.getInfoAsync(toExpoFsPath(assetURI))
+                const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
+                const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
 
-                    if(file.size == cameraUploadLastSize[assetId] && deltaType == "UPDATE"){
-                        FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
-    
-                        uploadedThisRun += 1
+                if(
+                    stat.exists
+                    && (
+                        stat.size == cameraUploadLastSize[assetId]
+                        || stat.modificationTime == cameraUploadLastModifiedStat[assetId]
+                    )
+                ){
+                    uploadedThisRun += 1
 
-                        storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
+                    storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
 
-                        const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+                    const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
 
-                        cameraUploadLastModified[assetId] = Math.floor(asset.modificationTime)
+                    cameraUploadLastModified[assetId] = asset.modificationTime
 
-                        storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
+                    storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
 
-                        return resolve(true)
-                    }
-                    else{
-                        queueFileUpload({
-                            file,
-                            parent: cameraUploadFolderUUID,
-                            isCameraUpload: true
-                        }).then(() => {
-                            FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
-    
-                            uploadedThisRun += 1
-    
-                            storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
-    
-                            const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
-                            const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
-    
-                            cameraUploadLastModified[assetId] = Math.floor(asset.modificationTime)
-                            cameraUploadLastSize[assetId] = file.size
-    
-                            storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
-                            storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
-    
-                            return resolve(true)
-                        }).catch((err) => {
-                            log.error(err)
-    
-                            FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
-    
-                            return resolve(true)
-                        })
-                    }
-                }).catch((err) => {
-                    log.error(err)
+                    return true
+                }
 
-                    if(typeof FAILED[assetId] !== "number"){
-                        FAILED[assetId] = 1
-                    }
-                    else{
-                        FAILED[assetId] += 1
-                    }
+                var file = await getFile(asset, assetURI)
+            }
+            catch(e){
+                log.error(e)
+        
+                if(typeof FAILED[assetId] !== "number"){
+                    FAILED[assetId] = 1
+                }
+                else{
+                    FAILED[assetId] += 1
+                }
 
-                    return resolve(true)
+                return false
+            }
+
+            try{
+                await queueFileUpload({
+                    file,
+                    parent: cameraUploadFolderUUID,
+                    isCameraUpload: true
                 })
-            })
+
+                FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
+        
+                uploadedThisRun += 1
+
+                storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
+
+                const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+                const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
+                const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
+
+                cameraUploadLastModified[assetId] = asset.modificationTime
+                cameraUploadLastSize[assetId] = stat.size
+                cameraUploadLastModifiedStat[assetId] = stat.modificationTime
+
+                storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
+                storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
+                storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
+
+                return true
+            }
+            catch(e){
+                log.error(e)
+        
+                FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
+
+                return false
+            }
         }
 
         for(let i = 0; i < deltas.length; i++){
@@ -750,7 +779,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                     delta.type == "UPLOAD"
                     || delta.type == "UPDATE"
                 ){
-                    uploads.push(upload(delta.item.asset, delta.type))
+                    uploads.push(upload(delta.item.asset))
                 }
             }
         }

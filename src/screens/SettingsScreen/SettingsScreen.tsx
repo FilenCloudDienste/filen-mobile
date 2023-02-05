@@ -474,6 +474,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
     const [onlyUsePINCode, setOnlyUsePINCode] = useMMKVBoolean("onlyUsePINCode:" + userId, storage)
     const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
     const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
+    const [dontFollowSystemTheme, setDontFollowSystemTheme] = useMMKVBoolean("dontFollowSystemTheme", storage)
 
     return (
         <ScrollView
@@ -592,6 +593,21 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                                 }
                             }}
                             value={typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 ? userSelectedTheme == "dark" : darkMode}
+                        />
+                    }
+                />
+                <SettingsButtonLinkHighlight
+                    title={i18n(lang, "followSystemTheme")}
+                    withBottomBorder={true}
+                    iconBackgroundColor="gray"
+                    iconName="contrast-outline"
+                    rightComponent={
+                        <Switch
+                            trackColor={getColor(darkMode, "switchTrackColor")}
+                            thumbColor={!dontFollowSystemTheme ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                            onValueChange={(value) => setDontFollowSystemTheme(!dontFollowSystemTheme)}
+                            value={!dontFollowSystemTheme}
                         />
                     }
                 />

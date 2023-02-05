@@ -402,5 +402,6 @@ export const de: {
     oneHour: "1 Stunde",
     saveLogs: "Logs speichern",
     cameraUploadAfterEnabled: "Nur nach Aktivierungszeit hochladen",
-    keepAppAwake: "Display Abschaltung verhindern"
+    keepAppAwake: "Display Abschaltung verhindern",
+    followSystemTheme: "Geräteeinstellungen verwenden"
 }

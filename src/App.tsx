@@ -166,9 +166,9 @@ export const App = Sentry.wrap(memo(() => {
         }
     }, [])
 
-    const setAppearance = useCallback((isInit: boolean = false) => {
+    const setAppearance = useCallback(() => {
         setTimeout(() => {
-            if(typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 && isInit){
+            if(typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 && storage.getBoolean("dontFollowSystemTheme")){
                 if(userSelectedTheme == "dark"){
                     storage.set("darkMode", true)
                     
@@ -352,9 +352,9 @@ export const App = Sentry.wrap(memo(() => {
 
         const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
 
-        setAppearance(true)
+        setAppearance()
 
-        const appearanceListener = () => setAppearance(false)
+        const appearanceListener = () => setAppearance()
 
         Appearance.addChangeListener(appearanceListener)
 
