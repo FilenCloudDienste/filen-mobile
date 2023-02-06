@@ -476,7 +476,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     })
 }
 
-export const downloadFile = (file: Item, showProgress: boolean = true, standalone: boolean = false): Promise<string> => {
+export const downloadFile = (file: Item, showProgress: boolean = true, standalone: boolean = false, maxChunks: number = Infinity): Promise<string> => {
     memoryCache.set("showDownloadProgress:" + file.uuid, showProgress)
 
     return new Promise((resolve, reject) => {
@@ -624,12 +624,14 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 type: "started",
                 data: file
             })
+
+            const chunksToDownload: number = maxChunks == Infinity ? file.chunks : maxChunks
     
             try{
                 await new Promise((resolve, reject) => {
                     let done = 0
     
-                    for(let i = 0; i < file.chunks; i++){
+                    for(let i = 0; i < chunksToDownload; i++){
                         Promise.all([
                             downloadThreadsSemaphore.acquire(),
                             downloadWriteThreadsSemaphore.acquire()
@@ -641,7 +643,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
     
                                 downloadThreadsSemaphore.release()
     
-                                if(done >= file.chunks){
+                                if(done >= chunksToDownload){
                                     return resolve(true)
                                 }
                             }).catch((err) => {
@@ -655,12 +657,12 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 })
     
                 await new Promise((resolve) => {
-                    if(currentWriteIndex >= file.chunks){
+                    if(currentWriteIndex >= chunksToDownload){
                         return resolve(true)
                     }
     
                     const wait = setInterval(() => {
-                        if(currentWriteIndex >= file.chunks){
+                        if(currentWriteIndex >= chunksToDownload){
                             clearInterval(wait)
     
                             return resolve(true)
@@ -668,7 +670,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                     }, 100)
                 })
     
-                if(file.size < (MB * 64)){
+                if(file.size < (MB * 128) && maxChunks == Infinity){
                     FileSystem.copyAsync({
                         from: toExpoFsPath(tmpPath),
                         to: toExpoFsPath(cachePath)

@@ -22,7 +22,7 @@ const log = logger.createLogger({
 })
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
-const CACHE_CLEARING_ENABLED: boolean = __DEV__
+const CACHE_CLEARING_ENABLED: boolean = true
 
 const deleteMutex = new Semaphore(1)
 const DONT_DELETE: string[] = [
@@ -52,7 +52,7 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                 const cacheDownloadsItems = await FileSystem.readDirectoryAsync(toExpoFsPath(cachedDownloadsPath))
 
                 for(let i = 0; i < cacheDownloadsItems.length; i++){
-                    if(!CACHE_CLEARING_ENABLED){
+                    if(CACHE_CLEARING_ENABLED){
                         if(canDelete(cacheDownloadsItems[i])){
                             await deleteMutex.acquire()
 
@@ -85,7 +85,7 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                     const cacheItems = await FileSystem.readDirectoryAsync(toExpoFsPath(cachePath))
             
                     for(let i = 0; i < cacheItems.length; i++){
-                        if(!CACHE_CLEARING_ENABLED){
+                        if(CACHE_CLEARING_ENABLED){
                             if(canDelete(cacheItems[i])){
                                 await deleteMutex.acquire()
 
@@ -118,7 +118,7 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                 const tmpItems = await FileSystem.readDirectoryAsync(toExpoFsPath(tmpPath))
 
                 for(let i = 0; i < tmpItems.length; i++){
-                    if(!CACHE_CLEARING_ENABLED){
+                    if(CACHE_CLEARING_ENABLED){
                         if(canDelete(tmpItems[i])){
                             await deleteMutex.acquire()
 
@@ -150,7 +150,7 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                 const tmpItems = await FileSystem.readDirectoryAsync(toExpoFsPath(tmpPath))
 
                 for(let i = 0; i < tmpItems.length; i++){
-                    if(!CACHE_CLEARING_ENABLED){
+                    if(CACHE_CLEARING_ENABLED){
                         if(canDelete(tmpItems[i])){
                             await deleteMutex.acquire()
 

@@ -16,14 +16,16 @@ import { navigationAnimation } from "../../state"
 import memoryCache from "../../memoryCache"
 import { isOnline, isWifi } from "../isOnline"
 import type { Item, BuildFolder, ItemReceiver } from "../../../types"
-import { MB } from "../../constants"
+import { MB, MAX_THUMBNAIL_ERROR_COUNT } from "../../constants"
 import { memoize } from "lodash"
 import { getAssetId } from "../../helpers"
 import { Asset } from "expo-media-library"
 import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
+import * as VideoThumbnails from "expo-video-thumbnails"
 
 const isGeneratingThumbnailForItemUUID: { [key: string]: boolean } = {}
 const isCheckingThumbnailForItemUUID: { [key: string]: boolean } = {}
+const thumbnailGenerationErrorCount: { [key: string]: number } = JSON.parse(storage.getString("thumbnailGenerationErrorCount") || "{}")
 
 export const buildFolder = memoize(async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
@@ -639,7 +641,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
         
                     let item = await buildFile({ file, masterKeys, userId })
         
-                    if(getFilePreviewType(getFileExt(item.name)) == "image"){
+                    if(canCompressThumbnail(getFileExt(item.name))){
                         items.push(item)
                     }
         
@@ -1117,6 +1119,16 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
 }
 
 export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = undefined, callback = undefined }: { item: Item, skipInViewCheck?: boolean, callback?: Function, path?: string }) => {
+    if(typeof thumbnailGenerationErrorCount[item.uuid] == "number"){
+        if(thumbnailGenerationErrorCount[item.uuid] > MAX_THUMBNAIL_ERROR_COUNT){
+            if(typeof callback == "function"){
+                callback(true)
+            }
+    
+            return false
+        }
+    }
+    
     if(typeof item.thumbnail == "string"){
         if(typeof callback == "function"){
             callback(true)
@@ -1216,6 +1228,15 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
         }
         
         global.generateThumbnailSemaphore.release()
+
+        if(typeof thumbnailGenerationErrorCount[item.uuid] == "number"){
+            thumbnailGenerationErrorCount[item.uuid] += 1
+        }
+        else{
+            thumbnailGenerationErrorCount[item.uuid] = 1
+        }
+
+        storage.set("thumbnailGenerationErrorCount", JSON.stringify(thumbnailGenerationErrorCount))
     }
 
     const compress = (path: string, dest: string) => {
@@ -1270,14 +1291,28 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
         }).catch(onError)
     }
 
+    const fileExt = getFileExt(item.name)
+    const filePreviewType = getFilePreviewType(fileExt)
+
     const generateThumbnail = (path: string, dest: string) => {
-        if(["heic"].includes(getFileExt(item.name)) && Platform.OS == "android"){
-            convertHeic(item, path).then((converted) => {
-                compress(converted, dest)
+        if(filePreviewType == "video"){
+            VideoThumbnails.getThumbnailAsync(toExpoFsPath(path), {
+                quality: 1
+            }).then(({ uri }) => {
+                Filesystem.deleteAsync(toExpoFsPath(path)).then(() => {
+                    compress(uri, dest)
+                }).catch(onError)
             }).catch(onError)
         }
         else{
-            compress(path, dest)
+            if(["heic"].includes(fileExt) && Platform.OS == "android"){
+                convertHeic(item, path).then((converted) => {
+                    compress(converted, dest)
+                }).catch(onError)
+            }
+            else{
+                compress(path, dest)
+            }
         }
     }
 
@@ -1310,7 +1345,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
                     return generateThumbnail(path, dest)
                 }
 
-                downloadFile(item, false, true).then((downloadedPath) => {
+                downloadFile(item, false, true, filePreviewType == "video" ? 16 : Infinity).then((downloadedPath) => {
                     generateThumbnail(downloadedPath, dest)
                 }).catch(onError)
             }).catch(onError)

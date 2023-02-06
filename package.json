@@ -39,6 +39,7 @@
     "expo-network": "~4.1.0",
     "expo-status-bar": "~1.2.0",
     "expo-task-manager": "~10.1.0",
+    "expo-video-thumbnails": "^7.0.0",
     "graceful-fs": "4.2.9",
     "intl": "^1.2.5",
     "lodash": "4.17.21",

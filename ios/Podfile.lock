@@ -32,6 +32,8 @@ PODS:
     - ExpoModulesCore
     - UMAppLoader
     - UMTaskManagerInterface
+  - EXVideoThumbnails (7.0.0):
+    - ExpoModulesCore
   - FBLazyVector (0.64.3)
   - FBReactNativeSpec (0.64.3):
     - RCT-Folly (= 2020.01.13.00)
@@ -394,6 +396,7 @@ DEPENDENCIES:
   - Expo (from `../node_modules/expo/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core/ios`)
   - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
+  - EXVideoThumbnails (from `../node_modules/expo-video-thumbnails/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -490,6 +493,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core/ios"
   EXTaskManager:
     :path: "../node_modules/expo-task-manager/ios"
+  EXVideoThumbnails:
+    :path: "../node_modules/expo-video-thumbnails/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
@@ -615,6 +620,7 @@ SPEC CHECKSUMS:
   Expo: 6ca1d5ca8c8264a7131a608afcd01561f79f1e6e
   ExpoModulesCore: d04e519b3e8e21523b195bb21a40144e30f1e163
   EXTaskManager: 889d62de7bae6b426f5656af836f8548f86eeae1
+  EXVideoThumbnails: 8b3e48f3716679dd0cbf949217a31eab5c555799
   FBLazyVector: c71c5917ec0ad2de41d5d06a5855f6d5eda06971
   FBReactNativeSpec: 4c66934d1bffd80be9f3b5f5b4f600d1279b3f3b
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
@@ -676,6 +682,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 3184c93ecc290bd422c6e344badc89b601e9c29b
   Yoga: e6ecf3fa25af9d4c87e94ad7d5d292eedef49749
 
-PODFILE CHECKSUM: 0a98cc6d7eb079d532ee6d8afbd5676e78f28610
+PODFILE CHECKSUM: 7cd0963e9e3834303a1681988550b6f602c341b1
 
 COCOAPODS: 1.11.2

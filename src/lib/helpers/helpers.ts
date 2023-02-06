@@ -400,6 +400,7 @@ export const canCompressThumbnail = memoize((ext: string): boolean => {
             case "gif":
             //case "heif":
             //case "heic":
+            case "mp4":
                 return true
             break
             default:
@@ -415,6 +416,7 @@ export const canCompressThumbnail = memoize((ext: string): boolean => {
             case "gif":
             case "heif":
             case "heic":
+            case "mp4":
                 return true
             break
             default:
@@ -424,42 +426,7 @@ export const canCompressThumbnail = memoize((ext: string): boolean => {
     }
 })
 
-export const canShowThumbnail = memoize((ext: string): boolean => {
-    if(Platform.OS == "android"){
-        switch(ext.toLowerCase()){
-            case "jpeg":
-            case "jpg":
-            case "png":
-            case "gif":
-            case "svg":
-            //case "heif":
-            //case "heic":
-                return true
-            break
-            default:
-                return false
-            break
-        }
-    }
-    else{
-        switch(ext.toLowerCase()){
-            case "jpeg":
-            case "jpg":
-            case "png":
-            case "gif":
-            case "svg":
-            case "heif":
-            case "heic":
-                return true
-            break
-            default:
-                return false
-            break
-        }
-    }
-})
-
-export const getFilePreviewType = memoize((ext: string): string => {
+export const getFilePreviewType = memoize((ext: string) => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
