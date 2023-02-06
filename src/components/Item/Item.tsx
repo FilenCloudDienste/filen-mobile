@@ -2,7 +2,7 @@ import React, { memo, useEffect, useMemo } from "react"
 import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, useWindowDimensions, ScaledSize, Pressable, Platform } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { getImageForItem } from "../../assets/thumbnails"
-import { formatBytes, getFolderColor, calcPhotosGridSize, getRouteURL, getParent } from "../../lib/helpers"
+import { formatBytes, getFolderColor, calcPhotosGridSize, getRouteURL, getParent, getFileExt, getFilePreviewType } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 import { getColor } from "../../style/colors"
 import type { EdgeInsets } from "react-native-safe-area-context"
@@ -417,13 +417,13 @@ export interface PhotosItemProps extends ItemBaseProps {
 export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets, hideThumbnails }: PhotosItemProps) => {
     const dimensions: ScaledSize = useWindowDimensions()
 
-    const [calcedGridSize, imageWidthAndHeight] = useMemo(() => {
+    const [calcedGridSize, imageWidthAndHeight, previewType] = useMemo(() => {
         const calcedGridSize = calcPhotosGridSize(photosGridSize)
         const windowWidth = (dimensions.width - (insets.left + insets.right))
         const imageWidthAndHeight = Math.floor(windowWidth / calcedGridSize) - 1.5
 
-        return [calcedGridSize, imageWidthAndHeight]
-    }, [photosGridSize, dimensions, insets])
+        return [calcedGridSize, imageWidthAndHeight, getFilePreviewType(getFileExt(item.name))]
+    }, [photosGridSize, dimensions, insets, item.name])
 
     return (
         <Pressable
@@ -530,6 +530,35 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
                                             position: "absolute",
                                             bottom: 3,
                                             right: 3,
+                                            width: 19,
+                                            height: 19,
+                                            borderRadius: 19,
+                                            zIndex: 10,
+                                            backgroundColor: "white"
+                                        }}
+                                    />
+                                </>
+                            )
+                        }
+                        {
+                            previewType == "video" && (
+                                <>
+                                    <Ionicon
+                                        name="play"
+                                        size={16}
+                                        color="black"
+                                        style={{
+                                            position: "absolute",
+                                            left: 5.5,
+                                            top: 4,
+                                            zIndex: 100
+                                        }}
+                                    />
+                                    <View
+                                        style={{
+                                            position: "absolute",
+                                            left: 3,
+                                            top: 3,
                                             width: 19,
                                             height: 19,
                                             borderRadius: 19,

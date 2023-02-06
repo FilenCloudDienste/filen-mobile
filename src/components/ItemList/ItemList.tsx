@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from "
 import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, ScaledSize, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, isBetween } from "../../lib/helpers"
+import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, isBetween, getFilePreviewType } from "../../lib/helpers"
 import { ListItem, GridItem, PhotosItem, PhotosRangeItem } from "../Item"
 import { i18n } from "../../i18n"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -73,6 +73,20 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         range = normalizePhotosRange(range)
     
         if(range == "all"){
+            if(routeURL.indexOf("photos") !== -1){
+                return items.filter(item => {
+                    if(getFilePreviewType(getFileExt(item.name)) == "video"){
+                        if(typeof item.thumbnail == "string" && item.thumbnail.length > 3){
+                            return true
+                        }
+    
+                        return false
+                    }
+                    
+                    return true
+                })
+            }
+            
             return items
         }
     
@@ -160,7 +174,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         }
         
         return sortedItems
-    }, [items, photosRange, lang, itemsPerRow, viewModeParsed])
+    }, [items, photosRange, lang, itemsPerRow, viewModeParsed, routeURL])
 
     const getThumbnail = useCallback(({ item }: { item: any }) => {
         if(item.type == "file"){
@@ -170,12 +184,6 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                         type: "generate-thumbnail",
                         item
                     })
-                }
-                else{
-                    //DeviceEventEmitter.emit("event", {
-                    //    type: "check-thumbnail",
-                    //    item
-                    //})
                 }
             }
         }
