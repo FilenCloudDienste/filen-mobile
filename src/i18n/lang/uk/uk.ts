@@ -407,5 +407,6 @@ export const uk: {
     oneHour: "1 годину",
     saveLogs: "Зберегти журнал",
     cameraUploadAfterEnabled: "Завантажувати тільки нові медіафайли",
-    keepAppAwake: "Не вимикати екран"
+    keepAppAwake: "Не вимикати екран",
+    followSystemTheme: "Дотримуватись системних налаштувань"
 }
