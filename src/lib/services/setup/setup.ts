@@ -1,6 +1,6 @@
 import { updateKeys } from "../user/keys"
 import { apiRequest } from "../../api"
-import { getAPIKey, toExpoFsPath, promiseAllSettled } from "../../helpers"
+import { getAPIKey, toExpoFsPath, promiseAllSettled, Semaphore } from "../../helpers"
 import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
@@ -22,7 +22,9 @@ const log = logger.createLogger({
 })
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
+const CACHE_CLEARING_ENABLED: boolean = __DEV__
 
+const deleteMutex = new Semaphore(1)
 const DONT_DELETE: string[] = [
     "sentry",
     "expo",
@@ -41,7 +43,7 @@ export const canDelete = memoize((name: string) => {
 })
 
 export const clearCacheDirectories = async (): Promise<boolean> => {
-    await Promise.all([
+    await promiseAllSettled([
         FastImage.clearDiskCache(),
         FastImage.clearMemoryCache(),
         new Promise(async (resolve, reject) => {
@@ -50,10 +52,21 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                 const cacheDownloadsItems = await FileSystem.readDirectoryAsync(toExpoFsPath(cachedDownloadsPath))
 
                 for(let i = 0; i < cacheDownloadsItems.length; i++){
-                    if(canDelete(cacheDownloadsItems[i])){
-                        FileSystem.deleteAsync(toExpoFsPath(cachedDownloadsPath) + "/" + cacheDownloadsItems[i]).catch((err) => {
-                            console.log("Could not delete", toExpoFsPath(cachedDownloadsPath) + "/" + cacheDownloadsItems[i], err)
-                        })
+                    if(!CACHE_CLEARING_ENABLED){
+                        if(canDelete(cacheDownloadsItems[i])){
+                            await deleteMutex.acquire()
+
+                            FileSystem.deleteAsync(toExpoFsPath(cachedDownloadsPath) + "/" + cacheDownloadsItems[i]).then(() => {
+                                deleteMutex.release()
+                            }).catch((err) => {
+                                deleteMutex.release()
+
+                                console.log("Could not delete", toExpoFsPath(cachedDownloadsPath) + "/" + cacheDownloadsItems[i], err)
+                            })
+                        }
+                    }
+                    else{
+                        console.log("cacheDownloadsItems", cacheDownloadsItems[i])
                     }
                 }
             }
@@ -72,10 +85,21 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                     const cacheItems = await FileSystem.readDirectoryAsync(toExpoFsPath(cachePath))
             
                     for(let i = 0; i < cacheItems.length; i++){
-                        if(canDelete(cacheItems[i])){
-                            FileSystem.deleteAsync(toExpoFsPath(cachePath) + "/" + cacheItems[i]).catch((err) => {
-                                console.log("Could not delete", toExpoFsPath(cachePath) + "/" + cacheItems[i], err)
-                            })
+                        if(!CACHE_CLEARING_ENABLED){
+                            if(canDelete(cacheItems[i])){
+                                await deleteMutex.acquire()
+
+                                FileSystem.deleteAsync(toExpoFsPath(cachePath) + "/" + cacheItems[i]).then(() => {
+                                    deleteMutex.release()
+                                }).catch((err) => {
+                                    deleteMutex.release()
+
+                                    console.log("Could not delete", toExpoFsPath(cachePath) + "/" + cacheItems[i], err)
+                                })
+                            }
+                        }
+                        else{
+                            console.log("cacheItems", cacheItems[i])
                         }
                     }
                 }
@@ -94,10 +118,21 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                 const tmpItems = await FileSystem.readDirectoryAsync(toExpoFsPath(tmpPath))
 
                 for(let i = 0; i < tmpItems.length; i++){
-                    if(canDelete(tmpItems[i])){
-                        FileSystem.deleteAsync(toExpoFsPath(tmpPath) + "/" + tmpItems[i]).catch((err) => {
-                            console.error("Could not delete", toExpoFsPath(tmpPath) + "/" + tmpItems[i], err)
-                        })
+                    if(!CACHE_CLEARING_ENABLED){
+                        if(canDelete(tmpItems[i])){
+                            await deleteMutex.acquire()
+
+                            FileSystem.deleteAsync(toExpoFsPath(tmpPath) + "/" + tmpItems[i]).then(() => {
+                                deleteMutex.release()
+                            }).catch((err) => {
+                                deleteMutex.release()
+
+                                console.error("Could not delete", toExpoFsPath(tmpPath) + "/" + tmpItems[i], err)
+                            })
+                        }
+                    }
+                    else{
+                        console.log("tmpItems", tmpItems[i])
                     }
                 }
             }
@@ -115,10 +150,21 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                 const tmpItems = await FileSystem.readDirectoryAsync(toExpoFsPath(tmpPath))
 
                 for(let i = 0; i < tmpItems.length; i++){
-                    if(canDelete(tmpItems[i])){
-                        FileSystem.deleteAsync(toExpoFsPath(tmpPath) + "/" + tmpItems[i]).catch((err) => {
-                            console.log("Could not delete", toExpoFsPath(tmpPath) + "/" + tmpItems[i], err)
-                        })
+                    if(!CACHE_CLEARING_ENABLED){
+                        if(canDelete(tmpItems[i])){
+                            await deleteMutex.acquire()
+
+                            FileSystem.deleteAsync(toExpoFsPath(tmpPath) + "/" + tmpItems[i]).then(() => {
+                                deleteMutex.release()
+                            }).catch((err) => {
+                                deleteMutex.release()
+
+                                console.log("Could not delete", toExpoFsPath(tmpPath) + "/" + tmpItems[i], err)
+                            })
+                        }
+                    }
+                    else{
+                        console.log("tmpItems", tmpItems[i])
                     }
                 }
             }
@@ -180,7 +226,13 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
 
                 for(let i = 0; i < toDelete.length; i++){
                     if(canDelete(toDelete[i])){
-                        FileSystem.deleteAsync(toExpoFsPath(offlinePath) + "/" + toDelete[i]).catch((err) => {
+                        await deleteMutex.acquire()
+
+                        FileSystem.deleteAsync(toExpoFsPath(offlinePath) + "/" + toDelete[i]).then(() => {
+                            deleteMutex.release()
+                        }).catch((err) => {
+                            deleteMutex.release()
+
                             console.log("Could not delete", toExpoFsPath(offlinePath) + "/" + toDelete[i], err)
                         })
                     }
@@ -220,7 +272,15 @@ export const clearLogs = async (): Promise<boolean> => {
         const info = await FileSystem.getInfoAsync(items[i])
 
         if(info.exists && info.size && info.size > (1024 * 1024 * 3)){
-            FileSystem.deleteAsync(items[i]).catch(console.log)
+            await deleteMutex.acquire()
+            
+            FileSystem.deleteAsync(items[i]).then(() => {
+                deleteMutex.release()
+            }).catch((err) => {
+                deleteMutex.release()
+
+                console.log("Could not delete", items[i], err)
+            })
         }
     }
 
@@ -228,12 +288,10 @@ export const clearLogs = async (): Promise<boolean> => {
 }
 
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
-    if(!__DEV__){
-        promiseAllSettled([
-            clearLogs(),
-            clearCacheDirectories()
-        ]).catch(log.error)
-    }
+    promiseAllSettled([
+        clearLogs(),
+        clearCacheDirectories()
+    ]).catch(log.error)
 
     await updateKeys({ navigation })
     

@@ -12,7 +12,6 @@ import RNHeicConverter from "react-native-heic-converter"
 import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
 import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
-import { memoize } from "lodash"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -340,7 +339,7 @@ export interface Delta {
     item: CameraUploadItem
 }
 
-export const getDeltas = memoize((local: CameraUploadItems, remote: CameraUploadItems) => {
+export const getDeltas = (local: CameraUploadItems, remote: CameraUploadItems) => {
     const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
     const deltas: Delta[] = []
 
@@ -376,7 +375,7 @@ export const getDeltas = memoize((local: CameraUploadItems, remote: CameraUpload
     }
 
     return deltas
-}, (local: CameraUploadItems, remote: CameraUploadItems) => JSON.stringify(local) + ":" + JSON.stringify(remote))
+}
 
 export const getAssetURI = async (asset: MediaLibrary.Asset) => {
     const info = await MediaLibrary.getAssetInfoAsync(asset, {
@@ -680,12 +679,14 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         const uploads: Promise<boolean>[] = []
         let uploadedThisRun = 0
 
-        const upload = async (asset: MediaLibrary.Asset): Promise<boolean> => {
+        const upload = async (delta: Delta): Promise<boolean> => {
+            const asset = delta.item.asset
             const assetId = getAssetId(asset)
 
             try{
                 const assetURI = await getAssetURI(asset)
                 var stat = await FileSystem.getInfoAsync(toExpoFsPath(assetURI))
+                const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
                 const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
                 const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
 
@@ -694,6 +695,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                     && (
                         stat.size == cameraUploadLastSize[assetId]
                         || stat.modificationTime == cameraUploadLastModifiedStat[assetId]
+                        || cameraUploadLastModified[assetId] == delta.item.lastModified
                     )
                 ){
                     uploadedThisRun += 1
@@ -701,10 +703,16 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                     storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
 
                     const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+                    const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
+                    const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
 
-                    cameraUploadLastModified[assetId] = asset.modificationTime
+                    cameraUploadLastModified[assetId] = delta.item.lastModified
+                    cameraUploadLastSize[assetId] = stat.size
+                    cameraUploadLastModifiedStat[assetId] = stat.modificationTime
 
                     storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
+                    storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
+                    storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
 
                     return true
                 }
@@ -741,7 +749,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                 const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
                 const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
 
-                cameraUploadLastModified[assetId] = asset.modificationTime
+                cameraUploadLastModified[assetId] = delta.item.lastModified
                 cameraUploadLastSize[assetId] = stat.size
                 cameraUploadLastModifiedStat[assetId] = stat.modificationTime
 
@@ -779,7 +787,7 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                     delta.type == "UPLOAD"
                     || delta.type == "UPDATE"
                 ){
-                    uploads.push(upload(delta.item.asset))
+                    uploads.push(upload(delta))
                 }
             }
         }
