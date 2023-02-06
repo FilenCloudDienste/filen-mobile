@@ -403,5 +403,6 @@ export const de: {
     saveLogs: "Logs speichern",
     cameraUploadAfterEnabled: "Nur nach Aktivierungszeit hochladen",
     keepAppAwake: "Display Abschaltung verhindern",
-    followSystemTheme: "Geräteeinstellungen verwenden"
+    followSystemTheme: "Geräteeinstellungen verwenden",
+    hideRecents: "Kürzlich verstecken"
 }

@@ -234,7 +234,7 @@ export const App = Sentry.wrap(memo(() => {
                         {
                             name: "MainScreen",
                             params: {
-                                parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
+                                parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : storage.getBoolean("hideRecents:" + userId) ? "shared-in" : "recents"
                             }
                         }
                     ]
@@ -441,7 +441,7 @@ export const App = Sentry.wrap(memo(() => {
                                     />
                                     <Stack.Screen
                                         name="MainScreen"
-                                        initialParams={{ parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents" }}
+                                        initialParams={{ parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : storage.getBoolean("hideRecents:" + userId) ? "shared-in" : "recents" }}
                                         component={MainScreen}
                                         options={{
                                             title: "MainScreen",

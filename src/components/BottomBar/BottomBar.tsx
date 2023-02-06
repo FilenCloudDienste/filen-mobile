@@ -122,7 +122,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                         {
                             name: "MainScreen",
                             params: {
-                                parent: "recents"
+                                parent: storage.getBoolean("hideRecents:" + userId) ? "shared-in" : "recents"
                             }
                         }
                     ]
@@ -186,7 +186,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
                 }))
             })
         }
-    }, [defaultDriveOnly, defaultDriveUUID])
+    }, [defaultDriveOnly, defaultDriveUUID, userId])
 
     const openAddSheet = useCallback(() => {
         if(canOpenBottomAddActionSheet && networkInfo.online){

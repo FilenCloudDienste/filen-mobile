@@ -475,6 +475,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
     const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
     const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
     const [dontFollowSystemTheme, setDontFollowSystemTheme] = useMMKVBoolean("dontFollowSystemTheme", storage)
+    const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 
     return (
         <ScrollView
@@ -623,6 +624,21 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                             ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
                             onValueChange={() => setStartOnCloudScreen(!startOnCloudScreen)}
                             value={startOnCloudScreen}
+                        />
+                    }
+                />
+                <SettingsButtonLinkHighlight
+                    title={i18n(lang, "hideRecents")}
+                    withBottomBorder={true}
+                    iconBackgroundColor={getColor(darkMode, "purple")}
+                    iconName="time-outline"
+                    rightComponent={
+                        <Switch
+                            trackColor={getColor(darkMode, "switchTrackColor")}
+                            thumbColor={hideRecents ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                            onValueChange={() => setHideRecents(!hideRecents)}
+                            value={hideRecents}
                         />
                     }
                 />

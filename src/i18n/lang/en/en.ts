@@ -408,5 +408,6 @@ export const en: {
     saveLogs: "Save logs",
     cameraUploadAfterEnabled: "Only upload after activation date",
     keepAppAwake: "Keep screen awake",
-    followSystemTheme: "Follow system settings"
+    followSystemTheme: "Follow system settings",
+    hideRecents: "Hide recents"
 }

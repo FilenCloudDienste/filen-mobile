@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
 import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform, useWindowDimensions, ScaledSize } from "react-native"
 import storage from "../../lib/storage"
-import { useMMKVString } from "react-native-mmkv"
+import { useMMKVString, useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { SheetManager } from "react-native-actions-sheet"
@@ -110,6 +110,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
     const dimensions: ScaledSize = useWindowDimensions()
+    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 
     const [parent, routeURL] = useMemo(() => {
         const parent: string = getParent(route)
@@ -119,8 +121,23 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     }, [route])
 
     const homeTabBarTextMaxWidth: number = useMemo(() => {
-        return (dimensions.width / 5) - 20
-    }, [dimensions])
+        let tabs: number = 5
+
+        if(hideRecents){
+            tabs -= 1
+        }
+
+        if(typeof privateKey !== "string" && typeof publicKey !== "string"){
+            tabs -= 2
+        }
+        else{
+            if(typeof privateKey == "string" && typeof publicKey == "string" && privateKey.length < 16 && publicKey.length < 16){
+                tabs -= 2
+            }
+        }
+
+        return (dimensions.width / tabs) - 20
+    }, [dimensions, hideRecents, privateKey, publicKey])
 
     const [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton] = useMemo(() => {
         const isMainScreen: boolean = (route.name == "MainScreen")
@@ -397,41 +414,45 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                             justifyContent: "space-between"
                         }}
                     >
-                        <TouchableOpacity
-                            style={{
-                                borderBottomWidth: isRecentsScreen ? Platform.OS == "ios" ? 2 : 2 : 0,
-                                borderBottomColor: isRecentsScreen ? "#0A84FF" : "#171717",
-                                height: 27
-                            }}
-                            onPress={() => {
-                                navigationAnimation({ enable: false }).then(() => {
-                                    navigation.dispatch(CommonActions.reset({
-                                        index: 0,
-                                        routes: [
-                                            {
-                                                name: "MainScreen",
-                                                params: {
-                                                    parent: "recents"
-                                                }
-                                            }
-                                        ]
-                                    }))
-                                })
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    color: isRecentsScreen ? "#0A84FF" : "gray",
-                                    fontWeight: "bold",
-                                    fontSize: 14,
-                                    paddingTop: 2,
-                                    maxWidth: homeTabBarTextMaxWidth
-                                }}
-                                numberOfLines={1}
-                            >
-                                {i18n(lang, "recents")}
-                            </Text>
-                        </TouchableOpacity>
+                        {
+                            !hideRecents && (
+                                <TouchableOpacity
+                                    style={{
+                                        borderBottomWidth: isRecentsScreen ? Platform.OS == "ios" ? 2 : 2 : 0,
+                                        borderBottomColor: isRecentsScreen ? "#0A84FF" : "#171717",
+                                        height: 27
+                                    }}
+                                    onPress={() => {
+                                        navigationAnimation({ enable: false }).then(() => {
+                                            navigation.dispatch(CommonActions.reset({
+                                                index: 0,
+                                                routes: [
+                                                    {
+                                                        name: "MainScreen",
+                                                        params: {
+                                                            parent: "recents"
+                                                        }
+                                                    }
+                                                ]
+                                            }))
+                                        })
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: isRecentsScreen ? "#0A84FF" : "gray",
+                                            fontWeight: "bold",
+                                            fontSize: 14,
+                                            paddingTop: 2,
+                                            maxWidth: homeTabBarTextMaxWidth
+                                        }}
+                                        numberOfLines={1}
+                                    >
+                                        {i18n(lang, "recents")}
+                                    </Text>
+                                </TouchableOpacity>
+                            )
+                        }
                         {
                             typeof privateKey == "string" && typeof publicKey == "string" && privateKey.length > 16 && publicKey.length > 16 && (
                                 <>
