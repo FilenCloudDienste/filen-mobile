@@ -51,7 +51,8 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: getColor(darkMode, "backgroundPrimary")
+                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
+                    marginTop: 10
                 }}
             >
                 {
@@ -65,7 +66,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
                         />
                     ) : (
                         <>
-                            <SettingsGroup marginTop={15}>
+                            <SettingsGroup marginTop={5}>
                                 <SettingsButtonLinkHighlight
                                     onPress={() => {
                                         Linking.canOpenURL("https://drive.filen.io").then((supported) => {

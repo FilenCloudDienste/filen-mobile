@@ -42,7 +42,8 @@ export const GDPRScreen = memo(({ navigation }: { navigation: any }) => {
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: getColor(darkMode, "backgroundPrimary")
+                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
+                    marginTop: 10
                 }}
             >
                 {
@@ -58,7 +59,10 @@ export const GDPRScreen = memo(({ navigation }: { navigation: any }) => {
                         <Text
                             style={{
                                 color: getColor(darkMode, "textPrimary"),
-                                padding: 22
+                                paddingLeft: 20,
+                                paddingRight: 20,
+                                paddingTop: 5,
+                                paddingBottom: 25
                             }}
                         >
                             {striptags(gdpr)}    

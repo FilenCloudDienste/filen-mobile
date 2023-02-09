@@ -28,10 +28,13 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: getColor(darkMode, "backgroundPrimary")
+                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
+                    marginTop: 10
                 }}
             >
-                <SettingsGroup>
+                <SettingsGroup
+                    marginTop={5}
+                >
                     <SettingsButtonLinkHighlight
                         title="English"
                         onPress={() => storage.set("lang", "en")}
@@ -96,6 +99,11 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
                     <SettingsButtonLinkHighlight
                         title="Ελληνικά"
                         onPress={() => storage.set("lang", "el")}
+                        withBottomBorder={true}
+                    />
+                    <SettingsButtonLinkHighlight
+                        title="한국어"
+                        onPress={() => storage.set("lang", "ko")}
                         borderBottomRadius={10}
                     />
                 </SettingsGroup>

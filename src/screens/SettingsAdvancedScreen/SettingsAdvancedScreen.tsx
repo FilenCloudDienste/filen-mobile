@@ -98,10 +98,13 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: darkMode ? "black" : "white"
+                    backgroundColor: darkMode ? "black" : "white",
+                    marginTop: 10
                 }}
             >
-                <SettingsGroup>
+                <SettingsGroup
+                    marginTop={5}
+                >
                     <SettingsButtonLinkHighlight
                         title={i18n(lang, "clearThumbnailCache")}
                         rightText={isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(thumbnailCacheLocalFolderSize)}

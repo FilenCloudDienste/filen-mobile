@@ -67,10 +67,13 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: getColor(darkMode, "backgroundPrimary")
+                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
+                    marginTop: 10
                 }}
             >
-                <SettingsGroup>
+                <SettingsGroup
+                    marginTop={5}
+                >
                     <SettingsButtonLinkHighlight
                         title={i18n(lang, "enabled")}
                         borderBottomRadius={10}

@@ -46,7 +46,8 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: getColor(darkMode, "backgroundPrimary")
+                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
+                    marginTop: 10
                 }}
             >
                 {
@@ -60,7 +61,9 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
                         />
                     ) : (
                         <>
-                            <SettingsGroup>
+                            <SettingsGroup
+                                marginTop={5}
+                            >
                                 <View
                                     style={{
                                         width: "100%",
