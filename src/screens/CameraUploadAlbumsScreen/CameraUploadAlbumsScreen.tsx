@@ -148,7 +148,7 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
     const cachedAlbums = useRef<string | undefined>(storage.getString("cachedLocalAlbums")).current
     const [fetchedAlbums, setFetchedAlbums] = useState<Album[]>(typeof cachedAlbums !== "undefined" ? JSON.parse(cachedAlbums) : [])
     const [hasPermissions, setHasPermissions] = useState<boolean>(false)
-    const [loading, setLoading] = useState<boolean>(true)
+    const [loading, setLoading] = useState<boolean>(typeof cachedAlbums == "undefined")
     const isMounted = useMountedState()
 
     const fetchAlbums = useCallback(() => {
@@ -239,7 +239,10 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
             hasStoragePermissions(),
             hasPhotoLibraryPermissions()
         ]).then(() => {
-            setLoading(true)
+            if(typeof cachedAlbums == "undefined"){
+                setLoading(true)
+            }
+
             setHasPermissions(true)
 
             fetchAlbums().then((fetched) => {

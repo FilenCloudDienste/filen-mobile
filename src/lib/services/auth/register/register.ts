@@ -17,7 +17,7 @@ export interface Register {
     navigation: any
 }
 
-export const register = async ({ email, password, confirmPassword, setEmail, setPassword, setConfirmPassword, navigation }: Register): Promise<void> => {
+export const register = async ({ email, password, confirmPassword, setEmail, setPassword, setConfirmPassword, navigation }: Register) => {
     const lang = storage.getString("lang")
 
     useStore.setState({ fullscreenLoadingModalVisible: true })

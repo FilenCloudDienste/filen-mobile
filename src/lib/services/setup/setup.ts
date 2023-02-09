@@ -35,7 +35,9 @@ const DONT_DELETE: string[] = [
     "com.hackemist",
     "com.apple",
     "nsird",
-    "io.filen"
+    "io.filen",
+    "image_cache",
+    "http-cache"
 ]
 
 export const canDelete = memoize((name: string) => {

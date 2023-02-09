@@ -16,9 +16,10 @@ import { navigationAnimation } from "../../lib/state"
 import type { Item } from "../../types"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface MainScreenProps {
-    navigation: any,
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
     route: any
 }
 
@@ -69,10 +70,10 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             return
         }
     
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined" ? {...mapItem, thumbnail: item.uuid + ".jpg" } : mapItem))
         }
-    }, [])
+    }, [isFocused])
     
     const selectItem = useCallback((item: Item) => {
         if(getRouteURL(route).indexOf("photos") !== -1){
@@ -81,22 +82,22 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             }
         }
 
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: true} : mapItem))
         }
-    }, [photosGridSize, route])
+    }, [photosGridSize, route, isFocused])
     
     const unselectItem = useCallback((item: Item) => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, selected: false} : mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     const unselectAllItems = useCallback(() => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.selected ? {...mapItem, selected: false} : mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     const selectAllItems = useCallback(() => {
         if(getRouteURL(route).indexOf("photos") !== -1){
@@ -105,71 +106,71 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             }
         }
 
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => !mapItem.selected ? {...mapItem, selected: true} : mapItem))
         }
-    }, [photosGridSize, route])
+    }, [photosGridSize, route, isFocused])
 
     const removeItem = useCallback((uuid: string) => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.filter(mapItem => mapItem.uuid !== uuid && mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     const markOffline = useCallback((uuid: string, value: boolean) => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, offline: value} : mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     const markFavorite = useCallback((uuid: string, value: boolean) => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, favorited: value} : mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     const changeFolderColor = useCallback((uuid: string, color: string | null) => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? {...mapItem, color} : mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     const changeItemName = useCallback((uuid: string, name: string) => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid ? {...mapItem, name} : mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     const addItem = useCallback((item: Item, parent: string) => {
         const currentParent: string = getParent(route)
 
-        if(isMounted() && (currentParent == parent || (item.offline && parent == "offline"))){
+        if(isMounted() && isFocused && (currentParent == parent || (item.offline && parent == "offline"))){
             setItems(items => sortItems({ items: [...items.filter(filterItem => filterItem.name.toLowerCase() !== item.name.toLowerCase()), item], passedRoute: route }))
         }
-    }, [route])
+    }, [route, isFocused])
 
     const changeWholeItem = useCallback((item: Item, uuid: string) => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid ? item : mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     const reloadList = useCallback((parent: string) => {
         const currentParent: string = getParent(route)
 
-        if(isMounted() && currentParent == parent){
+        if(isMounted() && isFocused && currentParent == parent){
             fetchItemList({ bypassCache: true, callStack: 1 })
         }
-    }, [route])
+    }, [route, isFocused])
 
     const updateFolderSize = useCallback((uuid: string, size: number) => {
-        if(isMounted()){
+        if(isMounted() && isFocused){
             setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? { ...mapItem, size } : mapItem))
         }
-    }, [])
+    }, [isFocused])
 
     useEffect(() => {
-        if(isMounted() && initialized){
+        if(isMounted() && initialized && isFocused){
             if(searchTerm.length == 0){
                 if(itemsBeforeSearch.length > 0){
                     setItems(itemsBeforeSearch)
@@ -191,18 +192,18 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                 setItems(filtered)
             }
         }
-    }, [searchTerm])
+    }, [searchTerm, isFocused])
 
     useEffect(() => {
-        if(isMounted() && initialized){
+        if(isMounted() && initialized && isFocused){
             const sorted = sortItems({ items, passedRoute: route })
 
             setItems(sorted)
         }
-    }, [sortBy])
+    }, [sortBy, isFocused])
 
     useEffect(() => {
-        if(isFocused){
+        if(isFocused && isMounted()){
             if(Array.isArray(items) && items.length > 0){
                 setCurrentItems(items)
 
@@ -374,7 +375,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                 updateFolderSize(data.data.uuid, data.data.size)
             }
             else if(data.type == "clear-list"){
-                if(isMounted()){
+                if(isMounted() && isFocused){
                     setItems([])
                 }
             }

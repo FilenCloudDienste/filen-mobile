@@ -814,7 +814,7 @@ const downloadDecryptAndWriteFileChunk = (destPath, uuid, region, bucket, index,
         const doDownload = () => {
             if(currentTries >= maxTries){
                 return fs.unlink(destPath, () => {
-                    return reject("Maximum tries reached for download, returning")
+                    return reject("Maximum tries reached for download (" + uuid + "), returning")
                 })
             }
 

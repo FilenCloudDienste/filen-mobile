@@ -14,6 +14,7 @@ import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
 import pathModule from "path"
 
+const CryptoJS = require("crypto-js")
 const log = logger.createLogger({
     severity: "debug",
     transport: [fileAsyncTransport, mapConsoleTransport],
@@ -258,11 +259,10 @@ export const getLocalAssets = async (): Promise<Asset[]> => {
 export const fetchLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
     await getLocalAssetsMutex.acquire()
 
-    const userId: number = storage.getNumber("userId")
-    const assetTypes = getMediaTypes()
-    const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
-
     try{
+        const userId: number = storage.getNumber("userId")
+        const assetTypes = getMediaTypes()
+        const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
         const fetched = await getLocalAssets()
         const sorted = fetched.sort((a, b) => a.asset.creationTime - b.asset.creationTime).filter(asset => assetTypes.includes(asset.asset.mediaType) && asset.asset.creationTime >= cameraUploadAfterEnabledTime && isExtensionAllowed(getFileExt(asset.asset.filename))).map(asset => asset.asset)
         const existingNames: { [key: string]: boolean } = {}
@@ -285,6 +285,18 @@ export const fetchLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
                         ...sorted[i],
                         filename: newFileName
                     })
+                }
+                else{
+                    const newFileName = nameParsed.name + "_" + CryptoJS.SHA1(sorted[i].id || sorted[i].creationTime).toString().slice(0, 10) + nameParsed.ext
+
+                    if(!existingNames[newFileName.toLowerCase()]){
+                        existingNames[newFileName.toLowerCase()] = true
+    
+                        result.push({
+                            ...sorted[i],
+                            filename: newFileName
+                        })
+                    }
                 }
             }
         }

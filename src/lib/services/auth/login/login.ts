@@ -74,7 +74,7 @@ export interface Login {
     setSetupDone: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export const login = async ({ email, password, twoFactorKey, setEmail, setPassword, setTwoFactorKey, setShowTwoFactorField, navigation, setSetupDone }: Login): Promise<void> => {
+export const login = async ({ email, password, twoFactorKey, setEmail, setPassword, setTwoFactorKey, setShowTwoFactorField, navigation, setSetupDone }: Login) => {
     useStore.setState({ fullscreenLoadingModalVisible: true })
 
     Keyboard.dismiss()

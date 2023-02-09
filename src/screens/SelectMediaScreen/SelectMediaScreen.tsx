@@ -10,7 +10,7 @@ import * as MediaLibrary from "expo-media-library"
 import { videoExts, photoExts, getAssetURI } from "../../lib/services/cameraUpload"
 import { CommonActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
-import { getFileExt, getFilePreviewType, Semaphore, msToMinutesAndSeconds, getParent } from "../../lib/helpers"
+import { getFileExt, getFilePreviewType, Semaphore, msToMinutesAndSeconds, getParent, toExpoFsPath } from "../../lib/helpers"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { memoize } from "lodash"
 import * as VideoThumbnails from "expo-video-thumbnails"
@@ -18,6 +18,7 @@ import { useMountedState } from "react-use"
 import { StackActions } from "@react-navigation/native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import storage from "../../lib/storage"
+import { useIsFocused } from "@react-navigation/native"
 
 const videoThumbnailSemaphore = new Semaphore(3)
 const ALBUM_ROW_HEIGHT = 70
@@ -92,7 +93,7 @@ export const getLastImageOfAlbum = async (album: MediaLibrary.AlbumRef): Promise
 
         try{
             const assetURI = await getAssetURI(asset)
-            const { uri } = await VideoThumbnails.getThumbnailAsync(assetURI, {
+            const { uri } = await VideoThumbnails.getThumbnailAsync(toExpoFsPath(assetURI), {
                 quality: 0.1
             })
 
@@ -148,7 +149,7 @@ export const AssetItem = memo(({ item, index, setAssets }: { item: Asset, index:
         if(item.type == "video"){
             videoThumbnailSemaphore.acquire().then(() => {
                 getAssetURI(item.asset).then((assetURI) => {
-                    VideoThumbnails.getThumbnailAsync(assetURI, {
+                    VideoThumbnails.getThumbnailAsync(toExpoFsPath(assetURI), {
                         quality: 0.1
                     }).then(({ uri }) => {
                         videoThumbnailSemaphore.release()
@@ -431,6 +432,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     const [albums, setAlbums] = useState<Album[]>(typeof cachedAlbums !== "undefined" ? JSON.parse(cachedAlbums) : [])
     const isMounted = useMountedState()
     const insets = useSafeAreaInsets()
+    const isFocused = useIsFocused()
 
     const [selectedAssets, photoCount, videoCount] = useMemo(() => {
         const selectedAssets = assets.filter(asset => asset.selected)
@@ -485,7 +487,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     }, [])
 
     useEffect(() => {
-        if(typeof params !== "undefined"){
+        if(typeof params !== "undefined" && isFocused){
             if(typeof params.album == "undefined"){
                 fetchAlbums().then((fetched) => {
                     storage.set("selectMediaScreenCachedAlbums", JSON.stringify(fetched))
