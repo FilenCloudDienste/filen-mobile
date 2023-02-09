@@ -408,5 +408,6 @@ export const uk: {
     saveLogs: "Зберегти журнал",
     cameraUploadAfterEnabled: "Завантажувати тільки нові медіафайли",
     keepAppAwake: "Не вимикати екран",
-    followSystemTheme: "Дотримуватись системних налаштувань"
+    followSystemTheme: "Дотримуватись системних налаштувань",
+    hideRecents: "Приховати недавнє"
 }

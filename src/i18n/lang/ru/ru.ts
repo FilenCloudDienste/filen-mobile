@@ -408,5 +408,6 @@ export const ru: {
     saveLogs: "Сохранить журнал",
     cameraUploadAfterEnabled: "Загружать только новые медиафайлы",
     keepAppAwake: "Не выключать экран",
-    followSystemTheme: "Следовать системным настройкам"
+    followSystemTheme: "Следовать системным настройкам",
+    hideRecents: "Скрыть недавние"
 }
