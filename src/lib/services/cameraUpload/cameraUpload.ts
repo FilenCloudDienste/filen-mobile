@@ -12,6 +12,7 @@ import RNHeicConverter from "react-native-heic-converter"
 import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
 import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
+import pathModule from "path"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -62,6 +63,55 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
     }
 }
 
+export const photoExts: string[] = [
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "heic",
+    "heif",
+    "apng",
+    "avif",
+    "jfif",
+    "pjpeg",
+    "pjp",
+    "svg",
+    "webp",
+    "bmp",
+    "ico",
+    "cur",
+    "tif",
+    "tiff"
+]
+
+export const videoExts: string[] = [
+    "hevc",
+    "webm",
+    "mkv",
+    "flv",
+    "vob",
+    "ogv",
+    "ogg",
+    "drc",
+    "gifv",
+    "mng",
+    "avi",
+    "mts",
+    "m2ts2",
+    "ts",
+    "mov",
+    "wmv",
+    "mp4",
+    "m4p",
+    "m4v",
+    "mpg",
+    "mp2",
+    "mpeg",
+    "m2v",
+    "m4v",
+    "3gp"
+]
+
 export const isExtensionAllowed = (ext: string) => {
     if(ext.length == 0){
         return false
@@ -76,53 +126,6 @@ export const isExtensionAllowed = (ext: string) => {
     const userId: number = storage.getNumber("userId")
     const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
     const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
-    const photoExts: string[] = [
-        "jpg",
-        "jpeg",
-        "png",
-        "gif",
-        "heic",
-        "heif",
-        "apng",
-        "avif",
-        "jfif",
-        "pjpeg",
-        "pjp",
-        "svg",
-        "webp",
-        "bmp",
-        "ico",
-        "cur",
-        "tif",
-        "tiff"
-    ]
-    const videoExts: string[] = [
-        "hevc",
-        "webm",
-        "mkv",
-        "flv",
-        "vob",
-        "ogv",
-        "ogg",
-        "drc",
-        "gifv",
-        "mng",
-        "avi",
-        "mts",
-        "m2ts2",
-        "ts",
-        "mov",
-        "wmv",
-        "mp4",
-        "m4p",
-        "m4v",
-        "mpg",
-        "mp2",
-        "mpeg",
-        "m2v",
-        "m4v",
-        "3gp"
-    ]
     const allowed: string[] = []
     
     if(cameraUploadIncludeImages && !cameraUploadIncludeVideos){
@@ -169,40 +172,17 @@ export const getMediaTypes = () => {
     return assetTypes
 }
 
-export const fetchLocalAssets = (): Promise<MediaLibrary.Asset[]> => {
-    return new Promise(async (resolve, reject) => {
-        await getLocalAssetsMutex.acquire()
-
+export const getAssetsFromAlbum = (album: MediaLibrary.AlbumRef): Promise<MediaLibrary.Asset[]> => {
+    return new Promise((resolve, reject) => {
         const assets: MediaLibrary.Asset[] = []
-        const userId: number = storage.getNumber("userId")
-        let cameraUploadExcludedAlbums: any = storage.getString("cameraUploadExcludedAlbums:" + userId)
-        const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
-        const assetTypes = getMediaTypes()
-
-        if(typeof cameraUploadExcludedAlbums == "string"){
-            try{
-                cameraUploadExcludedAlbums = JSON.parse(cameraUploadExcludedAlbums)
-
-                if(typeof cameraUploadExcludedAlbums !== "object"){
-                    cameraUploadExcludedAlbums = {}
-                }
-            }
-            catch(e){
-                log.error(e)
-
-                cameraUploadExcludedAlbums = {}
-            }
-        }
-        else{
-            cameraUploadExcludedAlbums = {}
-        }
 
         const fetch = (after: MediaLibrary.AssetRef | undefined) => {
             MediaLibrary.getAssetsAsync({
                 ...(typeof after !== "undefined" ? { after } : {}),
                 first: 256,
                 mediaType: ["photo", "video", "unknown"],
-                sortBy: MediaLibrary.SortBy.creationTime
+                sortBy: MediaLibrary.SortBy.creationTime,
+                album
             }).then((fetched) => {
                 for(let i = 0; i < fetched.assets.length; i++){
                     assets.push(fetched.assets[i])
@@ -212,20 +192,114 @@ export const fetchLocalAssets = (): Promise<MediaLibrary.Asset[]> => {
                     return fetch(fetched.endCursor)
                 }
 
-                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.creationTime - b.creationTime).filter(asset => assetTypes.includes(asset.mediaType) && typeof cameraUploadExcludedAlbums[(asset.albumId || asset.uri)] == "undefined" && asset.creationTime >= cameraUploadAfterEnabledTime && isExtensionAllowed(getFileExt(asset.filename)))
-
-                getLocalAssetsMutex.release()
+                const sorted: MediaLibrary.Asset[] = assets.sort((a, b) => a.creationTime - b.creationTime)
 
                 return resolve(sorted)
-            }).catch((err) => {
-                getLocalAssetsMutex.release()
-
-                return reject(err)
-            })
+            }).catch(reject)
         }
 
         return fetch(undefined)
     })
+}
+
+export interface Asset {
+    album: MediaLibrary.AlbumRef,
+    asset: MediaLibrary.Asset
+}
+
+export const getLocalAssets = async (): Promise<Asset[]> => {
+    const albums = await MediaLibrary.getAlbumsAsync({
+        includeSmartAlbums: true
+    })
+
+    const userId: number = storage.getNumber("userId")
+    let cameraUploadExcludedAlbums: any = storage.getString("cameraUploadExcludedAlbums:" + userId)
+
+    if(typeof cameraUploadExcludedAlbums == "string"){
+        try{
+            cameraUploadExcludedAlbums = JSON.parse(cameraUploadExcludedAlbums)
+
+            if(typeof cameraUploadExcludedAlbums !== "object"){
+                cameraUploadExcludedAlbums = {}
+            }
+        }
+        catch(e){
+            log.error(e)
+
+            cameraUploadExcludedAlbums = {}
+        }
+    }
+    else{
+        cameraUploadExcludedAlbums = {}
+    }
+
+    const promises = []
+    const assets: Asset[] = []
+
+    for(let i = 0; i < albums.length; i++){
+        if(typeof cameraUploadExcludedAlbums[albums[i].id] !== "undefined"){
+            continue
+        }
+        
+        promises.push(new Promise((resolve, reject) => {
+            getAssetsFromAlbum(albums[i]).then((fetched) => {
+                assets.push(...fetched.map(asset => ({ album: albums[i], asset })))
+
+                return resolve(true)
+            }).catch(reject)
+        }))
+    }
+
+    await Promise.all(promises)
+
+    return assets
+}
+
+export const fetchLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
+    await getLocalAssetsMutex.acquire()
+
+    const userId: number = storage.getNumber("userId")
+    const assetTypes = getMediaTypes()
+    const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
+
+    try{
+        const fetched = await getLocalAssets()
+        const sorted = fetched.sort((a, b) => a.asset.creationTime - b.asset.creationTime).filter(asset => assetTypes.includes(asset.asset.mediaType) && asset.asset.creationTime >= cameraUploadAfterEnabledTime && isExtensionAllowed(getFileExt(asset.asset.filename))).map(asset => asset.asset)
+        const existingNames: { [key: string]: boolean } = {}
+        const result: MediaLibrary.Asset[] = []
+
+        for(let i = 0; i < sorted.length; i++){
+            if(!existingNames[sorted[i].filename.toLowerCase()]){
+                existingNames[sorted[i].filename.toLowerCase()] = true
+
+                result.push(sorted[i])
+            }
+            else{
+                const nameParsed = pathModule.parse(sorted[i].filename)
+                const newFileName = nameParsed.name + "_" + Math.floor(sorted[i].creationTime) + nameParsed.ext
+
+                if(!existingNames[newFileName.toLowerCase()]){
+                    existingNames[newFileName.toLowerCase()] = true
+
+                    result.push({
+                        ...sorted[i],
+                        filename: newFileName
+                    })
+                }
+            }
+        }
+
+        getLocalAssetsMutex.release()
+
+        return result
+    }
+    catch(e){
+        console.error(e)
+
+        getLocalAssetsMutex.release()
+
+        throw e
+    }
 }
 
 export interface CameraUploadItem {

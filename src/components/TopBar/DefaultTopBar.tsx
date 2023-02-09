@@ -9,10 +9,11 @@ export interface DefaultTopBarProps {
     leftText: string,
     middleText: string,
     rightComponent?: React.ReactNode | undefined,
-    height?: number
+    height?: number,
+    hideLeftComponent?: boolean
 }
 
-const DefaultTopBar = memo(({ onPressBack, leftText, middleText, rightComponent, height }: DefaultTopBarProps) => {
+const DefaultTopBar = memo(({ onPressBack, leftText, middleText, rightComponent, height, hideLeftComponent }: DefaultTopBarProps) => {
     const darkMode = useDarkMode()
 
     return (
@@ -32,24 +33,30 @@ const DefaultTopBar = memo(({ onPressBack, leftText, middleText, rightComponent,
                     width: "33%",
                     justifyContent: "flex-start"
                 }}
-                onPress={() => onPressBack()}
+                onPress={typeof hideLeftComponent == "undefined" ? () => onPressBack() : undefined}
             >
-                <Ionicon
-                    name="chevron-back"
-                    size={28}
-                    color="#0A84FF"
-                />
-                <Text
-                    style={{
-                        fontSize: 17,
-                        color: "#0A84FF",
-                        fontWeight: "400",
-                        maxWidth: "80%"
-                    }}
-                    numberOfLines={1}
-                >
-                    {leftText}
-                </Text>
+                {
+                    typeof hideLeftComponent == "undefined" && (
+                        <>
+                            <Ionicon
+                                name="chevron-back"
+                                size={28}
+                                color={getColor(darkMode, "linkPrimary")}
+                            />
+                            <Text
+                                style={{
+                                    fontSize: 17,
+                                    color: getColor(darkMode, "linkPrimary"),
+                                    fontWeight: "400",
+                                    maxWidth: "80%"
+                                }}
+                                numberOfLines={1}
+                            >
+                                {leftText}
+                            </Text>
+                        </>
+                    )
+                }
             </TouchableOpacity>
             <View
                 style={{

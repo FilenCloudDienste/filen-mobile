@@ -291,7 +291,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
     const filePath = downloadPath + file.name
 
-    downloadFile(file, true, false).then(async (path) => {
+    downloadFile(file, true, false, file.chunks).then(async (path) => {
         DeviceEventEmitter.emit("download", {
             type: "done",
             data: file
@@ -476,7 +476,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     })
 }
 
-export const downloadFile = (file: Item, showProgress: boolean = true, standalone: boolean = false, maxChunks: number = Infinity): Promise<string> => {
+export const downloadFile = (file: Item, showProgress: boolean = true, standalone: boolean = false, maxChunks: number): Promise<string> => {
     memoryCache.set("showDownloadProgress:" + file.uuid, showProgress)
 
     return new Promise((resolve, reject) => {
@@ -625,8 +625,8 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 data: file
             })
 
-            const chunksToDownload: number = maxChunks == Infinity ? file.chunks : maxChunks
-    
+            const chunksToDownload: number = maxChunks
+
             try{
                 await new Promise((resolve, reject) => {
                     let done = 0
@@ -670,7 +670,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                     }, 100)
                 })
     
-                if(file.size < (MB * 128) && maxChunks == Infinity){
+                if(file.size < (MB * 128) && maxChunks == Number.MAX_SAFE_INTEGER){
                     FileSystem.copyAsync({
                         from: toExpoFsPath(tmpPath),
                         to: toExpoFsPath(cachePath)

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from "react"
-import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, ScaledSize, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
+import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, isBetween, getFilePreviewType } from "../../lib/helpers"
@@ -9,7 +9,7 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
 import { ListEmpty } from "../ListEmpty"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import type { Item } from "../../types"
 import { useStore } from "../../lib/state"
@@ -35,7 +35,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const darkMode = useDarkMode()
     const [refreshing, setRefreshing] = useState<boolean>(false)
     const [viewMode, setViewMode] = useMMKVString("viewMode", storage)
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
     const lang = useLang()
     const [cameraUploadTotal, setCameraUploadTotal] = useMMKVNumber("cameraUploadTotal", storage)
     const [cameraUploadUploaded, setCameraUploadUploaded] = useMMKVNumber("cameraUploadUploaded", storage)
@@ -51,7 +51,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const [routeURL, setRouteURL] = useState<string>(getRouteURL(route))
     const [scrollIndex, setScrollIndex] = useState<number>(0)
     const [currentItems, setCurrentItems] = useState<any>([])
-    const insets: EdgeInsets = useSafeAreaInsets()
+    const insets = useSafeAreaInsets()
     const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
     const networkInfo = useNetworkInfo()
     const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)

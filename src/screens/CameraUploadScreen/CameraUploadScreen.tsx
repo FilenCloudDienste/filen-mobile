@@ -209,6 +209,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             <SettingsButtonLinkHighlight
                                 title={i18n(lang, "cameraUploadEnableHeic")}
                                 borderBottomRadius={10}
+                                withBottomBorder={true}
                                 rightComponent={
                                     <Switch
                                         trackColor={getColor(darkMode, "switchTrackColor")}
@@ -221,19 +222,15 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             />
                         )
                     }
-                    {
-                        Platform.OS == "android" && (
-                            <SettingsButtonLinkHighlight
-                                onPress={() => {
-                                    navigationAnimation({ enable: true }).then(() => {
-                                        navigation.dispatch(StackActions.push("CameraUploadAlbumsScreen"))
-                                    })
-                                }}
-                                title={i18n(lang, "albums")}
-                                borderBottomRadius={10}
-                            />
-                        )
-                    }
+                    <SettingsButtonLinkHighlight
+                        onPress={() => {
+                            navigationAnimation({ enable: true }).then(() => {
+                                navigation.dispatch(StackActions.push("CameraUploadAlbumsScreen"))
+                            })
+                        }}
+                        title={i18n(lang, "albums")}
+                        borderBottomRadius={10}
+                    />
                 </SettingsGroup>
                 <View
                     style={{

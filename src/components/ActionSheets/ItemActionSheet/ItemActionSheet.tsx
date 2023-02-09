@@ -170,7 +170,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		await SheetManager.hide("ItemActionSheet")
 
 		hasStoragePermissions().then(() => {
-			downloadFile(currentActionSheetItem, false, false).then((path) => {
+			downloadFile(currentActionSheetItem, false, false, currentActionSheetItem.chunks).then((path) => {
 				ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
 					setTextEditorState("edit")
 					setTextEditorParent(currentActionSheetItem.parent)

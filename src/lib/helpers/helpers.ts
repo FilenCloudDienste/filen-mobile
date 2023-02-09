@@ -401,6 +401,7 @@ export const canCompressThumbnail = memoize((ext: string): boolean => {
             //case "heif":
             //case "heic":
             case "mp4":
+            case "webm":
                 return true
             break
             default:
@@ -417,6 +418,48 @@ export const canCompressThumbnail = memoize((ext: string): boolean => {
             case "heif":
             case "heic":
             case "mp4":
+            case "mov":
+            case "avi":
+            case "webm":
+                return true
+            break
+            default:
+                return false
+            break
+        }
+    }
+})
+
+export const canCompressThumbnailLocally = memoize((ext: string): boolean => {
+    if(Platform.OS == "android"){
+        switch(ext.toLowerCase()){
+            case "jpeg":
+            case "jpg":
+            case "png":
+            case "gif":
+            //case "heif":
+            //case "heic":
+            case "mp4":
+            case "webm":
+                return true
+            break
+            default:
+                return false
+            break
+        }
+    }
+    else{
+        switch(ext.toLowerCase()){
+            case "jpeg":
+            case "jpg":
+            case "png":
+            case "gif":
+            case "heif":
+            case "heic":
+            case "mp4":
+            case "mov":
+            case "avi":
+            case "webm":
                 return true
             break
             default:
@@ -1548,3 +1591,14 @@ export const convertPhAssetToAssetsLibrary = memoize((localId: string, ext: stri
 export const getAssetId = memoize((asset: MediaLibrary.Asset): string => {
     return asset.uri.indexOf("ph://") !== -1 && ["photo", "video"].includes(asset.mediaType) ? convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), asset.mediaType == "photo" ? "jpg" : "mov") : asset.uri
 }, (asset: MediaLibrary.Asset) => asset.uri + ":" + asset.mediaType)
+
+export function msToMinutesAndSeconds(ms: number) {
+    const minutes = Math.floor(ms / 60000)
+    const seconds = parseInt(((ms % 60000) / 1000).toFixed(0))
+
+    return (
+        seconds == 60 ?
+        (minutes+1) + ":00" :
+        minutes + ":" + (seconds < 10 ? "0" : "") + seconds
+      )
+}

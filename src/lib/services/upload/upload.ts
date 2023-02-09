@@ -1,4 +1,4 @@
-import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnail, toExpoFsPath } from "../../helpers"
+import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnailLocally, toExpoFsPath, getFilePreviewType } from "../../helpers"
 import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
 import { showToast } from "../../../components/Toasts"
 import storage from "../../storage"
@@ -12,6 +12,7 @@ import memoryCache from "../../memoryCache"
 import * as FileSystem from "expo-file-system"
 import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import { isOnline, isWifi } from "../isOnline"
+import * as VideoThumbnails from "expo-video-thumbnails"
 
 const log = logger.createLogger({
     severity: "debug",
@@ -267,9 +268,9 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                     }
                 })
         
-                if(canCompressThumbnail(getFileExt(name))){
+                if(canCompressThumbnailLocally(getFileExt(name))){
                     try{
-                        await new Promise((resolve, reject) => {
+                        await new Promise((resolve) => {
                             getDownloadPath({ type: "thumbnail" }).then(async (dest) => {
                                 dest = dest + uuid + ".jpg"
                 
@@ -288,7 +289,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                     return resolve(true)
                                 }
                         
-                                FileSystem.getInfoAsync(file.path).then((stat) => {
+                                FileSystem.getInfoAsync(toExpoFsPath(file.path)).then((stat) => {
                                     if(!stat.exists){
                                         return resolve(true)
                                     }
@@ -301,17 +302,38 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                         return resolve(true)
                                     }
 
-                                    ImageResizer.createResizedImage(file.path, width, height, "JPEG", quality).then((compressed) => {
-                                        FileSystem.moveAsync({
-                                            from: toExpoFsPath(compressed.uri),
-                                            to: toExpoFsPath(dest)
-                                        }).then(() => {
-                                            storage.set(cacheKey, item.uuid + ".jpg")
-                                            memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
-                
-                                            return resolve(true)
+                                    if(getFilePreviewType(getFileExt(name)) == "video"){
+                                        VideoThumbnails.getThumbnailAsync(toExpoFsPath(file.path), {
+                                            quality: 1
+                                        }).then(({ uri }) => {
+                                            ImageResizer.createResizedImage(toExpoFsPath(uri), width, height, "JPEG", quality).then((compressed) => {
+                                                FileSystem.deleteAsync(toExpoFsPath(uri)).then(() => {
+                                                    FileSystem.moveAsync({
+                                                        from: toExpoFsPath(compressed.uri),
+                                                        to: toExpoFsPath(dest)
+                                                    }).then(() => {
+                                                        storage.set(cacheKey, item.uuid + ".jpg")
+                                                        memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
+                            
+                                                        return resolve(true)
+                                                    }).catch(resolve)
+                                                }).catch(resolve)
+                                            }).catch(resolve)
                                         }).catch(resolve)
-                                    }).catch(resolve)
+                                    }
+                                    else{
+                                        ImageResizer.createResizedImage(toExpoFsPath(file.path), width, height, "JPEG", quality).then((compressed) => {
+                                            FileSystem.moveAsync({
+                                                from: toExpoFsPath(compressed.uri),
+                                                to: toExpoFsPath(dest)
+                                            }).then(() => {
+                                                storage.set(cacheKey, item.uuid + ".jpg")
+                                                memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
+                    
+                                                return resolve(true)
+                                            }).catch(resolve)
+                                        }).catch(resolve)
+                                    }
                                 }).catch(resolve)
                             }).catch(resolve)
                         })

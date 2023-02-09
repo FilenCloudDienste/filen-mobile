@@ -1,5 +1,5 @@
-import React, { useEffect, useState, memo } from "react"
-import { View, Text, Switch, Platform, ScrollView, ActivityIndicator } from "react-native"
+import React, { useEffect, useState, memo, useCallback, useRef } from "react"
+import { View, Text, Switch, Platform, ScrollView, ActivityIndicator, Image } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
@@ -13,6 +13,9 @@ import pathModule from "path"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
+import { getAssetURI } from "../../lib/services/cameraUpload"
+import { isNameAllowed, getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
+import { useMountedState } from "react-use"
 
 const fetchAssetsSemaphore = new Semaphore(3)
 
@@ -20,15 +23,205 @@ export interface CameraUploadAlbumsScreenProps {
     navigation: any
 }
 
+export interface Album {
+    album: MediaLibrary.Album,
+    path: string
+}
+
+export interface AlbumItemProps {
+    index: number,
+    darkMode: boolean,
+    album: Album,
+    hasPermissions: boolean,
+    excludedAlbums: { [key: string]: boolean },
+    userId: number
+}
+
+export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, excludedAlbums, userId }: AlbumItemProps) => {
+    const [image, setImage] = useState<string>("")
+    const isMounted = useMountedState()
+
+    useEffect(() => {
+        getLastImageOfAlbum(album.album).then((uri) => {
+            if(uri.length > 0 && isMounted()){
+                setImage(uri)
+            }
+        }).catch(console.error)
+    }, [])
+
+    return (
+        <SettingsButton
+            key={index.toString()}
+            title={
+                <View
+                    style={{
+                        flexDirection: "column",
+                        width: "100%"
+                    }}
+                >
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center"
+                        }}
+                    >
+                        {
+                            image.length > 0 ? (
+                                <Image
+                                    source={{
+                                        uri: image
+                                    }}
+                                    style={{
+                                        width: 30,
+                                        height: 30,
+                                        borderRadius: 5
+                                    }}
+                                />
+                            ) : (
+                                <View
+                                    style={{
+                                        width: 30,
+                                        height: 30,
+                                        borderRadius: 5,
+                                        backgroundColor: getColor(darkMode, "backgroundTertiary")
+                                    }}
+                                />
+                            )
+                        }
+                        <Text
+                            style={{
+                                color: getColor(darkMode, "textPrimary"),
+                                fontSize: 17,
+                                marginLeft: 10
+                            }}
+                            numberOfLines={1}
+                        >
+                            {album.album.title + " (" + album.album.assetCount + ")"}
+                        </Text>
+                    </View>
+                    {
+                        Platform.OS == "android" && typeof album.path == "string" && album.path.length > 0 && (
+                            <Text
+                                style={{
+                                    color: "gray",
+                                    marginTop: 5,
+                                    fontSize: 14
+                                }}
+                            >
+                                {album.path.split("file://").join("")}
+                            </Text>
+                        )
+                    }
+                </View>
+            }
+            rightComponent={
+                <Switch
+                    trackColor={getColor(darkMode, "switchTrackColor")}
+                    thumbColor={typeof excludedAlbums[album.album.id] == "undefined" ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                    ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                    disabled={!hasPermissions}
+                    onValueChange={(value): void => {
+                        const excluded = excludedAlbums
+
+                        if(value){
+                            delete excluded[album.album.id]
+                        }
+                        else{
+                            excluded[album.album.id] = true
+                        }
+
+                        storage.set("cameraUploadExcludedAlbums:" + userId, JSON.stringify(excluded))
+                    }}
+                    value={typeof excludedAlbums[album.album.id] == "undefined"}
+                />
+            }
+        />
+    )
+})
+
 export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbumsScreenProps) => {
     const darkMode = useDarkMode()
     const lang = useLang()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadExcludedAlbumns, setCameraUploadAlbums] = useMMKVString("cameraUploadExcludedAlbums:" + userId, storage)
-    const [excludedAlbums, setExcludedAlbums] = useState<any>({})
-    const [fetchedAlbums, setFetchedAlbums] = useState<{ album: MediaLibrary.Album, path: string }[]>([])
+    const [excludedAlbums, setExcludedAlbums] = useState<{ [key: string]: boolean }>({})
+    const cachedAlbums = useRef<string | undefined>(storage.getString("cachedLocalAlbums")).current
+    const [fetchedAlbums, setFetchedAlbums] = useState<Album[]>(typeof cachedAlbums !== "undefined" ? JSON.parse(cachedAlbums) : [])
     const [hasPermissions, setHasPermissions] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
+    const isMounted = useMountedState()
+
+    const fetchAlbums = useCallback(() => {
+        return new Promise<Album[]>((resolve, reject) => {
+            MediaLibrary.getAlbumsAsync({
+                includeSmartAlbums: true
+            }).then((fetched) => {
+                const promises: Promise<Album>[] = []
+
+                for(let i = 0; i < fetched.length; i++){
+                    promises.push(new Promise<Album>((resolve, reject) => {
+                        fetchAssetsSemaphore.acquire().then(() => {
+                            if(fetched[i].assetCount <= 0){
+                                fetchAssetsSemaphore.release()
+
+                                return resolve({
+                                    album: fetched[i],
+                                    path: ""
+                                })
+                            }
+
+                            MediaLibrary.getAssetsAsync({
+                                album: fetched[i],
+                                mediaType: ["photo", "video", "unknown"],
+                                first: 128
+                            }).then(async (assets) => {
+                                const paths: string[] = []
+
+                                for(let x = 0; x < assets.assets.length; x++){
+                                    if(isNameAllowed(assets.assets[x].filename)){
+                                        if(Platform.OS == "ios"){
+                                            paths.push(assets.assets[x].uri)
+                                        }
+                                        else{
+                                            try{
+                                                const uri = await getAssetURI(assets.assets[x])
+    
+                                                paths.push(uri)
+                                            }
+                                            catch{
+                                                continue
+                                            }
+                                        }
+                                    }
+                                }
+
+                                const sorted = Platform.OS == "android" ? paths.map(path => pathModule.dirname(path)).sort((a, b) => a.length - b.length) : paths
+
+                                fetchAssetsSemaphore.release()
+
+                                return resolve({
+                                    album: fetched[i],
+                                    path: sorted.length == 0 ? "" : sorted[0]
+                                })
+                            }).catch((err) => {
+                                fetchAssetsSemaphore.release()
+
+                                return reject(err)
+                            })
+                        })
+                    }))
+                }
+
+                Promise.all(promises).then((albums) => resolve(albums.sort((a, b) => b.album.assetCount - a.album.assetCount))).catch((err) => {
+                    showToast({ message: err.toString() })
+
+                    setLoading(false)
+    
+                    console.log(err)
+                })
+            }).catch(reject)
+        })
+    }, [])
 
     useEffect(() => {
         try{
@@ -37,86 +230,28 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
         catch(e){
             console.log(e)
 
-            setExcludedAlbums([])
+            setExcludedAlbums({})
         }
     }, [cameraUploadExcludedAlbumns])
 
     useEffect(() => {
-        hasStoragePermissions().then(() => {
-            hasPhotoLibraryPermissions().then(() => {
-                setHasPermissions(true)
+        Promise.all([
+            hasStoragePermissions(),
+            hasPhotoLibraryPermissions()
+        ]).then(() => {
+            setLoading(true)
+            setHasPermissions(true)
 
-                MediaLibrary.getAlbumsAsync({
-                    includeSmartAlbums: true
-                }).then((fetched) => {
-                    const promises = []
+            fetchAlbums().then((fetched) => {
+                storage.set("cachedLocalAlbums", JSON.stringify(fetched))
 
-                    for(let i = 0; i < fetched.length; i++){
-                        promises.push(new Promise<{ album: MediaLibrary.Album, path: string }>((resolve, reject) => {
-                            fetchAssetsSemaphore.acquire().then(() => {
-                                if(fetched[i].assetCount <= 0){
-                                    return resolve({
-                                        album: fetched[i],
-                                        path: ""
-                                    })
-                                }
-
-                                MediaLibrary.getAssetsAsync({
-                                    album: fetched[i],
-                                    mediaType: ["photo", "video"],
-                                    first: fetched[i].assetCount >= 128 ? 128 : fetched[i].assetCount
-                                }).then(async (assets) => {
-                                    const paths: string[] = []
-
-                                    for(let x = 0; x < assets.assets.length; x++){
-                                        try{
-                                            const stat = await MediaLibrary.getAssetInfoAsync(assets.assets[x])
-
-                                            if(stat.localUri && stat.localUri.length > 0){
-                                                paths.push(stat.localUri)
-                                            }
-                                        }
-                                        catch{
-                                            continue
-                                        }
-                                    }
-
-                                    const sorted = paths.map(path => pathModule.dirname(path)).sort((a, b) => a.length - b.length)
-
-                                    fetchAssetsSemaphore.release()
-
-                                    return resolve({
-                                        album: fetched[i],
-                                        path: sorted[0]
-                                    })
-                                }).catch((err) => {
-                                    fetchAssetsSemaphore.release()
-
-                                    return reject(err)
-                                })
-                            })
-                        }))
-                    }
-
-                    Promise.all(promises).then((albums) => {
-                        setFetchedAlbums(albums.filter(alb => alb.album.assetCount > 0))
-                        setLoading(false)
-                    }).catch((err) => {
-                        showToast({ message: err.toString() })
-
-                        setLoading(false)
-        
-                        console.log(err)
-                    })
-                }).catch((err) => {
-                    showToast({ message: err.toString() })
-
+                if(isMounted()){
+                    setFetchedAlbums(fetched)
                     setLoading(false)
-    
-                    console.log(err)
-                })
+                }
             }).catch((err) => {
-                setHasPermissions(false)
+                showToast({ message: err.toString() })
+
                 setLoading(false)
 
                 console.log(err)
@@ -140,10 +275,13 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                 style={{
                     height: "100%",
                     width: "100%",
-                    backgroundColor: getColor(darkMode, "backgroundPrimary")
+                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
+                    marginTop: 10
                 }}
             >
-                <SettingsGroup>
+                <SettingsGroup
+                    marginTop={5}
+                >
                     {
                         loading ? (
                             <View
@@ -161,7 +299,8 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                                 style={{
                                     color: getColor(darkMode, "textPrimary"),
                                     fontSize: 17,
-                                    fontWeight: "400"
+                                    fontWeight: "400",
+                                    padding: 15
                                 }}
                             >
                                 {i18n(lang, "pleaseGrantPermission")}
@@ -170,62 +309,19 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                             <>
                                 {
                                     fetchedAlbums.map((album, index) => {
+                                        if(album.album.assetCount <= 0){
+                                            return null
+                                        }
+
                                         return (
-                                            <SettingsButton
-                                                key={index.toString()}
-                                                title={
-                                                    <View
-                                                        style={{
-                                                            flexDirection: "column",
-                                                            width: "100%"
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                color: getColor(darkMode, "textPrimary"),
-                                                                paddingTop: (Platform.OS == "android" ? 3 : 7),
-                                                                fontSize: 17
-                                                            }}
-                                                            numberOfLines={1}
-                                                        >
-                                                            {album.album.title + " (" + album.album.assetCount + ")"}
-                                                        </Text>
-                                                        {
-                                                            typeof album.path == "string" && album.path.length > 0 && (
-                                                                <Text
-                                                                    style={{
-                                                                        color: "gray",
-                                                                        marginTop: 5,
-                                                                        fontSize: 14
-                                                                    }}
-                                                                >
-                                                                    {album.path.split("file://").join("")}
-                                                                </Text>
-                                                            )
-                                                        }
-                                                    </View>
-                                                }
-                                                rightComponent={
-                                                    <Switch
-                                                        trackColor={getColor(darkMode, "switchTrackColor")}
-                                                        thumbColor={typeof excludedAlbums[album.album.id] == "undefined" ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
-                                                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-                                                        disabled={!hasPermissions}
-                                                        onValueChange={(value): void => {
-                                                            const excluded = excludedAlbums
-
-                                                            if(value){
-                                                                delete excluded[album.album.id]
-                                                            }
-                                                            else{
-                                                                excluded[album.album.id] = true
-                                                            }
-
-                                                            storage.set("cameraUploadExcludedAlbums:" + userId, JSON.stringify(excluded))
-                                                        }}
-                                                        value={typeof excludedAlbums[album.album.id] == "undefined"}
-                                                    />
-                                                }
+                                            <AlbumItem
+                                                index={index}
+                                                key={index}
+                                                album={album}
+                                                darkMode={darkMode}
+                                                excludedAlbums={excludedAlbums}
+                                                userId={userId}
+                                                hasPermissions={hasPermissions}
                                             />
                                         )
                                     })

@@ -26,6 +26,7 @@ import * as VideoThumbnails from "expo-video-thumbnails"
 const isGeneratingThumbnailForItemUUID: { [key: string]: boolean } = {}
 const isCheckingThumbnailForItemUUID: { [key: string]: boolean } = {}
 const thumbnailGenerationErrorCount: { [key: string]: number } = JSON.parse(storage.getString("thumbnailGenerationErrorCount") || "{}")
+const thumbnailGenerationErrorCountSession: { [key: string]: number } = {}
 
 export const buildFolder = memoize(async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
@@ -1119,6 +1120,16 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
 }
 
 export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = undefined, callback = undefined }: { item: Item, skipInViewCheck?: boolean, callback?: Function, path?: string }) => {
+    if(typeof thumbnailGenerationErrorCountSession[item.uuid] == "number"){
+        if(thumbnailGenerationErrorCountSession[item.uuid] > 1){
+            if(typeof callback == "function"){
+                callback(true)
+            }
+    
+            return false
+        }
+    }
+    
     if(typeof thumbnailGenerationErrorCount[item.uuid] == "number"){
         if(thumbnailGenerationErrorCount[item.uuid] > MAX_THUMBNAIL_ERROR_COUNT){
             if(typeof callback == "function"){
@@ -1228,6 +1239,13 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
         }
         
         global.generateThumbnailSemaphore.release()
+
+        if(typeof thumbnailGenerationErrorCountSession[item.uuid] == "number"){
+            thumbnailGenerationErrorCountSession[item.uuid] += 1
+        }
+        else{
+            thumbnailGenerationErrorCountSession[item.uuid] = 1
+        }
 
         if(typeof thumbnailGenerationErrorCount[item.uuid] == "number"){
             thumbnailGenerationErrorCount[item.uuid] += 1
@@ -1345,7 +1363,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
                     return generateThumbnail(path, dest)
                 }
 
-                downloadFile(item, false, true, filePreviewType == "video" ? 16 : Infinity).then((downloadedPath) => {
+                downloadFile(item, false, true, filePreviewType == "video" ? item.chunks < 16 ? item.chunks : 16 : item.chunks).then((downloadedPath) => {
                     generateThumbnail(downloadedPath, dest)
                 }).catch(onError)
             }).catch(onError)

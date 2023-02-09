@@ -409,5 +409,6 @@ export const en: {
     cameraUploadAfterEnabled: "Only upload after activation date",
     keepAppAwake: "Keep screen awake",
     followSystemTheme: "Follow system settings",
-    hideRecents: "Hide recents"
+    hideRecents: "Hide recents",
+    videos: "Videos"
 }

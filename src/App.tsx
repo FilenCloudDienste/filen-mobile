@@ -13,7 +13,7 @@ import { SetupScreen } from "./screens/SetupScreen"
 import { BottomBar } from "./components/BottomBar"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { SettingsScreen } from "./screens/SettingsScreen"
-import { useStore } from "./lib/state"
+import { useStore, navigationAnimation } from "./lib/state"
 import { enableScreens } from "react-native-screens"
 import { generateItemThumbnail, checkItemThumbnail } from "./lib/services/items"
 import { TransfersIndicator } from "./components/TransfersIndicator"
@@ -34,7 +34,7 @@ import { InviteScreen } from "./screens/InviteScreen"
 import { TextEditorScreen } from "./screens/TextEditorScreen"
 import ImageViewerScreen from "./screens/ImageViewerScreen/ImageViewerScreen"
 import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen"
-import { isRouteInStack, isNavReady } from "./lib/helpers"
+import { isRouteInStack, isNavReady, toExpoFsPath, generateRandomString, convertTimestampToMs } from "./lib/helpers"
 import * as Sentry from "@sentry/react-native"
 import { runNetworkCheck } from "./lib/services/isOnline"
 import { getColor } from "./style"
@@ -60,7 +60,14 @@ import useDarkMode from "./lib/hooks/useDarkMode"
 import useIsLoggedIn from "./lib/hooks/useIsLoggedIn"
 import useLang from "./lib/hooks/useLang"
 import { activateKeepAwake, deactivateKeepAwake } from "expo-keep-awake"
-import ImagePickerScreen from "./screens/ImagePickerScreen"
+import SelectMediaScreen from "./screens/SelectMediaScreen"
+import type { Asset } from "./screens/SelectMediaScreen/SelectMediaScreen"
+import { getAssetURI } from "./lib/services/cameraUpload"
+import { queueFileUpload } from "./lib/services/upload"
+import * as FileSystem from "expo-file-system"
+import { getDownloadPath } from "./lib/services/download"
+import mimeTypes from "mime-types"
+import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "./components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 
 enableScreens(true)
 
@@ -362,11 +369,70 @@ export const App = Sentry.wrap(memo(() => {
         storage.set("cameraUploadUploaded", 0)
         storage.set("cameraUploadTotal", 0)
 
+        const openSelectMediaScreenListener = () => {
+            navigationAnimation({ enable: true }).then(() => {
+                if(navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function"){
+                    const currentNavState = navigationRef.current.getState()
+
+                    navigationRef.current.dispatch(StackActions.push("SelectMediaScreen", {
+                        prevNavigationState: currentNavState,
+                        album: undefined
+                    }))
+                }
+            })
+        }
+
+        const selectMediaScreenUploadListener = ({ assets, parent }: { assets: Asset[], parent: string }) => {
+            setTimeout(async () => {
+                showFullScreenLoadingModal()
+
+                try{
+                    for(let i = 0; i < assets.length; i++){
+                        const assetURI = await getAssetURI(assets[i].asset)
+                        const tmp = (await getDownloadPath({ type: "temp" })).slice(0, -1)
+                        const tmpPath = tmp + "/" + generateRandomString(16) + assets[i].asset.filename
+
+                        await FileSystem.copyAsync({
+                            from: toExpoFsPath(assetURI),
+                            to: toExpoFsPath(tmpPath)
+                        })
+
+                        const stat = await FileSystem.getInfoAsync(toExpoFsPath(tmpPath))
+
+                        if(stat.exists && stat.size){
+                            queueFileUpload({
+                                file: {
+                                    path: tmpPath,
+                                    name: assets[i].asset.filename,
+                                    size: stat.size,
+                                    mime: mimeTypes.lookup(assets[i].asset.filename) || "",
+                                    lastModified: convertTimestampToMs(assets[i].asset.creationTime || new Date().getTime())
+                                },
+                                parent
+                            }).catch(console.error)
+                        }
+                    }
+                }
+                catch(e: any){
+                    console.error(e)
+
+                    showToast({ message: e.toString() })
+                }
+
+                hideFullScreenLoadingModal()
+            }, 750)
+        }
+
+        DeviceEventEmitter.addListener("openSelectMediaScreen", openSelectMediaScreenListener)
+        DeviceEventEmitter.addListener("selectMediaScreenUpload", selectMediaScreenUploadListener)
+
         return () => {
             shareMenuListener.remove()
             navigationRef.removeListener("state", navigationRefListener)
             AppState.removeEventListener("change", appStateListener)
             Appearance.removeChangeListener(appearanceListener)
+            DeviceEventEmitter.removeListener("openSelectMediaScreen", openSelectMediaScreenListener)
+            DeviceEventEmitter.removeListener("selectMediaScreenUpload", selectMediaScreenUploadListener)
         }
     }, [])
 
@@ -561,12 +627,11 @@ export const App = Sentry.wrap(memo(() => {
                                         }}
                                     />
                                     <Stack.Screen
-                                        name="ImagePickerScreen"
-                                        component={ImagePickerScreen}
+                                        name="SelectMediaScreen"
+                                        component={SelectMediaScreen}
                                         options={{
-                                            title: "ImagePickerScreen",
-                                            animation: showNavigationAnimation ? "default" : "none",
-                                            presentation: "modal"
+                                            title: "SelectMediaScreen",
+                                            animation: showNavigationAnimation ? "default" : "none"
                                         }}
                                     />
                                 </Stack.Navigator>

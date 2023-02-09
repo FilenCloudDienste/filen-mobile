@@ -404,5 +404,6 @@ export const de: {
     cameraUploadAfterEnabled: "Nur nach Aktivierungszeit hochladen",
     keepAppAwake: "Display Abschaltung verhindern",
     followSystemTheme: "Geräteeinstellungen verwenden",
-    hideRecents: "Kürzlich verstecken"
+    hideRecents: "Kürzlich verstecken",
+    videos: "Videos"
 }
