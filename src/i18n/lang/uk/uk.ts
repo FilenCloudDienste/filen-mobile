@@ -409,5 +409,6 @@ export const uk: {
     cameraUploadAfterEnabled: "Завантажувати тільки нові медіафайли",
     keepAppAwake: "Не вимикати екран",
     followSystemTheme: "Дотримуватись системних налаштувань",
-    hideRecents: "Приховати недавнє"
+    hideRecents: "Приховати недавнє",
+    videos: "Відео"
 }
