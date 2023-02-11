@@ -37,7 +37,8 @@ const DONT_DELETE: string[] = [
     "nsird",
     "io.filen",
     "image_cache",
-    "http-cache"
+    "http-cache",
+    "a document being saved by"
 ]
 
 export const canDelete = memoize((name: string) => {
@@ -58,12 +59,12 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                         if(canDelete(cacheDownloadsItems[i])){
                             await deleteMutex.acquire()
 
-                            FileSystem.deleteAsync(toExpoFsPath(cachedDownloadsPath) + "/" + cacheDownloadsItems[i]).then(() => {
+                            FileSystem.deleteAsync(toExpoFsPath(cachedDownloadsPath + "/" + cacheDownloadsItems[i])).then(() => {
                                 deleteMutex.release()
                             }).catch((err) => {
                                 deleteMutex.release()
 
-                                console.log("Could not delete", toExpoFsPath(cachedDownloadsPath) + "/" + cacheDownloadsItems[i], err)
+                                console.log(1, "Could not delete", toExpoFsPath(cachedDownloadsPath + "/" + cacheDownloadsItems[i]), err)
                             })
                         }
                     }
@@ -91,12 +92,12 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                             if(canDelete(cacheItems[i])){
                                 await deleteMutex.acquire()
 
-                                FileSystem.deleteAsync(toExpoFsPath(cachePath) + "/" + cacheItems[i]).then(() => {
+                                FileSystem.deleteAsync(toExpoFsPath(cachePath + "/" + cacheItems[i])).then(() => {
                                     deleteMutex.release()
                                 }).catch((err) => {
                                     deleteMutex.release()
 
-                                    console.log("Could not delete", toExpoFsPath(cachePath) + "/" + cacheItems[i], err)
+                                    console.log(2, "Could not delete", toExpoFsPath(cachePath + "/" + cacheItems[i]), err)
                                 })
                             }
                         }
@@ -124,12 +125,12 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                         if(canDelete(tmpItems[i])){
                             await deleteMutex.acquire()
 
-                            FileSystem.deleteAsync(toExpoFsPath(tmpPath) + "/" + tmpItems[i]).then(() => {
+                            FileSystem.deleteAsync(toExpoFsPath(tmpPath + "/" + tmpItems[i])).then(() => {
                                 deleteMutex.release()
                             }).catch((err) => {
                                 deleteMutex.release()
 
-                                console.error("Could not delete", toExpoFsPath(tmpPath) + "/" + tmpItems[i], err)
+                                console.error(3, "Could not delete", toExpoFsPath(tmpPath + "/" + tmpItems[i]), err)
                             })
                         }
                     }
@@ -156,12 +157,12 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                         if(canDelete(tmpItems[i])){
                             await deleteMutex.acquire()
 
-                            FileSystem.deleteAsync(toExpoFsPath(tmpPath) + "/" + tmpItems[i]).then(() => {
+                            FileSystem.deleteAsync(toExpoFsPath(tmpPath + "/" + tmpItems[i])).then(() => {
                                 deleteMutex.release()
                             }).catch((err) => {
                                 deleteMutex.release()
 
-                                console.log("Could not delete", toExpoFsPath(tmpPath) + "/" + tmpItems[i], err)
+                                console.log(4, "Could not delete", toExpoFsPath(tmpPath + "/" + tmpItems[i]), err)
                             })
                         }
                     }
@@ -230,12 +231,12 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                     if(canDelete(toDelete[i])){
                         await deleteMutex.acquire()
 
-                        FileSystem.deleteAsync(toExpoFsPath(offlinePath) + "/" + toDelete[i]).then(() => {
+                        FileSystem.deleteAsync(toExpoFsPath(offlinePath + "/" + toDelete[i])).then(() => {
                             deleteMutex.release()
                         }).catch((err) => {
                             deleteMutex.release()
 
-                            console.log("Could not delete", toExpoFsPath(offlinePath) + "/" + toDelete[i], err)
+                            console.log(5, "Could not delete", toExpoFsPath(offlinePath + "/" + toDelete[i]), err)
                         })
                     }
                 }
@@ -246,7 +247,7 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                             uuid: toRemove[i]
                         }
                     }).catch((err) => {
-                        console.log("Could not remove", toRemove[i], err)
+                        console.log(6, "Could not remove", toRemove[i], err)
                     })
                 }
             }
@@ -281,7 +282,7 @@ export const clearLogs = async (): Promise<boolean> => {
             }).catch((err) => {
                 deleteMutex.release()
 
-                console.log("Could not delete", items[i], err)
+                console.log(7, "Could not delete", items[i], err)
             })
         }
     }

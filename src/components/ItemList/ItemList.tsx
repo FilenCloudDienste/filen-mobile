@@ -74,7 +74,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
     const generateItemsForItemList = useCallback((items: Item[], range: string, lang: string = "en") => {
         range = normalizePhotosRange(range)
     
-        if(range == "all" && isMounted()){
+        if(range == "all"){
             if(routeURL.indexOf("photos") !== -1){
                 return items.filter(item => {
                     if(getFilePreviewType(getFileExt(item.name)) == "video"){

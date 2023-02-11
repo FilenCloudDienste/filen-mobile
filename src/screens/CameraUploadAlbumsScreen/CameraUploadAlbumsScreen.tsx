@@ -145,10 +145,9 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [cameraUploadExcludedAlbumns, setCameraUploadAlbums] = useMMKVString("cameraUploadExcludedAlbums:" + userId, storage)
     const [excludedAlbums, setExcludedAlbums] = useState<{ [key: string]: boolean }>({})
-    const cachedAlbums = useRef<string | undefined>(storage.getString("cachedLocalAlbums")).current
-    const [fetchedAlbums, setFetchedAlbums] = useState<Album[]>(typeof cachedAlbums !== "undefined" ? JSON.parse(cachedAlbums) : [])
+    const [fetchedAlbums, setFetchedAlbums] = useState<Album[]>([])
     const [hasPermissions, setHasPermissions] = useState<boolean>(false)
-    const [loading, setLoading] = useState<boolean>(typeof cachedAlbums == "undefined")
+    const [loading, setLoading] = useState<boolean>(true)
     const isMounted = useMountedState()
 
     const fetchAlbums = useCallback(() => {
@@ -239,15 +238,10 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
             hasStoragePermissions(),
             hasPhotoLibraryPermissions()
         ]).then(() => {
-            if(typeof cachedAlbums == "undefined"){
-                setLoading(true)
-            }
-
+            setLoading(true)
             setHasPermissions(true)
 
             fetchAlbums().then((fetched) => {
-                storage.set("cachedLocalAlbums", JSON.stringify(fetched))
-
                 if(isMounted()){
                     setFetchedAlbums(fetched)
                     setLoading(false)
@@ -257,13 +251,13 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 
                 setLoading(false)
 
-                console.log(err)
+                console.error(err)
             })
         }).catch((err) => {
             setHasPermissions(false)
             setLoading(false)
 
-            console.log(err)
+            console.error(err)
         })
     }, [])
 

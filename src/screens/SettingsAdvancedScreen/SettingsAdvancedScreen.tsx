@@ -11,11 +11,11 @@ import DeviceInfo from "react-native-device-info"
 import { formatBytes, toExpoFsPath } from "../../lib/helpers"
 import memoryCache from "../../lib/memoryCache"
 import * as FileSystem from "expo-file-system"
-import pathModule from "path"
 import RNFS from "react-native-fs"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import FastImage from "react-native-fast-image"
+import { clearCacheDirectories } from "../../lib/services/setup"
 
 export const calculateFolderSize = async (folderPath: string, size: number = 0): Promise<number> => {
     if(folderPath.slice(0, -1) == "/"){
@@ -232,21 +232,10 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                                                     useStore.setState({ fullscreenLoadingModalVisible: true })
 
                                                     try{
-                                                        if(FileSystem.cacheDirectory){
-                                                            var dirList = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
-
-                                                            for(let i = 0; i < dirList.length; i++){
-                                                                await FileSystem.deleteAsync(toExpoFsPath(FileSystem.cacheDirectory + "/" + dirList[i]))
-                                                            }
-                                                        }
-
-                                                        await Promise.all([
-                                                            FastImage.clearDiskCache(),
-                                                            FastImage.clearMemoryCache()
-                                                        ])
+                                                        await clearCacheDirectories()
                                                     }
                                                     catch(e){
-                                                        console.log(e)
+                                                        console.error(e)
                                                     }
 
                                                     showToast({ message: i18n(lang, "clearCachesDirectoryCleared") })

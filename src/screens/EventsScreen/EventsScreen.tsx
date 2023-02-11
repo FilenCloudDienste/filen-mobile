@@ -469,7 +469,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                 lastEventId.current = newEvents[newEvents.length - 1].id
             }
         }).catch((err) => {
-            console.log(err)
+            console.error(err)
 
             showToast({ message: err.toString() })
         })

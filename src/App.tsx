@@ -631,7 +631,8 @@ export const App = Sentry.wrap(memo(() => {
                                         component={SelectMediaScreen}
                                         options={{
                                             title: "SelectMediaScreen",
-                                            animation: showNavigationAnimation ? "default" : "none"
+                                            animation: showNavigationAnimation ? "default" : "none",
+                                            presentation: Platform.OS == "ios" ? "modal" : undefined
                                         }}
                                     />
                                 </Stack.Navigator>
@@ -654,7 +655,7 @@ export const App = Sentry.wrap(memo(() => {
                                             "InviteScreen",
                                             "TwoFactorScreen",
                                             "ChangeEmailPasswordScreen",
-                                            "SetupScreen"
+                                            ...(Platform.OS == "ios" ? ["SelectMediaScreen"]: [])
                                         ].includes(currentScreenName)
                                         && (
                                             <View

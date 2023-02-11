@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "
 import type { NavigationContainerRef, NavigationState } from "@react-navigation/native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import { useWindowDimensions, View, Text, FlatList, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter } from "react-native"
+import { useWindowDimensions, View, Text, FlatList, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter, Dimensions, Platform } from "react-native"
 import { getColor } from "../../style"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { i18n } from "../../i18n"
@@ -17,11 +17,12 @@ import * as VideoThumbnails from "expo-video-thumbnails"
 import { useMountedState } from "react-use"
 import { StackActions } from "@react-navigation/native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import storage from "../../lib/storage"
 import { useIsFocused } from "@react-navigation/native"
+import { showToast } from "../../components/Toasts"
 
 const videoThumbnailSemaphore = new Semaphore(3)
 const ALBUM_ROW_HEIGHT = 70
+const FETCH_ASSETS_LIMIT = Math.round(((Dimensions.get("screen").height / ALBUM_ROW_HEIGHT) * 3) + 12)
 
 export const isNameAllowed = memoize((name: string) => {
     const ext = getFileExt(name)
@@ -30,43 +31,52 @@ export const isNameAllowed = memoize((name: string) => {
     return allowed.filter(allowedExt => allowedExt == ext).length > 0
 })
 
-export const fetchAssets = (album: MediaLibrary.AlbumRef | "allAssetsCombined"): Promise<Asset[]> => {
-    return new Promise((resolve, reject) => {
-        const assets: Asset[] = []
-
-        const fetch = (after: MediaLibrary.AssetRef | undefined) => {
-            MediaLibrary.getAssetsAsync({
-                ...(typeof after !== "undefined" ? { after } : {}),
-                first: 256,
-                mediaType: ["photo", "video", "unknown"],
-                sortBy: [
-                    [MediaLibrary.SortBy.creationTime, false]
-                ],
-                ...(album !== "allAssetsCombined" ? { album } : {})
-            }).then((fetched) => {
-                for(let i = 0; i < fetched.assets.length; i++){
-                    assets.push({
-                        selected: false,
-                        type: getFilePreviewType(getFileExt(fetched.assets[i].filename)),
-                        asset: fetched.assets[i]
-                    })
-                }
-
-                if(fetched.hasNextPage){
-                    return fetch(fetched.endCursor)
-                }
-
-                const sorted: Asset[] = assets.sort((a, b) => b.asset.creationTime - a.asset.creationTime).filter(asset => isNameAllowed(asset.asset.filename))
-
-                return resolve(sorted)
-            }).catch(reject)
-        }
-
-        return fetch(undefined)
+export const fetchAssets = async (album: MediaLibrary.Album | "allAssetsCombined", count: number, after: MediaLibrary.AssetRef | undefined): Promise<{ hasNextPage: boolean, assets: Asset[] }> => {
+    const fetched = await MediaLibrary.getAssetsAsync({
+        ...(typeof after !== "undefined" ? { after } : {}),
+        first: count,
+        mediaType: ["photo", "video", "unknown"],
+        sortBy: [
+            [MediaLibrary.SortBy.creationTime, false]
+        ],
+        ...(album !== "allAssetsCombined" ? { album } : {})
     })
+
+    const sorted: Asset[] = fetched.assets.filter(asset => isNameAllowed(asset.filename)).map(asset => ({
+        selected: false,
+        asset,
+        type: getFilePreviewType(getFileExt(asset.filename))
+    }))
+
+    return {
+        assets: sorted,
+        hasNextPage: sorted.length > 0 ? fetched.hasNextPage : false
+    }
 }
 
-export const getLastImageOfAlbum = async (album: MediaLibrary.AlbumRef): Promise<string> => {
+export const getVideoThumbnail = async (asset: MediaLibrary.Asset): Promise<string> => {
+    await videoThumbnailSemaphore.acquire()
+
+    try{
+        const assetURI = await getAssetURI(asset)
+        const { uri } = await VideoThumbnails.getThumbnailAsync(toExpoFsPath(assetURI), {
+            quality: 0.1
+        })
+
+        videoThumbnailSemaphore.release()
+
+        return uri
+    }
+    catch(e){
+        console.error(e)
+
+        videoThumbnailSemaphore.release()
+
+        throw e
+    }
+}
+
+export const getLastImageOfAlbum = async (album: MediaLibrary.Album): Promise<string> => {
     const result = await MediaLibrary.getAssetsAsync({
         first: 64,
         mediaType: ["photo", "video", "unknown"],
@@ -89,22 +99,13 @@ export const getLastImageOfAlbum = async (album: MediaLibrary.AlbumRef): Promise
     const asset = filtered[0]
 
     if(getFilePreviewType(getFileExt(asset.filename)) == "video"){
-        await videoThumbnailSemaphore.acquire()
-
         try{
-            const assetURI = await getAssetURI(asset)
-            const { uri } = await VideoThumbnails.getThumbnailAsync(toExpoFsPath(assetURI), {
-                quality: 0.1
-            })
-
-            videoThumbnailSemaphore.release()
+            const uri = await getVideoThumbnail(asset)
 
             return uri
         }
         catch(e){
             console.error(e)
-
-            videoThumbnailSemaphore.release()
 
             return ""
         }
@@ -126,7 +127,7 @@ export const fetchAlbums = async (): Promise<Album[]> => {
                 title: albums[i].title,
                 assetCount: albums[i].assetCount,
                 lastImage: undefined,
-                ref: albums[i]
+                album: albums[i]
             })
         }
     }
@@ -147,26 +148,16 @@ export const AssetItem = memo(({ item, index, setAssets }: { item: Asset, index:
 
     useEffect(() => {
         if(item.type == "video"){
-            videoThumbnailSemaphore.acquire().then(() => {
-                getAssetURI(item.asset).then((assetURI) => {
-                    VideoThumbnails.getThumbnailAsync(toExpoFsPath(assetURI), {
-                        quality: 0.1
-                    }).then(({ uri }) => {
-                        videoThumbnailSemaphore.release()
+            getVideoThumbnail(item.asset).then((uri) => {
+                videoThumbnailSemaphore.release()
 
-                        if(isMounted()){
-                            setImage(uri)
-                        }
-                    }).catch((err) => {
-                        videoThumbnailSemaphore.release()
+                if(isMounted()){
+                    setImage(uri)
+                }
+            }).catch((err) => {
+                videoThumbnailSemaphore.release()
 
-                        console.error(err)
-                    })
-                }).catch((err) => {
-                    videoThumbnailSemaphore.release()
-
-                    console.error(err)
-                })
+                console.error(err)
             })
         }
     }, [])
@@ -291,11 +282,15 @@ export const AlbumItem = memo(({ darkMode, index, item, params, navigation }: Al
     const isMounted = useMountedState()
 
     useEffect(() => {
-        getLastImageOfAlbum(item.ref).then((uri) => {
+        getLastImageOfAlbum(item.album).then((uri) => {
             if(uri.length > 0 && isMounted()){
                 setImage(uri)
             }
-        }).catch(console.error)
+        }).catch((err) => {
+            console.error(err)
+
+            showToast({ message: err.toString() })
+        })
     }, [])
 
     return (
@@ -317,7 +312,7 @@ export const AlbumItem = memo(({ darkMode, index, item, params, navigation }: Al
                     navigationAnimation({ enable: true }).then(() => {
                         navigation.dispatch(StackActions.push("SelectMediaScreen", {
                             prevNavigationState: params.prevNavigationState,
-                            album: item.ref
+                            album: item.album
                         }))
                     })
                 }
@@ -400,7 +395,7 @@ export const AlbumItem = memo(({ darkMode, index, item, params, navigation }: Al
 
 export interface SelectMediaScreenParams {
     prevNavigationState: NavigationState,
-    album: MediaLibrary.AlbumRef | "allAssetsCombined" | undefined
+    album: MediaLibrary.Album | "allAssetsCombined" | undefined
 }
 
 export interface SelectMediaScreenProps {
@@ -412,7 +407,7 @@ export interface Album {
     title: string,
     assetCount: number,
     lastImage: string | undefined,
-    ref: MediaLibrary.AlbumRef
+    album: MediaLibrary.Album
 }
 
 export interface Asset {
@@ -426,13 +421,14 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     const lang = useLang()
     const dimensions = useWindowDimensions()
     const params = useRef<SelectMediaScreenParams>(route?.params || undefined).current
-    const cachedAlbums = useRef<string | undefined>(storage.getString("selectMediaScreenCachedAlbums")).current
-    const cachedAssets = useRef<string | undefined>(storage.getString("selectMediaScreenCachedAssets:" + params?.album)).current
-    const [assets, setAssets] = useState<Asset[]>(typeof cachedAssets !== "undefined" ? JSON.parse(cachedAssets) : [])
-    const [albums, setAlbums] = useState<Album[]>(typeof cachedAlbums !== "undefined" ? JSON.parse(cachedAlbums) : [])
+    const [assets, setAssets] = useState<Asset[]>([])
+    const [albums, setAlbums] = useState<Album[]>([])
     const isMounted = useMountedState()
     const insets = useSafeAreaInsets()
     const isFocused = useIsFocused()
+    const currentAssetsAfter = useRef<MediaLibrary.AssetRef | undefined>(undefined)
+    const assetsHasNextPage = useRef<boolean>(true)
+    const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
 
     const [selectedAssets, photoCount, videoCount] = useMemo(() => {
         const selectedAssets = assets.filter(asset => asset.selected)
@@ -490,24 +486,30 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         if(typeof params !== "undefined" && isFocused){
             if(typeof params.album == "undefined"){
                 fetchAlbums().then((fetched) => {
-                    storage.set("selectMediaScreenCachedAlbums", JSON.stringify(fetched))
-
                     if(isMounted()){
                         setAlbums(fetched)
                     }
-                }).catch(console.error)
+                }).catch((err) => {
+                    console.error(err)
+        
+                    showToast({ message: err.toString() })
+                })
             }
             else{
-                fetchAssets(params.album).then((fetched) => {
-                    storage.set("selectMediaScreenCachedAssets:" + params.album, JSON.stringify(fetched))
-
+                fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current).then((fetched) => {
                     if(isMounted()){
-                        setAssets(fetched)
+                        assetsHasNextPage.current = fetched.hasNextPage
+
+                        setAssets(fetched.assets)
                     }
-                }).catch(console.error)
+                }).catch((err) => {
+                    console.error(err)
+        
+                    showToast({ message: err.toString() })
+                })
             }
         }
-    }, [])
+    }, [params])
 
     if(typeof params == "undefined"){
         return (
@@ -522,7 +524,12 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     }
 
     return (
-        <>
+        <View
+            style={{
+                paddingTop: Platform.OS == "ios" ? 15 : 0,
+                paddingBottom: Platform.OS == "ios" ? (insets.bottom * 2) : 0
+            }}
+        >
             {
                 typeof route.params.album == "undefined" ? (
                     <>
@@ -648,6 +655,24 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                             keyExtractor={keyExtractor}
                             windowSize={32}
                             getItemLayout={getItemLayoutAsset}
+                            onEndReachedThreshold={0.1}
+                            onEndReached={() => {
+                                if(FETCH_ASSETS_LIMIT <= assets.length && FETCH_ASSETS_LIMIT > 0 && assets.length > 0 && !onEndReachedCalledDuringMomentum.current && typeof params !== "undefined" && typeof params.album !== "undefined"){
+                                    onEndReachedCalledDuringMomentum.current = true
+
+                                    fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current).then((fetched) => {
+                                        if(isMounted()){
+                                            assetsHasNextPage.current = fetched.hasNextPage
+                    
+                                            setAssets(prev => [...prev, ...fetched.assets])
+                                        }
+                                    }).catch((err) => {
+                                        console.error(err)
+                            
+                                        showToast({ message: err.toString() })
+                                    })
+                                }
+                            }}
                             numColumns={4}
                             ListFooterComponent={
                                 <View
@@ -674,13 +699,13 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                             style={{
                                 height: "100%",
                                 width: "100%",
-                                marginTop: 5
+                                marginTop: 10
                             }}
                         />
                     </>
                 )
             }
-        </>
+        </View>
     )
 })
 

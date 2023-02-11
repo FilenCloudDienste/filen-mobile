@@ -1588,9 +1588,7 @@ export const convertPhAssetToAssetsLibrary = memoize((localId: string, ext: stri
     return "assets-library://asset/asset." + ext + "?id=" + hash + "&ext=" + ext
 }, (localId: string, ext: string) => localId + ":" + ext)
 
-export const getAssetId = memoize((asset: MediaLibrary.Asset): string => {
-    return asset.uri.indexOf("ph://") !== -1 && ["photo", "video"].includes(asset.mediaType) ? convertPhAssetToAssetsLibrary(asset.uri.replace("ph://", ""), asset.mediaType == "photo" ? "jpg" : "mov") : asset.uri
-}, (asset: MediaLibrary.Asset) => asset.uri + ":" + asset.mediaType)
+export const getAssetId = (asset: MediaLibrary.Asset) => asset.id
 
 export function msToMinutesAndSeconds(ms: number) {
     const minutes = Math.floor(ms / 60000)
