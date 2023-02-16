@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "
 import type { NavigationContainerRef, NavigationState } from "@react-navigation/native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import { useWindowDimensions, View, Text, FlatList, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter, Dimensions, Platform } from "react-native"
+import { useWindowDimensions, View, Text, FlatList, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter, Platform } from "react-native"
 import { getColor } from "../../style"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { i18n } from "../../i18n"
@@ -20,9 +20,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useIsFocused } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
 
-const videoThumbnailSemaphore = new Semaphore(3)
+const videoThumbnailSemaphore = new Semaphore(5)
 const ALBUM_ROW_HEIGHT = 70
-const FETCH_ASSETS_LIMIT = Math.round(((Dimensions.get("screen").height / ALBUM_ROW_HEIGHT) * 3) + 12)
+const FETCH_ASSETS_LIMIT = 128
 
 export const isNameAllowed = memoize((name: string) => {
     const ext = getFileExt(name)
@@ -135,7 +135,7 @@ export const fetchAlbums = async (): Promise<Album[]> => {
     return result.sort((a, b) => b.assetCount - a.assetCount)
 }
 
-export const AssetItem = memo(({ item, index, setAssets }: { item: Asset, index: number, setAssets: React.Dispatch<React.SetStateAction<Asset[]>> }) => {
+export const AssetItem = memo(({ item, setAssets }: { item: Asset, setAssets: React.Dispatch<React.SetStateAction<Asset[]>> }) => {
     const darkMode = useDarkMode()
     const dimensions = useWindowDimensions()
     const [image, setImage] = useState<string | undefined>(item.type == "image" ? item.asset.uri : undefined)
@@ -169,7 +169,7 @@ export const AssetItem = memo(({ item, index, setAssets }: { item: Asset, index:
                 height: size,
                 margin: 1
             }}
-            key={index.toString()}
+            key={item.asset.id}
             onPress={() => {
                 if(typeof image == "undefined"){
                     return
@@ -271,13 +271,12 @@ export const AssetItem = memo(({ item, index, setAssets }: { item: Asset, index:
 
 export interface AlbumItemProps {
     darkMode: boolean,
-    index: number,
     item: Album,
     params: SelectMediaScreenParams,
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
-export const AlbumItem = memo(({ darkMode, index, item, params, navigation }: AlbumItemProps) => {
+export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItemProps) => {
     const [image, setImage] = useState<string>("")
     const isMounted = useMountedState()
 
@@ -305,7 +304,7 @@ export const AlbumItem = memo(({ darkMode, index, item, params, navigation }: Al
                 borderBottomWidth: 0.5,
                 borderBottomColor: getColor(darkMode, "primaryBorder")
             }}
-            key={index.toString()}
+            key={item.album.id}
             underlayColor={getColor(darkMode, "backgroundTertiary")}
             onPress={() => {
                 if(typeof params.prevNavigationState !== "undefined" && item.assetCount > 0){
@@ -429,6 +428,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     const currentAssetsAfter = useRef<MediaLibrary.AssetRef | undefined>(undefined)
     const assetsHasNextPage = useRef<boolean>(true)
     const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
+    const canPaginate = useRef<boolean>(true)
 
     const [selectedAssets, photoCount, videoCount] = useMemo(() => {
         const selectedAssets = assets.filter(asset => asset.selected)
@@ -437,8 +437,6 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 
         return [selectedAssets, photoCount, videoCount]
     }, [assets])
-
-    const keyExtractor = useCallback((_, index: number) => index.toString(), [])
 
     const getItemLayoutAlbum = useCallback((_, index: number) => {
         const length: number = ALBUM_ROW_HEIGHT
@@ -460,11 +458,10 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         }
     }, [dimensions, insets])
 
-    const renderAlbum = useCallback(({ item, index }: { item: Album, index: number }) => {
+    const renderAlbum = useCallback(({ item }: { item: Album }) => {
         return (
             <AlbumItem
                 item={item}
-                index={index}
                 darkMode={darkMode}
                 navigation={navigation}
                 params={params}
@@ -472,15 +469,20 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         )
     }, [navigation, params, darkMode])
 
-    const renderAsset = useCallback(({ item, index }: { item: Asset, index: number }) => {
+    const renderAsset = useCallback(({ item }: { item: Asset }) => {
         return (
             <AssetItem
                 item={item}
-                index={index}
                 setAssets={setAssets}
             />
         )
     }, [])
+
+    useEffect(() => {
+        if(isMounted() && assets.length > 0){
+            currentAssetsAfter.current = assets[assets.length - 1].asset
+        }
+    }, [assets])
 
     useEffect(() => {
         if(typeof params !== "undefined" && isFocused){
@@ -527,7 +529,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         <View
             style={{
                 paddingTop: Platform.OS == "ios" ? 15 : 0,
-                paddingBottom: Platform.OS == "ios" ? (insets.bottom * 2) : 0
+                paddingBottom: Platform.OS == "ios" ? (insets.bottom * 2) : 0,
+                paddingLeft: insets.left,
+                paddingRight: insets.right
             }}
         >
             {
@@ -582,7 +586,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                         <FlatList
                             data={albums}
                             renderItem={renderAlbum}
-                            keyExtractor={keyExtractor}
+                            keyExtractor={(item) => item.album.id}
                             windowSize={32}
                             getItemLayout={getItemLayoutAlbum}
                             style={{
@@ -652,24 +656,37 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                         <FlatList
                             data={assets}
                             renderItem={renderAsset}
-                            keyExtractor={keyExtractor}
+                            keyExtractor={(item) => item.asset.id}
                             windowSize={32}
                             getItemLayout={getItemLayoutAsset}
                             onEndReachedThreshold={0.1}
                             onEndReached={() => {
-                                if(FETCH_ASSETS_LIMIT <= assets.length && FETCH_ASSETS_LIMIT > 0 && assets.length > 0 && !onEndReachedCalledDuringMomentum.current && typeof params !== "undefined" && typeof params.album !== "undefined"){
+                                if(assets.length > 0 && !onEndReachedCalledDuringMomentum.current && typeof params !== "undefined" && typeof params.album !== "undefined" && assetsHasNextPage.current && canPaginate.current){
                                     onEndReachedCalledDuringMomentum.current = true
+                                    canPaginate.current = false
 
                                     fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current).then((fetched) => {
                                         if(isMounted()){
                                             assetsHasNextPage.current = fetched.hasNextPage
                     
-                                            setAssets(prev => [...prev, ...fetched.assets])
+                                            setAssets(prev => {
+                                                const existingIds: { [key: string]: boolean } = {}
+
+                                                for(let i = 0; i < prev.length; i++){
+                                                    existingIds[prev[i].asset.id] = true
+                                                }
+
+                                                return [...prev, ...fetched.assets.filter(asset => !existingIds[asset.asset.id])]
+                                            })
                                         }
+                                        
+                                        canPaginate.current = true
                                     }).catch((err) => {
                                         console.error(err)
                             
                                         showToast({ message: err.toString() })
+
+                                        canPaginate.current = true
                                     })
                                 }
                             }}

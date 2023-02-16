@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from "react"
-import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
+import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent, FlatListProps } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, isBetween, getFilePreviewType } from "../../lib/helpers"
@@ -7,7 +7,7 @@ import { ListItem, GridItem, PhotosItem, PhotosRangeItem } from "../Item"
 import { i18n } from "../../i18n"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { navigationAnimation } from "../../lib/state"
-import { StackActions } from "@react-navigation/native"
+import { StackActions, NavigationContainerRef } from "@react-navigation/native"
 import { ListEmpty } from "../ListEmpty"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
@@ -19,9 +19,9 @@ import useLang from "../../lib/hooks/useLang"
 import { useMountedState } from "react-use"
 
 export interface ItemListProps {
-    navigation: any,
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
     route: any,
-    items: any,
+    items: Item[],
     showLoader?: boolean,
     setItems?: React.Dispatch<React.SetStateAction<Item[]>>,
     searchTerm?: string,
@@ -178,7 +178,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         return sortedItems
     }, [items, photosRange, lang, itemsPerRow, viewModeParsed, routeURL])
 
-    const getThumbnail = useCallback(({ item }: { item: any }) => {
+    const getThumbnail = useCallback((item: Item) => {
         if(item.type == "file"){
             if(canCompressThumbnail(getFileExt(item.name))){
                 if(typeof item.thumbnail !== "string" && isMounted()){
@@ -198,7 +198,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             }
         }
 
-        const visible: any = {}
+        const visible: { [key: string]: boolean } = {}
 
         for(let i = 0; i < viewableItems.length; i++){
             let item = viewableItems[i].item
@@ -206,7 +206,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
             visible[item.uuid] = true
             global.visibleItems[item.uuid] = true
 
-            getThumbnail({ item })
+            getThumbnail(item)
         }
 
         if(typeof viewableItems[0] == "object" && typeof viewableItems[viewableItems.length - 1] == "object" && routeURL.indexOf("photos") !== -1 && isMounted()){
@@ -293,7 +293,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         }
     }, [photosRange, photosGridSize, routeURL, currentItems, items, viewModeParsed])
 
-    const getItemLayout = useCallback((item: any, index: number) => {
+    const getItemLayout = useCallback((item: FlatListProps<Item> | any, index: number) => {
         const listItemHeight: number = 60
         const gridLengthDefault: number = (Math.floor((dimensions.width - (insets.left + insets.right)) / itemsPerRow) + 55)
         const gridLength: number = item.type == "folder" ? 40 : gridLengthDefault
@@ -449,7 +449,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 if(i < max){
                     global.visibleItems[items[i].uuid] = true
 
-                    getThumbnail({ item: items[i] })
+                    getThumbnail(items[i])
                 }
             }
         }

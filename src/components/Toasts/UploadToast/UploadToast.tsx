@@ -2,7 +2,7 @@ import React, { useState, useEffect, memo, useCallback } from "react"
 import { View, Text, Platform, TouchableOpacity } from "react-native"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
-import { getParent, getFilenameFromPath, getRouteURL, promiseAllSettled, randomIdUnsafe } from "../../../lib/helpers"
+import { getParent, getFilenameFromPath, getRouteURL, promiseAllSettled, randomIdUnsafe, toExpoFsPath } from "../../../lib/helpers"
 import { i18n } from "../../../i18n"
 import { getDownloadPath } from "../../../lib/services/download/download"
 import { queueFileUpload } from "../../../lib/services/upload/upload"
@@ -65,19 +65,27 @@ const UploadToast = memo(() => {
                         path = decodeURIComponent(path)
                     }
 
-                    Filesystem.getInfoAsync(item).then((stat) => {
+                    Filesystem.getInfoAsync(toExpoFsPath(item)).then((stat) => {
                         if(stat.isDirectory){
-                            return reject(i18n(lang, "cannotShareDirIntoApp"))
+                            reject(i18n(lang, "cannotShareDirIntoApp"))
+
+                            return
+                        }
+
+                        if(!stat.exists || !stat.size){
+                            reject("File not found")
+
+                            return
                         }
 
                         Filesystem.copyAsync({
-                            from: item,
-                            to: path
+                            from: toExpoFsPath(item),
+                            to: toExpoFsPath(path)
                         }).then(() => {
                             const name = getFilenameFromPath(item)
                             const type = mime.lookup(name) || ""
                             const ext = mime.extension(type as string) || ""
-                            const size = stat.size as number
+                            const size = stat.size
                             
                             return resolve({ path, ext, type, size, name })
                         }).catch(reject)

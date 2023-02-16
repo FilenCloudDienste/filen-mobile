@@ -14,6 +14,7 @@ import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
 import pathModule from "path"
 import { memoize } from "lodash"
+import { validate } from "uuid"
 
 const CryptoJS = require("crypto-js")
 const log = logger.createLogger({
@@ -29,21 +30,21 @@ const TIMEOUT: number = 5000
 const FAILED: { [key: string]: number } = {}
 const MAX_FAILED: number = 1
 const MAX_FETCH_TIME: number = 15000
-let isRunning: boolean = false
-let fallbackInterval: NodeJS.Timeout
 let askedForPermissions: boolean = false
 const getFileMutex = new Semaphore(1)
+const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
+let runTimeout: number = 0
+let fallbackInterval: NodeJS.Timer
 
+export const runMutex = new Semaphore(1)
 export const getLocalAssetsMutex = new Semaphore(1)
 
-export const startCameraUploadFallbackInterval = () => {
+export const startFallbackInterval = () => {
     clearInterval(fallbackInterval)
 
     fallbackInterval = setInterval(() => {
-        if(!isRunning){
-            runCameraUpload(MAX_CAMERA_UPLOAD_QUEUE, true)
-        }
-    }, TIMEOUT)
+        runCameraUpload()
+    }, 5500)
 }
 
 export const disableCameraUpload = (resetFolder: boolean = false): void => {
@@ -518,120 +519,117 @@ export const getAssetURI = async (asset: MediaLibrary.Asset) => {
 
 export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<UploadFile> => {
     return new Promise((resolve, reject) => {
-        const userId = storage.getNumber("userId")
-        const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
+        setTimeout(() => {
+            getFileMutex.acquire().then(() => {
+                const userId = storage.getNumber("userId")
+                const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
+                const mutexTimeout = 100
+                const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
 
-        getFileMutex.acquire().then(() => {
-            const tmp = FileSystem.cacheDirectory + randomIdUnsafe() + "_" + asset.filename
+                FileSystem.copyAsync({
+                    from: toExpoFsPath(assetURI),
+                    to: toExpoFsPath(tmp)
+                }).then(() => {
+                    if(
+                        Platform.OS == "ios"
+                        && !cameraUploadEnableHeic
+                        && assetURI.toLowerCase().endsWith(".heic")
+                        && asset.mediaType == "photo"
+                    ){
+                        RNHeicConverter.convert({
+                            path: tmp,
+                            quality: 1,
+                            extension: "jpg"
+                        }).then(({ success, path, error }: { success: boolean, path: string, error: any }) => {
+                            if(!error && success && path){
+                                FileSystem.getInfoAsync(toExpoFsPath(path)).then((stat) => {
+                                    if(stat.exists && stat.size){
+                                        const fileNameEx = asset.filename.split(".")
+                                        const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
+                                        const newName = nameWithoutEx + ".JPG"
 
-            FileSystem.copyAsync({
-                from: toExpoFsPath(assetURI),
-                to: toExpoFsPath(tmp)
-            }).then(() => {
-                if(
-                    Platform.OS == "ios"
-                    && !cameraUploadEnableHeic
-                    && assetURI.toLowerCase().endsWith(".heic")
-                    && asset.mediaType == "photo"
-                ){
-                    RNHeicConverter.convert({
-                        path: tmp,
-                        quality: 1,
-                        extension: "jpg"
-                    }).then(({ success, path, error }: { success: boolean, path: string, error: any }) => {
-                        if(!error && success && path){
-                            FileSystem.getInfoAsync(toExpoFsPath(path)).then((stat) => {
-                                if(stat.exists && stat.size){
-                                    const fileNameEx = asset.filename.split(".")
-                                    const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
-                                    const newName = nameWithoutEx + ".JPG"
+                                        setTimeout(() => getFileMutex.release(), mutexTimeout)
 
-                                    setTimeout(() => getFileMutex.release(), 250)
+                                        return resolve({
+                                            path: path.split("file://").join(""),
+                                            name: newName,
+                                            mime: mimeTypes.lookup(path) || "",
+                                            size: stat.size,
+                                            lastModified: convertTimestampToMs(asset.creationTime)
+                                        })
+                                    }
+                                    else{
+                                        setTimeout(() => getFileMutex.release(), mutexTimeout)
 
-                                    return resolve({
-                                        path: path.split("file://").join(""),
-                                        name: newName,
-                                        mime: mimeTypes.lookup(path) || "",
-                                        size: stat.size,
-                                        lastModified: convertTimestampToMs(asset.creationTime)
-                                    })
-                                }
-                                else{
-                                    setTimeout(() => getFileMutex.release(), 250)
+                                        return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
+                                    }
+                                }).catch((err) => {
+                                    setTimeout(() => getFileMutex.release(), mutexTimeout)
 
-                                    return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
-                                }
-                            }).catch((err) => {
-                                setTimeout(() => getFileMutex.release(), 250)
+                                    return reject(err)
+                                })
+                            }
+                            else{
+                                setTimeout(() => getFileMutex.release(), mutexTimeout)
 
-                                return reject(err)
-                            })
-                        }
-                        else{
-                            setTimeout(() => getFileMutex.release(), 250)
+                                return new Error("HEICConverter error: " + error.toString())
+                            }
+                        }).catch((err: Error) => {
+                            setTimeout(() => getFileMutex.release(), mutexTimeout)
 
-                            return new Error("HEICConverter error: " + error.toString())
-                        }
-                    }).catch((err: Error) => {
-                        setTimeout(() => getFileMutex.release(), 250)
+                            return reject(err)
+                        })
+                    }
+                    else{
+                        FileSystem.getInfoAsync(toExpoFsPath(tmp)).then((stat) => {
+                            if(stat.exists && stat.size){
+                                setTimeout(() => getFileMutex.release(), mutexTimeout)
 
-                        return reject(err)
-                    })
-                }
-                else{
-                    FileSystem.getInfoAsync(toExpoFsPath(tmp)).then((stat) => {
-                        if(stat.exists && stat.size){
-                            setTimeout(() => getFileMutex.release(), 250)
+                                return resolve({
+                                    path: tmp.split("file://").join(""),
+                                    name: asset.filename,
+                                    mime: mimeTypes.lookup(tmp) || "",
+                                    size: stat.size,
+                                    lastModified: convertTimestampToMs(asset.creationTime)
+                                })
+                            }
+                            else{
+                                setTimeout(() => getFileMutex.release(), mutexTimeout)
+                                
+                                return reject(new Error("No size for asset " + asset.id))
+                            }
+                        }).catch((err) => {
+                            setTimeout(() => getFileMutex.release(), mutexTimeout)
 
-                            return resolve({
-                                path: tmp.split("file://").join(""),
-                                name: asset.filename,
-                                mime: mimeTypes.lookup(tmp) || "",
-                                size: stat.size,
-                                lastModified: convertTimestampToMs(asset.creationTime)
-                            })
-                        }
-                        else{
-                            setTimeout(() => getFileMutex.release(), 250)
-                            
-                            return reject(new Error("No size for asset " + asset.id))
-                        }
-                    }).catch((err) => {
-                        setTimeout(() => getFileMutex.release(), 250)
+                            return reject(err)
+                        })
+                    }
+                }).catch((err) => {
+                    setTimeout(() => getFileMutex.release(), mutexTimeout)
 
-                        return reject(err)
-                    })
-                }
-            }).catch((err) => {
-                setTimeout(() => getFileMutex.release(), 250)
-
-                return reject(err)
+                    return reject(err)
+                })
             })
-        })
+        }, 1)
     })
 }
 
-export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE, runOnce: boolean = false, lastLocal: CameraUploadItems | undefined = undefined, lastRemote: CameraUploadItems | undefined = undefined, lastDeltas: Delta[] = []): Promise<boolean> => {
-    if(isRunning){
-        if(runOnce){
-            return true
-        }
+export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean = false): Promise<boolean> => {
+    await runMutex.acquire()
 
-        setTimeout(() => {
-            runCameraUpload(maxQueue, runOnce)
-        }, TIMEOUT)
+    if(runTimeout > new Date().getTime()){
+        runMutex.release()
 
         return true
     }
-
-    isRunning = true
 
     try{
         const isLoggedIn = storage.getBoolean("isLoggedIn")
         const userId = storage.getNumber("userId")
 
         if(!isLoggedIn || userId == 0){
-            isRunning = false
+            runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+            runMutex.release()
 
             if(runOnce){
                 return true
@@ -651,7 +649,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                 || !(await hasReadPermissions(true))
                 || !(await hasWritePermissions(true))
             ){
-                isRunning = false
+                runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+                runMutex.release()
     
                 setTimeout(() => {
                     runCameraUpload(maxQueue)
@@ -668,7 +667,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         const now = new Date().getTime()
 
         if(!cameraUploadEnabled){
-            isRunning = false
+            runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+            runMutex.release()
 
             if(runOnce){
                 return true
@@ -682,7 +682,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         }
 
         if(typeof cameraUploadFolderUUID !== "string"){
-            isRunning = false
+            runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+            runMutex.release()
 
             if(runOnce){
                 return true
@@ -695,8 +696,9 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             return true
         }
 
-        if(cameraUploadFolderUUID.length < 32){
-            isRunning = false
+        if(cameraUploadFolderUUID.length < 32 || !validate(cameraUploadFolderUUID)){
+            runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+            runMutex.release()
 
             if(runOnce){
                 return true
@@ -710,7 +712,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         }
 
         if(!isOnline()){
-            isRunning = false
+            runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+            runMutex.release()
 
             if(runOnce){
                 return true
@@ -724,7 +727,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         }
 
         if(storage.getBoolean("onlyWifiUploads:" + userId) && !isWifi()){
-            isRunning = false
+            runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+            runMutex.release()
 
             if(runOnce){
                 return true
@@ -747,7 +751,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         }
 
         if(!folderExists){
-            isRunning = false
+            runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+            runMutex.release()
 
             disableCameraUpload(true)
 
@@ -762,18 +767,19 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             return true
         }
 
-        const [local, remote] = lastDeltas.length > 0 && typeof lastLocal !== "undefined" && typeof lastRemote !== "undefined" ? [lastLocal, lastRemote] : await Promise.all([
+        const [local, remote] = await Promise.all([
             loadLocal(),
             loadRemote()
         ])
-        const deltas = lastDeltas.length > 0 && typeof lastLocal !== "undefined" && typeof lastRemote !== "undefined" ? lastDeltas : getDeltas(local, remote)
+        const deltas = getDeltas(local, remote)
         const currentlyUploadedCount = Object.keys(local).length - deltas.length
 
         storage.set("cameraUploadTotal", Object.keys(local).length)
         storage.set("cameraUploadUploaded", currentlyUploadedCount)
 
         if(new Date().getTime() > (now + MAX_FETCH_TIME) && runOnce){
-            isRunning = false
+            runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+            runMutex.release()
 
             return true
         }
@@ -783,6 +789,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
         let uploadedThisRun = 0
 
         const upload = async (delta: Delta): Promise<boolean> => {
+            await uploadSemaphore.acquire()
+
             const asset = delta.item.asset
             const assetId = getAssetId(asset)
 
@@ -791,12 +799,14 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                 var stat = await FileSystem.getInfoAsync(toExpoFsPath(assetURI))
                 const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
                 const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
+                const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
 
                 if(
                     stat.exists
                     && (
                         convertTimestampToMs(stat.modificationTime) == convertTimestampToMs(cameraUploadLastModifiedStat[assetId])
                         || convertTimestampToMs(cameraUploadLastModified[assetId]) == convertTimestampToMs(delta.item.lastModified)
+                        || cameraUploadLastSize[assetId] == stat.size
                     )
                 ){
                     uploadedThisRun += 1
@@ -805,12 +815,17 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
 
                     const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
                     const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
+                    const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
 
                     cameraUploadLastModified[assetId] = convertTimestampToMs(delta.item.lastModified)
                     cameraUploadLastModifiedStat[assetId] = convertTimestampToMs(stat.modificationTime)
+                    cameraUploadLastSize[assetId] = stat.size
 
                     storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
                     storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
+                    storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
+
+                    uploadSemaphore.release()
 
                     return true
                 }
@@ -826,6 +841,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                 else{
                     FAILED[assetId] += 1
                 }
+
+                uploadSemaphore.release()
 
                 return false
             }
@@ -845,12 +862,17 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
 
                 const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
                 const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
+                const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
 
                 cameraUploadLastModified[assetId] = convertTimestampToMs(delta.item.lastModified)
                 cameraUploadLastModifiedStat[assetId] = convertTimestampToMs(stat.modificationTime || delta.item.lastModified)
+                cameraUploadLastSize[assetId] = stat.size
 
                 storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
                 storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
+                storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
+
+                uploadSemaphore.release()
 
                 return true
             }
@@ -858,6 +880,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
                 log.error(e)
         
                 FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
+
+                uploadSemaphore.release()
 
                 return false
             }
@@ -896,17 +920,10 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
             storage.set("cameraUploadUploaded", Object.keys(local).length)
         }
 
-        isRunning = false
+        runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+        runMutex.release()
 
         if(runOnce){
-            return true
-        }
-
-        if(uploadedThisRun > 0){
-            setTimeout(() => {
-                runCameraUpload(maxQueue, false, local, remote, deltas)
-            }, 1000)
-
             return true
         }
 
@@ -919,7 +936,8 @@ export const runCameraUpload = async (maxQueue: number = MAX_CAMERA_UPLOAD_QUEUE
     catch(e){
         log.error(e)
 
-        isRunning = false
+        runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+        runMutex.release()
 
         if(runOnce){
             return true

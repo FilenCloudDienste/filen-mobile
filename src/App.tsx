@@ -127,7 +127,7 @@ export const App = Sentry.wrap(memo(() => {
                     if(items.data.length > 0){
                         await new Promise((resolve) => {
                             const wait = setInterval(() => {
-                                if(!isRouteInStack(navigationRef, ["SetupScreen", "BiometricAuthScreen", "LoginScreen"]) && storage.getBoolean("isLoggedIn")){
+                                if(!isRouteInStack(navigationRef, ["SetupScreen", "BiometricAuthScreen", "LoginScreen", "SelectMediaScreen"]) && storage.getBoolean("isLoggedIn")){
                                     clearInterval(wait)
         
                                     return resolve(true)

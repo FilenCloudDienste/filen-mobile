@@ -447,6 +447,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
     const contentHeight = useStore(state => state.contentHeight)
     const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
     const lastEventId = useRef<number>(0)
+    const canPaginate = useRef<boolean>(true)
 
     const getEvents = (lastId: number) => {
         setIsLoading(true)
@@ -457,6 +458,8 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                 setRefreshing(false)
 
                 if(data.events.length <= 0){
+                    canPaginate.current = true
+
                     return
                 }
 
@@ -467,9 +470,15 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                 setLimit(limit)
                 
                 lastEventId.current = newEvents[newEvents.length - 1].id
+                canPaginate.current = true
+            }
+            else{
+                canPaginate.current = true
             }
         }).catch((err) => {
             console.error(err)
+
+            canPaginate.current = true
 
             showToast({ message: err.toString() })
         })
@@ -506,8 +515,9 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                     onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}
                     onEndReachedThreshold={0.1}
                     onEndReached={() => {
-                        if(limit <= events.length && limit > 0 && events.length > 0 && !onEndReachedCalledDuringMomentum.current){
+                        if(limit <= events.length && limit > 0 && events.length > 0 && !onEndReachedCalledDuringMomentum.current && canPaginate.current){
                             onEndReachedCalledDuringMomentum.current = true
+                            canPaginate.current = false
 
                             getEvents(lastEventId.current)
                         }
