@@ -1,5 +1,5 @@
 import React, { useEffect, memo } from "react"
-import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
+import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -31,10 +31,12 @@ export interface SettingsButtonLinkHighlightProps {
     borderBottomRadius?: number,
     borderTopRadius?: number,
     withBottomBorder?: boolean,
-    rightComponent?: React.ReactNode
+    rightComponent?: React.ReactNode,
+    withImage?: boolean,
+    imageSrc?: string
 }
 
-export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText, iconBackgroundColor, iconName, borderBottomRadius, borderTopRadius, withBottomBorder, rightComponent }: SettingsButtonLinkHighlightProps) => {
+export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText, iconBackgroundColor, iconName, borderBottomRadius, borderTopRadius, withBottomBorder, rightComponent, withImage, imageSrc }: SettingsButtonLinkHighlightProps) => {
     const darkMode = useDarkMode()
     const withIcon: boolean = typeof iconBackgroundColor == "string" && typeof iconName == "string"
 
@@ -86,6 +88,53 @@ export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText, ic
                                         marginLeft: 1
                                     }}
                                 />
+                            </View>
+                        </View>
+                    )
+                }
+                {
+                    withImage && imageSrc && (
+                        <View
+                            style={{
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexDirection: "row",
+                                paddingLeft: 15
+                            }}
+                        >
+                            <View
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    borderRadius: 5,
+                                    backgroundColor: getColor(darkMode, "backgroundTertiary"),
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                }}
+                            >
+                                {
+                                    imageSrc.length > 0 ? (
+                                        <Image
+                                            source={{
+                                                uri: imageSrc
+                                            }}
+                                            style={{
+                                                width: 30,
+                                                height: 30,
+                                                borderRadius: 5
+                                            }}
+                                        />
+                                    ) : (
+                                        <View
+                                            style={{
+                                                width: 30,
+                                                height: 30,
+                                                borderRadius: 5,
+                                                backgroundColor: getColor(darkMode, "backgroundTertiary")
+                                            }}
+                                        />
+                                    )
+                                }
                             </View>
                         </View>
                     )

@@ -25,7 +25,7 @@ emoji=true
 
 exact_by_default=true
 
-format.bracket_spacing=false
+#format.bracket_spacing=false
 
 module.file_ext=.js
 module.file_ext=.json

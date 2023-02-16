@@ -1,0 +1,11 @@
+{
+	"files.eol": "\n",
+	"editor.formatOnPaste": false,
+	"editor.formatOnSave": false,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": false,
+		"source.fixAll.format": false
+	},
+	"typescript.tsdk": "node_modules\\typescript\\lib"
+}
