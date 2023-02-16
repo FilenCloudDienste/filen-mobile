@@ -108,3 +108,33 @@ export interface ProgressData {
         bytes: number
     }
 }
+
+export interface CFGAnnouncement {
+    uuid: string,
+    title: string,
+    message: string,
+    active: boolean,
+    timestamp: number
+}
+
+export interface IPlans {
+    termType: 1 | 2 | 3 | 4,
+    id: number,
+    name: string,
+    cost: number,
+    sale: number,
+    storage: number,
+    popular: boolean,
+    term: "monthly" | "annually" | "lifetime"
+}
+
+export interface ICFG {
+    maintenance: boolean,
+    readOnly: boolean,
+    announcements: CFGAnnouncement[],
+    pricing: {
+        lifetimeEnabled: boolean,
+        saleEnabled: boolean,
+        plans: IPlans[]
+    }
+}

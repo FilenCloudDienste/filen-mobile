@@ -68,6 +68,9 @@ import * as FileSystem from "expo-file-system"
 import { getDownloadPath } from "./lib/services/download"
 import mimeTypes from "mime-types"
 import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "./components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
+import { getCfg } from "./lib/api"
+import { ICFG } from "./types"
+import Announcements from "./components/Announcements"
 
 enableScreens(true)
 
@@ -115,6 +118,7 @@ export const App = Sentry.wrap(memo(() => {
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
     const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
     const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
+    const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
 
     const handleShare = useCallback(async (items: any) => {
         if(!items){
@@ -426,6 +430,8 @@ export const App = Sentry.wrap(memo(() => {
         DeviceEventEmitter.addListener("openSelectMediaScreen", openSelectMediaScreenListener)
         DeviceEventEmitter.addListener("selectMediaScreenUpload", selectMediaScreenUploadListener)
 
+        getCfg().then(setCFG).catch(console.error)
+
         return () => {
             shareMenuListener.remove()
             navigationRef.removeListener("state", navigationRefListener)
@@ -636,41 +642,53 @@ export const App = Sentry.wrap(memo(() => {
                                         }}
                                     />
                                 </Stack.Navigator>
-                                <>
-                                    {
-                                        setupDone
-                                        && isLoggedIn
-                                        && [
-                                            "MainScreen",
-                                            "SettingsScreen",
-                                            "TransfersScreen",
-                                            "CameraUploadScreen",
-                                            "CameraUploadAlbumsScreen",
-                                            "EventsScreen",
-                                            "EventsInfoScreen",
-                                            "SettingsAdvancedScreen",
-                                            "SettingsAccountScreen",
-                                            "LanguageScreen",
-                                            "GDPRScreen",
-                                            "InviteScreen",
-                                            "TwoFactorScreen",
-                                            "ChangeEmailPasswordScreen",
-                                            ...(Platform.OS == "ios" ? ["SelectMediaScreen"]: [])
-                                        ].includes(currentScreenName)
-                                        && (
-                                            <View
-                                                style={{
-                                                    position: "relative",
-                                                    width: "100%",
-                                                    bottom: 0,
-                                                    height: 50
-                                                }}
-                                            >
-                                                <BottomBar navigation={navigationRef} />
-                                            </View>
-                                        )
-                                    }
-                                </>
+                                {
+                                    typeof cfg !== "undefined"
+                                    && setupDone
+                                    && isLoggedIn
+                                    && [
+                                        "MainScreen",
+                                        "SettingsScreen"
+                                    ].includes(currentScreenName)
+                                    && (
+                                        <Announcements
+                                            cfg={cfg}
+                                        />
+                                    )
+                                }
+                                {
+                                    setupDone
+                                    && isLoggedIn
+                                    && [
+                                        "MainScreen",
+                                        "SettingsScreen",
+                                        "TransfersScreen",
+                                        "CameraUploadScreen",
+                                        "CameraUploadAlbumsScreen",
+                                        "EventsScreen",
+                                        "EventsInfoScreen",
+                                        "SettingsAdvancedScreen",
+                                        "SettingsAccountScreen",
+                                        "LanguageScreen",
+                                        "GDPRScreen",
+                                        "InviteScreen",
+                                        "TwoFactorScreen",
+                                        "ChangeEmailPasswordScreen",
+                                        ...(Platform.OS == "ios" ? ["SelectMediaScreen"]: [])
+                                    ].includes(currentScreenName)
+                                    && (
+                                        <View
+                                            style={{
+                                                position: "relative",
+                                                width: "100%",
+                                                bottom: 0,
+                                                height: 50
+                                            }}
+                                        >
+                                            <BottomBar navigation={navigationRef} />
+                                        </View>
+                                    )
+                                }
                                 <TransfersIndicator navigation={navigationRef} />
                                 <TopBarActionSheet navigation={navigationRef} />
                                 <BottomBarAddActionSheet />

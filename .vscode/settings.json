@@ -2,6 +2,7 @@
 	"files.eol": "\n",
 	"editor.formatOnPaste": false,
 	"editor.formatOnSave": false,
+	"editor.formatOnType": false,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.codeActionsOnSave": {
 		"source.fixAll.eslint": false,

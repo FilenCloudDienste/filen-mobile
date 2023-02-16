@@ -21,7 +21,7 @@ import { logout } from "../services/auth/logout"
 import { useStore } from "../state"
 import DeviceInfo from "react-native-device-info"
 import { isOnline } from "../services/isOnline"
-import type { Item } from "../../types"
+import type { Item, ICFG } from "../../types"
 import axios from "axios"
 import striptags from "striptags"
 
@@ -45,6 +45,16 @@ const endpointsToCache: string[] = [
     "/v1/file/exists",
     "/v1/dir/exists"
 ]
+
+export const getCfg = async (): Promise<ICFG> => {
+    const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + new Date().getTime())
+
+    if(response.status !== 200){
+        throw new Error("Could not load CFG from CDN")
+    }
+
+    return response.data
+}
 
 export const apiRequest = ({ method, endpoint, data }: { method: string, endpoint: string, data: any }): Promise<any> => {
     return new Promise((resolve, reject) => {
