@@ -81,6 +81,10 @@ const Announcements = memo(({ cfg }: { cfg: ICFG }) => {
         return null
     }
 
+    if(cfg.announcements.filter(announcement => announcement.platforms.includes("mobile") || announcement.platforms.includes("all")).length == 0){
+        return null
+    }
+
     if(cfg.announcements.filter(announcement => typeof (acknowledgedAnnouncements || {})[announcement.uuid] == "undefined").length == 0){
         return null
     }
@@ -108,6 +112,10 @@ const Announcements = memo(({ cfg }: { cfg: ICFG }) => {
                 {
                     cfg.announcements.map((announcement, index) => {
                         if(typeof (acknowledgedAnnouncements || {})[announcement.uuid] !== "undefined"){
+                            return null
+                        }
+
+                        if(!announcement.platforms.includes("mobile") || !announcement.platforms.includes("all")){
                             return null
                         }
 

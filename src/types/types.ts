@@ -109,12 +109,15 @@ export interface ProgressData {
     }
 }
 
+export type CFGPlatforms = "web" | "mobile" | "desktop" | "all"
+
 export interface CFGAnnouncement {
     uuid: string,
     title: string,
     message: string,
     active: boolean,
-    timestamp: number
+    timestamp: number,
+    platforms: CFGPlatforms[]
 }
 
 export interface IPlans {
