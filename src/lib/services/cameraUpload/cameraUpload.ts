@@ -6,7 +6,6 @@ import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import * as FileSystem from "expo-file-system"
 import mimeTypes from "mime-types"
-import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 // @ts-ignore
 import RNHeicConverter from "react-native-heic-converter"
 import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
@@ -17,14 +16,6 @@ import { memoize } from "lodash"
 import { validate } from "uuid"
 
 const CryptoJS = require("crypto-js")
-const log = logger.createLogger({
-    severity: "debug",
-    transport: [fileAsyncTransport, mapConsoleTransport],
-    transportOptions: {
-        FS: FileSystem,
-        fileName: "logs/cameraUpload.log"
-    }
-})
 
 const TIMEOUT: number = 5000
 const FAILED: { [key: string]: number } = {}
@@ -237,7 +228,7 @@ export const getLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
             }
         }
         catch(e){
-            log.error(e)
+            console.error(e)
 
             cameraUploadExcludedAlbums = {}
         }
@@ -833,7 +824,7 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
                 var file = await getFile(asset, assetURI)
             }
             catch(e){
-                log.error(e)
+                console.error(e)
         
                 if(typeof FAILED[assetId] !== "number"){
                     FAILED[assetId] = 1
@@ -877,7 +868,7 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
                 return true
             }
             catch(e){
-                log.error(e)
+                console.error(e)
         
                 FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
 
@@ -934,7 +925,7 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
         return true
     }
     catch(e){
-        log.error(e)
+        console.error(e)
 
         runTimeout = new Date().getTime() + (TIMEOUT - 1000)
         runMutex.release()

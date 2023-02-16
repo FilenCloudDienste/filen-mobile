@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo } from "react"
+import React, { memo, useEffect, useMemo, useState, useRef } from "react"
 import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, useWindowDimensions, ScaledSize, Pressable, Platform } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { getImageForItem } from "../../assets/thumbnails"
@@ -12,6 +12,7 @@ import storage from "../../lib/storage"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import FastImage from "react-native-fast-image"
 import { isOnline } from "../../lib/services/isOnline"
+import { useMountedState } from "react-use"
 
 export interface ItemBaseProps {
     item: Item,
@@ -36,18 +37,18 @@ export interface ListItemProps extends ItemBaseProps {
 }
 
 export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
+    const cachedFolderSize = useRef<number>(storage.getNumber("folderSizeCache:" + item.uuid)).current
+    const [size, setSize] = useState<number>(item.type == "folder" && cachedFolderSize > 0 ? cachedFolderSize : item.size)
+    const isMounted = useMountedState()
+
     useEffect(() => {
         if(item.type == "folder" && isOnline()){
             fetchFolderSize({ folder: item, routeURL: getRouteURL(route) }).then((fetchedSize) => {
-                storage.set("folderSizeCache:" + item.uuid, fetchedSize)
+                if(isMounted()){
+                    setSize(fetchedSize)
+                }
 
-                DeviceEventEmitter.emit("event", {
-                    type: "folder-size",
-                    data: {
-                        uuid: item.uuid,
-                        size: fetchedSize
-                    }
-                })
+                storage.set("folderSizeCache:" + item.uuid, fetchedSize)
             }).catch(console.error)
         }
     }, [item.uuid, item.name, index, route])
@@ -176,7 +177,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                     </>
                                 ) : <></>
                             }
-                            {hideSizes ? formatBytes(0) : formatBytes(item.size)}
+                            {hideSizes ? formatBytes(0) : formatBytes(size)}
                             {
                                 typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && getParent(route).length < 32 && (
                                     <>
@@ -240,6 +241,9 @@ export interface GridItemProps extends ItemBaseProps {
 
 export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow, hideSizes, route }: GridItemProps) => {
     const dimensions: ScaledSize = useWindowDimensions()
+    const cachedFolderSize = useRef<number>(storage.getNumber("folderSizeCache:" + item.uuid)).current
+    const [size, setSize] = useState<number>(item.type == "folder" && cachedFolderSize > 0 ? cachedFolderSize : item.size)
+    const isMounted = useMountedState()
 
     const windowWidth: number = useMemo(() => {
         return (dimensions.width - (insets.left + insets.right)) - 40
@@ -248,15 +252,11 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
     useEffect(() => {
         if(item.type == "folder" && isOnline()){
             fetchFolderSize({ folder: item, routeURL: getRouteURL(route) }).then((fetchedSize) => {
-                storage.set("folderSizeCache:" + item.uuid, fetchedSize)
+                if(isMounted()){
+                    setSize(fetchedSize)
+                }
 
-                DeviceEventEmitter.emit("event", {
-                    type: "folder-size",
-                    data: {
-                        uuid: item.uuid,
-                        size: fetchedSize
-                    }
-                })
+                storage.set("folderSizeCache:" + item.uuid, fetchedSize)
             }).catch(console.error)
         }
     }, [item.uuid, item.name, index, route])
@@ -402,7 +402,7 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
                         }}
                         numberOfLines={1}
                     >
-                        {hideSizes ? formatBytes(0) : formatBytes(item.size)}
+                        {hideSizes ? formatBytes(0) : formatBytes(size)}
                     </Text>
                 </Pressable>
             </View>
