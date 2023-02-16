@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Component, memo, useRef } from "react"
+import React, { useEffect, useState, memo, useRef } from "react"
 import { View, Text, ScrollView, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight, useWindowDimensions, ScaledSize } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
@@ -16,9 +16,10 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface EventsInfoScreenProps {
-    navigation: any,
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
     route: any
 }
 
@@ -322,112 +323,114 @@ export interface EventRowProps {
     lang: string | undefined,
     index: number,
     darkMode: boolean,
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
-export class EventRow extends Component<EventRowProps> {
-    state = {
-        eventText: ""
-    }
+export const EventRow = memo(({ item, masterKeys, index, navigation }: EventRowProps) => {
+    const lang = useLang()
+    const darkMode = useDarkMode()
+    const [eventText, setEventText] = useState<string>("")
+    const isMounted = useMountedState()
 
-    async componentDidMount(){
-        const { item, masterKeys, lang } = this.props
-        const eventText = await getEventText({ item, masterKeys, lang })
+    useEffect(() => {
+        getEventText({
+            item,
+            masterKeys,
+            lang
+        }).then((text) => {
+            if(isMounted()){
+                setEventText(text)
+            }
+        }).catch(console.error)
+    }, [])
 
-        this.setState({ eventText })
-    }
-
-    render(){
-        const { item, index, darkMode, lang, navigation } = this.props
-
-        return (
+    return (
+        <View
+            key={index.toString()} style={{
+                height: 44,
+                width: "100%",
+                paddingLeft: 15,
+                paddingRight: 15,
+                marginBottom: 10
+            }}
+        >
             <View
-                key={index.toString()} style={{
+                style={{
                     height: 44,
                     width: "100%",
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    marginBottom: 10
+                    backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                    borderRadius: 10
                 }}
             >
-                <View
+                <TouchableHighlight
+                    underlayColor={getColor(darkMode, "underlaySettingsButton")}
                     style={{
-                        height: 44,
                         width: "100%",
-                        backgroundColor: getColor(darkMode, "backgroundSecondary"),
+                        height: 44,
                         borderRadius: 10
                     }}
+                    onPress={() => {
+                        navigationAnimation({ enable: true }).then(() => {
+                            navigation.dispatch(StackActions.push("EventsInfoScreen", {
+                                uuid: item.uuid
+                            }))
+                        })
+                    }}
                 >
-                    <TouchableHighlight
-                        underlayColor={getColor(darkMode, "underlaySettingsButton")}
+                    <View
                         style={{
                             width: "100%",
                             height: 44,
-                            borderRadius: 10
-                        }}
-                        onPress={() => {
-                            navigationAnimation({ enable: true }).then(() => {
-                                navigation.dispatch(StackActions.push("EventsInfoScreen", {
-                                    uuid: item.uuid
-                                }))
-                            })
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            paddingLeft: 10,
+                            paddingRight: 10,
+                            alignItems: "center",
+                            flex: 1
                         }}
                     >
+                        <Text
+                            style={{
+                                color: getColor(darkMode, "textPrimary"),
+                                fontSize: 17,
+                                fontWeight: "400",
+                                flex: 1,
+                                paddingRight: 10
+                            }}
+                            numberOfLines={1}
+                        >
+                            {eventText}
+                        </Text>
                         <View
                             style={{
-                                width: "100%",
-                                height: 44,
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                paddingLeft: 10,
-                                paddingRight: 10,
-                                alignItems: "center",
-                                flex: 1
+                                flexDirection: "row"
                             }}
                         >
                             <Text
                                 style={{
-                                    color: getColor(darkMode, "textPrimary"),
-                                    fontSize: 17,
-                                    fontWeight: "400",
-                                    flex: 1,
-                                    paddingRight: 10
+                                    color: "gray",
+                                    paddingRight: 5,
+                                    fontSize: 13,
+                                    paddingTop: 2
                                 }}
-                                numberOfLines={1}
                             >
-                                {this.state.eventText}
+                                {new Date(convertTimestampToMs(item.timestamp)).toLocaleDateString()}
                             </Text>
-                            <View
-                                style={{
-                                    flexDirection: "row"
-                                }}
-                            >
-                                <Text
-                                    style={{
-                                        color: "gray",
-                                        paddingRight: 5,
-                                        fontSize: 13,
-                                        paddingTop: 2
-                                    }}
-                                >
-                                    {new Date(convertTimestampToMs(item.timestamp)).toLocaleDateString()}
-                                </Text>
-                                <Ionicon
-                                    name="chevron-forward-outline" 
-                                    size={18} 
-                                    color="gray"
-                                />
-                            </View>
+                            <Ionicon
+                                name="chevron-forward-outline" 
+                                size={18} 
+                                color="gray"
+                            />
                         </View>
-                    </TouchableHighlight>
-                </View>
+                    </View>
+                </TouchableHighlight>
             </View>
-        )
-    }
-}
+        </View>
+    )
+})
 
 export interface EventsScreenProps {
-    navigation: any,
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
     route: any
 }
 
@@ -571,7 +574,6 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                                 }
     
                                 setRefreshing(true)
-            
                                 getEvents(0)
                             }}
                             tintColor={getColor(darkMode, "textPrimary")}

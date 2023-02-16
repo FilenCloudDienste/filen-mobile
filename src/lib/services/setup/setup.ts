@@ -23,6 +23,7 @@ const log = logger.createLogger({
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 const CACHE_CLEARING_ENABLED: boolean = true
+const deleted: Record<string, boolean> = {}
 
 const deleteMutex = new Semaphore(1)
 const DONT_DELETE: string[] = [
@@ -56,7 +57,9 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
 
                 for(let i = 0; i < cacheDownloadsItems.length; i++){
                     if(CACHE_CLEARING_ENABLED){
-                        if(canDelete(cacheDownloadsItems[i])){
+                        if(canDelete(cacheDownloadsItems[i]) && typeof deleted[toExpoFsPath(cachedDownloadsPath + "/" + cacheDownloadsItems[i])] == "undefined"){
+                            deleted[toExpoFsPath(cachedDownloadsPath + "/" + cacheDownloadsItems[i])] = true
+
                             await deleteMutex.acquire()
 
                             FileSystem.deleteAsync(toExpoFsPath(cachedDownloadsPath + "/" + cacheDownloadsItems[i])).then(() => {
@@ -89,7 +92,9 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
             
                     for(let i = 0; i < cacheItems.length; i++){
                         if(CACHE_CLEARING_ENABLED){
-                            if(canDelete(cacheItems[i])){
+                            if(canDelete(cacheItems[i]) && typeof deleted[toExpoFsPath(cachePath + "/" + cacheItems[i])] == "undefined"){
+                                deleted[toExpoFsPath(cachePath + "/" + cacheItems[i])] = true
+
                                 await deleteMutex.acquire()
 
                                 FileSystem.deleteAsync(toExpoFsPath(cachePath + "/" + cacheItems[i])).then(() => {
@@ -122,7 +127,9 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
 
                 for(let i = 0; i < tmpItems.length; i++){
                     if(CACHE_CLEARING_ENABLED){
-                        if(canDelete(tmpItems[i])){
+                        if(canDelete(tmpItems[i]) && typeof deleted[toExpoFsPath(tmpPath + "/" + tmpItems[i])] == "undefined"){
+                            deleted[toExpoFsPath(tmpPath + "/" + tmpItems[i])] = true
+
                             await deleteMutex.acquire()
 
                             FileSystem.deleteAsync(toExpoFsPath(tmpPath + "/" + tmpItems[i])).then(() => {
@@ -154,7 +161,9 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
 
                 for(let i = 0; i < tmpItems.length; i++){
                     if(CACHE_CLEARING_ENABLED){
-                        if(canDelete(tmpItems[i])){
+                        if(canDelete(tmpItems[i]) && typeof deleted[toExpoFsPath(tmpPath + "/" + tmpItems[i])] == "undefined"){
+                            deleted[toExpoFsPath(tmpPath + "/" + tmpItems[i])] = true
+
                             await deleteMutex.acquire()
 
                             FileSystem.deleteAsync(toExpoFsPath(tmpPath + "/" + tmpItems[i])).then(() => {
@@ -228,7 +237,9 @@ export const clearCacheDirectories = async (): Promise<boolean> => {
                 }
 
                 for(let i = 0; i < toDelete.length; i++){
-                    if(canDelete(toDelete[i])){
+                    if(canDelete(toDelete[i]) && typeof deleted[toExpoFsPath(offlinePath + "/" + toDelete[i])] == "undefined"){
+                        deleted[toExpoFsPath(offlinePath + "/" + toDelete[i])] = true
+                        
                         await deleteMutex.acquire()
 
                         FileSystem.deleteAsync(toExpoFsPath(offlinePath + "/" + toDelete[i])).then(() => {

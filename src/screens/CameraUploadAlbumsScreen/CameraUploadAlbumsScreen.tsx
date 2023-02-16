@@ -294,7 +294,7 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                         ) : !hasPermissions ? (
                             <Text
                                 style={{
-                                    color: getColor(darkMode, "textPrimary"),
+                                    color: getColor(darkMode, "textSecondary"),
                                     fontSize: 17,
                                     fontWeight: "400",
                                     padding: 15
@@ -327,7 +327,7 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                         ) : (
                             <Text
                                 style={{
-                                    color: getColor(darkMode, "textPrimary"),
+                                    color: getColor(darkMode, "textSecondary"),
                                     padding: 10,
                                     fontSize: 17,
                                     fontWeight: "400"
