@@ -1,4 +1,9 @@
 {
   "name": "Filen",
-  "displayName": "Filen"
+  "displayName": "Filen",
+  "expo": {
+    "ios": {
+      "bundleIdentifier": "io.filen.app"
+    }
+  }
 }
