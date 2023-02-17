@@ -5,13 +5,14 @@ import storage from "../../storage"
 import { i18n } from "../../../i18n"
 import { DeviceEventEmitter } from "react-native"
 import { getDownloadPath } from "../download/download"
-import { getThumbnailCacheKey, buildFile } from "../items"
+import { buildFile } from "../items"
 import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "../../memoryCache"
 import * as FileSystem from "expo-file-system"
 import { isOnline, isWifi } from "../isOnline"
 import * as VideoThumbnails from "expo-video-thumbnails"
+import { getThumbnailCacheKey } from "../thumbnails"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -260,7 +261,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
         
                 if(canCompressThumbnailLocally(getFileExt(name))){
                     try{
-                        await new Promise((resolve) => {
+                        await new Promise<void>((resolve) => {
                             getDownloadPath({ type: "thumbnail" }).then(async (dest) => {
                                 dest = dest + uuid + ".jpg"
                 
@@ -276,20 +277,20 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                 const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid })
 
                                 if(width <= 1 || height <= 1){
-                                    return resolve(true)
+                                    return resolve()
                                 }
                         
                                 FileSystem.getInfoAsync(toExpoFsPath(file.path)).then((stat) => {
                                     if(!stat.exists){
-                                        return resolve(true)
+                                        return resolve()
                                     }
                                     
                                     if(!stat.size){
-                                        return resolve(true)
+                                        return resolve()
                                     }
 
                                     if(stat.size <= 1){
-                                        return resolve(true)
+                                        return resolve()
                                     }
 
                                     if(getFilePreviewType(getFileExt(name)) == "video"){
@@ -305,7 +306,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                                         storage.set(cacheKey, item.uuid + ".jpg")
                                                         memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
                             
-                                                        return resolve(true)
+                                                        return resolve()
                                                     }).catch(resolve)
                                                 }).catch(resolve)
                                             }).catch(resolve)
@@ -320,7 +321,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                                 storage.set(cacheKey, item.uuid + ".jpg")
                                                 memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
                     
-                                                return resolve(true)
+                                                return resolve()
                                             }).catch(resolve)
                                         }).catch(resolve)
                                     }
