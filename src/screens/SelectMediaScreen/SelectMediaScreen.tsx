@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "react"
-import type { NavigationContainerRef, NavigationState } from "@react-navigation/native"
+import { NavigationContainerRef, NavigationState } from "@react-navigation/native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { useWindowDimensions, View, Text, FlatList, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter, Platform } from "react-native"

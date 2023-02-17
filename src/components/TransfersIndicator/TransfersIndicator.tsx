@@ -9,7 +9,7 @@ import { throttle } from "lodash"
 import memoryCache from "../../lib/memoryCache"
 import { getColor } from "../../style"
 import { Circle } from "react-native-progress"
-import type { TransfersIndicatorProps, IndicatorProps, Download, ProgressData } from "../../types"
+import { TransfersIndicatorProps, IndicatorProps, Download, ProgressData } from "../../types"
 
 export const Indicator = memo(({ darkMode, visible, navigation, progress, currentRouteName }: IndicatorProps) => {
     if(!visible){

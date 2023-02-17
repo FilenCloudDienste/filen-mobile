@@ -1,4 +1,4 @@
-import type { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface ItemReceiver {
     id: number,

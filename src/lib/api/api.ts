@@ -21,7 +21,7 @@ import { logout } from "../services/auth/logout"
 import { useStore } from "../state"
 import DeviceInfo from "react-native-device-info"
 import { isOnline } from "../services/isOnline"
-import type { Item, ICFG } from "../../types"
+import { Item, ICFG } from "../../types"
 import axios from "axios"
 import striptags from "striptags"
 

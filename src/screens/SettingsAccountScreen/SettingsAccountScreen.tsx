@@ -14,7 +14,7 @@ import { useMountedState } from "react-use"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../style"
-import type { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface SettingsAccountScreenProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>

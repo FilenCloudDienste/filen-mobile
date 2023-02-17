@@ -12,7 +12,7 @@ import { getColor } from "../../style/colors"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import type { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface BottomBarProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>

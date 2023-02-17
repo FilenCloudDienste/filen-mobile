@@ -7,7 +7,7 @@ import { i18n } from "../../../i18n"
 import { navigationAnimation } from "../../../lib/state"
 import { StackActions } from "@react-navigation/native"
 import { DeviceEventEmitter } from "react-native"
-import type { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface CreateTextFileDialogProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>

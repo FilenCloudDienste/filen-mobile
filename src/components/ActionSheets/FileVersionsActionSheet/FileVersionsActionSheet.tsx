@@ -7,11 +7,10 @@ import { convertTimestampToMs, getMasterKeys, decryptFileMetadata, simpleDate } 
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { fetchFileVersionData, restoreArchivedFile } from "../../../lib/api"
-import { previewItem } from "../../../lib/services/items"
 import { getColor } from "../../../style/colors"
 import { ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
-import type { Item } from "../../../types"
+import { Item } from "../../../types"
 
 const FileVersionsActionSheet = memo(() => {
     const darkMode = useDarkMode()

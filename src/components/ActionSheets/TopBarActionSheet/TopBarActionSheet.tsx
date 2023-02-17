@@ -20,8 +20,8 @@ import * as MediaLibrary from "expo-media-library"
 import { ActionButton, ActionSheetIndicator } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
-import type { NavigationContainerRef } from "@react-navigation/native"
-import type { Item } from "../../../types"
+import { NavigationContainerRef } from "@react-navigation/native"
+import { Item } from "../../../types"
 
 export interface TopBarActionSheetProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>

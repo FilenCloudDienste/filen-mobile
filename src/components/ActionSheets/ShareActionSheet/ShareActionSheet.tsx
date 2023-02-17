@@ -10,7 +10,7 @@ import { getPublicKeyFromEmail, shareItemToUser } from "../../../lib/api"
 import { getColor } from "../../../style/colors"
 import { ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
-import type { Item } from "../../../types"
+import { Item } from "../../../types"
 
 const ShareActionSheet = memo(() => {
     const darkMode = useDarkMode()

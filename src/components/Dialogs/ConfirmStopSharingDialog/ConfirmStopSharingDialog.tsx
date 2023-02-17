@@ -6,7 +6,7 @@ import { stopSharingItem } from "../../../lib/api"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { DeviceEventEmitter } from "react-native"
-import type { Item } from "../../../types"
+import { Item } from "../../../types"
 
 const ConfirmStopSharingDialog = memo(() => {
     const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)

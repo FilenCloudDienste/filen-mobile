@@ -10,7 +10,7 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { Bar } from "react-native-progress"
 import { getImageForItem } from "../../assets/thumbnails"
-import type { Item } from "../../types"
+import { Item } from "../../types"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import FastImage from "react-native-fast-image"
 

@@ -3,9 +3,9 @@ import { Platform } from "react-native"
 import { useStore } from "../state"
 import { i18n } from "../../i18n"
 import { memoize, values } from "lodash"
-import type { NavigationContainerRefWithCurrent } from "@react-navigation/native"
+import { NavigationContainerRefWithCurrent } from "@react-navigation/native"
 import * as MediaLibrary from "expo-media-library"
-import type { Item } from "../../types"
+import { Item } from "../../types"
 
 export const getAPIServer = (): string => {
     const servers = [

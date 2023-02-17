@@ -9,7 +9,7 @@ import { useStore, navigationAnimation } from "../../lib/state"
 import { getParent, getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../../style/colors"
-import type { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 

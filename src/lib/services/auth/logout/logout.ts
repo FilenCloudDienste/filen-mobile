@@ -1,6 +1,6 @@
 import storage from "../../../storage"
 import { StackActions } from "@react-navigation/native"
-import type { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export const logout = ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
     try{

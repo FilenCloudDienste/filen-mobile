@@ -23,7 +23,7 @@ import useNetworkInfo from "../../../lib/services/isOnline/useNetworkInfo"
 import { ActionButton, ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
-import type { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface ItemActionSheetProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>

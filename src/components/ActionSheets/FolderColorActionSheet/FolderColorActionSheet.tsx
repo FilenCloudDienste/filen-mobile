@@ -11,7 +11,7 @@ import { getColor } from "../../../style/colors"
 import { ActionButton, ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
 import { changeFolderColor } from "../../../lib/api"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
-import type { Item } from "../../../types"
+import { Item } from "../../../types"
 
 const FolderColorActionSheet = memo(() => {
     const darkMode = useDarkMode()
@@ -102,10 +102,6 @@ const FolderColorActionSheet = memo(() => {
 				{
 					Object.keys(availableFolderColors).map((prop) => {
 						if(prop == "default_ios"){
-							return null
-						}
-
-						if(Platform.OS == "ios" && prop == "blue"){
 							return null
 						}
 

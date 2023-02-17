@@ -12,7 +12,7 @@ import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../../../style/colors"
 import { decryptFolderLinkKey, getMasterKeys, getRouteURL } from "../../../lib/helpers"
 import { ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
-import type { Item } from "../../../types"
+import { Item } from "../../../types"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 
 const PublicLinkActionSheet = memo(() => {

@@ -3,7 +3,7 @@ import { apiRequest } from "../../../api"
 import { logout } from "../../auth/logout"
 import { getMasterKeys, encryptMetadata, getAPIKey, decryptMetadata } from "../../../helpers"
 import { showToast } from "../../../../components/Toasts"
-import type { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export const updateKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
     return new Promise((resolve, reject) => {

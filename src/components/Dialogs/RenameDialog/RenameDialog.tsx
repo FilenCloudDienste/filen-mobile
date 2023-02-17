@@ -7,7 +7,7 @@ import { folderExists, fileExists, renameFile, renameFolder } from "../../../lib
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { DeviceEventEmitter, Keyboard } from "react-native"
-import type { Item } from "../../../types"
+import { Item } from "../../../types"
 
 const RenameDialog = memo(() => {
     const [value, setValue] = useState<string>("")
