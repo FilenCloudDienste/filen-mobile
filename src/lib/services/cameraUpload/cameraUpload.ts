@@ -555,7 +555,7 @@ export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<Up
                                             if (stat.exists && stat.size) {
                                                 const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
                                                 const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
-                                                const newName = nameWithoutEx + ".JPG"
+                                                const newName = nameWithoutEx.split("_").length < 2 ? (asset.filename + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
 
                                                 setTimeout(() => getFileMutex.release(), mutexTimeout)
 
@@ -593,10 +593,13 @@ export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<Up
                                 filesToUploadPromises.push(FileSystem.getInfoAsync(toExpoFsPath(resource.localFileLocations)).then((stat) => {
                                     if (stat.exists && stat.size) {
                                         setTimeout(() => getFileMutex.release(), mutexTimeout)
+                                        var name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
+                                        // If File does not have a _, then append the asset filename to the name
+                                        name = name.split("_").length < 2 ? (asset.filename.substring(0, asset.filename.lastIndexOf(".")) + name) : name
 
                                         filesToUpload.push({
                                             path: resource.localFileLocations.split("file://").join(""),
-                                            name: resource.localFileLocations.split(tmpPrefix).pop() || asset.filename,
+                                            name: name,
                                             mime: mimeTypes.lookup(resource.localFileLocations) || "",
                                             size: stat.size,
                                             lastModified: convertTimestampToMs(asset.creationTime)
