@@ -100,7 +100,7 @@
 		"path": "0.12.7",
 		"prettier": "2.8.4",
 		"prettier-plugin-x": "0.0.10",
-		"react-native": "^0.64.3",
+		"react-native": "0.64.3",
 		"react-native-svg-app-icon": "0.6.1",
 		"react-test-renderer": "17.0.2",
 		"typescript": "4.7.4"

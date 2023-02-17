@@ -10,8 +10,6 @@ PODS:
     - ExpoModulesCore
   - EXConstants (13.0.2):
     - ExpoModulesCore
-  - EXErrorRecovery (3.0.5):
-    - ExpoModulesCore
   - EXFileSystem (13.1.4):
     - ExpoModulesCore
   - EXFont (10.0.4):
@@ -391,7 +389,6 @@ DEPENDENCIES:
   - EXBackgroundFetch (from `../node_modules/expo-background-fetch/ios`)
   - EXClipboard (from `../node_modules/expo-clipboard/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
-  - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXKeepAwake (from `../node_modules/expo-keep-awake/ios`)
@@ -481,8 +478,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-clipboard/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
-  EXErrorRecovery:
-    :path: "../node_modules/expo-error-recovery/ios"
   EXFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   EXFont:
@@ -621,7 +616,6 @@ SPEC CHECKSUMS:
   EXBackgroundFetch: 12e8a8c522a2d2c5be07168d74af76567841f023
   EXClipboard: 4d6ee6f9572ef999fc323e4b99c8d180e041ad33
   EXConstants: 88bf79622fbd9b476c96d8ec57fe97ca44fe8e3c
-  EXErrorRecovery: b0d7582714a2cc896e94a2308a356f94dbf14ef7
   EXFileSystem: 08a3033ac372b6346becf07839e1ccef26fb1058
   EXFont: 1fb13af43dc517c01c0ff21a6e32f9f9bf2ea602
   EXKeepAwake: b571c2ad8323b2fced6e907766e2549f75119471
@@ -633,7 +627,7 @@ SPEC CHECKSUMS:
   EXTaskManager: 53bcb908457ff6282ffb1e31c25c0656e3725161
   EXVideoThumbnails: d7d1a7c8e240872c580127073b87f740d4f3d8a5
   FBLazyVector: c71c5917ec0ad2de41d5d06a5855f6d5eda06971
-  FBReactNativeSpec: 13e2a2bc6829c6aca929c871fcac75127a5e69c8
+  FBReactNativeSpec: 4c66934d1bffd80be9f3b5f5b4f600d1279b3f3b
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
   libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
   MMKV: 9c4663aa7ca255d478ff10f2f5cb7d17c1651ccd
@@ -696,4 +690,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 7cd0963e9e3834303a1681988550b6f602c341b1
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.11.2
