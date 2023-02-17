@@ -517,6 +517,7 @@ export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<Up
                 const releaseMutex = () => setTimeout(() => getFileMutex.release(), mutexTimeout)
                 const userId = storage.getNumber("userId")
                 const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
+                const cameraUploadConvertBurstPhotos = storage.getBoolean("cameraUploadConvertBurstPhotos:" + userId)
                 const tmpPrefix = randomIdUnsafe() + "_"
                 const tmp = FileSystem.cacheDirectory + tmpPrefix + asset.filename
 
@@ -529,6 +530,8 @@ export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<Up
                         }
 
                         const filesToUploadPromises: Promise<UploadFile>[] = []
+
+                        console.log(results)
 
                         for(const resource of results.exportResults!){
                             if(
@@ -580,7 +583,7 @@ export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<Up
                                 filesToUploadPromises.push(
                                     new Promise<UploadFile>((resolve, reject) => {
                                         FileSystem.getInfoAsync(toExpoFsPath(resource.localFileLocations)).then((stat) => {
-                                            if (stat.exists && stat.size) {
+                                            if(stat.exists && stat.size){
                                                 let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
 
                                                 // If File does not have a _, then append the asset filename to the name

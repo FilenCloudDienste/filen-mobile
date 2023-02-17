@@ -29,6 +29,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
     const [hasPermissions, setHasPermissions] = useState<boolean>(false)
     const [cameraUploadEnableHeic, setCameraUploadEnableHeic] = useMMKVBoolean("cameraUploadEnableHeic:" + userId, storage)
     const [cameraUploadAfterEnabled, setCameraUploadAfterEnabled] = useMMKVBoolean("cameraUploadAfterEnabled:" + userId, storage)
+    const [cameraUploadConvertBurstPhotos, setCameraUploadConvertBurstPhotos] = useMMKVBoolean("cameraUploadConvertBurstPhotos:" + userId, storage)
 
     const chooseFolder = (): void => {
         navigationAnimation({ enable: true }).then(() => {
@@ -209,20 +210,36 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                     />
                     {
                         Platform.OS == "ios" && (
-                            <SettingsButtonLinkHighlight
-                                title={i18n(lang, "cameraUploadEnableHeic")}
-                                borderBottomRadius={10}
-                                withBottomBorder={true}
-                                rightComponent={
-                                    <Switch
-                                        trackColor={getColor(darkMode, "switchTrackColor")}
-                                        thumbColor={cameraUploadEnableHeic ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
-                                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-                                        onValueChange={() => setCameraUploadEnableHeic(!cameraUploadEnableHeic)}
-                                        value={cameraUploadEnableHeic}
-                                    />
-                                }
-                            />
+                            <>
+                                <SettingsButtonLinkHighlight
+                                    title={i18n(lang, "cameraUploadEnableHeic")}
+                                    borderBottomRadius={10}
+                                    withBottomBorder={true}
+                                    rightComponent={
+                                        <Switch
+                                            trackColor={getColor(darkMode, "switchTrackColor")}
+                                            thumbColor={cameraUploadEnableHeic ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                                            onValueChange={() => setCameraUploadEnableHeic(!cameraUploadEnableHeic)}
+                                            value={cameraUploadEnableHeic}
+                                        />
+                                    }
+                                />
+                                <SettingsButtonLinkHighlight
+                                    title={i18n(lang, "cameraUploadConvertBurstPhotos")}
+                                    borderBottomRadius={10}
+                                    withBottomBorder={true}
+                                    rightComponent={
+                                        <Switch
+                                            trackColor={getColor(darkMode, "switchTrackColor")}
+                                            thumbColor={cameraUploadConvertBurstPhotos ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                                            onValueChange={() => setCameraUploadConvertBurstPhotos(!cameraUploadConvertBurstPhotos)}
+                                            value={cameraUploadConvertBurstPhotos}
+                                        />
+                                    }
+                                />
+                            </>
                         )
                     }
                     <SettingsButtonLinkHighlight
