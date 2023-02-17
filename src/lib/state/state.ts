@@ -2,7 +2,7 @@ import create from "zustand"
 import { Dimensions } from "react-native"
 import { subscribeWithSelector } from "zustand/middleware"
 import { ScaledSize } from "react-native"
-import { ItemTemplate, Item } from "../services/items"
+import { Item } from "../../types"
 
 const window: ScaledSize = Dimensions.get("window")
 const screen: ScaledSize = Dimensions.get("screen")
