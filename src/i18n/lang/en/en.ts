@@ -410,5 +410,8 @@ export const en: {
     keepAppAwake: "Keep screen awake",
     followSystemTheme: "Follow system settings",
     hideRecents: "Hide recents",
-    videos: "Videos"
+    videos: "Videos",
+    cameraUploadOnlyUploadOriginal: "Only upload the original photo",
+    cameraUploadConvertLiveAndBurst: "Convert live and burst photos",
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Convert and keep the original"
 }

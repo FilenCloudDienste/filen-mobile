@@ -545,12 +545,12 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
                                 <>
                                     <Ionicon
                                         name="play"
-                                        size={16}
+                                        size={13}
                                         color="black"
                                         style={{
                                             position: "absolute",
-                                            left: 5.5,
-                                            top: 4,
+                                            left: 6.5,
+                                            top: 5,
                                             zIndex: 100
                                         }}
                                     />
@@ -559,9 +559,9 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
                                             position: "absolute",
                                             left: 3,
                                             top: 3,
-                                            width: 19,
-                                            height: 19,
-                                            borderRadius: 19,
+                                            width: 18,
+                                            height: 18,
+                                            borderRadius: 18,
                                             zIndex: 10,
                                             backgroundColor: "white"
                                         }}
