@@ -558,7 +558,7 @@ export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<Up
                                                         lastModified: convertTimestampToMs(asset.creationTime)
                                                     })
                                                 }
-                                                else {
+                                                else{
                                                     return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
                                                 }
                                             }).catch(reject)
