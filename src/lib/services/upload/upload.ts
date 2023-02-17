@@ -10,18 +10,8 @@ import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "../../memoryCache"
 import * as FileSystem from "expo-file-system"
-import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import { isOnline, isWifi } from "../isOnline"
 import * as VideoThumbnails from "expo-video-thumbnails"
-
-const log = logger.createLogger({
-    severity: "debug",
-    transport: [fileAsyncTransport, mapConsoleTransport],
-    transportOptions: {
-        FS: FileSystem,
-        fileName: "logs/upload.log"
-    }
-})
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -42,7 +32,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
         const apiKey = getAPIKey()
 
         if(masterKeys.length <= 0){
-            log.error("master keys !== object")
+            console.error("master keys !== object")
 
             return reject("master keys !== object")
         }
@@ -141,7 +131,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
             item.metadata = metaData
         }
         catch(e){
-            log.error(e)
+            console.error(e)
 
             clearInterval(stopInterval)
 
@@ -380,7 +370,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
             else{
                 showToast({ message: err.toString() })
 
-                log.error(err)
+                console.error(err)
 
                 return reject(err)
             }
@@ -413,7 +403,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
 
             cleanup()
 
-            log.error(e)
+            console.error(e)
 
             return reject(e)
         }

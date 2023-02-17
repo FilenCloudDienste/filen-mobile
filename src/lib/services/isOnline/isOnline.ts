@@ -1,18 +1,7 @@
 import storage from "../../storage"
-import * as FileSystem from "expo-file-system"
-import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import * as Network from "expo-network"
 import { DeviceEventEmitter } from "react-native"
 import { AppState } from "react-native"
-
-const log = logger.createLogger({
-    severity: "debug",
-    transport: [fileAsyncTransport, mapConsoleTransport],
-    transportOptions: {
-        FS: FileSystem,
-        fileName: "logs/isOnline.log"
-    }
-})
 
 let INTERVAL: any = undefined
 let STATE_INTERVAL: any = undefined
@@ -27,7 +16,7 @@ export const runNetworkCheck = async (skipTimeout: boolean = false) => {
     }
 
     const controller = new AbortController()
-    const timeoutTimer = setTimeout(() => controller.abort(), 10000)
+    const timeoutTimer = setTimeout(() => controller.abort(), 15000)
 
     try{
         const response = await fetch("https://api.filen.io", {
@@ -58,7 +47,7 @@ export const runNetworkCheck = async (skipTimeout: boolean = false) => {
     catch(e){
         console.error(e)
 
-        log.error(e)
+        console.error(e)
 
         storage.set("isOnline", false)
 
@@ -84,7 +73,7 @@ export const runWifiCheck = () => {
 
             DeviceEventEmitter.emit("networkInfoChange", { online: isOnline(), wifi: false })
         }
-    }).catch(log.error)
+    }).catch(console.error)
 }
 
 export const run = () => {
@@ -108,12 +97,7 @@ AppState.addEventListener("change", (nextAppState) => {
 })
 
 export const isOnline = (): boolean => {
-    try{
-        return storage.getBoolean("isOnline")
-    }
-    catch{
-        return false
-    }
+    return storage.getBoolean("isOnline")
 }
 
 export const networkState = async () => {

@@ -10,20 +10,10 @@ import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "../setup/setup"
 import type { Item } from "../../../types"
 import memoryCache from "../../memoryCache"
-import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import * as FileSystem from "expo-file-system"
 import { isOnline, isWifi } from "../isOnline"
 import { MB } from "../../constants"
 import { memoize } from "lodash"
-
-const log = logger.createLogger({
-    severity: "debug",
-    transport: [fileAsyncTransport, mapConsoleTransport],
-    transportOptions: {
-        FS: FileSystem,
-        fileName: "logs/download.log"
-    }
-})
 
 const downloadSemaphore = new Semaphore(3)
 const maxThreads = 32
@@ -47,7 +37,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
                     
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -63,7 +53,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
                     
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -79,7 +69,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
 
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -95,7 +85,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
 
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -114,7 +104,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
 
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -135,7 +125,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
 
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -151,7 +141,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
 
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -167,7 +157,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
 
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -183,7 +173,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
 
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -199,7 +189,7 @@ export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Pr
                         return resolve(path + "/")
                     }
 
-                    log.error(err)
+                    console.error(err)
 
                     return reject(err)
                 })
@@ -269,7 +259,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     catch(e){
         console.log(e)
 
-        log.error(e)
+        console.error(e)
 
         callOptionalCallback(new Error("could not get download path"))
 
@@ -344,7 +334,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
                     callOptionalCallback(err)
 
-                    log.error(err)
+                    console.error(err)
     
                     return console.log(err)
                 })
@@ -353,7 +343,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
                 callOptionalCallback(err)
 
-                log.error(err)
+                console.error(err)
 
                 return console.log(err)
             })
@@ -379,7 +369,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
                             callOptionalCallback(err)
 
-                            log.error(err)
+                            console.error(err)
     
                             return console.log(err)
                         })
@@ -388,7 +378,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
                         callOptionalCallback(err)
 
-                        log.error(err)
+                        console.error(err)
     
                         return console.log(err)
                     })
@@ -419,7 +409,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
                         callOptionalCallback(err)
 
-                        log.error(err)
+                        console.error(err)
         
                         return console.log(err)
                     })
@@ -451,7 +441,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
                     callOptionalCallback(err)
 
-                    log.error(err)
+                    console.error(err)
     
                     return console.log(err)
                 })
@@ -469,7 +459,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 err: err.toString()
             })
 
-            log.error(err)
+            console.error(err)
         }
 
         return callOptionalCallback(err)

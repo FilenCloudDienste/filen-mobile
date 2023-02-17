@@ -258,65 +258,6 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                         }}
                     />
                 </SettingsGroup>
-                <SettingsGroup>
-                    <SettingsButtonLinkHighlight
-                        title={i18n(lang, "saveLogs")}
-                        borderBottomRadius={10}
-                        borderTopRadius={10}
-                        onPress={async () => {
-                            useStore.setState({ fullscreenLoadingModalVisible: true })
-
-                            try{
-                                const logFiles = await RNFS.readDir(RNFS.DocumentDirectoryPath + "/logs")
-
-                                const logs = await Promise.all(logFiles.map(file => new Promise<{ log: string, name: string }>((resolve, reject) => {
-                                    if(file.name == "logs.txt"){
-                                        return resolve({
-                                            log: "",
-                                            name: file.name
-                                        })
-                                    }
-
-                                    RNFS.readFile(file.path, "utf8").then((log) => {
-                                        return resolve({
-                                            log,
-                                            name: file.name
-                                        })
-                                    }).catch(reject)
-                                })))
-
-                                let comment: string[] = []
-
-                                for(let i = 0; i < logs.length; i++){
-                                    comment.push(logs[i].name)
-                                    comment.push(logs[i].log)
-                                }
-
-                                const logPath = RNFS.DocumentDirectoryPath + "/logs/logs.txt"
-
-                                if((await RNFS.exists(logPath))){
-                                    await RNFS.unlink(logPath)
-                                }
-
-                                await RNFS.writeFile(logPath, comment.join("\n\n"), "utf8")
-
-                                useStore.setState({ fullscreenLoadingModalVisible: false })
-
-                                await Share.share({
-                                    title: "logs.txt",
-                                    url: logPath.indexOf("file://") == -1 ? "file://" + logPath : logPath
-                                })
-                            }
-                            catch(e: any){
-                                console.error(e)
-
-                                showToast({ message: e.toString() })
-                            }
-
-                            useStore.setState({ fullscreenLoadingModalVisible: false })
-                        }}
-                    />
-                </SettingsGroup>
                 <View
                     style={{
                         marginTop: 15,

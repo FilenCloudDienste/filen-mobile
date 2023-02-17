@@ -1,17 +1,6 @@
 import nodejs from "nodejs-mobile-react-native"
 import { DeviceEventEmitter } from "react-native"
-import * as FileSystem from "expo-file-system"
-import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 import { memoize } from "lodash"
-
-const log = logger.createLogger({
-    severity: "debug",
-    transport: [fileAsyncTransport, mapConsoleTransport],
-    transportOptions: {
-        FS: FileSystem,
-        fileName: "logs/node.log"
-    }
-})
 
 nodejs.start("main.js")
 
@@ -501,8 +490,8 @@ nodejs.channel.addListener("message", (message) => {
     }
 
     if(typeof message.nodeError !== "undefined"){
-        log.info("NODE SIDE ERROR")
-        log.error(message.err)
+        console.error("NODE SIDE ERROR")
+        console.error(message.err)
 
         return
     }
@@ -526,7 +515,7 @@ nodejs.channel.addListener("message", (message) => {
         const reject = rejects[id]
 
         if(typeof reject !== "undefined"){
-            log.error(err)
+            console.error(err)
 
             reject(err)
         }

@@ -47,6 +47,18 @@ const endpointsToCache: string[] = [
 ]
 
 export const getCfg = async (): Promise<ICFG> => {
+    if(!isOnline()){
+        await new Promise<void>((resolve) => {
+            const wait = setInterval(() => {
+                if(isOnline()){
+                    clearInterval(wait)
+
+                    return resolve()
+                }
+            }, 1000)
+        })
+    }
+
     const response = await axios.get("https://cdn.filen.io/cfg.json?noCache=" + new Date().getTime())
 
     if(response.status !== 200){

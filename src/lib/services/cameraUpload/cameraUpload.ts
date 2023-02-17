@@ -6,7 +6,6 @@ import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import * as FileSystem from "expo-file-system"
 import mimeTypes from "mime-types"
-import { logger, fileAsyncTransport, mapConsoleTransport } from "react-native-logs"
 // @ts-ignore
 import RNHeicConverter from "react-native-heic-converter"
 import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
@@ -18,14 +17,6 @@ import { validate } from "uuid"
 import { exportPhotoAssets } from "react-native-ios-asset-exporter"
 
 const CryptoJS = require("crypto-js")
-const log = logger.createLogger({
-    severity: "debug",
-    transport: [fileAsyncTransport, mapConsoleTransport],
-    transportOptions: {
-        FS: FileSystem,
-        fileName: "logs/cameraUpload.log"
-    }
-})
 
 const TIMEOUT: number = 5000
 const FAILED: { [key: string]: number } = {}
@@ -237,8 +228,8 @@ export const getLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
                 cameraUploadExcludedAlbums = {}
             }
         }
-        catch (e) {
-            log.error(e)
+        catch(e){
+            console.error(e)
 
             cameraUploadExcludedAlbums = {}
         }
@@ -882,10 +873,10 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
 
                 var files = await getFile(asset, assetURI)
             }
-            catch (e) {
-                log.error(e)
-
-                if (typeof FAILED[assetId] !== "number") {
+            catch(e){
+                console.error(e)
+        
+                if(typeof FAILED[assetId] !== "number"){
                     FAILED[assetId] = 1
                 }
                 else {
@@ -910,7 +901,7 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
                     uploadedThisRun += 1
                 }
                 catch (e) {
-                    log.error(e)
+                    console.error(e)
 
                     FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
 
@@ -939,7 +930,7 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
             return true
         }
 
-        for (let i = 0; i < deltas.length; i++) {
+        for(let i = 0; i < deltas.length; i++){
             const delta = deltas[i]
 
             if (typeof delta.item.asset == "undefined") {
@@ -985,8 +976,8 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
 
         return true
     }
-    catch (e) {
-        log.error(e)
+    catch(e){
+        console.error(e)
 
         runTimeout = new Date().getTime() + (TIMEOUT - 1000)
         runMutex.release()
