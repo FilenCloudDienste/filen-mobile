@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import React, { memo, useMemo } from "react"
 import { ICFG, CFGAnnouncement } from "../../types"
 import { View, Text, TouchableOpacity } from "react-native"
 import { getColor } from "../../style"
@@ -77,15 +77,11 @@ const Announcements = memo(({ cfg }: { cfg: ICFG }) => {
     const darkMode = useDarkMode()
     const [acknowledgedAnnouncements, setAcknowledgedAnnouncements] = useMMKVObject<Record<string, boolean>>("acknowledgedAnnouncements", storage)
 
-    if(cfg.announcements.filter(announcement => announcement.active).length == 0){
-        return null
-    }
+    const announcements = useMemo(() => {
+        return cfg.announcements.filter(announcement => announcement.active && (announcement.platforms.includes("mobile") || announcement.platforms.includes("all") && (typeof (acknowledgedAnnouncements || {})[announcement.uuid] == "undefined")))
+    }, [cfg.announcements, acknowledgedAnnouncements])
 
-    if(cfg.announcements.filter(announcement => announcement.platforms.includes("mobile") || announcement.platforms.includes("all")).length == 0){
-        return null
-    }
-
-    if(cfg.announcements.filter(announcement => typeof (acknowledgedAnnouncements || {})[announcement.uuid] == "undefined").length == 0){
+    if(announcements.length == 0){
         return null
     }
 
@@ -110,7 +106,7 @@ const Announcements = memo(({ cfg }: { cfg: ICFG }) => {
                 }}
             >
                 {
-                    cfg.announcements.map((announcement, index) => {
+                    announcements.map((announcement, index) => {
                         if(typeof (acknowledgedAnnouncements || {})[announcement.uuid] !== "undefined"){
                             return null
                         }
