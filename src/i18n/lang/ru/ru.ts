@@ -409,5 +409,6 @@ export const ru: {
     cameraUploadAfterEnabled: "Загружать только новые медиафайлы",
     keepAppAwake: "Не выключать экран",
     followSystemTheme: "Следовать системным настройкам",
-    hideRecents: "Скрыть недавние"
+    hideRecents: "Скрыть недавние",
+    videos: "Видео"
 }
