@@ -441,6 +441,14 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
             }
         })
 
+        DeviceEventEmitter.emit("event", {
+            type: "add-item",
+            data: {
+                item: builtFile,
+                parent: "recents"
+            }
+        })
+
         return resolve(item)
 
         //showToast({ message: i18n(storage.getString("lang"), "fileUploaded", true, ["__NAME__"], [name]) })

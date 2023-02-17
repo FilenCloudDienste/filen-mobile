@@ -421,6 +421,7 @@ export const canCompressThumbnail = memoize((ext: string): boolean => {
             case "mov":
             case "avi":
             case "webm":
+            case "webp":
                 return true
             break
             default:
@@ -460,6 +461,7 @@ export const canCompressThumbnailLocally = memoize((ext: string): boolean => {
             case "mov":
             case "avi":
             case "webm":
+            case "webp":
                 return true
             break
             default:
