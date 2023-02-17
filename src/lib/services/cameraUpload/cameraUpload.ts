@@ -511,153 +511,146 @@ export const getAssetURI = async (asset: MediaLibrary.Asset) => {
 
 export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<UploadFile[]> => {
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            getFileMutex.acquire().then(() => {
-                const mutexTimeout = 100
-                const releaseMutex = () => setTimeout(() => getFileMutex.release(), mutexTimeout)
-                const userId = storage.getNumber("userId")
-                const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
-                const cameraUploadConvertBurstPhotos = storage.getBoolean("cameraUploadConvertBurstPhotos:" + userId)
-                const tmpPrefix = randomIdUnsafe() + "_"
-                const tmp = FileSystem.cacheDirectory + tmpPrefix + asset.filename
+        getFileMutex.acquire().then(() => {
+            const mutexTimeout = 100
+            const releaseMutex = () => setTimeout(() => getFileMutex.release(), mutexTimeout)
+            const userId = storage.getNumber("userId")
+            const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
+            const cameraUploadConvertBurstPhotos = storage.getBoolean("cameraUploadConvertBurstPhotos:" + userId)
+            const tmpPrefix = randomIdUnsafe() + "_"
+            const tmp = FileSystem.cacheDirectory + tmpPrefix + asset.filename
 
-                if(Platform.OS === "ios"){
-                    exportPhotoAssets([asset.id], FileSystem.cacheDirectory!.substring(8), tmpPrefix, true, false).then((results) => {
-                        if(results.error && results.error.length > 0){
-                            releaseMutex()
+            if(Platform.OS === "ios"){
+                exportPhotoAssets([asset.id], FileSystem.cacheDirectory!.substring(8), tmpPrefix, true, false).then((results) => {
+                    if(results.error && results.error.length > 0){
+                        releaseMutex()
 
-                            return reject(results.error)
-                        }
+                        return reject(results.error)
+                    }
 
-                        const filesToUploadPromises: Promise<UploadFile>[] = []
+                    const filesToUploadPromises: Promise<UploadFile>[] = []
 
-                        console.log(results)
+                    for(const resource of results.exportResults!){
+                        if(
+                            !cameraUploadEnableHeic
+                            && assetURI.toLowerCase().endsWith(".heic")
+                            && asset.mediaType == "photo"
+                        ){
+                            RNHeicConverter.convert({
+                                path: resource.localFileLocations,
+                                quality: 1,
+                                extension: "jpg"
+                            }).then(({ success, path, error }: { success: boolean, path: string, error: any }) => {
+                                if(!error && success && path){
+                                    filesToUploadPromises.push(
+                                        new Promise<UploadFile>((resolve, reject) => {
+                                            FileSystem.getInfoAsync(toExpoFsPath(path)).then((stat) => {
+                                                if(stat.exists && stat.size){
+                                                    const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
+                                                    const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
+                                                    const newName = nameWithoutEx.split("_").length < 2 ? (asset.filename + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
 
-                        for(const resource of results.exportResults!){
-                            if(
-                                !cameraUploadEnableHeic
-                                && assetURI.toLowerCase().endsWith(".heic")
-                                && asset.mediaType == "photo"
-                            ){
-                                RNHeicConverter.convert({
-                                    path: resource.localFileLocations,
-                                    quality: 1,
-                                    extension: "jpg"
-                                }).then(({ success, path, error }: { success: boolean, path: string, error: any }) => {
-                                    if(!error && success && path){
-                                        filesToUploadPromises.push(
-                                            new Promise<UploadFile>((resolve, reject) => {
-                                                FileSystem.getInfoAsync(toExpoFsPath(path)).then((stat) => {
-                                                    if(stat.exists && stat.size){
-                                                        const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
-                                                        const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
-                                                        const newName = nameWithoutEx.split("_").length < 2 ? (asset.filename + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
-    
-                                                        return resolve({
-                                                            path: path.split("file://").join(""),
-                                                            name: newName,
-                                                            mime: mimeTypes.lookup(path) || "",
-                                                            size: stat.size,
-                                                            lastModified: convertTimestampToMs(asset.creationTime)
-                                                        })
-                                                    }
-                                                    else {
-                                                        return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
-                                                    }
-                                                }).catch(reject)
-                                            })
-                                        )
-                                    }
-                                    else{
-                                        releaseMutex()
-
-                                        return new Error("HEICConverter error: " + error.toString())
-                                    }
-                                }).catch((err: Error) => {
+                                                    return resolve({
+                                                        path: path.split("file://").join(""),
+                                                        name: newName,
+                                                        mime: mimeTypes.lookup(path) || "",
+                                                        size: stat.size,
+                                                        lastModified: convertTimestampToMs(asset.creationTime)
+                                                    })
+                                                }
+                                                else {
+                                                    return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
+                                                }
+                                            }).catch(reject)
+                                        })
+                                    )
+                                }
+                                else{
                                     releaseMutex()
 
-                                    return reject(err)
-                                })
-                            }
-                            else{
-                                filesToUploadPromises.push(
-                                    new Promise<UploadFile>((resolve, reject) => {
-                                        FileSystem.getInfoAsync(toExpoFsPath(resource.localFileLocations)).then((stat) => {
-                                            if(stat.exists && stat.size){
-                                                let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
+                                    return new Error("HEICConverter error: " + error.toString())
+                                }
+                            }).catch((err: Error) => {
+                                releaseMutex()
 
-                                                // If File does not have a _, then append the asset filename to the name
-                                                name = name.split("_").length < 2 ? (asset.filename.substring(0, asset.filename.lastIndexOf(".")) + name) : name
-    
-                                                return resolve({
-                                                    path: resource.localFileLocations.split("file://").join(""),
-                                                    name: name,
-                                                    mime: mimeTypes.lookup(resource.localFileLocations) || "",
-                                                    size: stat.size,
-                                                    lastModified: convertTimestampToMs(asset.creationTime)
-                                                })
-                                            }
-                                            else{
-                                                return reject(new Error("No size for asset " + asset.id))
-                                            }
-                                        }).catch(reject)
-                                    })
-                                )
-                            }
+                                return reject(err)
+                            })
+                        }
+                        else{
+                            filesToUploadPromises.push(
+                                new Promise<UploadFile>((resolve, reject) => {
+                                    FileSystem.getInfoAsync(toExpoFsPath(resource.localFileLocations)).then((stat) => {
+                                        if(stat.exists && stat.size){
+                                            let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
+
+                                            // If File does not have a _, then append the asset filename to the name
+                                            name = name.split("_").length < 2 ? (asset.filename.substring(0, asset.filename.lastIndexOf(".")) + name) : name
+
+                                            return resolve({
+                                                path: resource.localFileLocations.split("file://").join(""),
+                                                name: name,
+                                                mime: mimeTypes.lookup(resource.localFileLocations) || "",
+                                                size: stat.size,
+                                                lastModified: convertTimestampToMs(asset.creationTime)
+                                            })
+                                        }
+                                        else{
+                                            return reject(new Error("No size for asset " + asset.id))
+                                        }
+                                    }).catch(reject)
+                                })
+                            )
+                        }
+                    }
+                    
+                    Promise.all(filesToUploadPromises).then((filesToUpload) => {
+                        releaseMutex()
+
+                        return resolve(filesToUpload)
+                    }).catch((err) => {
+                        releaseMutex()
+
+                        return reject(err)
+                    })
+                }).catch((err) => {
+                    releaseMutex()
+
+                    return reject(err)
+                })
+            }
+            else{
+                FileSystem.copyAsync({
+                    from: toExpoFsPath(assetURI),
+                    to: toExpoFsPath(tmp)
+                }).then(() => {
+                    FileSystem.getInfoAsync(toExpoFsPath(tmp)).then((stat) => {
+                        releaseMutex()
+
+                        if(stat.exists && stat.size){
+                            return resolve([
+                                {
+                                    path: tmp.split("file://").join(""),
+                                    name: asset.filename,
+                                    mime: mimeTypes.lookup(tmp) || "",
+                                    size: stat.size,
+                                    lastModified: convertTimestampToMs(asset.creationTime)
+                                }
+                            ])
                         }
                         
-                        Promise.all(filesToUploadPromises).then((filesToUpload) => {
-                            releaseMutex()
-
-                            return resolve(filesToUpload)
-                        }).catch((err) => {
-                            releaseMutex()
-    
-                            return reject(err)
-                        })
+                        return reject(new Error("No size for asset " + asset.id))
                     }).catch((err) => {
                         releaseMutex()
 
                         return reject(err)
                     })
-                }
-                else{
-                    FileSystem.copyAsync({
-                        from: toExpoFsPath(assetURI),
-                        to: toExpoFsPath(tmp)
-                    }).then(() => {
-                        FileSystem.getInfoAsync(toExpoFsPath(tmp)).then((stat) => {
-                            if(stat.exists && stat.size){
-                                releaseMutex()
+                }).catch((err) => {
+                    releaseMutex()
 
-                                return resolve([
-                                    {
-                                        path: tmp.split("file://").join(""),
-                                        name: asset.filename,
-                                        mime: mimeTypes.lookup(tmp) || "",
-                                        size: stat.size,
-                                        lastModified: convertTimestampToMs(asset.creationTime)
-                                    }
-                                ])
-                            }
-                            else{
-                                releaseMutex()
-
-                                return reject(new Error("No size for asset " + asset.id))
-                            }
-                        }).catch((err) => {
-                            releaseMutex()
-
-                            return reject(err)
-                        })
-                    }).catch((err) => {
-                        releaseMutex()
-
-                        return reject(err)
-                    })
-                }
-            })
-        }, 1)
+                    return reject(err)
+                })
+            }
+        })
     })
 }
 
