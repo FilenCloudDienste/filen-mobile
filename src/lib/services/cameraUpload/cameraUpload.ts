@@ -558,9 +558,8 @@ export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<Up
                                                         lastModified: convertTimestampToMs(asset.creationTime)
                                                     })
                                                 }
-                                                else{
-                                                    return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
-                                                }
+                                                
+                                                return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
                                             }).catch(reject)
                                         })
                                     )
@@ -594,9 +593,8 @@ export const getFile = (asset: MediaLibrary.Asset, assetURI: string): Promise<Up
                                                 lastModified: convertTimestampToMs(asset.creationTime)
                                             })
                                         }
-                                        else{
-                                            return reject(new Error("No size for asset " + asset.id))
-                                        }
+                                        
+                                        return reject(new Error("No size for asset " + asset.id))
                                     }).catch(reject)
                                 })
                             )
