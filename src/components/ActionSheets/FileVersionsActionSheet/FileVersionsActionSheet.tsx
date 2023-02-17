@@ -3,7 +3,7 @@ import { View, Text, ScrollView, DeviceEventEmitter, ActivityIndicator, Touchabl
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { convertTimestampToMs, getMasterKeys, decryptFileMetadata, simpleDate } from "../../../lib/helpers"
+import { convertTimestampToMs, getMasterKeys, simpleDate } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { fetchFileVersionData, restoreArchivedFile } from "../../../lib/api"
@@ -11,6 +11,7 @@ import { getColor } from "../../../style/colors"
 import { ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { Item } from "../../../types"
+import { decryptFileMetadata } from "../../../lib/crypto"
 
 const FileVersionsActionSheet = memo(() => {
     const darkMode = useDarkMode()

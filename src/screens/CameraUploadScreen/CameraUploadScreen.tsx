@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo } from "react"
-import { View, Text, Switch, Platform, ScrollView, Alert } from "react-native"
+import { View, Text, Switch, Platform, ScrollView } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"

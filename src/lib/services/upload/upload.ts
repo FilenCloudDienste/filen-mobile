@@ -1,4 +1,4 @@
-import { getAPIKey, getMasterKeys, encryptMetadata, Semaphore, getFileExt, canCompressThumbnailLocally, toExpoFsPath, getFilePreviewType } from "../../helpers"
+import { getAPIKey, getMasterKeys, Semaphore, getFileExt, canCompressThumbnailLocally, toExpoFsPath, getFilePreviewType } from "../../helpers"
 import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
 import { showToast } from "../../../components/Toasts"
 import storage from "../../storage"
@@ -13,6 +13,7 @@ import * as FileSystem from "expo-file-system"
 import { isOnline, isWifi } from "../isOnline"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { getThumbnailCacheKey } from "../thumbnails"
+import { encryptMetadata } from "../../crypto"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)

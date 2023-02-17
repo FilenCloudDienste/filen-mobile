@@ -9,9 +9,10 @@ import { Keyboard } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import AuthContainer from "../../components/AuthContainer"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface ResendConfirmationScreenProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 export const ResendConfirmationScreen = memo(({ navigation }: ResendConfirmationScreenProps) => {

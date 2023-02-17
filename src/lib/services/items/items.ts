@@ -1,6 +1,6 @@
 import { apiRequest, fetchOfflineFilesInfo, folderPresent } from "../../api"
 import storage from "../../storage"
-import { decryptFolderName, decryptFileMetadata, getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, canCompressThumbnail, simpleDate, convertTimestampToMs, toExpoFsPath } from "../../helpers"
+import { getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, canCompressThumbnail, simpleDate, convertTimestampToMs, toExpoFsPath } from "../../helpers"
 import striptags from "striptags"
 import { getDownloadPath, queueFileDownload } from "../download/download"
 import * as Filesystem from "expo-file-system"
@@ -21,6 +21,7 @@ import { getAssetId } from "../../helpers"
 import { Asset } from "expo-media-library"
 import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 import { getThumbnailCacheKey } from "../thumbnails"
+import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata } from "../../crypto"
 
 export const buildFolder = memoize(async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()

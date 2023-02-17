@@ -7,9 +7,11 @@ import { navigationAnimation } from "../../lib/state"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import AuthContainer from "../../components/AuthContainer"
+import { NavigationContainerRef } from "@react-navigation/native"
+import { StackActions } from "@react-navigation/native"
 
 export interface LoginScreenProps {
-    navigation: any,
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
     setSetupDone: React.Dispatch<React.SetStateAction<boolean>>
 }
 
@@ -145,10 +147,10 @@ export const LoginScreen = memo(({ navigation, setSetupDone }: LoginScreenProps)
                     justifyContent: "center",
                     marginTop: 30
                 }}
-                onPress={() => {
-                    navigationAnimation({ enable: true }).then(() => {
-                        navigation.push("RegisterScreen")
-                    })
+                onPress={async () => {
+                    await navigationAnimation({ enable: true })
+
+                    navigation.dispatch(StackActions.push("RegisterScreen"))
                 }}
             >
                 <Text

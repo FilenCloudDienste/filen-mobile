@@ -10,10 +10,11 @@ import { itemPublicLinkInfo, disableItemPublicLink, enableItemPublicLink, editIt
 import * as Clipboard from "expo-clipboard"
 import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../../../style/colors"
-import { decryptFolderLinkKey, getMasterKeys, getRouteURL } from "../../../lib/helpers"
+import { getMasterKeys, getRouteURL } from "../../../lib/helpers"
 import { ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
 import { Item } from "../../../types"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { decryptFolderLinkKey } from "../../../lib/crypto"
 
 const PublicLinkActionSheet = memo(() => {
     const darkMode = useDarkMode()

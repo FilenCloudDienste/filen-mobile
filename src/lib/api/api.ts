@@ -2,17 +2,19 @@ import {
     getAPIServer,
     getAPIKey,
     getMasterKeys,
+    Semaphore,
+    convertTimestampToMs
+} from "../helpers"
+import {
     decryptFolderLinkKey,
     encryptMetadata,
     decryptFileMetadata,
     decryptFolderName,
-    Semaphore,
     decryptFolderNamePrivateKey,
     decryptFolderNameLink,
     decryptFileMetadataPrivateKey,
-    decryptFileMetadataLink,
-    convertTimestampToMs
-} from "../helpers"
+    decryptFileMetadataLink
+} from "../crypto"
 import storage from "../storage"
 import { i18n } from "../../i18n"
 import { DeviceEventEmitter, Platform } from "react-native"

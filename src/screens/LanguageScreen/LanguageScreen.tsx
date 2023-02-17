@@ -10,7 +10,7 @@ import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 
 export interface LanguageScreenProps {
-    navigation: NavigationContainerRef<{}>
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {

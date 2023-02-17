@@ -101,6 +101,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem])
 
 	const selection = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+		
 		await SheetManager.hide("ItemActionSheet")
 
 		DeviceEventEmitter.emit("event", {
@@ -122,6 +126,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem])
 
 	const saveToGallery = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		useStore.setState({ fullscreenLoadingModalVisible: false })
@@ -167,6 +175,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem, lang])
 
 	const edit = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		hasStoragePermissions().then(() => {
@@ -198,6 +210,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem])
 
 	const download = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		hasStoragePermissions().then(() => {
@@ -240,6 +256,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem])
 
 	const makeOffline = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		hasStoragePermissions().then(() => {
@@ -270,6 +290,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem])
 
 	const favorite = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
@@ -307,12 +331,20 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem])
 
 	const move = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		showToast({ type: "move", message: i18n(lang, "moveItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
 	}, [currentActionSheetItem])
 
 	const trash = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
@@ -360,6 +392,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem])
 
 	const restore = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })

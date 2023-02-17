@@ -1,7 +1,7 @@
 import storage from "../../storage"
 import { queueFileUpload, UploadFile } from "../upload/upload"
 import { Platform } from "react-native"
-import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, decryptFileMetadata, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt } from "../../helpers"
+import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt } from "../../helpers"
 import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import * as FileSystem from "expo-file-system"
@@ -16,11 +16,12 @@ import { memoize } from "lodash"
 import { validate } from "uuid"
 import { exportPhotoAssets } from "react-native-ios-asset-exporter"
 import path from "path"
+import { decryptFileMetadata } from "../../crypto"
 
 const CryptoJS = require("crypto-js")
 
 const TIMEOUT: number = 5000
-const FAILED: { [key: string]: number } = {}
+const FAILED: Record<string, number> = {}
 const MAX_FAILED: number = 1
 const MAX_FETCH_TIME: number = 15000
 let askedForPermissions: boolean = false

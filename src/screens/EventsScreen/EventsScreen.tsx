@@ -8,7 +8,7 @@ import { showToast } from "../../components/Toasts"
 import { useStore } from "../../lib/state"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
-import { getMasterKeys, decryptFileMetadata, decryptFolderName, convertTimestampToMs, simpleDate } from "../../lib/helpers"
+import { getMasterKeys, convertTimestampToMs, simpleDate } from "../../lib/helpers"
 import striptags from "striptags"
 import { ListEmpty } from "../../components/ListEmpty"
 import { useMountedState } from "react-use"
@@ -17,6 +17,7 @@ import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
+import { decryptFileMetadata, decryptFolderName } from "../../lib/crypto"
 
 export interface EventsInfoScreenProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>,

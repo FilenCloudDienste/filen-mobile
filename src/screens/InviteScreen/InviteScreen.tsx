@@ -10,9 +10,10 @@ import { useMountedState } from "react-use"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface InviteScreenProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {

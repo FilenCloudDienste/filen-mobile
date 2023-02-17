@@ -7,9 +7,11 @@ import { navigationAnimation } from "../../lib/state"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import AuthContainer from "../../components/AuthContainer"
+import { NavigationContainerRef } from "@react-navigation/native"
+import { StackActions } from "@react-navigation/native"
 
 export interface RegisterScreenProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
@@ -201,10 +203,10 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
                     alignItems: "center",
                     marginTop: 20
                 }}
-                onPress={() => {
-                    navigationAnimation({ enable: true }).then(() => {
-                        navigation.push("ResendConfirmationScreen")
-                    })
+                onPress={async () => {
+                    await navigationAnimation({ enable: true })
+                    
+                    navigation.dispatch(StackActions.push("ResendConfirmationScreen"))
                 }}
             >
                 <Text
