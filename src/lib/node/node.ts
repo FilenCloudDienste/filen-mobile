@@ -4,8 +4,8 @@ import { memoize } from "lodash"
 
 nodejs.start("main.js")
 
-const resolves: any = {}
-const rejects: any = {}
+const resolves: Record<number, (value: any) => void> = {}
+const rejects: Record<number, (reason?: any) => void> = {}
 let currentId: number = 0
 
 declare global {
@@ -38,8 +38,8 @@ declare global {
     }
 }
 
-const isNodeInitialized = (): Promise<boolean> => {
-    return Promise.resolve(true)
+const isNodeInitialized = async (): Promise<boolean> => {
+    return true
 }
 
 global.nodeThread = {

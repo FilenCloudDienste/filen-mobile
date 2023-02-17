@@ -170,26 +170,19 @@ export const hasPhotoLibraryPermissions = (requestPermissions: boolean = true): 
     })
 }
 
-export const hasStoragePermissions = (requestPermissions: boolean = true): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        if(Platform.OS == "ios"){
-            return resolve(true)
-        }
+export const hasStoragePermissions = async (requestPermissions: boolean = true): Promise<boolean> => {
+    if(Platform.OS == "ios"){
+        return true
+    }
 
-        try{
-            var read = await hasReadPermissions(requestPermissions)
-            var write = await hasWritePermissions(requestPermissions)
-        }
-        catch(e){
-            console.log(e)
+    const [read, write] = await Promise.all([
+        hasReadPermissions(requestPermissions),
+        hasWritePermissions(requestPermissions)
+    ])
 
-            return reject(e)
-        }
+    if(read && write){
+        return true
+    }
 
-        if(read && write){
-            return resolve(true)
-        }
-
-        return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-    })
+    throw i18n(storage.getString("lang"), "pleaseGrantPermission")
 }
