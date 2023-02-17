@@ -322,7 +322,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             return false
         }
 
-        if(typeof cache !== "undefined"){
+        /*if(typeof cache !== "undefined"){
             if(cache.length > 0){
                 try{
                     const responseString = JSON.stringify(response.data)
@@ -337,7 +337,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     console.log(e)
                 }
             }
-        }
+        }*/
 
         for(let i = 0; i < response.data.folders.length; i++){
 			let folder = response.data.folders[i]

@@ -174,7 +174,7 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
             <TouchableOpacity
                 style={{
                     backgroundColor: getColor(darkMode, "backgroundPrimary"),
-                    borderColor: getColor(darkMode, "backgroundTertiary"),
+                    borderColor: darkMode ? "white" : "gray",
                     borderWidth: 1,
                     borderRadius: 10,
                     width: contentWidth,
