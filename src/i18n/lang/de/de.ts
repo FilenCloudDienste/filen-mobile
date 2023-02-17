@@ -405,5 +405,8 @@ export const de: {
     keepAppAwake: "Display Abschaltung verhindern",
     followSystemTheme: "Geräteeinstellungen verwenden",
     hideRecents: "Kürzlich verstecken",
-    videos: "Videos"
+    videos: "Videos",
+    cameraUploadOnlyUploadOriginal: "Nur das originale Foto hochladen",
+    cameraUploadConvertLiveAndBurst: "Live und Burst konvertieren",
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Konvertieren und Original behalten"
 }

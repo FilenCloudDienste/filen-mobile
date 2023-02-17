@@ -560,88 +560,85 @@ export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Prom
     const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
     const cameraUploadOnlyUploadOriginal = storage.getBoolean("cameraUploadOnlyUploadOriginal:" + userId)
     const cameraUploadConvertLiveAndBurst = storage.getBoolean("cameraUploadConvertLiveAndBurst:" + userId)
+    const cameraUploadConvertLiveAndBurstAndKeepOriginal = storage.getBoolean("cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId)
     const tmpPrefix = randomIdUnsafe() + "_"
     const tmp = FileSystem.cacheDirectory + tmpPrefix + asset.filename
     const files: UploadFile[] = []
+    let originalKept = false
 
-    if(Platform.OS == "ios"){
-        if(cameraUploadOnlyUploadOriginal){
-            files.push(await copyFile(asset, assetURI, tmp, cameraUploadEnableHeic))
-        }
-        else{
-            const exportedAssets = await exportPhotoAssets([asset.id], FileSystem.cacheDirectory!.substring(8), tmpPrefix, true, false)
+    if(cameraUploadOnlyUploadOriginal || Platform.OS == "android" || (!cameraUploadOnlyUploadOriginal && !cameraUploadConvertLiveAndBurst && !cameraUploadConvertLiveAndBurstAndKeepOriginal)){
+        originalKept = true
 
-            if(exportedAssets.error && exportedAssets.error.length > 0){
-                throw new Error("exportPhotoAssets error codes: " + exportedAssets.error.map(error => error).join(", "))
-            }
-
-            const filesToUploadPromises: Promise<UploadFile>[] = []
-
-            if(exportedAssets.exportResults!.length > 1){
-                const isConvertedLivePhoto = exportedAssets.exportResults!.filter(res => res.localFileLocations.toLowerCase().endsWith(".mov")).length > 0
-
-                for(const resource of exportedAssets.exportResults!){
-                    if(cameraUploadConvertLiveAndBurst && isConvertedLivePhoto && !resource.localFileLocations.toLowerCase().endsWith(".mov")){
-                        continue
-                    }
-
-                    if(!cameraUploadEnableHeic && assetURI.toLowerCase().endsWith(".heic") && asset.mediaType == "photo"){
-                        const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
-        
-                        filesToUploadPromises.push(
-                            new Promise<UploadFile>((resolve, reject) => {
-                                FileSystem.getInfoAsync(toExpoFsPath(convertedPath)).then((stat) => {
-                                    if(stat.exists && stat.size){
-                                        const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
-                                        const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
-                                        const newName = nameWithoutEx.split("_").length < 2 ? (asset.filename + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
-        
-                                        return resolve({
-                                            path: convertedPath.split("file://").join(""),
-                                            name: newName,
-                                            mime: mimeTypes.lookup(convertedPath) || "",
-                                            size: stat.size,
-                                            lastModified: convertTimestampToMs(asset.creationTime)
-                                        })
-                                    }
-                                    
-                                    return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
-                                }).catch(reject)
-                            })
-                        )
-                    }
-                    else{
-                        filesToUploadPromises.push(
-                            new Promise<UploadFile>((resolve, reject) => {
-                                FileSystem.getInfoAsync(toExpoFsPath(resource.localFileLocations)).then((stat) => {
-                                    if(stat.exists && stat.size){
-                                        let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
-        
-                                        // If File does not have a _, then append the asset filename to the name
-                                        name = name.split("_").length < 2 ? (asset.filename.substring(0, asset.filename.lastIndexOf(".")) + name) : name
-        
-                                        return resolve({
-                                            path: resource.localFileLocations.split("file://").join(""),
-                                            name: name,
-                                            mime: mimeTypes.lookup(resource.localFileLocations) || "",
-                                            size: stat.size,
-                                            lastModified: convertTimestampToMs(asset.creationTime)
-                                        })
-                                    }
-                                    
-                                    return reject(new Error("No size for asset " + asset.id))
-                                }).catch(reject)
-                            })
-                        )
-                    }
-                }
-            }
-
-            files.push(...(await Promise.all(filesToUploadPromises)))
-        }
-    }
-    else{
         files.push(await copyFile(asset, assetURI, tmp, cameraUploadEnableHeic))
+    }
+
+    if(Platform.OS == "ios" && !originalKept){
+        const exportedAssets = await exportPhotoAssets([asset.id], FileSystem.cacheDirectory!.substring(8), tmpPrefix, true, false)
+
+        if(exportedAssets.error && exportedAssets.error.length > 0){
+            throw new Error("exportPhotoAssets error codes: " + exportedAssets.error.map(error => error).join(", "))
+        }
+
+        const filesToUploadPromises: Promise<UploadFile>[] = []
+        const isConvertedLivePhoto = exportedAssets.exportResults!.filter(res => res.localFileLocations.toLowerCase().endsWith(".mov")).length > 0
+
+        for(const resource of exportedAssets.exportResults!){
+            if(cameraUploadConvertLiveAndBurst && isConvertedLivePhoto && !resource.localFileLocations.toLowerCase().endsWith(".mov")){ // Don't upload the original of a live photo if we do not want to keep it aswell
+                continue
+            }
+
+            if(!cameraUploadEnableHeic && assetURI.toLowerCase().endsWith(".heic") && asset.mediaType == "photo"){
+                const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
+
+                filesToUploadPromises.push(
+                    new Promise<UploadFile>((resolve, reject) => {
+                        FileSystem.getInfoAsync(toExpoFsPath(convertedPath)).then((stat) => {
+                            if(stat.exists && stat.size){
+                                const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
+                                const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
+                                const newName = nameWithoutEx.split("_").length < 2 ? (asset.filename + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
+
+                                return resolve({
+                                    path: convertedPath.split("file://").join(""),
+                                    name: newName,
+                                    mime: mimeTypes.lookup(convertedPath) || "",
+                                    size: stat.size,
+                                    lastModified: convertTimestampToMs(asset.creationTime)
+                                })
+                            }
+                            
+                            return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
+                        }).catch(reject)
+                    })
+                )
+            }
+            else{
+                filesToUploadPromises.push(
+                    new Promise<UploadFile>((resolve, reject) => {
+                        FileSystem.getInfoAsync(toExpoFsPath(resource.localFileLocations)).then((stat) => {
+                            if(stat.exists && stat.size){
+                                let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
+
+                                // If File does not have a _, then append the asset filename to the name
+                                name = name.split("_").length < 2 ? (asset.filename.substring(0, asset.filename.lastIndexOf(".")) + name) : name
+
+                                return resolve({
+                                    path: resource.localFileLocations.split("file://").join(""),
+                                    name: name,
+                                    mime: mimeTypes.lookup(resource.localFileLocations) || "",
+                                    size: stat.size,
+                                    lastModified: convertTimestampToMs(asset.creationTime)
+                                })
+                            }
+                            
+                            return reject(new Error("No size for asset " + asset.id))
+                        }).catch(reject)
+                    })
+                )
+            }
+        }
+
+        files.push(...(await Promise.all(filesToUploadPromises)))
     }
 
     return files
@@ -913,10 +910,7 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
 
             const assetId = getAssetId(delta.item.asset)
 
-            if(
-                maxQueue > currentQueue
-                && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED
-            ){
+            if(maxQueue > currentQueue && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED){
                 currentQueue += 1
 
                 if(delta.type == "UPLOAD"|| delta.type == "UPDATE"){

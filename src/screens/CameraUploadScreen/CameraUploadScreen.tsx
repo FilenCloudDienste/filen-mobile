@@ -12,9 +12,10 @@ import { getColor } from "../../style/colors"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
+import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface CameraUploadScreenProps {
-    navigation: any
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps) => {
@@ -33,25 +34,28 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
     const [cameraUploadConvertLiveAndBurst, setCameraUploadConvertLiveAndBurst] = useMMKVBoolean("cameraUploadConvertLiveAndBurst:" + userId, storage)
     const [cameraUploadConvertLiveAndBurstAndKeepOriginal, setCameraUploadConvertLiveAndBurstAndKeepOriginal] = useMMKVBoolean("cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId, storage)
 
-    const chooseFolder = (): void => {
-        navigationAnimation({ enable: true }).then(() => {
-            showToast({ type: "cameraUploadChooseFolder", message: i18n(lang, "cameraUploadChooseFolder"), navigation })
+    const chooseFolder = async () => {
+        await navigationAnimation({ enable: true })
 
-            navigation.dispatch(StackActions.push("MainScreen", {
-                parent: storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base"
-            }))
-        })
+        showToast({ type: "cameraUploadChooseFolder", message: i18n(lang, "cameraUploadChooseFolder"), navigation })
+
+        navigation.dispatch(StackActions.push("MainScreen", {
+            parent: storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base"
+        }))
     }
 
     useEffect(() => {
-        hasStoragePermissions().then(() => {
-            hasPhotoLibraryPermissions().then(() => {
-                setHasPermissions(true)
-            }).catch((err) => {
-                setHasPermissions(false)
+        if(!cameraUploadOnlyUploadOriginal && !cameraUploadConvertLiveAndBurst && !cameraUploadConvertLiveAndBurstAndKeepOriginal){
+            setCameraUploadOnlyUploadOriginal(true)
+        }
+    }, [cameraUploadOnlyUploadOriginal, cameraUploadConvertLiveAndBurst, cameraUploadConvertLiveAndBurstAndKeepOriginal])
 
-                console.log(err)
-            })
+    useEffect(() => {
+        Promise.all([
+            hasStoragePermissions(),
+            hasPhotoLibraryPermissions()
+        ]).then(() => {
+            setHasPermissions(true)
         }).catch((err) => {
             setHasPermissions(false)
 
@@ -210,95 +214,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                             />
                         }
                     />
-                    {
-                        Platform.OS == "ios" && (
-                            <>
-                                <SettingsButtonLinkHighlight
-                                    title={i18n(lang, "cameraUploadEnableHeic")}
-                                    borderBottomRadius={10}
-                                    withBottomBorder={true}
-                                    rightComponent={
-                                        <Switch
-                                            trackColor={getColor(darkMode, "switchTrackColor")}
-                                            thumbColor={cameraUploadEnableHeic ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
-                                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-                                            onValueChange={() => setCameraUploadEnableHeic(!cameraUploadEnableHeic)}
-                                            value={cameraUploadEnableHeic}
-                                        />
-                                    }
-                                />
-                                <SettingsButtonLinkHighlight
-                                    title={i18n(lang, "cameraUploadOnlyUploadOriginal")}
-                                    borderBottomRadius={10}
-                                    withBottomBorder={true}
-                                    rightComponent={
-                                        <Switch
-                                            trackColor={getColor(darkMode, "switchTrackColor")}
-                                            thumbColor={cameraUploadOnlyUploadOriginal ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
-                                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-                                            onValueChange={() => {
-                                                const newValue = !cameraUploadOnlyUploadOriginal
-
-                                                setCameraUploadOnlyUploadOriginal(newValue)
-
-                                                if(newValue){
-                                                    setCameraUploadConvertLiveAndBurst(false)
-                                                    setCameraUploadConvertLiveAndBurstAndKeepOriginal(false)
-                                                }
-                                            }}
-                                            value={cameraUploadOnlyUploadOriginal}
-                                        />
-                                    }
-                                />
-                                <SettingsButtonLinkHighlight
-                                    title={i18n(lang, "cameraUploadConvertLiveAndBurst")}
-                                    borderBottomRadius={10}
-                                    withBottomBorder={true}
-                                    rightComponent={
-                                        <Switch
-                                            trackColor={getColor(darkMode, "switchTrackColor")}
-                                            thumbColor={cameraUploadConvertLiveAndBurst ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
-                                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-                                            onValueChange={() => {
-                                                const newValue = !cameraUploadConvertLiveAndBurst
-
-                                                setCameraUploadConvertLiveAndBurst(newValue)
-
-                                                if(newValue){
-                                                    setCameraUploadOnlyUploadOriginal(false)
-                                                    setCameraUploadConvertLiveAndBurstAndKeepOriginal(false)
-                                                }
-                                            }}
-                                            value={cameraUploadConvertLiveAndBurst}
-                                        />
-                                    }
-                                />
-                                <SettingsButtonLinkHighlight
-                                    title={i18n(lang, "cameraUploadConvertLiveAndBurstAndKeepOriginal")}
-                                    borderBottomRadius={10}
-                                    withBottomBorder={true}
-                                    rightComponent={
-                                        <Switch
-                                            trackColor={getColor(darkMode, "switchTrackColor")}
-                                            thumbColor={cameraUploadConvertLiveAndBurstAndKeepOriginal ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
-                                            ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-                                            onValueChange={() => {
-                                                const newValue = !cameraUploadConvertLiveAndBurstAndKeepOriginal
-
-                                                setCameraUploadConvertLiveAndBurstAndKeepOriginal(newValue)
-
-                                                if(newValue){
-                                                    setCameraUploadOnlyUploadOriginal(false)
-                                                    setCameraUploadConvertLiveAndBurst(false)
-                                                }
-                                            }}
-                                            value={cameraUploadConvertLiveAndBurstAndKeepOriginal}
-                                        />
-                                    }
-                                />
-                            </>
-                        )
-                    }
                     <SettingsButtonLinkHighlight
                         onPress={() => {
                             navigationAnimation({ enable: true }).then(() => {
@@ -309,6 +224,94 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                         borderBottomRadius={10}
                     />
                 </SettingsGroup>
+                {
+                    Platform.OS == "ios" && (
+                        <SettingsGroup>
+                            <SettingsButtonLinkHighlight
+                                title={i18n(lang, "cameraUploadEnableHeic")}
+                                borderBottomRadius={10}
+                                withBottomBorder={true}
+                                rightComponent={
+                                    <Switch
+                                        trackColor={getColor(darkMode, "switchTrackColor")}
+                                        thumbColor={cameraUploadEnableHeic ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                                        onValueChange={() => setCameraUploadEnableHeic(!cameraUploadEnableHeic)}
+                                        value={cameraUploadEnableHeic}
+                                    />
+                                }
+                            />
+                            <SettingsButtonLinkHighlight
+                                title={i18n(lang, "cameraUploadOnlyUploadOriginal")}
+                                borderBottomRadius={10}
+                                withBottomBorder={true}
+                                rightComponent={
+                                    <Switch
+                                        trackColor={getColor(darkMode, "switchTrackColor")}
+                                        thumbColor={cameraUploadOnlyUploadOriginal ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                                        onValueChange={() => {
+                                            const newValue = !cameraUploadOnlyUploadOriginal
+
+                                            setCameraUploadOnlyUploadOriginal(newValue)
+
+                                            if(newValue){
+                                                setCameraUploadConvertLiveAndBurst(false)
+                                                setCameraUploadConvertLiveAndBurstAndKeepOriginal(false)
+                                            }
+                                        }}
+                                        value={cameraUploadOnlyUploadOriginal}
+                                    />
+                                }
+                            />
+                            <SettingsButtonLinkHighlight
+                                title={i18n(lang, "cameraUploadConvertLiveAndBurst")}
+                                borderBottomRadius={10}
+                                withBottomBorder={true}
+                                rightComponent={
+                                    <Switch
+                                        trackColor={getColor(darkMode, "switchTrackColor")}
+                                        thumbColor={cameraUploadConvertLiveAndBurst ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                                        onValueChange={() => {
+                                            const newValue = !cameraUploadConvertLiveAndBurst
+
+                                            setCameraUploadConvertLiveAndBurst(newValue)
+
+                                            if(newValue){
+                                                setCameraUploadOnlyUploadOriginal(false)
+                                                setCameraUploadConvertLiveAndBurstAndKeepOriginal(false)
+                                            }
+                                        }}
+                                        value={cameraUploadConvertLiveAndBurst}
+                                    />
+                                }
+                            />
+                            <SettingsButtonLinkHighlight
+                                title={i18n(lang, "cameraUploadConvertLiveAndBurstAndKeepOriginal")}
+                                borderBottomRadius={10}
+                                rightComponent={
+                                    <Switch
+                                        trackColor={getColor(darkMode, "switchTrackColor")}
+                                        thumbColor={cameraUploadConvertLiveAndBurstAndKeepOriginal ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
+                                        ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+                                        onValueChange={() => {
+                                            const newValue = !cameraUploadConvertLiveAndBurstAndKeepOriginal
+
+                                            setCameraUploadConvertLiveAndBurstAndKeepOriginal(newValue)
+
+                                            if(newValue){
+                                                setCameraUploadOnlyUploadOriginal(false)
+                                                setCameraUploadConvertLiveAndBurst(false)
+                                            }
+                                        }}
+                                        value={cameraUploadConvertLiveAndBurstAndKeepOriginal}
+                                    />
+                                }
+                            />
+                        </SettingsGroup>
+                    )
+                }
                 <View
                     style={{
                         height: 25

@@ -22,7 +22,7 @@ const registerBackgroundFetch = async () => {
 }
 
 TaskManager.defineTask("background-fetch", async () => {
-    const max = new Date().getTime() + 25000
+    const max = new Date().getTime() + 20000
 
     const task = async () => {
         if(new Date().getTime() >= max) return
