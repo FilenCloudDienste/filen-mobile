@@ -410,5 +410,8 @@ export const uk: {
     keepAppAwake: "Не вимикати екран",
     followSystemTheme: "Дотримуватись системних налаштувань",
     hideRecents: "Приховати недавнє",
-    videos: "Відео"
+    videos: "Відео",
+    cameraUploadOnlyUploadOriginal: "Завантажувати лише оригінальне фото",
+    cameraUploadConvertLiveAndBurst: "Конвертувати живі та серійні фотографії",
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Конвертувати та зберігати оригінал"
 }
