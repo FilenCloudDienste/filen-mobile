@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Animated, Pressable, ScaledSize, useWindowDimensions, Image } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Pressable, useWindowDimensions, Image } from "react-native"
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
@@ -11,59 +11,76 @@ import { generateItemThumbnail } from "../../lib/services/thumbnails"
 import { convertHeic } from "../../lib/services/items"
 import { getImageForItem } from "../../assets/thumbnails"
 import { NavigationContainerRef } from "@react-navigation/native"
-import { EdgeInsets } from "react-native-safe-area-context"
 import { showToast } from "../../components/Toasts"
-import { getFileExt, isBetween, toExpoFsPath } from "../../lib/helpers"
+import { getFileExt, toExpoFsPath } from "../../lib/helpers"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useIsOnline from "../../lib/hooks/useIsOnline"
 import { getItemOfflinePath } from "../../lib/services/offline"
 import * as FileSystem from "expo-file-system"
-import FastImage from "react-native-fast-image"
+import { Item } from "../../types"
+
+export interface PreviewItem {
+    uri: string | undefined,
+    name: string,
+    index: number,
+    uuid: string,
+    thumbnail: string | undefined,
+    file: Item
+}
 
 const minZoom: number = 0.99999999999
 
 export interface ImageViewerScreenProps {
-    navigation: NavigationContainerRef<{}>,
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
     route: any
 }
 
 const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) => {
-    const [imagePreviewModalItems, setImagePreviewModalItems] = useState<any[]>(route?.params?.items || [])
-    const [imagePreviewModalIndex, setImagePreviewModalIndex] = useState<number>(route?.params?.index || 0)
+    const [imagePreviewModalItems, setImagePreviewModalItems] = useState<PreviewItem[]>(route.params.items)
+    const [imagePreviewModalIndex, setImagePreviewModalIndex] = useState<number>(route.params.index)
     const setCurrentActionSheetItem = useStore(state => state.setCurrentActionSheetItem)
     const [images, setImages] = useState<any>({})
-    const [currentName, setCurrentName] = useState<string>("")
+    const [currentName, setCurrentName] = useState<string>((route.params.items as PreviewItem[])[route.params.index].file.name)
     const [isZooming, setIsZooming] = useState<boolean>(false)
-    const [isSwiping, setIsSwiping] = useState<boolean>(false)
+    const isSwiping = useRef<boolean>(false)
     const zoomLevel = useRef<number>(minZoom)
     const thumbnailListRef = useRef<any>()
     const listRef = useRef<any>()
-    const [currentIndex, setCurrentIndex] = useState<number>(imagePreviewModalIndex)
     const [showControls, setShowControls] = useState<boolean>(false)
-    const insets: EdgeInsets = useSafeAreaInsets()
+    const insets = useSafeAreaInsets()
     const viewRefs = useRef<any>({}).current
-    const isMounted: () => boolean = useMountedState()
+    const isMounted = useMountedState()
     const tapCount = useRef<number>(0)
     const tapTimer = useRef<any>(undefined)
     const didNavBack = useRef<boolean>(false)
     const currentImagePreviewDownloads = useRef<any>({}).current
     const setListScrollAgain = useRef<boolean>(false)
-    const imageActionsContainerHeight: Animated.Value = new Animated.Value(120)
-    const imageActionsVisible = useRef<boolean>(false)
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
     const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
     const isOnline = useIsOnline()
 
-    const loadImage = async (image: any, index: number) => {
+    const loadImage = async (image: PreviewItem, index: number) => {
         if(!isMounted()){
-            return false
+            return
+        }
+
+        if(typeof currentImagePreviewDownloads[image.uuid] !== "undefined"){
+            return
+        }
+
+        currentImagePreviewDownloads[image.uuid] = true
+
+        const currentImages = {...images}
+
+        if(typeof currentImages[image.uuid] == "string"){
+            return
         }
 
         zoomLevel.current = minZoom
 
         setCurrentName(image.file.name)
         setCurrentActionSheetItem(image.file)
-        setCurrentIndex(index)
+        setImagePreviewModalIndex(index)
 
         thumbnailListRef?.current?.scrollToIndex({
             animated: true,
@@ -79,18 +96,6 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 index
             })
         }
-
-        const currentImages = {...images}
-
-        if(typeof currentImages[image.uuid] == "string"){
-            return false
-        }
-
-        if(typeof currentImagePreviewDownloads[image.uuid] !== "undefined"){
-            return false
-        }
-
-        currentImagePreviewDownloads[image.uuid] = true
 
         try{
             const offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), image.file)
@@ -122,25 +127,27 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     }
 
                     if(!err && typeof thumbPath == "string"){
-                        updateItemThumbnail(image.file, thumbPath)
+                        updateItemThumbnail(image, thumbPath)
                     }
 
                     if(Platform.OS == "android" && ["heic"].includes(getFileExt(image.file.name))){
                         convertHeic(image.file, path).then((output) => {
-                            return setImages((prev: any) => ({
-                                ...prev,
-                                [image.uuid]: output
-                            }))
+                            if(isMounted()){
+                                setImages((prev: any) => ({
+                                    ...prev,
+                                    [image.uuid]: output
+                                }))
+                            }
                         }).catch((err) => {
                             delete currentImagePreviewDownloads[image.uuid]
                 
                             console.log(err)
                 
-                            return showToast({ message: err.toString() })
+                            showToast({ message: err.toString() })
                         })
                     }
                     else{
-                        return setImages((prev: any) => ({
+                        setImages((prev: any) => ({
                             ...prev,
                             [image.uuid]: path
                         }))
@@ -152,7 +159,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 
             console.error(err)
 
-            return showToast({ message: err.toString() })
+            showToast({ message: err.toString() })
         })
     }
 
@@ -170,7 +177,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         loadImage(indexItem.item, indexItem.index)
     })
 
-    const updateItemThumbnail = useCallback((item: any, path: string): void => {
+    const updateItemThumbnail = useCallback((item: PreviewItem, path: string): void => {
         if(typeof path !== "string"){
             return
         }
@@ -190,31 +197,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         waitForInteraction: false
     })
 
-    useEffect(() => {
-        if(isMounted()){
-            setPortrait(dimensions.height >= dimensions.width)
-        }
-    }, [dimensions])
-
-    useEffect(() => {
-        if(isMounted()){
-            setShowControls(isZooming)
-        }
-    }, [isZooming])
-
-    useEffect(() => {
-        if(imagePreviewModalItems.length == 0){
-            return navigation.goBack()
-        }
-
-        if(typeof imagePreviewModalItems[imagePreviewModalIndex] !== "undefined"){
-            setTimeout(() => {
-                loadImage(imagePreviewModalItems[imagePreviewModalIndex], imagePreviewModalIndex)
-            }, 50)
-        }
-    }, [])
-
-    const renderImage = useCallback((item: any, index: number) => {
+    const renderImage = useCallback((item: PreviewItem, index: number) => {
         const image = item
 
         if(typeof image.thumbnail !== "string"){
@@ -226,14 +209,18 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                         height: dimensions.height
                     }}
                 >
-                    <ActivityIndicator size={"small"} color={"white"} style={{
-                        margin: "auto",
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        bottom: 0,
-                        right: 0
-                    }} />
+                    <ActivityIndicator
+                        size={"small"}
+                        color={"white"}
+                        style={{
+                            margin: "auto",
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            bottom: 0,
+                            right: 0
+                        }}
+                    />
                 </View>
             )
         }
@@ -284,7 +271,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 onShiftingAfter={(e: any, state: any, view: any) => {
                     setIsZooming(view.zoomLevel > 1)
 
-                    if((view.distanceTop >= 50 || view.distanceBottom >= 50) && !didNavBack.current && zoomLevel.current <= 1 && !isSwiping && !isZooming){
+                    if((view.distanceTop >= 50 || view.distanceBottom >= 50) && !didNavBack.current && zoomLevel.current <= 1 && !isSwiping.current && !isZooming){
                         didNavBack.current = true
 
                         navigation.goBack()
@@ -298,7 +285,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
             >
                 <Pressable
                     onPress={() => {
-                        if(isSwiping){
+                        if(isSwiping.current){
                             return false
                         }
 
@@ -365,34 +352,16 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                         >
                             {
                                 typeof images[image.uuid] == "string" && (
-                                    <>
-                                        {
-                                            // Fallback to RN's Image Component when image is a GIF since FastImage has a bug which makes GIF's playback speed jittery and too fast
-                                            image.name.toLowerCase().indexOf(".gif") !== -1 ? (
-                                                <Image
-                                                    source={{
-                                                        uri: decodeURIComponent(images[image.uuid].startsWith("file://") ? images[image.uuid] : "file://" + images[image.uuid])
-                                                    }}
-                                                    resizeMode="contain"
-                                                    style={{
-                                                        width: dimensions.width,
-                                                        height: dimensions.height
-                                                    }}
-                                                />
-                                            ) : (
-                                                <FastImage
-                                                    source={{
-                                                        uri: decodeURIComponent(images[image.uuid].startsWith("file://") ? images[image.uuid] : "file://" + images[image.uuid])
-                                                    }}
-                                                    resizeMode="contain"
-                                                    style={{
-                                                        width: dimensions.width,
-                                                        height: dimensions.height
-                                                    }}
-                                                />
-                                            )
-                                        }
-                                    </>
+                                    <Image
+                                        source={{
+                                            uri: decodeURIComponent(images[image.uuid].startsWith("file://") ? images[image.uuid] : "file://" + images[image.uuid])
+                                        }}
+                                        resizeMode="contain"
+                                        style={{
+                                            width: dimensions.width,
+                                            height: dimensions.height
+                                        }}
+                                    />
                                 )
                             }
                         </ImageBackground>
@@ -416,7 +385,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 </Pressable>
             </ReactNativeZoomableView>
         )
-    }, [dimensions, images, THUMBNAIL_BASE_PATH, zoomLevel.current, viewRefs, tapCount.current, didNavBack.current, navigation, thumbnailListRef.current, listRef.current, setIsZooming, minZoom])
+    }, [dimensions, images])
 
     const renderThumb = useCallback((item: any, index: number) => {
         if(!isOnline || imagePreviewModalItems.length <= 1){
@@ -444,7 +413,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     }}
                     onPress={async () => {
                         try{
-                            await viewRefs[imagePreviewModalItems[currentIndex].uuid]?.zoomTo(1)
+                            await viewRefs[imagePreviewModalItems[imagePreviewModalIndex].uuid]?.zoomTo(1)
                         }
                         catch(e){
                             console.log(e)
@@ -468,7 +437,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 >
                     {
                         typeof image.thumbnail !== "string" ? (
-                            <FastImage
+                            <Image
                                 source={getImageForItem(image.file)}
                                 resizeMode="cover"
                                 style={{
@@ -479,7 +448,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                                 }}
                             />
                         ) : (
-                            <FastImage
+                            <Image
                                 source={{
                                     uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
                                 }}
@@ -493,7 +462,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     }
                     <View
                         style={{
-                            backgroundColor: currentIndex == index ? "gray" : "transparent",
+                            backgroundColor: imagePreviewModalIndex == index ? "gray" : "transparent",
                             width: 15,
                             height: 5,
                             borderRadius: 20
@@ -502,7 +471,25 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 </TouchableOpacity>
             </View>
         )
-    }, [THUMBNAIL_BASE_PATH, imagePreviewModalItems, setListScrollAgain.current, thumbnailListRef.current, listRef.current, viewRefs, currentIndex, isOnline])
+    }, [imagePreviewModalItems, viewRefs, imagePreviewModalIndex, isOnline])
+
+    const getItemLayout = useCallback((_, index) => ({ length: dimensions.width, offset: dimensions.width * index, index }), [dimensions.width])
+    const renderImageItem = useCallback(({ item, index }) => renderImage(item, index), [])
+    const keyExtractor = useCallback((item) => item.uuid, [])
+    const renderThumbItem = useCallback(({ item, index }) => renderThumb(item, index), [])
+    const getItemLayoutThumb = useCallback((_, index) => ({ length: 30, offset: 30 * index, index }), [])
+
+    useEffect(() => {
+        if(isMounted()){
+            setPortrait(dimensions.height >= dimensions.width)
+        }
+    }, [dimensions])
+
+    useEffect(() => {
+        if(isMounted()){
+            setShowControls(isZooming)
+        }
+    }, [isZooming])
 
     return (
         <View
@@ -526,9 +513,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     backgroundColor: "rgba(0, 0, 0, 0.6)",
                     paddingLeft: 10,
                     paddingRight: 15,
-                    paddingTop: 10,
-                    paddingBottom: 10,
-                    marginTop: 0
+                    paddingBottom: 10
                 }}
             >
                 <View
@@ -573,38 +558,6 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                         </Text>
                     </TouchableOpacity>
                 </View>
-                <View
-                    style={{
-                        display: "none"
-                    }}
-                >
-                    <TouchableOpacity
-                        style={{
-                            marginTop: Platform.OS == "android" ? 1 : 0
-                        }}
-                        hitSlop={{
-                            top: 10,
-                            left: 10,
-                            bottom: 10,
-                            right: 10
-                        }}
-                        onPress={() => {
-                            imageActionsVisible.current = !imageActionsVisible.current
-
-                            Animated.timing(imageActionsContainerHeight, {
-                                toValue: imageActionsVisible.current ? 300 : 120,
-                                duration: 100,
-                                useNativeDriver: false
-                            }).start()
-                        }}
-                    >
-                        <Ionicon
-                            name="ellipsis-horizontal-sharp"
-                            size={24}
-                            color="white"
-                        />
-                    </TouchableOpacity>
-                </View>
             </View>
             <FlatList
                 style={{
@@ -615,62 +568,63 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     top: 0,
                     bottom: 0,
                     left: 0,
-                    right: 0,
-                    marginTop: -insets.top
+                    right: 0
                 }}
                 ref={listRef}
                 data={imagePreviewModalItems}
-                initialScrollIndex={currentIndex >= 0 ? (isBetween(currentIndex, 0, imagePreviewModalItems.length) ? currentIndex : 0) : 0}
-                renderItem={({ item, index }) => renderImage(item, index)}
+                initialScrollIndex={imagePreviewModalIndex}
+                renderItem={renderImageItem}
                 key={portrait ? "portrait" : "landscape"}
                 extraData={portrait ? "portrait" : "landscape"}
-                keyExtractor={(item) => item.uuid}
+                keyExtractor={keyExtractor}
                 windowSize={2}
                 initialNumToRender={1}
                 horizontal={true}
                 bounces={true}
-                getItemLayout={(_, index) => ({ length: dimensions.width, offset: dimensions.width * index, index })}
+                getItemLayout={getItemLayout}
                 scrollEnabled={!isZooming && isOnline}
                 pagingEnabled={true}
                 onViewableItemsChanged={onViewableItemsChangedRef?.current}
                 viewabilityConfig={viewabilityConfigRef?.current}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
-                onScrollBeginDrag={() => setIsSwiping(true)}
-                onScrollEndDrag={() => setIsSwiping(false)}
+                onScrollBeginDrag={() => isSwiping.current = true}
+                onScrollEndDrag={() => isSwiping.current = false}
             />
-            <Animated.View
+            <View
                 style={{
                     position: "absolute",
-                    bottom: -30,
+                    bottom: insets.bottom,
                     width: dimensions.width,
-                    height: imageActionsContainerHeight,
+                    height: 63,
                     zIndex: showControls ? 0 : 10000,
                     backgroundColor: "rgba(0, 0, 0, 1)",
-                    paddingTop: 1,
                     opacity: showControls ? 0 : 1,
                     paddingBottom: insets.bottom
                 }}
             />
             <FlatList
                 style={{
-                    height: 1000,
                     position: "absolute",
                     width: dimensions.width,
-                    top: (dimensions.height - insets.bottom - 120),
+                    bottom: insets.bottom,
+                    height: 60,
                     opacity: showControls ? 0 : 1,
                     zIndex: showControls ? 0 : 10000,
                     backgroundColor: "rgba(0, 0, 0, 1)"
                 }}
+                key={portrait ? "thumbs-portrait" : "thumbs-landscape"}
+                extraData={portrait ? "thumbs-portrait" : "thumbs-landscape"}
                 ref={thumbnailListRef}
                 data={imagePreviewModalItems}
-                initialScrollIndex={currentIndex >= 0 ? (isBetween(currentIndex, 0, imagePreviewModalItems.length) ? currentIndex : 0) : 0}
-                renderItem={({ item, index }) => renderThumb(item, index)}
-                getItemLayout={(_, index) => ({ length: 30, offset: 30 * index, index })}
-                keyExtractor={(item, _) => item.uuid}
+                initialScrollIndex={imagePreviewModalIndex}
+                renderItem={renderThumbItem}
+                getItemLayout={getItemLayoutThumb}
+                keyExtractor={keyExtractor}
                 horizontal={true}
                 scrollEnabled={true}
                 bounces={false}
+                initialNumToRender={Math.round(dimensions.width / 30)}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
             />

@@ -22,28 +22,12 @@ const registerBackgroundFetch = async () => {
 }
 
 TaskManager.defineTask("background-fetch", async () => {
-    const max = new Date().getTime() + 20000
-
-    const task = async () => {
-        if(new Date().getTime() >= max) return
-
-        const start = new Date().getTime()
-
-        try{
-            await runCameraUpload(1, true)
-        }
-        catch(e){
-            console.error(e)
-        }
-
-        const timeTaken = new Date().getTime() - start
-
-        if((new Date().getTime() + (timeTaken * 2)) >= max) return
-
-        task().catch(console.error)
+    try{
+        await runCameraUpload(1, true)
     }
-
-    await task().catch(console.error)
+    catch(e){
+        console.error(e)
+    }
 
     return BackgroundFetch.BackgroundFetchResult.NewData
 })

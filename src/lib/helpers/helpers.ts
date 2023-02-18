@@ -481,6 +481,7 @@ export const getFilePreviewType = memoize((ext: string) => {
             case "png":
             case "gif":
             case "svg":
+            case "webp":
             //case "heif":
             //case "heic":
               return "image"
@@ -590,6 +591,7 @@ export const getFilePreviewType = memoize((ext: string) => {
             case "svg":
             case "heic":
             case "heif":
+            case "webp":
               return "image"
             break
             case "mp3":

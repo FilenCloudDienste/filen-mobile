@@ -22,6 +22,7 @@ import { Asset } from "expo-media-library"
 import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 import { getThumbnailCacheKey } from "../thumbnails"
 import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata } from "../../crypto"
+import { PreviewItem } from "../../../screens/ImageViewerScreen"
 
 export const buildFolder = memoize(async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
@@ -1105,9 +1106,9 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
                 return
             }
 
-            const currentImages: any = []
+            const currentImages: PreviewItem[] = []
             let currentIndex = 0
-            const addedImages: any = {}
+            const addedImages: Record<string, boolean> = {}
             let index = 0
             let imgFound = false
 
