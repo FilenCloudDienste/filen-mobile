@@ -410,5 +410,8 @@ export const ru: {
     keepAppAwake: "Не выключать экран",
     followSystemTheme: "Следовать системным настройкам",
     hideRecents: "Скрыть недавние",
-    videos: "Видео"
+    videos: "Видео",
+    cameraUploadOnlyUploadOriginal: "Загружать только оригинальное фото",
+    cameraUploadConvertLiveAndBurst: "Конвертировать живые и серийные фотографии",
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Конвертировать и сохранить оригинал"
 }
