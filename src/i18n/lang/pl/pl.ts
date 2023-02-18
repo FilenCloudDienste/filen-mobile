@@ -404,5 +404,13 @@ export const pl: {
     fifteenMinutes: "15 minutach",
     thirtyMinutes: "30 minutach",
     oneHour: "1 godzinie",
-    saveLogs: "Zapisz logi"
+    saveLogs: "Zapisz logi",
+    cameraUploadAfterEnabled: "Przesyłaj dopiero po dacie aktywacji",
+    keepAppAwake: "Zatrzymaj ekran w trybie czuwania",
+    followSystemTheme: "Postępuj zgodnie z ustawieniami systemu",
+    hideRecents: "Ukryj ostatnie wydarzenia",
+    videos: "Wideo",
+    cameraUploadOnlyUploadOriginal: "Prześlij tylko oryginalne zdjęcie",
+    cameraUploadConvertLiveAndBurst: "Konwertuj zdjęcia na żywo i zdjęcia seryjne",
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Konwertuj i zachowaj oryginał"
 }
