@@ -37,12 +37,14 @@ export interface ListItemProps extends ItemBaseProps {
 }
 
 export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
-    const cachedFolderSize = useRef<number>(storage.getNumber("folderSizeCache:" + item.uuid)).current
-    const [size, setSize] = useState<number>(item.type == "folder" && cachedFolderSize > 0 ? cachedFolderSize : item.size)
+    const [size, setSize] = useState<number>(item.size)
     const isMounted = useMountedState()
+    const fetched = useRef<boolean>(false)
 
     useEffect(() => {
-        if(item.type == "folder" && isOnline()){
+        if(item.type == "folder" && isOnline() && !fetched.current){
+            fetched.current = true
+
             fetchFolderSize({ folder: item, routeURL: getRouteURL(route) }).then((fetchedSize) => {
                 if(isMounted()){
                     setSize(fetchedSize)
@@ -241,16 +243,18 @@ export interface GridItemProps extends ItemBaseProps {
 
 export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow, hideSizes, route }: GridItemProps) => {
     const dimensions: ScaledSize = useWindowDimensions()
-    const cachedFolderSize = useRef<number>(storage.getNumber("folderSizeCache:" + item.uuid)).current
-    const [size, setSize] = useState<number>(item.type == "folder" && cachedFolderSize > 0 ? cachedFolderSize : item.size)
+    const [size, setSize] = useState<number>(item.size)
     const isMounted = useMountedState()
+    const fetched = useRef<boolean>(false)
 
     const windowWidth: number = useMemo(() => {
         return (dimensions.width - (insets.left + insets.right)) - 40
     }, [dimensions, insets])
 
     useEffect(() => {
-        if(item.type == "folder" && isOnline()){
+        if(item.type == "folder" && isOnline() && !fetched.current){
+            fetched.current = true
+            
             fetchFolderSize({ folder: item, routeURL: getRouteURL(route) }).then((fetchedSize) => {
                 if(isMounted()){
                     setSize(fetchedSize)
