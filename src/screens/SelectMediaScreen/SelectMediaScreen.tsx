@@ -141,13 +141,16 @@ export const AssetItem = memo(({ item, setAssets }: { item: Asset, setAssets: Re
     const [image, setImage] = useState<string | undefined>(item.type == "image" ? item.asset.uri : undefined)
     const isMounted = useMountedState()
     const insets = useSafeAreaInsets()
+    const init = useRef<boolean>(false)
 
     const size = useMemo(() => {
         return Math.floor((dimensions.width - insets.left - insets.right) / 4) - 1
     }, [dimensions, insets])
 
     useEffect(() => {
-        if(item.type == "video"){
+        if(item.type == "video" && !init.current){
+            init.current = true
+
             getVideoThumbnail(item.asset).then((uri) => {
                 videoThumbnailSemaphore.release()
 
@@ -279,17 +282,22 @@ export interface AlbumItemProps {
 export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItemProps) => {
     const [image, setImage] = useState<string>("")
     const isMounted = useMountedState()
+    const init = useRef<boolean>(false)
 
     useEffect(() => {
-        getLastImageOfAlbum(item.album).then((uri) => {
-            if(uri.length > 0 && isMounted()){
-                setImage(uri)
-            }
-        }).catch((err) => {
-            console.error(err)
+        if(!init.current){
+            init.current = true
 
-            showToast({ message: err.toString() })
-        })
+            getLastImageOfAlbum(item.album).then((uri) => {
+                if(uri.length > 0 && isMounted()){
+                    setImage(uri)
+                }
+            }).catch((err) => {
+                console.error(err)
+    
+                showToast({ message: err.toString() })
+            })
+        }
     }, [])
 
     return (
@@ -585,7 +593,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                             data={albums}
                             renderItem={renderAlbum}
                             keyExtractor={(item) => item.album.id}
-                            windowSize={32}
+                            windowSize={3}
                             getItemLayout={getItemLayoutAlbum}
                             style={{
                                 height: "100%",
@@ -655,8 +663,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                             data={assets}
                             renderItem={renderAsset}
                             keyExtractor={(item) => item.asset.id}
-                            windowSize={32}
+                            windowSize={3}
                             getItemLayout={getItemLayoutAsset}
+                            onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}
                             onEndReachedThreshold={0.1}
                             onEndReached={() => {
                                 if(assets.length > 0 && !onEndReachedCalledDuringMomentum.current && typeof params !== "undefined" && typeof params.album !== "undefined" && assetsHasNextPage.current && canPaginate.current){

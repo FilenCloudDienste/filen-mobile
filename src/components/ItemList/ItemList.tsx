@@ -830,7 +830,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
                 key={listKey}
                 renderItem={renderItemFn}
                 keyExtractor={keyExtractor}
-                windowSize={routeURL.indexOf("photos") ? 32 : 16}
+                windowSize={4}
                 ref={itemListRef}
                 initialScrollIndex={typeof initScrollIndex == "number" ? (isBetween(initScrollIndex, 0, generatedItemList.length) ? initScrollIndex : 0) : 0}
                 numColumns={numColumns}
