@@ -479,12 +479,6 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     }, [])
 
     useEffect(() => {
-        if(isMounted() && assets.length > 0){
-            currentAssetsAfter.current = assets[assets.length - 1].asset
-        }
-    }, [assets])
-
-    useEffect(() => {
         if(typeof params !== "undefined" && isFocused){
             if(typeof params.album == "undefined"){
                 fetchAlbums().then((fetched) => {
@@ -499,11 +493,15 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
             }
             else{
                 fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current).then((fetched) => {
-                    if(isMounted()){
-                        assetsHasNextPage.current = fetched.hasNextPage
+                    if(fetched.assets.length > 0){
+                        currentAssetsAfter.current = fetched.assets[fetched.assets.length -1].asset
 
-                        setAssets(fetched.assets)
+                        if(isMounted()){
+                            setAssets(fetched.assets)
+                        }
                     }
+
+                    assetsHasNextPage.current = fetched.hasNextPage
                 }).catch((err) => {
                     console.error(err)
         
@@ -666,20 +664,23 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                                     canPaginate.current = false
 
                                     fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current).then((fetched) => {
-                                        if(isMounted()){
-                                            assetsHasNextPage.current = fetched.hasNextPage
-                    
-                                            setAssets(prev => {
-                                                const existingIds: { [key: string]: boolean } = {}
+                                        if(fetched.assets.length > 0){
+                                            currentAssetsAfter.current = fetched.assets[fetched.assets.length -1].asset
 
-                                                for(let i = 0; i < prev.length; i++){
-                                                    existingIds[prev[i].asset.id] = true
-                                                }
-
-                                                return [...prev, ...fetched.assets.filter(asset => !existingIds[asset.asset.id])]
-                                            })
+                                            if(isMounted()){
+                                                setAssets(prev => {
+                                                    const existingIds: Record<string, boolean> = {}
+    
+                                                    for(let i = 0; i < prev.length; i++){
+                                                        existingIds[prev[i].asset.id] = true
+                                                    }
+    
+                                                    return [...prev, ...fetched.assets.filter(asset => !existingIds[asset.asset.id])]
+                                                })
+                                            }
                                         }
                                         
+                                        assetsHasNextPage.current = fetched.hasNextPage
                                         canPaginate.current = true
                                     }).catch((err) => {
                                         console.error(err)

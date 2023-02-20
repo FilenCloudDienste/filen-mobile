@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useRef } from "react"
-import { View, Text, ScrollView, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight, useWindowDimensions, ScaledSize } from "react-native"
+import { View, Text, ScrollView, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight, useWindowDimensions } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButton } from "../SettingsScreen/SettingsScreen"
@@ -30,7 +30,7 @@ export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenPro
     const [eventInfo, setEventInfo] = useState<any>(undefined)
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [eventText, setEventText] = useState<string>("")
-    const isMounted: () => boolean = useMountedState()
+    const isMounted = useMountedState()
 
     const uuid: string = route?.params?.uuid
 
@@ -441,44 +441,34 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
     const [events, setEvents] = useState<any>([])
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [filter, setFilter] = useState<string>("all")
-    const [limit, setLimit] = useState<number>(0)
     const [refreshing, setRefreshing] = useState<boolean>(false)
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
     const [masterKeys, setMasterKeys] = useState<string[]>(getMasterKeys())
-    const isMounted: () => boolean = useMountedState()
-    const [topHeight, setTopHeight] = useState<number>(0)
+    const isMounted = useMountedState()
     const bottomBarHeight = useStore(state => state.bottomBarHeight)
     const contentHeight = useStore(state => state.contentHeight)
     const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
-    const lastEventId = useRef<number>(0)
+    const lastEventTimestamp = useRef<number>(Math.floor(new Date().getTime() / 1000) + 60)
     const canPaginate = useRef<boolean>(true)
 
-    const getEvents = (lastId: number) => {
+    const getEvents = () => {
         setIsLoading(true)
         
-        fetchEvents({ lastId, filter }).then((data) => {
-            if(isMounted()){
-                setIsLoading(false)
-                setRefreshing(false)
+        fetchEvents({ timestamp: lastEventTimestamp.current, filter }).then((data) => {
+            setIsLoading(false)
+            setRefreshing(false)
 
-                if(data.events.length <= 0){
-                    canPaginate.current = true
-
-                    return
-                }
-
+            if(data.events.length > 0){
                 const newEvents = data.events
-                const limit = data.limit
 
-                setEvents((prev: any) => [...prev, ...newEvents])
-                setLimit(limit)
-                
-                lastEventId.current = newEvents[newEvents.length - 1].id
-                canPaginate.current = true
+                lastEventTimestamp.current = newEvents[newEvents.length - 1].timestamp
+
+                if(isMounted()){
+                    setEvents((prev: any) => [...prev, ...newEvents])
+                }
             }
-            else{
-                canPaginate.current = true
-            }
+            
+            canPaginate.current = true
         }).catch((err) => {
             console.error(err)
 
@@ -491,7 +481,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
     useEffect(() => {
         setEvents([])
 
-        getEvents(lastEventId.current)
+        getEvents()
     }, [])
 
     return (
@@ -503,7 +493,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
             />
             <View
                 style={{
-                    height: Math.floor(contentHeight - topHeight - bottomBarHeight + 31),
+                    height: Math.floor(contentHeight - bottomBarHeight + 31),
                     width: "100%",
                     backgroundColor: getColor(darkMode, "backgroundPrimary"),
                     paddingTop: 15
@@ -519,11 +509,11 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                     onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}
                     onEndReachedThreshold={0.1}
                     onEndReached={() => {
-                        if(limit <= events.length && limit > 0 && events.length > 0 && !onEndReachedCalledDuringMomentum.current && canPaginate.current){
+                        if(events.length > 0 && !onEndReachedCalledDuringMomentum.current && canPaginate.current){
                             onEndReachedCalledDuringMomentum.current = true
                             canPaginate.current = false
 
-                            getEvents(lastEventId.current)
+                            getEvents()
                         }
                     }}
                     getItemLayout={(_, index) => ({ length: 54, offset: 54 * index, index })}
@@ -573,9 +563,11 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                                 if(!isLoading){
                                     return false
                                 }
+
+                                lastEventTimestamp.current = (Math.floor(new Date().getTime() / 1000) + 60)
     
                                 setRefreshing(true)
-                                getEvents(0)
+                                getEvents()
                             }}
                             tintColor={getColor(darkMode, "textPrimary")}
                         />
@@ -584,27 +576,6 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                         height: "100%",
                         width: "100%"
                     }}
-                    ListFooterComponent={
-                        isLoading ? (
-                            <></>
-                        ) : (
-                            limit <= events.length && limit > 0 && events.length > 0 ? (
-                                <View
-                                    style={{
-                                        height: 50,
-                                        marginTop: 15
-                                    }}
-                                >
-                                    <ActivityIndicator
-                                        color={getColor(darkMode, "textPrimary")}
-                                        size="small"
-                                    />
-                                </View>
-                            ) : (
-                                <></>
-                            )
-                        )
-                    }
                 />
             </View>
         </>

@@ -2245,15 +2245,15 @@ export const fetchOfflineFilesInfo = ({ files }: { files: any }): Promise<any> =
     })
 }
 
-export const fetchEvents = ({ lastId = 0, filter = "all" }: { lastId?: number, filter?: string }): Promise<{ events: any, limit: number }> => {
+export const fetchEvents = ({ timestamp = (Math.floor(new Date().getTime() / 1000) + 60), filter = "all" }: { timestamp?: number, filter?: string }): Promise<{ events: any, limit: number }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",
-            endpoint: "/v1/user/events",
+            endpoint: "/v2/user/events",
             data: {
                 apiKey: getAPIKey(),
                 filter,
-                id: lastId
+                timestamp
             }
         }).then((response) => {
             if(!response.status){
