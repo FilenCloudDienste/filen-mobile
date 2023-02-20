@@ -184,8 +184,12 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
 
     const renderItem = useCallback(({ item, index }) => {
         const transfer = item
-        const progress = parseFloat((parseFloat(isNaN(transfer.percent) ? 0 : transfer.percent >= 100 ? 100 : transfer.percent.toFixed(2)) / 100).toFixed(2))
+        let progress = parseFloat((parseFloat(isNaN(transfer.percent) ? 0 : transfer.percent >= 100 ? 100 : transfer.percent.toFixed(2)) / 100).toFixed(2))
         const isPaused = typeof pausedTransfers[transfer.uuid] == "boolean" ? pausedTransfers[transfer.uuid] : false
+
+        if(isNaN(progress) || !Number.isInteger(progress)){
+            progress = 0
+        }
             
         return (
             <View
