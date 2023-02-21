@@ -296,7 +296,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
                         style={{
                             fontSize: 15,
                             fontWeight: "400",
-                            color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
+                            color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32) ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary")
                         }}
                     >
                         {i18n(lang, "move")}

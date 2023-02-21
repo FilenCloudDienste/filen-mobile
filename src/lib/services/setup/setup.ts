@@ -1,6 +1,6 @@
 import { updateKeys } from "../user/keys"
 import { apiRequest } from "../../api"
-import { getAPIKey, toExpoFsPath, promiseAllSettled, Semaphore } from "../../helpers"
+import { getAPIKey, toExpoFsPath, promiseAllSettled } from "../../helpers"
 import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
 import * as FileSystem from "expo-file-system"
@@ -10,6 +10,7 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import { memoize } from "lodash"
 import { getOfflineList, removeItemFromOfflineList } from "../offline"
 import { validate } from "uuid"
+import { Item } from "../../../types"
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 const CACHE_CLEARING_ENABLED: boolean = true
@@ -109,25 +110,42 @@ export const clearCacheDirectories = async () => {
 
     const items: string[] = await FileSystem.readDirectoryAsync(toExpoFsPath(offlinePath))
     const inList: string[] = list.map(item => item.uuid)
-    const inDir: string[] = items.filter(item => item.indexOf("_") !== -1 && item.split("_").length == 2 && validate(item.split("_")[1].split(".")[0])).map(item => item.split("_")[1].split(".")[0])
+
+    const inDir: string[] = items.filter(item => {
+        if(item.indexOf("_") == -1){
+            return false
+        }
+
+        const exUnderscore = item.split("_")
+        const uuidEx = exUnderscore[exUnderscore.length - 1].split(".")
+        const uuid = uuidEx[0]
+
+        if(!validate(uuid)){
+            return false
+        }
+
+        return true
+    }).map(item => {
+        const exUnderscore = item.split("_")
+        const uuidEx = exUnderscore[exUnderscore.length - 1].split(".")
+        const uuid = uuidEx[0]
+
+        return uuid
+    })
+
     const toDelete: string[] = []
     const toRemove: string[] = []
 
     for(let i = 0; i < items.length; i++){
-        if(items[i].indexOf("_") !== -1 && items[i].split("_").length == 2 && validate(items[i].split("_")[1].split(".")[0])){
-            let found = false
+        let found = false
 
-            for(let x = 0; x < inList.length; x++){
-                if(items[i].indexOf(inList[x]) !== -1){
-                    found = true
-                }
-            }
-
-            if(!found){
-                toDelete.push(items[i])
+        for(let x = 0; x < inList.length; x++){
+            if(items[i].indexOf(inList[x]) !== -1){
+                found = true
             }
         }
-        else{
+
+        if(!found){
             toDelete.push(items[i])
         }
     }
@@ -156,7 +174,7 @@ export const clearCacheDirectories = async () => {
         removeItemFromOfflineList({
             item: {
                 uuid: toRemove[i]
-            }
+            } as Item
         }).catch((err) => {
             console.log(6, "Could not remove", toRemove[i], err)
         })

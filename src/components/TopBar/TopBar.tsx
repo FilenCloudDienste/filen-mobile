@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
-import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform, useWindowDimensions, ScaledSize } from "react-native"
+import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform, useWindowDimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVString, useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
@@ -14,7 +14,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 
 export interface TopBarProps {
-    navigation: NavigationContainerRef<{}>,
+    navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
     route: any,
     setLoadDone: React.Dispatch<React.SetStateAction<boolean>>,
     searchTerm: string,
@@ -109,7 +109,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     const setTopBarHeight = useStore(state => state.setTopBarHeight)
     const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
     const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 
@@ -139,7 +139,22 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
         return (dimensions.width / tabs) - 20
     }, [dimensions, hideRecents, privateKey, publicKey])
 
-    const [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton] = useMemo(() => {
+    const [
+        isMainScreen,
+        isTransfersScreen,
+        isSettingsScreen,
+        isBaseScreen,
+        isRecentsScreen,
+        isTrashScreen,
+        isSharedInScreen,
+        isSharedOutScreen,
+        isPublicLinksScreen,
+        isOfflineScreen,
+        isFavoritesScreen,
+        isPhotosScreen,
+        showHomeTabBar,
+        showBackButton
+    ] = useMemo(() => {
         const isMainScreen: boolean = (route.name == "MainScreen")
         const isTransfersScreen: boolean = (route.name == "TransfersScreen")
         const isSettingsScreen: boolean = (route.name == "SettingsScreen")
@@ -167,7 +182,22 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
             showBackButton = true
         }
 
-        return [isMainScreen, isTransfersScreen, isSettingsScreen, isBaseScreen, isRecentsScreen, isTrashScreen, isSharedInScreen, isSharedOutScreen, isPublicLinksScreen, isOfflineScreen, isFavoritesScreen, isPhotosScreen, showHomeTabBar, showBackButton]
+        return [
+            isMainScreen,
+            isTransfersScreen,
+            isSettingsScreen,
+            isBaseScreen,
+            isRecentsScreen,
+            isTrashScreen,
+            isSharedInScreen,
+            isSharedOutScreen,
+            isPublicLinksScreen,
+            isOfflineScreen,
+            isFavoritesScreen,
+            isPhotosScreen,
+            showHomeTabBar,
+            showBackButton
+        ]
     }, [route, parent])
 
     const goBack = useCallback((): void => {

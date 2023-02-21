@@ -24,7 +24,7 @@ import { getThumbnailCacheKey } from "../thumbnails"
 import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata } from "../../crypto"
 import { PreviewItem } from "../../../screens/ImageViewerScreen"
 
-export const buildFolder = memoize(async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
+export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
 
     if(memoryCache.has(cacheKey)){
@@ -81,7 +81,7 @@ export const buildFolder = memoize(async ({ folder, name = "", masterKeys = [], 
         version: 0,
         hash: ""
     }
-}, (args) => JSON.stringify(args))
+}
 
 export interface BuildFile {
     file: any,
@@ -100,7 +100,7 @@ export interface BuildFile {
     userId?: number
 }
 
-export const buildFile = memoize(async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0, hash: "" }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
+export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0, hash: "" }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
     const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn.toString()
 
     if(memoryCache.has(cacheKey)){
@@ -178,7 +178,7 @@ export const buildFile = memoize(async ({ file, metadata = { name: "", mime: "",
         isDefault: false,
         hash: typeof metadata.hash == "string" && metadata.hash.length > 0 ? metadata.hash : ""
     }
-}, (args) => JSON.stringify(args))
+}
 
 export const sortItems = memoize(({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }): Item[] => {
     let routeURL = ""
@@ -672,7 +672,10 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     await removeFromOfflineStorage({ item: file })
 
                     if(isOnline()){
-                        queueFileDownload({ file, storeOffline: true }).catch(console.error)
+                        queueFileDownload({
+                            file,
+                            storeOffline: true
+                        }).catch(console.error)
                     }
                 }
                 else{
@@ -747,7 +750,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                                                     item: {
                                                         uuid: itemUUID,
                                                         name: itemName
-                                                    }
+                                                    } as Item
                                                 })
     
                                                 DeviceEventEmitter.emit("event", {

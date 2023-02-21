@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo } from "react"
-import { View, Text, Switch, Platform, ScrollView } from "react-native"
+import { View, Text, Switch, Platform, ScrollView, Alert } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
@@ -13,6 +13,7 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
+import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 
 export interface CameraUploadScreenProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -312,6 +313,55 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                         </SettingsGroup>
                     )
                 }
+                <SettingsGroup>
+                    <SettingsButtonLinkHighlight
+                        title={i18n(lang, "cameraUploadReset")}
+                        borderBottomRadius={10}
+                        borderTopRadius={10}
+                        onPress={() => {
+                            Alert.alert(i18n(lang, "cameraUploadReset"), i18n(lang, "cameraUploadResetInfo"), [
+                                {
+                                    text: i18n(lang, "cancel"),
+                                    onPress: () => {
+                                        return false
+                                    },
+                                    style: "cancel"
+                                },
+                                {
+                                    text: i18n(lang, "ok"),
+                                    onPress: () => {
+                                        Alert.alert(i18n(lang, "cameraUploadReset"), i18n(lang, "areYouReallySure"), [
+                                            {
+                                                text: i18n(lang, "cancel"),
+                                                onPress: () => {
+                                                    return false
+                                                },
+                                                style: "cancel"
+                                            },
+                                            {
+                                                text: i18n(lang, "ok"),
+                                                onPress: async () => {
+                                                    showFullScreenLoadingModal()
+
+                                                    storage.set("cameraUploadLastModifiedStat", JSON.stringify({}))
+                                                    storage.set("cameraUploadLastSize", JSON.stringify({}))
+
+                                                    hideFullScreenLoadingModal()
+                                                },
+                                                style: "default"
+                                            }
+                                        ], {
+                                            cancelable: true
+                                        })
+                                    },
+                                    style: "default"
+                                }
+                            ], {
+                                cancelable: true
+                            })
+                        }}
+                    />
+                </SettingsGroup>
                 <View
                     style={{
                         height: 25

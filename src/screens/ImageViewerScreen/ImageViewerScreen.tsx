@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useRef, useCallback } from "react"
+import React, { memo, useEffect, useState, useRef, useCallback, useMemo } from "react"
 import { ActivityIndicator, Text, View, TouchableOpacity, Platform, FlatList, ImageBackground, Pressable, useWindowDimensions, Image } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
@@ -58,6 +58,14 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
     const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
     const isOnline = useIsOnline()
     const firstScrollDone = useRef<boolean>(false)
+
+    const bottomMargin = useMemo(() => {
+        if(insets.bottom <= 0 || !portrait || Platform.OS == "android"){
+            return 40
+        }
+
+        return insets.bottom + 60
+    }, [portrait, insets.bottom, Platform.OS])
 
     const loadImage = async (image: PreviewItem, index: number) => {
         if(!isMounted()){
@@ -568,7 +576,8 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    marginTop: Platform.OS == "ios" ? -insets.top : 0
+                    marginTop: Platform.OS == "ios" ? -insets.top : 0,
+                    marginLeft: portrait ? 0 : -insets.left
                 }}
                 ref={listRef}
                 data={imagePreviewModalItems}
@@ -594,21 +603,21 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
             <View
                 style={{
                     position: "absolute",
-                    bottom: Platform.OS == "android" ? (insets.bottom + 25) : (insets.bottom + 60),
+                    bottom: 0,
                     width: dimensions.width,
-                    height: 63,
+                    height: bottomMargin + 63,
                     zIndex: showControls ? 0 : 10000,
                     backgroundColor: "rgba(0, 0, 0, 1)",
-                    opacity: showControls ? 0 : 1
+                    opacity: showControls || !portrait ? 0 : 1
                 }}
             />
             <FlatList
                 style={{
                     position: "absolute",
                     width: dimensions.width,
-                    bottom: Platform.OS == "android" ? (insets.bottom + 25) : (insets.bottom + 60),
+                    bottom: bottomMargin,
                     height: 60,
-                    opacity: showControls ? 0 : 1,
+                    opacity: showControls || !portrait ? 0 : 1,
                     zIndex: showControls ? 0 : 10000,
                     backgroundColor: "rgba(0, 0, 0, 1)"
                 }}

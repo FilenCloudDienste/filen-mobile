@@ -328,6 +328,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
                     callOptionalCallback(null, offlinePath)
 
+                    console.log(offlinePath)
+
                     return console.log(file.name + " download done")
                 }).catch((err) => {
                     showToast({ message: err.toString() })

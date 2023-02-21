@@ -463,7 +463,7 @@ export const getDeltas = (local: CameraUploadItems, remote: CameraUploadItems) =
                 })
             }
         }
-        else {
+        else{
             if(typeof cameraUploadLastModified[assetId] == "number"){
                 if(convertTimestampToMs(cameraUploadLastModified[assetId]) !== convertTimestampToMs(local[name].lastModified)){
                     deltas.push({
@@ -512,6 +512,10 @@ export const getAssetURI = async (asset: MediaLibrary.Asset) => {
 }
 
 export const convertHeicToJPGIOS = async (inputPath: string) => {
+    if(!inputPath.toLowerCase().endsWith(".heic")){
+        return inputPath
+    }
+
     const { success, path, error }: { success: boolean, path: string, error: any } = await RNHeicConverter.convert({
         path: toExpoFsPath(inputPath),
         quality: 1,
@@ -585,11 +589,21 @@ export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Prom
 
         for(const resource of exportedAssets.exportResults!){
             if(cameraUploadConvertLiveAndBurst && isConvertedLivePhoto && !resource.localFileLocations.toLowerCase().endsWith(".mov")){ // Don't upload the original of a live photo if we do not want to keep it aswell
+                FileSystem.deleteAsync(toExpoFsPath(resource.localFileLocations)).catch(console.error)
+
                 continue
             }
 
-            if(!cameraUploadEnableHeic && assetURI.toLowerCase().endsWith(".heic") && asset.mediaType == "photo"){
+            if(resource.localFileLocations.toLowerCase().indexOf("penultimate") !== -1){
+                FileSystem.deleteAsync(toExpoFsPath(resource.localFileLocations)).catch(console.error)
+
+                continue
+            }
+
+            if(!cameraUploadEnableHeic && resource.localFileLocations.toLowerCase().endsWith(".heic") && asset.mediaType == "photo"){
                 const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
+
+                FileSystem.deleteAsync(toExpoFsPath(resource.localFileLocations)).catch(console.error)
 
                 filesToUploadPromises.push(
                     new Promise<UploadFile>((resolve, reject) => {

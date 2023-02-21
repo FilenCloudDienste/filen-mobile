@@ -9,8 +9,9 @@ import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../../../style"
 import { hideAllToasts } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { NavigationContainerRef } from "@react-navigation/native"
 
-const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?: string | undefined, navigation?: any }) => {
+const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?: string | undefined, navigation?: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
     const darkMode = useDarkMode()
     const lang = useLang()
     const currentRoutes = useStore(state => state.currentRoutes) as any
@@ -74,7 +75,7 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
         hideAllToasts()
 
         navigationAnimation({ enable: false }).then(() => {
-            navigation.dispatch(CommonActions.reset({
+            navigation?.dispatch(CommonActions.reset({
                 index: 1,
                 routes: [
                     {
@@ -138,22 +139,22 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
                         paddingLeft: 10,
                         paddingRight: 10
                     }}
-                    onPress={() => {
+                    onPress={async () => {
                         hideAllToasts()
 
-                        navigationAnimation({ enable: false }).then(() => {
-                            navigation.dispatch(CommonActions.reset({
-                                index: 1,
-                                routes: [
-                                    {
-                                        name: "SettingsScreen"
-                                    },
-                                    {
-                                        name: "CameraUploadScreen"
-                                    }
-                                ]
-                            }))
-                        })
+                        await navigationAnimation({ enable: false })
+
+                        navigation?.dispatch(CommonActions.reset({
+                            index: 1,
+                            routes: [
+                                {
+                                    name: "SettingsScreen"
+                                },
+                                {
+                                    name: "CameraUploadScreen"
+                                }
+                            ]
+                        }))
                     }}
                 >
                     <Text
@@ -182,7 +183,7 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
                         style={{
                             fontSize: 15,
                             fontWeight: "400",
-                            color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32 && currentRouteURL.split("/").length >= 2) ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary")
+                            color: (currentRouteURL.indexOf("shared-in") == -1 && currentRouteURL.indexOf("recents") == -1 && currentRouteURL.indexOf("trash") == -1 && currentRouteURL.indexOf("photos") == -1 && currentRouteURL.indexOf("offline") == -1 && currentParent.length > 32 && currentRouteURL.split("/").length >= 2) ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary")
                         }}
                     >
                         {i18n(lang, "choose")}

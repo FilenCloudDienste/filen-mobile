@@ -135,17 +135,16 @@ export const fetchAlbums = async (): Promise<Album[]> => {
     return result.sort((a, b) => b.assetCount - a.assetCount)
 }
 
-export const AssetItem = memo(({ item, setAssets }: { item: Asset, setAssets: React.Dispatch<React.SetStateAction<Asset[]>> }) => {
+export const AssetItem = memo(({ item, setAssets, containerWidth }: { item: Asset, setAssets: React.Dispatch<React.SetStateAction<Asset[]>>, containerWidth: number }) => {
     const darkMode = useDarkMode()
-    const dimensions = useWindowDimensions()
     const [image, setImage] = useState<string | undefined>(item.type == "image" ? item.asset.uri : undefined)
     const isMounted = useMountedState()
     const insets = useSafeAreaInsets()
     const init = useRef<boolean>(false)
 
     const size = useMemo(() => {
-        return Math.floor((dimensions.width - insets.left - insets.right) / 4) - 1
-    }, [dimensions, insets])
+        return Math.floor((containerWidth - insets.left - insets.right) / 4) - 2
+    }, [containerWidth, insets])
 
     useEffect(() => {
         if(item.type == "video" && !init.current){
@@ -437,11 +436,12 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     const assetsHasNextPage = useRef<boolean>(true)
     const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
     const canPaginate = useRef<boolean>(true)
+    const [containerWidth, setContainerWidth] = useState<number>(dimensions.width)
 
     const [selectedAssets, photoCount, videoCount] = useMemo(() => {
         const selectedAssets = assets.filter(asset => asset.selected)
-        const photoCount = assets.filter(asset => asset.type == "image").length
-        const videoCount = assets.filter(asset => asset.type == "video").length
+        const photoCount = assets.filter(asset => getFilePreviewType(getFileExt(asset.asset.filename)) == "image").length
+        const videoCount = assets.filter(asset => getFilePreviewType(getFileExt(asset.asset.filename)) == "video").length
 
         return [selectedAssets, photoCount, videoCount]
     }, [assets])
@@ -457,14 +457,14 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     }, [ALBUM_ROW_HEIGHT])
 
     const getItemLayoutAsset = useCallback((_, index: number) => {
-        const length: number = Math.floor((dimensions.width - insets.left - insets.right) / 4) - 1
+        const length: number = Math.floor((containerWidth - insets.left - insets.right) / 4) - 2
 
         return {
             length,
             offset: length * index,
             index
         }
-    }, [dimensions, insets])
+    }, [containerWidth, insets])
 
     const renderAlbum = useCallback(({ item }: { item: Album }) => {
         return (
@@ -482,9 +482,10 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
             <AssetItem
                 item={item}
                 setAssets={setAssets}
+                containerWidth={containerWidth}
             />
         )
-    }, [])
+    }, [containerWidth])
 
     useEffect(() => {
         if(typeof params !== "undefined" && isFocused){
@@ -539,6 +540,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                 paddingLeft: insets.left,
                 paddingRight: insets.right
             }}
+            onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
         >
             {
                 typeof route.params.album == "undefined" ? (

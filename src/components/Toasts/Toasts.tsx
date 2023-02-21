@@ -176,7 +176,7 @@ export const hideToast = ({ id }: { id: string }) => {
         return
     }
 
-    return global.toast.hide(id)
+    return global?.toast?.hide(id)
 }
 
 export const hideAllToasts = () => {
@@ -184,5 +184,5 @@ export const hideAllToasts = () => {
         return
     }
 
-    return global.toast.hideAll()
+    return global?.toast?.hideAll()
 }

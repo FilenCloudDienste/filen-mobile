@@ -1,201 +1,176 @@
 import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
-import { getFileExt } from "../../helpers"
+import { getFileExt, toExpoFsPath } from "../../helpers"
 import { DeviceEventEmitter } from "react-native"
 import { updateLoadItemsCache, removeLoadItemsCache } from "../items"
-import ReactNativeBlobUtil from "react-native-blob-util"
+import { Item } from "../../../types"
+import * as FileSystem from "expo-file-system"
 
-export const getOfflineList = (): Promise<any[]> => {
-    return new Promise((resolve, reject) => {
-        const userId = storage.getNumber("userId")
+export const getOfflineList = async (): Promise<Item[]> => {
+    const userId = storage.getNumber("userId")
 
-        if(typeof userId !== "number"){
-            return reject("userId in storage !== number")
-        }
+    if(userId == 0){
+        throw new Error("userId in storage invalid length")
+    }
 
-        if(userId == 0){
-            return reject("userId in storage invalid length")
-        }
+    const offlineList = storage.getString("offlineList:" + userId)
 
-        const offlineList = storage.getString("offlineList:" + userId)
+    if(typeof offlineList !== "string"){
+        return []
+    }
 
-        if(typeof offlineList !== "string"){
-            return resolve([])
-        }
+    if(offlineList.length <= 0){
+        return []
+    }
 
-        if(offlineList.length <= 0){
-            return resolve([])
-        }
-
-        try{
-            return resolve(JSON.parse(offlineList))
-        }
-        catch(e){
-            return resolve([])
-        }
-    })
+    try{
+        return JSON.parse(offlineList)
+    }
+    catch(e){
+        return []
+    }
 }
 
-export const saveOfflineList = ({ list }: { list: any }): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        const userId = storage.getNumber("userId")
+export const saveOfflineList = async ({ list }: { list: Item[] }): Promise<boolean> => {
+    const userId = storage.getNumber("userId")
 
-        if(typeof userId !== "number"){
-            return reject("userId in storage !== number")
-        }
+    if(userId == 0){
+        throw new Error("userId in storage invalid length")
+    }
 
-        if(userId == 0){
-            return reject("userId in storage invalid length")
-        }
+    storage.set("offlineList:" + userId, JSON.stringify(list))
 
-        storage.set("offlineList:" + userId, JSON.stringify(list))
-
-        return resolve(true)
-    })
+    return true
 }
 
-export const addItemToOfflineList = ({ item }: { item: any }): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        const userId = storage.getNumber("userId")
+export const addItemToOfflineList = async ({ item }: { item: Item }): Promise<boolean> => {
+    const userId = storage.getNumber("userId")
 
-        if(typeof userId !== "number"){
-            return reject("userId in storage !== number")
+    if(userId == 0){
+        throw new Error("userId in storage invalid length")
+    }
+    
+    const offlineList = await getOfflineList()
+    const offlineItem = item
+
+    offlineItem.selected = false
+
+    const newList = [...offlineList]
+    let exists = false
+
+    for(let i = 0; i < newList.length; i++){
+        if(newList[i].uuid == offlineItem.uuid){
+            exists = true
         }
+    }
 
-        if(userId == 0){
-            return reject("userId in storage invalid length")
-        }
-        
-        const offlineList = await getOfflineList()
-        const offlineItem = item
+    if(exists){
+        return true
+    }
 
-        offlineItem.selected = false
+    offlineItem.offline = true
 
-        const newList = [...offlineList]
-        let exists = false
+    newList.push(offlineItem)
 
-        for(let i = 0; i < newList.length; i++){
-            if(newList[i].uuid == offlineItem.uuid){
-                exists = true
-            }
-        }
+    storage.set(userId + ":offlineItems:" + offlineItem.uuid, true)
 
-        if(exists){
-            return resolve(true)
-        }
-
-        offlineItem.offline = true
-
-        newList.push(offlineItem)
-
-        storage.set(userId + ":offlineItems:" + offlineItem.uuid, true)
-
-        await saveOfflineList({ list: newList })
-
-        await updateLoadItemsCache({
+    await Promise.all([
+        saveOfflineList({ list: newList }),
+        updateLoadItemsCache({
             item,
             prop: "offline",
             value: true
         })
+    ])
 
-        return resolve(true)
-    })
+    return true
 }
 
-export const changeItemNameInOfflineList = ({ item, name }: { item: any, name: string }): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        const userId = storage.getNumber("userId")
+export const changeItemNameInOfflineList = async ({ item, name }: { item: Item, name: string }): Promise<boolean> => {
+    const userId = storage.getNumber("userId")
 
-        if(typeof userId !== "number"){
-            return reject("userId in storage !== number")
-        }
+    if(userId == 0){
+        throw new Error("userId in storage invalid length")
+    }
+    
+    const offlineList = await getOfflineList()
+    const newList = offlineList.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, name} : mapItem)
 
-        if(userId == 0){
-            return reject("userId in storage invalid length")
-        }
-        
-        const offlineList = await getOfflineList()
-        const newList = offlineList.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, name} : mapItem)
-
-        await saveOfflineList({ list: newList })
-
-        await updateLoadItemsCache({
+    await Promise.all([
+        saveOfflineList({ list: newList }),
+        updateLoadItemsCache({
             item,
             prop: "name",
             value: name
         })
+    ])
 
-        return resolve(true)
-    })
+    return true
 }
 
-export const removeItemFromOfflineList = ({ item }: { item: any }): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        const userId = storage.getNumber("userId")
+export const removeItemFromOfflineList = async ({ item }: { item: Item }): Promise<boolean> => {
+    const userId = storage.getNumber("userId")
 
-        if(typeof userId !== "number"){
-            return reject("userId in storage !== number")
+    if(typeof userId !== "number"){
+        throw new Error("userId in storage !== number")
+    }
+
+    if(userId == 0){
+        throw new Error("userId in storage invalid length")
+    }
+
+    const offlineList = await getOfflineList()
+    const newList = [...offlineList]
+
+    for(let i = 0; i < newList.length; i++){
+        if(newList[i].uuid == item.uuid){
+            newList.splice(i, 1)
         }
+    }
 
-        if(userId == 0){
-            return reject("userId in storage invalid length")
-        }
+    storage.delete(userId + ":offlineItems:" + item.uuid)
 
-        const offlineList = await getOfflineList()
-        const newList = [...offlineList]
-
-        for(let i = 0; i < newList.length; i++){
-            if(newList[i].uuid == item.uuid){
-                newList.splice(i, 1)
-            }
-        }
-
-        storage.delete(userId + ":offlineItems:" + item.uuid)
-
-        await saveOfflineList({ list: newList })
-        await updateLoadItemsCache({
+    await Promise.all([
+        saveOfflineList({ list: newList }),
+        updateLoadItemsCache({
             item,
             prop: "offline",
             value: false
-        })
-        await removeLoadItemsCache({
+        }),
+        removeLoadItemsCache({
             item,
             routeURL: "offline"
         })
+    ])
 
-        return resolve(true)
-    })
+    return true
 }
 
-export const getItemOfflinePath = (offlinePath: string, item: any): string => {
+export const getItemOfflinePath = (offlinePath: string, item: Item): string => {
     return offlinePath + item.uuid + item.name + "_" + item.uuid + "." + getFileExt(item.name)
 }
 
-export const removeFromOfflineStorage = ({ item }: { item: any }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        getDownloadPath({ type: "offline" }).then(async (path) => {
-            path = getItemOfflinePath(path, item)
+export const removeFromOfflineStorage = async ({ item }: { item: Item }): Promise<boolean> => {
+    const path = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
 
-            try{
-                if((await ReactNativeBlobUtil.fs.exists(path))){
-                    await ReactNativeBlobUtil.fs.unlink(path)
-                }
-            }
-            catch(e){
-                console.log(e)
-            }
+    try{
+        if((await FileSystem.getInfoAsync(toExpoFsPath(path))).exists){
+            await FileSystem.deleteAsync(toExpoFsPath(path))
+        }
+    }
+    catch(e){
+        console.log(e)
+    }
 
-            removeItemFromOfflineList({ item }).then(() => {
-                DeviceEventEmitter.emit("event", {
-                    type: "mark-item-offline",
-                    data: {
-                        uuid: item.uuid,
-                        value: false
-                    }
-                })
-
-                return resolve(true)
-            }).catch(reject)
-        }).catch(reject)
+    await removeItemFromOfflineList({ item })
+    
+    DeviceEventEmitter.emit("event", {
+        type: "mark-item-offline",
+        data: {
+            uuid: item.uuid,
+            value: false
+        }
     })
+
+    return true
 }

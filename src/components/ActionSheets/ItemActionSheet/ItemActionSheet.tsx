@@ -238,6 +238,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem, lang])
 
 	const removeFromOffline = useCallback(async () => {
+		if(!currentActionSheetItem){
+			return
+		}
+
 		await SheetManager.hide("ItemActionSheet")
 
 		hasStoragePermissions().then(() => {
