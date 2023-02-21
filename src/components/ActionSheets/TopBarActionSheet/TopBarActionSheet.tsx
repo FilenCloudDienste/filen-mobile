@@ -6,7 +6,7 @@ import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload } from "../../../lib/services/download/download"
-import { getFileExt, getRouteURL, calcPhotosGridSize } from "../../../lib/helpers"
+import { getFileExt, getRouteURL, calcPhotosGridSize, toExpoFsPath } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { StackActions } from "@react-navigation/native"
@@ -379,7 +379,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 						queueFileDownload({
 							file: item,
 							saveToGalleryCallback: (path: string) => {
-								MediaLibrary.createAssetAsync(path).then((asset) => {
+								MediaLibrary.createAssetAsync(toExpoFsPath(path)).then((asset) => {
 									addToSavedToGallery(asset)
 
 									showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
