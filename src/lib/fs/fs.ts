@@ -1,7 +1,7 @@
 import * as FileSystem from "expo-file-system"
 import { Semaphore, toExpoFsPath } from "../helpers"
 
-const writeSemaphore = new Semaphore(3)
+const writeSemaphore = new Semaphore(2)
 const writeSemaphoreTimeout = 100
 const readSemaphore = new Semaphore(128)
 

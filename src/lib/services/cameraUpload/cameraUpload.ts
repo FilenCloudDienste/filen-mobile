@@ -1,7 +1,7 @@
 import storage from "../../storage"
 import { queueFileUpload, UploadFile } from "../upload/upload"
 import { Platform } from "react-native"
-import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt, getRandomArbitrary } from "../../helpers"
+import { promiseAllSettled, convertTimestampToMs, getAPIKey, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt, getRandomArbitrary } from "../../helpers"
 import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import mimeTypes from "mime-types"
@@ -17,6 +17,7 @@ import { exportPhotoAssets } from "react-native-ios-asset-exporter"
 import path from "path"
 import { decryptFileMetadata } from "../../crypto"
 import * as fs from "../../fs"
+import { v4 as uuidv4 } from "uuid"
 
 const CryptoJS = require("crypto-js")
 
@@ -554,6 +555,15 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
         name = parsedName.name + ".JPG"
     }
 
+    try{
+        if((await fs.stat(tmp)).exists){
+            await fs.unlink(tmp)
+        }
+    }
+    catch(e){
+        console.error(e)
+    }
+
     await fs.copy(assetURI, tmp)
     
     const stat = await fs.stat(tmp)
@@ -574,7 +584,7 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
 export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Promise<UploadFile[]> => {
     await getFileMutex.acquire()
 
-    const releaseMutex = () => setTimeout(() => getFileMutex.release(), 100)
+    const releaseMutex = () => setTimeout(() => getFileMutex.release(), 500)
 
     try{
         const userId = storage.getNumber("userId")
@@ -582,7 +592,7 @@ export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Prom
         const cameraUploadOnlyUploadOriginal = storage.getBoolean("cameraUploadOnlyUploadOriginal:" + userId)
         const cameraUploadConvertLiveAndBurst = storage.getBoolean("cameraUploadConvertLiveAndBurst:" + userId)
         const cameraUploadConvertLiveAndBurstAndKeepOriginal = storage.getBoolean("cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId)
-        const tmpPrefix = randomIdUnsafe() + "_"
+        const tmpPrefix = uuidv4() + "_"
         const tmp = fs.cacheDirectory + tmpPrefix + asset.filename
         const files: UploadFile[] = []
         let originalKept = false
@@ -616,7 +626,8 @@ export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Prom
                     continue
                 }
 
-                if(!cameraUploadEnableHeic && resource.localFileLocations.toLowerCase().endsWith(".heic") && asset.mediaType == "photo"){
+                // Convert from HEIC to JPG, but do not convert FullSizeRender photos aka. edited photos due to compatibility issues with the HEICConverter
+                if(!cameraUploadEnableHeic && resource.localFileLocations.toLowerCase().endsWith(".heic") && asset.mediaType == "photo" && resource.localFileLocations.toLowerCase().indexOf("fullsizerender") == -1){
                     const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
 
                     setTimeout(() => fs.unlink(resource.localFileLocations).catch(console.error), getRandomArbitrary(1000, 15000))

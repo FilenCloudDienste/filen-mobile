@@ -451,7 +451,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
     const lastEventTimestamp = useRef<number>(Math.floor(new Date().getTime() / 1000) + 60)
     const canPaginate = useRef<boolean>(true)
 
-    const getEvents = () => {
+    const getEvents = (refresh: boolean = false) => {
         setIsLoading(true)
         
         fetchEvents({ timestamp: lastEventTimestamp.current, filter }).then((data) => {
@@ -464,12 +464,20 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                 lastEventTimestamp.current = newEvents[newEvents.length - 1].timestamp
 
                 if(isMounted()){
-                    setEvents((prev: any) => [...prev, ...newEvents])
+                    if(refresh){
+                        setEvents(newEvents)
+                    }
+                    else{
+                        setEvents((prev: any) => [...prev, ...newEvents])
+                    }
                 }
             }
             
             canPaginate.current = true
         }).catch((err) => {
+            setIsLoading(false)
+            setRefreshing(false)
+            
             console.error(err)
 
             canPaginate.current = true
@@ -567,7 +575,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                                 lastEventTimestamp.current = (Math.floor(new Date().getTime() / 1000) + 60)
     
                                 setRefreshing(true)
-                                getEvents()
+                                getEvents(true)
                             }}
                             tintColor={getColor(darkMode, "textPrimary")}
                         />
