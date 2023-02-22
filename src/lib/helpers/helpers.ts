@@ -1148,6 +1148,30 @@ export const safeAwait = async <T>(promise: Promise<T>): Promise<[Error | null, 
         return [null, result]
     }
     catch(e){
-        return [e as Error, null as T]
+        return [e as Error, null as any as T]
     }
+}
+
+export const normalizeProgress = (progress: number) => { // Convert progress number (0-100) to RN SVG progress compatible (0.00 - 1.00)
+    if(isNaN(progress)){
+        return 0
+    }
+
+    const fixed = parseFloat(progress.toFixed(2))
+
+    if(fixed <= 1){
+        return 0
+    }
+
+    if(fixed >= 99){
+        return 1
+    }
+
+    const calced = parseFloat((progress / 100).toFixed(2))
+
+    if(isNaN(calced)){
+        return 0
+    }
+
+    return calced
 }

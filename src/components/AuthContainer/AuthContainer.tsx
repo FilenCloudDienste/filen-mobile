@@ -1,9 +1,8 @@
 import React, { memo } from "react"
-import { TouchableOpacity, KeyboardAvoidingView } from "react-native"
+import { TouchableOpacity, KeyboardAvoidingView, Image } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import storage from "../../lib/storage"
-import FastImage from "react-native-fast-image"
 
 const AuthContainer = memo(({ children }: { children: React.ReactNode[] }) => {
     const darkMode = useDarkMode()
@@ -22,7 +21,7 @@ const AuthContainer = memo(({ children }: { children: React.ReactNode[] }) => {
             <TouchableOpacity
                 onPress={() => storage.set("darkMode", !darkMode)}
             >
-                <FastImage
+                <Image
                     source={darkMode ? require("../../assets/images/light_logo.png") : require("../../assets/images/dark_logo.png")}
                     style={{
                         width: 100,

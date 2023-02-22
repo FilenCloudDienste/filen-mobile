@@ -1,5 +1,5 @@
 import React, { memo } from "react"
-import { View, Text, TouchableHighlight, TouchableOpacity } from "react-native"
+import { View, Text, TouchableHighlight, TouchableOpacity, Image } from "react-native"
 import { SheetManager } from "react-native-actions-sheet"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
@@ -12,7 +12,6 @@ import { getColor } from "../../style/colors"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import FastImage from "react-native-fast-image"
 
 export interface ActionButtonProps {
 	onPress: any,
@@ -161,7 +160,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 						color={getFolderColor(currentActionSheetItem.color)}
 					/>
 				) : (
-					<FastImage
+					<Image
 						source={hideThumbnails ? getImageForItem(currentActionSheetItem) : typeof currentActionSheetItem.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + currentActionSheetItem.uuid + ".jpg" } : getImageForItem(currentActionSheetItem)}
 						style={{
 							width: 40,

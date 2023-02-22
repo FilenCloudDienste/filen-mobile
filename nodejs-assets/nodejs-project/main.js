@@ -83,6 +83,8 @@ const cachedDerivedKeys = {}
 const cachedPemKeys = {}
 let tasksRunning = 0
 const convertHeicSemaphore = new Semaphore(1)
+const readSemaphore = new Semaphore(32)
+const writeSemaphore = new Semaphore(1)
 
 const convertArrayBufferToUtf8String = (buffer) => {
     return Buffer.from(buffer).toString("utf8")
@@ -575,38 +577,46 @@ const uploadAvatar = (base64, url, timeout) => {
 
 const readChunk = (path, offset, length) => {
     return new Promise((resolve, reject) => {
-        path = pathModule.normalize(path)
+        readSemaphore.acquire().then((release) => {
+            path = pathModule.normalize(path)
 
-        fs.open(path, "r", (err, fd) => {
-            if(err){
-                return reject(err)
-            }
-
-            const buffer = Buffer.alloc(length)
-
-            fs.read(fd, buffer, 0, length, offset, (err, read) => {
+            fs.open(path, "r", (err, fd) => {
                 if(err){
+                    release()
+
                     return reject(err)
                 }
 
-                let data = undefined
+                const buffer = Buffer.alloc(length)
 
-                if(read < length){
-                    data = buffer.slice(0, read)
-                }
-                else{
-                    data = buffer
-                }
-
-                fs.close(fd, (err) => {
+                fs.read(fd, buffer, 0, length, offset, (err, read) => {
                     if(err){
+                        release()
+
                         return reject(err)
                     }
 
-                    return resolve(data)
+                    let data = undefined
+
+                    if(read < length){
+                        data = buffer.slice(0, read)
+                    }
+                    else{
+                        data = buffer
+                    }
+
+                    fs.close(fd, (err) => {
+                        release()
+
+                        if(err){
+                            return reject(err)
+                        }
+
+                        return resolve(data)
+                    })
                 })
             })
-        })
+        }).catch(reject)
     })
 }
 
@@ -693,12 +703,31 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
 
 const getFileHash = (path, hashName) => {
     return new Promise((resolve, reject) => {
-        const hash = crypto.createHash(hashName.toLowerCase())
-        const stream = fs.createReadStream(pathModule.normalize(normalizeRNFilePath(path)))
+        readSemaphore.acquire().then((release) => {
+            try{
+                const hash = crypto.createHash(hashName.toLowerCase())
+                const stream = fs.createReadStream(pathModule.normalize(normalizeRNFilePath(path)))
 
-        stream.on("error", reject)
-        stream.on("data", (chunk) => hash.update(chunk))
-        stream.on("end", () => resolve(hash.digest("hex")))
+                stream.on("error", (err) => {
+                    release()
+
+                    return reject(err)
+                })
+
+                stream.on("data", (chunk) => hash.update(chunk))
+
+                stream.on("end", () => {
+                    release()
+
+                    return resolve(hash.digest("hex"))
+                })
+            }
+            catch(e){
+                release()
+
+                return reject(e)
+            }
+        }).catch(reject)
     })
 }
 
@@ -821,20 +850,35 @@ const downloadDecryptAndWriteFileChunk = (destPath, uuid, region, bucket, index,
             currentTries += 1
 
             downloadFileChunk(uuid, region, bucket, index).then((buffer) => {
-                decryptData(buffer, key, version, false, false).then(async (decrypted) => {
-                    await new Promise((resolve) => fs.unlink(destPath, () => resolve()))
+                decryptData(buffer, key, version, false, false).then((decrypted) => {
+                    writeSemaphore.acquire().then(async (release) => {
+                        try{
+                            await new Promise((resolve) => fs.unlink(destPath, () => resolve()))
     
-                    const stream = fs.createWriteStream(destPath, {
-                        flags: "w"
-                    })
-    
-                    stream.on("close", () => resolve(destPath))
-    
-                    stream.on("error", (err) => {
-                        return reject(err)
-                    })
-    
-                    Readable.from([decrypted]).pipe(stream)
+                            const stream = fs.createWriteStream(destPath, {
+                                flags: "w"
+                            })
+            
+                            stream.on("close", () => {
+                                release()
+
+                                return resolve(destPath)
+                            })
+            
+                            stream.on("error", (err) => {
+                                release()
+
+                                return reject(err)
+                            })
+            
+                            Readable.from([decrypted]).pipe(stream)
+                        }
+                        catch(e){
+                            release()
+
+                            return reject(e)
+                        }
+                    }).catch(reject)
                 }).catch(reject)
             }).catch((err) => {
                 if(err == "not200"){
@@ -856,35 +900,66 @@ const appendFileToFile = (first, second) => {
 
         Promise.all([
             new Promise((resolve, reject) => {
-                fs.access(first, (err) => {
-                    if(err){
-                        return reject(err)
-                    }
+                readSemaphore.acquire().then((release) => {
+                    fs.access(first, (err) => {
+                        release()
 
-                    return resolve(true)
-                })
+                        if(err){
+                            return reject(err)
+                        }
+    
+                        return resolve(true)
+                    })
+                }).catch(reject)
             }),
             new Promise((resolve, reject) => {
-                fs.access(second, (err) => {
-                    if(err){
-                        return reject(err)
-                    }
-
-                    return resolve(true)
-                })
+                readSemaphore.acquire().then((release) => {
+                    fs.access(second, (err) => {
+                        release()
+                        
+                        if(err){
+                            return reject(err)
+                        }
+    
+                        return resolve(true)
+                    })
+                }).catch(reject)
             })
         ]).then(() => {
-            const w = fs.createWriteStream(first, {
-                flags: "a"
-            })
+            writeSemaphore.acquire().then((release) => {
+                try{
+                    const w = fs.createWriteStream(first, {
+                        flags: "a"
+                    })
+        
+                    const r = fs.createReadStream(second)
+        
+                    w.on("close", () => {
+                        release()
 
-            const r = fs.createReadStream(second)
+                        return resolve(true)
+                    })
 
-            w.on("close", () => resolve(true))
-            w.on("error", (err) => reject(err))
-            r.on("error", (err) => reject(err))
+                    w.on("error", (err) => {
+                        release()
 
-            r.pipe(w)
+                        return reject(err)
+                    })
+
+                    r.on("error", (err) => {
+                        release()
+
+                        return reject(err)
+                    })
+        
+                    r.pipe(w)
+                }
+                catch(e){
+                    release()
+
+                    return reject(e)
+                }
+            }).catch(reject)
         }).catch(reject)
     })
 }
@@ -921,7 +996,7 @@ const convertHeic = (input, output, format) => {
                     return reject(err)
                 })
             })
-        })
+        }).catch(reject)
     })
 }
 
@@ -929,13 +1004,17 @@ const readExif = (path) => {
     return new Promise((resolve, reject) => {
         path = pathModule.normalize(path)
 
-        fs.readFile(path, (err, buffer) => {
-            if(err){
-                return reject(err)
-            }
+        readSemaphore.acquire().then((release) => {
+            fs.readFile(path, (err, buffer) => {
+                release()
 
-            ExifReader.load(buffer).then(resolve).catch(reject)
-        })
+                if(err){
+                    return reject(err)
+                }
+    
+                ExifReader.load(buffer).then(resolve).catch(reject)
+            })
+        }).catch(reject)
     })
 }
 

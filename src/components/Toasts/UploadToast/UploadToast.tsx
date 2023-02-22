@@ -2,13 +2,13 @@ import React, { useState, useEffect, memo, useCallback } from "react"
 import { View, Text, Platform, TouchableOpacity } from "react-native"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
-import { getParent, getFilenameFromPath, getRouteURL, promiseAllSettled, randomIdUnsafe, toExpoFsPath } from "../../../lib/helpers"
+import { getParent, getFilenameFromPath, getRouteURL, promiseAllSettled, randomIdUnsafe } from "../../../lib/helpers"
 import { i18n } from "../../../i18n"
 import { getDownloadPath } from "../../../lib/services/download/download"
 import { queueFileUpload } from "../../../lib/services/upload/upload"
 import mime from "mime-types"
 import { hasStoragePermissions } from "../../../lib/permissions"
-import * as Filesystem from "expo-file-system"
+import * as fs from "../../../lib/fs"
 import { getColor } from "../../../style"
 import { hideAllToasts, showToast } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
@@ -65,7 +65,7 @@ const UploadToast = memo(() => {
                         path = decodeURIComponent(path)
                     }
 
-                    Filesystem.getInfoAsync(toExpoFsPath(item)).then((stat) => {
+                    fs.stat(item).then((stat) => {
                         if(stat.isDirectory){
                             reject(i18n(lang, "cannotShareDirIntoApp"))
 
@@ -78,10 +78,7 @@ const UploadToast = memo(() => {
                             return
                         }
 
-                        Filesystem.copyAsync({
-                            from: toExpoFsPath(item),
-                            to: toExpoFsPath(path)
-                        }).then(() => {
+                        fs.copy(item, path).then(() => {
                             const name = getFilenameFromPath(item)
                             const type = mime.lookup(name) || ""
                             const ext = mime.extension(type as string) || ""

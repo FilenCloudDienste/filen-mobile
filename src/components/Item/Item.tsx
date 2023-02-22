@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useMemo, useState, useRef } from "react"
-import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, useWindowDimensions, ScaledSize, Pressable, Platform } from "react-native"
+import { Text, View, TouchableOpacity, TouchableHighlight, DeviceEventEmitter, useWindowDimensions, Pressable, Platform, Image } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { getImageForItem } from "../../assets/thumbnails"
 import { formatBytes, getFolderColor, calcPhotosGridSize, getRouteURL, getParent, getFileExt, getFilePreviewType } from "../../lib/helpers"
@@ -10,7 +10,6 @@ import { Item } from "../../types"
 import { fetchFolderSize } from "../../lib/api"
 import storage from "../../lib/storage"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
-import FastImage from "react-native-fast-image"
 import { isOnline } from "../../lib/services/isOnline"
 import { useMountedState } from "react-use"
 
@@ -100,7 +99,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                 color={getFolderColor(item.color)}
                             />
                         ) : (
-                            <FastImage
+                            <Image
                                 source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                                 style={{
                                     width: 40,
@@ -242,7 +241,7 @@ export interface GridItemProps extends ItemBaseProps {
 }
 
 export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow, hideSizes, route }: GridItemProps) => {
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
     const [size, setSize] = useState<number>(item.size)
     const isMounted = useMountedState()
     const fetched = useRef<boolean>(false)
@@ -314,7 +313,7 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
                             </>
                         ) : (
                             <>
-                                <FastImage 
+                                <Image 
                                     source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                                     style={{
                                         width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
@@ -419,7 +418,7 @@ export interface PhotosItemProps extends ItemBaseProps {
 }
 
 export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets, hideThumbnails }: PhotosItemProps) => {
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
 
     const [calcedGridSize, imageWidthAndHeight, previewType] = useMemo(() => {
         const calcedGridSize = calcPhotosGridSize(photosGridSize)
@@ -431,7 +430,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 
     return (
         <Pressable
-            key={index}
+            key={item.uuid}
             style={{
                 height: imageWidthAndHeight,
                 width: imageWidthAndHeight,
@@ -452,7 +451,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
                 })
             }}
         >
-            <FastImage
+            <Image
                 source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                 style={{
                     width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
@@ -588,7 +587,7 @@ export interface PhotosRangeItemProps extends ItemBaseProps {
 }
 
 export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, photosRangeItemClick }: PhotosRangeItemProps) => {
-    const dimensions: ScaledSize = useWindowDimensions()
+    const dimensions = useWindowDimensions()
 
     const imageWidthAndHeight = useMemo(() => {
         const imageWidthAndHeight = Math.floor(dimensions.width - 30)
@@ -599,7 +598,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
     return (
         <TouchableOpacity
             activeOpacity={0.6}
-            key={index}
+            key={item.uuid}
             style={{
                 height: imageWidthAndHeight,
                 width: imageWidthAndHeight,
@@ -610,7 +609,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
             }}
             onPress={() => photosRangeItemClick(item)}
         >
-            <FastImage
+            <Image
                 source={hideThumbnails ? getImageForItem(item) : typeof item.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail } : getImageForItem(item)}
                 style={{
                     width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,

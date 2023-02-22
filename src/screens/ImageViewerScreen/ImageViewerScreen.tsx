@@ -15,7 +15,7 @@ import { getFileExt, toExpoFsPath } from "../../lib/helpers"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useIsOnline from "../../lib/hooks/useIsOnline"
 import { getItemOfflinePath } from "../../lib/services/offline"
-import * as FileSystem from "expo-file-system"
+import * as fs from "../../lib/fs"
 import { Item } from "../../types"
 
 export interface PreviewItem {
@@ -110,7 +110,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         try{
             const offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), image.file)
     
-            if((await FileSystem.getInfoAsync(toExpoFsPath(offlinePath))).exists){
+            if((await fs.stat(offlinePath)).exists){
                 if(!isMounted()){
                     return
                 }

@@ -1,9 +1,9 @@
 import { apiRequest, fetchOfflineFilesInfo, folderPresent } from "../../api"
 import storage from "../../storage"
-import { getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, canCompressThumbnail, simpleDate, convertTimestampToMs, toExpoFsPath } from "../../helpers"
+import { getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, canCompressThumbnail, simpleDate, convertTimestampToMs } from "../../helpers"
 import striptags from "striptags"
 import { getDownloadPath, queueFileDownload } from "../download/download"
-import * as Filesystem from "expo-file-system"
+import * as fs from "../../fs"
 import { DeviceEventEmitter } from "react-native"
 import { useStore } from "../../state"
 import FileViewer from "react-native-file-viewer"
@@ -668,7 +668,7 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
             const itemOfflinePath = getItemOfflinePath(offlinePath, file)
 
             try{
-                if(!(await Filesystem.getInfoAsync(toExpoFsPath(itemOfflinePath))).exists){
+                if(!(await fs.stat(itemOfflinePath)).exists){
                     await removeFromOfflineStorage({ item: file })
 
                     if(isOnline()){
@@ -1074,7 +1074,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
     try{
         offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
 
-        if((await Filesystem.getInfoAsync(toExpoFsPath(offlinePath))).exists){
+        if((await fs.stat(offlinePath)).exists){
             existsOffline = true
         }
     }
@@ -1192,9 +1192,7 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
                 })
             }
             else if(previewType == "text" || previewType == "code"){
-                Filesystem.readAsStringAsync(toExpoFsPath(path), {
-                    encoding: "utf8"
-                }).then((content) => {
+                fs.readAsString(path, "utf8").then((content) => {
                     if(setCurrentActionSheetItem){
                         useStore.setState({ currentActionSheetItem: item })
                     }
@@ -1274,7 +1272,7 @@ export const convertHeic = async (item: Item, path: string): Promise<string> => 
     const outputPath: string = tmpPath + item.uuid + "_convertHeic.jpg"
 
     try{
-        if((await Filesystem.getInfoAsync(toExpoFsPath(outputPath))).exists){
+        if((await fs.stat(outputPath)).exists){
             return outputPath
         }
     }
@@ -1295,7 +1293,7 @@ export const addToSavedToGallery = async (asset: Asset) => {
     try{
         const assetId = getAssetId(asset)
         const assetURI = await getAssetURI(asset)
-        const stat = await Filesystem.getInfoAsync(toExpoFsPath(assetURI))
+        const stat = await fs.stat(assetURI)
         const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
         const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
         const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")

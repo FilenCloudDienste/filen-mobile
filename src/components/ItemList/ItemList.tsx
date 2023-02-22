@@ -334,7 +334,7 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
         setScrolledToBottom(e.nativeEvent.layoutMeasurement.height + e.nativeEvent.contentOffset.y >= e.nativeEvent.contentSize.height - 40)
     }, [])
 
-    const keyExtractor = useCallback((_, index) => index.toString(), [])
+    const keyExtractor = useCallback((item: Item) => item.uuid, [])
 
     const renderItemFn = useCallback(({ item, index }: { item: Item, index: number }) => {
         return renderItem({ item, index, viewMode: routeURL.indexOf("photos") !== -1 ? "photos" : (viewModeParsed[routeURL] == "grid" ? "grid" : "list") })

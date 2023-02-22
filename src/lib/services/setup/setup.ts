@@ -1,16 +1,15 @@
 import { updateKeys } from "../user/keys"
 import { apiRequest } from "../../api"
-import { getAPIKey, toExpoFsPath, promiseAllSettled } from "../../helpers"
+import { getAPIKey, promiseAllSettled } from "../../helpers"
 import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
-import * as FileSystem from "expo-file-system"
 import { showToast } from "../../../components/Toasts"
-import FastImage from "react-native-fast-image"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { memoize } from "lodash"
 import { getOfflineList, removeItemFromOfflineList } from "../offline"
 import { validate } from "uuid"
 import { Item } from "../../../types"
+import * as fs from "../../fs"
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 const CACHE_CLEARING_ENABLED: boolean = true
@@ -35,71 +34,8 @@ export const canDelete = memoize((name: string) => {
     return DONT_DELETE.filter(d => name.toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0
 })
 
-export const clearCacheDirectories = async () => {
-    await promiseAllSettled([
-        FastImage.clearDiskCache().catch(console.error),
-        FastImage.clearMemoryCache().catch(console.error)
-    ])
-
+export const checkOfflineItems = async () => {
     const deletePromises = []
-
-    const cachedDownloadsPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
-    const cacheDownloadsItems = await FileSystem.readDirectoryAsync(toExpoFsPath(cachedDownloadsPath))
-
-    for(let i = 0; i < cacheDownloadsItems.length; i++){
-        if(CACHE_CLEARING_ENABLED){
-            if(canDelete(cacheDownloadsItems[i])){
-                deletePromises.push(FileSystem.deleteAsync(toExpoFsPath(cachedDownloadsPath + "/" + cacheDownloadsItems[i])))
-            }
-        }
-        else{
-            console.log("cacheDownloadsItems", cacheDownloadsItems[i])
-        }
-    }
-
-    if(FileSystem.cacheDirectory){
-        const cachePath = FileSystem.cacheDirectory.indexOf("file://") == -1 ? "file://" + FileSystem.cacheDirectory : FileSystem.cacheDirectory
-        const cacheItems = await FileSystem.readDirectoryAsync(toExpoFsPath(cachePath))
-
-        for(let i = 0; i < cacheItems.length; i++){
-            if(CACHE_CLEARING_ENABLED){
-                if(canDelete(cacheItems[i])){
-                    deletePromises.push(FileSystem.deleteAsync(toExpoFsPath(cachePath + "/" + cacheItems[i])))
-                }
-            }
-            else{
-                console.log("cacheItems", cacheItems[i])
-            }
-        }
-    }
-
-    const tmpPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
-    const tmpItems = await FileSystem.readDirectoryAsync(toExpoFsPath(tmpPath))
-
-    for(let i = 0; i < tmpItems.length; i++){
-        if(CACHE_CLEARING_ENABLED){
-            if(canDelete(tmpItems[i])){
-                deletePromises.push(FileSystem.deleteAsync(toExpoFsPath(tmpPath + "/" + tmpItems[i])))
-            }
-        }
-        else{
-            console.log("tmpItems", tmpItems[i])
-        }
-    }
-
-    const tempPath = (await getDownloadPath({ type: "temp" })).slice(0, -1)
-    const tempItems = await FileSystem.readDirectoryAsync(toExpoFsPath(tempPath))
-
-    for(let i = 0; i < tempItems.length; i++){
-        if(CACHE_CLEARING_ENABLED){
-            if(canDelete(tempItems[i])){
-                deletePromises.push(FileSystem.deleteAsync(toExpoFsPath(tempPath + "/" + tempItems[i])))
-            }
-        }
-        else{
-            console.log("tmpItems", tempItems[i])
-        }
-    }
 
     let [ list, offlinePath ] = await Promise.all([
         getOfflineList(),
@@ -108,7 +44,7 @@ export const clearCacheDirectories = async () => {
 
     offlinePath = offlinePath.slice(0, -1)
 
-    const items: string[] = await FileSystem.readDirectoryAsync(toExpoFsPath(offlinePath))
+    const items: string[] = await fs.readDirectory(offlinePath)
     const inList: string[] = list.map(item => item.uuid)
 
     const inDir: string[] = items.filter(item => {
@@ -166,7 +102,7 @@ export const clearCacheDirectories = async () => {
 
     for(let i = 0; i < toDelete.length; i++){
         if(canDelete(toDelete[i])){
-            deletePromises.push(FileSystem.deleteAsync(toExpoFsPath(offlinePath + "/" + toDelete[i])))
+            deletePromises.push(fs.unlink(offlinePath + "/" + toDelete[i], true))
         }
     }
 
@@ -183,8 +119,73 @@ export const clearCacheDirectories = async () => {
     await promiseAllSettled(deletePromises)
 }
 
+export const clearCacheDirectories = async () => {
+    const deletePromises = []
+    const cachedDownloadsPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
+    const cacheDownloadsItems = await fs.readDirectory(cachedDownloadsPath)
+
+    for(let i = 0; i < cacheDownloadsItems.length; i++){
+        if(CACHE_CLEARING_ENABLED){
+            if(canDelete(cacheDownloadsItems[i])){
+                deletePromises.push(fs.unlink(cachedDownloadsPath + "/" + cacheDownloadsItems[i], true))
+            }
+        }
+        else{
+            console.log("cacheDownloadsItems", cacheDownloadsItems[i])
+        }
+    }
+
+    if(fs.cacheDirectory){
+        const cachePath = fs.cacheDirectory.indexOf("file://") == -1 ? "file://" + fs.cacheDirectory : fs.cacheDirectory
+        const cacheItems = await fs.readDirectory(cachePath)
+
+        for(let i = 0; i < cacheItems.length; i++){
+            if(CACHE_CLEARING_ENABLED){
+                if(canDelete(cacheItems[i])){
+                    deletePromises.push(fs.unlink(cachePath + "/" + cacheItems[i], true))
+                }
+            }
+            else{
+                console.log("cacheItems", cacheItems[i])
+            }
+        }
+    }
+
+    const tmpPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
+    const tmpItems = await fs.readDirectory(tmpPath)
+
+    for(let i = 0; i < tmpItems.length; i++){
+        if(CACHE_CLEARING_ENABLED){
+            if(canDelete(tmpItems[i])){
+                deletePromises.push(fs.unlink(tmpPath + "/" + tmpItems[i], true))
+            }
+        }
+        else{
+            console.log("tmpItems", tmpItems[i])
+        }
+    }
+
+    const tempPath = (await getDownloadPath({ type: "temp" })).slice(0, -1)
+    const tempItems = await fs.readDirectory(tempPath)
+
+    for(let i = 0; i < tempItems.length; i++){
+        if(CACHE_CLEARING_ENABLED){
+            if(canDelete(tempItems[i])){
+                deletePromises.push(fs.unlink(tempPath + "/" + tempItems[i], true))
+            }
+        }
+        else{
+            console.log("tmpItems", tempItems[i])
+        }
+    }
+
+    await promiseAllSettled(deletePromises)
+}
+
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
     let cacheCleared = false
+
+    checkOfflineItems().catch(console.error)
 
     clearCacheDirectories().then(() => {
         cacheCleared = true

@@ -1,10 +1,10 @@
 import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
-import { getFileExt, toExpoFsPath } from "../../helpers"
+import { getFileExt } from "../../helpers"
 import { DeviceEventEmitter } from "react-native"
 import { updateLoadItemsCache, removeLoadItemsCache } from "../items"
 import { Item } from "../../../types"
-import * as FileSystem from "expo-file-system"
+import * as fs from "../../fs"
 
 export const getOfflineList = async (): Promise<Item[]> => {
     const userId = storage.getNumber("userId")
@@ -154,8 +154,8 @@ export const removeFromOfflineStorage = async ({ item }: { item: Item }): Promis
     const path = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
 
     try{
-        if((await FileSystem.getInfoAsync(toExpoFsPath(path))).exists){
-            await FileSystem.deleteAsync(toExpoFsPath(path))
+        if((await fs.stat(path)).exists){
+            await fs.unlink(path)
         }
     }
     catch(e){

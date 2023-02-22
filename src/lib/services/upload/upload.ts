@@ -9,7 +9,7 @@ import { buildFile } from "../items"
 import ImageResizer from "react-native-image-resizer"
 import striptags from "striptags"
 import memoryCache from "../../memoryCache"
-import * as FileSystem from "expo-file-system"
+import * as fs from "../../fs"
 import { isOnline, isWifi } from "../isOnline"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { getThumbnailCacheKey } from "../thumbnails"
@@ -267,8 +267,8 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                 dest = dest + uuid + ".jpg"
                 
                                 try{
-                                    if((await FileSystem.getInfoAsync(toExpoFsPath(dest))).exists){
-                                        await FileSystem.deleteAsync(toExpoFsPath(dest))
+                                    if((await fs.stat(dest)).exists){
+                                        await fs.unlink(dest)
                                     }
                                 }
                                 catch(e){
@@ -281,7 +281,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                     return resolve()
                                 }
                         
-                                FileSystem.getInfoAsync(toExpoFsPath(file.path)).then((stat) => {
+                                fs.stat(file.path).then((stat) => {
                                     if(!stat.exists){
                                         return resolve()
                                     }
@@ -299,11 +299,8 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                             quality: 1
                                         }).then(({ uri }) => {
                                             ImageResizer.createResizedImage(toExpoFsPath(uri), width, height, "JPEG", quality).then((compressed) => {
-                                                FileSystem.deleteAsync(toExpoFsPath(uri)).then(() => {
-                                                    FileSystem.moveAsync({
-                                                        from: toExpoFsPath(compressed.uri),
-                                                        to: toExpoFsPath(dest)
-                                                    }).then(() => {
+                                                fs.unlink(uri).then(() => {
+                                                    fs.move(compressed.uri, dest).then(() => {
                                                         storage.set(cacheKey, item.uuid + ".jpg")
                                                         memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
                             
@@ -315,10 +312,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                                     }
                                     else{
                                         ImageResizer.createResizedImage(toExpoFsPath(file.path), width, height, "JPEG", quality).then((compressed) => {
-                                            FileSystem.moveAsync({
-                                                from: toExpoFsPath(compressed.uri),
-                                                to: toExpoFsPath(dest)
-                                            }).then(() => {
+                                            fs.move(compressed.uri, dest).then(() => {
                                                 storage.set(cacheKey, item.uuid + ".jpg")
                                                 memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
                     

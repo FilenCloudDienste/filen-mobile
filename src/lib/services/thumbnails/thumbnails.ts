@@ -8,8 +8,8 @@ import { Item } from "../../../types"
 import { memoize } from "lodash"
 import { isOnline, isWifi } from "../isOnline"
 import memoryCache from "../../memoryCache"
-import * as Filesystem from "expo-file-system"
-import { toExpoFsPath, getFileExt, getFilePreviewType } from "../../helpers"
+import * as fs from "../../fs"
+import { getFileExt, getFilePreviewType, toExpoFsPath } from "../../helpers"
 import { updateLoadItemsCache } from "../items"
 import { convertHeic } from "../items"
 
@@ -78,7 +78,7 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
             void generateItemThumbnail({ item: thumbItem, skipInViewCheck: true })
         }
 
-        Filesystem.getInfoAsync(toExpoFsPath(path + cache)).then((stat) => {
+        fs.stat(path + cache).then((stat) => {
             if(!stat.exists){
                 remove()
             }
@@ -233,7 +233,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
             return onError(new Error("Invalid width/height: " + width + " " + height))
         }
 
-        Filesystem.getInfoAsync(toExpoFsPath(path)).then((stat) => {
+        fs.stat(path).then((stat) => {
             if(!stat.exists){
                 return onError(new Error(path + " not found"))
             }
@@ -247,10 +247,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
             }
 
             ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
-                Filesystem.moveAsync({
-                    from: toExpoFsPath(compressed.uri),
-                    to: toExpoFsPath(dest)
-                }).then(() => {
+                fs.move(compressed.uri, dest).then(() => {
                     storage.set(cacheKey, item.uuid + ".jpg")
                     memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
     
@@ -288,7 +285,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
             VideoThumbnails.getThumbnailAsync(toExpoFsPath(path), {
                 quality: 1
             }).then(({ uri }) => {
-                Filesystem.deleteAsync(toExpoFsPath(path)).then(() => {
+                fs.unlink(path).then(() => {
                     compress(uri, dest)
                 }).catch(onError)
             }).catch(onError)
@@ -322,8 +319,8 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
                 dest = dest + item.uuid + ".jpg"
     
                 try{
-                    if((await Filesystem.getInfoAsync(toExpoFsPath(dest))).exists){
-                        await Filesystem.deleteAsync(toExpoFsPath(dest))
+                    if((await fs.stat(dest)).exists){
+                        await fs.unlink(dest)
                     }
                 }
                 catch(e){

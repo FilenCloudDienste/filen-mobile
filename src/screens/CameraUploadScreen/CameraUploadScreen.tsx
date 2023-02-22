@@ -14,6 +14,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
+import { convertTimestampToMs } from "../../lib/helpers"
 
 export interface CameraUploadScreenProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -340,11 +341,29 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                             },
                                             {
                                                 text: i18n(lang, "ok"),
-                                                onPress: async () => {
+                                                onPress: () => {
                                                     showFullScreenLoadingModal()
 
-                                                    storage.set("cameraUploadLastModifiedStat", JSON.stringify({}))
-                                                    storage.set("cameraUploadLastSize", JSON.stringify({}))
+                                                    const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+                                                    const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
+                                                    const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
+                                                    const now = new Date().getTime()
+
+                                                    for(const prop in cameraUploadLastModified){
+                                                        cameraUploadLastModified[prop] = convertTimestampToMs(now - ((86400 * 1000) * 1))
+                                                    }
+
+                                                    for(const prop in cameraUploadLastModifiedStat){
+                                                        cameraUploadLastModifiedStat[prop] = convertTimestampToMs(now - ((86400 * 1000) * 2))
+                                                    }
+
+                                                    for(const prop in cameraUploadLastSize){
+                                                        cameraUploadLastSize[prop] = -1
+                                                    }
+
+                                                    storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
+                                                    storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
+                                                    storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
 
                                                     hideFullScreenLoadingModal()
                                                 },

@@ -1,5 +1,5 @@
-import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { View, Text, TouchableOpacity, Platform, FlatList, ScrollView, DeviceEventEmitter, useWindowDimensions, ScaledSize, LayoutChangeEvent } from "react-native"
+import React, { memo, useEffect, useState, useRef, useCallback, useMemo } from "react"
+import { View, Text, TouchableOpacity, Platform, FlatList, ScrollView, DeviceEventEmitter, useWindowDimensions, ScaledSize, LayoutChangeEvent, Image } from "react-native"
 import useLang from "../../lib/hooks/useLang"
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -12,13 +12,101 @@ import { Bar } from "react-native-progress"
 import { getImageForItem } from "../../assets/thumbnails"
 import { Item } from "../../types"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import FastImage from "react-native-fast-image"
+import { normalizeProgress } from "../../lib/helpers"
 
 const TRANSFER_ITEM_HEIGHT: number = 60
 
 export interface FinishedTransfersListProps {
     finishedTransfers: any
 }
+
+export interface FinishedTransferItemProps {
+    index: number,
+    item: any,
+    containerWidth: number,
+    darkMode: boolean
+}
+
+export const FinishedTransferItem = memo(({ index, item, containerWidth, darkMode }: FinishedTransferItemProps) => {
+    return (
+        <View
+            key={index.toString()}
+            style={{
+                width: "100%",
+                height: TRANSFER_ITEM_HEIGHT,
+                paddingLeft: 15,
+                paddingRight: 15,
+                flexDirection: "row"
+            }}
+        >
+            <View
+                style={{
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}
+            >
+                <Image
+                    source={getImageForItem({ name: item.name, type: "file" } as Item)}
+                    style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 5
+                    }}
+                    onError={() => {
+                        if(typeof item.thumbnail == "string"){
+                            DeviceEventEmitter.emit("event", {
+                                type: "check-thumbnail",
+                                item
+                            })
+                        }
+                    }}
+                />
+            </View>
+            <View
+                style={{
+                    justifyContent: "center",
+                    marginLeft: 10,
+                    maxWidth: (containerWidth - 60),
+                    paddingRight: 10
+                }}
+            >
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center"
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: getColor(darkMode, "textPrimary"),
+                            fontSize: 16,
+                            fontWeight: "400"
+                        }}
+                        numberOfLines={1}
+                    >
+                        {item.name}
+                    </Text>
+                </View>
+                <View
+                    style={{
+                        marginTop: 7
+                    }}
+                >
+                    <Bar
+                        animated={true}
+                        indeterminate={false}
+                        progress={1}
+                        color={getColor(darkMode, "green")}
+                        width={containerWidth - 71}
+                        height={4}
+                        borderColor={getColor(darkMode, "backgroundPrimary")}
+                        unfilledColor={getColor(darkMode, "backgroundSecondary")}
+                    />
+                </View>
+            </View>
+        </View>
+    )
+})
 
 export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransfersListProps) => {
     const darkMode = useDarkMode()
@@ -30,87 +118,15 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
     const insets = useSafeAreaInsets()
 
     const renderItem = useCallback(({ item, index }) => {
-        const transfer = item
-            
         return (
-            <View
-                key={index.toString()}
-                style={{
-                    width: "100%",
-                    height: TRANSFER_ITEM_HEIGHT,
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    flexDirection: "row"
-                }}
-            >
-                <View
-                    style={{
-                        justifyContent: "center",
-                        alignItems: "center"
-                    }}
-                >
-                    <FastImage
-                        source={getImageForItem({ name: transfer.name, type: "file" } as Item)}
-                        style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 5
-                        }}
-                        onError={() => {
-                            if(typeof item.thumbnail == "string"){
-                                DeviceEventEmitter.emit("event", {
-                                    type: "check-thumbnail",
-                                    item
-                                })
-                            }
-                        }}
-                    />
-                </View>
-                <View
-                    style={{
-                        justifyContent: "center",
-                        marginLeft: 10,
-                        maxWidth: (containerWidth - 60),
-                        paddingRight: 10
-                    }}
-                >
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center"
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: getColor(darkMode, "textPrimary"),
-                                fontSize: 16,
-                                fontWeight: "400"
-                            }}
-                            numberOfLines={1}
-                        >
-                            {transfer.name}
-                        </Text>
-                    </View>
-                    <View
-                        style={{
-                            marginTop: 7
-                        }}
-                    >
-                        <Bar
-                            animated={true}
-                            indeterminate={false}
-                            progress={1}
-                            color={getColor(darkMode, "green")}
-                            width={containerWidth - 71}
-                            height={4}
-                            borderColor={getColor(darkMode, "backgroundPrimary")}
-                            unfilledColor={getColor(darkMode, "backgroundSecondary")}
-                        />
-                    </View>
-                </View>
-            </View>
+            <FinishedTransferItem
+                darkMode={darkMode}
+                item={item}
+                containerWidth={containerWidth}
+                index={index}
+            />
         )
-    }, [containerWidth, portrait])
+    }, [containerWidth, portrait, darkMode])
 
     const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
     const keyExtractor = useCallback((_, index) => index.toString(), [])
@@ -172,10 +188,152 @@ export interface OngoingTransfersListProps {
     currentTransfers: any
 }
 
+export interface OngoingTransferItemProps {
+    index: number,
+    item: any,
+    containerWidth: number,
+    darkMode: boolean,
+    lang: string,
+    pausedTransfers: Record<string, boolean>,
+    setPausedTransfers: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
+}
+
+export const OngoingTransferItem = memo(({ index, item, containerWidth, darkMode, lang, pausedTransfers, setPausedTransfers }: OngoingTransferItemProps) => {
+    const progress = useMemo(() => {
+        return normalizeProgress(item.percent)
+    }, [item.percent])
+
+    const isPaused = useMemo(() => {
+        return typeof pausedTransfers[item.uuid] == "boolean" ? pausedTransfers[item.uuid] : false
+    }, [pausedTransfers])
+
+    return (
+        <View
+            key={index.toString()}
+            style={{
+                width: "100%",
+                height: TRANSFER_ITEM_HEIGHT,
+                paddingLeft: 15,
+                paddingRight: 15,
+                flexDirection: "row"
+            }}
+        >
+            <View
+                style={{
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}
+            >
+                <Image
+                    source={getImageForItem({ name: item.name, type: "file" } as Item)}
+                    style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 5
+                    }}
+                    onError={() => {
+                        if(typeof item.thumbnail == "string"){
+                            DeviceEventEmitter.emit("event", {
+                                type: "check-thumbnail",
+                                item
+                            })
+                        }
+                    }}
+                />
+            </View>
+            <View
+                style={{
+                    justifyContent: "center",
+                    marginLeft: 10,
+                    maxWidth: (containerWidth - (isPaused ? 170 : 160)),
+                    paddingRight: 10
+                }}
+            >
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center"
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: getColor(darkMode, "textPrimary"),
+                            fontSize: 16,
+                            fontWeight: "400"
+                        }}
+                        numberOfLines={1}
+                    >
+                        {item.name}
+                    </Text>
+                </View>
+                <View
+                    style={{
+                        marginTop: 7
+                    }}
+                >
+                    <Bar
+                        animated={true}
+                        indeterminate={isPaused || (progress <= 1 || progress >= 0.99)}
+                        progress={progress}
+                        color={getColor(darkMode, "green")}
+                        width={containerWidth - 67}
+                        height={4}
+                        borderColor={getColor(darkMode, "backgroundPrimary")}
+                        unfilledColor={getColor(darkMode, "backgroundSecondary")}
+                    />
+                </View>
+            </View>
+            <View
+                style={{
+                    flexDirection: "row",
+                    paddingTop: 11
+                }}
+            >
+                <TouchableOpacity
+                    onPress={() => {
+                        setPausedTransfers(prev => ({
+                            ...prev,
+                            [item.uuid]: !isPaused
+                        }))
+    
+                        DeviceEventEmitter.emit(isPaused ? "resumeTransfer" : "pauseTransfer", item.uuid)
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: getColor(darkMode, "linkPrimary"),
+                            fontSize: 16,
+                            fontWeight: "400"
+                        }}
+                    >
+                        {isPaused ? i18n(lang, "resume") : i18n(lang, "pause")}
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={{
+                        marginLeft: 10
+                    }}
+                    onPress={() => DeviceEventEmitter.emit("stopTransfer", item.uuid)}
+                >
+                    <Text
+                        style={{
+                            color: getColor(darkMode, "linkPrimary"),
+                            fontSize: 16,
+                            fontWeight: "400"
+                        }}
+                    >
+                        {i18n(lang, "stop")}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    )
+})
+
 export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfersListProps) => {
     const darkMode = useDarkMode()
     const lang = useLang()
-    const [pausedTransfers, setPausedTransfers] = useState<{ [key: string]: boolean }>({})
+    const [pausedTransfers, setPausedTransfers] = useState<Record<string, boolean>>({})
     const dimensions = useWindowDimensions()
     const [containerWidth, setContainerWidth] = useState<number>(dimensions.width - 30)
     const [containerHeight, setContainerHeight] = useState<number>(dimensions.height - 100)
@@ -183,136 +341,18 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
     const insets = useSafeAreaInsets()
 
     const renderItem = useCallback(({ item, index }) => {
-        const transfer = item
-        let progress = parseFloat((parseFloat(isNaN(transfer.percent) ? 0 : transfer.percent >= 100 ? 100 : transfer.percent.toFixed(2)) / 100).toFixed(2))
-        const isPaused = typeof pausedTransfers[transfer.uuid] == "boolean" ? pausedTransfers[transfer.uuid] : false
-
-        if(isNaN(progress) || !Number.isInteger(progress)){
-            progress = 0
-        }
-            
         return (
-            <View
-                key={index.toString()}
-                style={{
-                    width: "100%",
-                    height: TRANSFER_ITEM_HEIGHT,
-                    paddingLeft: 15,
-                    paddingRight: 15,
-                    flexDirection: "row"
-                }}
-            >
-                <View
-                    style={{
-                        justifyContent: "center",
-                        alignItems: "center"
-                    }}
-                >
-                    <FastImage
-                        source={getImageForItem({ name: transfer.name, type: "file" } as Item)}
-                        style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 5
-                        }}
-                        onError={() => {
-                            if(typeof item.thumbnail == "string"){
-                                DeviceEventEmitter.emit("event", {
-                                    type: "check-thumbnail",
-                                    item
-                                })
-                            }
-                        }}
-                    />
-                </View>
-                <View
-                    style={{
-                        justifyContent: "center",
-                        marginLeft: 10,
-                        maxWidth: (containerWidth - (isPaused ? 170 : 160)),
-                        paddingRight: 10
-                    }}
-                >
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center"
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: getColor(darkMode, "textPrimary"),
-                                fontSize: 16,
-                                fontWeight: "400"
-                            }}
-                            numberOfLines={1}
-                        >
-                            {transfer.name}
-                        </Text>
-                    </View>
-                    <View
-                        style={{
-                            marginTop: 7
-                        }}
-                    >
-                        <Bar
-                            animated={true}
-                            indeterminate={isPaused || (progress <= 0 || progress >= 0.99)}
-                            progress={progress}
-                            color={getColor(darkMode, "green")}
-                            width={containerWidth - 67}
-                            height={4}
-                            borderColor={getColor(darkMode, "backgroundPrimary")}
-                            unfilledColor={getColor(darkMode, "backgroundSecondary")}
-                        />
-                    </View>
-                </View>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        paddingTop: 11
-                    }}
-                >
-                    <TouchableOpacity
-                        onPress={() => {
-                            setPausedTransfers(prev => ({
-                                ...prev,
-                                [transfer.uuid]: !isPaused
-                            }))
-        
-                            DeviceEventEmitter.emit(isPaused ? "resumeTransfer" : "pauseTransfer", transfer.uuid)
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: getColor(darkMode, "linkPrimary"),
-                                fontSize: 16,
-                                fontWeight: "400"
-                            }}
-                        >
-                            {isPaused ? i18n(lang, "resume") : i18n(lang, "pause")}
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={{
-                            marginLeft: 10
-                        }}
-                        onPress={() => DeviceEventEmitter.emit("stopTransfer", transfer.uuid)}
-                    >
-                        <Text
-                            style={{
-                                color: getColor(darkMode, "linkPrimary"),
-                                fontSize: 16,
-                                fontWeight: "400"
-                            }}
-                        >
-                            {i18n(lang, "stop")}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+            <OngoingTransferItem
+                darkMode={darkMode}
+                lang={lang}
+                pausedTransfers={pausedTransfers}
+                setPausedTransfers={setPausedTransfers}
+                item={item}
+                containerWidth={containerWidth}
+                index={index}
+            />
         )
-    }, [containerWidth, portrait, pausedTransfers])
+    }, [containerWidth, portrait, pausedTransfers, darkMode, lang])
 
     const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
     const keyExtractor = useCallback((_, index) => index.toString(), [])

@@ -34,7 +34,7 @@ import { InviteScreen } from "./screens/InviteScreen"
 import { TextEditorScreen } from "./screens/TextEditorScreen"
 import ImageViewerScreen from "./screens/ImageViewerScreen/ImageViewerScreen"
 import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen"
-import { isRouteInStack, isNavReady, toExpoFsPath, generateRandomString, convertTimestampToMs } from "./lib/helpers"
+import { isRouteInStack, isNavReady, generateRandomString, convertTimestampToMs } from "./lib/helpers"
 import * as Sentry from "@sentry/react-native"
 import { runNetworkCheck } from "./lib/services/isOnline"
 import { getColor } from "./style"
@@ -64,7 +64,7 @@ import SelectMediaScreen from "./screens/SelectMediaScreen"
 import { Asset } from "./screens/SelectMediaScreen/SelectMediaScreen"
 import { getAssetURI } from "./lib/services/cameraUpload"
 import { queueFileUpload } from "./lib/services/upload"
-import * as FileSystem from "expo-file-system"
+import * as fs from "./lib/fs"
 import { getDownloadPath } from "./lib/services/download"
 import mimeTypes from "mime-types"
 import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "./components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
@@ -396,12 +396,9 @@ export const App = Sentry.wrap(memo(() => {
                         const tmp = (await getDownloadPath({ type: "temp" })).slice(0, -1)
                         const tmpPath = tmp + "/" + generateRandomString(16) + assets[i].asset.filename
 
-                        await FileSystem.copyAsync({
-                            from: toExpoFsPath(assetURI),
-                            to: toExpoFsPath(tmpPath)
-                        })
+                        await fs.copy(assetURI, tmpPath)
 
-                        const stat = await FileSystem.getInfoAsync(toExpoFsPath(tmpPath))
+                        const stat = await fs.stat(tmpPath)
 
                         if(stat.exists && stat.size){
                             queueFileUpload({

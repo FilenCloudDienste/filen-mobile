@@ -10,7 +10,7 @@ import { getDownloadPath } from "../../lib/services/download/download"
 import DeviceInfo from "react-native-device-info"
 import { formatBytes, toExpoFsPath } from "../../lib/helpers"
 import memoryCache from "../../lib/memoryCache"
-import * as FileSystem from "expo-file-system"
+import * as fs from "../../lib/fs"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import FastImage from "react-native-fast-image"
@@ -21,20 +21,20 @@ export const calculateFolderSize = async (folderPath: string, size: number = 0):
         folderPath = folderPath.slice(0, -1)
     }
 
-    const dirList = await FileSystem.readDirectoryAsync(toExpoFsPath(folderPath))
+    const dirList = await fs.readDirectory(folderPath)
   
     for(let i = 0; i < dirList.length; i++){
         const item = dirList[i]
 
         try{
-            const stat = await FileSystem.getInfoAsync(toExpoFsPath(folderPath + "/" + item))
+            const stat = await fs.stat(folderPath + "/" + item)
 
             if(!stat.exists){
                 continue
             }
 
             if(stat.isDirectory){
-                size = await calculateFolderSize(toExpoFsPath(folderPath + "/" + item), size)
+                size = await calculateFolderSize(folderPath + "/" + item, size)
             }
             else{
                 size = size + (stat.size || 0)
@@ -67,7 +67,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
 
             const [thumbnailCacheSize, cachesSize] = await Promise.all([
                 calculateFolderSize(thumbnailCachePath),
-                calculateFolderSize(FileSystem.cacheDirectory as string)
+                calculateFolderSize(fs.cacheDirectory as string)
             ])
 
             setThumbnailCacheLocalFolderSize(thumbnailCacheSize)
@@ -167,10 +167,10 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
 
                                                     try{
                                                         const tempPath = await getDownloadPath({ type: "thumbnail" })
-                                                        var dirList = await FileSystem.readDirectoryAsync(toExpoFsPath(tempPath))
+                                                        var dirList = await fs.readDirectory(tempPath)
 
                                                         for(let i = 0; i < dirList.length; i++){
-                                                            await FileSystem.deleteAsync(toExpoFsPath(tempPath + dirList[i]))
+                                                            await fs.unlink(tempPath + dirList[i])
                                                         }
 
                                                         await Promise.all([

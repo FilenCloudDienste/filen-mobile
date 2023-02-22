@@ -4,7 +4,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import { StackActions } from "@react-navigation/native"
 import { useStore } from "../../lib/state"
 import { navigationAnimation } from "../../lib/state"
-import { calcSpeed, calcTimeLeft } from "../../lib/helpers"
+import { calcSpeed, calcTimeLeft, normalizeProgress } from "../../lib/helpers"
 import { throttle } from "lodash"
 import memoryCache from "../../lib/memoryCache"
 import { getColor } from "../../style"
@@ -12,8 +12,6 @@ import { Circle } from "react-native-progress"
 import { TransfersIndicatorProps, IndicatorProps, Download, ProgressData } from "../../types"
 
 export const Indicator = memo(({ darkMode, visible, navigation, progress, currentRouteName }: IndicatorProps) => {
-    const lastProg = useRef<number>(0)
-
     const openTransfers = useCallback(async () => {
         if(currentRouteName == "TransfersScreen"){
             return
@@ -24,24 +22,8 @@ export const Indicator = memo(({ darkMode, visible, navigation, progress, curren
         navigation?.current?.dispatch(StackActions.push("TransfersScreen"))
     }, [])
 
-    const prog: number = useMemo(() => {
-        if(progress <= 1){
-            return 0
-        }
-
-        if(progress >= 99){
-            return 1
-        }
-
-        const calced = parseFloat((progress / 100).toFixed(2))
-
-        if(isNaN(calced) || !Number.isInteger(calced)){
-            return lastProg.current
-        }
-
-        lastProg.current = calced
-
-        return calced
+    const normalizedProgress: number = useMemo(() => {
+        return normalizeProgress(progress)
     }, [progress])
     
     if(!visible){
@@ -72,7 +54,7 @@ export const Indicator = memo(({ darkMode, visible, navigation, progress, curren
                     size={50}
                     borderWidth={0}
                     color="#0A84FF"
-                    progress={prog}
+                    progress={normalizedProgress}
                     thickness={4}
                     animated={true}
                     indeterminate={false}
@@ -134,7 +116,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
         else{
             setVisible(false)
         }
-    }, 500), [])
+    }, 100), [])
 
     useEffect(() => {
         throttledUpdate(currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible)

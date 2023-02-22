@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "
 import { NavigationContainerRef, NavigationState } from "@react-navigation/native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import { useWindowDimensions, View, Text, FlatList, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter, Platform } from "react-native"
+import { useWindowDimensions, View, Text, FlatList, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter, Platform, ScrollView } from "react-native"
 import { getColor } from "../../style"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { i18n } from "../../i18n"
@@ -466,17 +466,6 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         }
     }, [containerWidth, insets])
 
-    const renderAlbum = useCallback(({ item }: { item: Album }) => {
-        return (
-            <AlbumItem
-                item={item}
-                darkMode={darkMode}
-                navigation={navigation}
-                params={params}
-            />
-        )
-    }, [navigation, params, darkMode])
-
     const renderAsset = useCallback(({ item }: { item: Asset }) => {
         return (
             <AssetItem
@@ -591,18 +580,27 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                                 </TouchableOpacity>
                             }
                         />
-                        <FlatList
-                            data={albums}
-                            renderItem={renderAlbum}
-                            keyExtractor={(item) => item.album.id}
-                            windowSize={3}
-                            getItemLayout={getItemLayoutAlbum}
+                        <ScrollView
                             style={{
                                 height: "100%",
                                 width: "100%",
                                 marginTop: 10
                             }}
-                        />
+                        >
+                            {
+                                albums.map((album, index) => {
+                                    return (
+                                        <AlbumItem
+                                            key={album.album.id}
+                                            item={album}
+                                            darkMode={darkMode}
+                                            navigation={navigation}
+                                            params={params}
+                                        />
+                                    )
+                                })
+                            }
+                        </ScrollView>
                     </>
                 ) : (
                     <>

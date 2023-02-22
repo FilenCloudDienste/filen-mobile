@@ -1,5 +1,5 @@
 import ReactNativeBlobUtil from "react-native-blob-util"
-import { Semaphore, getFileExt, randomIdUnsafe, toExpoFsPath } from "../../helpers"
+import { Semaphore, getFileExt, randomIdUnsafe } from "../../helpers"
 import { Platform, DeviceEventEmitter } from "react-native"
 import { useStore } from "../../state"
 import { i18n } from "../../../i18n"
@@ -10,7 +10,7 @@ import DeviceInfo from "react-native-device-info"
 import { clearCacheDirectories } from "../setup/setup"
 import { Item } from "../../../types"
 import memoryCache from "../../memoryCache"
-import * as FileSystem from "expo-file-system"
+import * as fs from "../../../lib/fs"
 import { isOnline, isWifi } from "../isOnline"
 import { MB } from "../../constants"
 import { memoize } from "lodash"
@@ -225,7 +225,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         try{
             const offlinePath = await getDownloadPath({ type: "offline" })
     
-            if((await FileSystem.getInfoAsync(toExpoFsPath(getItemOfflinePath(offlinePath, file)))).exists){
+            if((await fs.stat(getItemOfflinePath(offlinePath, file))).exists){
                 callOptionalCallback(null, getItemOfflinePath(offlinePath, file))
 
                 return saveToGalleryCallback(getItemOfflinePath(offlinePath, file))
@@ -303,18 +303,15 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
             const offlinePath = getItemOfflinePath(downloadPath, file)
 
             try{
-                if((await FileSystem.getInfoAsync(toExpoFsPath(offlinePath))).exists){
-                    await FileSystem.deleteAsync(toExpoFsPath(offlinePath))
+                if((await fs.stat(offlinePath)).exists){
+                    await fs.unlink(offlinePath)
                 }
             }
             catch(e){
                 //console.log(e)
             }
 
-            FileSystem.moveAsync({
-                from: toExpoFsPath(path),
-                to: toExpoFsPath(offlinePath)
-            }).then(() => {
+            fs.move(path, offlinePath).then(() => {
                 addItemToOfflineList({
                     item: file
                 }).then(() => {
@@ -327,8 +324,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     })
 
                     callOptionalCallback(null, offlinePath)
-
-                    console.log(offlinePath)
 
                     return console.log(file.name + " download done")
                 }).catch((err) => {
@@ -358,7 +353,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         parentFolder: "",
                         mimeType: file.mime
                     }, "Download", path).then(() => {
-                        FileSystem.deleteAsync(toExpoFsPath(path)).then(() => {
+                        fs.unlink(path).then(() => {
                             if(showNotification || useStore.getState().imagePreviewModalVisible){
                                 showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                             }
@@ -387,18 +382,15 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 }
                 else{
                     try{
-                        if((await FileSystem.getInfoAsync(toExpoFsPath(filePath))).exists){
-                            await FileSystem.deleteAsync(toExpoFsPath(filePath))
+                        if((await fs.stat(filePath)).exists){
+                            await fs.unlink(filePath)
                         }
                     }
                     catch(e){
                         //console.log(e)
                     }
     
-                    FileSystem.moveAsync({
-                        from: toExpoFsPath(path),
-                        to: toExpoFsPath(filePath)
-                    }).then(() => {
+                    fs.move(path, filePath).then(() => {
                         if(showNotification || useStore.getState().imagePreviewModalVisible){
                             showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                         }
@@ -419,18 +411,15 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
             }
             else{
                 try{
-                    if((await FileSystem.getInfoAsync(toExpoFsPath(filePath))).exists){
-                        await FileSystem.deleteAsync(toExpoFsPath(filePath))
+                    if((await fs.stat(filePath)).exists){
+                        await fs.unlink(filePath)
                     }
                 }
                 catch(e){
                     //console.log(e)
                 }
 
-                FileSystem.moveAsync({
-                    from: toExpoFsPath(path),
-                    to: toExpoFsPath(filePath)
-                }).then(() => {
+                fs.move(path, filePath).then(() => {
                     if(showNotification || useStore.getState().imagePreviewModalVisible){
                         showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
                     }
@@ -476,7 +465,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
             const cachePath = cachedDownloadsPath + file.uuid + "." + getFileExt(file.name)
 
             try{
-                if((await FileSystem.getInfoAsync(toExpoFsPath(cachePath))).exists){
+                if((await fs.stat(cachePath)).exists){
                     return resolve(cachePath)
                 }
             }
@@ -591,10 +580,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 }
     
                 if(index == 0){
-                    FileSystem.moveAsync({
-                        from: toExpoFsPath(path),
-                        to: toExpoFsPath(tmpPath)
-                    }).then(() => {
+                    fs.move(path, tmpPath).then(() => {
                         currentWriteIndex += 1
 
                         downloadWriteThreadsSemaphore.release()
@@ -661,13 +647,6 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                         }
                     }, 100)
                 })
-    
-                if(file.size < (MB * 128) && maxChunks == Number.MAX_SAFE_INTEGER){
-                    FileSystem.copyAsync({
-                        from: toExpoFsPath(tmpPath),
-                        to: toExpoFsPath(cachePath)
-                    }).catch(console.error)
-                }
             }
             catch(e: any){
                 cleanup()

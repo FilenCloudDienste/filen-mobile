@@ -1,10 +1,9 @@
 import storage from "../../storage"
 import { queueFileUpload, UploadFile } from "../upload/upload"
 import { Platform } from "react-native"
-import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt } from "../../helpers"
+import { randomIdUnsafe, promiseAllSettled, convertTimestampToMs, getAPIKey, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt, getRandomArbitrary } from "../../helpers"
 import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
-import * as FileSystem from "expo-file-system"
 import mimeTypes from "mime-types"
 // @ts-ignore
 import RNHeicConverter from "react-native-heic-converter"
@@ -17,6 +16,7 @@ import { validate } from "uuid"
 import { exportPhotoAssets } from "react-native-ios-asset-exporter"
 import path from "path"
 import { decryptFileMetadata } from "../../crypto"
+import * as fs from "../../fs"
 
 const CryptoJS = require("crypto-js")
 
@@ -26,6 +26,7 @@ const MAX_FAILED: number = 1
 const MAX_FETCH_TIME: number = 15000
 let askedForPermissions: boolean = false
 const getFileMutex = new Semaphore(1)
+const convertHeicMutex = new Semaphore(1)
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout: number = 0
 let fallbackInterval: NodeJS.Timer
@@ -512,21 +513,34 @@ export const getAssetURI = async (asset: MediaLibrary.Asset) => {
 }
 
 export const convertHeicToJPGIOS = async (inputPath: string) => {
-    if(!inputPath.toLowerCase().endsWith(".heic")){
-        return inputPath
+    await convertHeicMutex.acquire()
+
+    try{
+        if(!inputPath.toLowerCase().endsWith(".heic")){
+            convertHeicMutex.release()
+
+            return inputPath
+        }
+    
+        const { success, path, error }: { success: boolean, path: string, error: any } = await RNHeicConverter.convert({
+            path: toExpoFsPath(inputPath),
+            quality: 1,
+            extension: "jpg"
+        })
+    
+        if(error || !success || !path){
+            throw new Error("Could not convert " + inputPath + " from HEIC to JPG")
+        }
+
+        convertHeicMutex.release()
+    
+        return path
     }
+    catch(e){
+        convertHeicMutex.release()
 
-    const { success, path, error }: { success: boolean, path: string, error: any } = await RNHeicConverter.convert({
-        path: toExpoFsPath(inputPath),
-        quality: 1,
-        extension: "jpg"
-    })
-
-    if(error || !success || !path){
-        throw new Error("Could not convert " + inputPath + " from HEIC to JPG")
+        throw e
     }
-
-    return path
 }
 
 export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp: string, enableHeic: boolean): Promise<UploadFile> => {
@@ -540,12 +554,9 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
         name = parsedName.name + ".JPG"
     }
 
-    await FileSystem.copyAsync({
-        from: toExpoFsPath(assetURI),
-        to: toExpoFsPath(tmp)
-    })
+    await fs.copy(assetURI, tmp)
     
-    const stat = await FileSystem.getInfoAsync(toExpoFsPath(tmp))
+    const stat = await fs.stat(tmp)
 
     if(!stat.exists || !stat.size){
         throw new Error("No size for asset " + asset.id)
@@ -561,105 +572,118 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
 }
 
 export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Promise<UploadFile[]> => {
-    const userId = storage.getNumber("userId")
-    const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
-    const cameraUploadOnlyUploadOriginal = storage.getBoolean("cameraUploadOnlyUploadOriginal:" + userId)
-    const cameraUploadConvertLiveAndBurst = storage.getBoolean("cameraUploadConvertLiveAndBurst:" + userId)
-    const cameraUploadConvertLiveAndBurstAndKeepOriginal = storage.getBoolean("cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId)
-    const tmpPrefix = randomIdUnsafe() + "_"
-    const tmp = FileSystem.cacheDirectory + tmpPrefix + asset.filename
-    const files: UploadFile[] = []
-    let originalKept = false
+    await getFileMutex.acquire()
 
-    if(cameraUploadOnlyUploadOriginal || Platform.OS == "android" || (!cameraUploadOnlyUploadOriginal && !cameraUploadConvertLiveAndBurst && !cameraUploadConvertLiveAndBurstAndKeepOriginal)){
-        originalKept = true
+    const releaseMutex = () => setTimeout(() => getFileMutex.release(), 250)
 
-        files.push(await copyFile(asset, assetURI, tmp, cameraUploadEnableHeic))
-    }
+    try{
+        const userId = storage.getNumber("userId")
+        const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
+        const cameraUploadOnlyUploadOriginal = storage.getBoolean("cameraUploadOnlyUploadOriginal:" + userId)
+        const cameraUploadConvertLiveAndBurst = storage.getBoolean("cameraUploadConvertLiveAndBurst:" + userId)
+        const cameraUploadConvertLiveAndBurstAndKeepOriginal = storage.getBoolean("cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId)
+        const tmpPrefix = randomIdUnsafe() + "_"
+        const tmp = fs.cacheDirectory + tmpPrefix + asset.filename
+        const files: UploadFile[] = []
+        let originalKept = false
 
-    if(Platform.OS == "ios" && !originalKept){
-        const exportedAssets = await exportPhotoAssets([asset.id], FileSystem.cacheDirectory!.substring(8), tmpPrefix, true, false)
+        if(cameraUploadOnlyUploadOriginal || Platform.OS == "android" || (!cameraUploadOnlyUploadOriginal && !cameraUploadConvertLiveAndBurst && !cameraUploadConvertLiveAndBurstAndKeepOriginal)){
+            originalKept = true
 
-        if(exportedAssets.error && exportedAssets.error.length > 0){
-            throw new Error("exportPhotoAssets error codes: " + exportedAssets.error.map(error => error).join(", "))
+            files.push(await copyFile(asset, assetURI, tmp, cameraUploadEnableHeic))
         }
 
-        const filesToUploadPromises: Promise<UploadFile>[] = []
-        const isConvertedLivePhoto = exportedAssets.exportResults!.filter(res => res.localFileLocations.toLowerCase().endsWith(".mov")).length > 0
+        if(Platform.OS == "ios" && !originalKept){
+            const exportedAssets = await exportPhotoAssets([asset.id], fs.cacheDirectory!.substring(8), tmpPrefix, true, false)
 
-        for(const resource of exportedAssets.exportResults!){
-            if(cameraUploadConvertLiveAndBurst && isConvertedLivePhoto && !resource.localFileLocations.toLowerCase().endsWith(".mov")){ // Don't upload the original of a live photo if we do not want to keep it aswell
-                FileSystem.deleteAsync(toExpoFsPath(resource.localFileLocations)).catch(console.error)
-
-                continue
+            if(exportedAssets.error && exportedAssets.error.length > 0){
+                throw new Error("exportPhotoAssets error codes: " + exportedAssets.error.map(error => error).join(", "))
             }
 
-            if(resource.localFileLocations.toLowerCase().indexOf("penultimate") !== -1){
-                FileSystem.deleteAsync(toExpoFsPath(resource.localFileLocations)).catch(console.error)
+            const filesToUploadPromises: Promise<UploadFile>[] = []
+            const isConvertedLivePhoto = exportedAssets.exportResults!.filter(res => res.localFileLocations.toLowerCase().endsWith(".mov")).length > 0
 
-                continue
+            for(const resource of exportedAssets.exportResults!){
+                if(cameraUploadConvertLiveAndBurst && isConvertedLivePhoto && !resource.localFileLocations.toLowerCase().endsWith(".mov")){ // Don't upload the original of a live photo if we do not want to keep it aswell
+                    setTimeout(() => fs.unlink(resource.localFileLocations).catch(console.error), getRandomArbitrary(1000, 15000))
+
+                    continue
+                }
+
+                if(resource.localFileLocations.toLowerCase().indexOf("penultimate") !== -1){
+                    setTimeout(() => fs.unlink(resource.localFileLocations).catch(console.error), getRandomArbitrary(1000, 15000))
+
+                    continue
+                }
+
+                if(!cameraUploadEnableHeic && resource.localFileLocations.toLowerCase().endsWith(".heic") && asset.mediaType == "photo"){
+                    const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
+
+                    setTimeout(() => fs.unlink(resource.localFileLocations).catch(console.error), getRandomArbitrary(1000, 15000))
+
+                    filesToUploadPromises.push(
+                        new Promise<UploadFile>((resolve, reject) => {
+                            fs.stat(convertedPath).then((stat) => {
+                                if(stat.exists && stat.size){
+                                    const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
+                                    const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
+                                    const newName = nameWithoutEx.split("_").length < 2 ? (asset.filename + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
+
+                                    return resolve({
+                                        path: convertedPath.split("file://").join(""),
+                                        name: newName,
+                                        mime: mimeTypes.lookup(convertedPath) || "",
+                                        size: stat.size,
+                                        lastModified: convertTimestampToMs(asset.creationTime)
+                                    })
+                                }
+                                
+                                return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
+                            }).catch(reject)
+                        })
+                    )
+                }
+                else{
+                    filesToUploadPromises.push(
+                        new Promise<UploadFile>((resolve, reject) => {
+                            fs.stat(resource.localFileLocations).then((stat) => {
+                                if(stat.exists && stat.size){
+                                    let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
+
+                                    // If File does not have a _, then append the asset filename to the name
+                                    name = name.split("_").length < 2 ? (asset.filename.substring(0, asset.filename.lastIndexOf(".")) + name) : name
+
+                                    return resolve({
+                                        path: resource.localFileLocations.split("file://").join(""),
+                                        name: name,
+                                        mime: mimeTypes.lookup(resource.localFileLocations) || "",
+                                        size: stat.size,
+                                        lastModified: convertTimestampToMs(asset.creationTime)
+                                    })
+                                }
+                                
+                                return reject(new Error("No size for asset " + asset.id))
+                            }).catch(reject)
+                        })
+                    )
+                }
             }
 
-            if(!cameraUploadEnableHeic && resource.localFileLocations.toLowerCase().endsWith(".heic") && asset.mediaType == "photo"){
-                const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
-
-                FileSystem.deleteAsync(toExpoFsPath(resource.localFileLocations)).catch(console.error)
-
-                filesToUploadPromises.push(
-                    new Promise<UploadFile>((resolve, reject) => {
-                        FileSystem.getInfoAsync(toExpoFsPath(convertedPath)).then((stat) => {
-                            if(stat.exists && stat.size){
-                                const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
-                                const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
-                                const newName = nameWithoutEx.split("_").length < 2 ? (asset.filename + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
-
-                                return resolve({
-                                    path: convertedPath.split("file://").join(""),
-                                    name: newName,
-                                    mime: mimeTypes.lookup(convertedPath) || "",
-                                    size: stat.size,
-                                    lastModified: convertTimestampToMs(asset.creationTime)
-                                })
-                            }
-                            
-                            return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
-                        }).catch(reject)
-                    })
-                )
-            }
-            else{
-                filesToUploadPromises.push(
-                    new Promise<UploadFile>((resolve, reject) => {
-                        FileSystem.getInfoAsync(toExpoFsPath(resource.localFileLocations)).then((stat) => {
-                            if(stat.exists && stat.size){
-                                let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
-
-                                // If File does not have a _, then append the asset filename to the name
-                                name = name.split("_").length < 2 ? (asset.filename.substring(0, asset.filename.lastIndexOf(".")) + name) : name
-
-                                return resolve({
-                                    path: resource.localFileLocations.split("file://").join(""),
-                                    name: name,
-                                    mime: mimeTypes.lookup(resource.localFileLocations) || "",
-                                    size: stat.size,
-                                    lastModified: convertTimestampToMs(asset.creationTime)
-                                })
-                            }
-                            
-                            return reject(new Error("No size for asset " + asset.id))
-                        }).catch(reject)
-                    })
-                )
-            }
+            files.push(...(await Promise.all(filesToUploadPromises)))
         }
 
-        files.push(...(await Promise.all(filesToUploadPromises)))
-    }
+        releaseMutex()
 
-    return files
+        return files
+    }
+    catch(e){
+        releaseMutex()
+
+        throw e
+    }
 }
 
-export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean = false): Promise<void> => {
+export const runCameraUpload = async (maxQueue: number = 10, runOnce: boolean = false): Promise<void> => {
     await runMutex.acquire()
 
     if(runTimeout > new Date().getTime()){
@@ -827,7 +851,7 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
 
             try{
                 const assetURI = await getAssetURI(asset)
-                var stat = await FileSystem.getInfoAsync(toExpoFsPath(assetURI))
+                var stat = await fs.stat(assetURI)
                 const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
                 const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
                 const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
@@ -879,25 +903,16 @@ export const runCameraUpload = async (maxQueue: number = 16384, runOnce: boolean
             }
 
             for(const file of files){
-                try{
-                    await queueFileUpload({
-                        file,
-                        parent: cameraUploadFolderUUID,
-                        isCameraUpload: true
-                    })
+                await queueFileUpload({
+                    file,
+                    parent: cameraUploadFolderUUID,
+                    isCameraUpload: true
+                }).catch(console.error)
 
-                    FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
-
-                    uploadedThisRun += 1
-                }
-                catch(e){
-                    console.error(e)
-
-                    FileSystem.deleteAsync(toExpoFsPath(file.path)).catch(console.error)
-
-                    continue
-                }
+                await fs.unlink(file.path).catch(console.error)
             }
+
+            uploadedThisRun += 1
 
             storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
 
