@@ -26,7 +26,7 @@ const MAX_FAILED: number = 1
 const MAX_FETCH_TIME: number = 15000
 let askedForPermissions: boolean = false
 const getFileMutex = new Semaphore(1)
-const convertHeicMutex = new Semaphore(1)
+const convertHeicMutex = new Semaphore(2)
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout: number = 0
 let fallbackInterval: NodeJS.Timer
@@ -527,12 +527,12 @@ export const convertHeicToJPGIOS = async (inputPath: string) => {
             quality: 1,
             extension: "jpg"
         })
+
+        convertHeicMutex.release()
     
         if(error || !success || !path){
             throw new Error("Could not convert " + inputPath + " from HEIC to JPG")
         }
-
-        convertHeicMutex.release()
     
         return path
     }
@@ -574,7 +574,7 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
 export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Promise<UploadFile[]> => {
     await getFileMutex.acquire()
 
-    const releaseMutex = () => setTimeout(() => getFileMutex.release(), 250)
+    const releaseMutex = () => setTimeout(() => getFileMutex.release(), 100)
 
     try{
         const userId = storage.getNumber("userId")
@@ -909,7 +909,7 @@ export const runCameraUpload = async (maxQueue: number = 10, runOnce: boolean = 
                     isCameraUpload: true
                 }).catch(console.error)
 
-                await fs.unlink(file.path).catch(console.error)
+                setTimeout(() => fs.unlink(file.path).catch(console.error), getRandomArbitrary(1000, 15000))
             }
 
             uploadedThisRun += 1

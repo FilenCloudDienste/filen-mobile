@@ -1,9 +1,9 @@
 import * as FileSystem from "expo-file-system"
 import { Semaphore, toExpoFsPath } from "../helpers"
 
-const writeSemaphore = new Semaphore(1)
+const writeSemaphore = new Semaphore(3)
 const writeSemaphoreTimeout = 100
-const readSemaphore = new Semaphore(32)
+const readSemaphore = new Semaphore(128)
 
 export const cacheDirectory = FileSystem.cacheDirectory
 

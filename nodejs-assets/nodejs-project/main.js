@@ -83,8 +83,8 @@ const cachedDerivedKeys = {}
 const cachedPemKeys = {}
 let tasksRunning = 0
 const convertHeicSemaphore = new Semaphore(1)
-const readSemaphore = new Semaphore(32)
-const writeSemaphore = new Semaphore(1)
+const readSemaphore = new Semaphore(128)
+const writeSemaphore = new Semaphore(3)
 
 const convertArrayBufferToUtf8String = (buffer) => {
     return Buffer.from(buffer).toString("utf8")
