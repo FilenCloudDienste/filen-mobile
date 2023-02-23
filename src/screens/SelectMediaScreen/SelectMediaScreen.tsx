@@ -17,7 +17,7 @@ import { StackActions } from "@react-navigation/native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useIsFocused } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
-import { isExtensionAllowed, getAssetURI } from "../../lib/services/cameraUpload"
+import { getAssetURI, videoExts, photoExts } from "../../lib/services/cameraUpload"
 import * as fs from "../../lib/fs"
 
 const videoThumbnailSemaphore = new Semaphore(5)
@@ -25,6 +25,12 @@ const ALBUM_ROW_HEIGHT = 70
 const FETCH_ASSETS_LIMIT = 128
 
 const createdVideoThumbnails: Record<string, string> = {}
+
+export const isNameAllowed = (name: string) => {
+    const exts = [...videoExts, ...photoExts]
+
+    return exts.includes(getFileExt(name))
+}
 
 export const fetchAssets = async (album: MediaLibrary.Album | "allAssetsCombined", count: number, after: MediaLibrary.AssetRef | undefined): Promise<{ hasNextPage: boolean, assets: Asset[] }> => {
     const fetched = await MediaLibrary.getAssetsAsync({
@@ -37,7 +43,7 @@ export const fetchAssets = async (album: MediaLibrary.Album | "allAssetsCombined
         ...(album !== "allAssetsCombined" ? { album } : {})
     })
 
-    const sorted: Asset[] = fetched.assets.filter(asset => isExtensionAllowed(getFileExt(asset.filename))).map(asset => ({
+    const sorted: Asset[] = fetched.assets.filter(asset => isNameAllowed(asset.filename)).map(asset => ({
         selected: false,
         asset,
         type: getFilePreviewType(getFileExt(asset.filename))
@@ -87,7 +93,7 @@ export const getLastImageOfAlbum = async (album: MediaLibrary.Album): Promise<st
         return ""
     }
 
-    const filtered = result.assets.filter(asset => isExtensionAllowed(getFileExt(asset.filename))).sort((a, b) => b.creationTime - a.creationTime)
+    const filtered = result.assets.filter(asset => isNameAllowed(asset.filename)).sort((a, b) => b.creationTime - a.creationTime)
 
     if(filtered.length == 0){
         return ""

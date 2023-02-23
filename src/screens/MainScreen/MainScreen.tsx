@@ -238,7 +238,6 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                 setCurrentItems(items)
 
                 itemsRef.current = items
-                global.items = items
 
                 const selected = items.filter(item => item.selected).length
 
@@ -250,12 +249,9 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                 setCurrentItems([])
     
                 itemsRef.current = []
-                global.items = []
     
                 setItemsSelectedCount(0)
             }
-
-            global.setItems = setItems
         }
     }, [items, isFocused])
 

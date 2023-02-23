@@ -9,7 +9,6 @@ import { isOnline, isWifi } from "../isOnline"
 import memoryCache from "../../memoryCache"
 import * as fs from "../../fs"
 import { getFileExt, getFilePreviewType, toExpoFsPath } from "../../helpers"
-import { convertHeic } from "../items"
 
 const isGeneratingThumbnailForItemUUID: Record<string, boolean> = {}
 const isCheckingThumbnailForItemUUID: Record<string, boolean> = {}
@@ -238,24 +237,26 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
 
             ImageResizer.createResizedImage(path, width, height, "JPEG", quality).then((compressed) => {
                 fs.move(compressed.uri, dest).then(() => {
-                    storage.set(cacheKey, item.uuid + ".jpg")
-                    memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
-    
-                    DeviceEventEmitter.emit("event", {
-                        type: "thumbnail-generated",
-                        data: {
-                            uuid: item.uuid,
-                            path: item.uuid + ".jpg"
+                    fs.unlink(path).then(() => {
+                        storage.set(cacheKey, item.uuid + ".jpg")
+                        memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
+        
+                        DeviceEventEmitter.emit("event", {
+                            type: "thumbnail-generated",
+                            data: {
+                                uuid: item.uuid,
+                                path: item.uuid + ".jpg"
+                            }
+                        })
+
+                        delete isGeneratingThumbnailForItemUUID[item.uuid]
+
+                        if(typeof callback == "function"){
+                            callback(null, item.uuid + ".jpg")
                         }
-                    })
-
-                    delete isGeneratingThumbnailForItemUUID[item.uuid]
-
-                    if(typeof callback == "function"){
-                        callback(null, item.uuid + ".jpg")
-                    }
-    
-                    global.generateThumbnailSemaphore.release()
+        
+                        global.generateThumbnailSemaphore.release()
+                    }).catch(onError)
                 }).catch(onError)
             }).catch(onError)
         }).catch(onError)
@@ -275,14 +276,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
             }).catch(onError)
         }
         else{
-            if(["heic"].includes(fileExt) && Platform.OS == "android"){
-                convertHeic(item, path).then((converted) => {
-                    compress(converted, dest)
-                }).catch(onError)
-            }
-            else{
-                compress(path, dest)
-            }
+            compress(path, dest)
         }
     }
 

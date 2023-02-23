@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo, useCallback, useRef } from "react"
+import React, { useEffect, useState, memo, useCallback } from "react"
 import { View, Text, Switch, Platform, ScrollView, ActivityIndicator, Image } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -14,7 +14,7 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { getAssetURI } from "../../lib/services/cameraUpload"
-import { isNameAllowed, getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
+import { getLastImageOfAlbum, isNameAllowed } from "../SelectMediaScreen/SelectMediaScreen"
 import { useMountedState } from "react-use"
 
 const fetchAssetsSemaphore = new Semaphore(3)
@@ -33,7 +33,7 @@ export interface AlbumItemProps {
     darkMode: boolean,
     album: Album,
     hasPermissions: boolean,
-    excludedAlbums: { [key: string]: boolean },
+    excludedAlbums: Record<string, boolean>,
     userId: number
 }
 

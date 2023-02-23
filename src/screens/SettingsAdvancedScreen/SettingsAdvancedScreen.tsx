@@ -156,10 +156,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                                                             await fs.unlink(tempPath + dirList[i])
                                                         }
 
-                                                        await Promise.all([
-                                                            FastImage.clearDiskCache(),
-                                                            FastImage.clearMemoryCache()
-                                                        ])
+                                                        await FastImage.clearDiskCache()
                                                     }
                                                     catch(e){
                                                         console.log(e)
@@ -213,12 +210,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                                                 onPress: async () => {
                                                     useStore.setState({ fullscreenLoadingModalVisible: true })
 
-                                                    try{
-                                                        await clearCacheDirectories()
-                                                    }
-                                                    catch(e){
-                                                        console.error(e)
-                                                    }
+                                                    await clearCacheDirectories().catch(console.error)
 
                                                     showToast({ message: i18n(lang, "clearCachesDirectoryCleared") })
 
@@ -252,7 +244,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                             fontSize: 11
                         }}
                     >
-                        {i18n(lang, "version")} {DeviceInfo.getVersion()}
+                        {i18n(lang, "version")} {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
                     </Text>
                 </View>
                 <View
