@@ -1,6 +1,7 @@
 import storage from "../../../storage"
 import { StackActions } from "@react-navigation/native"
 import { NavigationContainerRef } from "@react-navigation/native"
+import { query } from "../../../db"
 
 export const logout = ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
     try{
@@ -11,11 +12,7 @@ export const logout = ({ navigation }: { navigation: NavigationContainerRef<Reac
         storage.delete("authVersion")
         storage.set("isLoggedIn", false)
 
-        storage.getAllKeys().forEach((key) => {
-            if(key.indexOf("loadItemsCache:") !== -1){
-                storage.delete(key)
-            }
-        })
+        query("DELETE FROM key_value").catch(console.error)
 
         // @ts-ignore
         if(typeof navigation.replace == "function"){

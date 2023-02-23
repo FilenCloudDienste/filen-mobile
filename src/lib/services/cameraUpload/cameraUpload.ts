@@ -1,7 +1,7 @@
 import storage from "../../storage"
 import { queueFileUpload, UploadFile } from "../upload/upload"
 import { Platform } from "react-native"
-import { promiseAllSettled, convertTimestampToMs, getAPIKey, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt, getRandomArbitrary } from "../../helpers"
+import { promiseAllSettled, convertTimestampToMs, getAPIKey, getMasterKeys, toExpoFsPath, getAssetId, Semaphore, getFileExt, getRandomArbitrary, randomIdUnsafe } from "../../helpers"
 import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import mimeTypes from "mime-types"
@@ -11,13 +11,12 @@ import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, ha
 import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
 import pathModule from "path"
-import { memoize } from "lodash"
 import { validate } from "uuid"
 import { exportPhotoAssets } from "react-native-ios-asset-exporter"
 import path from "path"
 import { decryptFileMetadata } from "../../crypto"
 import * as fs from "../../fs"
-import { v4 as uuidv4 } from "uuid"
+import * as db from "../../db"
 
 const CryptoJS = require("crypto-js")
 
@@ -26,11 +25,10 @@ const FAILED: Record<string, number> = {}
 const MAX_FAILED: number = 1
 const MAX_FETCH_TIME: number = 15000
 let askedForPermissions: boolean = false
-const getFileMutex = new Semaphore(1)
-const convertHeicMutex = new Semaphore(2)
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout: number = 0
 let fallbackInterval: NodeJS.Timer
+const getFilesMutex = new Semaphore(1)
 
 export const runMutex = new Semaphore(1)
 export const getLocalAssetsMutex = new Semaphore(1)
@@ -57,8 +55,8 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
         storage.delete("cameraUploadFolderName:" + userId)
         storage.set("cameraUploadUploaded", 0)
         storage.set("cameraUploadTotal", 0)
-        storage.delete("loadItemsCache:photos")
-        storage.delete("loadItemsCache:lastResponse:photos")
+        
+        db.remove("loadItems:photos").catch(console.error)
     }
 }
 
@@ -146,7 +144,7 @@ export const isExtensionAllowed = (ext: string) => {
     return allowed.filter(allowedExt => allowedExt == ext).length > 0
 }
 
-export const getAssetDeltaName = memoize((name: string) => {
+export const getAssetDeltaName = (name: string) => {
     if(name.indexOf(".") == -1){
         return name
     }
@@ -154,7 +152,7 @@ export const getAssetDeltaName = memoize((name: string) => {
     const parsed = pathModule.parse(name)
 
     return parsed.name
-})
+}
 
 export const getMediaTypes = () => {
     const userId: number = storage.getNumber("userId")
@@ -244,7 +242,7 @@ export const getLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
 
     const promises = []
     const assets: MediaLibrary.Asset[] = []
-    const existingIds: { [key: string]: boolean } = {}
+    const existingIds: Record<string, boolean> = {}
 
     for(let i = 0; i < albums.length; i++){
         if(typeof cameraUploadExcludedAlbums[albums[i].id] !== "undefined"){
@@ -282,7 +280,7 @@ export const fetchLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
         const cameraUploadAfterEnabledTime: number = storage.getNumber("cameraUploadAfterEnabledTime:" + userId)
         const fetched = await getLocalAssets()
         const sorted = fetched.sort((a, b) => a.creationTime - b.creationTime).filter(asset => mediaTypes.includes(asset.mediaType) && convertTimestampToMs(asset.creationTime) >= convertTimestampToMs(cameraUploadAfterEnabledTime) && isExtensionAllowed(getFileExt(asset.filename)))
-        const existingNames: { [key: string]: boolean } = {}
+        const existingNames: Record<string, boolean> = {}
         const result: MediaLibrary.Asset[] = []
 
         for(let i = 0; i < sorted.length; i++){
@@ -395,16 +393,14 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
     const items: CameraUploadItems = {}
     const sorted = response.data.uploads.sort((a: any, b: any) => a.timestamp - b.timestamp)
     const last = sorted[sorted.length - 1]
-    const cameraUploadLastLoadRemote = storage.getString("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID)
+    const cameraUploadLastLoadRemote = await db.get("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID) as { uuid: string, count: number, items: CameraUploadItems }
 
-    if(typeof cameraUploadLastLoadRemote !== "undefined"){
-        const cameraUploadLastLoadRemoteParsed = JSON.parse(cameraUploadLastLoadRemote) as { uuid: string, count: number, items: CameraUploadItems }
-
+    if(cameraUploadLastLoadRemote){
         if(
-            cameraUploadLastLoadRemoteParsed.count == sorted.length
-            && cameraUploadLastLoadRemoteParsed.uuid == last.uuid
+            cameraUploadLastLoadRemote.count == sorted.length
+            && cameraUploadLastLoadRemote.uuid == last.uuid
         ){
-            return cameraUploadLastLoadRemoteParsed.items
+            return cameraUploadLastLoadRemote.items
         }
     }
 
@@ -426,11 +422,11 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
         }
     }
 
-    storage.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, JSON.stringify({
+    await db.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, {
         uuid: last.uuid,
         count: response.data.uploads.length,
         items
-    }))
+    })
 
     return items
 }
@@ -442,16 +438,16 @@ export interface Delta {
     item: CameraUploadItem
 }
 
-export const getDeltas = (local: CameraUploadItems, remote: CameraUploadItems) => {
-    const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
+export const getDeltas = async (local: CameraUploadItems, remote: CameraUploadItems) => {
     const deltas: Delta[] = []
+    const lastModified = await db.cameraUpload.getLastModifiedAll()
 
     for(const name in local){
         const assetId = getAssetId(local[name].asset)
 
         if(!remote[name]){
-            if(typeof cameraUploadLastModified[assetId] == "number"){
-                if(convertTimestampToMs(cameraUploadLastModified[assetId]) !== convertTimestampToMs(local[name].lastModified)){
+            if(typeof lastModified[assetId] == "number"){
+                if(convertTimestampToMs(lastModified[assetId]) !== convertTimestampToMs(local[name].lastModified)){
                     deltas.push({
                         type: "UPLOAD",
                         item: local[name]
@@ -466,8 +462,8 @@ export const getDeltas = (local: CameraUploadItems, remote: CameraUploadItems) =
             }
         }
         else{
-            if(typeof cameraUploadLastModified[assetId] == "number"){
-                if(convertTimestampToMs(cameraUploadLastModified[assetId]) !== convertTimestampToMs(local[name].lastModified)){
+            if(typeof lastModified[assetId] == "number"){
+                if(convertTimestampToMs(lastModified[assetId]) !== convertTimestampToMs(local[name].lastModified)){
                     deltas.push({
                         type: "UPDATE",
                         item: local[name]
@@ -514,34 +510,21 @@ export const getAssetURI = async (asset: MediaLibrary.Asset) => {
 }
 
 export const convertHeicToJPGIOS = async (inputPath: string) => {
-    await convertHeicMutex.acquire()
-
-    try{
-        if(!inputPath.toLowerCase().endsWith(".heic")){
-            convertHeicMutex.release()
-
-            return inputPath
-        }
-    
-        const { success, path, error }: { success: boolean, path: string, error: any } = await RNHeicConverter.convert({
-            path: toExpoFsPath(inputPath),
-            quality: 1,
-            extension: "jpg"
-        })
-
-        convertHeicMutex.release()
-    
-        if(error || !success || !path){
-            throw new Error("Could not convert " + inputPath + " from HEIC to JPG")
-        }
-    
-        return path
+    if(!inputPath.toLowerCase().endsWith(".heic")){
+        return inputPath
     }
-    catch(e){
-        convertHeicMutex.release()
 
-        throw e
+    const { success, path, error }: { success: boolean, path: string, error: any } = await RNHeicConverter.convert({
+        path: toExpoFsPath(inputPath),
+        quality: 1,
+        extension: "jpg"
+    })
+
+    if(error || !success || !path){
+        throw new Error("Could not convert " + inputPath + " from HEIC to JPG")
     }
+
+    return path
 }
 
 export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp: string, enableHeic: boolean): Promise<UploadFile> => {
@@ -581,18 +564,16 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
     }
 }
 
-export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Promise<UploadFile[]> => {
-    await getFileMutex.acquire()
-
-    const releaseMutex = () => setTimeout(() => getFileMutex.release(), 500)
-
+export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Promise<UploadFile[]> => {
+    await getFilesMutex.acquire()
+    
     try{
         const userId = storage.getNumber("userId")
         const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + userId)
         const cameraUploadOnlyUploadOriginal = storage.getBoolean("cameraUploadOnlyUploadOriginal:" + userId)
         const cameraUploadConvertLiveAndBurst = storage.getBoolean("cameraUploadConvertLiveAndBurst:" + userId)
         const cameraUploadConvertLiveAndBurstAndKeepOriginal = storage.getBoolean("cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId)
-        const tmpPrefix = uuidv4() + "_"
+        const tmpPrefix = randomIdUnsafe() + "_"
         const tmp = fs.cacheDirectory + tmpPrefix + asset.filename
         const files: UploadFile[] = []
         let originalKept = false
@@ -607,6 +588,8 @@ export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Prom
             const exportedAssets = await exportPhotoAssets([asset.id], fs.cacheDirectory!.substring(8), tmpPrefix, true, false)
 
             if(exportedAssets.error && exportedAssets.error.length > 0){
+                getFilesMutex.release()
+
                 throw new Error("exportPhotoAssets error codes: " + exportedAssets.error.map(error => error).join(", "))
             }
 
@@ -615,13 +598,13 @@ export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Prom
 
             for(const resource of exportedAssets.exportResults!){
                 if(cameraUploadConvertLiveAndBurst && isConvertedLivePhoto && !resource.localFileLocations.toLowerCase().endsWith(".mov")){ // Don't upload the original of a live photo if we do not want to keep it aswell
-                    setTimeout(() => fs.unlink(resource.localFileLocations).catch(console.error), getRandomArbitrary(1000, 15000))
+                    await fs.unlink(resource.localFileLocations).catch(console.error)
 
                     continue
                 }
 
                 if(resource.localFileLocations.toLowerCase().indexOf("penultimate") !== -1){
-                    setTimeout(() => fs.unlink(resource.localFileLocations).catch(console.error), getRandomArbitrary(1000, 15000))
+                    await fs.unlink(resource.localFileLocations).catch(console.error)
 
                     continue
                 }
@@ -630,7 +613,7 @@ export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Prom
                 if(!cameraUploadEnableHeic && resource.localFileLocations.toLowerCase().endsWith(".heic") && asset.mediaType == "photo" && resource.localFileLocations.toLowerCase().indexOf("fullsizerender") == -1){
                     const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
 
-                    setTimeout(() => fs.unlink(resource.localFileLocations).catch(console.error), getRandomArbitrary(1000, 15000))
+                    await fs.unlink(resource.localFileLocations).catch(console.error)
 
                     filesToUploadPromises.push(
                         new Promise<UploadFile>((resolve, reject) => {
@@ -683,18 +666,18 @@ export const getFile = async (asset: MediaLibrary.Asset, assetURI: string): Prom
             files.push(...(await Promise.all(filesToUploadPromises)))
         }
 
-        releaseMutex()
+        getFilesMutex.release()
 
         return files
     }
     catch(e){
-        releaseMutex()
+        getFilesMutex.release()
 
         throw e
     }
 }
 
-export const runCameraUpload = async (maxQueue: number = 10, runOnce: boolean = false): Promise<void> => {
+export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = false): Promise<void> => {
     await runMutex.acquire()
 
     if(runTimeout > new Date().getTime()){
@@ -837,7 +820,7 @@ export const runCameraUpload = async (maxQueue: number = 10, runOnce: boolean = 
             loadLocal(),
             loadRemote()
         ])
-        const deltas = getDeltas(local, remote)
+        const deltas = await getDeltas(local, remote)
         const currentlyUploadedCount = Object.keys(local).length - deltas.length
 
         storage.set("cameraUploadTotal", Object.keys(local).length)
@@ -863,40 +846,36 @@ export const runCameraUpload = async (maxQueue: number = 10, runOnce: boolean = 
             try{
                 const assetURI = await getAssetURI(asset)
                 var stat = await fs.stat(assetURI)
-                const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
-                const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
-                const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
+                const [lastModified, lastModifiedStat, lastSize] = await Promise.all([
+                    db.cameraUpload.getLastModified(asset),
+                    db.cameraUpload.getLastModifiedStat(asset),
+                    db.cameraUpload.getLastSize(asset)
+                ])
 
                 if(
                     stat.exists
                     && (
-                        convertTimestampToMs(stat.modificationTime) == convertTimestampToMs(cameraUploadLastModifiedStat[assetId])
-                        || convertTimestampToMs(cameraUploadLastModified[assetId]) == convertTimestampToMs(delta.item.lastModified)
-                        || cameraUploadLastSize[assetId] == stat.size
+                        convertTimestampToMs(stat.modificationTime) == convertTimestampToMs(lastModifiedStat)
+                        || convertTimestampToMs(lastModified) == convertTimestampToMs(delta.item.lastModified)
+                        || lastSize == stat.size
                     )
                 ){
                     uploadedThisRun += 1
 
                     storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
 
-                    const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
-                    const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
-                    const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
-
-                    cameraUploadLastModified[assetId] = convertTimestampToMs(delta.item.lastModified)
-                    cameraUploadLastModifiedStat[assetId] = convertTimestampToMs(stat.modificationTime)
-                    cameraUploadLastSize[assetId] = stat.size
-
-                    storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
-                    storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
-                    storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
+                    await Promise.all([
+                        db.cameraUpload.setLastModified(asset, convertTimestampToMs(delta.item.lastModified)),
+                        db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime)),
+                        db.cameraUpload.setLastSize(asset, stat.size)
+                    ])
 
                     uploadSemaphore.release()
 
                     return
                 }
 
-                var files = await getFile(asset, assetURI)
+                var files = await getFiles(asset, assetURI)
             }
             catch(e){
                 console.error(e)
@@ -920,24 +899,18 @@ export const runCameraUpload = async (maxQueue: number = 10, runOnce: boolean = 
                     isCameraUpload: true
                 }).catch(console.error)
 
-                setTimeout(() => fs.unlink(file.path).catch(console.error), getRandomArbitrary(1000, 15000))
+                await fs.unlink(file.path).catch(console.error)
             }
 
             uploadedThisRun += 1
 
             storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
 
-            const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
-            const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
-            const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
-
-            cameraUploadLastModified[assetId] = convertTimestampToMs(delta.item.lastModified)
-            cameraUploadLastModifiedStat[assetId] = convertTimestampToMs(stat.modificationTime || delta.item.lastModified)
-            cameraUploadLastSize[assetId] = stat.size
-
-            storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
-            storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
-            storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
+            await Promise.all([
+                db.cameraUpload.setLastModified(asset, convertTimestampToMs(delta.item.lastModified)),
+                db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || delta.item.lastModified)),
+                db.cameraUpload.setLastSize(asset, stat.size || 0)
+            ])
 
             uploadSemaphore.release()
 

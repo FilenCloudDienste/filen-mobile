@@ -1,5 +1,5 @@
-import storage from "../storage"
 import { convertTimestampToMs, unixTimestamp, arrayBufferToBase64 } from "../helpers"
+import * as db from "../db"
 
 export const deriveKeyFromPassword = async (password: string, salt: string, iterations: number = 200000, hash: string = "SHA-512", bitLength: number = 512, returnHex: boolean = true): Promise<any> => {
     return await global.nodeThread.deriveKeyFromPassword({
@@ -52,30 +52,12 @@ export const decryptFolderLinkKey = (masterKeys: string[], metadata: string): Pr
 }
 
 export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string, uuid: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number, hash: string }> => {
-    return new Promise((resolve, reject) => {
-        const cacheKey = "metadataCache:file:" + uuid + ":" + metadata
-        let metadataCache: any = storage.getString(cacheKey) || "{}"
+    return new Promise(async (resolve, reject) => {
+        const key = "decryptFileMetadataPrivateKey:" + uuid + ":" + metadata
+        const result = await db.get(key)
 
-        if(typeof metadataCache == "string"){
-            try{
-                metadataCache = JSON.parse(metadataCache)
-
-                if(typeof metadataCache.name == "string"){
-                    if(metadataCache.name.length > 0){
-                        return resolve({
-                            name: metadataCache.name,
-                            size: metadataCache.size,
-                            mime: metadataCache.mime,
-                            key: metadataCache.key,
-                            lastModified: convertTimestampToMs(metadataCache.lastModified),
-                            hash: typeof metadataCache.hash == "string" && metadataCache.hash.length > 0 ? metadataCache.hash : ""
-                        })
-                    }
-                }
-            }
-            catch(e){
-                console.log(e)
-            }
+        if(result){
+            return result
         }
 
         let file = {
@@ -104,11 +86,8 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
                         hash: typeof decrypted.hash == "string" && decrypted.hash.length > 0 ? decrypted.hash : ""
                     }
     
-                    try{
-                        storage.set(cacheKey, JSON.stringify(file))
-                    }
-                    catch(e){
-                        console.log(e)
+                    if(typeof file.name == "string" && file.name.length > 0){
+                        db.set(key, file).catch(console.error)
                     }
                 }
             }
@@ -124,25 +103,12 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
 }
 
 export const decryptFileMetadataLink = async (metadata: string, linkKey: string): Promise<any> => {
-	const cacheKey = "metadataCache:decryptFileMetadataLink:" + metadata
-    const cached = storage.getString(cacheKey)
+    const key = "decryptFileMetadataLink:" + metadata + ":" + linkKey
+    const result = await db.get(key)
 
-	if(cached){
-		if(cached.length > 0){
-            try{
-                const parsed = JSON.parse(cached)
-
-                if(typeof parsed.name == "string"){
-                    if(parsed.name.length > 0){
-                        return parsed
-                    }
-                }
-            }
-            catch(e){
-                //console.log8e
-            }
-        }
-	}
+    if(result){
+        return result
+    }
 
 	let fileName = ""
 	let fileSize = 0
@@ -179,7 +145,7 @@ export const decryptFileMetadataLink = async (metadata: string, linkKey: string)
 
 	if(typeof obj.name == "string"){
 		if(obj.name.length >= 1){
-			storage.set(cacheKey, JSON.stringify(obj))
+			db.set(key, obj).catch(console.error)
 		}
 	}
 
@@ -191,13 +157,11 @@ export const decryptFolderNameLink = async (metadata: string, linkKey: string): 
 		return "Default"
 	}
 
-	const cacheKey = "metadataCache:decryptFolderNameLink:" + metadata
-    const cached = storage.getString(cacheKey)
+    const key = "decryptFolderNameLink:" + metadata + ":" + linkKey
+    const result = await db.get<string>(key)
 
-    if(cached){
-        if(cached.length > 0){
-            return cached
-        }
+    if(result){
+        return result
     }
 
 	let folderName = ""
@@ -219,7 +183,7 @@ export const decryptFolderNameLink = async (metadata: string, linkKey: string): 
 
 	if(typeof folderName == "string"){
 		if(folderName.length > 0){
-			storage.set(cacheKey, folderName)
+			db.set(key, folderName).catch(console.error)
 		}
 	}
 
@@ -227,27 +191,16 @@ export const decryptFolderNameLink = async (metadata: string, linkKey: string): 
 }
 
 export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string, uuid: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         if(metadata == "default"){
             return resolve("Default")
         }
 
-        const cacheKey = "metadataCache:folder:" + uuid + ":" + metadata
-        let metadataCache: any = storage.getString(cacheKey)
+        const key = "decryptFolderNamePrivateKey:" + uuid + ":" + metadata
+        const result = await db.get<any>(key)
 
-        if(typeof metadataCache == "string"){
-            try{
-                metadataCache = JSON.parse(metadataCache)
-
-                if(typeof metadataCache.name == "string"){
-                    if(metadataCache.name.length > 0){
-                        return resolve(metadataCache.name)
-                    }
-                }
-            }
-            catch(e){
-                console.log(e)
-            }
+        if(result){
+            return resolve(result.name)
         }
 
         let name = ""
@@ -273,9 +226,7 @@ export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string
 
             if(typeof name == "string"){
                 if(name.length > 0){
-                    storage.set(cacheKey, JSON.stringify({
-                        name
-                    }))
+                    db.set(key, { name }).catch(console.error)
                 }
             }
 
@@ -289,27 +240,16 @@ export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string
 }
 
 export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         if(metadata == "default"){
             return resolve("Default")
         }
 
-        const cacheKey = "metadataCache:folder:" + uuid + ":" + metadata
-        let metadataCache: any = storage.getString(cacheKey)
+        const key = "decryptFolderName:" + uuid + ":" + metadata
+        const result = await db.get(key)
 
-        if(typeof metadataCache == "string"){
-            try{
-                metadataCache = JSON.parse(metadataCache)
-
-                if(typeof metadataCache.name == "string"){
-                    if(metadataCache.name.length > 0){
-                        return resolve(metadataCache.name)
-                    }
-                }
-            }
-            catch(e){
-                console.log(e)
-            }
+        if(result){
+            return resolve(result.name)
         }
 
         let name = ""
@@ -337,9 +277,7 @@ export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: 
                 if(iterated >= masterKeys.length){
                     if(typeof name == "string"){
                         if(name.length > 0){
-                            storage.set(cacheKey, JSON.stringify({
-                                name
-                            }))
+                            db.set(key, { name }).catch(console.error)
                         }
                     }
 
@@ -353,32 +291,12 @@ export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: 
 }
 
 export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number, hash: string }> => {
-    return new Promise((resolve, reject) => {
-        const cacheKey = "metadataCache:file:" + uuid + ":" + metadata
-        let metadataCache: any = storage.getString(cacheKey)
+    return new Promise(async (resolve, reject) => {
+        const key = "decryptFileMetadata:" + uuid + ":" + metadata
+        const result = await db.get(key)
 
-        if(typeof metadataCache == "string"){
-            try{
-                metadataCache = JSON.parse(metadataCache)
-
-                if(typeof metadataCache == "object"){
-                    if(typeof metadataCache.name == "string"){
-                        if(metadataCache.name.length > 0){
-                            return resolve({
-                                name: metadataCache.name,
-                                size: metadataCache.size,
-                                mime: metadataCache.mime,
-                                key: metadataCache.key,
-                                lastModified: convertTimestampToMs(metadataCache.lastModified),
-                                hash: typeof metadataCache.hash == "string" && metadataCache.hash.length > 0 ? metadataCache.hash : ""
-                            })
-                        }
-                    }
-                }
-            }
-            catch(e){
-                console.log(e)
-            }
+        if(result){
+            return resolve(result)
         }
 
         let file = {
@@ -421,7 +339,7 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
                 if(iterated >= masterKeys.length){
                     if(typeof file.name == "string"){
                         if(file.name.length > 0){
-                            storage.set(cacheKey, JSON.stringify(file))
+                            db.set(key, file).catch(console.error)
                         }
                     }
 

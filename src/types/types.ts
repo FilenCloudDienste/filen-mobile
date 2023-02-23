@@ -73,17 +73,6 @@ export const ItemTemplate: Item = {
     receivers: []
 }
 
-export interface BuildFolder {
-    folder: any,
-    name?: string,
-    masterKeys?: string[],
-    sharedIn?: boolean,
-    privateKey?: string,
-    routeURL?: string,
-    userId?: number,
-    loadFolderSizes?: boolean
-}
-
 export interface TransfersIndicatorProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }

@@ -5,11 +5,12 @@ import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
 import { showToast } from "../../../components/Toasts"
 import { NavigationContainerRef } from "@react-navigation/native"
-import { memoize } from "lodash"
 import { getOfflineList, removeItemFromOfflineList } from "../offline"
 import { validate } from "uuid"
 import { Item } from "../../../types"
 import * as fs from "../../fs"
+import { init as initDb } from "../../db"
+import FastImage from "react-native-fast-image"
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 const CACHE_CLEARING_ENABLED: boolean = true
@@ -30,9 +31,9 @@ const DONT_DELETE: string[] = [
     "a document being saved by"
 ]
 
-export const canDelete = memoize((name: string) => {
+export const canDelete = (name: string) => {
     return DONT_DELETE.filter(d => name.toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0
-})
+}
 
 export const checkOfflineItems = async () => {
     const deletePromises = []
@@ -102,7 +103,7 @@ export const checkOfflineItems = async () => {
 
     for(let i = 0; i < toDelete.length; i++){
         if(canDelete(toDelete[i])){
-            deletePromises.push(fs.unlink(offlinePath + "/" + toDelete[i], true))
+            deletePromises.push(fs.unlink(offlinePath + "/" + toDelete[i]))
         }
     }
 
@@ -120,6 +121,8 @@ export const checkOfflineItems = async () => {
 }
 
 export const clearCacheDirectories = async () => {
+    await FastImage.clearDiskCache().catch(console.error)
+
     const deletePromises = []
     const cachedDownloadsPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
     const cacheDownloadsItems = await fs.readDirectory(cachedDownloadsPath)
@@ -127,7 +130,7 @@ export const clearCacheDirectories = async () => {
     for(let i = 0; i < cacheDownloadsItems.length; i++){
         if(CACHE_CLEARING_ENABLED){
             if(canDelete(cacheDownloadsItems[i])){
-                deletePromises.push(fs.unlink(cachedDownloadsPath + "/" + cacheDownloadsItems[i], true))
+                deletePromises.push(fs.unlink(cachedDownloadsPath + "/" + cacheDownloadsItems[i]))
             }
         }
         else{
@@ -142,7 +145,7 @@ export const clearCacheDirectories = async () => {
         for(let i = 0; i < cacheItems.length; i++){
             if(CACHE_CLEARING_ENABLED){
                 if(canDelete(cacheItems[i])){
-                    deletePromises.push(fs.unlink(cachePath + "/" + cacheItems[i], true))
+                    deletePromises.push(fs.unlink(cachePath + "/" + cacheItems[i]))
                 }
             }
             else{
@@ -157,7 +160,7 @@ export const clearCacheDirectories = async () => {
     for(let i = 0; i < tmpItems.length; i++){
         if(CACHE_CLEARING_ENABLED){
             if(canDelete(tmpItems[i])){
-                deletePromises.push(fs.unlink(tmpPath + "/" + tmpItems[i], true))
+                deletePromises.push(fs.unlink(tmpPath + "/" + tmpItems[i]))
             }
         }
         else{
@@ -171,7 +174,7 @@ export const clearCacheDirectories = async () => {
     for(let i = 0; i < tempItems.length; i++){
         if(CACHE_CLEARING_ENABLED){
             if(canDelete(tempItems[i])){
-                deletePromises.push(fs.unlink(tempPath + "/" + tempItems[i], true))
+                deletePromises.push(fs.unlink(tempPath + "/" + tempItems[i]))
             }
         }
         else{
@@ -183,6 +186,8 @@ export const clearCacheDirectories = async () => {
 }
 
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
+    await initDb()
+
     let cacheCleared = false
 
     checkOfflineItems().catch(console.error)

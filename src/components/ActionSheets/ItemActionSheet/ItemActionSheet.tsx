@@ -3,7 +3,7 @@ import { View, ScrollView, DeviceEventEmitter, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload, downloadFile } from "../../../lib/services/download/download"
 import { getFileExt, getParent, getRouteURL, getFilePreviewType, calcPhotosGridSize, toExpoFsPath } from "../../../lib/helpers"
@@ -24,6 +24,7 @@ import { ActionButton, ActionSheetIndicator, ItemActionSheetItemHeader } from ".
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
+import * as db from "../../../lib/db"
 
 export interface ItemActionSheetProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -31,7 +32,7 @@ export interface ItemActionSheetProps {
 
 const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
     const darkMode = useDarkMode()
-	const insets: EdgeInsets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets()
 	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
 	const lang = useLang()
 	const [canSaveToGallery, setCanSaveToGallery] = useState<boolean>(false)
@@ -49,10 +50,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
     const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
 	const networkInfo = useNetworkInfo()
 
-	const can = useCallback(() => {
+	const can = useCallback(async () => {
 		if(typeof currentActionSheetItem !== "undefined"){
 			const userId: number = storage.getNumber("userId")
-			const itemAvailableOffline: boolean = (typeof userId !== "undefined" ? (storage.getBoolean(userId + ":offlineItems:" + currentActionSheetItem.uuid) ? true : false) : false)
+			const isAvailableOffline = currentActionSheetItem.type == "folder" ? false : await db.has(userId + ":offlineItems:" + currentActionSheetItem.uuid)
 			const routeURL: string = getRouteURL()
 
 			setCanSaveToGallery(false)
@@ -64,7 +65,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 						setCanSaveToGallery(true)
 					}
 					else{
-						if(itemAvailableOffline){
+						if(isAvailableOffline){
 							setCanSaveToGallery(true)
 						}
 					}
@@ -76,7 +77,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 						setCanSaveToGallery(true)
 					}
 					else{
-						if(itemAvailableOffline){
+						if(isAvailableOffline){
 							setCanSaveToGallery(true)
 						}
 					}
@@ -93,7 +94,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				setCanDownload(true)
 			}
 			else{
-				if(itemAvailableOffline){
+				if(isAvailableOffline){
 					setCanDownload(true)
 				}
 			}

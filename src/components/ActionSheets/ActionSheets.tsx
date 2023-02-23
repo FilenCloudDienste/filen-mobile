@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import React, { memo, useEffect, useState } from "react"
 import { View, Text, TouchableHighlight, TouchableOpacity, Image } from "react-native"
 import { SheetManager } from "react-native-actions-sheet"
 import storage from "../../lib/storage"
@@ -12,6 +12,7 @@ import { getColor } from "../../style/colors"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
+import * as db from "../../lib/db"
 
 export interface ActionButtonProps {
 	onPress: any,
@@ -130,6 +131,25 @@ export const ItemActionSheetItemHeader = memo(() => {
     const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + userId, storage)
     const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
 	const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
+	const [folderSizeCache, setFolderSizeCache] = useState<number>(0)
+
+	useEffect(() => {
+		if(!currentActionSheetItem){
+			return
+		}
+
+		db.get("folderSizeCache:" + currentActionSheetItem.uuid).then((cachedSize) => {
+			if(!cachedSize){
+				return
+			}
+
+			if(cachedSize <= 0){
+				return
+			}
+
+			setFolderSizeCache(cachedSize)
+		}).catch(console.error)
+	}, [])
 
 	if(typeof currentActionSheetItem == "undefined"){
 		return null
@@ -218,7 +238,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 							</>
 						)
 					}
-					{hideSizes ? formatBytes(0) : formatBytes(currentActionSheetItem.type == "file" ? currentActionSheetItem.size : storage.getNumber("folderSizeCache:" + currentActionSheetItem.uuid))}
+					{hideSizes ? formatBytes(0) : formatBytes(currentActionSheetItem.type == "file" ? currentActionSheetItem.size : folderSizeCache)}
 					{
 						typeof currentActionSheetItem.sharerEmail == "string" && currentActionSheetItem.sharerEmail.length > 0 && getParent().length < 32 && (
 							<>

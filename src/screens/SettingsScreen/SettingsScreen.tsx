@@ -1,5 +1,5 @@
 import React, { useEffect, memo } from "react"
-import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from "react-native"
+import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -114,7 +114,7 @@ export const SettingsButtonLinkHighlight = memo(({ onPress, title, rightText, ic
                             >
                                 {
                                     imageSrc.length > 0 ? (
-                                        <Image
+                                        <FastImage
                                             source={{
                                                 uri: imageSrc
                                             }}

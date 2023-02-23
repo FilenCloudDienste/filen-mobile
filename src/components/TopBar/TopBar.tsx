@@ -12,6 +12,7 @@ import { getColor } from "../../style/colors"
 import { NavigationContainerRef } from "@react-navigation/native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
+import memoryCache from "../../lib/memoryCache"
 
 export interface TopBarProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
@@ -76,17 +77,8 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
             }
             else{
                 if((routeURL.split("/").length - 1) > 0){
-                    let folderCache: any = undefined
-
-                    try{
-                        folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent) as string)
-                    }
-                    catch(e){
-                        //console.log(e)
-                    }
-            
-                    if(typeof folderCache == "object"){
-                        title = folderCache.name
+                    if(memoryCache.has("itemCache:folder:" + parent)){
+                        title = memoryCache.get("itemCache:folder:" + parent).name
                     }
                     else{
                         title = i18n(lang, "cloud")

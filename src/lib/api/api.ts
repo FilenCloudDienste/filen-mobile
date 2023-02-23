@@ -18,7 +18,6 @@ import {
 import storage from "../storage"
 import { i18n } from "../../i18n"
 import { DeviceEventEmitter, Platform } from "react-native"
-import { updateLoadItemsCache, removeLoadItemsCache, emptyTrashLoadItemsCache, clearLoadItemsCacheLastResponse } from "../services/items"
 import { logout } from "../services/auth/logout"
 import { useStore } from "../state"
 import DeviceInfo from "react-native-device-info"
@@ -26,11 +25,13 @@ import { isOnline } from "../services/isOnline"
 import { Item, ICFG } from "../../types"
 import axios from "axios"
 import striptags from "striptags"
+import * as db from "../db"
+import memoryCache from "../memoryCache"
 
-const shareSemaphore = new Semaphore(8)
+const shareSemaphore = new Semaphore(10)
 const apiRequestSemaphore = new Semaphore(8192)
 const fetchFolderSizeSemaphore = new Semaphore(8192)
-const linkItemsSemaphore = new Semaphore(8)
+const linkItemsSemaphore = new Semaphore(10)
 
 const endpointsToCache: string[] = [
     "/v1/dir/content",
@@ -71,9 +72,8 @@ export const getCfg = async (): Promise<ICFG> => {
 }
 
 export const apiRequest = ({ method, endpoint, data }: { method: string, endpoint: string, data: any }): Promise<any> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         const cacheKey = "apiCache:" + method.toUpperCase() + ":" + endpoint + ":" + JSON.stringify(data)
-
         let maxTries = 16
         let tries = 0
         const retryTimeout = 1000
@@ -84,36 +84,28 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
 
         if(!isOnline()){
             try{
-                const cache = storage.getString(cacheKey)
-
-                if(typeof cache == "string"){
-                    if(cache.length > 0){
-                        return resolve(JSON.parse(cache))
-                    }
+                if((await db.has(cacheKey))){
+                    return resolve(await db.get(cacheKey))
                 }
             }
             catch(e){
                 console.error(e)
             }
 
-            //return reject(i18n(storage.getString("lang"), "deviceOffline"))
+            return reject(i18n(storage.getString("lang"), "deviceOffline"))
         }
 
-        const request = () => {
+        const request = async () => {
             if(tries >= maxTries){
                 try{
-                    const cache = storage.getString(cacheKey)
-    
-                    if(typeof cache == "string"){
-                        if(cache.length > 0){
-                            return resolve(JSON.parse(cache))
-                        }
+                    if((await db.has(cacheKey))){
+                        return resolve(await db.get(cacheKey))
                     }
                 }
                 catch(e){
-                    return reject(e)
+                    console.error(e)
                 }
-
+    
                 return reject(i18n(storage.getString("lang"), "deviceOffline"))
             }
 
@@ -144,14 +136,14 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
                     }
 
                     if(endpointsToCache.includes(endpoint)){
-                        storage.set(cacheKey, JSON.stringify(response.data))
+                        db.set(cacheKey, response.data).catch(console.error)
                     }
 
                     return resolve(response.data)
                 }).catch((err) => {
                     apiRequestSemaphore.release()
 
-                    console.log(err)
+                    console.error(err)
 
                     return setTimeout(request, retryTimeout)
                 })
@@ -1141,13 +1133,7 @@ export const renameFile = ({ file, name }: { file: any, name: string }): Promise
                             lastModified: file.lastModified
                         }
                     }).then(() => {
-                        updateLoadItemsCache({
-                            item: file,
-                            prop: "name",
-                            value: name
-                        }).then(() => {
-                            return resolve(true)
-                        })
+                        return resolve(true)
                     }).catch(reject)
                 }).catch(reject)
             }).catch(reject)
@@ -1182,29 +1168,24 @@ export const renameFolder = ({ folder, name }: { folder: any, name: string }): P
                             name
                         }
                     }).then(() => {
-                        updateLoadItemsCache({
-                            item: folder,
-                            prop: "name",
-                            value: name
-                        }).then(() => {
-                            try{
-                                const folderItemCache = JSON.parse(storage.getString("itemCache:folder:" + folder.uuid) || "{}")
+                        db.get("itemCache:folder:" + folder.uuid).then((folderCache) => {
+                            if(folderCache && typeof folderCache.name == "string"){
+                                db.set("itemCache:folder:" + folder.uuid, {
+                                    ...folderCache,
+                                    name
+                                }).then(() => {
+                                    memoryCache.set("itemCache:folder:" + folder.uuid, {
+                                        ...folderCache,
+                                        name
+                                    })
 
-                                if(typeof folderItemCache == "object"){
-                                    if(typeof folderItemCache.name == "string"){
-                                        storage.set("itemCache:folder:" + folder.uuid, JSON.stringify({
-                                            ...folderItemCache,
-                                            name
-                                        }))
-                                    }
-                                }
+                                    return resolve(true)
+                                }).catch(reject)
                             }
-                            catch(e){
-                                console.log(e)
+                            else{
+                                return resolve(true)
                             }
-
-                            return resolve(true)
-                        })
+                        }).catch(reject)
                     }).catch(reject)
                 }).catch(reject)
             }).catch(reject)
@@ -1332,13 +1313,7 @@ export const changeFolderColor = ({ folder, color }: { folder: any, color: strin
                 return reject(response.message)
             }
 
-            updateLoadItemsCache({
-                item: folder,
-                prop: "color",
-                value: color
-            }).then(() => {
-                return resolve(true)
-            }).catch(reject)
+            return resolve(true)
         }).catch(reject)
     })
 }
@@ -1367,13 +1342,7 @@ export const favoriteItem = ({ item, value }: { item: any, value: number | boole
                 }
             })
 
-            updateLoadItemsCache({
-                item,
-                prop: "favorited",
-                value: value == 1 ? true : false
-            }).then(() => {
-                return resolve(true)
-            })
+            return resolve(true)
         }).catch(reject)
     })
 }
@@ -2051,18 +2020,14 @@ export const trashItem = ({ item }: { item: any }): Promise<boolean> => {
                 return reject(response.message)
             }
 
-            removeLoadItemsCache({
-                item
-            }).then(() => {
-                DeviceEventEmitter.emit("event", {
-                    type: "remove-item",
-                    data: {
-                        uuid: item.uuid
-                    }
-                })
-
-                return resolve(true)
+            DeviceEventEmitter.emit("event", {
+                type: "remove-item",
+                data: {
+                    uuid: item.uuid
+                }
             })
+
+            return resolve(true)
         }).catch(reject)
     })
 }
@@ -2081,14 +2046,7 @@ export const restoreItem = ({ item }: { item: any }): Promise<boolean> => {
                 return reject(response.message)
             }
 
-            removeLoadItemsCache({
-                item,
-                routeURL: "trash"
-            }).then(() => {
-                clearLoadItemsCacheLastResponse().then(() => {
-                    return resolve(true)
-                })
-            })
+            return resolve(true)
         }).catch(reject)
     })
 }
@@ -2107,18 +2065,14 @@ export const deleteItemPermanently = ({ item }: { item: any }): Promise<boolean>
                 return reject(response.message)
             }
 
-            removeLoadItemsCache({
-                item
-            }).then(() => {
-                DeviceEventEmitter.emit("event", {
-                    type: "remove-item",
-                    data: {
-                        uuid: item.uuid
-                    }
-                })
-
-                return resolve(true)
+            DeviceEventEmitter.emit("event", {
+                type: "remove-item",
+                data: {
+                    uuid: item.uuid
+                }
             })
+
+            return resolve(true)
         }).catch(reject)
     })
 }
@@ -2138,19 +2092,14 @@ export const stopSharingItem = ({ item }: { item: any }): Promise<boolean> => {
                 return reject(response.message)
             }
 
-            removeLoadItemsCache({
-                item,
-                routeURL: "shared-out"
-            }).then(() => {
-                DeviceEventEmitter.emit("event", {
-                    type: "remove-item",
-                    data: {
-                        uuid: item.uuid
-                    }
-                })
-
-                return resolve(true)
+            DeviceEventEmitter.emit("event", {
+                type: "remove-item",
+                data: {
+                    uuid: item.uuid
+                }
             })
+
+            return resolve(true)
         }).catch(reject)
     })
 }
@@ -2170,19 +2119,14 @@ export const removeSharedInItem = ({ item }: { item: any }): Promise<boolean> =>
                 return reject(response.message)
             }
 
-            removeLoadItemsCache({
-                item,
-                routeURL: "shared-in"
-            }).then(() => {
-                DeviceEventEmitter.emit("event", {
-                    type: "remove-item",
-                    data: {
-                        uuid: item.uuid
-                    }
-                })
-
-                return resolve(true)
+            DeviceEventEmitter.emit("event", {
+                type: "remove-item",
+                data: {
+                    uuid: item.uuid
+                }
             })
+
+            return resolve(true)
         }).catch(reject)  
     })
 }
@@ -2955,8 +2899,6 @@ export const emptyTrash = (): Promise<boolean> => {
             if(!response.status){
                 return reject(response.message)
             }
-
-            emptyTrashLoadItemsCache().catch(console.log)
 
             return resolve(true)
         }).catch((err) => {

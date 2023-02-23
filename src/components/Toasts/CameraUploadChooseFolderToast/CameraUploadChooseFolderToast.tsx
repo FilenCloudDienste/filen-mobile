@@ -10,6 +10,8 @@ import { getColor } from "../../../style"
 import { hideAllToasts } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { NavigationContainerRef } from "@react-navigation/native"
+import { query } from "../../../lib/db"
+import memoryCache from "../../../lib/memoryCache"
 
 const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?: string | undefined, navigation?: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
     const darkMode = useDarkMode()
@@ -32,45 +34,20 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
         }
 
         const parent = getParent()
-        let folderName = undefined
+        const folderName = memoryCache.has("itemCache:folder:" + parent) ? memoryCache.get("itemCache:folder:" + parent).name : ""
 
-        if(parent.length < 32){
+        if(parent.length < 32 || folderName.length <= 0){
             return
         }
 
-        try{
-            var folderCache = JSON.parse(storage.getString("itemCache:folder:" + parent) as string)
-        }
-        catch(e){
-            console.error(e)
-            console.log(currentRouteURL)
+        const userId = storage.getNumber("userId")
 
-            return
-        }
+        storage.set("cameraUploadFolderUUID:" + userId, parent)
+        storage.set("cameraUploadFolderName:" + userId, folderName)
+        storage.set("cameraUploadUploaded", 0)
+        storage.set("cameraUploadTotal", 0)
 
-        if(typeof folderCache == "object"){
-            folderName = folderCache.name
-        }
-
-        if(typeof folderName == "undefined"){
-            return
-        }
-
-        try{
-            const userId = storage.getNumber("userId")
-
-            storage.set("cameraUploadFolderUUID:" + userId, parent)
-            storage.set("cameraUploadFolderName:" + userId, folderName)
-            storage.set("cameraUploadUploaded", 0)
-            storage.set("cameraUploadTotal", 0)
-            storage.delete("loadItemsCache:photos")
-            storage.delete("loadItemsCache:lastResponse:photos")
-        }
-        catch(e){
-            console.log(e)
-
-            return
-        }
+        query("DELETE FROM key_value WHERE key = ?", ["loadItems:photos"])
 
         hideAllToasts()
 

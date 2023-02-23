@@ -8,7 +8,7 @@ import { useStore } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
 import { getDownloadPath } from "../../lib/services/download/download"
 import DeviceInfo from "react-native-device-info"
-import { formatBytes, toExpoFsPath } from "../../lib/helpers"
+import { formatBytes } from "../../lib/helpers"
 import memoryCache from "../../lib/memoryCache"
 import * as fs from "../../lib/fs"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
@@ -139,23 +139,6 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
                                                     for(let i = 0; i < keys.length; i++){
                                                         if(keys[i].indexOf("thumbnailCache:") !== -1){
                                                             storage.delete(keys[i])
-                                                        }
-
-                                                        if(keys[i].indexOf("loadItemsCache:") !== -1){
-                                                            let cache = []
-
-                                                            try{
-                                                                cache = JSON.parse(storage.getString(keys[i]) as string)
-                                                            }
-                                                            catch(e){
-                                                                console.log(e)
-                                                            }
-
-                                                            for(let x = 0; x < cache.length; x++){
-                                                                cache[x]['thumbnail'] = undefined
-                                                            }
-
-                                                            storage.set(keys[i], JSON.stringify(cache))
                                                         }
                                                     }
 

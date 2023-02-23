@@ -7,29 +7,24 @@ import { getColor } from "../../style"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { i18n } from "../../i18n"
 import * as MediaLibrary from "expo-media-library"
-import { videoExts, photoExts, getAssetURI } from "../../lib/services/cameraUpload"
 import { CommonActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
 import { getFileExt, getFilePreviewType, Semaphore, msToMinutesAndSeconds, getParent, toExpoFsPath } from "../../lib/helpers"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { memoize } from "lodash"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { useMountedState } from "react-use"
 import { StackActions } from "@react-navigation/native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useIsFocused } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
+import { isExtensionAllowed, getAssetURI } from "../../lib/services/cameraUpload"
+import * as fs from "../../lib/fs"
 
 const videoThumbnailSemaphore = new Semaphore(5)
 const ALBUM_ROW_HEIGHT = 70
 const FETCH_ASSETS_LIMIT = 128
 
-export const isNameAllowed = memoize((name: string) => {
-    const ext = getFileExt(name)
-    const allowed: string[] = [...videoExts, ...photoExts]
-
-    return allowed.filter(allowedExt => allowedExt == ext).length > 0
-})
+const createdVideoThumbnails: Record<string, string> = {}
 
 export const fetchAssets = async (album: MediaLibrary.Album | "allAssetsCombined", count: number, after: MediaLibrary.AssetRef | undefined): Promise<{ hasNextPage: boolean, assets: Asset[] }> => {
     const fetched = await MediaLibrary.getAssetsAsync({
@@ -42,7 +37,7 @@ export const fetchAssets = async (album: MediaLibrary.Album | "allAssetsCombined
         ...(album !== "allAssetsCombined" ? { album } : {})
     })
 
-    const sorted: Asset[] = fetched.assets.filter(asset => isNameAllowed(asset.filename)).map(asset => ({
+    const sorted: Asset[] = fetched.assets.filter(asset => isExtensionAllowed(getFileExt(asset.filename))).map(asset => ({
         selected: false,
         asset,
         type: getFilePreviewType(getFileExt(asset.filename))
@@ -62,6 +57,8 @@ export const getVideoThumbnail = async (asset: MediaLibrary.Asset): Promise<stri
         const { uri } = await VideoThumbnails.getThumbnailAsync(toExpoFsPath(assetURI), {
             quality: 0.1
         })
+
+        createdVideoThumbnails[uri] = uri
 
         videoThumbnailSemaphore.release()
 
@@ -90,7 +87,7 @@ export const getLastImageOfAlbum = async (album: MediaLibrary.Album): Promise<st
         return ""
     }
 
-    const filtered = result.assets.filter(asset => isNameAllowed(asset.filename)).sort((a, b) => b.creationTime - a.creationTime)
+    const filtered = result.assets.filter(asset => isExtensionAllowed(getFileExt(asset.filename))).sort((a, b) => b.creationTime - a.creationTime)
 
     if(filtered.length == 0){
         return ""
@@ -446,16 +443,6 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         return [selectedAssets, photoCount, videoCount]
     }, [assets])
 
-    const getItemLayoutAlbum = useCallback((_, index: number) => {
-        const length: number = ALBUM_ROW_HEIGHT
-
-        return {
-            length,
-            offset: length * index,
-            index
-        }
-    }, [ALBUM_ROW_HEIGHT])
-
     const getItemLayoutAsset = useCallback((_, index: number) => {
         const length: number = Math.floor((containerWidth - insets.left - insets.right) / 4) - 2
 
@@ -505,6 +492,24 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         
                     showToast({ message: err.toString() })
                 })
+            }
+        }
+
+        return () => {
+            if(typeof params.album == "undefined"){
+                for(const uri in createdVideoThumbnails){
+                    fs.stat(uri).then((stat) => {
+                        if(stat.exists){
+                            fs.unlink(uri).then(() => {
+                                delete createdVideoThumbnails[uri]
+                            }).catch((err) => {
+                                console.error(err)
+                                
+                                delete createdVideoThumbnails[uri]
+                            })
+                        }
+                    }).catch(console.error)
+                }
             }
         }
     }, [params])

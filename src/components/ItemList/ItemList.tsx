@@ -22,17 +22,13 @@ export interface ItemListProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
     route: any,
     items: Item[],
-    showLoader?: boolean,
-    setItems?: React.Dispatch<React.SetStateAction<Item[]>>,
-    searchTerm?: string,
+    searchTerm: string,
     isMounted: () => boolean,
-    fetchItemList?: Function,
-    progress?: { itemsDone: number, totalItems: number },
-    setProgress?: React.Dispatch<React.SetStateAction<{ itemsDone: number, totalItems: number }>>,
-    loadDone?: boolean
+    populateList: Function,
+    loadDone: boolean
 }
 
-export const ItemList = memo(({ navigation, route, items, showLoader, setItems, searchTerm, fetchItemList, progress, setProgress, loadDone }: ItemListProps) => {
+export const ItemList = memo(({ navigation, route, items, searchTerm, populateList, loadDone }: ItemListProps) => {
     const darkMode = useDarkMode()
     const [refreshing, setRefreshing] = useState<boolean>(false)
     const [viewMode, setViewMode] = useMMKVString("viewMode", storage)
@@ -875,17 +871,11 @@ export const ItemList = memo(({ navigation, route, items, showLoader, setItems, 
 
                             setRefreshing(true)
         
-                            if(typeof fetchItemList == "function"){
-                                try{
-                                    await new Promise((resolve) => setTimeout(resolve, 500))
-                                    await fetchItemList({ bypassCache: true, callStack: 1, loadFolderSizes: true })
-                                }
-                                catch(e){
-                                    console.log(e)
-                                }
+                            await new Promise((resolve) => setTimeout(resolve, 500))
 
-                                setRefreshing(false)
-                            }
+                            populateList(true).catch(console.error)
+
+                            setRefreshing(false)
                         }}
                         tintColor={getColor(darkMode, "textPrimary")}
                     />

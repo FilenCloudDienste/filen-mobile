@@ -273,7 +273,7 @@ export const OngoingTransferItem = memo(({ index, item, containerWidth, darkMode
                 >
                     <Bar
                         animated={true}
-                        indeterminate={isPaused || (progress <= 0.01 || progress >= 0.99)}
+                        indeterminate={isPaused}
                         progress={progress}
                         color={getColor(darkMode, "green")}
                         width={containerWidth - 67}

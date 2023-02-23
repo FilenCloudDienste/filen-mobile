@@ -2,7 +2,6 @@ import storage from "../storage"
 import { Platform } from "react-native"
 import { useStore } from "../state"
 import { i18n } from "../../i18n"
-import { memoize, values } from "lodash"
 import { NavigationContainerRefWithCurrent } from "@react-navigation/native"
 import * as MediaLibrary from "expo-media-library"
 import { Item } from "../../types"
@@ -78,7 +77,7 @@ export const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: n
     return remaining > 0 ? remaining : 0
 }
 
-export const getFolderColor = memoize((color: string | null | undefined): string => {
+export const getFolderColor = (color: string | null | undefined): string => {
     const colors = getAvailableFolderColors()
 
     if(!color){
@@ -94,9 +93,9 @@ export const getFolderColor = memoize((color: string | null | undefined): string
     }
 
     return Platform.OS == "ios" ? colors['default_ios'] : colors['default_ios']
-})
+}
 
-export const getAvailableFolderColors = memoize((): { [key: string]: string } => {
+export const getAvailableFolderColors = (): { [key: string]: string } => {
     return {
         "default": "#ffd04c",
         "blue": "#2992E5",
@@ -106,9 +105,9 @@ export const getAvailableFolderColors = memoize((): { [key: string]: string } =>
         "gray": "gray",
         "default_ios": "#79CCFC"
     }
-})
+}
 
-export const fileAndFolderNameValidation = memoize((name: string): boolean => {
+export const fileAndFolderNameValidation = (name: string): boolean => {
     const regex = /[<>:"\/\\|?*\x00-\x1F]|^(?:aux|con|clock\$|nul|prn|com[1-9]|lpt[1-9])$/i
 
     if(regex.test(name)){
@@ -116,19 +115,19 @@ export const fileAndFolderNameValidation = memoize((name: string): boolean => {
     }
 
     return true
-})
+}
 
-export const getFileParentPath = memoize((filePath: string): string => {
+export const getFileParentPath = (filePath: string): string => {
 	const ex = filePath.split("/")
   
     ex.pop()
   
  	return ex.join("/")
-})
+}
 
-export const getFilenameFromPath = memoize((path: string): string => {
+export const getFilenameFromPath = (path: string): string => {
     return path.split("\\")?.pop()?.split("/")?.pop() as string
-})
+}
 
 export const getRouteURL = (passedRoute?: any): string => {
     try{
@@ -216,7 +215,7 @@ export const sleep = (ms: number = 1000): Promise<void> => {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export const formatBytes = memoize((bytes: number, decimals: number = 2) => {
+export const formatBytes = (bytes: number, decimals: number = 2) => {
     if(bytes == 0){
         return "0 Bytes"
     }
@@ -228,7 +227,7 @@ export const formatBytes = memoize((bytes: number, decimals: number = 2) => {
     let i = Math.floor(Math.log(bytes) / Math.log(k))
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
-}, (bytes: number, decimals: number = 2) => bytes + ":" + decimals)
+}
 
 export const arrayBufferToHex = (buffer: ArrayBuffer): string => {
     return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, "0")).join("")
@@ -341,7 +340,7 @@ export const uInt8ArrayConcat = (arrays: Uint8Array[]): Uint8Array => {
     return result;
 }
 
-export const convertTimestampToMs = memoize((timestamp: number): number => {
+export const convertTimestampToMs = (timestamp: number): number => {
     const date = new Date(timestamp * 1000)
 
     if(date.getFullYear() > 2100){
@@ -350,9 +349,9 @@ export const convertTimestampToMs = memoize((timestamp: number): number => {
     else{
         return Math.floor(timestamp * 1000)
     }
-})
+}
 
-export const simpleDate = memoize((timestamp: number): string => {
+export const simpleDate = (timestamp: number): string => {
     try{
         const date = new Date(convertTimestampToMs(timestamp))
 
@@ -363,9 +362,9 @@ export const simpleDate = memoize((timestamp: number): string => {
 
         return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
     }
-})
+}
 
-export const normalizePhotosRange = memoize((range: string | undefined): string => {
+export const normalizePhotosRange = (range: string | undefined): string => {
     if(typeof range !== "string"){
         return "all"
     }
@@ -375,7 +374,7 @@ export const normalizePhotosRange = memoize((range: string | undefined): string 
     }
 
     return range
-})
+}
 
 export const randomIdUnsafe = (): string => {
     return Math.random().toString().slice(3) + Math.random().toString().slice(3) + Math.random().toString().slice(3)
@@ -391,7 +390,7 @@ export function unixTimestamp(): number {
     return Math.floor((+new Date()) / 1000)
 }
 
-export const canCompressThumbnail = memoize((ext: string): boolean => {
+export const canCompressThumbnail = (ext: string): boolean => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -430,9 +429,9 @@ export const canCompressThumbnail = memoize((ext: string): boolean => {
             break
         }
     }
-})
+}
 
-export const canCompressThumbnailLocally = memoize((ext: string): boolean => {
+export const canCompressThumbnailLocally = (ext: string): boolean => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -471,9 +470,9 @@ export const canCompressThumbnailLocally = memoize((ext: string): boolean => {
             break
         }
     }
-})
+}
 
-export const getFilePreviewType = memoize((ext: string) => {
+export const getFilePreviewType = (ext: string) => {
     if(Platform.OS == "android"){
         switch(ext.toLowerCase()){
             case "jpeg":
@@ -691,7 +690,7 @@ export const getFilePreviewType = memoize((ext: string) => {
             break
           }
     }
-})
+}
 
 export function convertUint8ArrayToBinaryString(u8Array: Uint8Array | ArrayBuffer): string {
     const arr: Uint8Array = new Uint8Array(u8Array)
@@ -704,7 +703,7 @@ export function convertUint8ArrayToBinaryString(u8Array: Uint8Array | ArrayBuffe
     return b_str
 }
 
-export const calcCameraUploadCurrentDate = memoize((from: number, to: number, lang: string = "en"): string => {
+export const calcCameraUploadCurrentDate = (from: number, to: number, lang: string = "en"): string => {
     const fromDate = new Date(convertTimestampToMs(from))
     const toDate = new Date(convertTimestampToMs(to))
     const fromMonth = fromDate.getMonth()
@@ -731,17 +730,17 @@ export const calcCameraUploadCurrentDate = memoize((from: number, to: number, la
     else{
         return i18n(lang, "monthShort_" + fromMonth) + " " + fromYear
     }
-}, (...args) => values(args).join("_"))
+}
 
-export const calcPhotosGridSize = memoize((num: number): number => {
+export const calcPhotosGridSize = (num: number): number => {
     if(num <= 0){
         return 3
     }
 
     return num
-})
+}
 
-export const orderItemsByType = memoize((items: Item[], type: "nameAsc" | "sizeAsc" | "dateAsc" | "typeAsc" | "lastModifiedAsc" | "nameDesc" | "sizeDesc" | "dateDesc" | "typeDesc" | "lastModifiedDesc"): any[] => {
+export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "dateAsc" | "typeAsc" | "lastModifiedAsc" | "nameDesc" | "sizeDesc" | "dateDesc" | "typeDesc" | "lastModifiedDesc"): any[] => {
     let files = []
     let folders = []
 
@@ -898,7 +897,7 @@ export const orderItemsByType = memoize((items: Item[], type: "nameAsc" | "sizeA
 
         return sortedFolders.concat(sortedFiles)
     }
-}, (items: Item[], type: string) => JSON.stringify(items) + ":" + type)
+}
 
 export function compareVersions(current: string, got: string): string {
 	function compare(a: string, b: string) {
@@ -1018,7 +1017,7 @@ export const getAPIKey = (): string => {
     }
 }
 
-export const getFileExt = memoize((name: string): string => {
+export const getFileExt = (name: string): string => {
     if(name.indexOf(".") == -1){
         return ""
     }
@@ -1026,7 +1025,7 @@ export const getFileExt = memoize((name: string): string => {
     let ex = name.split(".")
 
     return ex[ex.length - 1].toLowerCase()
-})
+}
 
 export const promiseAllSettled = (promises: Promise<any>[]) => Promise.all(
     promises.map(p => p
@@ -1108,7 +1107,7 @@ export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<Reac
     })
 }
 
-export const toExpoFsPath = memoize((path: string) => {
+export const toExpoFsPath = (path: string) => {
     path = encodeURI(path)
     
     if(path.indexOf("file://") == -1){
@@ -1116,17 +1115,17 @@ export const toExpoFsPath = memoize((path: string) => {
     }
 
     return path
-})
+}
 
-export const toBlobUtilFsPath = memoize((path: string) => {
+export const toBlobUtilFsPath = (path: string) => {
     return path.split("file://").join("").split("file:/").join("").split("file:").join("")
-})
+}
 
-export const convertPhAssetToAssetsLibrary = memoize((localId: string, ext: string): string => {
+export const convertPhAssetToAssetsLibrary = (localId: string, ext: string): string => {
     const hash = localId.split("/")[0]
 
     return "assets-library://asset/asset." + ext + "?id=" + hash + "&ext=" + ext
-}, (localId: string, ext: string) => localId + ":" + ext)
+}
 
 export const getAssetId = (asset: MediaLibrary.Asset) => asset.id
 

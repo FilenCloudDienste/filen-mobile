@@ -5,20 +5,18 @@ import { downloadFile, getDownloadPath } from "../download"
 import { Platform, DeviceEventEmitter } from "react-native"
 import storage from "../../storage"
 import { Item } from "../../../types"
-import { memoize } from "lodash"
 import { isOnline, isWifi } from "../isOnline"
 import memoryCache from "../../memoryCache"
 import * as fs from "../../fs"
 import { getFileExt, getFilePreviewType, toExpoFsPath } from "../../helpers"
-import { updateLoadItemsCache } from "../items"
 import { convertHeic } from "../items"
 
-const isGeneratingThumbnailForItemUUID: { [key: string]: boolean } = {}
-const isCheckingThumbnailForItemUUID: { [key: string]: boolean } = {}
-const thumbnailGenerationErrorCount: { [key: string]: number } = JSON.parse(storage.getString("thumbnailGenerationErrorCount") || "{}")
-const thumbnailGenerationErrorCountSession: { [key: string]: number } = {}
+const isGeneratingThumbnailForItemUUID: Record<string, boolean> = {}
+const isCheckingThumbnailForItemUUID: Record<string, boolean> = {}
+const thumbnailGenerationErrorCount: Record<string, number> = JSON.parse(storage.getString("thumbnailGenerationErrorCount") || "{}")
+const thumbnailGenerationErrorCountSession: Record<string, number> = {}
 
-export const getThumbnailCacheKey = memoize(({ uuid }: { uuid: string }): { width: number, height: number, quality: number, thumbnailVersion: string, cacheKey: string } => {
+export const getThumbnailCacheKey = ({ uuid }: { uuid: string }): { width: number, height: number, quality: number, thumbnailVersion: string, cacheKey: string } => {
     const width = 512, height = 512, quality = 80, thumbnailVersion = "2.0.7"
     const cacheKey = "thumbnailCache:" + uuid + ":" + width + ":" + height + ":" + quality + ":" + thumbnailVersion
 
@@ -29,7 +27,7 @@ export const getThumbnailCacheKey = memoize(({ uuid }: { uuid: string }): { widt
         thumbnailVersion,
         cacheKey
     }
-}, ({ uuid }: { uuid: string }) => uuid)
+}
 
 /*
 Check if a thumbnail exists locally after trying to load it threw an error. If it dos not exists, re-cache it
@@ -128,23 +126,19 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
     }
 
     if(memoryCache.has("cachedThumbnailPaths:" + item.uuid)){
-        return updateLoadItemsCache({
-            item,
-            prop: "thumbnail",
-            value: item.uuid + ".jpg"
-        }).then(() => {
-            DeviceEventEmitter.emit("event", {
-                type: "thumbnail-generated",
-                data: {
-                    uuid: item.uuid,
-                    path: memoryCache.get("cachedThumbnailPaths:" + item.uuid)
-                }
-            })
-
-            if(typeof callback == "function"){
-                callback(null, memoryCache.get("cachedThumbnailPaths:" + item.uuid))
+        DeviceEventEmitter.emit("event", {
+            type: "thumbnail-generated",
+            data: {
+                uuid: item.uuid,
+                path: memoryCache.get("cachedThumbnailPaths:" + item.uuid)
             }
         })
+
+        if(typeof callback == "function"){
+            callback(null, memoryCache.get("cachedThumbnailPaths:" + item.uuid))
+        }
+
+        return
     }
 
     const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid: item.uuid })
@@ -154,23 +148,19 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
         if(cache.length > 0){
             memoryCache.set("cachedThumbnailPaths:" + item.uuid, cache)
 
-            return updateLoadItemsCache({
-                item,
-                prop: "thumbnail",
-                value: item.uuid + ".jpg"
-            }).then(() => {
-                DeviceEventEmitter.emit("event", {
-                    type: "thumbnail-generated",
-                    data: {
-                        uuid: item.uuid,
-                        path: cache
-                    }
-                })
-
-                if(typeof callback == "function"){
-                    callback(null, cache)
+            DeviceEventEmitter.emit("event", {
+                type: "thumbnail-generated",
+                data: {
+                    uuid: item.uuid,
+                    path: cache
                 }
             })
+
+            if(typeof callback == "function"){
+                callback(null, cache)
+            }
+
+            return
         }
     }
 
@@ -251,27 +241,21 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
                     storage.set(cacheKey, item.uuid + ".jpg")
                     memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
     
-                    updateLoadItemsCache({
-                        item,
-                        prop: "thumbnail",
-                        value: item.uuid + ".jpg"
-                    }).then(() => {
-                        DeviceEventEmitter.emit("event", {
-                            type: "thumbnail-generated",
-                            data: {
-                                uuid: item.uuid,
-                                path: item.uuid + ".jpg"
-                            }
-                        })
-    
-                        delete isGeneratingThumbnailForItemUUID[item.uuid]
-    
-                        if(typeof callback == "function"){
-                            callback(null, item.uuid + ".jpg")
+                    DeviceEventEmitter.emit("event", {
+                        type: "thumbnail-generated",
+                        data: {
+                            uuid: item.uuid,
+                            path: item.uuid + ".jpg"
                         }
-        
-                        global.generateThumbnailSemaphore.release()
-                    }).catch(onError)
+                    })
+
+                    delete isGeneratingThumbnailForItemUUID[item.uuid]
+
+                    if(typeof callback == "function"){
+                        callback(null, item.uuid + ".jpg")
+                    }
+    
+                    global.generateThumbnailSemaphore.release()
                 }).catch(onError)
             }).catch(onError)
         }).catch(onError)

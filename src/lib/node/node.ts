@@ -1,6 +1,5 @@
 import nodejs from "nodejs-mobile-react-native"
 import { DeviceEventEmitter } from "react-native"
-import { memoize } from "lodash"
 
 nodejs.start("main.js")
 
@@ -239,7 +238,7 @@ global.nodeThread = {
             })
 		})
     },
-    hashPassword: memoize(({ password }) => {
+    hashPassword: ({ password }) => {
         const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
@@ -254,8 +253,8 @@ global.nodeThread = {
                 })
             })
 		})
-    }, ({ password }) => password),
-    hashFn: memoize(({ string }) => {
+    },
+    hashFn: ({ string }) => {
         const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
@@ -270,7 +269,7 @@ global.nodeThread = {
                 })
             })
 		})
-    }, ({ string }) => string),
+    },
     apiRequest: ({ method, url, timeout, data }) => {
         const id = currentId += 1
 
@@ -393,7 +392,7 @@ global.nodeThread = {
             })
 		})
     },
-    getDataDir: memoize(() => {
+    getDataDir: () => {
         const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
@@ -407,7 +406,7 @@ global.nodeThread = {
                 })
             })
 		})
-    }),
+    },
     appendFileToFile: ({ first, second }) => {
         const id = currentId += 1
 
@@ -447,7 +446,7 @@ global.nodeThread = {
             })
 		})
     },
-    getFileHash: memoize(({ path, hashName }) => {
+    getFileHash: ({ path, hashName }) => {
         const id = currentId += 1
 
 		return new Promise((resolve, reject) => {
@@ -463,7 +462,7 @@ global.nodeThread = {
                 })
             })
 		})
-    }, ({ path, hashName }) => path + ":" + hashName),
+    },
     convertHeic: ({ input, output, format }) => {
         const id = currentId += 1
 

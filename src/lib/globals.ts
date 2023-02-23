@@ -6,7 +6,6 @@ declare global {
     var items: any;
     var toast: Toast | null;
     var setItems: any;
-    var fetchItemList: any;
     var currentReceiverId: undefined | number;
     var visibleItems: any;
 }
@@ -15,6 +14,5 @@ declare global {
 (global as any).items = undefined as any
 (global as any).toast = undefined as any
 (global as any).setItems = undefined as any
-(global as any).fetchItemList = undefined as any
 (global as any).currentReceiverId = undefined as any
 (global as any).visibleItems = {} as any

@@ -1,30 +1,38 @@
-import { apiRequest, fetchOfflineFilesInfo, folderPresent } from "../../api"
+import { apiRequest, folderPresent } from "../../api"
 import storage from "../../storage"
-import { getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getParent, getRouteURL, canCompressThumbnail, simpleDate, convertTimestampToMs } from "../../helpers"
+import { getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getRouteURL, canCompressThumbnail, simpleDate, convertTimestampToMs, getMasterKeys, getParent } from "../../helpers"
 import striptags from "striptags"
 import { getDownloadPath, queueFileDownload } from "../download/download"
 import * as fs from "../../fs"
 import { DeviceEventEmitter } from "react-native"
 import { useStore } from "../../state"
 import FileViewer from "react-native-file-viewer"
-import { getOfflineList, removeFromOfflineStorage, changeItemNameInOfflineList, getItemOfflinePath } from "../offline"
+import { getOfflineList, removeFromOfflineStorage, checkOfflineItems, getItemOfflinePath } from "../offline"
 import { showToast } from "../../../components/Toasts"
 import { i18n } from "../../../i18n/i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../state"
 import memoryCache from "../../memoryCache"
 import { isOnline, isWifi } from "../isOnline"
-import { Item, BuildFolder, ItemReceiver } from "../../../types"
+import { Item, ItemReceiver } from "../../../types"
 import { MB } from "../../constants"
 import { memoize } from "lodash"
-import { getAssetId } from "../../helpers"
 import { Asset } from "expo-media-library"
 import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 import { getThumbnailCacheKey } from "../thumbnails"
 import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata } from "../../crypto"
 import { PreviewItem } from "../../../screens/ImageViewerScreen"
+import * as db from "../../db"
 
-export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "", routeURL, userId = 0, loadFolderSizes = false }: BuildFolder): Promise<Item> => {
+export interface BuildFolder {
+    folder: any,
+    name?: string,
+    masterKeys?: string[],
+    sharedIn?: boolean,
+    privateKey?: string
+}
+
+export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "" }: BuildFolder): Promise<Item> => {
     const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
 
     if(memoryCache.has(cacheKey)){
@@ -48,6 +56,7 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
     }
 
     const folderLastModified = convertTimestampToMs(folder.timestamp)
+    const cachedSize = memoryCache.has("folderSizeCache:" + folder.uuid) ? memoryCache.get("folderSizeCache:" + folder.uuid) : await db.get("folderSizeCache:" + folder.uuid)
 
     return {
         id: folder.uuid,
@@ -68,7 +77,7 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
         isBase: typeof folder.parent == "string" ? false : true,
         isSync: folder.is_sync || false,
         isDefault: folder.is_default || false,
-        size: storage.getNumber("folderSizeCache:" + folder.uuid),
+        size: cachedSize ? cachedSize > 0 ? cachedSize : 0 : 0,
         selected: false,
         mime: "",
         key: "",
@@ -145,6 +154,7 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
     }
 
     const fileLastModified = typeof metadata.lastModified == "number" && !isNaN(metadata.lastModified) && metadata.lastModified > 1348846653  ? convertTimestampToMs(metadata.lastModified) : convertTimestampToMs(file.timestamp)
+    const isAvailableOffline = await db.has(userId + ":offlineItems:" + file.uuid)
 
     return {
         id: file.uuid,
@@ -167,7 +177,7 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
         receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,
         sharerId: typeof file.sharerId == "number" ? file.sharerId : 0,
         sharerEmail: typeof file.sharerEmail == "string" ? file.sharerEmail : undefined,
-        offline: typeof userId == "number" && userId !== 0 ? (storage.getBoolean(userId + ":offlineItems:" + file.uuid) ? true : false) : false,
+        offline: isAvailableOffline,
         version: file.version,
         favorited: file.favorited,
         thumbnail: thumbnailCachePath,
@@ -180,7 +190,7 @@ export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0
     }
 }
 
-export const sortItems = memoize(({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }): Item[] => {
+export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }): Item[] => {
     let routeURL = ""
 
     if(typeof passedRoute !== "undefined"){
@@ -215,7 +225,7 @@ export const sortItems = memoize(({ items, passedRoute = undefined }: { items: I
     }
 
     return items
-}, ({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }) => JSON.stringify(items) + ":" + JSON.stringify(passedRoute))
+}
 
 export interface LoadItems {
     parent: string,
@@ -233,441 +243,211 @@ export interface LoadItems {
     loadFolderSizes?: boolean
 }
 
-export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLoadDone, bypassCache = false, isFollowUpRequest = false, callStack = 0, navigation, isMounted, route, setProgress, loadFolderSizes = false }: LoadItems): Promise<boolean> => {
+export const loadItems = async (route: any, skipCache: boolean = false): Promise<{ cached: boolean, items: Item[] }> => {
+    const uuid: string = getParent(route)
+    const url: string = getRouteURL(route)
     const userId = storage.getNumber("userId")
+    const masterKeys = getMasterKeys()
+    const privateKey = storage.getString("privateKey")
 
-    if(typeof userId !== "number"){
-        console.error("userId in storage !== number")
-
-        return false
+    if(userId == 0 || masterKeys.length <= 0){
+        throw new Error("Invalid user data")
     }
 
-    if(userId == 0){
-        console.error("userId in storage invalid (0)")
-
-        return false
-    }
-    
-    let items: Item[] = []
-    let isDeviceOnline = isOnline()
-    const routeURL = typeof route !== "undefined" ? getRouteURL(route) : getRouteURL()
-    const cacheKey = "loadItemsCache:" + routeURL
-    const cacheKeyLastResponse = "loadItemsCache:lastResponse:" + routeURL
-
-    try{
-        var cacheRaw = storage.getString(cacheKey)
-        var cache = typeof cacheRaw == "string" ? JSON.parse(cacheRaw) : undefined
-    }
-    catch(e){
-        console.error(e)
-
-        var cache = undefined
-        
-        bypassCache = true
-    }
-
-    if(!isDeviceOnline){
-		bypassCache = false
-	}
-
-    if(typeof cache == "object" && !bypassCache){
-        if(callStack == 0 && isDeviceOnline && !isFollowUpRequest){
-            //setLoadDone(true)
-
-			loadItems({
-                parent,
-                setItems,
-                prevItems,
-                masterKeys,
-                setLoadDone,
-                bypassCache: true,
-                isFollowUpRequest: true,
-                callStack: 1,
-                navigation,
-                isMounted,
-                route,
-                setProgress
-            })
-		}
-
-        items = cache
-
-        if(getParent(route) == parent && isMounted()){
-            items = sortItems({ items, passedRoute: route })
-
-            setItems(items.filter(item => item !== null && typeof item.uuid == "string"))
-            setLoadDone(true)
+    const refresh = async (): Promise<{ cached: boolean, items: Item[] }> => {
+        if(!isOnline()){
+            throw new Error("Device offline")
         }
 
-        return true
-    }
+        let items: Item[] = []
 
-    if(parent == "base"){
-        try{
-            var response = await apiRequest({
-                method: "POST",
-                endpoint: "/v1/user/baseFolders",
-                data: {
-                    apiKey: getAPIKey()
-                }
-            })
-        }
-        catch(e){
-            console.log(e)
-
-            return false
-        }
-
-        if(!response.status){
-            console.log(response.message)
-
-            return false
-        }
-
-        /*if(typeof cache !== "undefined"){
-            if(cache.length > 0){
-                try{
-                    const responseString = JSON.stringify(response.data)
-
-                    if(storage.getString(cacheKeyLastResponse) == responseString){
-                        return false
-                    }
-
-                    storage.set(cacheKeyLastResponse, responseString)
-                }
-                catch(e){
-                    console.log(e)
-                }
-            }
-        }*/
-
-        for(let i = 0; i < response.data.folders.length; i++){
-			let folder = response.data.folders[i]
-
-			let item = await buildFolder({ folder, masterKeys, userId, routeURL, loadFolderSizes })
-
-			items.push(item)
-
-			storage.set("itemCache:folder:" + folder.uuid, JSON.stringify(item))
-		}
-    }
-    else if(parent == "recents"){
-        try{
-            var response = await apiRequest({
+        if(url.indexOf("recents") !== -1){
+            const response = await apiRequest({
                 method: "POST",
                 endpoint: "/v1/user/recent",
                 data: {
                     apiKey: getAPIKey()
                 }
             })
-        }
-        catch(e){
-            console.log(e)
-
-            return false
-        }
-
-        if(!response.status){
-            console.log(response.message)
-
-            return false
-        }
-
-        /*if(typeof cache !== "undefined"){
-            if(cache.length > 0){
-                try{
-                    const responseString = JSON.stringify(response.data)
-
-                    if(storage.getString(cacheKeyLastResponse) == responseString){
-                        return false
-                    }
-
-                    storage.set(cacheKeyLastResponse, responseString)
-                }
-                catch(e){
-                    console.log(e)
-                }
+    
+            if(!response.status){
+                throw new Error(response.message)
             }
-        }*/
-
-        for(let i = 0; i < response.data.length; i++){
-            let file = response.data[i]
-            
-            let item = await buildFile({ file, masterKeys, userId })
-
-            items.push(item)
-
-			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
+    
+            for(const file of response.data){
+                items.push(await buildFile({ file, masterKeys, userId }))
+            }
         }
-    }
-    else if(routeURL.indexOf("shared-in") !== -1){
-        try{
-            var response = await apiRequest({
+        else if(url.indexOf("shared-in") !== -1){
+            if(typeof privateKey !== "string"){
+                throw new Error("Invalid user data")
+            }
+
+            const response = await apiRequest({
                 method: "POST",
                 endpoint: "/v1/user/shared/in",
                 data: {
                     apiKey: getAPIKey(),
-                    uuid: parent,
+                    uuid,
                     folders: JSON.stringify(["shared-in"]),
                     page: 1,
                     app: "true"
                 }
             })
-        }
-        catch(e){
-            console.log(e)
-
-            return false
-        }
-
-        if(!response.status){
-            console.log(response.message)
-
-            return false
-        }
-
-        /*if(typeof cache !== "undefined"){
-            if(cache.length > 0){
-                try{
-                    const responseString = JSON.stringify(response.data)
-
-                    if(storage.getString(cacheKeyLastResponse) == responseString){
-                        return false
-                    }
-
-                    storage.set(cacheKeyLastResponse, responseString)
-                }
-                catch(e){
-                    console.log(e)
-                }
+    
+            if(!response.status){
+                throw new Error(response.message)
             }
-        }*/
+    
+            for(const folder of response.data.folders){
+                const item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey })
 
-        const privateKey = storage.getString("privateKey")
+                items.push(item)
+                
+                await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
 
-        for(let i = 0; i < response.data.folders.length; i++){
-			let folder = response.data.folders[i]
-			
-            let item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey, userId, routeURL, loadFolderSizes })
-
-			items.push(item)
-
-			storage.set("itemCache:folder:" + folder.uuid, JSON.stringify(item))
-		}
-
-        for(let i = 0; i < response.data.uploads.length; i++){
-            let file = response.data.uploads[i]
-
-            let item = await buildFile({ file, masterKeys, sharedIn: true, privateKey, userId })
-
-            items.push(item)
-
-			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
+                memoryCache.set("itemCache:folder:" + folder.uuid, item)
+            }
+    
+            for(const file of response.data.uploads){
+                items.push(await buildFile({ file, masterKeys, sharedIn: true, privateKey, userId }))
+            }
         }
-    }
-    else if(routeURL.indexOf("shared-out") !== -1){
-        try{
-            var response = await apiRequest({
+        else if(url.indexOf("shared-out") !== -1){
+            const response = await apiRequest({
                 method: "POST",
                 endpoint: "/v1/user/shared/out",
                 data: {
                     apiKey: getAPIKey(),
-                    uuid: parent,
+                    uuid,
                     folders: JSON.stringify(["default"]),
                     page: 1,
                     app: "true",
                     receiverId: global.currentReceiverId
                 }
             })
-        }
-        catch(e){
-            console.log(e)
-
-            return false
-        }
-
-        if(!response.status){
-            console.log(response.message)
-
-            return false
-        }
-
-        /*if(typeof cache !== "undefined"){
-            if(cache.length > 0){
-                try{
-                    const responseString = JSON.stringify(response.data)
-
-                    if(storage.getString(cacheKeyLastResponse) == responseString){
-                        return false
-                    }
-
-                    storage.set(cacheKeyLastResponse, responseString)
-                }
-                catch(e){
-                    console.log(e)
-                }
+    
+            if(!response.status){
+                throw new Error(response.message)
             }
-        }*/
+    
+            for(let folder of response.data.folders){
+                folder.name = folder.metadata
+                
+                const item = await buildFolder({ folder, masterKeys })
+    
+                items.push(item)
+                
+                await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
 
-        for(let i = 0; i < response.data.folders.length; i++){
-			let folder = response.data.folders[i]
-
-            folder.name = folder.metadata
-			
-            let item = await buildFolder({ folder, masterKeys, userId, routeURL, loadFolderSizes })
-
-			items.push(item)
-
-			storage.set("itemCache:folder:" + folder.uuid, JSON.stringify(item))
-		}
-
-        for(let i = 0; i < response.data.uploads.length; i++){
-            let file = response.data.uploads[i]
-
-            let item = await buildFile({ file, masterKeys, userId })
-
-            items.push(item)
-
-			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
-        }
-
-        const groups: Item[] = []
-        const sharedTo: { [key: string]: ItemReceiver[] } = {}
-        const added: { [key: string]: boolean } = {}
-
-        for(let i = 0; i < items.length; i++){
-            if(Array.isArray(sharedTo[items[i].uuid])){
-                sharedTo[items[i].uuid].push({
-                    id: items[i].receiverId,
-                    email: items[i].receiverEmail
-                })
+                memoryCache.set("itemCache:folder:" + folder.uuid, item)
             }
-            else{
-                sharedTo[items[i].uuid] = [{
-                    id: items[i].receiverId,
-                    email: items[i].receiverEmail
-                }]
+    
+            for(const file of response.data.uploads){
+                items.push(await buildFile({ file, masterKeys, userId }))
             }
-        }
-
-        for(let i = 0; i < items.length; i++){
-            if(Array.isArray(sharedTo[items[i].uuid])){
-                items[i].receivers = sharedTo[items[i].uuid]
-            }
-
-            if(!added[items[i].uuid]){
-                added[items[i].uuid] = true
-
-                groups.push(items[i])
-            }
-        }
-
-        items = groups
-    }
-    else if(parent == "photos"){
-        try{
-            var cameraUploadParent = storage.getString("cameraUploadFolderUUID:" + userId)
-        }
-        catch(e){
-            console.log(e)
-        }
-
-        if(typeof cameraUploadParent == "string"){
-            if(cameraUploadParent.length > 16){
-                try{
-                    let folderExists: boolean = false
-
-                    const isFolderPresent = await folderPresent({ uuid: cameraUploadParent })
-
-                    if(isFolderPresent.present){
-                        if(!isFolderPresent.trash){
-                            folderExists = true
-                        }
-                    }
-
-                    if(!folderExists){
-                        setItems([])
-                        setLoadDone(true)
-
-                        return true
-                    }
-
-                    var response = await apiRequest({
-                        method: "POST",
-                        endpoint: "/v1/dir/content",
-                        data: {
-                            apiKey: getAPIKey(),
-                            uuid: cameraUploadParent,
-                            folders: JSON.stringify(["default"]),
-                            page: 1,
-                            app: "true"
-                        }
+    
+            const groups: Item[] = []
+            const sharedTo: { [key: string]: ItemReceiver[] } = {}
+            const added: { [key: string]: boolean } = {}
+    
+            for(let i = 0; i < items.length; i++){
+                if(Array.isArray(sharedTo[items[i].uuid])){
+                    sharedTo[items[i].uuid].push({
+                        id: items[i].receiverId,
+                        email: items[i].receiverEmail
                     })
                 }
-                catch(e){
-                    console.log(e)
-        
-                    return false
+                else{
+                    sharedTo[items[i].uuid] = [{
+                        id: items[i].receiverId,
+                        email: items[i].receiverEmail
+                    }]
                 }
-        
-                if(!response.status){
-                    console.log(response.message)
-        
-                    return false
+            }
+    
+            for(let i = 0; i < items.length; i++){
+                if(Array.isArray(sharedTo[items[i].uuid])){
+                    items[i].receivers = sharedTo[items[i].uuid]
                 }
+    
+                if(!added[items[i].uuid]){
+                    added[items[i].uuid] = true
+    
+                    groups.push(items[i])
+                }
+            }
+    
+            items = groups
+        }
+        else if(url.indexOf("photos") !== -1){
+            const cameraUploadParent = storage.getString("cameraUploadFolderUUID:" + userId)
+    
+            if(typeof cameraUploadParent !== "string"){
+                return {
+                    cached: false,
+                    items: []
+                }
+            }
 
-                if(typeof cache !== "undefined"){
-                    if(cache.length > 0){
-                        try{
-                            const responseString = JSON.stringify(response.data)
-        
-                            if(storage.getString(cacheKeyLastResponse) == responseString){
-                                return false
-                            }
-            
-                            storage.set(cacheKeyLastResponse, responseString)
-                        }
-                        catch(e){
-                            console.log(e)
-                        }
-                    }
+            if(cameraUploadParent.length < 16){
+                return {
+                    cached: false,
+                    items: []
                 }
-        
-                for(let i = 0; i < response.data.uploads.length; i++){
-                    let file = response.data.uploads[i]
-        
-                    let item = await buildFile({ file, masterKeys, userId })
-        
-                    if(canCompressThumbnail(getFileExt(item.name))){
-                        items.push(item)
-                    }
-        
-                    storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
+            }
+
+            let folderExists: boolean = false
+            const isFolderPresent = await folderPresent({ uuid: cameraUploadParent })
+
+            if(isFolderPresent.present){
+                if(!isFolderPresent.trash){
+                    folderExists = true
+                }
+            }
+
+            if(!folderExists){
+                return {
+                    cached: false,
+                    items: []
+                }
+            }
+
+            const response = await apiRequest({
+                method: "POST",
+                endpoint: "/v1/dir/content",
+                data: {
+                    apiKey: getAPIKey(),
+                    uuid: cameraUploadParent,
+                    folders: JSON.stringify(["default"]),
+                    page: 1,
+                    app: "true"
+                }
+            })
+
+            if(!response.status){
+                throw new Error(response.message)
+            }
+    
+            for(const file of response.data.uploads){
+                const item = await buildFile({ file, masterKeys, userId })
+    
+                if(canCompressThumbnail(getFileExt(item.name))){
+                    items.push(item)
                 }
             }
         }
-    }
-    else if(parent == "offline"){
-        try{
-            var [ list, offlinePath ] = await Promise.all([
+        else if(url.indexOf("offline") !== -1){
+            const [ list, offlinePath ] = await Promise.all([
                 getOfflineList(),
                 getDownloadPath({ type: "offline" })
             ])
-        }
-        catch(e){
-            console.log(e)
-
-            return false
-        }
-
-        for(let i = 0; i < list.length; i++){
-            let file = list[i]
-
-            file.offline = true
-
-            const itemOfflinePath = getItemOfflinePath(offlinePath, file)
-
-            try{
+    
+            for(let file of list){
+                file.offline = true
+    
+                const itemOfflinePath = getItemOfflinePath(offlinePath, file)
+    
                 if(!(await fs.stat(itemOfflinePath)).exists){
                     await removeFromOfflineStorage({ item: file })
 
@@ -682,368 +462,65 @@ export const loadItems = async ({ parent, prevItems, setItems, masterKeys, setLo
                     items.push(file)
                 }
             }
-            catch(e){
-                console.log(e)
-
-                items.push(file)
-            }
+    
+            checkOfflineItems(items).catch(console.error)
         }
-
-        const offlineFilesToFetchInfo = items.map(item => item.uuid)
-
-        if(offlineFilesToFetchInfo.length > 0 && isOnline()){
-            try{
-                var offlineFilesInfo = await fetchOfflineFilesInfo({ files: offlineFilesToFetchInfo })
-            }
-            catch(e){
-                console.log(e)
-    
-                return false
-            }
-    
-            for(let i = 0; i < items.length; i++){
-                const prop = items[i].uuid
-                const itemUUID = items[i].uuid
-                const itemName = items[i].name
-
-                if(typeof offlineFilesInfo[prop] !== "undefined"){
-                    if(offlineFilesInfo[prop].exists){
-                        items[i].favorited = offlineFilesInfo[prop].favorited
-
-                        try{
-                            if(offlineFilesInfo[prop].isVersioned){
-                                var metadata = await decryptFileMetadata(masterKeys, offlineFilesInfo[prop].versionedInfo.metadata, offlineFilesInfo[prop].versionedInfo.uuid)
-                            }
-                            else{
-                                var metadata = await decryptFileMetadata(masterKeys, offlineFilesInfo[prop].metadata, prop)
-                            }
-
-                            if(typeof metadata == "object"){
-                                if(offlineFilesInfo[prop].isVersioned || items[i].name !== metadata.name){
-                                    let newItem = items[i]
-            
-                                    if(offlineFilesInfo[prop].isVersioned){
-                                        newItem.uuid = offlineFilesInfo[prop].versionedUUID
-                                        newItem.region = offlineFilesInfo[prop].versionedInfo.region
-                                        newItem.bucket = offlineFilesInfo[prop].versionedInfo.bucket
-                                        newItem.chunks = offlineFilesInfo[prop].versionedInfo.chunks
-                                        newItem.timestamp = offlineFilesInfo[prop].versionedInfo.timestamp
-                                        newItem.rm = offlineFilesInfo[prop].versionedInfo.rm
-                                        newItem.thumbnail = undefined
-                                        newItem.date = simpleDate(offlineFilesInfo[prop].versionedInfo.timestamp)
-                                    }
-
-                                    newItem.offline = true
-                                    newItem.name = metadata.name
-                                    newItem.size = metadata.size
-                                    newItem.mime = metadata.mime
-                                    newItem.key = metadata.key
-                                    newItem.lastModified = metadata.lastModified
-
-                                    if(offlineFilesInfo[prop].isVersioned){
-                                        queueFileDownload({
-                                            file: newItem,
-                                            storeOffline: true,
-                                            isOfflineUpdate: true,
-                                            optionalCallback: () => {
-                                                removeFromOfflineStorage({
-                                                    item: {
-                                                        uuid: itemUUID,
-                                                        name: itemName
-                                                    } as Item
-                                                })
-    
-                                                DeviceEventEmitter.emit("event", {
-                                                    type: "remove-item",
-                                                    data: {
-                                                        uuid: itemUUID
-                                                    }
-                                                })
-    
-                                                DeviceEventEmitter.emit("event", {
-                                                    type: "add-item",
-                                                    data: {
-                                                        item: newItem,
-                                                        parent: newItem.parent
-                                                    }
-                                                })
-                                            }
-                                        }).catch(console.error)
-                                    }
-                                    else{
-                                        await new Promise((resolve, reject) => {
-                                            changeItemNameInOfflineList({ item: items[i], name: metadata.name }).then(() => {
-                                                DeviceEventEmitter.emit("event", {
-                                                    type: "change-item-name",
-                                                    data: {
-                                                        uuid: items[i].uuid,
-                                                        name: metadata.name
-                                                    }
-                                                })
-
-                                                return resolve(true)
-                                            }).catch(reject)
-                                        })
-                                    }
-                                }
-                            }
-                        }
-                        catch(e){
-                            console.log(e)
-                        }
-                    }
-                    else{
-                        try{
-                            await removeFromOfflineStorage({ item: items[i] })
-                        }
-                        catch(e){
-                            console.log(e)
-                        }
-
-                        DeviceEventEmitter.emit("event", {
-                            type: "remove-item",
-                            data: {
-                                uuid: prop
-                            }
-                        })
-                    }
-                }
-            }
-        }
-    }
-    else{
-        try{
-            var response = await apiRequest({
+        else{
+            const response = await apiRequest({
                 method: "POST",
                 endpoint: "/v1/dir/content",
                 data: {
                     apiKey: getAPIKey(),
-                    uuid: parent,
+                    uuid,
                     folders: JSON.stringify(["default"]),
                     page: 1,
                     app: "true"
                 }
             })
-        }
-        catch(e){
-            console.log(e)
+    
+            if(!response.status){
+                throw new Error(response.message)
+            }
+    
+            for(const folder of response.data.folders){
+                const item = await buildFolder({ folder, masterKeys })
+    
+                items.push(item)
 
-            return false
-        }
+                await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
 
-        if(!response.status){
-            console.log(response.message)
-
-            return false
-        }
-
-        if(typeof cache !== "undefined" && parent !== "links"){
-            if(cache.length > 0){
-                try{
-                    const responseString = JSON.stringify(response.data)
-
-                    if(storage.getString(cacheKeyLastResponse) == responseString){
-                        return false
-                    }
-
-                    storage.set(cacheKeyLastResponse, responseString)
-                }
-                catch(e){
-                    console.log(e)
-                }
+                memoryCache.set("itemCache:folder:" + folder.uuid, item)
+            }
+    
+            for(const file of response.data.uploads){
+                items.push(await buildFile({ file, masterKeys, userId }))
             }
         }
 
-        for(let i = 0; i < response.data.folders.length; i++){
-			const folder = response.data.folders[i]
-            const item = await buildFolder({ folder, masterKeys, userId, routeURL, loadFolderSizes })
+        items = sortItems({ items, passedRoute: route }).filter(item => item !== null && typeof item.uuid == "string")
 
-			items.push(item)
+        await db.set("loadItems:" + url, items)
 
-			storage.set("itemCache:folder:" + folder.uuid, JSON.stringify(item))
-		}
+        memoryCache.set("loadItems:" + url, items)
 
-        for(let i = 0; i < response.data.uploads.length; i++){
-            const file = response.data.uploads[i]
-            const item = await buildFile({ file, masterKeys, userId })
-
-            items.push(item)
-
-			storage.set("itemCache:file:" + file.uuid, JSON.stringify(item))
+        return {
+            cached: false,
+            items
         }
     }
 
-    items = sortItems({ items, passedRoute: route })
+    const cached = await db.get("loadItems:" + url)
 
-    storage.set(cacheKey, JSON.stringify(items))
+    if(cached && !skipCache){
+        memoryCache.set("loadItems:" + url, cached)
 
-    if(getParent(route) == parent && isMounted()){
-        setItems(items.filter(item => item !== null && typeof item.uuid == "string"))
-        setLoadDone(true)
+        return {
+            cached: true,
+            items: cached as Item[]
+        }
     }
 
-    return true
-}
-
-/*
-Clear last response cache
-*/
-export const clearLoadItemsCacheLastResponse = (): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        try{
-            const keys = storage.getAllKeys()
-
-            for(let i = 0; i < keys.length; i++){
-                if(keys[i].indexOf("loadItemsCache:lastResponse:") !== -1){
-                    storage.delete(keys[i])
-                }
-            }
-        }
-        catch(e){
-            console.log(e)
-        }
-
-        return resolve(true)
-    })
-}
-
-/*
-Update the item cache so we do not need to re-fetch data from the API
-*/
-export const updateLoadItemsCache = ({ item, routeURL = "", prop, value }: { item: Item, routeURL?: string, prop: any, value: any }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        try{
-            const keys = storage.getAllKeys()
-
-            for(let i = 0; i < keys.length; i++){
-                if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
-                    let cache = []
-                    let didChange = false
-
-                    try{
-                        cache = JSON.parse(storage.getString(keys[i]) as string)
-                    }
-                    catch(err){
-                        console.log(err)
-                    }
-
-                    for(let x = 0; x < cache.length; x++){
-                        if(cache[x].uuid == item.uuid){
-                            cache[x][prop] = value
-                            didChange = true
-                        }
-                    }
-
-                    if(didChange){
-                        storage.set(keys[i], JSON.stringify(cache))
-                    }
-                }
-            }
-        }
-        catch(e){
-            console.log(e)
-        }
-
-        return resolve(true)
-    })
-}
-
-/*
-Update the item cache so we do not need to re-fetch data from the API
-*/
-export const removeLoadItemsCache = ({ item, routeURL = "" }: { item: Item, routeURL?: string }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        try{
-            const keys = storage.getAllKeys()
-
-            for(let i = 0; i < keys.length; i++){
-                if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
-                    let cache = []
-                    let didChange = false
-
-                    try{
-                        cache = JSON.parse(storage.getString(keys[i]) as string)
-                    }
-                    catch(err){
-                        console.log(err)
-                    }
-
-                    for(let x = 0; x < cache.length; x++){
-                        if(cache[x].uuid == item.uuid){
-                            cache.splice(x, 1)
-                            didChange = true
-                        }
-                    }
-
-                    if(didChange){
-                        storage.set(keys[i], JSON.stringify(cache))
-                    }
-                }
-            }
-        }
-        catch(e){
-            console.log(e)
-        }
-
-        return resolve(true)
-    })
-}
-
-/*
-Update the item cache so we do not need to re-fetch data from the API
-*/
-export const emptyTrashLoadItemsCache = (): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        try{
-            const keys = storage.getAllKeys()
-
-            for(let i = 0; i < keys.length; i++){
-                if(keys[i].indexOf("loadItemsCache:trash") !== -1){
-                    storage.delete(keys[i])
-                }
-            }
-        }
-        catch(e){
-            console.log(e)
-        }
-
-        return resolve(true)
-    })
-}
-
-/*
-Update the item cache so we do not need to re-fetch data from the API
-*/
-export const addItemLoadItemsCache = ({ item, routeURL = "" }: { item: Item, routeURL?: string }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        try{
-            const keys = storage.getAllKeys()
-
-            for(let i = 0; i < keys.length; i++){
-                if(keys[i].indexOf(routeURL.length > 0 ? "loadItemsCache:" + routeURL : "loadItemsCache:") !== -1){
-                    let cache = []
-
-                    try{
-                        cache = JSON.parse(storage.getString(keys[i]) as string)
-                    }
-                    catch(err){
-                        console.log(err)
-                    }
-
-                    if(cache.length > 0){
-                        cache.push(item)
-
-                        storage.set(keys[i], JSON.stringify(cache))
-                    }
-                }
-            }
-        }
-        catch(e){
-            console.log(e)
-        }
-
-        return resolve(true)
-    })
+    return await refresh()
 }
 
 export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }: { item: Item, setCurrentActionSheetItem?: boolean, navigation?: any }) => {
@@ -1291,20 +768,14 @@ export const addToSavedToGallery = async (asset: Asset) => {
     await getLocalAssetsMutex.acquire()
 
     try{
-        const assetId = getAssetId(asset)
         const assetURI = await getAssetURI(asset)
         const stat = await fs.stat(assetURI)
-        const cameraUploadLastModified = JSON.parse(storage.getString("cameraUploadLastModified") || "{}")
-        const cameraUploadLastSize = JSON.parse(storage.getString("cameraUploadLastSize") || "{}")
-        const cameraUploadLastModifiedStat = JSON.parse(storage.getString("cameraUploadLastModifiedStat") || "{}")
 
-        cameraUploadLastModified[assetId] = asset.modificationTime
-        cameraUploadLastSize[assetId] = stat.size
-        cameraUploadLastModifiedStat[assetId] = stat.modificationTime
-
-        storage.set("cameraUploadLastModified", JSON.stringify(cameraUploadLastModified))
-        storage.set("cameraUploadLastSize", JSON.stringify(cameraUploadLastSize))
-        storage.set("cameraUploadLastModifiedStat", JSON.stringify(cameraUploadLastModifiedStat))
+        await Promise.all([
+            db.cameraUpload.setLastModified(asset, convertTimestampToMs(asset.modificationTime)),
+            db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || asset.modificationTime)),
+            db.cameraUpload.setLastSize(asset, stat.size || 0)
+        ])
     }
     catch(e){
         console.error(e)

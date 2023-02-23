@@ -5,7 +5,7 @@ import { useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "../../components/TopBar"
 import { ItemList } from "../../components/ItemList"
 import { loadItems, sortItems } from "../../lib/services/items"
-import { getMasterKeys, getParent, getRouteURL, calcPhotosGridSize } from "../../lib/helpers"
+import { getParent, getRouteURL, calcPhotosGridSize } from "../../lib/helpers"
 import { useStore } from "../../lib/state"
 import { useMountedState } from "react-use"
 import { SheetManager } from "react-native-actions-sheet"
@@ -17,6 +17,9 @@ import { Item } from "../../types"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef } from "@react-navigation/native"
+import * as db from "../../lib/db"
+import memoryCache from "../../lib/memoryCache"
+import { isOnline } from "../../lib/services/isOnline"
 
 export interface MainScreenProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
@@ -26,23 +29,19 @@ export interface MainScreenProps {
 export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const darkMode = useDarkMode()
     const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [routeURL, setRouteURL] = useState<string>(getRouteURL(route))
-    const cachedItemsRef = useRef<string | undefined>(storage.getString("loadItemsCache:" + routeURL)).current
-    const cachedItemsParsed = useRef<any>(typeof cachedItemsRef == "string" ? JSON.parse(cachedItemsRef) : []).current
-    const [items, setItems] = useState<Item[]>(Array.isArray(cachedItemsParsed) ? cachedItemsParsed.filter(item => item !== null && typeof item.uuid == "string") : [])
+    const routeURL = useRef<string>(getRouteURL(route)).current
+    const [items, setItems] = useState<Item[]>(memoryCache.has("loadItems:" + routeURL) ? memoryCache.get("loadItems:" + routeURL) : [])
     const [searchTerm, setSearchTerm] = useState<string>("")
-    const [loadDone, setLoadDone] = useState<boolean>(typeof cachedItemsRef !== "undefined" ? true : false)
+    const [loadDone, setLoadDone] = useState<boolean>(false)
     const setNavigation = useStore(state => state.setNavigation)
     const setRoute = useStore(state => state.setRoute)
-    const [masterKeys, setMasterKeys] = useState<string[]>(getMasterKeys())
-    const isMounted: () => boolean = useMountedState()
+    const isMounted = useMountedState()
     const setCurrentActionSheetItem = useStore(state => state.setCurrentActionSheetItem)
     const setCurrentItems = useStore(state => state.setCurrentItems)
     const itemsRef = useRef<any>([])
     const setItemsSelectedCount = useStore(state => state.setItemsSelectedCount)
     const setInsets = useStore(state => state.setInsets)
     const insets = useSafeAreaInsets()
-    const [progress, setProgress] = useState<{ itemsDone: number, totalItems: number }>({ itemsDone: 0, totalItems: 1 })
     const selectedCountRef = useRef<number>(0)
     const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
     const [itemsBeforeSearch, setItemsBeforeSearch] = useState<Item[]>([])
@@ -52,7 +51,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const contentHeight = useStore(state => state.contentHeight)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
     const [initialized, setInitialized] = useState<boolean>(false)
-    const isFocused: boolean = useIsFocused()
+    const isFocused = useIsFocused()
     const [sortByDb, setSortByDb] = useMMKVString("sortBy", storage)
 
     const sortBy: string | undefined = useMemo(() => {
@@ -159,7 +158,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         const currentParent: string = getParent(route)
 
         if(isMounted() && currentParent == parent){
-            fetchItemList({ bypassCache: true, callStack: 1 })
+            populateList(true).catch(console.error)
         }
     }, [route])
 
@@ -168,6 +167,37 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             setItems(items => items.map(mapItem => mapItem.uuid == uuid && mapItem.type == "folder" ? { ...mapItem, size } : mapItem))
         }
     }, [])
+
+    const populateList = useCallback(async (skipCache: boolean = false, passedURL: string | null = null) => {
+        try{
+            const startingURL = passedURL ? passedURL : getRouteURL(route)
+            const hasItemsInDb = await db.has("loadItems:" + startingURL)
+
+            if(!hasItemsInDb){
+                setLoadDone(false)
+                setItems([])
+            }
+
+            const { cached, items } = await loadItems(route, skipCache)
+
+            if(getRouteURL() !== startingURL){
+                return
+            }
+
+            if(isMounted()){
+                setItems(items)
+                setLoadDone(true)
+            }
+
+            if(cached && isOnline()){
+                populateList(true, startingURL).catch(console.error)
+            }
+        }
+        catch(e){
+            setItems([])
+            setLoadDone(true)
+        }
+    }, [route])
 
     useEffect(() => {
         if(isMounted() && initialized){
@@ -229,31 +259,12 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         }
     }, [items, isFocused])
 
-    const fetchItemList = useCallback(({ bypassCache = false, callStack = 0, loadFolderSizes = false }: { bypassCache?: boolean, callStack?: number, loadFolderSizes?: boolean }) => {
-        // @ts-ignore
-        return loadItems({
-            parent: getParent(route),
-            setItems,
-            masterKeys,
-            setLoadDone,
-            navigation,
-            isMounted,
-            bypassCache,
-            route,
-            setProgress,
-            callStack,
-            loadFolderSizes
-        })
-    }, [route, masterKeys, navigation, isMounted, route, setProgress, setItems])
-
     useEffect(() => {
         setNavigation(navigation)
         setRoute(route)
         setInsets(insets)
         
-        fetchItemList({ bypassCache: false, callStack: 0, loadFolderSizes: false }).catch(console.error)
-
-        global.fetchItemList = fetchItemList
+        populateList().catch(console.error)
 
         const deviceListener = DeviceEventEmitter.addListener("event", (data) => {
             const navState = navigation.getState()
@@ -417,14 +428,10 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                     navigation={navigation}
                     route={route}
                     items={items}
-                    setItems={setItems}
-                    showLoader={!loadDone}
                     loadDone={loadDone}
                     searchTerm={searchTerm}
                     isMounted={isMounted}
-                    fetchItemList={fetchItemList}
-                    progress={progress}
-                    setProgress={setProgress}
+                    populateList={populateList}
                 />
             </View>
         </View>
