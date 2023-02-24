@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "
 import { NavigationContainerRef, NavigationState } from "@react-navigation/native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import { useWindowDimensions, View, Text, FlatList, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter, Platform, ScrollView } from "react-native"
+import { useWindowDimensions, View, Text, TouchableHighlight, TouchableOpacity, Pressable, Image, DeviceEventEmitter, Platform, ScrollView } from "react-native"
 import { getColor } from "../../style"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { i18n } from "../../i18n"
@@ -19,10 +19,11 @@ import { useIsFocused } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
 import { getAssetURI, videoExts, photoExts } from "../../lib/services/cameraUpload"
 import * as fs from "../../lib/fs"
+import { FlashList } from "@shopify/flash-list"
 
 const videoThumbnailSemaphore = new Semaphore(5)
 const ALBUM_ROW_HEIGHT = 70
-const FETCH_ASSETS_LIMIT = 128
+const FETCH_ASSETS_LIMIT = 256
 
 const createdVideoThumbnails: Record<string, string> = {}
 
@@ -314,7 +315,6 @@ export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItem
                 borderBottomWidth: 0.5,
                 borderBottomColor: getColor(darkMode, "primaryBorder")
             }}
-            key={item.album.id}
             underlayColor={getColor(darkMode, "backgroundTertiary")}
             onPress={() => {
                 if(typeof params.prevNavigationState !== "undefined" && item.assetCount > 0){
@@ -449,15 +449,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         return [selectedAssets, photoCount, videoCount]
     }, [assets])
 
-    const getItemLayoutAsset = useCallback((_, index: number) => {
-        const length: number = Math.floor((containerWidth - insets.left - insets.right) / 4) - 2
-
-        return {
-            length,
-            offset: length * index,
-            index
-        }
-    }, [containerWidth, insets])
+    const estimatedItemSize = useMemo(() => {
+        return Math.floor((containerWidth - insets.left - insets.right) / 4) - 2
+    }, [insets, containerWidth])
 
     const renderAsset = useCallback(({ item }: { item: Asset }) => {
         return (
@@ -670,76 +664,79 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                                 </TouchableOpacity>
                             )}
                         />
-                        <FlatList
-                            data={assets}
-                            renderItem={renderAsset}
-                            keyExtractor={(item) => item.asset.id}
-                            windowSize={3}
-                            getItemLayout={getItemLayoutAsset}
-                            onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}
-                            onEndReachedThreshold={0.1}
-                            onEndReached={() => {
-                                if(assets.length > 0 && !onEndReachedCalledDuringMomentum.current && typeof params !== "undefined" && typeof params.album !== "undefined" && assetsHasNextPage.current && canPaginate.current){
-                                    onEndReachedCalledDuringMomentum.current = true
-                                    canPaginate.current = false
-
-                                    fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current).then((fetched) => {
-                                        if(fetched.assets.length > 0){
-                                            currentAssetsAfter.current = fetched.assets[fetched.assets.length -1].asset
-
-                                            if(isMounted()){
-                                                setAssets(prev => {
-                                                    const existingIds: Record<string, boolean> = {}
-    
-                                                    for(let i = 0; i < prev.length; i++){
-                                                        existingIds[prev[i].asset.id] = true
-                                                    }
-    
-                                                    return [...prev, ...fetched.assets.filter(asset => !existingIds[asset.asset.id])]
-                                                })
-                                            }
-                                        }
-                                        
-                                        assetsHasNextPage.current = fetched.hasNextPage
-                                        canPaginate.current = true
-                                    }).catch((err) => {
-                                        console.error(err)
-                            
-                                        showToast({ message: err.toString() })
-
-                                        canPaginate.current = true
-                                    })
-                                }
+                        <View
+                            style={{
+                                marginTop: 10,
+                                width: "100%",
+                                height: "100%",
+                                paddingBottom: (insets.bottom + 5)
                             }}
-                            numColumns={4}
-                            ListFooterComponent={
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        width: "100%",
-                                        height: "auto",
-                                        marginTop: 10
-                                    }}
-                                >
-                                    <Text
+                        >
+                            <FlashList
+                                data={assets}
+                                renderItem={renderAsset}
+                                keyExtractor={(item) => item.asset.id}
+                                onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}
+                                onEndReachedThreshold={0.1}
+                                estimatedItemSize={estimatedItemSize}
+                                onEndReached={() => {
+                                    if(assets.length > 0 && !onEndReachedCalledDuringMomentum.current && typeof params !== "undefined" && typeof params.album !== "undefined" && assetsHasNextPage.current && canPaginate.current){
+                                        onEndReachedCalledDuringMomentum.current = true
+                                        canPaginate.current = false
+
+                                        fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current).then((fetched) => {
+                                            if(fetched.assets.length > 0){
+                                                currentAssetsAfter.current = fetched.assets[fetched.assets.length -1].asset
+
+                                                if(isMounted()){
+                                                    setAssets(prev => {
+                                                        const existingIds: Record<string, boolean> = {}
+        
+                                                        for(let i = 0; i < prev.length; i++){
+                                                            existingIds[prev[i].asset.id] = true
+                                                        }
+        
+                                                        return [...prev, ...fetched.assets.filter(asset => !existingIds[asset.asset.id])]
+                                                    })
+                                                }
+                                            }
+                                            
+                                            assetsHasNextPage.current = fetched.hasNextPage
+                                            canPaginate.current = true
+                                        }).catch((err) => {
+                                            console.error(err)
+                                
+                                            showToast({ message: err.toString() })
+
+                                            canPaginate.current = true
+                                        })
+                                    }
+                                }}
+                                numColumns={4}
+                                ListFooterComponent={
+                                    <View
                                         style={{
-                                            color: getColor(darkMode, "textSecondary"),
-                                            fontSize: 15,
-                                            fontWeight: "400"
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            width: "100%",
+                                            height: "auto",
+                                            marginTop: 10
                                         }}
                                     >
-                                        {photoCount} {i18n(lang, "photos")}, {videoCount} {i18n(lang, "videos")}
-                                    </Text>
-                                </View>
-                            }
-                            style={{
-                                height: "100%",
-                                width: "100%",
-                                marginTop: 10
-                            }}
-                        />
+                                        <Text
+                                            style={{
+                                                color: getColor(darkMode, "textSecondary"),
+                                                fontSize: 15,
+                                                fontWeight: "400"
+                                            }}
+                                        >
+                                            {photoCount} {i18n(lang, "photos")}, {videoCount} {i18n(lang, "videos")}
+                                        </Text>
+                                    </View>
+                                }
+                            />
+                        </View>
                     </>
                 )
             }

@@ -1,8 +1,17 @@
 import { convertTimestampToMs, unixTimestamp, arrayBufferToBase64 } from "../helpers"
 import * as db from "../db"
 
+export interface FileMetadata {
+    name: string,
+    size: number,
+    mime: string,
+    key: string,
+    lastModified: number,
+    hash?: string
+}
+
 export const deriveKeyFromPassword = async (password: string, salt: string, iterations: number = 200000, hash: string = "SHA-512", bitLength: number = 512, returnHex: boolean = true): Promise<any> => {
-    return await global.nodeThread.deriveKeyFromPassword({
+    return global.nodeThread.deriveKeyFromPassword({
         password,
         salt,
         iterations,
@@ -13,14 +22,14 @@ export const deriveKeyFromPassword = async (password: string, salt: string, iter
 }
 
 export const decryptMetadata = async (data: string, key: string): Promise<any> => {
-	return await global.nodeThread.decryptMetadata({
+	return global.nodeThread.decryptMetadata({
         data,
         key
     })
 }
 
 export const encryptMetadata = async (data: string, key: string): Promise<any> => {
-	return await global.nodeThread.encryptMetadata({
+	return global.nodeThread.encryptMetadata({
         data,
         key
     })
@@ -51,7 +60,7 @@ export const decryptFolderLinkKey = (masterKeys: string[], metadata: string): Pr
     })
 }
 
-export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string, uuid: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number, hash: string }> => {
+export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string, uuid: string): Promise<FileMetadata> => {
     return new Promise(async (resolve, reject) => {
         const key = "decryptFileMetadataPrivateKey:" + uuid + ":" + metadata
         const result = await db.get(key)
@@ -102,7 +111,7 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
     })
 }
 
-export const decryptFileMetadataLink = async (metadata: string, linkKey: string): Promise<any> => {
+export const decryptFileMetadataLink = async (metadata: string, linkKey: string): Promise<FileMetadata> => {
     const key = "decryptFileMetadataLink:" + metadata + ":" + linkKey
     const result = await db.get(key)
 
@@ -290,7 +299,7 @@ export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: 
     })
 }
 
-export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid: string): Promise<{ name: string, size: number, mime: string, key: string, lastModified: number, hash: string }> => {
+export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid: string): Promise<FileMetadata> => {
     return new Promise(async (resolve, reject) => {
         const key = "decryptFileMetadata:" + uuid + ":" + metadata
         const result = await db.get(key)
@@ -370,11 +379,9 @@ export const encryptData = (base64: string, key: string): Promise<any> => {
 }
 
 export const decryptData = (encrypted: ArrayBuffer, key: string, version: number): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        global.nodeThread.decryptData({
-            base64: arrayBufferToBase64(encrypted),
-            key,
-            version
-        }).then(resolve).catch(reject)
+    return global.nodeThread.decryptData({
+        base64: arrayBufferToBase64(encrypted),
+        key,
+        version
     })
 }

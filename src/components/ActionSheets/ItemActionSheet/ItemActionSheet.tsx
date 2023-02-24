@@ -6,7 +6,7 @@ import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload, downloadFile } from "../../../lib/services/download/download"
-import { getFileExt, getParent, getRouteURL, getFilePreviewType, calcPhotosGridSize, toExpoFsPath } from "../../../lib/helpers"
+import { getFileExt, getParent, getRouteURL, getFilePreviewType, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { StackActions } from "@react-navigation/native"
@@ -135,40 +135,43 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: false })
 
-		hasStoragePermissions().then(() => {
-			hasPhotoLibraryPermissions().then(() => {
-				queueFileDownload({
-					file: currentActionSheetItem,
-					saveToGalleryCallback: (path: string) => {
-						MediaLibrary.createAssetAsync(toExpoFsPath(path)).then((asset) => {
-							addToSavedToGallery(asset)
+		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
 
-							showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
-						}).catch((err) => {
-							console.log(err)
+		if(hasStoragePermissionsError || hasPhotoLibraryPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-							showToast({ message: err.toString() })
-						})
-					}
+			return
+		}
+
+		if(!hasStoragePermissionsResult || !hasPhotoLibraryPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		queueFileDownload({
+			file: currentActionSheetItem,
+			saveToGalleryCallback: (path: string) => {
+				MediaLibrary.createAssetAsync(toExpoFsPath(path)).then((asset) => {
+					addToSavedToGallery(asset)
+
+					showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [currentActionSheetItem.name]) })
 				}).catch((err) => {
-					if(err == "stopped"){
-						return
-					}
-
-					if(err == "wifiOnly"){
-						return showToast({ message: i18n(lang, "onlyWifiDownloads") })
-					}
-
-					console.error(err)
+					console.log(err)
 
 					showToast({ message: err.toString() })
 				})
-			}).catch((err) => {
-				console.error(err)
-
-				showToast({ message: err.toString() })
-			})
+			}
 		}).catch((err) => {
+			if(err == "stopped"){
+				return
+			}
+
+			if(err == "wifiOnly"){
+				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+			}
+
 			console.error(err)
 
 			showToast({ message: err.toString() })
@@ -182,21 +185,29 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 		await SheetManager.hide("ItemActionSheet")
 
-		hasStoragePermissions().then(() => {
-			downloadFile(currentActionSheetItem, false, false, currentActionSheetItem.chunks).then((path) => {
-				ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
-					setTextEditorState("edit")
-					setTextEditorParent(currentActionSheetItem.parent)
-					setCreateTextFileDialogName(currentActionSheetItem.name)
-					setTextEditorText(data)
-					
-					navigationAnimation({ enable: true }).then(() => {
-						navigation.dispatch(StackActions.push("TextEditorScreen"))
-					})
-				}).catch((err) => {
-					console.error(err)
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-					showToast({ message: err.toString() })
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		downloadFile(currentActionSheetItem, false, false, currentActionSheetItem.chunks).then((path) => {
+			ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
+				setTextEditorState("edit")
+				setTextEditorParent(currentActionSheetItem.parent)
+				setCreateTextFileDialogName(currentActionSheetItem.name)
+				setTextEditorText(data)
+				
+				navigationAnimation({ enable: true }).then(() => {
+					navigation.dispatch(StackActions.push("TextEditorScreen"))
 				})
 			}).catch((err) => {
 				console.error(err)
@@ -217,22 +228,30 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 		await SheetManager.hide("ItemActionSheet")
 
-		hasStoragePermissions().then(() => {
-			queueFileDownload({ file: currentActionSheetItem, showNotification: true }).catch((err) => {
-				if(err == "stopped"){
-					return
-				}
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-				if(err == "wifiOnly"){
-					return showToast({ message: i18n(lang, "onlyWifiDownloads") })
-				}
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-				console.error(err)
+			return
+		}
 
-				showToast({ message: err.toString() })
-			})
-		}).catch((err) => {
-			console.log(err)
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		queueFileDownload({ file: currentActionSheetItem, showNotification: true }).catch((err) => {
+			if(err == "stopped"){
+				return
+			}
+
+			if(err == "wifiOnly"){
+				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+			}
+
+			console.error(err)
 
 			showToast({ message: err.toString() })
 		})
@@ -245,14 +264,22 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 		await SheetManager.hide("ItemActionSheet")
 
-		hasStoragePermissions().then(() => {
-			removeFromOfflineStorage({ item: currentActionSheetItem }).then(() => {
-				//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
-			}).catch((err) => {
-				console.log(err)
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-				showToast({ message: err.toString() })
-			})
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		removeFromOfflineStorage({ item: currentActionSheetItem }).then(() => {
+			//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
 		}).catch((err) => {
 			console.log(err)
 
@@ -267,21 +294,29 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 		await SheetManager.hide("ItemActionSheet")
 
-		hasStoragePermissions().then(() => {
-			queueFileDownload({ file: currentActionSheetItem, storeOffline: true }).catch((err) => {
-				if(err == "stopped"){
-					return
-				}
-				
-				if(err == "wifiOnly"){
-					return showToast({ message: i18n(lang, "onlyWifiDownloads") })
-				}
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-				console.error(err)
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-				showToast({ message: err.toString() })
-			})
-		}).catch((err) => {
+			return
+		}
+
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		queueFileDownload({ file: currentActionSheetItem, storeOffline: true }).catch((err) => {
+			if(err == "stopped"){
+				return
+			}
+			
+			if(err == "wifiOnly"){
+				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+			}
+
 			console.error(err)
 
 			showToast({ message: err.toString() })

@@ -2,7 +2,7 @@ import React, { useState, useEffect, memo, useCallback } from "react"
 import { View, Text, Platform, TouchableOpacity } from "react-native"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
-import { getParent, getFilenameFromPath, getRouteURL, promiseAllSettled, randomIdUnsafe } from "../../../lib/helpers"
+import { getParent, getFilenameFromPath, getRouteURL, promiseAllSettled, randomIdUnsafe, safeAwait } from "../../../lib/helpers"
 import { i18n } from "../../../i18n"
 import { getDownloadPath } from "../../../lib/services/download/download"
 import { queueFileUpload } from "../../../lib/services/upload/upload"
@@ -12,6 +12,7 @@ import * as fs from "../../../lib/fs"
 import { getColor } from "../../../style"
 import { hideAllToasts, showToast } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
+import storage from "../../../lib/storage"
 
 const UploadToast = memo(() => {
     const darkMode = useDarkMode()
@@ -44,16 +45,19 @@ const UploadToast = memo(() => {
             return
         }
 
-        try{
-            await hasStoragePermissions()
-        }
-        catch(e: any){
-            console.error(e)
+        const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-            showToast({ message: e.toString() })
-            
-            return
-        }
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
 
         const copyFile = (item: string): Promise<{ path: string, ext: string, type: string, size: number, name: string }> => {
             return new Promise((resolve, reject) => {

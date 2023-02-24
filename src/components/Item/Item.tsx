@@ -59,7 +59,6 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 
     return (
         <TouchableHighlight
-            key={item.uuid}
             underlayColor={getColor(darkMode, "backgroundTertiary")}
             style={{
                 width: "100%",
@@ -270,7 +269,6 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
 
     return (
         <Pressable
-            key={item.uuid}
             style={{
                 margin: 2,
                 backgroundColor: item.selected ? getColor(darkMode, "backgroundTertiary") : getColor(darkMode, "backgroundPrimary"),
@@ -434,7 +432,6 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 
     return (
         <Pressable
-            key={item.uuid}
             style={{
                 height: imageWidthAndHeight,
                 width: imageWidthAndHeight,
@@ -602,7 +599,6 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
     return (
         <TouchableOpacity
             activeOpacity={0.6}
-            key={item.uuid}
             style={{
                 height: imageWidthAndHeight,
                 width: imageWidthAndHeight,

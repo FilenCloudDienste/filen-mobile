@@ -235,9 +235,18 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 
     useEffect(() => {
         Promise.all([
-            hasStoragePermissions(),
-            hasPhotoLibraryPermissions()
-        ]).then(() => {
+            hasStoragePermissions(true),
+            hasPhotoLibraryPermissions(true)
+        ]).then((hasPermissions) => {
+            if(!hasPermissions[0] || !hasPermissions[1]){
+                setHasPermissions(false)
+                setLoading(false)
+
+                showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+                return
+            }
+
             setLoading(true)
             setHasPermissions(true)
 
@@ -254,8 +263,10 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                 console.error(err)
             })
         }).catch((err) => {
-            setHasPermissions(false)
+            showToast({ message: err.toString() })
+
             setLoading(false)
+            setHasPermissions(false)
 
             console.error(err)
         })

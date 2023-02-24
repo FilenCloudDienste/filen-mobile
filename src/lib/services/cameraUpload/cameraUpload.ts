@@ -680,7 +680,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = false): Promise<void> => {
     await runMutex.acquire()
 
-    if(runTimeout > new Date().getTime()){
+    if(runTimeout > new Date().getTime() && !runOnce){
         runMutex.release()
 
         return
@@ -921,6 +921,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
             const delta = deltas[i]
 
             if(typeof delta.item.asset == "undefined") continue
+            if((delta.item.asset.mediaType == "video" || delta.item.asset.mediaType == "unknown") && runOnce) continue
 
             const assetId = getAssetId(delta.item.asset)
 

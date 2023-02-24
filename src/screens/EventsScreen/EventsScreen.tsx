@@ -1,5 +1,5 @@
-import React, { useEffect, useState, memo, useRef } from "react"
-import { View, Text, ScrollView, FlatList, RefreshControl, ActivityIndicator, TouchableHighlight, useWindowDimensions } from "react-native"
+import React, { useEffect, useState, memo, useRef, useCallback } from "react"
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableHighlight, useWindowDimensions, FlatList } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButton } from "../SettingsScreen/SettingsScreen"
@@ -8,7 +8,7 @@ import { showToast } from "../../components/Toasts"
 import { useStore } from "../../lib/state"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
-import { getMasterKeys, convertTimestampToMs, simpleDate } from "../../lib/helpers"
+import { getMasterKeys, convertTimestampToMs, simpleDate, safeAwait } from "../../lib/helpers"
 import striptags from "striptags"
 import { ListEmpty } from "../../components/ListEmpty"
 import { useMountedState } from "react-use"
@@ -322,12 +322,11 @@ export interface EventRowProps {
     item: any,
     masterKeys: string[],
     lang: string | undefined,
-    index: number,
     darkMode: boolean,
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
-export const EventRow = memo(({ item, masterKeys, index, navigation }: EventRowProps) => {
+export const EventRow = memo(({ item, masterKeys, navigation }: EventRowProps) => {
     const lang = useLang()
     const darkMode = useDarkMode()
     const [eventText, setEventText] = useState<string>("")
@@ -347,7 +346,7 @@ export const EventRow = memo(({ item, masterKeys, index, navigation }: EventRowP
 
     return (
         <View
-            key={index.toString()} style={{
+            style={{
                 height: 44,
                 width: "100%",
                 paddingLeft: 15,
@@ -439,57 +438,49 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
     const darkMode = useDarkMode()
     const lang = useLang()
     const [events, setEvents] = useState<any>([])
-    const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [filter, setFilter] = useState<string>("all")
     const [refreshing, setRefreshing] = useState<boolean>(false)
     const dimensions = useWindowDimensions()
-    const [masterKeys, setMasterKeys] = useState<string[]>(getMasterKeys())
+    const masterKeys = useRef<string[]>(getMasterKeys()).current
     const isMounted = useMountedState()
     const bottomBarHeight = useStore(state => state.bottomBarHeight)
     const contentHeight = useStore(state => state.contentHeight)
     const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
-    const lastEventTimestamp = useRef<number>(Math.floor(new Date().getTime() / 1000) + 60)
     const canPaginate = useRef<boolean>(true)
+    const init = useRef<boolean>(false)
 
-    const getEvents = (refresh: boolean = false) => {
+    const getEvents = useCallback(async (timestamp: number = (Math.floor(new Date().getTime() / 1000) + 60), refresh: boolean = false) => {
         setIsLoading(true)
-        
-        fetchEvents({ timestamp: lastEventTimestamp.current, filter }).then((data) => {
-            setIsLoading(false)
-            setRefreshing(false)
 
-            if(data.events.length > 0){
-                const newEvents = data.events
+        const [err, data] = await safeAwait(fetchEvents({ timestamp, filter }))
 
-                lastEventTimestamp.current = newEvents[newEvents.length - 1].timestamp
+        setIsLoading(false)
+        setRefreshing(false)
 
-                if(isMounted()){
-                    if(refresh){
-                        setEvents(newEvents)
-                    }
-                    else{
-                        setEvents((prev: any) => [...prev, ...newEvents])
-                    }
-                }
-            }
-            
-            canPaginate.current = true
-        }).catch((err) => {
-            setIsLoading(false)
-            setRefreshing(false)
-            
+        canPaginate.current = true
+
+        if(err){
             console.error(err)
 
-            canPaginate.current = true
+            return
+        }
 
-            showToast({ message: err.toString() })
-        })
-    }
+        if(data.events.length > 0){
+            console.log(data.events[data.events.length - 1].uuid)
+
+            if(isMounted()){
+                setEvents((prev: any) => refresh ? data.events : [...prev, ...data.events])
+            }
+        }
+    }, [isLoading, filter])
 
     useEffect(() => {
-        setEvents([])
+        if(!init.current){
+            init.current = true
 
-        getEvents()
+            getEvents()
+        }
     }, [])
 
     return (
@@ -509,11 +500,10 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
             >
                 <FlatList
                     data={events}
-                    keyExtractor={(_, index) => index.toString()}
                     key="events"
-                    windowSize={10}
+                    keyExtractor={(item: any) => item.uuid}
                     numColumns={1}
-                    renderItem={({ item, index }) => <EventRow item={item} index={index} darkMode={darkMode} lang={lang} navigation={navigation} masterKeys={masterKeys} />}
+                    renderItem={({ item }) => <EventRow item={item} darkMode={darkMode} lang={lang} navigation={navigation} masterKeys={masterKeys} />}
                     onMomentumScrollBegin={() => onEndReachedCalledDuringMomentum.current = false}
                     onEndReachedThreshold={0.1}
                     onEndReached={() => {
@@ -521,10 +511,11 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                             onEndReachedCalledDuringMomentum.current = true
                             canPaginate.current = false
 
-                            getEvents()
+                            console.log(events[events.length - 1].timestamp)
+
+                            getEvents(events[events.length - 1].timestamp)
                         }
                     }}
-                    getItemLayout={(_, index) => ({ length: 54, offset: 54 * index, index })}
                     ListEmptyComponent={() => {
                         return (
                             <View
@@ -567,23 +558,20 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
-                            onRefresh={() => {
+                            onRefresh={async () => {
                                 if(!isLoading){
                                     return false
                                 }
-
-                                lastEventTimestamp.current = (Math.floor(new Date().getTime() / 1000) + 60)
     
                                 setRefreshing(true)
-                                getEvents(true)
+
+                                await new Promise(resolve => setTimeout(resolve, 500))
+
+                                getEvents((Math.floor(new Date().getTime() / 1000) + 60), true)
                             }}
                             tintColor={getColor(darkMode, "textPrimary")}
                         />
                     }
-                    style={{
-                        height: "100%",
-                        width: "100%"
-                    }}
                 />
             </View>
         </>

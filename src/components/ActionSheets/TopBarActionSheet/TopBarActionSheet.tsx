@@ -6,7 +6,7 @@ import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload } from "../../../lib/services/download/download"
-import { getFileExt, getRouteURL, calcPhotosGridSize, toExpoFsPath } from "../../../lib/helpers"
+import { getFileExt, getRouteURL, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { StackActions } from "@react-navigation/native"
@@ -363,58 +363,61 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: false })
 
-		hasStoragePermissions().then(() => {
-			hasPhotoLibraryPermissions().then(async () => {
-				let extArray: any[] = []
+		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
 
-				if(Platform.OS == "ios"){
-					extArray = ["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"]
-				}
-				else{
-					extArray = ["jpg", "jpeg", "png", "gif", "mov", "mp4"]
-				}
+		if(hasStoragePermissionsError || hasPhotoLibraryPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-				items.forEach((item) => {
-					if(extArray.includes(getFileExt(item.name))){
-						queueFileDownload({
-							file: item,
-							saveToGalleryCallback: (path: string) => {
-								MediaLibrary.createAssetAsync(toExpoFsPath(path)).then((asset) => {
-									addToSavedToGallery(asset)
+			return
+		}
 
-									showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
-								}).catch((err) => {
-									console.error(err)
+		if(!hasStoragePermissionsResult || !hasPhotoLibraryPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-									showToast({ message: err.toString() })
-								})
-							}
+			return
+		}
+
+		let extArray: any[] = []
+
+		if(Platform.OS == "ios"){
+			extArray = ["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"]
+		}
+		else{
+			extArray = ["jpg", "jpeg", "png", "gif", "mov", "mp4"]
+		}
+
+		items.forEach((item) => {
+			if(extArray.includes(getFileExt(item.name))){
+				queueFileDownload({
+					file: item,
+					saveToGalleryCallback: (path: string) => {
+						MediaLibrary.createAssetAsync(toExpoFsPath(path)).then((asset) => {
+							addToSavedToGallery(asset)
+
+							showToast({ message: i18n(lang, "itemSavedToGallery", true, ["__NAME__"], [item.name]) })
 						}).catch((err) => {
-							if(err == "stopped"){
-								return
-							}
-
-							if(err == "wifiOnly"){
-								showToast({ message: i18n(lang, "onlyWifiDownloads") })
-
-								return
-							}
-
 							console.error(err)
 
 							showToast({ message: err.toString() })
 						})
 					}
+				}).catch((err) => {
+					if(err == "stopped"){
+						return
+					}
+
+					if(err == "wifiOnly"){
+						showToast({ message: i18n(lang, "onlyWifiDownloads") })
+
+						return
+					}
+
+					console.error(err)
+
+					showToast({ message: err.toString() })
 				})
-			}).catch((err) => {
-				console.error(err)
-
-				showToast({ message: err.toString() })
-			})
-		}).catch((err) => {
-			console.error(err)
-
-			showToast({ message: err.toString() })
+			}
 		})
 	}, [lang, JSON.stringify(bulkItems)])
 
@@ -427,30 +430,38 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 			return
 		}
 
-		hasStoragePermissions().then(() => {
-			items.forEach((item) => {
-				if(!item.offline){
-					queueFileDownload({ file: item, storeOffline: true }).catch((err) => {
-						if(err == "stopped"){
-							return
-						}
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-						if(err == "wifiOnly"){
-							showToast({ message: i18n(lang, "onlyWifiDownloads") })
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-							return
-						}
+			return
+		}
 
-						console.error(err)
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-						showToast({ message: err.toString() })
-					})
-				}
-			})
-		}).catch((err) => {
-			console.error(err)
+			return
+		}
 
-			showToast({ message: err.toString() })
+		items.forEach((item) => {
+			if(!item.offline){
+				queueFileDownload({ file: item, storeOffline: true }).catch((err) => {
+					if(err == "stopped"){
+						return
+					}
+
+					if(err == "wifiOnly"){
+						showToast({ message: i18n(lang, "onlyWifiDownloads") })
+
+						return
+					}
+
+					console.error(err)
+
+					showToast({ message: err.toString() })
+				})
+			}
 		})
 	}, [lang, JSON.stringify(bulkItems)])
 
@@ -463,22 +474,30 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 			return
 		}
 
-		hasStoragePermissions().then(() => {
-			items.forEach((item) => {
-				if(item.offline){
-					removeFromOfflineStorage({ item }).then(() => {
-						//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [item.name]) })
-					}).catch((err) => {
-						console.error(err)
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-						showToast({ message: err.toString() })
-					})
-				}
-			})
-		}).catch((err) => {
-			console.error(err)
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-			showToast({ message: err.toString() })
+			return
+		}
+
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		items.forEach((item) => {
+			if(item.offline){
+				removeFromOfflineStorage({ item }).then(() => {
+					//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [item.name]) })
+				}).catch((err) => {
+					console.error(err)
+
+					showToast({ message: err.toString() })
+				})
+			}
 		})
 	}, [lang, JSON.stringify(bulkItems)])
 
@@ -491,28 +510,36 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 			return
 		}
 
-		hasStoragePermissions().then(() => {
-			items.forEach((item) => {
-				queueFileDownload({ file: item }).catch((err) => {
-					if(err == "stopped"){
-						return
-					}
-					
-					if(err == "wifiOnly"){
-						showToast({ message: i18n(lang, "onlyWifiDownloads") })
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-						return
-					}
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-					console.error(err)
+			return
+		}
 
-					showToast({ message: err.toString() })
-				})
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		items.forEach((item) => {
+			queueFileDownload({ file: item }).catch((err) => {
+				if(err == "stopped"){
+					return
+				}
+				
+				if(err == "wifiOnly"){
+					showToast({ message: i18n(lang, "onlyWifiDownloads") })
+
+					return
+				}
+
+				console.error(err)
+
+				showToast({ message: err.toString() })
 			})
-		}).catch((err) => {
-			console.error(err)
-
-			showToast({ message: err.toString() })
 		})
 	}, [lang, JSON.stringify(bulkItems)])
 

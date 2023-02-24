@@ -54,14 +54,24 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 
     useEffect(() => {
         Promise.all([
-            hasStoragePermissions(),
-            hasPhotoLibraryPermissions()
-        ]).then(() => {
+            hasStoragePermissions(true),
+            hasPhotoLibraryPermissions(true)
+        ]).then((hasPermissions) => {
+            if(!hasPermissions[0] || !hasPermissions[1]){
+                setHasPermissions(false)
+
+                showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+                return
+            }
+
             setHasPermissions(true)
         }).catch((err) => {
+            showToast({ message: err.toString() })
+
             setHasPermissions(false)
 
-            console.log(err)
+            console.error(err)
         })
     }, [])
 

@@ -5,7 +5,7 @@ import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
-import { formatBytes, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey } from "../../../lib/helpers"
+import { formatBytes, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../../lib/permissions"
@@ -59,155 +59,164 @@ const ProfilePictureActionSheet = memo(() => {
 
 	const takePhoto = useCallback(async () => {
 		await SheetManager.hide("ProfilePictureActionSheet")
+		await new Promise(resolve => setTimeout(resolve, 100))
 
-		setTimeout(() => {
-			hasCameraPermissions().then(() => {
-				storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasCameraPermissions(true))
 
-				RNImagePicker.launchCamera({
-					maxWidth: 999999999,
-					maxHeight: 999999999,
-					videoQuality: "low",
-					cameraType: "back",
-					quality: 0.2,
-					includeBase64: false,
-					saveToPhotos: false,
-					mediaType: "photo"
-				}, (response) => {
-					if(response.errorMessage){
-						console.log(response.errorMessage)
+		if(hasPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-						showToast({ message: response.errorMessage })
+			return
+		}
 
-						return
-					}
-					
-					if(response.didCancel){
-						return
-					}
+		if(!hasPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-					if(response.errorMessage){
-						console.error(response.errorMessage)
+			return
+		}
 
-						showToast({ message: response.errorMessage.toString() })
+		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
 
-						return
-					}
+		RNImagePicker.launchCamera({
+			maxWidth: 999999999,
+			maxHeight: 999999999,
+			videoQuality: "low",
+			cameraType: "back",
+			quality: 0.2,
+			includeBase64: false,
+			saveToPhotos: false,
+			mediaType: "photo"
+		}, (response) => {
+			if(response.errorMessage){
+				console.log(response.errorMessage)
 
-					if(typeof response.assets == "undefined"){
-						return
-					}
+				showToast({ message: response.errorMessage })
 
-					if(!Array.isArray(response.assets)){
-						return
-					}
-
-					if(typeof response.assets[0] == "undefined"){
-						return
-					}
-
-					const image = response.assets[0]
-
-					if(!allowedTypes.includes(image.type as string)){
-						showToast({ message: i18n(lang, "avatarInvalidImage") })
-
-						return
-					}
-
-					if(image.fileSize as number > ((1024 * 1024) * 2.99)){
-						useStore.setState({ fullscreenLoadingModalVisible: false })
+				return
+			}
 			
-						showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
+			if(response.didCancel){
+				return
+			}
 
-						return
-					}
+			if(response.errorMessage){
+				console.error(response.errorMessage)
 
-					uploadAvatarImage(decodeURIComponent(image.uri as string))
-				})
-			}).catch((err) => {
-				console.error(err)
+				showToast({ message: response.errorMessage.toString() })
 
-				showToast({ message: err.toString() })
-			})
-		}, 500)
+				return
+			}
+
+			if(typeof response.assets == "undefined"){
+				return
+			}
+
+			if(!Array.isArray(response.assets)){
+				return
+			}
+
+			if(typeof response.assets[0] == "undefined"){
+				return
+			}
+
+			const image = response.assets[0]
+
+			if(!allowedTypes.includes(image.type as string)){
+				showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+				return
+			}
+
+			if(image.fileSize as number > ((1024 * 1024) * 2.99)){
+				useStore.setState({ fullscreenLoadingModalVisible: false })
+	
+				showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
+
+				return
+			}
+
+			uploadAvatarImage(decodeURIComponent(image.uri as string))
+		})
 	}, [lang])
 
 	const fromGallery = useCallback(async () => {
 		await SheetManager.hide("ProfilePictureActionSheet")
+		await new Promise(resolve => setTimeout(resolve, 100))
 
-		setTimeout(() => {
-			hasPhotoLibraryPermissions().then(() => {
-				hasStoragePermissions().then(() => {
-					storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
 
-					RNImagePicker.launchImageLibrary({
-						mediaType: "photo",
-						selectionLimit: 1,
-						quality: 0.2,
-						videoQuality: "low",
-						includeBase64: false,
-						maxWidth: 999999999,
-						maxHeight: 999999999
-					}, (response) => {
-						if(response.didCancel){
-							return
-						}
+		if(hasStoragePermissionsError || hasPhotoLibraryPermissionsError){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-						if(response.errorMessage){
-							console.error(response.errorMessage)
+			return
+		}
 
-							showToast({ message: response.errorMessage.toString() })
+		if(!hasStoragePermissionsResult || !hasPhotoLibraryPermissionsResult){
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
-							return
-						}
+			return
+		}
 
-						if(typeof response.assets == "undefined"){
-							showToast({ message: i18n(lang, "avatarInvalidImage") })
+		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
 
-							return
-						}
+		RNImagePicker.launchImageLibrary({
+			mediaType: "photo",
+			selectionLimit: 1,
+			quality: 0.2,
+			videoQuality: "low",
+			includeBase64: false,
+			maxWidth: 999999999,
+			maxHeight: 999999999
+		}, (response) => {
+			if(response.didCancel){
+				return
+			}
+
+			if(response.errorMessage){
+				console.error(response.errorMessage)
+
+				showToast({ message: response.errorMessage.toString() })
+
+				return
+			}
+
+			if(typeof response.assets == "undefined"){
+				showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+				return
+			}
+
+			if(!Array.isArray(response.assets)){
+				showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+				return
+			}
+
+			if(typeof response.assets[0] == "undefined"){
+				showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+				return
+			}
+
+			const image = response.assets[0]
+
+			if(!allowedTypes.includes(image.type as string)){
+				showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+				return
+			}
+
+			if(image.fileSize as number > ((1024 * 1024) * 2.99)){
+				useStore.setState({ fullscreenLoadingModalVisible: false })
 	
-						if(!Array.isArray(response.assets)){
-							showToast({ message: i18n(lang, "avatarInvalidImage") })
+				showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
 
-							return
-						}
-	
-						if(typeof response.assets[0] == "undefined"){
-							showToast({ message: i18n(lang, "avatarInvalidImage") })
+				return
+			}
 
-							return
-						}
-	
-						const image = response.assets[0]
-
-						if(!allowedTypes.includes(image.type as string)){
-							showToast({ message: i18n(lang, "avatarInvalidImage") })
-
-							return
-						}
-
-						if(image.fileSize as number > ((1024 * 1024) * 2.99)){
-							useStore.setState({ fullscreenLoadingModalVisible: false })
-				
-							showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
-
-							return
-						}
-
-						uploadAvatarImage(decodeURIComponent(image.uri as string))
-					})
-				}).catch((err) => {
-					console.error(err)
-
-					showToast({ message: err.toString() })
-				})
-			}).catch((err) => {
-				console.error(err)
-
-				showToast({ message: err.toString() })
-			})
-		}, 500)
+			uploadAvatarImage(decodeURIComponent(image.uri as string))
+		})
 	}, [])
 
     return (

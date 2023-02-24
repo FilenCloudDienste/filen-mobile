@@ -20,7 +20,7 @@ import { memoize } from "lodash"
 import { Asset } from "expo-media-library"
 import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 import { getThumbnailCacheKey } from "../thumbnails"
-import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata } from "../../crypto"
+import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata, FileMetadata } from "../../crypto"
 import { PreviewItem } from "../../../screens/ImageViewerScreen"
 import * as db from "../../db"
 
@@ -94,14 +94,7 @@ export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn
 
 export interface BuildFile {
     file: any,
-    metadata?: {
-        name: string,
-        mime: string,
-        size: number,
-        key: string,
-        lastModified: number,
-        hash: string
-    },
+    metadata?: FileMetadata,
     masterKeys?: string[],
     sharedIn?: boolean,
     privateKey?: string,

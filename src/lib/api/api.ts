@@ -2189,7 +2189,7 @@ export const fetchOfflineFilesInfo = ({ files }: { files: any }): Promise<any> =
     })
 }
 
-export const fetchEvents = ({ timestamp = (Math.floor(new Date().getTime() / 1000) + 60), filter = "all" }: { timestamp?: number, filter?: string }): Promise<{ events: any, limit: number }> => {
+export const fetchEvents = ({ timestamp, filter }: { timestamp: number, filter: string }): Promise<{ events: any, limit: number }> => {
     return new Promise((resolve, reject) => {
         apiRequest({
             method: "POST",

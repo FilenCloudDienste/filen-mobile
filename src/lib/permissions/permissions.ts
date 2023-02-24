@@ -1,176 +1,127 @@
 import { Platform } from "react-native"
 import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } from "react-native-permissions"
-import storage from "../storage"
-import { i18n } from "../../i18n"
 import * as MediaLibrary from "expo-media-library"
 
-export const hasWritePermissions = (requestPermissions: boolean = true): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        if(Platform.OS == "android"){
-            check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE).then((status) => {
-                if(status == RESULTS.GRANTED){
-                    return resolve(true)
-                }
+export const hasWritePermissions = async (requestPermissions: boolean): Promise<boolean> => {
+    if(Platform.OS == "ios"){
+        return true
+    }
 
-                request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE).then((requestStatus) => {
-                    if(requestStatus == RESULTS.GRANTED){
-                        return resolve(true)
-                    }
+    const has = await check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE)
 
-                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-                }).catch(reject)
-            }).catch(reject)
+    if(has !== RESULTS.GRANTED){
+        if(!requestPermissions){
+            return false
         }
-        else{
-            return resolve(true)
+
+        const get = await request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE)
+
+        if(get !== RESULTS.GRANTED){
+            return false
         }
-    })
+    }
+
+    return true
 }
 
-export const hasReadPermissions = (requestPermissions: boolean = true): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        if(Platform.OS == "android"){
-            check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE).then((status) => {
-                if(status == RESULTS.GRANTED){
-                    return resolve(true)
-                }
+export const hasReadPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+    if(Platform.OS == "ios"){
+        return true
+    }
 
-                request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE).then((requestStatus) => {
-                    if(requestStatus == RESULTS.GRANTED){
-                        return resolve(true)
-                    }
+    const has = await check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE)
 
-                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-                }).catch(reject)
-            }).catch(reject)
+    if(has !== RESULTS.GRANTED){
+        if(!requestPermissions){
+            return false
         }
-        else{
-            return resolve(true)
+
+        const get = await request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE)
+
+        if(get !== RESULTS.GRANTED){
+            return false
         }
-    })
+    }
+
+    return true
 }
 
-export const hasCameraPermissions = (requestPermissions: boolean = true): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        if(Platform.OS == "android"){
-            check(PERMISSIONS.ANDROID.CAMERA).then((status) => {
-                if(status == RESULTS.GRANTED){
-                    return resolve(true)
-                }
-
-                if(!requestPermissions){
-                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-                }
-
-                request(PERMISSIONS.ANDROID.CAMERA).then((requestStatus) => {
-                    if(requestStatus == RESULTS.GRANTED){
-                        return resolve(true)
-                    }
-
-                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-                }).catch(reject)
-            }).catch(reject)
-        }
-        else{
-            check(PERMISSIONS.IOS.CAMERA).then((status) => {
-                if(status == RESULTS.GRANTED){
-                    return resolve(true)
-                }
-
-                request(PERMISSIONS.IOS.CAMERA).then((requestStatus) => {
-                    if(requestStatus == RESULTS.GRANTED){
-                        return resolve(true)
-                    }
-
-                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-                }).catch(reject)
-            }).catch(reject)
-        }
-    })
-}
-
-export const hasBiometricPermissions = (requestPermissions: boolean = true): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        if(Platform.OS == "android"){
-            return resolve(true)
-        }
-        else{
-            check(PERMISSIONS.IOS.FACE_ID).then((status) => {
-                if(status == RESULTS.GRANTED){
-                    return resolve(true)
-                }
-
-                request(PERMISSIONS.IOS.FACE_ID).then((requestStatus) => {
-                    if(requestStatus == RESULTS.GRANTED){
-                        return resolve(true)
-                    }
-
-                    return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-                }).catch(reject)
-            }).catch(reject)
-        }
-    })
-}
-
-export const hasPhotoLibraryPermissions = (requestPermissions: boolean = true): Promise<boolean> => {
-    return new Promise(async (resolve, reject) => {
-        const rest = () => {
-            if(Platform.OS == "android"){
-                check(PERMISSIONS.ANDROID.ACCESS_MEDIA_LOCATION).then((status) => {
-                    if(status == RESULTS.GRANTED){
-                        return resolve(true)
-                    }
+export const hasCameraPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+    const permissions = Platform.OS == "android" ? PERMISSIONS.ANDROID.CAMERA : PERMISSIONS.IOS.CAMERA
+    const has = await check(permissions)
     
-                    request(PERMISSIONS.ANDROID.ACCESS_MEDIA_LOCATION).then((requestStatus) => {
-                        if(requestStatus == RESULTS.GRANTED){
-                            return resolve(true)
-                        }
-    
-                        hasStoragePermissions(requestPermissions).then(resolve).catch(reject)
-                    }).catch(reject)
-                }).catch(reject)
-            }
-            else{
-                checkMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((statuses) => {
-                    if(
-                        RESULTS.GRANTED == statuses[PERMISSIONS.IOS.PHOTO_LIBRARY]
-                        && RESULTS.GRANTED == statuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
-                    ){
-                        return resolve(true)
-                    }
-    
-                    requestMultiple([PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]).then((requestStatuses) => {
-                        if(
-                            RESULTS.GRANTED == requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY]
-                            && RESULTS.GRANTED == requestStatuses[PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
-                        ){
-                            return resolve(true)
-                        }
-        
-                        return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-                    }).catch(reject)
-                }).catch(reject)
-            }
+    if(has !== RESULTS.GRANTED){
+        if(!requestPermissions){
+            return false
         }
 
-        MediaLibrary.getPermissionsAsync(false).then((status) => {
-            if(!status.granted){
-                MediaLibrary.requestPermissionsAsync(false).then((status) => {
-                    if(!status.granted){
-                        return reject(i18n(storage.getString("lang"), "pleaseGrantPermission"))
-                    }
+        const get = await request(permissions)
 
-                    rest()
-                }).catch(reject)
-            }
-            else{
-                rest()
-            }
-        }).catch(reject)
-    })
+        if(get !== RESULTS.GRANTED){
+            return false
+        }
+    }
+
+    return true
 }
 
-export const hasStoragePermissions = async (requestPermissions: boolean = true): Promise<boolean> => {
+export const hasBiometricPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+    if(Platform.OS == "android"){
+        return true
+    }
+
+    const has = await check(PERMISSIONS.IOS.FACE_ID)
+
+    if(has !== RESULTS.GRANTED){
+        if(!requestPermissions){
+            return false
+        }
+
+        const get = await request(PERMISSIONS.IOS.FACE_ID)
+
+        if(get !== RESULTS.GRANTED){
+            return false
+        }
+    }
+
+    return true
+}
+
+export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+    const permissions = Platform.OS == "ios" ? [PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY] : [PERMISSIONS.ANDROID.ACCESS_MEDIA_LOCATION]
+
+    const hasMediaLib = await MediaLibrary.getPermissionsAsync(false)
+
+    if(!hasMediaLib.granted){
+        if(!requestPermissions){
+            return false
+        }
+
+        const getMediaLib = await MediaLibrary.requestPermissionsAsync(false)
+
+        if(!getMediaLib.granted){
+            return false
+        }
+    }
+
+    const has = await checkMultiple(permissions)
+
+    if(Object.values(has).filter(value => value == RESULTS.GRANTED).length <= 0){
+        if(!requestPermissions){
+            return false
+        }
+
+        const get = await requestMultiple(permissions)
+
+        if(Object.values(get).filter(value => value == RESULTS.GRANTED).length <= 0){
+            return false
+        }
+    }
+
+    return true
+}
+
+export const hasStoragePermissions = async (requestPermissions: boolean): Promise<boolean> => {
     if(Platform.OS == "ios"){
         return true
     }
@@ -180,9 +131,9 @@ export const hasStoragePermissions = async (requestPermissions: boolean = true):
         hasWritePermissions(requestPermissions)
     ])
 
-    if(read && write){
-        return true
+    if(!read || !write){
+        return false
     }
 
-    throw i18n(storage.getString("lang"), "pleaseGrantPermission")
+    return true
 }

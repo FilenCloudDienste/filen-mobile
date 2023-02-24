@@ -3,7 +3,7 @@ import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { formatBytes, getFilenameFromPath } from "../../lib/helpers"
+import { formatBytes, getFilenameFromPath, safeAwait } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
@@ -13,7 +13,7 @@ import { getColor } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
 import RNFS from "react-native-fs"
 import { getDownloadPath } from "../../lib/services/download/download"
-import { hasStoragePermissions } from "../../lib/permissions"
+import { hasStoragePermissions, hasBiometricPermissions } from "../../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../../lib/statusbar"
 import { isOnline } from "../../lib/services/isOnline"
@@ -298,7 +298,13 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
                 const avatarName = getFilenameFromPath(userInfo.avatarURL)
 
                 if(userAvatarCached !== avatarName){
-                    hasStoragePermissions().then(() => {
+                    hasStoragePermissions(true).then((hasPermissions) => {
+                        if(!hasPermissions){
+                            showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+                            return
+                        }
+
                         getDownloadPath({ type: "misc" }).then(async (path) => {
                             const avatarPath = path + avatarName
         
@@ -329,15 +335,9 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
                                 }
 
                                 setUserAvatarCached(avatarName)
-                            }).catch((err) => {
-                                console.log(err)
-                            })
-                        }).catch((err) => {
-                            console.log(err)
-                        })
-                    }).catch((err) => {
-                        console.log(err)
-                    })
+                            }).catch(console.error)
+                        }).catch(console.error)
+                    }).catch(console.error)
                 }
                 else{
                     if(typeof userAvatarCached == "string"){
@@ -778,7 +778,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                             trackColor={getColor(darkMode, "switchTrackColor")}
                             thumbColor={biometricPinAuth ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
                             ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-                            onValueChange={() => {
+                            onValueChange={async () => {
                                 if(biometricPinAuth){
                                     return Alert.alert(i18n(lang, "disableBiometricPinAuth"), i18n(lang, "disableBiometricPinAuthWarning"), [
                                         {
@@ -823,11 +823,24 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                                     })
                                 }
 
-                                waitForStateUpdate("biometricAuthScreenState", "setup").then(() => {
-                                    navigationAnimation({ enable: true }).then(() => {
-                                        navigation.dispatch(StackActions.push("BiometricAuthScreen"))
-                                    })
-                                })
+                                const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasBiometricPermissions(true))
+
+                                if(hasPermissionsError){
+                                    showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+                                    return
+                                }
+
+                                if(!hasPermissionsResult){
+                                    showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+                                    return
+                                }
+
+                                await waitForStateUpdate("biometricAuthScreenState", "setup")
+                                await navigationAnimation({ enable: true })
+                                
+                                navigation.dispatch(StackActions.push("BiometricAuthScreen"))
                             }}
                             value={biometricPinAuth}
                         />

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from "react"
-import { Text, View, FlatList, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent, FlatListProps } from "react-native"
+import { Text, View, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, isBetween, getFilePreviewType } from "../../lib/helpers"
@@ -17,6 +17,7 @@ import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { useMountedState } from "react-use"
+import { FlashList } from "@shopify/flash-list"
 
 export interface ItemListProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
@@ -289,20 +290,27 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
         }
     }, [photosRange, photosGridSize, routeURL, currentItems, items, viewModeParsed])
 
-    const getItemLayout = useCallback((item: FlatListProps<Item> | any, index: number) => {
+    const estimatedItemSize = useMemo(() => {
         const listItemHeight: number = 60
         const gridLengthDefault: number = (Math.floor((dimensions.width - (insets.left + insets.right)) / itemsPerRow) + 55)
-        const gridLength: number = item.type == "folder" ? 40 : gridLengthDefault
         const photosAllLength: number = Math.floor(dimensions.width / calcPhotosGridSize(photosGridSize))
         const photosLength: number = Math.floor((dimensions.width - (insets.left + insets.right)) - 1.5)
-        const length: number = routeURL.indexOf("photos") !== -1 ? photosRange == "all" ? photosAllLength : photosLength : viewModeParsed[routeURL] == "grid" ? gridLength : listItemHeight
 
-        return {
-            length,
-            offset: length * index,
-            index
+        if(routeURL.indexOf("photos") !== -1){
+            if(photosRange == "all"){
+                return photosAllLength
+            }
+            else{
+                return photosLength
+            }
         }
-    }, [photosRange, dimensions, photosGridSize, insets, viewModeParsed, routeURL, itemsPerRow])
+
+        if(viewModeParsed[routeURL] == "grid"){
+            return gridLengthDefault
+        }
+
+        return listItemHeight
+    }, [photosRange, dimensions, photosGridSize, insets, viewModeParsed, routeURL])
 
     const numColumns = useMemo(() => {
         return routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : viewModeParsed[routeURL] == "grid" ? itemsPerRow : 1
@@ -821,17 +829,16 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                     </>
                 )
             }
-            <FlatList
+            <FlashList
                 data={generatedItemList}
                 key={listKey}
                 renderItem={renderItemFn}
                 keyExtractor={keyExtractor}
-                windowSize={4}
                 ref={itemListRef}
                 initialScrollIndex={typeof initScrollIndex == "number" ? (isBetween(initScrollIndex, 0, generatedItemList.length) ? initScrollIndex : 0) : 0}
                 numColumns={numColumns}
-                getItemLayout={getItemLayout}
                 onScroll={onListScroll}
+                estimatedItemSize={estimatedItemSize}
                 ListEmptyComponent={() => {
                     return (
                         <View
@@ -880,10 +887,6 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                         tintColor={getColor(darkMode, "textPrimary")}
                     />
                 }
-                style={{
-                    height: "100%",
-                    width: "100%"
-                }}
                 onViewableItemsChanged={onViewableItemsChangedRef.current}
                 viewabilityConfig={viewabilityConfigRef.current}
             />
