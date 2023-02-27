@@ -387,7 +387,7 @@ export const zh: {
     startOnCloudScreen: "在云盘界面开始",
     appSetupNotPossible: "无法初始化应用程序。也许你离线了？",
     shareIntoAppLimit: "您无法一次分享多于 __LIMIT__ 个文件到该应用",
-    cameraUploadFetchingAssetsFromLocal: "准备本地文件"
+    cameraUploadFetchingAssetsFromLocal: "准备本地文件",
     cannotShareDirIntoApp: "你不能将一个目录共享到应用程序中",
     alreadyUploadingFile: "已经在上传 __NAME__ 了",
     publicLink: "公共链接",
