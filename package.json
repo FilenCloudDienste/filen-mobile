@@ -1,6 +1,6 @@
 {
 	"name": "filen-mobile",
-	"version": "2.0.37",
+	"version": "2.0.38",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
@@ -13,11 +13,13 @@
 		"splash": "react-native generate-bootsplash bootsplash.png --background-color=#263179 --logo-width=100 --flavor=main --assets-path=src/assets",
 		"icons": "react-native-svg-app-icon",
 		"install-release-apk": "adb -s 6c7a7e7b install android/app/build/outputs/apk/release/app-release.apk",
-		"install-release-apk-emulator": "adb -s emulator-5554 install android/app/build/outputs/apk/release/app-release.apk"
+		"install-release-apk-emulator": "adb -s emulator-5554 install android/app/build/outputs/apk/release/app-release.apk",
+		"android-release": "react-native run-android --variant=release deviceId=6c7a7e7b"
 	},
 	"dependencies": {
 		"@dudigital/react-native-zoomable-view": "1.1.3",
 		"@react-native-community/hooks": "2.8.1",
+		"@react-native-community/netinfo": "^9.3.7",
 		"@react-native-picker/picker": "2.2.1",
 		"@react-navigation/native": "6.0.8",
 		"@react-navigation/native-stack": "6.5.2",

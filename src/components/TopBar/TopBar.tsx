@@ -239,6 +239,12 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                         type: "unselect-all-items"
                                     })
                                 }}
+                                hitSlop={{
+                                    top: 15,
+                                    bottom: 15,
+                                    right: 15,
+                                    left: 15
+                                }}
                             >
                                 <Ionicon
                                     name="chevron-back-outline"
@@ -266,6 +272,12 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                                         justifyContent: "flex-start"
                                     }}
                                     onPress={() => goBack()}
+                                    hitSlop={{
+                                        top: 15,
+                                        bottom: 15,
+                                        right: 15,
+                                        left: 15
+                                    }}
                                 >
                                     <Ionicon
                                         name="chevron-back-outline"
@@ -310,10 +322,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
                     </View>
                     <TouchableOpacity
                         hitSlop={{
-                            top: 10,
-                            right: 10,
-                            left: 10,
-                            bottom: 10
+                            top: 15,
+                            bottom: 15,
+                            right: 15,
+                            left: 15
                         }}
                         style={{
                             alignItems: "flex-end",

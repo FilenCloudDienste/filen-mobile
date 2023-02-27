@@ -461,10 +461,10 @@ export const TransfersScreenBody = memo(({ currentTransfers, currentUploads, cur
                     rightComponent={
                         <TouchableOpacity
                             hitSlop={{
-                                top: 10,
-                                right: 10,
-                                left: 10,
-                                bottom: 10
+                                top: 15,
+                                bottom: 15,
+                                right: 15,
+                                left: 15
                             }}
                             style={{
                                 alignItems: "center",

@@ -571,6 +571,12 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                                         alignItems: "flex-end",
                                         paddingRight: 15
                                     }}
+                                    hitSlop={{
+                                        top: 15,
+                                        bottom: 15,
+                                        right: 15,
+                                        left: 15
+                                    }}
                                     onPress={() => navigation.goBack()}
                                 >
                                     <Text
@@ -620,6 +626,12 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
                                         justifyContent: "center",
                                         alignItems: "flex-end",
                                         paddingRight: 15
+                                    }}
+                                    hitSlop={{
+                                        top: 15,
+                                        bottom: 15,
+                                        right: 15,
+                                        left: 15
                                     }}
                                     onPress={() => {
                                         if(typeof params.prevNavigationState !== "undefined"){

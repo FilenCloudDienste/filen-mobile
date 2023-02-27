@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from "react"
-import { View, DeviceEventEmitter, Platform } from "react-native"
+import { View, DeviceEventEmitter, Platform, useWindowDimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "../../components/TopBar"
@@ -32,7 +32,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const routeURL = useRef<string>(getRouteURL(route)).current
     const [items, setItems] = useState<Item[]>(memoryCache.has("loadItems:" + routeURL) ? memoryCache.get("loadItems:" + routeURL) : [])
     const [searchTerm, setSearchTerm] = useState<string>("")
-    const [loadDone, setLoadDone] = useState<boolean>(false)
+    const [loadDone, setLoadDone] = useState<boolean>(items.length > 0)
     const setNavigation = useStore(state => state.setNavigation)
     const setRoute = useStore(state => state.setRoute)
     const isMounted = useMountedState()
@@ -53,6 +53,8 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const [initialized, setInitialized] = useState<boolean>(false)
     const isFocused = useIsFocused()
     const [sortByDb, setSortByDb] = useMMKVString("sortBy", storage)
+    const dimensions = useWindowDimensions()
+    const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
 
     const sortBy: string | undefined = useMemo(() => {
         const parsed = JSON.parse(sortByDb || "{}")
@@ -198,6 +200,19 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             setLoadDone(true)
         }
     }, [route])
+
+    const listDimensions = useMemo(() => {
+        return {
+            width: dimensions.width,
+            height: routeURL.indexOf("photos") !== -1
+                ? (contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26))
+                : (contentHeight - topBarHeight - bottomBarHeight + 30)
+        }
+    }, [dimensions, portrait, contentHeight, bottomBarHeight, topBarHeight])
+
+    useEffect(() => {
+        setPortrait(dimensions.height >= dimensions.width)
+    }, [dimensions])
 
     useEffect(() => {
         if(isMounted() && initialized){
@@ -415,9 +430,8 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             />
             <View
                 style={{
-                    height: routeURL.indexOf("photos") !== -1
-                            ? (contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26))
-                            : (contentHeight - topBarHeight - bottomBarHeight + 30)
+                    height: listDimensions.height,
+                    width: listDimensions.width
                 }}
             >
                 <ItemList
@@ -428,6 +442,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                     searchTerm={searchTerm}
                     isMounted={isMounted}
                     populateList={populateList}
+                    listDimensions={listDimensions}
                 />
             </View>
         </View>

@@ -239,7 +239,15 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                         >
                             {
                                 textEditorText !== value && (
-                                    <TouchableOpacity onPress={() => save()}>
+                                    <TouchableOpacity
+                                        onPress={() => save()}
+                                        hitSlop={{
+                                            top: 15,
+                                            bottom: 15,
+                                            right: 15,
+                                            left: 15
+                                        }}
+                                    >
                                         <Ionicon
                                             name="save-outline"
                                             size={21}

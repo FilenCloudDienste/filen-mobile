@@ -26,10 +26,14 @@ export interface ItemListProps {
     searchTerm: string,
     isMounted: () => boolean,
     populateList: Function,
-    loadDone: boolean
+    loadDone: boolean,
+    listDimensions: {
+        width: number,
+        height: number
+    }
 }
 
-export const ItemList = memo(({ navigation, route, items, searchTerm, populateList, loadDone }: ItemListProps) => {
+export const ItemList = memo(({ navigation, route, items, searchTerm, populateList, loadDone, listDimensions }: ItemListProps) => {
     const darkMode = useDarkMode()
     const [refreshing, setRefreshing] = useState<boolean>(false)
     const [viewMode, setViewMode] = useMMKVString("viewMode", storage)
@@ -45,10 +49,8 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
     const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
-    const itemListRef = useRef<any>()
-    const [routeURL, setRouteURL] = useState<string>(getRouteURL(route))
+    const routeURL = useRef<string>(getRouteURL(route)).current
     const [scrollIndex, setScrollIndex] = useState<number>(0)
-    const [currentItems, setCurrentItems] = useState<any>([])
     const insets = useSafeAreaInsets()
     const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
     const networkInfo = useNetworkInfo()
@@ -258,37 +260,29 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
             }
         }
 
+        const index = scrollToIndex >= 0 && scrollToIndex <= itemsForIndexLoop.length ? scrollToIndex : 0
+
         if(!isMounted()){
             return
         }
 
-        setScrollIndex(scrollToIndex >= 0 && scrollToIndex <= itemsForIndexLoop.length ? scrollToIndex : 0)
         setPhotosRange(nextRangeSelection)
+        setScrollIndex(index)
     }, [photosRange, items, lang])
 
+    const generatedItemList = useMemo<Item[]>(() => {
+        return generateItemsForItemList(items, normalizePhotosRange(photosRange), lang)
+    }, [items, photosRange, lang])
+
     const getInitialScrollIndex = useCallback(() => {
-        const range = normalizePhotosRange(photosRange)
-        const gridSize = calcPhotosGridSize(photosGridSize)
-        const viewMode = routeURL.indexOf("photos") !== -1 ? "photos" : viewModeParsed[routeURL]
-        const itemsLength = currentItems.length > 0 ? currentItems.length : items.length
+        const itemsLength = generatedItemList.length
 
         if(!isMounted()){
             return 0
         }
 
-        if(viewMode == "list"){
-            return scrollIndex >= 0 && scrollIndex <= itemsLength ? scrollIndex : 0
-        }
-
-        if(range == "all"){
-            const calcedIndex = Math.floor(scrollIndex / gridSize)
-
-            return calcedIndex >= 0 && calcedIndex <= itemsLength ? calcedIndex : 0
-        }
-        else{
-            return scrollIndex >= 0 && scrollIndex <= itemsLength ? scrollIndex : 0
-        }
-    }, [photosRange, photosGridSize, routeURL, currentItems, items, viewModeParsed])
+        return isBetween(scrollIndex, 0, itemsLength) ? scrollIndex : 0
+    }, [generatedItemList.length, scrollIndex])
 
     const estimatedItemSize = useMemo(() => {
         const listItemHeight: number = 60
@@ -316,19 +310,11 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
         return routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : viewModeParsed[routeURL] == "grid" ? itemsPerRow : 1
     }, [routeURL, photosRange, photosGridSize, viewModeParsed, itemsPerRow])
 
-    const initScrollIndex = useMemo(() => {
-        return (currentItems.length > 0 ? currentItems.length : generateItemsForItemList(items, normalizePhotosRange(photosRange), lang).length) > 0 ? getInitialScrollIndex() : 0
-    }, [currentItems, items, photosRange, lang])
-
     const listKey = useMemo(() => {
         const base = routeURL.indexOf("photos") !== -1 ? "photos:" + (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : normalizePhotosRange(photosRange)) : viewModeParsed[routeURL] == "grid" ? "grid-" + itemsPerRow : "list"
 
-        return base + "-" + (portrait ? "portrait" : "landscape") + "-" + itemsPerRow
+        return base + ":" + (portrait ? "portrait" : "landscape")
     }, [routeURL, photosRange, photosGridSize, viewModeParsed, itemsPerRow, portrait])
-
-    const generatedItemList = useMemo<Item[]>(() => {
-        return generateItemsForItemList(items, normalizePhotosRange(photosRange), lang)
-    }, [items, photosRange, lang])
 
     const onListScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
         if(e.nativeEvent.layoutMeasurement.height > e.nativeEvent.contentSize.height){
@@ -440,10 +426,8 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     }, [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick, itemsPerRow, route])
 
     useEffect(() => {
-        if(isMounted()){
-            setCurrentItems(generateItemsForItemList(items, normalizePhotosRange(photosRange), lang))
-        }
-    }, [items, photosRange, lang, viewModeParsed, portrait])
+        setPortrait(dimensions.height >= dimensions.width)
+    }, [dimensions])
 
     useEffect(() => {
         if(items.length > 0 && isMounted()){
@@ -829,67 +813,97 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                     </>
                 )
             }
-            <FlashList
-                data={generatedItemList}
-                key={listKey}
-                renderItem={renderItemFn}
-                keyExtractor={keyExtractor}
-                ref={itemListRef}
-                initialScrollIndex={typeof initScrollIndex == "number" ? (isBetween(initScrollIndex, 0, generatedItemList.length) ? initScrollIndex : 0) : 0}
-                numColumns={numColumns}
-                onScroll={onListScroll}
-                estimatedItemSize={estimatedItemSize}
-                ListEmptyComponent={() => {
-                    return (
-                        <View
-                            style={{
-                                width: "100%",
-                                height: Math.floor(dimensions.height - 250),
-                                justifyContent: "center",
-                                alignItems: "center",
-                                alignContent: "center"
-                            }}
-                        >
-                            {
-                                !loadDone ? (
-                                    <View>
-                                        <ActivityIndicator
-                                            color={getColor(darkMode, "textPrimary")}
-                                            size="small"
-                                        />
-                                    </View>
-                                ) : (
-                                    <ListEmpty
-                                        route={route}
-                                        searchTerm={searchTerm}
-                                    />
-                                )
-                            }
-                        </View>
-                    )
-                }}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={async () => {
-                            if(!loadDone){
-                                return
-                            }
-
-                            setRefreshing(true)
-        
-                            await new Promise((resolve) => setTimeout(resolve, 500))
-
-                            populateList(true).catch(console.error)
-
-                            setRefreshing(false)
+            {
+                items.length > 0 && loadDone ? (
+                    <FlashList
+                        data={generatedItemList}
+                        key={listKey}
+                        renderItem={renderItemFn}
+                        keyExtractor={keyExtractor}
+                        initialScrollIndex={getInitialScrollIndex()}
+                        numColumns={numColumns}
+                        onScroll={onListScroll}
+                        estimatedItemSize={estimatedItemSize}
+                        estimatedListSize={listDimensions}
+                        ListEmptyComponent={() => {
+                            return (
+                                <View
+                                    style={{
+                                        width: listDimensions.width,
+                                        height: listDimensions.height,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        alignContent: "center"
+                                    }}
+                                >
+                                    {
+                                        !loadDone ? (
+                                            <View>
+                                                <ActivityIndicator
+                                                    color={getColor(darkMode, "textPrimary")}
+                                                    size="small"
+                                                />
+                                            </View>
+                                        ) : (
+                                            <ListEmpty
+                                                route={route}
+                                                searchTerm={searchTerm}
+                                            />
+                                        )
+                                    }
+                                </View>
+                            )
                         }}
-                        tintColor={getColor(darkMode, "textPrimary")}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={async () => {
+                                    if(!loadDone){
+                                        return
+                                    }
+
+                                    setRefreshing(true)
+                
+                                    await new Promise((resolve) => setTimeout(resolve, 500))
+
+                                    populateList(true).catch(console.error)
+
+                                    setRefreshing(false)
+                                }}
+                                tintColor={getColor(darkMode, "textPrimary")}
+                            />
+                        }
+                        onViewableItemsChanged={onViewableItemsChangedRef.current}
+                        viewabilityConfig={viewabilityConfigRef.current}
                     />
-                }
-                onViewableItemsChanged={onViewableItemsChangedRef.current}
-                viewabilityConfig={viewabilityConfigRef.current}
-            />
+                ) : (
+                    <View
+                        style={{
+                            width: listDimensions.width,
+                            height: listDimensions.height,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            alignContent: "center"
+                        }}
+                    >
+                        {
+                            !loadDone ? (
+                                <View>
+                                    <ActivityIndicator
+                                        color={getColor(darkMode, "textPrimary")}
+                                        size="small"
+                                    />
+                                </View>
+                            ) : (
+                                <ListEmpty
+                                    route={route}
+                                    searchTerm={searchTerm}
+                                />
+                            )
+                        }
+                    </View>
+                )
+            }
         </View>
     )
 })

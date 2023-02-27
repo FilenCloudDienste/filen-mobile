@@ -33,6 +33,12 @@ const DefaultTopBar = memo(({ onPressBack, leftText, middleText, rightComponent,
                     width: "33%",
                     justifyContent: "flex-start"
                 }}
+                hitSlop={{
+                    top: 15,
+                    bottom: 15,
+                    right: 15,
+                    left: 15
+                }}
                 onPress={typeof hideLeftComponent == "undefined" ? () => onPressBack() : undefined}
             >
                 {
