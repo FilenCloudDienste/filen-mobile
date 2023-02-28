@@ -181,19 +181,31 @@ export const init = async () => {
 }
 
 export const warmupDbCache = async () => {
-    const [ result ] = await query("SELECT * FROM key_value")
+    const [
+        [ loadItemsResult ],
+        [ itemCacheResult ],
+        [ folderSizeCacheResult ]
+    ] = await Promise.all([
+        query("SELECT * FROM key_value WHERE key LIKE '%loadItems:%'"),
+        query("SELECT * FROM key_value WHERE key LIKE '%itemCache:%'"),
+        query("SELECT * FROM key_value WHERE key LIKE '%folderSizeCache:%'")
+    ])
 
-    const rows = result.rows
+    for(let i = 0; i < loadItemsResult.rows.length; i++){
+        const row = loadItemsResult.rows.item(i)
 
-    for(let i = 0; i < rows.length; i++){
-        const row = rows.item(i)
+        memoryCache.set(row['key'], JSON.parse(row['value']))
+    }
 
-        if(
-            row['key'].indexOf("loadItems:") !== -1
-            || row['key'].indexOf("itemCache:") !== -1
-            || row['key'].indexOf("folderSizeCache:") !== -1
-        ){
-            memoryCache.set(row['key'], JSON.parse(row['value']))
-        }
+    for(let i = 0; i < itemCacheResult.rows.length; i++){
+        const row = itemCacheResult.rows.item(i)
+
+        memoryCache.set(row['key'], JSON.parse(row['value']))
+    }
+
+    for(let i = 0; i < folderSizeCacheResult.rows.length; i++){
+        const row = folderSizeCacheResult.rows.item(i)
+
+        memoryCache.set(row['key'], JSON.parse(row['value']))
     }
 }

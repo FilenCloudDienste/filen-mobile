@@ -15,7 +15,6 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { SettingsScreen } from "./screens/SettingsScreen"
 import { useStore, navigationAnimation } from "./lib/state"
 import { enableScreens } from "react-native-screens"
-import { generateItemThumbnail, checkItemThumbnail } from "./lib/services/thumbnails"
 import { TransfersIndicator } from "./components/TransfersIndicator"
 import { TransfersScreen } from "./screens/TransfersScreen"
 import Toast from "react-native-toast-notifications"
@@ -88,15 +87,6 @@ if(!__DEV__){
 
 const Stack = createNativeStackNavigator()
 const navigationRef = createNavigationContainerRef()
-
-DeviceEventEmitter.addListener("event", (data) => {
-    if(data.type == "generate-thumbnail"){
-        void generateItemThumbnail({ item: data.item })
-    }
-    else if(data.type == "check-thumbnail"){
-        void checkItemThumbnail({ item: data.item })
-    }
-})
 
 export const App = Sentry.wrap(memo(() => {
     const isLoggedIn = useIsLoggedIn()

@@ -18,6 +18,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { useMountedState } from "react-use"
 import { FlashList } from "@shopify/flash-list"
+import { generateItemThumbnail } from "../../lib/services/thumbnails"
 
 export interface ItemListProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
@@ -189,10 +190,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
         if(item.type == "file"){
             if(canCompressThumbnail(getFileExt(item.name))){
                 if(typeof item.thumbnail !== "string" && isMounted()){
-                    DeviceEventEmitter.emit("event", {
-                        type: "generate-thumbnail",
-                        item
-                    })
+                    void generateItemThumbnail({ item })
                 }
             }
         }

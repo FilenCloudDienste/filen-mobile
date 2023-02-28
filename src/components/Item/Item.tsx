@@ -14,6 +14,7 @@ import { isOnline } from "../../lib/services/isOnline"
 import { useMountedState } from "react-use"
 import FastImage from "react-native-fast-image"
 import * as db from "../../lib/db"
+import { checkItemThumbnail } from "../../lib/services/thumbnails"
 
 export interface ItemBaseProps {
     item: Item,
@@ -110,10 +111,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
                                 }}
                                 onError={() => {
                                     if(typeof item.thumbnail == "string"){
-                                        DeviceEventEmitter.emit("event", {
-                                            type: "check-thumbnail",
-                                            item
-                                        })
+                                        void checkItemThumbnail({ item })
                                     }
                                 }}
                             />
@@ -325,10 +323,7 @@ export const GridItem = memo(({ insets, item, index, darkMode, hideFileNames, hi
                                     }}
                                     onError={() => {
                                         if(typeof item.thumbnail == "string"){
-                                            DeviceEventEmitter.emit("event", {
-                                                type: "check-thumbnail",
-                                                item
-                                            })
+                                            void checkItemThumbnail({ item })
                                         }
                                     }}
                                 />
@@ -461,10 +456,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
                 }}
                 onError={() => {
                     if(typeof item.thumbnail == "string"){
-                        DeviceEventEmitter.emit("event", {
-                            type: "check-thumbnail",
-                            item
-                        })
+                        void checkItemThumbnail({ item })
                     }
                 }}
             />
@@ -619,10 +611,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
                 }}
                 onError={() => {
                     if(typeof item.thumbnail == "string"){
-                        DeviceEventEmitter.emit("event", {
-                            type: "check-thumbnail",
-                            item
-                        })
+                        void checkItemThumbnail({ item })
                     }
                 }}
             />

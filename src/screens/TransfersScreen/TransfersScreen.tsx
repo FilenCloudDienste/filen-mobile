@@ -52,14 +52,6 @@ export const FinishedTransferItem = memo(({ index, item, containerWidth, darkMod
                         height: 28,
                         borderRadius: 5
                     }}
-                    onError={() => {
-                        if(typeof item.thumbnail == "string"){
-                            DeviceEventEmitter.emit("event", {
-                                type: "check-thumbnail",
-                                item
-                            })
-                        }
-                    }}
                 />
             </View>
             <View
@@ -230,14 +222,6 @@ export const OngoingTransferItem = memo(({ index, item, containerWidth, darkMode
                         width: 28,
                         height: 28,
                         borderRadius: 5
-                    }}
-                    onError={() => {
-                        if(typeof item.thumbnail == "string"){
-                            DeviceEventEmitter.emit("event", {
-                                type: "check-thumbnail",
-                                item
-                            })
-                        }
                     }}
                 />
             </View>

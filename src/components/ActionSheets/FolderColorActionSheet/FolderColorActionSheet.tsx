@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useCallback } from "react"
-import { View, DeviceEventEmitter, Platform } from "react-native"
+import { View, DeviceEventEmitter } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -113,7 +113,7 @@ const FolderColorActionSheet = memo(() => {
 							<ActionButton
 								key={prop}
 								onPress={() => changeColor(prop)}
-								color={Platform.OS == "ios" && prop == "default" ? availableFolderColors['default_ios'] as string : availableFolderColors[prop] as string}
+								color={prop == "default" ? availableFolderColors['default_ios'] as string : availableFolderColors[prop] as string}
 								text={i18n(lang, "color_" + prop)}
 							/>
 						)

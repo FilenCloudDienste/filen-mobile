@@ -16,7 +16,6 @@ import memoryCache from "../../memoryCache"
 import { isOnline, isWifi } from "../isOnline"
 import { Item, ItemReceiver } from "../../../types"
 import { MB } from "../../constants"
-import { memoize } from "lodash"
 import { Asset } from "expo-media-library"
 import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 import { getThumbnailCacheKey } from "../thumbnails"
@@ -503,6 +502,22 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
     }
 
     const cached = await db.get("loadItems:" + url)
+
+    if(!isOnline()){
+        if(cached){
+            memoryCache.set("loadItems:" + url, cached)
+
+            return {
+                cached: true,
+                items: cached as Item[]
+            }
+        }
+        
+        return {
+            cached: false,
+            items: []
+        }
+    }
 
     if(cached && !skipCache){
         memoryCache.set("loadItems:" + url, cached)
