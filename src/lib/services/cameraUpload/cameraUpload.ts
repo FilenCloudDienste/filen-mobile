@@ -619,9 +619,10 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
                         new Promise<UploadFile>((resolve, reject) => {
                             fs.stat(convertedPath).then((stat) => {
                                 if(stat.exists && stat.size){
+                                    let assetFilenameWithoutEx = asset.filename.substring(0, asset.filename.lastIndexOf("."))
                                     const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
                                     const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
-                                    const newName = nameWithoutEx.split("_").length < 2 ? (asset.filename + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
+                                    const newName = !nameWithoutEx.includes(assetFilenameWithoutEx) ? (assetFilenameWithoutEx + "_" + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
 
                                     return resolve({
                                         path: convertedPath.split("file://").join(""),
@@ -642,10 +643,11 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
                         new Promise<UploadFile>((resolve, reject) => {
                             fs.stat(resource.localFileLocations).then((stat) => {
                                 if(stat.exists && stat.size){
+                                    let assetFilenameWithoutEx = asset.filename.substring(0, asset.filename.lastIndexOf("."))
                                     let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
 
                                     // If File does not have a _, then append the asset filename to the name
-                                    name = name.split("_").length < 2 ? (asset.filename.substring(0, asset.filename.lastIndexOf(".")) + name) : name
+                                    name = !name.includes(assetFilenameWithoutEx) ? (assetFilenameWithoutEx + name) : name
 
                                     return resolve({
                                         path: resource.localFileLocations.split("file://").join(""),
