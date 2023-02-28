@@ -2,7 +2,7 @@ import React, { useEffect, useState, memo, useCallback } from "react"
 import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import storage from "../../../lib/storage"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
@@ -12,7 +12,7 @@ import { getRouteURL } from "../../../lib/helpers"
 
 const SortByActionSheet = memo(() => {
     const darkMode = useDarkMode()
-	const insets: EdgeInsets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets()
 	const lang = useLang()
 	const [showASCDESC, setShowASCDESC] = useState<boolean>(false)
 	const [sortBy, setSortBy] = useState<string>("")

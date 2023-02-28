@@ -1,13 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from "react"
-import { Text, View, RefreshControl, ActivityIndicator, DeviceEventEmitter, TouchableOpacity, Platform, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
+import { View, RefreshControl, ActivityIndicator, DeviceEventEmitter, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, isBetween, getFilePreviewType } from "../../lib/helpers"
 import { ListItem, GridItem, PhotosItem, PhotosRangeItem } from "../Item"
 import { i18n } from "../../i18n"
-import Ionicon from "@expo/vector-icons/Ionicons"
-import { navigationAnimation } from "../../lib/state"
-import { StackActions, NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 import { ListEmpty } from "../ListEmpty"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
@@ -19,6 +17,7 @@ import useLang from "../../lib/hooks/useLang"
 import { useMountedState } from "react-use"
 import { FlashList } from "@shopify/flash-list"
 import { generateItemThumbnail } from "../../lib/services/thumbnails"
+import ItemListPhotos from "./ItemListPhotos"
 
 export interface ItemListProps {
     navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
@@ -37,23 +36,19 @@ export interface ItemListProps {
 export const ItemList = memo(({ navigation, route, items, searchTerm, populateList, loadDone, listDimensions }: ItemListProps) => {
     const darkMode = useDarkMode()
     const [refreshing, setRefreshing] = useState<boolean>(false)
-    const [viewMode, setViewMode] = useMMKVString("viewMode", storage)
+    const [ viewMode ] = useMMKVString("viewMode", storage)
     const dimensions = useWindowDimensions()
     const lang = useLang()
-    const [cameraUploadTotal, setCameraUploadTotal] = useMMKVNumber("cameraUploadTotal", storage)
-    const [cameraUploadUploaded, setCameraUploadUploaded] = useMMKVNumber("cameraUploadUploaded", storage)
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + userId, storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
     const [scrollDate, setScrollDate] = useState<string>(Array.isArray(items) && items.length > 0 ? calcCameraUploadCurrentDate(items[0].lastModified, items[items.length - 1].lastModified, lang) : "")
-    const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
-    const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + userId, storage)
-    const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
-    const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
+    const [ photosGridSize ] = useMMKVNumber("photosGridSize", storage)
+    const [ hideThumbnails ] = useMMKVBoolean("hideThumbnails:" + userId, storage)
+    const [ hideFileNames ] = useMMKVBoolean("hideFileNames:" + userId, storage)
+    const [ hideSizes ] = useMMKVBoolean("hideSizes:" + userId, storage)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
     const routeURL = useRef<string>(getRouteURL(route)).current
     const [scrollIndex, setScrollIndex] = useState<number>(0)
     const insets = useSafeAreaInsets()
-    const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
     const networkInfo = useNetworkInfo()
     const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
     const setScrolledToBottom = useStore(state => state.setScrolledToBottom)
@@ -480,342 +475,14 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
         >
             {
                 routeURL.indexOf("photos") !== -1 && (
-                    <>
-                        <View
-                            style={{
-                                paddingBottom: 10,
-                                paddingTop: 5,
-                                marginBottom: 3,
-                                height: 35
-                            }}
-                        >
-                            {
-                                cameraUploadEnabled ? (
-                                    <View
-                                        style={{
-                                            flexDirection: "row",
-                                            justifyContent: "flex-start",
-                                            paddingLeft: 15,
-                                            paddingRight: 15,
-                                            alignItems: "center"
-                                        }}
-                                    >
-                                        {
-                                            networkInfo.online ? onlyWifiUploads && networkInfo.wifi ? (
-                                                <>
-                                                    <Ionicon
-                                                        name="wifi-outline"
-                                                        size={20}
-                                                        color={"gray"}
-                                                    />
-                                                    <Text
-                                                        style={{
-                                                            marginLeft: 10,
-                                                            color: "gray",
-                                                            fontSize: 14,
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
-                                                        }}
-                                                    >
-                                                        {i18n(lang, "onlyWifiUploads")}
-                                                    </Text>
-                                                </>
-                                            ) : cameraUploadTotal > 0 ? cameraUploadTotal > cameraUploadUploaded ? (
-                                                <>
-                                                    <ActivityIndicator
-                                                        color={getColor(darkMode, "textPrimary")}
-                                                        size="small"
-                                                    />
-                                                    <Text
-                                                        style={{
-                                                            marginLeft: 10,
-                                                            color: "gray",
-                                                            fontSize: 14,
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
-                                                        }}
-                                                    >
-                                                        {i18n(lang, "cameraUploadProgress", true, ["__TOTAL__", "__UPLOADED__"], [cameraUploadTotal, cameraUploadUploaded])}
-                                                    </Text>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Ionicon
-                                                        name="checkmark-done-circle-outline"
-                                                        size={20}
-                                                        color="green"
-                                                    />
-                                                    <Text
-                                                        style={{
-                                                            marginLeft: 10,
-                                                            color: "gray",
-                                                            fontSize: 14,
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
-                                                        }}
-                                                    >
-                                                        {i18n(lang, "cameraUploadEverythingUploaded")}
-                                                    </Text>
-                                                </>
-                                            ) : cameraUploadTotal == 0 ? (
-                                                <>
-                                                    <Ionicon
-                                                        name="checkmark-done-circle-outline"
-                                                        size={20}
-                                                        color="green"
-                                                    />
-                                                    <Text
-                                                        style={{
-                                                            marginLeft: 10,
-                                                            color: "gray",
-                                                            fontSize: 14,
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
-                                                        }}
-                                                    >
-                                                        {i18n(lang, "cameraUploadEverythingUploaded")}
-                                                    </Text>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <ActivityIndicator
-                                                        color={getColor(darkMode, "textPrimary")}
-                                                        size="small"
-                                                    />
-                                                    <Text
-                                                        style={{
-                                                            marginLeft: 10,
-                                                            color: "gray",
-                                                            fontSize: 14,
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
-                                                        }}
-                                                    >
-                                                        {i18n(lang, "cameraUploadFetchingAssetsFromLocal")}
-                                                    </Text>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Ionicon
-                                                        name="wifi-outline"
-                                                        size={20}
-                                                        color={"gray"}
-                                                    />
-                                                    <Text
-                                                        style={{
-                                                            marginLeft: 10,
-                                                            color: "gray",
-                                                            fontSize: 14,
-                                                            paddingTop: Platform.OS == "ios" ? 2 : 0
-                                                        }}
-                                                    >
-                                                        {i18n(lang, "deviceOffline")}
-                                                    </Text>
-                                                </>
-                                            )
-                                        }
-                                    </View>
-                                ) : (
-                                    <View
-                                        style={{
-                                            flexDirection: "row",
-                                            justifyContent: "space-between",
-                                            paddingLeft: 5,
-                                            paddingRight: 15
-                                        }}
-                                    >
-                                        <Text
-                                            style={{
-                                                marginLeft: 10,
-                                                color: "gray"
-                                            }}
-                                        >
-                                            {i18n(lang, "cameraUploadNotEnabled")}
-                                        </Text>
-                                        {
-                                            networkInfo.online && (
-                                                <TouchableOpacity
-                                                    onPress={() => {
-                                                        navigationAnimation({ enable: true }).then(() => {
-                                                            navigation.dispatch(StackActions.push("CameraUploadScreen"))
-                                                        })
-                                                    }}
-                                                >
-                                                    <Text
-                                                        style={{
-                                                            color: "#0A84FF",
-                                                            fontWeight: "bold"
-                                                        }}
-                                                    >
-                                                        {i18n(lang, "enable")}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            )
-                                        }
-                                    </View>
-                                )
-                            }
-                        </View>
-                        {
-                            scrollDate.length > 0 && items.length > 0 && normalizedPhotoRange == "all" && (
-                                <View
-                                    style={{
-                                        backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(128, 128, 128, 0.6)",
-                                        width: "auto",
-                                        height: "auto",
-                                        borderRadius: 15,
-                                        position: "absolute",
-                                        marginTop: 50,
-                                        marginLeft: 15,
-                                        zIndex: 100,
-                                        paddingTop: 5,
-                                        paddingBottom: 5,
-                                        paddingLeft: 8,
-                                        paddingRight: 8
-                                    }} 
-                                    pointerEvents="box-none"
-                                >
-                                    <Text
-                                        style={{
-                                            color: "white",
-                                            fontSize: 15
-                                        }}
-                                    >
-                                        {scrollDate}
-                                    </Text>
-                                </View>
-                            )
-                        }
-                        {
-                            items.length > 0 && (
-                                <>
-                                    {
-                                        normalizedPhotoRange == "all" && (
-                                            <View
-                                                style={{
-                                                    backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(128, 128, 128, 0.6)",
-                                                    width: "auto",
-                                                    height: "auto",
-                                                    borderRadius: 15,
-                                                    position: "absolute",
-                                                    marginTop: 50,
-                                                    zIndex: 100,
-                                                    paddingTop: 5,
-                                                    paddingBottom: 5,
-                                                    paddingLeft: 8,
-                                                    paddingRight: 8,
-                                                    right: 15,
-                                                    flexDirection: "row"
-                                                }}
-                                            >
-                                                <TouchableOpacity
-                                                    onPress={() => {
-                                                        let gridSize = calcedPhotosGridSize
-                        
-                                                        if(photosGridSize >= 10){
-                                                            gridSize = 10
-                                                        }
-                                                        else{
-                                                            gridSize = gridSize + 1
-                                                        }
-                        
-                                                        setPhotosGridSize(gridSize)
-                                                    }}
-                                                >
-                                                    <Ionicon
-                                                        name="remove-outline"
-                                                        size={24}
-                                                        color={photosGridSize >= 10 ? "gray" : "white"}
-                                                    />
-                                                </TouchableOpacity>
-                                                <Text
-                                                    style={{
-                                                        color: "gray",
-                                                        fontSize: 17,
-                                                        marginLeft: 5
-                                                    }}
-                                                >
-                                                    |
-                                                </Text>
-                                                <TouchableOpacity
-                                                    style={{
-                                                        marginLeft: 6
-                                                    }}
-                                                    onPress={() => {
-                                                        let gridSize = calcedPhotosGridSize
-                        
-                                                        if(photosGridSize <= 1){
-                                                            gridSize = 1
-                                                        }
-                                                        else{
-                                                            gridSize = gridSize - 1
-                                                        }
-                        
-                                                        setPhotosGridSize(gridSize)
-                                                    }}
-                                                >
-                                                    <Ionicon
-                                                        name="add-outline"
-                                                        size={24}
-                                                        color={photosGridSize <= 1 ? "gray" : "white"}
-                                                    />
-                                                </TouchableOpacity>
-                                            </View>
-                                        )
-                                    }
-                                    <View
-                                        style={{
-                                            backgroundColor: darkMode ? "rgba(34, 34, 34, 0.7)" : "rgba(128, 128, 128, 0.8)",
-                                            width: "auto",
-                                            height: "auto",
-                                            borderRadius: 15,
-                                            position: "absolute",
-                                            zIndex: 100,
-                                            alignSelf: "center",
-                                            flexDirection: "row",
-                                            bottom: 10,
-                                            paddingTop: 3,
-                                            paddingBottom: 3,
-                                            paddingLeft: 3,
-                                            paddingRight: 3
-                                        }}
-                                    >
-                                        {
-                                            ["years", "months", "days", "all"].map((key, index) => {
-                                                return (
-                                                    <TouchableOpacity
-                                                        key={index.toString()}
-                                                        style={{
-                                                            backgroundColor: normalizedPhotoRange == key ? darkMode ? "gray" : "darkgray" : "transparent",
-                                                            width: "auto",
-                                                            height: "auto",
-                                                            paddingTop: 5,
-                                                            paddingBottom: 5,
-                                                            paddingLeft: 10,
-                                                            paddingRight: 10,
-                                                            borderRadius: 15,
-                                                            marginLeft: index == 0 ? 0 : 10
-                                                        }}
-                                                        onPress={() => {
-                                                            DeviceEventEmitter.emit("event", {
-                                                                type: "unselect-all-items"
-                                                            })
-
-                                                            setScrollIndex(0)
-                                                            setPhotosRange(key)
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                color: "white"
-                                                            }}
-                                                        >
-                                                            {i18n(lang, "photosRange_" + key)}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                )
-                                            })
-                                        }
-                                    </View>
-                                </>
-                            )
-                        }
-                    </>
+                    <ItemListPhotos
+                        navigation={navigation}
+                        scrollDate={scrollDate}
+                        setScrollIndex={setScrollIndex}
+                        items={generatedItemList}
+                        normalizedPhotoRange={normalizedPhotoRange}
+                        calcedPhotosGridSize={calcedPhotosGridSize}
+                    />
                 )
             }
             {

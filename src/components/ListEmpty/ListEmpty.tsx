@@ -18,10 +18,10 @@ export interface ListEmptyProps {
 export const ListEmpty = memo(({ route, searchTerm = "" }: ListEmptyProps) => {
     const darkMode = useDarkMode()
     const lang = useLang()
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [cameraUploadFolderUUID, setCameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
-    const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
-    const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
+    const [ cameraUploadFolderUUID ] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
+    const [ defaultDriveOnly ] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
+    const [ defaultDriveUUID ] = useMMKVString("defaultDriveUUID:" + userId, storage)
     const networkInfo = useNetworkInfo()
 
     const [routeURL, currentScreenName, baseName] = useMemo(() => {

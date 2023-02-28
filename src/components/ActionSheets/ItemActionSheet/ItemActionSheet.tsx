@@ -45,9 +45,9 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	const setTextEditorText = useStore(state => state.setTextEditorText)
 	const setCreateTextFileDialogName = useStore(state => state.setCreateTextFileDialogName)
 	const setTextEditorParent = useStore(state => state.setTextEditorParent)
-	const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
-	const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
-    const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
+	const [ photosGridSize ] = useMMKVNumber("photosGridSize", storage)
+	const [ publicKey ] = useMMKVString("publicKey", storage)
+    const [ privateKey ] = useMMKVString("privateKey", storage)
 	const networkInfo = useNetworkInfo()
 
 	const can = useCallback(async () => {

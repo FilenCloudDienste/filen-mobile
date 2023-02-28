@@ -3,7 +3,7 @@ import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import { useMMKVNumber } from "react-native-mmkv"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
 import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
@@ -13,9 +13,9 @@ import useLang from "../../../lib/hooks/useLang"
 
 const LockAppAfterActionSheet = memo(() => {
     const darkMode = useDarkMode()
-	const insets: EdgeInsets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets()
 	const lang = useLang()
-	const [userId, setUserId] = useMMKVNumber("userId", storage)
+	const [ userId ] = useMMKVNumber("userId", storage)
 	const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
 
 	const setLock = useCallback(async (seconds: number) => {

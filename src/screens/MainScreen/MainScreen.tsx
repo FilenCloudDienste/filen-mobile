@@ -28,7 +28,7 @@ export interface MainScreenProps {
 
 export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const darkMode = useDarkMode()
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
     const routeURL = useRef<string>(getRouteURL(route)).current
     const [items, setItems] = useState<Item[]>(memoryCache.has("loadItems:" + routeURL) ? memoryCache.get("loadItems:" + routeURL) : [])
     const [searchTerm, setSearchTerm] = useState<string>("")
@@ -45,14 +45,14 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const selectedCountRef = useRef<number>(0)
     const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
     const [itemsBeforeSearch, setItemsBeforeSearch] = useState<Item[]>([])
-    const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
+    const [ photosGridSize ] = useMMKVNumber("photosGridSize", storage)
     const bottomBarHeight = useStore(state => state.bottomBarHeight)
     const topBarHeight = useStore(state => state.topBarHeight)
     const contentHeight = useStore(state => state.contentHeight)
     const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
     const [initialized, setInitialized] = useState<boolean>(false)
     const isFocused = useIsFocused()
-    const [sortByDb, setSortByDb] = useMMKVString("sortBy", storage)
+    const [ sortByDb ] = useMMKVString("sortBy", storage)
     const dimensions = useWindowDimensions()
     const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
 

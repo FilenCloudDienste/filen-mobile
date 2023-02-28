@@ -34,7 +34,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 	const lang = useLang()
 	const currentRoutes = useStore(state => state.currentRoutes)
 	const [routeURL, setRouteURL] = useState<string>("")
-	const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
+	const [ photosGridSize ] = useMMKVNumber("photosGridSize", storage)
 	const [canShowListViewStyle, setCanShowListViewStyle] = useState<boolean>(false)
 	const [canShowSelectAllItems, setCanShowSelectAllItems] = useState<boolean>(false)
 	const [canShowUnselectAllItems, setCanShowUnselectAllItems] = useState<boolean>(false)

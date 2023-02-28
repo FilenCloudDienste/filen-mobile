@@ -126,11 +126,11 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 export const ItemActionSheetItemHeader = memo(() => {
 	const darkMode = useDarkMode()
 	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
-	const [userId, setUserId] = useMMKVNumber("userId", storage)
+	const [ userId ] = useMMKVNumber("userId", storage)
 	const lang = useLang()
-    const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + userId, storage)
-    const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
-	const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
+    const [ hideThumbnails ] = useMMKVBoolean("hideThumbnails:" + userId, storage)
+    const [ hideFileNames ] = useMMKVBoolean("hideFileNames:" + userId, storage)
+	const [ hideSizes ] = useMMKVBoolean("hideSizes:" + userId, storage)
 	const [folderSizeCache, setFolderSizeCache] = useState<number>(0)
 
 	useEffect(() => {

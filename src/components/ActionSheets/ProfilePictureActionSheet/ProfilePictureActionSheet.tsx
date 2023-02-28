@@ -3,7 +3,7 @@ import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { formatBytes, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
@@ -24,7 +24,7 @@ const allowedTypes: string[] = [
 
 const ProfilePictureActionSheet = memo(() => {
     const darkMode = useDarkMode()
-	const insets: EdgeInsets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets()
 	const lang = useLang()
 
 	const uploadAvatarImage = useCallback((uri: string) => {

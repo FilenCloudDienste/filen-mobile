@@ -150,7 +150,7 @@ export interface BiometricAuthScreenProps {
 export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProps) => {
     const darkMode = useDarkMode()
     const lang = useLang()
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
     const biometricAuthScreenState = useStore(state => state.biometricAuthScreenState)
     const [pinCode, setPinCode] = useState<string>("")
     const [confirmPinCode, setConfirmPinCode] = useState<string>("")
@@ -158,11 +158,11 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
     const headerTextColor: string = darkMode ? "white" : "gray"
     const [dotColor, setDotColor] = useState<string>(headerTextColor)
     const [showingBiometrics, setShowingBiometrics] = useState<boolean>(false)
-    const [shakeAnimation, setShakeAnimation] = useState<Animated.Value>(new Animated.Value(0))
+    const [ shakeAnimation ] = useState<Animated.Value>(new Animated.Value(0))
     const setIsAuthing = useStore(state => state.setIsAuthing)
     const appState = useRef(AppState.currentState)
     const setBiometricAuthScreenVisible = useStore(state => state.setBiometricAuthScreenVisible)
-    const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
+    const [ startOnCloudScreen ] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
     const dimensions = useWindowDimensions()
 
     const startShake = useCallback(() => {

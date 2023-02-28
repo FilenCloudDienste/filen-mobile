@@ -99,11 +99,11 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
     const [showTextClearButton, setShowTextClearButton] = useState(false)
     const [title, setTitle] = useState<string>(getTopBarTitle({ route, lang }))
     const setTopBarHeight = useStore(state => state.setTopBarHeight)
-    const [publicKey, setPublicKey] = useMMKVString("publicKey", storage)
-    const [privateKey, setPrivateKey] = useMMKVString("privateKey", storage)
+    const [ publicKey ] = useMMKVString("publicKey", storage)
+    const [ privateKey ] = useMMKVString("privateKey", storage)
     const dimensions = useWindowDimensions()
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
+    const [ hideRecents ] = useMMKVBoolean("hideRecents:" + userId, storage)
 
     const [parent, routeURL] = useMemo(() => {
         const parent: string = getParent(route)

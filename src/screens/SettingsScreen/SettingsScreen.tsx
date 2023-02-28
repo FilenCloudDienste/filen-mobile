@@ -286,10 +286,10 @@ export interface SettingsHeaderProps {
 
 export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: SettingsHeaderProps) => {
     const darkMode = useDarkMode()
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [email, setEmail] = useMMKVString("email", storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
+    const [ email ] = useMMKVString("email", storage)
     const lang = useLang()
-    const [userInfo, setUserInfo]: any[] = useMMKVObject("userInfo:" + userId, storage)
+    const [ userInfo ]: any[] = useMMKVObject("userInfo:" + userId, storage)
     const [userAvatarCached, setUserAvatarCached] = useMMKVString("userAvatarCached:" + userId, storage)
 
     const cacheUserAvatar = () => {
@@ -511,7 +511,7 @@ export interface SettingsScreenProps {
 export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) => {
     const darkMode = useDarkMode()
     const lang = useLang()
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
     const [onlyWifiUploads, setOnlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
     const [onlyWifiDownloads, setOnlyWifiDownloads] = useMMKVBoolean("onlyWifiDownloads:" + userId, storage)
     const [hideThumbnails, setHideThumbnails] = useMMKVBoolean("hideThumbnails:" + userId, storage)
@@ -521,7 +521,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
     const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
     const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
     const [onlyUsePINCode, setOnlyUsePINCode] = useMMKVBoolean("onlyUsePINCode:" + userId, storage)
-    const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
+    const [ lockAppAfter ] = useMMKVNumber("lockAppAfter:" + userId, storage)
     const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
     const [dontFollowSystemTheme, setDontFollowSystemTheme] = useMMKVBoolean("dontFollowSystemTheme", storage)
     const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)

@@ -2,7 +2,7 @@ import React, { useEffect, useState, memo, useRef, useCallback } from "react"
 import { View, Text, DeviceEventEmitter, Platform, ActivityIndicator, Switch, TextInput, TouchableOpacity, Share } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
@@ -18,7 +18,7 @@ import { decryptFolderLinkKey } from "../../../lib/crypto"
 
 const PublicLinkActionSheet = memo(() => {
     const darkMode = useDarkMode()
-	const insets: EdgeInsets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets()
 	const lang = useLang()
     const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
     const currentItemRef = useRef<Item | undefined>(undefined)

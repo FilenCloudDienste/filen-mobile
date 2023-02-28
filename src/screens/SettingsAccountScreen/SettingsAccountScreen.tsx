@@ -25,7 +25,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
     const lang = useLang()
     const [accountSettings, setAccountSettings] = useState<any>({})
     const [isLoading, setIsLoading] = useState<boolean>(true)
-    const isMounted: () => boolean = useMountedState()
+    const isMounted = useMountedState()
 
     useEffect(() => {
         getSettings().then((settings) => {

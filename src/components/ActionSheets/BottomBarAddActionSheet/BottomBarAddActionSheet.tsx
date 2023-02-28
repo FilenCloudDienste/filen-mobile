@@ -1,9 +1,9 @@
 import React, { memo, useCallback } from "react"
-import { View, Platform, DeviceEventEmitter } from "react-native"
+import { View, DeviceEventEmitter } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { getRandomArbitrary, convertTimestampToMs, getFileExt, getParent, getFilePreviewType, safeAwait } from "../../../lib/helpers"
 import { queueFileUpload, UploadFile } from "../../../lib/services/upload/upload"
@@ -21,7 +21,7 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 const BottomBarAddActionSheet = memo(() => {
     const darkMode = useDarkMode()
 	const currentRoutes = useStore(state => state.currentRoutes)
-	const insets: EdgeInsets = useSafeAreaInsets()
+	const insets = useSafeAreaInsets()
 	const lang = useLang()
 
 	const createFolder = useCallback(async () => {

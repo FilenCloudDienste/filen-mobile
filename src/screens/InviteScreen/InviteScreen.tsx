@@ -21,7 +21,7 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
     const lang = useLang()
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [accountData, setAccountData] = useState<any>({})
-    const isMounted: () => boolean = useMountedState()
+    const isMounted = useMountedState()
 
     useEffect(() => {
         getAccount().then((data) => {

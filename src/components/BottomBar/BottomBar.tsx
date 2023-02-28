@@ -23,9 +23,9 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
     const currentRoutes = useStore(state => state.currentRoutes)
     const lang = useLang()
     const setBottomBarHeight = useStore(state => state.setBottomBarHeight)
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [defaultDriveOnly, setDefaultDriveOnly] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
-    const [defaultDriveUUID, setDefaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
+    const [ defaultDriveOnly ] = useMMKVBoolean("defaultDriveOnly:" + userId, storage)
+    const [ defaultDriveUUID ] = useMMKVString("defaultDriveUUID:" + userId, storage)
     const dimensions = useWindowDimensions()
     const networkInfo = useNetworkInfo()
 

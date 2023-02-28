@@ -142,8 +142,8 @@ export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, exclude
 export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbumsScreenProps) => {
     const darkMode = useDarkMode()
     const lang = useLang()
-    const [userId, setUserId] = useMMKVNumber("userId", storage)
-    const [cameraUploadExcludedAlbumns, setCameraUploadAlbums] = useMMKVString("cameraUploadExcludedAlbums:" + userId, storage)
+    const [ userId ] = useMMKVNumber("userId", storage)
+    const [ cameraUploadExcludedAlbumns ] = useMMKVString("cameraUploadExcludedAlbums:" + userId, storage)
     const [excludedAlbums, setExcludedAlbums] = useState<{ [key: string]: boolean }>({})
     const [fetchedAlbums, setFetchedAlbums] = useState<Album[]>([])
     const [hasPermissions, setHasPermissions] = useState<boolean>(false)
