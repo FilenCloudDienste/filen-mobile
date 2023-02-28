@@ -540,7 +540,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                     fontWeight: "bold",
                     fontSize: 24,
                     marginLeft: 15,
-                    marginTop: Platform.OS == "ios" ? 20 : 0
+                    marginTop: 20
                 }}
             >
                 {i18n(lang, "settings")}

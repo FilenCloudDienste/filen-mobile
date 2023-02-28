@@ -1,6 +1,7 @@
 import SQLite from "react-native-sqlite-storage"
 import { Asset } from "expo-media-library"
 import { getAssetId } from "../helpers"
+import memoryCache from "../memoryCache"
 
 SQLite.enablePromise(true)
 
@@ -177,4 +178,22 @@ export const init = async () => {
 
     await query(cameraUploadLastSizeSQL)
     await query(cameraUploadLastSizeIndexesSQL).catch(() => {})
+}
+
+export const warmupDbCache = async () => {
+    const [ result ] = await query("SELECT * FROM key_value")
+
+    const rows = result.rows
+
+    for(let i = 0; i < rows.length; i++){
+        const row = rows.item(i)
+
+        if(
+            row['key'].indexOf("loadItems:") !== -1
+            || row['key'].indexOf("itemCache:") !== -1
+            || row['key'].indexOf("folderSizeCache:") !== -1
+        ){
+            memoryCache.set(row['key'], JSON.parse(row['value']))
+        }
+    }
 }

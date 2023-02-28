@@ -529,7 +529,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
     return (
         <View
             style={{
-                paddingTop: Platform.OS == "ios" ? 15 : 0,
+                paddingTop: 15,
                 paddingBottom: Platform.OS == "ios" ? (insets.bottom * 2) : 0,
                 paddingLeft: insets.left,
                 paddingRight: insets.right

@@ -70,6 +70,14 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
         return Math.round(dimensions.width / 150)
     }, [dimensions])
 
+    const normalizedPhotoRange = useMemo(() => {
+        return normalizePhotosRange(photosRange)
+    }, [photosRange])
+
+    const calcedPhotosGridSize = useMemo(() => {
+        return calcPhotosGridSize(photosGridSize)
+    }, [photosGridSize])
+
     const generateItemsForItemList = useCallback((items: Item[], range: string, lang: string = "en") => {
         range = normalizePhotosRange(range)
     
@@ -197,7 +205,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
             }
         }
 
-        const visible: { [key: string]: boolean } = {}
+        const visible: Record<string, boolean> = {}
 
         for(let i = 0; i < viewableItems.length; i++){
             let item = viewableItems[i].item
@@ -228,16 +236,15 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     })
 
     const photosRangeItemClick = useCallback((item: any) => {
-        const currentRangeSelection = normalizePhotosRange(photosRange)
         let nextRangeSelection = "all"
 
-        if(currentRangeSelection == "years"){
+        if(normalizedPhotoRange == "years"){
             nextRangeSelection = "months"
         }
-        else if(currentRangeSelection == "months"){
+        else if(normalizedPhotoRange == "months"){
             nextRangeSelection = "days"
         }
-        else if(currentRangeSelection == "days"){
+        else if(normalizedPhotoRange == "days"){
             nextRangeSelection = "all"
         }
         else{
@@ -268,11 +275,11 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 
         setPhotosRange(nextRangeSelection)
         setScrollIndex(index)
-    }, [photosRange, items, lang])
+    }, [photosRange, items, lang, normalizedPhotoRange])
 
     const generatedItemList = useMemo<Item[]>(() => {
-        return generateItemsForItemList(items, normalizePhotosRange(photosRange), lang)
-    }, [items, photosRange, lang])
+        return generateItemsForItemList(items, normalizedPhotoRange, lang)
+    }, [items, lang, normalizedPhotoRange])
 
     const getInitialScrollIndex = useCallback(() => {
         const itemsLength = generatedItemList.length
@@ -287,7 +294,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     const estimatedItemSize = useMemo(() => {
         const listItemHeight: number = 60
         const gridLengthDefault: number = (Math.floor((dimensions.width - (insets.left + insets.right)) / itemsPerRow) + 55)
-        const photosAllLength: number = Math.floor(dimensions.width / calcPhotosGridSize(photosGridSize))
+        const photosAllLength: number = Math.floor(dimensions.width / calcedPhotosGridSize)
         const photosLength: number = Math.floor((dimensions.width - (insets.left + insets.right)) - 1.5)
 
         if(routeURL.indexOf("photos") !== -1){
@@ -304,17 +311,17 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
         }
 
         return listItemHeight
-    }, [photosRange, dimensions, photosGridSize, insets, viewModeParsed, routeURL])
+    }, [photosRange, dimensions, calcedPhotosGridSize, insets, viewModeParsed, routeURL])
 
     const numColumns = useMemo(() => {
-        return routeURL.indexOf("photos") !== -1 ? (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : 1) : viewModeParsed[routeURL] == "grid" ? itemsPerRow : 1
-    }, [routeURL, photosRange, photosGridSize, viewModeParsed, itemsPerRow])
+        return routeURL.indexOf("photos") !== -1 ? (normalizedPhotoRange == "all" ? calcedPhotosGridSize : 1) : viewModeParsed[routeURL] == "grid" ? itemsPerRow : 1
+    }, [routeURL, photosRange, calcedPhotosGridSize, viewModeParsed, itemsPerRow, normalizedPhotoRange])
 
     const listKey = useMemo(() => {
-        const base = routeURL.indexOf("photos") !== -1 ? "photos:" + (normalizePhotosRange(photosRange) == "all" ? calcPhotosGridSize(photosGridSize) : normalizePhotosRange(photosRange)) : viewModeParsed[routeURL] == "grid" ? "grid-" + itemsPerRow : "list"
+        const base = routeURL.indexOf("photos") !== -1 ? "photos:" + (normalizedPhotoRange == "all" ? calcedPhotosGridSize : normalizedPhotoRange) : viewModeParsed[routeURL] == "grid" ? "grid-" + itemsPerRow : "list"
 
         return base + ":" + (portrait ? "portrait" : "landscape")
-    }, [routeURL, photosRange, photosGridSize, viewModeParsed, itemsPerRow, portrait])
+    }, [routeURL, photosRange, calcedPhotosGridSize, viewModeParsed, itemsPerRow, portrait, normalizedPhotoRange])
 
     const onListScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
         if(e.nativeEvent.layoutMeasurement.height > e.nativeEvent.contentSize.height){
@@ -332,7 +339,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 
     const renderItem = useCallback(({ item, index, viewMode }: { item: Item, index: number, viewMode: string }) => {
         if(viewMode == "photos"){
-            if(normalizePhotosRange(photosRange) !== "all"){
+            if(normalizedPhotoRange !== "all"){
                 return (
                     <PhotosRangeItem
                         item={item} 
@@ -350,7 +357,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                         hideThumbnails={hideThumbnails} 
                         lang={lang}
                         hideSizes={hideSizes} 
-                        photosRange={normalizePhotosRange(photosRange)} 
+                        photosRange={normalizedPhotoRange} 
                         photosRangeItemClick={photosRangeItemClick} 
                         insets={insets} 
                     />
@@ -423,7 +430,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                 route={route}
             />
         )
-    }, [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick, itemsPerRow, route])
+    }, [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick, itemsPerRow, route, normalizedPhotoRange])
 
     useEffect(() => {
         setPortrait(dimensions.height >= dimensions.width)
@@ -444,12 +451,12 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     }, [items, viewModeParsed, dimensions, routeURL, itemsPerRow])
 
     useEffect(() => {
-        if(calcPhotosGridSize(photosGridSize) >= 6 && isMounted()){
+        if(calcedPhotosGridSize >= 6 && isMounted()){
             DeviceEventEmitter.emit("event", {
                 type: "unselect-all-items"
             })
         }
-    }, [photosGridSize])
+    }, [calcedPhotosGridSize])
 
     useEffect(() => {
         if(isMounted()){
@@ -647,7 +654,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                             }
                         </View>
                         {
-                            scrollDate.length > 0 && items.length > 0 && normalizePhotosRange(photosRange) == "all" && (
+                            scrollDate.length > 0 && items.length > 0 && normalizedPhotoRange == "all" && (
                                 <View
                                     style={{
                                         backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(128, 128, 128, 0.6)",
@@ -680,7 +687,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                             items.length > 0 && (
                                 <>
                                     {
-                                        normalizePhotosRange(photosRange) == "all" && (
+                                        normalizedPhotoRange == "all" && (
                                             <View
                                                 style={{
                                                     backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(128, 128, 128, 0.6)",
@@ -700,7 +707,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                                             >
                                                 <TouchableOpacity
                                                     onPress={() => {
-                                                        let gridSize = calcPhotosGridSize(photosGridSize)
+                                                        let gridSize = calcedPhotosGridSize
                         
                                                         if(photosGridSize >= 10){
                                                             gridSize = 10
@@ -732,7 +739,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                                                         marginLeft: 6
                                                     }}
                                                     onPress={() => {
-                                                        let gridSize = calcPhotosGridSize(photosGridSize)
+                                                        let gridSize = calcedPhotosGridSize
                         
                                                         if(photosGridSize <= 1){
                                                             gridSize = 1
@@ -776,7 +783,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                                                     <TouchableOpacity
                                                         key={index.toString()}
                                                         style={{
-                                                            backgroundColor: normalizePhotosRange(photosRange) == key ? darkMode ? "gray" : "darkgray" : "transparent",
+                                                            backgroundColor: normalizedPhotoRange == key ? darkMode ? "gray" : "darkgray" : "transparent",
                                                             width: "auto",
                                                             height: "auto",
                                                             paddingTop: 5,
@@ -858,7 +865,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={async () => {
-                                    if(!loadDone){
+                                    if(!loadDone || !networkInfo.online){
                                         return
                                     }
 

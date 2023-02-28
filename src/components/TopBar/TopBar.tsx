@@ -211,7 +211,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
             <View
                 style={{
                     height: showHomeTabBar ? 85 : isMainScreen && !isPhotosScreen ? 85 : 35,
-                    marginTop: Platform.OS == "ios" ? 10 : 0
+                    marginTop: 10
                 }}
             >
                 <View
