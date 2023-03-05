@@ -135,8 +135,8 @@ android {
         applicationId 'io.filen.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 238
-        versionName "2.0.38"
+        versionCode 240
+        versionName "2.0.40"
         testBuildType System.getProperty('testBuildType', 'debug')  // This will later be used to control the test apk build type
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }

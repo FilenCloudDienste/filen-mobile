@@ -16,16 +16,21 @@ export const runNetworkCheck = async (skipTimeout: boolean = false) => {
     }
 
     const controller = new AbortController()
-    const timeoutTimer = setTimeout(() => controller.abort(), 15000)
+    const timeoutTimer = setTimeout(() => {
+        controller.abort()
+
+        storage.set("isOnlineRunning", false)
+    }, 15000)
 
     try{
-        const response = await fetch("https://api.filen.io", {
-            method: "GET",
+        const response = await fetch("https://api.filen.io/health?noCache=" + new Date().getTime(), {
             signal: controller.signal
         })
 
         if(response.status == 200){
             const text = await response.text()
+
+            console.log(text)
 
             if(text.indexOf("endpoint") !== -1){
                 storage.set("isOnline", true)
@@ -47,8 +52,6 @@ export const runNetworkCheck = async (skipTimeout: boolean = false) => {
     catch(e){
         console.error(e)
 
-        console.error(e)
-
         storage.set("isOnline", false)
 
         DeviceEventEmitter.emit("networkInfoChange", { online: false, wifi: isWifi() })
@@ -56,9 +59,7 @@ export const runNetworkCheck = async (skipTimeout: boolean = false) => {
 
     clearTimeout(timeoutTimer)
 
-    if(!skipTimeout){
-        storage.set("isOnlineRunning", false)
-    }
+    storage.set("isOnlineRunning", false)
 }
 
 export const runWifiCheck = () => {
@@ -105,10 +106,5 @@ export const networkState = async () => {
 }
 
 export const isWifi = (): boolean => {
-    try{
-        return storage.getBoolean("isWifi")
-    }
-    catch{
-        return false
-    }
+    return storage.getBoolean("isWifi")
 }

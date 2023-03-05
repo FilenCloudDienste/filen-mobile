@@ -325,10 +325,6 @@ export const App = Sentry.wrap(memo(() => {
                     }
                 }
             }
-
-            if(nextAppState == "active"){
-                runNetworkCheck(true)
-            }
         }
 
         AppState.addEventListener("change", appStateListener)
@@ -362,6 +358,8 @@ export const App = Sentry.wrap(memo(() => {
         storage.set("setupDone", false)
         storage.set("cameraUploadUploaded", 0)
         storage.set("cameraUploadTotal", 0)
+        storage.set("isOnlineRunning", false)
+        storage.set("isOnline", true)
 
         const openSelectMediaScreenListener = () => {
             navigationAnimation({ enable: true }).then(() => {

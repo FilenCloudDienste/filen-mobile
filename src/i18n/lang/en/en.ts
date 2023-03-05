@@ -413,5 +413,8 @@ export const en: {
     videos: "Videos",
     cameraUploadOnlyUploadOriginal: "Only upload the original photo",
     cameraUploadConvertLiveAndBurst: "Convert live and burst photos",
-    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Convert and keep the original"
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Convert and keep the original",
+    cameraUploadKeepImageOnly: "Keep image only",
+    cameraUploadKeepLivePhotoVideoOnly: "Keep live photo video only",
+    cameraUploadSaveAllAssets: "Save all assets"
 }

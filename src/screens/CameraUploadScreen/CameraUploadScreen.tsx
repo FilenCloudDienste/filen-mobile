@@ -254,7 +254,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                 }
                             />
                             <SettingsButtonLinkHighlight
-                                title={i18n(lang, "cameraUploadOnlyUploadOriginal")}
+                                title={i18n(lang, "cameraUploadKeepImageOnly")}
                                 borderBottomRadius={10}
                                 withBottomBorder={true}
                                 rightComponent={
@@ -277,7 +277,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                 }
                             />
                             <SettingsButtonLinkHighlight
-                                title={i18n(lang, "cameraUploadConvertLiveAndBurst")}
+                                title={i18n(lang, "cameraUploadKeepLivePhotoVideoOnly")}
                                 borderBottomRadius={10}
                                 withBottomBorder={true}
                                 rightComponent={
@@ -300,7 +300,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
                                 }
                             />
                             <SettingsButtonLinkHighlight
-                                title={i18n(lang, "cameraUploadConvertLiveAndBurstAndKeepOriginal")}
+                                title={i18n(lang, "cameraUploadSaveAllAssets")}
                                 borderBottomRadius={10}
                                 rightComponent={
                                     <Switch
