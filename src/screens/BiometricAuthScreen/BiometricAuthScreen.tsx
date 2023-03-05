@@ -309,7 +309,8 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
             LocalAuthentication.authenticateAsync({
                 cancelLabel: i18n(lang, "cancel"),
-                promptMessage: i18n(lang, "biometricAuthPrompt")
+                promptMessage: i18n(lang, "biometricAuthPrompt"),
+                disableDeviceFallback: true
             }).then((res) => {
                 setShowingBiometrics(false)
                     
