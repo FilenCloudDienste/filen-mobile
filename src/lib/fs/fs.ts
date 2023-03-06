@@ -1,5 +1,5 @@
 import * as FileSystem from "expo-file-system"
-import { toExpoFsPath } from "../helpers"
+import { toExpoFsPath, toExpoFsPathWithoutEncode } from "../helpers"
 
 export const cacheDirectory = FileSystem.cacheDirectory
 export const documentDirectory = FileSystem.documentDirectory
@@ -13,6 +13,10 @@ export const copy = async (from: string, to: string) => {
 
 export const stat = async (path: string) => {
     return await FileSystem.getInfoAsync(toExpoFsPath(path))
+}
+
+export const iOSstat = async (path: string) => {
+    return await FileSystem.getInfoAsync(toExpoFsPathWithoutEncode(path))
 }
 
 export const unlink = async (path: string) => {

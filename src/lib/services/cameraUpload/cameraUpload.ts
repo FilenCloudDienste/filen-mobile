@@ -617,7 +617,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 
                     filesToUploadPromises.push(
                         new Promise<UploadFile>((resolve, reject) => {
-                            fs.stat(convertedPath).then((stat) => {
+                            fs.iOSstat(convertedPath).then((stat) => {
                                 if(stat.exists && stat.size){
                                     let assetFilenameWithoutEx = asset.filename.substring(0, asset.filename.lastIndexOf("."))
                                     const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
@@ -641,7 +641,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
                 else{
                     filesToUploadPromises.push(
                         new Promise<UploadFile>((resolve, reject) => {
-                            fs.stat(resource.localFileLocations).then((stat) => {
+                            fs.iOSstat(resource.localFileLocations).then((stat) => {
                                 if(stat.exists && stat.size){
                                     let assetFilenameWithoutEx = asset.filename.substring(0, asset.filename.lastIndexOf("."))
                                     let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename

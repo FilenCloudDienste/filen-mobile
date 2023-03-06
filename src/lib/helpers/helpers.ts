@@ -1117,6 +1117,14 @@ export const toExpoFsPath = (path: string) => {
     return path
 }
 
+export const toExpoFsPathWithoutEncode = (path: string) => {
+    if(path.indexOf("file://") == -1){
+        return "file://" + path
+    }
+
+    return path
+}
+
 export const toBlobUtilFsPath = (path: string) => {
     return path.split("file://").join("").split("file:/").join("").split("file:").join("")
 }
