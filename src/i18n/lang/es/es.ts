@@ -406,5 +406,12 @@ export const es: {
     thirtyMinutes: "30 minutos",
     oneHour: "1 hora",
     saveLogs: "Guardar registros",
-    cameraUploadAfterEnabled: "Subir solo tras la fecha de activación"
+    cameraUploadAfterEnabled: "Subir solo tras la fecha de activación",
+    keepAppAwake: "Mantener la pantalla activa",
+    followSystemTheme: "Usar los ajustes del sistema",
+    hideRecents: "Ocultar recientes",
+    videos: "Vídeos",
+    cameraUploadOnlyUploadOriginal: "Cargar solo la foto original",
+    cameraUploadConvertLiveAndBurst: "Convertir las fotos directamente y en modo ráfaga",
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Convertir y mantener la original"
 }
