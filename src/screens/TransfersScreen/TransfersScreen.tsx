@@ -76,7 +76,7 @@ export const FinishedTransferItem = memo(({ index, item, containerWidth, darkMod
                         }}
                         numberOfLines={1}
                     >
-                        {item.name}
+                        {item.name || ""}
                     </Text>
                 </View>
                 <View
@@ -247,7 +247,7 @@ export const OngoingTransferItem = memo(({ index, item, containerWidth, darkMode
                         }}
                         numberOfLines={1}
                     >
-                        {item.name}
+                        {item.name || ""}
                     </Text>
                 </View>
                 <View
