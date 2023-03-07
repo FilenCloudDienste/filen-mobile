@@ -13,7 +13,7 @@ export const getImageForItem = (item: Item) => {
         return require("./images/types/file.png")
     }
 
-    const ex: string[] = item.name.split(".")
+    const ex: string[] = (item.name || "").split(".")
 
     if(item.name.indexOf(".") !== -1){
         switch(ex[ex.length - 1].toLowerCase()){
