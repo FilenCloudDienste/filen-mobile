@@ -309,7 +309,7 @@ export const generateItemThumbnail = ({ item, skipInViewCheck = false, path = un
                     return generateThumbnail(path, dest)
                 }
 
-                downloadFile(item, false, true, filePreviewType == "video" ? item.chunks < 16 ? item.chunks : 16 : item.chunks).then((downloadedPath) => {
+                downloadFile(item, false, filePreviewType == "video" ? item.chunks < 16 ? item.chunks : 16 : item.chunks).then((downloadedPath) => {
                     generateThumbnail(downloadedPath, dest)
                 }).catch(onError)
             }).catch(onError)

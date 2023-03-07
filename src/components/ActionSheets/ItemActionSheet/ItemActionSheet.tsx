@@ -199,7 +199,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 			return
 		}
 
-		downloadFile(currentActionSheetItem, false, false, currentActionSheetItem.chunks).then((path) => {
+		downloadFile(currentActionSheetItem, false, currentActionSheetItem.chunks).then((path) => {
 			ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
 				setTextEditorState("edit")
 				setTextEditorParent(currentActionSheetItem.parent)

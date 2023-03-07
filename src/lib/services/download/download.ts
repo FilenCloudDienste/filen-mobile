@@ -19,6 +19,8 @@ const downloadSemaphore = new Semaphore(3)
 const maxThreads = 32
 const downloadThreadsSemaphore = new Semaphore(maxThreads)
 const downloadWriteThreadsSemaphore = new Semaphore(256)
+const currentDownloads: Record<string, boolean> = {}
+const addDownloadMutex = new Semaphore(1)
 
 export const getDownloadPath = memoize(({ type = "temp" }: { type: string }): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -218,7 +220,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     if(!isOnline()){
         callOptionalCallback(new Error("device is offline"))
 
-        return showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+        showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+
+        return
     }
 
     if(typeof saveToGalleryCallback == "function"){
@@ -228,7 +232,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
             if((await fs.stat(getItemOfflinePath(offlinePath, file))).exists){
                 callOptionalCallback(null, getItemOfflinePath(offlinePath, file))
 
-                return saveToGalleryCallback(getItemOfflinePath(offlinePath, file))
+                saveToGalleryCallback(getItemOfflinePath(offlinePath, file))
+
+                return
             }
         }
         catch(e){
@@ -236,13 +242,21 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         }
     }
 
-    const currentDownloads = useStore.getState().downloads
+    await addDownloadMutex.acquire()
 
     if(typeof currentDownloads[file.uuid] !== "undefined"){
-        callOptionalCallback(new Error("already downloading this file"))
+        callOptionalCallback(new Error("Already downloading this file"))
 
-        return showToast({ message: i18n(storage.getString("lang"), "alreadyDownloadingFile", true, ["__NAME__"], [file.name]) })
+        showToast({ message: i18n(storage.getString("lang"), "alreadyDownloadingFile", true, ["__NAME__"], [file.name]) })
+
+        addDownloadMutex.release()
+
+        return
     }
+
+    currentDownloads[file.uuid] = true
+
+    addDownloadMutex.release()
 
     DeviceEventEmitter.emit("download", {
         type: "start",
@@ -257,20 +271,24 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         var downloadPath = await getDownloadPath({ type: (storeOffline ? "offline" : "download") })
     }
     catch(e){
-        console.log(e)
-
         console.error(e)
 
         callOptionalCallback(new Error("could not get download path"))
 
         downloadSemaphore.release()
 
-        return showToast({ message: i18n(storage.getString("lang"), "couldNotGetDownloadPath") })
+        delete currentDownloads[file.uuid]
+
+        showToast({ message: i18n(storage.getString("lang"), "couldNotGetDownloadPath") })
+
+        return
     }
 
     try{
         if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()){
             downloadSemaphore.release()
+
+            delete currentDownloads[file.uuid]
 
             return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
         }
@@ -281,7 +299,9 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
     const filePath = downloadPath + file.name
 
-    downloadFile(file, true, false, file.chunks).then(async (path) => {
+    downloadFile(file, true, file.chunks).then(async (path) => {
+        delete currentDownloads[file.uuid]
+
         DeviceEventEmitter.emit("download", {
             type: "done",
             data: file
@@ -440,6 +460,8 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         }
     }).catch((err) => {
         downloadSemaphore.release()
+
+        delete currentDownloads[file.uuid]
         
         if(err !== "stopped"){
             showToast({ message: err.toString() })
@@ -457,22 +479,11 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     })
 }
 
-export const downloadFile = (file: Item, showProgress: boolean = true, standalone: boolean = false, maxChunks: number): Promise<string> => {
+export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks: number): Promise<string> => {
     memoryCache.set("showDownloadProgress:" + file.uuid, showProgress)
 
     return new Promise((resolve, reject) => {
         getDownloadPath({ type: "cachedDownloads" }).then(async (cachedDownloadsPath) => {
-            const cachePath = cachedDownloadsPath + file.uuid + "." + getFileExt(file.name)
-
-            try{
-                if((await fs.stat(cachePath)).exists){
-                    return resolve(cachePath)
-                }
-            }
-            catch(e){
-                //console.log(e)
-            }
-
             try{
                 if((await DeviceInfo.getFreeDiskStorage()) < ((MB * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
                     await clearCacheDirectories()
@@ -488,7 +499,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 return reject(e)
             }
 
-            if(standalone){
+            if(showProgress){
                 DeviceEventEmitter.emit("download", {
                     type: "start",
                     data: file
@@ -598,10 +609,12 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 }
             }
 
-            DeviceEventEmitter.emit("download", {
-                type: "started",
-                data: file
-            })
+            if(showProgress){
+                DeviceEventEmitter.emit("download", {
+                    type: "started",
+                    data: file
+                })
+            }
 
             const chunksToDownload: number = maxChunks
 
@@ -651,7 +664,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
             catch(e: any){
                 cleanup()
 
-                if(standalone){
+                if(showProgress){
                     DeviceEventEmitter.emit("download", {
                         type: "err",
                         err: e.toString(),
@@ -662,7 +675,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, standalon
                 return reject(e)
             }
 
-            if(standalone){
+            if(showProgress){
                 DeviceEventEmitter.emit("download", {
                     type: "done",
                     data: file
