@@ -12,6 +12,8 @@ import * as LocalAuthentication from "expo-local-authentication"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
+import { hasBiometricPermissions } from "../../lib/permissions"
+import { safeAwait } from "../../lib/helpers"
 
 let canGoBack: boolean = false
 
@@ -300,6 +302,16 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
             }, 100)
         })
 
+        const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasBiometricPermissions(true))
+
+        if(hasPermissionsError){
+            return
+        }
+
+        if(!hasPermissionsResult){
+            return
+        }
+
         LocalAuthentication.hasHardwareAsync().then((available) => {
             if(!available){
                 console.error("Biometrics not available")
@@ -315,8 +327,6 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
                 setShowingBiometrics(false)
                     
                 if(!res.success){
-                    console.log("User canceled auth prompt")
-
                     return
                 }
 

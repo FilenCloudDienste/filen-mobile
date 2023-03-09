@@ -13,7 +13,7 @@ import { getColor } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
 import RNFS from "react-native-fs"
 import { getDownloadPath } from "../../lib/services/download/download"
-import { hasStoragePermissions, hasBiometricPermissions } from "../../lib/permissions"
+import { hasStoragePermissions } from "../../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../../lib/statusbar"
 import { isOnline } from "../../lib/services/isOnline"
@@ -821,20 +821,6 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
                                     ], {
                                         cancelable: true
                                     })
-                                }
-
-                                const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasBiometricPermissions(true))
-
-                                if(hasPermissionsError){
-                                    showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
-
-                                    return
-                                }
-
-                                if(!hasPermissionsResult){
-                                    showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
-
-                                    return
                                 }
 
                                 await waitForStateUpdate("biometricAuthScreenState", "setup")
