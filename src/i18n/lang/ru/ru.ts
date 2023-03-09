@@ -413,5 +413,8 @@ export const ru: {
     videos: "Видео",
     cameraUploadOnlyUploadOriginal: "Загружать только оригинальное фото",
     cameraUploadConvertLiveAndBurst: "Конвертировать живые и серийные фотографии",
-    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Конвертировать и сохранить оригинал"
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Конвертировать и сохранить оригинал",
+    cameraUploadKeepImageOnly: "Оставить только картинку",
+    cameraUploadKeepLivePhotoVideoOnly: "Оставить только видео",
+    cameraUploadSaveAllAssets: "Сохранять всё"
 }
