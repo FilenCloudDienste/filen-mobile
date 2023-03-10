@@ -266,7 +266,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
             <SafeAreaView>
                 <CodeEditor
                     style={{
-                        marginTop: portrait && Platform.OS == "ios" ? -60 : 0,
+                        marginTop: portrait && Platform.OS == "ios" ? -insets.top : 0,
                         fontSize: 15,
                         inputLineHeight: 21,
                         highlighterLineHeight: 21,

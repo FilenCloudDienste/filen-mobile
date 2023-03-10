@@ -30,8 +30,6 @@ export const runNetworkCheck = async (skipTimeout: boolean = false) => {
         if(response.status == 200){
             const text = await response.text()
 
-            console.log(text)
-
             if(text.indexOf("endpoint") !== -1){
                 storage.set("isOnline", true)
 
