@@ -412,5 +412,8 @@ export const zh: {
     videos: "视频",
     cameraUploadOnlyUploadOriginal: "只上传原图",
     cameraUploadConvertLiveAndBurst: "转换实时照片和连拍照片",
-    cameraUploadConvertLiveAndBurstAndKeepOriginal: "转换并保留原件"  
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "转换并保留原件"
+    cameraUploadKeepImageOnly: "只保留图片",
+    cameraUploadKeepLivePhotoVideoOnly: "只保留实况照片视频",
+    cameraUploadSaveAllAssets: "保存所有资产"
 }
