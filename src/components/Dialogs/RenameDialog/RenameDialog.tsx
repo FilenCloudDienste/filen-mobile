@@ -58,6 +58,16 @@ const RenameDialog = memo(() => {
                 return
             }
 
+            if(name.length <= 0 || name.length >= 255){
+                setButtonsDisabled(false)
+
+                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                showToast({ message: i18n(lang, "invalidFolderName") })
+
+                return
+            }
+
             folderExists({ name, parent: item.parent }).then((res) => {
                 if(res.exists){
                     if(item.uuid !== res.existsUUID){
@@ -106,6 +116,16 @@ const RenameDialog = memo(() => {
         }
         else{
             if(!fileAndFolderNameValidation(name)){
+                setButtonsDisabled(false)
+
+                useStore.setState({ fullscreenLoadingModalVisible: false })
+
+                showToast({ message: i18n(lang, "invalidFileName") })
+
+                return
+            }
+
+            if(name.length <= 0 || name.length >= 255){
                 setButtonsDisabled(false)
 
                 useStore.setState({ fullscreenLoadingModalVisible: false })

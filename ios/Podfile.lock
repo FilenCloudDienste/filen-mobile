@@ -23,9 +23,9 @@ PODS:
     - React-Core
   - EXNetwork (4.1.0):
     - ExpoModulesCore
-  - Expo (44.0.0):
+  - Expo (44.0.5):
     - ExpoModulesCore
-  - ExpoModulesCore (0.6.3):
+  - ExpoModulesCore (0.7.0):
     - React-Core
     - ReactCommon/turbomodule/core
   - EXTaskManager (10.1.0):
@@ -637,8 +637,8 @@ SPEC CHECKSUMS:
   EXLocalAuthentication: 4c7166ed3133d2c75586093833936652e7d2c7fc
   EXMediaLibrary: 6acf919299bccc64a59e6e89a3b792276e309302
   EXNetwork: 197bd56612e7afad31429941614efd3403c15dc8
-  Expo: 6ca1d5ca8c8264a7131a608afcd01561f79f1e6e
-  ExpoModulesCore: d04e519b3e8e21523b195bb21a40144e30f1e163
+  Expo: 337c72b7e9314e93023af79c875930db8e008275
+  ExpoModulesCore: 5ee50e40092c569518fe06977be5e747228c652a
   EXTaskManager: 53bcb908457ff6282ffb1e31c25c0656e3725161
   EXVideoThumbnails: d7d1a7c8e240872c580127073b87f740d4f3d8a5
   FBLazyVector: c71c5917ec0ad2de41d5d06a5855f6d5eda06971
