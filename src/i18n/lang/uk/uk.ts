@@ -413,5 +413,8 @@ export const uk: {
     videos: "Відео",
     cameraUploadOnlyUploadOriginal: "Завантажувати лише оригінальне фото",
     cameraUploadConvertLiveAndBurst: "Конвертувати живі та серійні фотографії",
-    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Конвертувати та зберігати оригінал"
+    cameraUploadConvertLiveAndBurstAndKeepOriginal: "Конвертувати та зберігати оригінал",
+    cameraUploadKeepImageOnly: "Зберігати лише зображення",
+    cameraUploadKeepLivePhotoVideoOnly: "Зберігати лише відео",
+    cameraUploadSaveAllAssets: "Зберігати все"
 }
