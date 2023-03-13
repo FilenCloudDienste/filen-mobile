@@ -13,7 +13,6 @@ import pathModule from "path"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import { getAssetURI } from "../../lib/services/cameraUpload"
 import { getLastImageOfAlbum, isNameAllowed } from "../SelectMediaScreen/SelectMediaScreen"
 import { useMountedState } from "react-use"
 
@@ -172,25 +171,13 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
                             MediaLibrary.getAssetsAsync({
                                 album: fetched[i],
                                 mediaType: ["photo", "video", "unknown"],
-                                first: 128
+                                first: 64
                             }).then(async (assets) => {
                                 const paths: string[] = []
 
                                 for(let x = 0; x < assets.assets.length; x++){
                                     if(isNameAllowed(assets.assets[x].filename)){
-                                        if(Platform.OS == "ios"){
-                                            paths.push(assets.assets[x].uri)
-                                        }
-                                        else{
-                                            try{
-                                                const uri = await getAssetURI(assets.assets[x])
-    
-                                                paths.push(uri)
-                                            }
-                                            catch{
-                                                continue
-                                            }
-                                        }
+                                        paths.push(assets.assets[x].uri)
                                     }
                                 }
 

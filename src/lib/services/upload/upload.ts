@@ -33,10 +33,12 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
         const masterKeys = getMasterKeys()
         const apiKey = getAPIKey()
 
-        if(masterKeys.length <= 0){
-            console.error("master keys !== object")
+        if(!Array.isArray(masterKeys)){
+            return reject("master keys !== array")
+        }
 
-            return reject("master keys !== object")
+        if(masterKeys.length <= 0){
+            return reject("master keys !== array")
         }
 
         if(!isOnline()){
@@ -55,6 +57,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
             uuid: "",
             name: fileName,
             size: file.size,
+            chunks_size: file.size,
             mime: file.mime || "",
             key: "",
             rm: "",

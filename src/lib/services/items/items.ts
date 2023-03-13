@@ -202,9 +202,7 @@ export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], p
         const folders = items.filter(item => item.type == "folder")
         const files = items.filter(item => item.type == "file")
 
-        return [...folders, ...files.sort((a, b) => {
-            return b.lastModifiedSort - a.lastModifiedSort
-        })]
+        return [...folders, ...files.sort((a, b) => b.lastModifiedSort - a.lastModifiedSort)]
     }
 
     const sortBy = JSON.parse(storage.getString("sortBy") || "{}")
@@ -489,7 +487,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             }
         }
 
-        items = sortItems({ items, passedRoute: route }).filter(item => item !== null && typeof item.uuid == "string")
+        items = sortItems({ items, passedRoute: route }).filter(item => item !== null && typeof item.uuid == "string" && item.name.length > 0)
 
         await db.set("loadItems:" + url, items)
 
@@ -504,8 +502,8 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
     const cached = await db.get("loadItems:" + url)
 
     if(!isOnline()){
-        if(cached){
-            memoryCache.set("loadItems:" + url, cached)
+        if(cached && Array.isArray(cached)){
+            memoryCache.set("loadItems:" + url, sortItems({ items: cached, passedRoute: route }).filter(item => item !== null && typeof item.uuid == "string" && item.name.length > 0))
 
             return {
                 cached: true,

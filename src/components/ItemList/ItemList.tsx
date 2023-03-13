@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from "react"
-import { View, RefreshControl, ActivityIndicator, DeviceEventEmitter, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native"
+import { View, RefreshControl, ActivityIndicator, DeviceEventEmitter, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent, FlatList } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { canCompressThumbnail, getFileExt, getRouteURL, calcPhotosGridSize, calcCameraUploadCurrentDate, normalizePhotosRange, isBetween, getFilePreviewType } from "../../lib/helpers"
@@ -192,7 +192,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     }, [])
 
     const onViewableItemsChangedRef = useRef(({ viewableItems }: { viewableItems: any }) => {
-        if(typeof viewableItems[0] == "object"){
+        if(Array.isArray(viewableItems) && typeof viewableItems[0] == "object"){
             if(typeof viewableItems[0].index == "number"){
                 setScrollIndex(viewableItems[0].index >= 0 ? viewableItems[0].index : 0)
             }
@@ -209,7 +209,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
             getThumbnail(item)
         }
 
-        if(typeof viewableItems[0] == "object" && typeof viewableItems[viewableItems.length - 1] == "object" && routeURL.indexOf("photos") !== -1 && isMounted()){
+        if(Array.isArray(viewableItems) && typeof viewableItems[0] == "object" && typeof viewableItems[viewableItems.length - 1] == "object" && routeURL.indexOf("photos") !== -1 && isMounted()){
             setScrollDate(calcCameraUploadCurrentDate(viewableItems[0].item.lastModified, viewableItems[viewableItems.length - 1].item.lastModified, lang))
         }
 
@@ -487,67 +487,133 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
             }
             {
                 items.length > 0 && loadDone ? (
-                    <FlashList
-                        data={generatedItemList}
-                        key={listKey}
-                        renderItem={renderItemFn}
-                        keyExtractor={keyExtractor}
-                        initialScrollIndex={getInitialScrollIndex()}
-                        numColumns={numColumns}
-                        onScroll={onListScroll}
-                        estimatedItemSize={estimatedItemSize}
-                        estimatedListSize={listDimensions}
-                        ListEmptyComponent={() => {
-                            return (
-                                <View
-                                    style={{
-                                        width: listDimensions.width,
-                                        height: listDimensions.height,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        alignContent: "center"
-                                    }}
-                                >
-                                    {
-                                        !loadDone ? (
-                                            <View>
-                                                <ActivityIndicator
-                                                    color={getColor(darkMode, "textPrimary")}
-                                                    size="small"
-                                                />
+                    <>
+                        {
+                            viewModeParsed[routeURL] == "grid" ? ( // FlashList kinda bugs out when in grid mode so we have to use FlatList for now
+                                <FlatList
+                                    data={generatedItemList}
+                                    key={listKey}
+                                    renderItem={renderItemFn}
+                                    keyExtractor={keyExtractor}
+                                    initialScrollIndex={getInitialScrollIndex()}
+                                    numColumns={numColumns}
+                                    onScroll={onListScroll}
+                                    ListEmptyComponent={() => {
+                                        return (
+                                            <View
+                                                style={{
+                                                    width: listDimensions.width,
+                                                    height: listDimensions.height,
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                    alignContent: "center"
+                                                }}
+                                            >
+                                                {
+                                                    !loadDone ? (
+                                                        <View>
+                                                            <ActivityIndicator
+                                                                color={getColor(darkMode, "textPrimary")}
+                                                                size="small"
+                                                            />
+                                                        </View>
+                                                    ) : (
+                                                        <ListEmpty
+                                                            route={route}
+                                                            searchTerm={searchTerm}
+                                                        />
+                                                    )
+                                                }
                                             </View>
-                                        ) : (
-                                            <ListEmpty
-                                                route={route}
-                                                searchTerm={searchTerm}
-                                            />
                                         )
+                                    }}
+                                    refreshControl={
+                                        <RefreshControl
+                                            refreshing={refreshing}
+                                            onRefresh={async () => {
+                                                if(!loadDone || !networkInfo.online){
+                                                    return
+                                                }
+
+                                                setRefreshing(true)
+                            
+                                                await new Promise((resolve) => setTimeout(resolve, 500))
+
+                                                populateList(true).catch(console.error)
+
+                                                setRefreshing(false)
+                                            }}
+                                            tintColor={getColor(darkMode, "textPrimary")}
+                                        />
                                     }
-                                </View>
+                                    onViewableItemsChanged={onViewableItemsChangedRef.current}
+                                    viewabilityConfig={viewabilityConfigRef.current}
+                                />
+                            ) : (
+                                <FlashList
+                                    data={generatedItemList}
+                                    key={listKey}
+                                    renderItem={renderItemFn}
+                                    keyExtractor={keyExtractor}
+                                    initialScrollIndex={getInitialScrollIndex()}
+                                    numColumns={numColumns}
+                                    onScroll={onListScroll}
+                                    estimatedItemSize={estimatedItemSize}
+                                    estimatedListSize={listDimensions}
+                                    ListEmptyComponent={() => {
+                                        return (
+                                            <View
+                                                style={{
+                                                    width: listDimensions.width,
+                                                    height: listDimensions.height,
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                    alignContent: "center"
+                                                }}
+                                            >
+                                                {
+                                                    !loadDone ? (
+                                                        <View>
+                                                            <ActivityIndicator
+                                                                color={getColor(darkMode, "textPrimary")}
+                                                                size="small"
+                                                            />
+                                                        </View>
+                                                    ) : (
+                                                        <ListEmpty
+                                                            route={route}
+                                                            searchTerm={searchTerm}
+                                                        />
+                                                    )
+                                                }
+                                            </View>
+                                        )
+                                    }}
+                                    refreshControl={
+                                        <RefreshControl
+                                            refreshing={refreshing}
+                                            onRefresh={async () => {
+                                                if(!loadDone || !networkInfo.online){
+                                                    return
+                                                }
+
+                                                setRefreshing(true)
+                            
+                                                await new Promise((resolve) => setTimeout(resolve, 500))
+
+                                                populateList(true).catch(console.error)
+
+                                                setRefreshing(false)
+                                            }}
+                                            tintColor={getColor(darkMode, "textPrimary")}
+                                        />
+                                    }
+                                    onViewableItemsChanged={onViewableItemsChangedRef.current}
+                                    viewabilityConfig={viewabilityConfigRef.current}
+                                />
                             )
-                        }}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={refreshing}
-                                onRefresh={async () => {
-                                    if(!loadDone || !networkInfo.online){
-                                        return
-                                    }
-
-                                    setRefreshing(true)
-                
-                                    await new Promise((resolve) => setTimeout(resolve, 500))
-
-                                    populateList(true).catch(console.error)
-
-                                    setRefreshing(false)
-                                }}
-                                tintColor={getColor(darkMode, "textPrimary")}
-                            />
                         }
-                        onViewableItemsChanged={onViewableItemsChangedRef.current}
-                        viewabilityConfig={viewabilityConfigRef.current}
-                    />
+                    </>
                 ) : (
                     <View
                         style={{

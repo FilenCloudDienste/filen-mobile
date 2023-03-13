@@ -530,9 +530,11 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
         <View
             style={{
                 paddingTop: 15,
-                paddingBottom: Platform.OS == "ios" ? (insets.bottom * 2) : 0,
+                paddingBottom: insets.bottom,
                 paddingLeft: insets.left,
-                paddingRight: insets.right
+                paddingRight: insets.right,
+                height: "100%",
+                width: "100%"
             }}
             onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
         >

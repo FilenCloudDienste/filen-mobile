@@ -199,7 +199,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 	}, [routeURL, photosGridSize])
 
 	const updateRouteURL = useCallback(() => {
-		if(typeof currentRoutes !== "undefined"){
+		if(typeof currentRoutes !== "undefined" && Array.isArray(currentRoutes)){
 			if(typeof currentRoutes[currentRoutes.length - 1] !== "undefined"){
 				setRouteURL(getRouteURL(currentRoutes[currentRoutes.length - 1]))
 				setCurrentRouteName(currentRoutes[currentRoutes.length - 1].name)

@@ -3,8 +3,8 @@ import * as Network from "expo-network"
 import { DeviceEventEmitter } from "react-native"
 import { AppState } from "react-native"
 
-let INTERVAL: any = undefined
-let STATE_INTERVAL: any = undefined
+let INTERVAL: any
+let STATE_INTERVAL: any
 
 export const runNetworkCheck = async (skipTimeout: boolean = false) => {
     if(storage.getBoolean("isOnlineRunning") && !skipTimeout){

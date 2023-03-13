@@ -208,7 +208,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                 ? (contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26))
                 : (contentHeight - topBarHeight - bottomBarHeight + 30)
         }
-    }, [dimensions, portrait, contentHeight, bottomBarHeight, topBarHeight])
+    }, [dimensions, portrait, contentHeight, bottomBarHeight, topBarHeight, routeURL])
 
     useEffect(() => {
         setPortrait(dimensions.height >= dimensions.width)
