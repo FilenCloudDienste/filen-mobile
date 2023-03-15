@@ -495,7 +495,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                                     key={listKey}
                                     renderItem={renderItemFn}
                                     keyExtractor={keyExtractor}
-                                    initialScrollIndex={getInitialScrollIndex()}
+                                    initialScrollIndex={0}
                                     numColumns={numColumns}
                                     onScroll={onListScroll}
                                     ListEmptyComponent={() => {
@@ -555,7 +555,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                                     key={listKey}
                                     renderItem={renderItemFn}
                                     keyExtractor={keyExtractor}
-                                    initialScrollIndex={getInitialScrollIndex()}
+                                    initialScrollIndex={routeURL.indexOf("photos") !== -1 ? getInitialScrollIndex() : 0}
                                     numColumns={numColumns}
                                     onScroll={onListScroll}
                                     estimatedItemSize={estimatedItemSize}

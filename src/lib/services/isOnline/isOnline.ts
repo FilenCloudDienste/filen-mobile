@@ -1,40 +1,30 @@
-import storage from "../../storage"
 import * as Network from "expo-network"
 import { DeviceEventEmitter } from "react-native"
 import { AppState } from "react-native"
 
-let INTERVAL: any
 let STATE_INTERVAL: any
-
-export const runNetworkCheck = async (skipTimeout: boolean = false) => {
-    storage.set("isOnline", true)
-
-    DeviceEventEmitter.emit("networkInfoChange", { online: true, wifi: isWifi() })
+const info = {
+    online: true,
+    wifi: true
 }
 
 export const runWifiCheck = () => {
     Network.getNetworkStateAsync().then((state) => {
-        if(state.type == Network.NetworkStateType.WIFI){
-            storage.set("isWifi", true)
+        DeviceEventEmitter.emit("networkInfoChange", {
+            online: state.isInternetReachable && state.isConnected,
+            wifi: state.type == Network.NetworkStateType.WIFI
+        })
 
-            DeviceEventEmitter.emit("networkInfoChange", { online: isOnline(), wifi: true })
-        }
-        else{
-            storage.set("isWifi", false)
-
-            DeviceEventEmitter.emit("networkInfoChange", { online: isOnline(), wifi: false })
-        }
+        info.online = state.isInternetReachable && state.isConnected
+        info.wifi = state.type == Network.NetworkStateType.WIFI
     }).catch(console.error)
 }
 
 export const run = () => {
-    clearInterval(INTERVAL)
     clearInterval(STATE_INTERVAL)
 
-    runNetworkCheck()
     runWifiCheck()
 
-    INTERVAL = setInterval(runNetworkCheck, 15000)
     STATE_INTERVAL = setInterval(runWifiCheck, 15000)
 }
 
@@ -42,13 +32,12 @@ run()
 
 AppState.addEventListener("change", (nextAppState) => {
     if(nextAppState == "active"){
-        runNetworkCheck()
         runWifiCheck()
     }
 })
 
 export const isOnline = (): boolean => {
-    return storage.getBoolean("isOnline")
+    return info.online
 }
 
 export const networkState = async () => {
@@ -56,5 +45,5 @@ export const networkState = async () => {
 }
 
 export const isWifi = (): boolean => {
-    return storage.getBoolean("isWifi")
+    return info.wifi
 }

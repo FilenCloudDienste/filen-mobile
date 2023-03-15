@@ -58,7 +58,7 @@
     "react-native-device-info": "8.4.8",
     "react-native-dialog": "^9.3.0",
     "react-native-document-picker": "8.1.1",
-    "react-native-fast-image": "8.6.3",
+    "react-native-fast-image": "^8.6.3",
     "react-native-file-viewer": "^2.1.5",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.9.0",

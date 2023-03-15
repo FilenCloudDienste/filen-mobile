@@ -323,7 +323,7 @@ const ItemListPhotos = memo(({ navigation, scrollDate, items, normalizedPhotoRan
                                 zIndex: 100,
                                 alignSelf: "center",
                                 flexDirection: "row",
-                                bottom: 10,
+                                bottom: Platform.OS == "ios" ? 10 : 20,
                                 paddingTop: 3,
                                 paddingBottom: 3,
                                 paddingLeft: 3,

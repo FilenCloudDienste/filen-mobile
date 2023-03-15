@@ -288,7 +288,18 @@ export const ActionSheetIndicator = memo(() => {
 					alignItems: "center",
 					justifyContent: "center"
 				}}
-				onPress={() => SheetManager.hideAll()}
+				onPress={() => {
+					SheetManager.hide("BottomBarAddActionSheet")
+					SheetManager.hide("FileVersionsActionSheet")
+					SheetManager.hide("FolderColorActionSheet")
+					SheetManager.hide("ItemActionSheet")
+					SheetManager.hide("LockAppAfterActionSheet")
+					SheetManager.hide("ProfilePictureActionSheet")
+					SheetManager.hide("PublicLinkActionSheet")
+					SheetManager.hide("ShareActionSheet")
+					SheetManager.hide("SortByActionSheet")
+					SheetManager.hide("TopBarActionSheet")
+				}}
 			>
 				<Ionicon
 					name="close"

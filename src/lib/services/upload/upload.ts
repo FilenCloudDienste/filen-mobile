@@ -111,7 +111,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                 hash: typeof includeFileHash == "boolean" ? await global.nodeThread.getFileHash({
                     path: file.path,
                     hashName: "sha512"
-                }) : includeFileHash
+                }) : typeof includeFileHash == "string" ? includeFileHash : ""
             } : {
                 name,
                 size,
@@ -181,46 +181,44 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
 
         let err = undefined
 
-        const upload = (index: number): Promise<any> => {
-            return new Promise(async (resolve, reject) => {
-                if(paused){
-                    await new Promise((resolve) => {
-                        const wait = setInterval(() => {
-                            if(!paused || stopped){
-                                clearInterval(wait)
+        const upload = async (index: number): Promise<any> => {
+            if(paused){
+                await new Promise((resolve) => {
+                    const wait = setInterval(() => {
+                        if(!paused || stopped){
+                            clearInterval(wait)
 
-                                return resolve(true)
-                            }
-                        }, 250)
-                    })
-                }
+                            return resolve(true)
+                        }
+                    }, 250)
+                })
+            }
 
-                if(didStop){
-                    return reject("stopped")
-                }
+            if(didStop){
+                throw new Error("stopped")
+            }
 
-                global.nodeThread.encryptAndUploadFileChunk({
-                    path: file.path,
-                    key,
-                    queryParams: new URLSearchParams({
-                        apiKey: encodeURIComponent(apiKey),
-                        uuid: encodeURIComponent(uuid),
-                        name: encodeURIComponent(nameEnc),
-                        nameHashed: encodeURIComponent(nameH),
-                        size: encodeURIComponent(sizeEnc),
-                        chunks: encodeURIComponent(fileChunks),
-                        mime: encodeURIComponent(mimeEnc),
-                        index: encodeURIComponent(index),
-                        rm: encodeURIComponent(rm),
-                        expire: encodeURIComponent(expire),
-                        uploadKey: encodeURIComponent(uploadKey),
-                        metaData: encodeURIComponent(metaData),
-                        parent: encodeURIComponent(parent),
-                        version: encodeURIComponent(uploadVersion)
-                    }).toString(),
-                    chunkIndex: index,
-                    chunkSize: chunkSizeToUse
-                }).then(resolve).catch(reject)
+            return await global.nodeThread.encryptAndUploadFileChunk({
+                path: file.path,
+                key,
+                queryParams: new URLSearchParams({
+                    apiKey,
+                    uuid,
+                    name: nameEnc,
+                    nameHashed: nameH,
+                    size: sizeEnc,
+                    chunks: fileChunks.toString(),
+                    mime: mimeEnc,
+                    index: index.toString(),
+                    rm,
+                    expire,
+                    uploadKey,
+                    metaData,
+                    parent,
+                    version: uploadVersion.toString()
+                }).toString(),
+                chunkIndex: index,
+                chunkSize: chunkSizeToUse
             })
         }
 
@@ -358,7 +356,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
 
             cleanup()
 
-            if(err == "stopped"){
+            if(err.toString() == "stopped"){
                 return reject("stopped")
             }
             else if(err.toString().toLowerCase().indexOf("blacklist") !== -1){

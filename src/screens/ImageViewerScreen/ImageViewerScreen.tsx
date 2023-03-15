@@ -11,7 +11,7 @@ import { convertHeic } from "../../lib/services/items"
 import { getImageForItem } from "../../assets/thumbnails"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
-import { getFileExt, toExpoFsPath } from "../../lib/helpers"
+import { getFileExt, toExpoFsPath, isBetween } from "../../lib/helpers"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useIsOnline from "../../lib/hooks/useIsOnline"
 import { getItemOfflinePath } from "../../lib/services/offline"
@@ -89,19 +89,21 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
             setCurrentName(image.file.name)
             setImagePreviewModalIndex(index)
 
-            thumbnailListRef?.current?.scrollToIndex({
-                animated: true,
-                index,
-                viewPosition: 0.5
-            })
-    
-            if(setListScrollAgain.current){
-                setListScrollAgain.current = false
-    
-                listRef?.current?.scrollToIndex({
-                    animated: false,
-                    index
+            if(isBetween(index, 0, imagePreviewModalItems.length)){
+                thumbnailListRef?.current?.scrollToIndex({
+                    animated: true,
+                    index,
+                    viewPosition: 0.5
                 })
+        
+                if(setListScrollAgain.current){
+                    setListScrollAgain.current = false
+        
+                    listRef?.current?.scrollToIndex({
+                        animated: false,
+                        index
+                    })
+                }
             }
         }
 
@@ -264,7 +266,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                     
                     zoomLevel.current = view.zoomLevel
 
-                    if(view.zoomLevel <= 1.05){
+                    if(view.zoomLevel <= 1.05 && isBetween(index, 0, imagePreviewModalItems.length)){
                         listRef?.current?.scrollToIndex({
                             animated: false,
                             index
@@ -399,7 +401,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 </Pressable>
             </ReactNativeZoomableView>
         )
-    }, [dimensions, images])
+    }, [dimensions, images, imagePreviewModalItems])
 
     const renderThumb = useCallback((item: PreviewItem, index: number) => {
         const image = item
@@ -429,20 +431,22 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                             console.log(e)
                         }
 
-                        setListScrollAgain.current = true
+                        if(isBetween(index, 0, imagePreviewModalItems.length)){
+                            setListScrollAgain.current = true
 
-                        thumbnailListRef?.current?.scrollToIndex({
-                            animated: false,
-                            index,
-                            viewPosition: 0.5
-                        })
-
-                        listRef?.current?.scrollToOffset({
-                            animated: false,
-                            offset: dimensions.width * index + 1
-                        })
-
-                        loadImage(imagePreviewModalItems[index], index)
+                            thumbnailListRef?.current?.scrollToIndex({
+                                animated: false,
+                                index,
+                                viewPosition: 0.5
+                            })
+    
+                            listRef?.current?.scrollToOffset({
+                                animated: false,
+                                offset: dimensions.width * index + 1
+                            })
+    
+                            loadImage(imagePreviewModalItems[index], index)
+                        }
                     }}
                 >
                     {
