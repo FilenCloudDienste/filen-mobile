@@ -48,19 +48,17 @@ const CreateTextFileDialog = memo(({ navigation }: CreateTextFileDialogProps) =>
     }, [value])
 
     useEffect(() => {
-        const openCreateTextFileDialogListener = () => {
+		const openCreateTextFileDialogListener = DeviceEventEmitter.addListener("openCreateTextFileDialog", () => {
 			setValue(".txt")
             setOpen(true)
 
             setTimeout(() => {
                 inputRef?.current?.focus()
             }, 500)
-		}
-
-		DeviceEventEmitter.addListener("openCreateTextFileDialog", openCreateTextFileDialogListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openCreateTextFileDialog", openCreateTextFileDialogListener)
+			openCreateTextFileDialogListener.remove()
 		}
     }, [])
 

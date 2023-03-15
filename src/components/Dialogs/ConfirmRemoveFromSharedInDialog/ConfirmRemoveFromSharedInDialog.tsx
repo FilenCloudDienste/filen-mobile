@@ -49,16 +49,14 @@ const ConfirmRemoveFromSharedInDialog = memo(() => {
     }, [lang, buttonsDisabled, currentItem])
 
     useEffect(() => {
-        const openConfirmRemoveFromSharedInDialogListener = (item: Item) => {
+		const openConfirmRemoveFromSharedInDialogListener = DeviceEventEmitter.addListener("openConfirmRemoveFromSharedInDialog", (item: Item) => {
 			setButtonsDisabled(false)
             setCurrentItem(item)
             setOpen(true)
-		}
-
-		DeviceEventEmitter.addListener("openConfirmRemoveFromSharedInDialog", openConfirmRemoveFromSharedInDialogListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openConfirmRemoveFromSharedInDialog", openConfirmRemoveFromSharedInDialogListener)
+			openConfirmRemoveFromSharedInDialogListener.remove()
 		}
     }, [])
 

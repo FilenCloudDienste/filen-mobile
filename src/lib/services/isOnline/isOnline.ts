@@ -7,57 +7,9 @@ let INTERVAL: any
 let STATE_INTERVAL: any
 
 export const runNetworkCheck = async (skipTimeout: boolean = false) => {
-    if(storage.getBoolean("isOnlineRunning") && !skipTimeout){
-        return
-    }
+    storage.set("isOnline", true)
 
-    if(!skipTimeout){
-        storage.set("isOnlineRunning", true)
-    }
-
-    const controller = new AbortController()
-    const timeoutTimer = setTimeout(() => {
-        controller.abort()
-
-        storage.set("isOnlineRunning", false)
-    }, 15000)
-
-    try{
-        const response = await fetch("https://api.filen.io/health?noCache=" + new Date().getTime(), {
-            signal: controller.signal
-        })
-
-        if(response.status == 200){
-            const text = await response.text()
-
-            if(text.indexOf("endpoint") !== -1){
-                storage.set("isOnline", true)
-
-                DeviceEventEmitter.emit("networkInfoChange", { online: true, wifi: isWifi() })
-            }
-            else{
-                storage.set("isOnline", false)
-
-                DeviceEventEmitter.emit("networkInfoChange", { online: false, wifi: isWifi() })
-            }
-        }
-        else{
-            storage.set("isOnline", false)
-
-            DeviceEventEmitter.emit("networkInfoChange", { online: false, wifi: isWifi() })
-        }
-    }
-    catch(e){
-        console.error(e)
-
-        storage.set("isOnline", false)
-
-        DeviceEventEmitter.emit("networkInfoChange", { online: false, wifi: isWifi() })
-    }
-
-    clearTimeout(timeoutTimer)
-
-    storage.set("isOnlineRunning", false)
+    DeviceEventEmitter.emit("networkInfoChange", { online: true, wifi: isWifi() })
 }
 
 export const runWifiCheck = () => {

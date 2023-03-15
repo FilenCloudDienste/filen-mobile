@@ -1,20 +1,27 @@
 {
-    "compilerOptions": {
-      "allowJs": true,
-      "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true,
-      "isolatedModules": true,
-      "jsx": "react-native",
-      "lib": ["es2017"],
-      "moduleResolution": "node",
-      "noEmit": true,
-      "strict": true,
-      "target": "esnext"
-    },
-    "exclude": [
-      "node_modules",
-      "babel.config.js",
-      "metro.config.js",
-      "jest.config.js"
-    ]
+  "compileOnSave": false,
+  "compilerOptions": {
+    "jsx": "react-native",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2017", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@nex/data": ["libs/data/src/index.ts"],
+      "@nex/ui": ["libs/ui/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
 }

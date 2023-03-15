@@ -163,7 +163,7 @@ const PublicLinkActionSheet = memo(() => {
     }, [currentItem, info])
 
     useEffect(() => {
-        const showItemActionSheetListener = (item: Item) => {
+		const showItemActionSheetListener = DeviceEventEmitter.addListener("showPublicLinkActionSheet", (item: Item) => {
 			setCurrentItem(item)
 
             currentItemRef.current = item
@@ -171,12 +171,10 @@ const PublicLinkActionSheet = memo(() => {
             SheetManager.show("PublicLinkActionSheet")
 
             fetchInfo(item)
-		}
-		
-		DeviceEventEmitter.addListener("showPublicLinkActionSheet", showItemActionSheetListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("showPublicLinkActionSheet", showItemActionSheetListener)
+			showItemActionSheetListener.remove()
 		}
     }, [])
 

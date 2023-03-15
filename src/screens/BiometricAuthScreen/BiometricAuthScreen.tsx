@@ -346,18 +346,15 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
         navigation.addListener("beforeRemove", removeListener)
 
-        const appStateListener = (nextAppState: AppStateStatus) => {
+        const appStateListener = AppState.addEventListener("change", (nextAppState: AppStateStatus) => {
             appState.current = nextAppState
-        }
-
-        AppState.addEventListener("change", appStateListener)
+        })
 
         setTimeout(promptBiometrics, 250)
 
         return () => {
             navigation.removeListener("beforeRemove", removeListener)
-            AppState.removeEventListener("change", appStateListener)
-
+            appStateListener.remove()
             setBiometricAuthScreenVisible(false)
         }
     }, [])

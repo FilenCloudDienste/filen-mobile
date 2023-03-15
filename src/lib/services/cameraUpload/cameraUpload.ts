@@ -27,7 +27,7 @@ const MAX_FETCH_TIME: number = 15000
 let askedForPermissions: boolean = false
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout: number = 0
-let fallbackInterval: NodeJS.Timer
+let fallbackInterval: any
 const getFilesMutex = new Semaphore(1)
 
 export const runMutex = new Semaphore(1)
@@ -908,11 +908,13 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 
             storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
 
-            await Promise.all([
-                db.cameraUpload.setLastModified(asset, convertTimestampToMs(delta.item.lastModified)),
-                db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || delta.item.lastModified)),
-                db.cameraUpload.setLastSize(asset, stat.size || 0)
-            ])
+            if(stat.exists){
+                await Promise.all([
+                    db.cameraUpload.setLastModified(asset, convertTimestampToMs(delta.item.lastModified)),
+                    db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || delta.item.lastModified)),
+                    db.cameraUpload.setLastSize(asset, stat.size || 0)
+                ])
+            }
 
             uploadSemaphore.release()
 

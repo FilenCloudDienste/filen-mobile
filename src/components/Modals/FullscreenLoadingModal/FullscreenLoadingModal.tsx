@@ -13,20 +13,17 @@ const FullscreenLoadingModal = memo(() => {
     }, [fullscreenLoadingModalVisible])
 
     useEffect(() => {
-        const showFullScreenLoadingModalListener = () => {
+        const showFullScreenLoadingModalListener = DeviceEventEmitter.addListener("showFullScreenLoadingModal", () => {
             setOpen(true)
-        }
+        })
 
-        const hideFullScreenLoadingModalListener = () => {
+        const hideFullScreenLoadingModalListener = DeviceEventEmitter.addListener("hideFullScreenLoadingModal", () => {
             setOpen(false)
-        }
-
-        DeviceEventEmitter.addListener("showFullScreenLoadingModal", showFullScreenLoadingModalListener)
-        DeviceEventEmitter.addListener("hideFullScreenLoadingModal", hideFullScreenLoadingModalListener)
+        })
 
         return () => {
-            DeviceEventEmitter.removeListener("showFullScreenLoadingModal", showFullScreenLoadingModalListener)
-            DeviceEventEmitter.removeListener("hideFullScreenLoadingModal", hideFullScreenLoadingModalListener)
+            showFullScreenLoadingModalListener.remove()
+            hideFullScreenLoadingModalListener.remove()
         }
     }, [])
 

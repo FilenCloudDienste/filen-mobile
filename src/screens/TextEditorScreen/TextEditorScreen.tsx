@@ -151,7 +151,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                     file: {
                         path: decodeURIComponent(path).replace("file://", ""),
                         name: fileName,
-                        size: parseInt(stat.size),
+                        size: stat.size,
                         mime: "text/plain",
                         lastModified: new Date().getTime()
                     },

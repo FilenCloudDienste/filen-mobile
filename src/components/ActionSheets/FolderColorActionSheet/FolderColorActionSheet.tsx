@@ -65,16 +65,14 @@ const FolderColorActionSheet = memo(() => {
 	}, [buttonsDisabled, currentItem, lang])
 
 	useEffect(() => {
-		const openFolderColorActionSheetListener = (item: Item) => {
+		const openFolderColorActionSheetListener = DeviceEventEmitter.addListener("openFolderColorActionSheet", (item: Item) => {
 			setCurrentItem(item)
 
 			SheetManager.show("FolderColorActionSheet")
-		}
-
-		DeviceEventEmitter.addListener("openFolderColorActionSheet", openFolderColorActionSheetListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openFolderColorActionSheet", openFolderColorActionSheetListener)
+			openFolderColorActionSheetListener.remove()
 		}
 	}, [])
 

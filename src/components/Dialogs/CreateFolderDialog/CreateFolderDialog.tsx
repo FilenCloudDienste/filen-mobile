@@ -101,7 +101,7 @@ const CreateFolderDialog = memo(() => {
     }, [lang, buttonsDisabled, value])
 
     useEffect(() => {
-        const openCreateFolderDialogListener = () => {
+		const openCreateFolderDialogListener = DeviceEventEmitter.addListener("openCreateFolderDialog", () => {
 			setButtonsDisabled(false)
             setValue("Untitled folder")
             setOpen(true)
@@ -109,12 +109,10 @@ const CreateFolderDialog = memo(() => {
             setTimeout(() => {
                 inputRef?.current?.focus()
             }, 500)
-		}
-
-		DeviceEventEmitter.addListener("openCreateFolderDialog", openCreateFolderDialogListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openCreateFolderDialog", openCreateFolderDialogListener)
+			openCreateFolderDialogListener.remove()
 		}
     }, [])
 

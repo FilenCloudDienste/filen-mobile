@@ -95,7 +95,7 @@ const ShareActionSheet = memo(() => {
 	}, [buttonsDisabled, currentItem, email, isLoading, lang])
 
 	useEffect(() => {
-		const openShareActionSheetListener = (item: Item) => {
+		const openShareActionSheetListener = DeviceEventEmitter.addListener("openShareActionSheet", (item: Item) => {
 			setButtonsDisabled(false)
 			setEmail("")
 			setIsLoading(false)
@@ -111,12 +111,10 @@ const ShareActionSheet = memo(() => {
 					}
 				}
 			}, 500)
-		}
-
-		DeviceEventEmitter.addListener("openShareActionSheet", openShareActionSheetListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openShareActionSheet", openShareActionSheetListener)
+			openShareActionSheetListener.remove()
 		}
 	}, [])
 

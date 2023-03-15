@@ -57,15 +57,13 @@ const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFacto
     }, [buttonsDisabled, value, lang])
 
     useEffect(() => {
-        const openDeleteAccountTwoFactorDialogListener = () => {
+		const openDeleteAccountTwoFactorDialogListener = DeviceEventEmitter.addListener("openDeleteAccountTwoFactorDialog", () => {
 			setButtonsDisabled(false)
             setOpen(true)
-		}
-
-		DeviceEventEmitter.addListener("openDeleteAccountTwoFactorDialog", openDeleteAccountTwoFactorDialogListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openDeleteAccountTwoFactorDialog", openDeleteAccountTwoFactorDialogListener)
+			openDeleteAccountTwoFactorDialogListener.remove()
 		}
     }, [])
 

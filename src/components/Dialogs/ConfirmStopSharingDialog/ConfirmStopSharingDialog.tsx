@@ -67,16 +67,14 @@ const ConfirmStopSharingDialog = memo(() => {
     }, [currentItem, buttonsDisabled, lang])
 
     useEffect(() => {
-        const openConfirmStopSharingDialogListener = (item: Item) => {
+		const openConfirmStopSharingDialogListener = DeviceEventEmitter.addListener("openConfirmStopSharingDialog", (item: Item) => {
 			setButtonsDisabled(false)
             setCurrentItem(item)
             setOpen(true)
-		}
-
-		DeviceEventEmitter.addListener("openConfirmStopSharingDialog", openConfirmStopSharingDialogListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openConfirmStopSharingDialog", openConfirmStopSharingDialogListener)
+			openConfirmStopSharingDialogListener.remove()
 		}
     }, [])
 

@@ -98,7 +98,7 @@ const FileVersionsActionSheet = memo(() => {
 	}, [currentItem])
 
 	useEffect(() => {
-		const openFileVersionsActionSheetListener = (item: Item) => {
+		const openFileVersionsActionSheetListener = DeviceEventEmitter.addListener("openFileVersionsActionSheet", (item: Item) => {
 			setButtonsDisabled(true)
             setVersionData([])
 			setIsLoading(true)
@@ -109,12 +109,10 @@ const FileVersionsActionSheet = memo(() => {
 			fetchVersions()
 
 			SheetManager.show("FileVersionsActionSheet")
-		}
-
-		DeviceEventEmitter.addListener("openFileVersionsActionSheet", openFileVersionsActionSheetListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openFileVersionsActionSheet", openFileVersionsActionSheetListener)
+			openFileVersionsActionSheetListener.remove()
 		}
 	}, [])
 

@@ -777,11 +777,13 @@ export const addToSavedToGallery = async (asset: Asset) => {
         const assetURI = await getAssetURI(asset)
         const stat = await fs.stat(assetURI)
 
-        await Promise.all([
-            db.cameraUpload.setLastModified(asset, convertTimestampToMs(asset.modificationTime)),
-            db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || asset.modificationTime)),
-            db.cameraUpload.setLastSize(asset, stat.size || 0)
-        ])
+        if(stat.exists){
+            await Promise.all([
+                db.cameraUpload.setLastModified(asset, convertTimestampToMs(asset.modificationTime)),
+                db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || asset.modificationTime)),
+                db.cameraUpload.setLastSize(asset, stat.size || 0)
+            ])
+        }
     }
     catch(e){
         console.error(e)

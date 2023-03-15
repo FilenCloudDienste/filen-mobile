@@ -10,6 +10,7 @@ export const SetupScreen = memo(() => {
         <View
             style={{
                 height: "100%",
+                width: "100%",
                 backgroundColor: getColor(darkMode, "backgroundPrimary"),
                 justifyContent: "center",
                 alignItems: "center"

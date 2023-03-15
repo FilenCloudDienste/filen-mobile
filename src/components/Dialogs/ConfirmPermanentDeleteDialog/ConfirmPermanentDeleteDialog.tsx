@@ -49,16 +49,14 @@ const ConfirmPermanentDeleteDialog = memo(() => {
     }, [lang, currentItem, buttonsDisabled])
 
     useEffect(() => {
-        const openConfirmPermanentDeleteDialogListener = (item: Item) => {
+		const openConfirmPermanentDeleteDialogListener = DeviceEventEmitter.addListener("openConfirmPermanentDeleteDialog", (item: Item) => {
 			setButtonsDisabled(false)
             setCurrentItem(item)
             setOpen(true)
-		}
-
-		DeviceEventEmitter.addListener("openConfirmPermanentDeleteDialog", openConfirmPermanentDeleteDialogListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openConfirmPermanentDeleteDialog", openConfirmPermanentDeleteDialogListener)
+			openConfirmPermanentDeleteDialogListener.remove()
 		}
     }, [])
 

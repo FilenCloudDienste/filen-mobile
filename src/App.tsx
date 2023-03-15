@@ -301,7 +301,7 @@ export const App = Sentry.wrap(memo(() => {
     useEffect(() => {
         runNetworkCheck(true)
 
-        const appStateListener = async (nextAppState: AppStateStatus) => {
+        const appStateListener = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
             setAppState(nextAppState)
 
             await isNavReady(navigationRef)
@@ -325,9 +325,7 @@ export const App = Sentry.wrap(memo(() => {
                     }
                 }
             }
-        }
-
-        AppState.addEventListener("change", appStateListener)
+        })
 
         const navigationRefListener = (event: any) => {
             if(typeof event.data !== "undefined"){
@@ -351,9 +349,7 @@ export const App = Sentry.wrap(memo(() => {
 
         setAppearance()
 
-        const appearanceListener = () => setAppearance()
-
-        Appearance.addChangeListener(appearanceListener)
+        const appearanceListener = Appearance.addChangeListener(setAppearance)
 
         storage.set("setupDone", false)
         storage.set("cameraUploadUploaded", 0)
@@ -361,20 +357,20 @@ export const App = Sentry.wrap(memo(() => {
         storage.set("isOnlineRunning", false)
         storage.set("isOnline", true)
 
-        const openSelectMediaScreenListener = () => {
-            navigationAnimation({ enable: true }).then(() => {
-                if(navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function"){
-                    const currentNavState = navigationRef.current.getState()
+        const openSelectMediaScreenListener = DeviceEventEmitter.addListener("openSelectMediaScreen", async () => {
+            await navigationAnimation({ enable: true })
 
-                    navigationRef.current.dispatch(StackActions.push("SelectMediaScreen", {
-                        prevNavigationState: currentNavState,
-                        album: undefined
-                    }))
-                }
-            })
-        }
+            if(navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function"){
+                const currentNavState = navigationRef.current.getState()
 
-        const selectMediaScreenUploadListener = ({ assets, parent }: { assets: Asset[], parent: string }) => {
+                navigationRef.current.dispatch(StackActions.push("SelectMediaScreen", {
+                    prevNavigationState: currentNavState,
+                    album: undefined
+                }))
+            }
+        })
+
+        const selectMediaScreenUploadListener = DeviceEventEmitter.addListener("selectMediaScreenUpload", ({ assets, parent }: { assets: Asset[], parent: string }) => {
             setTimeout(async () => {
                 showFullScreenLoadingModal()
 
@@ -410,20 +406,17 @@ export const App = Sentry.wrap(memo(() => {
 
                 hideFullScreenLoadingModal()
             }, 750)
-        }
-
-        DeviceEventEmitter.addListener("openSelectMediaScreen", openSelectMediaScreenListener)
-        DeviceEventEmitter.addListener("selectMediaScreenUpload", selectMediaScreenUploadListener)
+        })
 
         getCfg().then(setCFG).catch(console.error)
 
         return () => {
             shareMenuListener.remove()
             navigationRef.removeListener("state", navigationRefListener)
-            AppState.removeEventListener("change", appStateListener)
-            Appearance.removeChangeListener(appearanceListener)
-            DeviceEventEmitter.removeListener("openSelectMediaScreen", openSelectMediaScreenListener)
-            DeviceEventEmitter.removeListener("selectMediaScreenUpload", selectMediaScreenUploadListener)
+            appStateListener.remove()
+            appearanceListener.remove()
+            openSelectMediaScreenListener.remove()
+            selectMediaScreenUploadListener.remove()
         }
     }, [])
 
@@ -432,6 +425,7 @@ export const App = Sentry.wrap(memo(() => {
             <NavigationContainer
                 ref={navigationRef}
                 theme={darkMode ? DarkTheme : undefined}
+                fallback={<SetupScreen />}
             >
                 <Fragment>
                     <SafeAreaProvider

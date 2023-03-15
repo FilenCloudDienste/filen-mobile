@@ -184,7 +184,7 @@ const RenameDialog = memo(() => {
     }, [currentItem, lang, buttonsDisabled, value, ext])
 
     useEffect(() => {
-        const openRenameDialogListener = (item: Item) => {
+		const openRenameDialogListener = DeviceEventEmitter.addListener("openRenameDialog", (item: Item) => {
             setCurrentItem(item)
 
 			if(item.type == "folder"){
@@ -212,12 +212,10 @@ const RenameDialog = memo(() => {
             setTimeout(() => {
                 inputRef?.current?.focus()
             }, 500)
-		}
-
-		DeviceEventEmitter.addListener("openRenameDialog", openRenameDialogListener)
+		})
 
 		return () => {
-			DeviceEventEmitter.removeListener("openRenameDialog", openRenameDialogListener)
+			openRenameDialogListener.remove()
 		}
     }, [])
 
