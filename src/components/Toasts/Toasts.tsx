@@ -8,6 +8,7 @@ import MoveToast from "./MoveToast"
 import UploadToast from "./UploadToast"
 import CameraUploadChooseFolderToast from "./CameraUploadChooseFolderToast"
 import MoveBulkToast from "./MoveBulkToast"
+import { Item } from "src/types"
 
 const toastQueueLimit: number = 3
 let currentToastQueue: number = 0
@@ -26,7 +27,8 @@ export interface ShowToast {
     offsetBottom?: number,
     offsetTop?: number,
     placement?: "bottom" | "top",
-    navigation?: any
+    navigation?: any,
+    items?: Item[]
 }
 
 export const showToast = (
@@ -42,7 +44,8 @@ export const showToast = (
         offsetBottom = 50,
         offsetTop = 50,
         placement = "bottom",
-        navigation = undefined
+        navigation = undefined,
+        items = []
     }: ShowToast
 ) => {
     if(typeof global.toast == "undefined" || global.toast == null || typeof global.toast.hideAll !== "function"){
@@ -119,10 +122,10 @@ export const showToast = (
             placement
         })
     }
-    else if(type == "moveBulk"){
+    else if(type == "moveBulk" && Array.isArray(items)){
         hideAllToasts()
         
-        toastId = global.toast.show(<MoveBulkToast message={message} />, {
+        toastId = global.toast.show(<MoveBulkToast message={message} items={items} />, {
             type: "custom",
             style: {
                 backgroundColor: getColor(darkMode, "backgroundTertiary"),

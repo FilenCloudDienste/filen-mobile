@@ -44,7 +44,6 @@ const pathModule = require("path")
 const { Readable } = require("stream")
 const heicConvert = require("heic-convert")
 const { Semaphore } = require("await-semaphore")
-const ExifReader = require("exifreader")
 const progress = require("progress-stream")
 
 const axiosClient = axios.create({
@@ -925,20 +924,6 @@ const convertHeic = (input, output, format) => {
     })
 }
 
-const readExif = (path) => {
-    return new Promise((resolve, reject) => {
-        path = pathModule.normalize(path)
-
-        fs.readFile(path, (err, buffer) => {
-            if(err){
-                return reject(err)
-            }
-
-            ExifReader.load(buffer).then(resolve).catch(reject)
-        })
-    })
-}
-
 /*rn_bridge.app.on("pause", (pauseLock) => {
     new Promise((resolve, _) => {
         const wait = setInterval(() => {
@@ -1369,25 +1354,6 @@ rn_bridge.channel.on("message", (message) => {
     }
     else if(request.type == "convertHeic"){
         convertHeic(request.input, request.output, request.format).then((res) => {
-            rn_bridge.channel.send({
-                id: request.id,
-                type: request.type,
-                response: res
-            })
-
-            tasksRunning -= 1
-        }).catch((err) => {
-            rn_bridge.channel.send({
-                id: request.id,
-                type: request.type,
-                err: err.toString()
-            })
-
-            tasksRunning -= 1
-        })
-    }
-    else if(request.type == "readExif"){
-        readExif(request.path).then((res) => {
             rn_bridge.channel.send({
                 id: request.id,
                 type: request.type,

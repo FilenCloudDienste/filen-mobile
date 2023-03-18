@@ -302,11 +302,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
     downloadFile(file, true, file.chunks).then(async (path) => {
         delete currentDownloads[file.uuid]
 
-        DeviceEventEmitter.emit("download", {
-            type: "done",
-            data: file
-        })
-
         downloadSemaphore.release()
 
         if(isPreview){
@@ -463,7 +458,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
 
         delete currentDownloads[file.uuid]
         
-        if(err !== "stopped"){
+        if(err.toString() !== "stopped"){
             showToast({ message: err.toString() })
 
             DeviceEventEmitter.emit("download", {

@@ -57,10 +57,10 @@ import FullscreenLoadingModal from "./components/Modals/FullscreenLoadingModal"
 import useDarkMode from "./lib/hooks/useDarkMode"
 import useIsLoggedIn from "./lib/hooks/useIsLoggedIn"
 import useLang from "./lib/hooks/useLang"
-import { activateKeepAwake, deactivateKeepAwake } from "expo-keep-awake"
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake"
 import SelectMediaScreen from "./screens/SelectMediaScreen"
 import { Asset } from "./screens/SelectMediaScreen/SelectMediaScreen"
-import { getAssetURI } from "./lib/services/cameraUpload"
+import { getAssetURI, getLastModified, convertHeicToJPGIOS } from "./lib/services/cameraUpload"
 import { queueFileUpload } from "./lib/services/upload"
 import * as fs from "./lib/fs"
 import { getDownloadPath } from "./lib/services/download"
@@ -71,7 +71,7 @@ import { ICFG } from "./types"
 import Announcements from "./components/Announcements"
 import { SheetProvider } from "react-native-actions-sheet"
 
-LogBox.ignoreLogs(["new NativeEventEmitter"])
+LogBox.ignoreLogs(["new NativeEventEmitter", "Module AssetExporter", "DEPRECATED"])
 
 enableScreens(true)
 
@@ -80,7 +80,7 @@ if(!__DEV__){
         dsn: "https://1aa0cbb262634a27a5887e91381e4251@o4504039703314432.ingest.sentry.io/4504039705804800",
         enableNative: true,
         enabled: true,
-        enableAppHangTracking: false,
+        enableAppHangTracking: true,
         enableNativeCrashHandling: true,
         enableOutOfMemoryTracking: true,
         enableAutoPerformanceTracking: false
@@ -204,7 +204,7 @@ export const App = Sentry.wrap(memo(() => {
 
     useEffect(() => {
         if(keepAppAwake){
-            activateKeepAwake()
+            activateKeepAwakeAsync().catch(console.error)
         }
         else{
             deactivateKeepAwake()
@@ -373,23 +373,39 @@ export const App = Sentry.wrap(memo(() => {
                 showFullScreenLoadingModal()
 
                 try{
+                    const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + storage.getNumber("userId"))
+
                     for(let i = 0; i < assets.length; i++){
                         const assetURI = await getAssetURI(assets[i].asset)
                         const tmp = (await getDownloadPath({ type: "temp" })).slice(0, -1)
-                        const tmpPath = tmp + "/" + generateRandomString(16) + assets[i].asset.filename
+                        const tmpPath = tmp + "/" + await generateRandomString(16) + assets[i].asset.filename
 
                         await fs.copy(assetURI, tmpPath)
 
                         const stat = await fs.stat(tmpPath)
+                        const lastModified = await getLastModified(tmpPath, assets[i].asset.filename, convertTimestampToMs(assets[i].asset.creationTime || assets[i].asset.modificationTime || new Date().getTime()))
 
                         if(stat.exists && stat.size){
+                            let filePath = tmpPath
+                            let fileName = assets[i].asset.filename
+
+                            if(Platform.OS == "ios" && !cameraUploadEnableHeic && tmpPath.toLowerCase().endsWith(".heic") && assets[i].asset.mediaType == "photo" && tmpPath.toLowerCase().indexOf("fullsizerender") == -1){
+                                const convertedPath = await convertHeicToJPGIOS(tmpPath)
+                                const assetFilenameWithoutEx = assets[i].asset.filename.indexOf(".") !== -1 ? assets[i].asset.filename.substring(0, assets[i].asset.filename.lastIndexOf(".")) : assets[i].asset.filename
+
+                                await fs.unlink(tmpPath)
+
+                                filePath = convertedPath
+                                fileName = assetFilenameWithoutEx + ".JPG"
+                            }
+
                             queueFileUpload({
                                 file: {
-                                    path: tmpPath,
-                                    name: assets[i].asset.filename,
+                                    path: filePath,
+                                    name: fileName,
                                     size: stat.size,
-                                    mime: mimeTypes.lookup(assets[i].asset.filename) || "",
-                                    lastModified: convertTimestampToMs(assets[i].asset.creationTime || new Date().getTime())
+                                    mime: mimeTypes.lookup(fileName) || "",
+                                    lastModified
                                 },
                                 parent
                             }).catch(console.error)
@@ -423,7 +439,6 @@ export const App = Sentry.wrap(memo(() => {
             <NavigationContainer
                 ref={navigationRef}
                 theme={darkMode ? DarkTheme : undefined}
-                fallback={<SetupScreen />}
             >
                 <Fragment>
                     <SafeAreaProvider

@@ -157,11 +157,11 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
                     },
                     parent
                 }).catch((err) => {
-                    if(err == "stopped"){
+                    if(err.toString() == "stopped"){
                         return
                     }
                     
-                    if(err == "wifiOnly"){
+                    if(err.toString() == "wifiOnly"){
                         showToast({ message: i18n(lang, "onlyWifiUploads") })
 
                         return

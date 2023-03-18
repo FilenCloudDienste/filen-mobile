@@ -17,6 +17,9 @@ import path from "path"
 import { decryptFileMetadata } from "../../crypto"
 import * as fs from "../../fs"
 import * as db from "../../db"
+import Exif from "react-native-exif"
+import moment from "moment"
+import MediaMeta from "react-native-media-meta"
 
 const CryptoJS = require("crypto-js")
 
@@ -152,6 +155,39 @@ export const getAssetDeltaName = (name: string) => {
     const parsed = pathModule.parse(name)
 
     return parsed.name
+}
+
+export const getLastModified = async (path: string, name: string, fallback: number): Promise<number> => {
+    const lastModified = convertTimestampToMs(fallback)
+
+    try{
+        if(photoExts.includes(getFileExt(name))){
+            const exif = await Exif.getExif(path.split("file://").join(""))
+
+            if(exif && exif.exif && exif.exif['{Exif}'] && exif.exif['{Exif}']['DateTimeOriginal'] && typeof exif.exif['{Exif}']['DateTimeOriginal'] == "string" && exif.exif['{Exif}']['DateTimeOriginal'].indexOf(":") !== -1 && exif.exif['{Exif}']['DateTimeOriginal'].indexOf(" ") !== -1){
+                const parsed = moment(exif.exif['{Exif}']['DateTimeOriginal'], "YYYY:MM:DD HH:mm:ss")
+                const ts = convertTimestampToMs(parsed.toDate().getTime())
+        
+                return ts
+            }
+        }
+
+        if(videoExts.includes(getFileExt(name))){
+            const metadata = await MediaMeta.get(path.split("file://").join(""), { getThumb: false })
+            const date = Platform.OS == "ios" ? metadata['creationDate'] : metadata['creation_time']
+            
+            if(typeof date == "string"){
+                const parsed = new Date(date)
+
+                if(parsed instanceof Date){
+                    return convertTimestampToMs(parsed.getTime())
+                }
+            }
+        }
+    }
+    catch{}
+
+    return lastModified
 }
 
 export const getMediaTypes = () => {
@@ -555,12 +591,14 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
         throw new Error("No size for asset " + asset.id)
     }
 
+    const lastModified = await getLastModified(tmp.split("file://").join(""), asset.filename, convertTimestampToMs(asset.creationTime || asset.modificationTime || new Date().getTime()))
+
     return {
         path: tmp.split("file://").join(""),
         name,
         mime: mimeTypes.lookup(tmp) || "",
         size: stat.size,
-        lastModified: convertTimestampToMs(asset.creationTime)
+        lastModified
     }
 }
 
@@ -619,18 +657,20 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
                         new Promise<UploadFile>((resolve, reject) => {
                             fs.iOSstat(convertedPath).then((stat) => {
                                 if(stat.exists && stat.size){
-                                    let assetFilenameWithoutEx = asset.filename.substring(0, asset.filename.lastIndexOf("."))
+                                    const assetFilenameWithoutEx = asset.filename.indexOf(".") !== -1 ? asset.filename.substring(0, asset.filename.lastIndexOf(".")) : asset.filename
                                     const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
-                                    const nameWithoutEx = fileNameEx.slice(0, (fileNameEx.length - 1)).join(".")
+                                    const nameWithoutEx = asset.filename.indexOf(".") !== -1 ? fileNameEx.slice(0, (fileNameEx.length - 1)).join(".") : asset.filename
                                     const newName = !nameWithoutEx.includes(assetFilenameWithoutEx) ? (assetFilenameWithoutEx + "_" + nameWithoutEx + ".JPG") : (nameWithoutEx + ".JPG")
 
-                                    return resolve({
-                                        path: convertedPath.split("file://").join(""),
-                                        name: newName,
-                                        mime: mimeTypes.lookup(convertedPath) || "",
-                                        size: stat.size,
-                                        lastModified: convertTimestampToMs(asset.creationTime)
-                                    })
+                                    getLastModified(resource.localFileLocations.split("file://").join(""), asset.filename, convertTimestampToMs(asset.creationTime || asset.modificationTime || new Date().getTime())).then((lastModified) => {
+                                        return resolve({
+                                            path: convertedPath.split("file://").join(""),
+                                            name: newName,
+                                            mime: mimeTypes.lookup(convertedPath) || "",
+                                            size: stat.size,
+                                            lastModified
+                                        })
+                                    }).catch(reject)
                                 }
                                 
                                 return reject(new Error("No size for asset (after HEIC conversion) " + asset.id))
@@ -643,19 +683,21 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
                         new Promise<UploadFile>((resolve, reject) => {
                             fs.iOSstat(resource.localFileLocations).then((stat) => {
                                 if(stat.exists && stat.size){
-                                    let assetFilenameWithoutEx = asset.filename.substring(0, asset.filename.lastIndexOf("."))
+                                    const assetFilenameWithoutEx = asset.filename.indexOf(".") !== -1 ? asset.filename.substring(0, asset.filename.lastIndexOf(".")) : asset.filename
                                     let name = resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
 
                                     // If File does not have a _, then append the asset filename to the name
                                     name = !name.includes(assetFilenameWithoutEx) ? (assetFilenameWithoutEx + name) : name
 
-                                    return resolve({
-                                        path: resource.localFileLocations.split("file://").join(""),
-                                        name: name,
-                                        mime: mimeTypes.lookup(resource.localFileLocations) || "",
-                                        size: stat.size,
-                                        lastModified: convertTimestampToMs(asset.creationTime)
-                                    })
+                                    getLastModified(resource.localFileLocations.split("file://").join(""), asset.filename, convertTimestampToMs(asset.creationTime || asset.modificationTime || new Date().getTime())).then((lastModified) => {
+                                        return resolve({
+                                            path: resource.localFileLocations.split("file://").join(""),
+                                            name: name,
+                                            mime: mimeTypes.lookup(resource.localFileLocations) || "",
+                                            size: stat.size,
+                                            lastModified
+                                        })
+                                    }).catch(reject)
                                 }
                                 
                                 return reject(new Error("No size for asset " + asset.id))

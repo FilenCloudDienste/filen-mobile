@@ -189,18 +189,8 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
     await initDb()
 
     warmupDbCache().catch(console.error)
-
-    let cacheCleared = false
-
     checkOfflineItems().catch(console.error)
-
-    clearCacheDirectories().then(() => {
-        cacheCleared = true
-    }).catch((err) => {
-        console.error(err)
-
-        cacheCleared = true
-    })
+    clearCacheDirectories().catch(console.error)
 
     await updateKeys({ navigation })
     
@@ -232,16 +222,6 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
     else{
         storage.set("defaultDriveOnly:" + storage.getNumber("userId"), false)
     }
-
-    await new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-            if(cacheCleared){
-                clearInterval(interval)
-
-                return resolve()
-            }
-        }, 10)
-    })
 
     return true
 }

@@ -8,13 +8,12 @@ import { i18n } from "../../../i18n"
 import { getColor } from "../../../style"
 import { hideAllToasts, showToast } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { Item } from "src/types"
 
-const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
+const MoveBulkToast = memo(({ message, items }: { message?: string | undefined, items: Item[] }) => {
     const darkMode = useDarkMode()
-    const currentActionSheetItem = useStore(state => state.currentActionSheetItem) as any
     const [buttonsDisabled, setButtonsDisabled] = useState(false)
     const lang = useLang()
-    const currentBulkItems = useStore(state => state.currentBulkItems) as any
     const initParent = useRef<any>()
     const currentRoutes = useStore(state => state.currentRoutes) as any
     const [currentParent, setCurrentParent] = useState("")
@@ -37,7 +36,7 @@ const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
             return
         }
 
-        if(currentBulkItems.length == 0){
+        if(items.length == 0){
             hideAllToasts()
 
             return
@@ -61,18 +60,20 @@ const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
             return
         }
 
-        if(parent.length <= 32 && currentBulkItems.filter((item: any) => item.type == "file").length >= 1){
+        if(parent.length <= 32 && items.filter(item => item.type == "file").length >= 1){
             showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
             return
         }
 
-        if(typeof currentActionSheetItem !== "object"){
+        if(items.filter(item => item.parent == parent).length > 0){
+            showToast({ message: i18n(lang, "moveSameParentFolder") })
+
             return
         }
 
-        if(currentActionSheetItem.parent == parent){
-            showToast({ message: i18n(lang, "moveSameParentFolder") })
+        if(items.filter(item => item.uuid == parent).length > 0){
+            showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
             return
         }
@@ -87,7 +88,7 @@ const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
 
         useStore.setState({ fullscreenLoadingModalVisible: true })
 
-        bulkMove({ items: currentBulkItems, parent }).then(() => {
+        bulkMove({ items, parent }).then(() => {
             DeviceEventEmitter.emit("event", {
                 type: "reload-list",
                 data: {
@@ -109,14 +110,14 @@ const MoveBulkToast = memo(({ message }: { message?: string | undefined }) => {
 
                 hideAllToasts()
 
-                //showToast({ message: i18n(lang, "itemsMoved", true, ["__COUNT__"], [currentBulkItems.length]) })
+                //showToast({ message: i18n(lang, "itemsMoved", true, ["__COUNT__"], [items.length]) })
             }, 500)
         }).catch((err) => {
-            console.log(err)
+            console.error(err)
 
             showToast({ message: err.toString() })
         })
-    }, [currentActionSheetItem, currentRouteURL, currentBulkItems, buttonsDisabled, lang])
+    }, [currentRouteURL, buttonsDisabled, lang])
 
     useEffect(() => {
         if(Array.isArray(currentRoutes)){

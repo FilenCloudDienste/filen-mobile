@@ -20,7 +20,6 @@ import { Asset } from "expo-media-library"
 import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 import { getThumbnailCacheKey } from "../thumbnails"
 import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata, FileMetadata } from "../../crypto"
-import { PreviewItem } from "../../../screens/ImageViewerScreen"
 import * as db from "../../db"
 
 export interface BuildFolder {
@@ -249,7 +248,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             throw new Error("Device offline")
         }
 
-        let items: Item[] = []
+        const promises: Promise<Item>[] = []
 
         if(url.indexOf("recents") !== -1){
             const response = await apiRequest({
@@ -265,7 +264,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             }
     
             for(const file of response.data){
-                items.push(await buildFile({ file, masterKeys, userId }))
+                promises.push(buildFile({ file, masterKeys, userId }))
             }
         }
         else if(url.indexOf("shared-in") !== -1){
@@ -290,17 +289,26 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             }
     
             for(const folder of response.data.folders){
-                const item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey })
+                promises.push(
+                    new Promise(async (resolve, reject) => {
+                        try{
+                            const item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey })
+                            
+                            await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
 
-                items.push(item)
-                
-                await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
+                            memoryCache.set("itemCache:folder:" + folder.uuid, item)
 
-                memoryCache.set("itemCache:folder:" + folder.uuid, item)
+                            return resolve(item)
+                        }
+                        catch(e){
+                            return reject(e)
+                        }
+                    })
+                )
             }
     
             for(const file of response.data.uploads){
-                items.push(await buildFile({ file, masterKeys, sharedIn: true, privateKey, userId }))
+                promises.push(buildFile({ file, masterKeys, sharedIn: true, privateKey, userId }))
             }
         }
         else if(url.indexOf("shared-out") !== -1){
@@ -322,53 +330,29 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             }
     
             for(let folder of response.data.folders){
-                folder.name = folder.metadata
+                promises.push(
+                    new Promise(async (resolve, reject) => {
+                        try{
+                            folder.name = folder.metadata
                 
-                const item = await buildFolder({ folder, masterKeys })
-    
-                items.push(item)
-                
-                await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
+                            const item = await buildFolder({ folder, masterKeys })
+                            
+                            await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
 
-                memoryCache.set("itemCache:folder:" + folder.uuid, item)
+                            memoryCache.set("itemCache:folder:" + folder.uuid, item)
+
+                            return resolve(item)
+                        }
+                        catch(e){
+                            return reject(e)
+                        }
+                    })
+                )
             }
     
             for(const file of response.data.uploads){
-                items.push(await buildFile({ file, masterKeys, userId }))
+                promises.push(buildFile({ file, masterKeys, userId }))
             }
-    
-            const groups: Item[] = []
-            const sharedTo: { [key: string]: ItemReceiver[] } = {}
-            const added: { [key: string]: boolean } = {}
-    
-            for(let i = 0; i < items.length; i++){
-                if(Array.isArray(sharedTo[items[i].uuid])){
-                    sharedTo[items[i].uuid].push({
-                        id: items[i].receiverId,
-                        email: items[i].receiverEmail
-                    })
-                }
-                else{
-                    sharedTo[items[i].uuid] = [{
-                        id: items[i].receiverId,
-                        email: items[i].receiverEmail
-                    }]
-                }
-            }
-    
-            for(let i = 0; i < items.length; i++){
-                if(Array.isArray(sharedTo[items[i].uuid])){
-                    items[i].receivers = sharedTo[items[i].uuid]
-                }
-    
-                if(!added[items[i].uuid]){
-                    added[items[i].uuid] = true
-    
-                    groups.push(items[i])
-                }
-            }
-    
-            items = groups
         }
         else if(url.indexOf("photos") !== -1){
             const cameraUploadParent = storage.getString("cameraUploadFolderUUID:" + userId)
@@ -420,11 +404,22 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             }
     
             for(const file of response.data.uploads){
-                const item = await buildFile({ file, masterKeys, userId })
+                promises.push(
+                    new Promise(async (resolve, reject) => {
+                        try{
+                            const item = await buildFile({ file, masterKeys, userId })
     
-                if(canCompressThumbnail(getFileExt(item.name))){
-                    items.push(item)
-                }
+                            if(canCompressThumbnail(getFileExt(item.name))){
+                                return resolve(item)
+                            }
+
+                            return resolve(null)
+                        }
+                        catch(e){
+                            return reject(e)
+                        }
+                    })
+                )
             }
         }
         else if(url.indexOf("offline") !== -1){
@@ -449,11 +444,9 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
                     }
                 }
                 else{
-                    items.push(file)
+                    promises.push(Promise.resolve(file))
                 }
             }
-    
-            checkOfflineItems(items).catch(console.error)
         }
         else{
             const response = await apiRequest({
@@ -473,25 +466,75 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             }
     
             for(const folder of response.data.folders){
-                const item = await buildFolder({ folder, masterKeys })
-    
-                items.push(item)
+                promises.push(
+                    new Promise(async (resolve, reject) => {
+                        try{
+                            const item = await buildFolder({ folder, masterKeys })
 
-                await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
+                            await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
 
-                memoryCache.set("itemCache:folder:" + folder.uuid, item)
+                            memoryCache.set("itemCache:folder:" + folder.uuid, item)
+
+                            return resolve(item)
+                        }
+                        catch(e){
+                            return reject(e)
+                        }
+                    })
+                )
             }
     
             for(const file of response.data.uploads){
-                items.push(await buildFile({ file, masterKeys, userId }))
+                promises.push(buildFile({ file, masterKeys, userId }))
             }
         }
 
-        items = sortItems({ items, passedRoute: route }).filter(item => item !== null && typeof item.uuid == "string" && item.name.length > 0)
+        let items = (await Promise.all(promises)).filter(item => item !== null && typeof item.uuid == "string")
+
+        if(url.indexOf("shared-in") !== -1){
+            const groups: Item[] = []
+            const sharedTo: { [key: string]: ItemReceiver[] } = {}
+            const added: { [key: string]: boolean } = {}
+    
+            for(let i = 0; i < items.length; i++){
+                if(Array.isArray(sharedTo[items[i].uuid])){
+                    sharedTo[items[i].uuid].push({
+                        id: items[i].receiverId,
+                        email: items[i].receiverEmail
+                    })
+                }
+                else{
+                    sharedTo[items[i].uuid] = [{
+                        id: items[i].receiverId,
+                        email: items[i].receiverEmail
+                    }]
+                }
+            }
+    
+            for(let i = 0; i < items.length; i++){
+                if(Array.isArray(sharedTo[items[i].uuid])){
+                    items[i].receivers = sharedTo[items[i].uuid]
+                }
+    
+                if(!added[items[i].uuid]){
+                    added[items[i].uuid] = true
+    
+                    groups.push(items[i])
+                }
+            }
+    
+            items = groups
+        }
+
+        items = sortItems({ items, passedRoute: route }).filter(item => item.name.length > 0)
 
         await db.set("loadItems:" + url, items)
 
         memoryCache.set("loadItems:" + url, items)
+
+        if(url.indexOf("offline") !== -1){
+            checkOfflineItems(items).catch(console.error)
+        }
 
         return {
             cached: false,
@@ -585,52 +628,13 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
             return
         }
         
-        return setImmediate(() => {
-            const currentItems = useStore.getState().currentItems
+        await navigationAnimation({ enable: true })
 
-            if(!Array.isArray(currentItems)){
-                return
-            }
+        navigation.dispatch(StackActions.push("ImageViewerScreen", {
+            uuid: item.uuid
+        }))
 
-            const currentImages: PreviewItem[] = []
-            let currentIndex = 0
-            const addedImages: Record<string, boolean> = {}
-            let index = 0
-            let imgFound = false
-
-            for(let i = 0; i < currentItems.length; i++){
-                const ext = getFileExt(currentItems[i].name)
-
-                if(getFilePreviewType(ext) == "image" && canCompressThumbnail(ext) && !addedImages[currentItems[i].uuid]){
-                    addedImages[currentItems[i].uuid] = true
-
-                    if(currentItems[i].uuid == item.uuid){
-                        currentIndex = index
-                        imgFound = true
-                    }
-                    
-                    currentImages.push({
-                        uri: undefined,
-                        name: currentItems[i].name,
-                        index,
-                        uuid: currentItems[i].uuid,
-                        thumbnail: currentItems[i].thumbnail,
-                        file: currentItems[i]
-                    })
-
-                    index += 1
-                }
-            }
-
-            if(imgFound){
-                navigationAnimation({ enable: true }).then(() => {
-                    navigation.dispatch(StackActions.push("ImageViewerScreen", {
-                        items: currentImages,
-                        index: currentIndex
-                    }))
-                })
-            }
-        })
+        return
     }
 
     const open = (path: string, offlineMode: boolean = false) => {
@@ -734,11 +738,11 @@ export const previewItem = async ({ item, setCurrentActionSheetItem = true, navi
         },
         isPreview: true
     }).catch((err) => {
-        if(err == "stopped"){
+        if(err.toString() == "stopped"){
             return
         }
 
-        if(err == "wifiOnly"){
+        if(err.toString() == "wifiOnly"){
             showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
 
             return

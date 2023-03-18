@@ -164,11 +164,11 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				})
 			}
 		}).catch((err) => {
-			if(err == "stopped"){
+			if(err.toString() == "stopped"){
 				return
 			}
 
-			if(err == "wifiOnly"){
+			if(err.toString() == "wifiOnly"){
 				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
 			}
 
@@ -243,11 +243,11 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		}
 
 		queueFileDownload({ file: currentActionSheetItem, showNotification: true }).catch((err) => {
-			if(err == "stopped"){
+			if(err.toString() == "stopped"){
 				return
 			}
 
-			if(err == "wifiOnly"){
+			if(err.toString() == "wifiOnly"){
 				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
 			}
 
@@ -309,11 +309,11 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		}
 
 		queueFileDownload({ file: currentActionSheetItem, storeOffline: true }).catch((err) => {
-			if(err == "stopped"){
+			if(err.toString() == "stopped"){
 				return
 			}
 			
-			if(err == "wifiOnly"){
+			if(err.toString() == "wifiOnly"){
 				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
 			}
 

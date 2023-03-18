@@ -75,11 +75,9 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     }, [photosGridSize])
 
     const generateItemsForItemList = useCallback((items: Item[], range: string, lang: string = "en") => {
-        range = normalizePhotosRange(range)
-    
         if(range == "all"){
             if(routeURL.indexOf("photos") !== -1){
-                return items.filter(item => {
+                const filtered = items.filter(item => {
                     if(getFilePreviewType(getFileExt(item.name)) == "video"){
                         if(typeof item.thumbnail == "string" && item.thumbnail.length > 3){
                             return true
@@ -90,6 +88,8 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                     
                     return true
                 })
+
+                return filtered
             }
             
             return items
@@ -271,7 +271,9 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     }, [photosRange, items, lang, normalizedPhotoRange])
 
     const generatedItemList = useMemo<Item[]>(() => {
-        return generateItemsForItemList(items, normalizedPhotoRange, lang)
+        const list = generateItemsForItemList(items, normalizedPhotoRange, lang)
+
+        return list
     }, [items, lang, normalizedPhotoRange])
 
     const getInitialScrollIndex = useCallback(() => {
@@ -425,22 +427,25 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
         )
     }, [photosRange, darkMode, hideFileNames, hideThumbnails, lang, dimensions, hideSizes, insets, photosGridSize, photosRangeItemClick, itemsPerRow, route, normalizedPhotoRange])
 
+    const startupLoadThumbnails = useCallback(() => {
+        if(items.length > 0 && isMounted()){
+            const max = viewModeParsed[routeURL] == "grid" ? (itemsPerRow / (Math.floor(dimensions.height / itemsPerRow) + 55) + itemsPerRow) : Math.round(dimensions.height / 60 + 1)
+            const sliced = items.slice(0, max)
+
+            for(const item of sliced){
+                global.visibleItems[item.uuid] = true
+
+                getThumbnail(item)
+            }
+        }
+    }, [items, viewModeParsed, dimensions, routeURL, itemsPerRow])
+
     useEffect(() => {
         setPortrait(dimensions.height >= dimensions.width)
     }, [dimensions])
 
     useEffect(() => {
-        if(items.length > 0 && isMounted()){
-            const max = viewModeParsed[routeURL] == "grid" ? (itemsPerRow / (Math.floor(dimensions.height / itemsPerRow) + 55) + itemsPerRow) : Math.round(dimensions.height / 60 + 1)
-
-            for(let i = 0; i < items.length; i++){
-                if(i < max){
-                    global.visibleItems[items[i].uuid] = true
-
-                    getThumbnail(items[i])
-                }
-            }
-        }
+        startupLoadThumbnails()
     }, [items, viewModeParsed, dimensions, routeURL, itemsPerRow])
 
     useEffect(() => {
@@ -467,8 +472,8 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     return (
         <View
             style={{
-                width: "100%",
-                height: "100%",
+                width: listDimensions.width,
+                height: listDimensions.height,
                 paddingLeft: viewModeParsed[routeURL] == "grid" && routeURL.indexOf("photos") == -1 ? 15 : 0,
                 paddingRight: viewModeParsed[routeURL] == "grid" && routeURL.indexOf("photos") == -1 ? 15 : 0
             }}
@@ -489,13 +494,14 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                 items.length > 0 && loadDone ? (
                     <>
                         {
-                            viewModeParsed[routeURL] == "grid" ? ( // FlashList kinda bugs out when in grid mode so we have to use FlatList for now
+                            viewModeParsed[routeURL] == "grid" && routeURL.indexOf("photos") == -1 ? ( // FlashList kinda bugs out when in grid mode so we have to use FlatList for now
                                 <FlatList
                                     data={generatedItemList}
                                     key={listKey}
                                     renderItem={renderItemFn}
                                     keyExtractor={keyExtractor}
                                     initialScrollIndex={0}
+                                    windowSize={3}
                                     numColumns={numColumns}
                                     onScroll={onListScroll}
                                     ListEmptyComponent={() => {

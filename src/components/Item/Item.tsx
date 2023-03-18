@@ -452,7 +452,8 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
                 style={{
                     width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
                     height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
-                    zIndex: 2
+                    zIndex: 2,
+                    margin: 1
                 }}
                 onError={() => {
                     if(typeof item.thumbnail == "string"){

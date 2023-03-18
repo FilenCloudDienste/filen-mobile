@@ -206,6 +206,7 @@ dependencies {
     def isWebpEnabled = true;
     def isWebpAnimatedEnabled = true;
     def frescoVersion = rootProject.ext.frescoVersion
+    def enableHermesJSEngine = false
 
     // If your app supports Android versions before Ice Cream Sandwich (API level 14)
     if (isGifEnabled || isWebpEnabled) {
@@ -235,7 +236,7 @@ dependencies {
     }
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
 
-    if (hermesEnabled.toBoolean()) {
+    if (enableHermesJSEngine) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor

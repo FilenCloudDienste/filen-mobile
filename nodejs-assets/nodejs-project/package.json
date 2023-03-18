@@ -13,10 +13,8 @@
     "axios": "^0.26.0",
     "crypto-api-v1": "^1.0.0",
     "crypto-js": "^4.1.1",
-    "exifreader": "^4.5.1",
     "fs-extra": "^10.1.0",
     "heic-convert": "^1.2.4",
-    "jimp": "^0.16.1",
     "js-crypto-key-utils": "^1.0.4",
     "progress-stream": "^2.0.0",
     "uuidv4": "^6.2.12"

@@ -44,7 +44,6 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const insets = useSafeAreaInsets()
     const selectedCountRef = useRef<number>(0)
     const setIsDeviceReady = useStore(state => state.setIsDeviceReady)
-    const [itemsBeforeSearch, setItemsBeforeSearch] = useState<Item[]>([])
     const [ photosGridSize ] = useMMKVNumber("photosGridSize", storage)
     const bottomBarHeight = useStore(state => state.bottomBarHeight)
     const topBarHeight = useStore(state => state.topBarHeight)
@@ -210,34 +209,17 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         }
     }, [dimensions, portrait, contentHeight, bottomBarHeight, topBarHeight, routeURL])
 
+    const searchFilteredItems = useMemo(() => {
+        if(searchTerm.length <= 0){
+            return items
+        }
+
+        return items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1)
+    }, [searchTerm, items])
+
     useEffect(() => {
         setPortrait(dimensions.height >= dimensions.width)
     }, [dimensions])
-
-    useEffect(() => {
-        if(isMounted() && initialized){
-            if(searchTerm.length == 0){
-                if(itemsBeforeSearch.length > 0){
-                    setItems(itemsBeforeSearch)
-                    setItemsBeforeSearch([])
-                }
-            }
-            else{
-                let filtered: Item[] = []
-
-                if(itemsBeforeSearch.length == 0){
-                    setItemsBeforeSearch(items)
-    
-                    filtered = items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
-                }
-                else{
-                    filtered = itemsBeforeSearch.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1 && item)
-                }
-    
-                setItems(filtered)
-            }
-        }
-    }, [searchTerm])
 
     useEffect(() => {
         if(isMounted() && initialized){
@@ -246,6 +228,12 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
             setItems(sorted)
         }
     }, [sortBy])
+
+    useEffect(() => {
+        if(isFocused){
+            populateList().catch(console.error)
+        }
+    }, [isFocused])
 
     useEffect(() => {
         if(isFocused && isMounted()){
@@ -274,8 +262,6 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         setNavigation(navigation)
         setRoute(route)
         setInsets(insets)
-        
-        populateList().catch(console.error)
 
         const deviceListener = DeviceEventEmitter.addListener("event", (data) => {
             const navState = navigation.getState()
@@ -428,23 +414,16 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
             />
-            <View
-                style={{
-                    height: listDimensions.height,
-                    width: listDimensions.width
-                }}
-            >
-                <ItemList
-                    navigation={navigation}
-                    route={route}
-                    items={items}
-                    loadDone={loadDone}
-                    searchTerm={searchTerm}
-                    isMounted={isMounted}
-                    populateList={populateList}
-                    listDimensions={listDimensions}
-                />
-            </View>
+            <ItemList
+                navigation={navigation}
+                route={route}
+                items={searchFilteredItems}
+                loadDone={loadDone}
+                searchTerm={searchTerm}
+                isMounted={isMounted}
+                populateList={populateList}
+                listDimensions={listDimensions}
+            />
         </View>
     )
 })

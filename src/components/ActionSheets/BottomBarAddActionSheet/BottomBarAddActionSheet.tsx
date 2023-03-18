@@ -17,6 +17,7 @@ import * as RNImagePicker from "react-native-image-picker"
 import mimeTypes from "mime-types"
 import { ActionButton, ActionSheetIndicator } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { getLastModified } from "../../../lib/services/cameraUpload"
 
 const BottomBarAddActionSheet = memo(() => {
     const darkMode = useDarkMode()
@@ -188,13 +189,15 @@ const BottomBarAddActionSheet = memo(() => {
 				const fileURI = decodeURIComponent(result.fileCopyUri.replace("file://", "").replace("file:", ""))
 
 				ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
-					return resolve({
-						path: fileURI,
-						name: result.name,
-						size: info.size as number,
-						mime: mimeTypes.lookup(result.name) || result.type || "",
-						lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
-					})
+					getLastModified(fileURI, result.name, convertTimestampToMs(info.lastModified || new Date().getTime())).then((lastModified) => {
+						return resolve({
+							path: fileURI,
+							name: result.name,
+							size: info.size as number,
+							mime: mimeTypes.lookup(result.name) || result.type || "",
+							lastModified
+						})
+					}).catch(reject)
 				}).catch(reject)
 			})
 		}

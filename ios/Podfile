@@ -49,7 +49,7 @@ target 'Filen' do
 
   use_react_native!(
     :path => config[:reactNativePath],
-    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
+    :hermes_enabled => false,
     :fabric_enabled => flags[:fabric_enabled],
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
@@ -101,7 +101,7 @@ end
 
 target 'ShareExtension' do
   use_react_native!(
-    :hermes_enabled => true,
+    :hermes_enabled => false,
     :flipper_configuration => flipper_config
   )
 

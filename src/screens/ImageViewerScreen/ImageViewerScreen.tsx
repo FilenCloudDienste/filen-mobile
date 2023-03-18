@@ -11,12 +11,13 @@ import { convertHeic } from "../../lib/services/items"
 import { getImageForItem } from "../../assets/thumbnails"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
-import { getFileExt, toExpoFsPath, isBetween } from "../../lib/helpers"
+import { getFileExt, toExpoFsPath, isBetween, getFilePreviewType, canCompressThumbnail } from "../../lib/helpers"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useIsOnline from "../../lib/hooks/useIsOnline"
 import { getItemOfflinePath } from "../../lib/services/offline"
 import * as fs from "../../lib/fs"
 import { Item } from "../../types"
+import { useStore } from "../../lib/state"
 
 export interface PreviewItem {
     uri: string | undefined,
@@ -35,11 +36,8 @@ export interface ImageViewerScreenProps {
 }
 
 const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) => {
-    const params = useRef<{ items: PreviewItem[], index: number }>(route.params).current
-    const [imagePreviewModalItems, setImagePreviewModalItems] = useState<PreviewItem[]>(params.items)
-    const [imagePreviewModalIndex, setImagePreviewModalIndex] = useState<number>(params.index)
+    const uuid = useRef<string>(route.params.uuid)
     const [images, setImages] = useState<Record<string, string>>({})
-    const [currentName, setCurrentName] = useState<string>(params.items[params.index].file.name)
     const [isZooming, setIsZooming] = useState<boolean>(false)
     const isSwiping = useRef<boolean>(false)
     const zoomLevel = useRef<number>(minZoom)
@@ -57,7 +55,51 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
     const dimensions = useWindowDimensions()
     const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
     const isOnline = useIsOnline()
-    const firstScrollDone = useRef<boolean>(false)
+
+    const [items, startIndex] = useRef<[PreviewItem[], number]>((() => {
+        const currentItems = useStore.getState().currentItems
+
+        if(!Array.isArray(currentItems)){
+            return [[], -1]
+        }
+
+        let items: PreviewItem[] = []
+        let index = 0
+        let imgFound = false
+        let currentIndex = 0
+
+        for(const item of currentItems){
+            const ext = getFileExt(item.name)
+
+            if(getFilePreviewType(ext) == "image" && canCompressThumbnail(ext)){
+                if(item.uuid == uuid.current){
+                    currentIndex = index
+                    imgFound = true
+                }
+                
+                items.push({
+                    uri: undefined,
+                    name: item.name,
+                    index,
+                    uuid: item.uuid,
+                    thumbnail: item.thumbnail,
+                    file: item
+                })
+
+                index += 1
+            }
+        }
+
+        if(!imgFound){
+            return [[], -1]
+        }
+
+        return [items, currentIndex]
+    })()).current
+
+    const [imagePreviewModalIndex, setImagePreviewModalIndex] = useState<number>(startIndex)
+    const [imagePreviewModalItems, setImagePreviewModalItems] = useState<PreviewItem[]>(items)
+    const [currentName, setCurrentName] = useState<string>("")
 
     const bottomMargin = useMemo(() => {
         if(insets.bottom <= 0 || !portrait || Platform.OS == "android"){
@@ -72,9 +114,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
             return
         }
 
-        const currentImages = {...images}
-
-        if(typeof currentImages[image.uuid] == "string"){
+        if(typeof images[image.uuid] == "string"){
             return
         }
 
@@ -85,29 +125,25 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         currentImagePreviewDownloads[image.uuid] = true
         zoomLevel.current = minZoom
 
-        if(firstScrollDone.current){
-            setCurrentName(image.file.name)
-            setImagePreviewModalIndex(index)
+        setCurrentName(image.file.name)
+        setImagePreviewModalIndex(index)
 
-            if(isBetween(index, 0, imagePreviewModalItems.length)){
-                thumbnailListRef?.current?.scrollToIndex({
-                    animated: true,
-                    index,
-                    viewPosition: 0.5
+        if(isBetween(index, 0, imagePreviewModalItems.length)){
+            thumbnailListRef?.current?.scrollToIndex({
+                animated: true,
+                index,
+                viewPosition: 0.5
+            })
+    
+            if(setListScrollAgain.current){
+                setListScrollAgain.current = false
+    
+                listRef?.current?.scrollToIndex({
+                    animated: false,
+                    index
                 })
-        
-                if(setListScrollAgain.current){
-                    setListScrollAgain.current = false
-        
-                    listRef?.current?.scrollToIndex({
-                        animated: false,
-                        index
-                    })
-                }
             }
         }
-
-        firstScrollDone.current = true
 
         try{
             const offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), image.file)
@@ -501,6 +537,20 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
         }
     }, [isZooming])
 
+    useEffect(() => {
+        if(startIndex == -1){
+            (async () => {
+                await new Promise(resolve => setTimeout(resolve, 250))
+    
+                navigation.goBack()
+            })
+        }
+    }, [])
+
+    if(startIndex == -1){
+        return null
+    }
+
     return (
         <View
             style={{
@@ -636,8 +686,8 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
                 horizontal={true}
                 scrollEnabled={true}
                 bounces={false}
-                initialNumToRender={Math.round(dimensions.width / 30) + 8}
-                windowSize={2}
+                initialNumToRender={Math.round(dimensions.width / 30) * 2}
+                windowSize={8}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
             />
