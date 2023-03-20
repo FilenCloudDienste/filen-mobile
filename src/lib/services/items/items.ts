@@ -195,15 +195,6 @@ export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], p
         return items.sort((a, b) => b.lastModifiedSort - a.lastModifiedSort)
     }
 
-    const routeEx = routeURL.split("/")
-
-    if(routeEx[routeEx.length - 1] == storage.getString("cameraUploadFolderUUID:" + storage.getNumber("userId"))){
-        const folders = items.filter(item => item.type == "folder")
-        const files = items.filter(item => item.type == "file")
-
-        return [...folders, ...files.sort((a, b) => b.lastModifiedSort - a.lastModifiedSort)]
-    }
-
     const sortBy = JSON.parse(storage.getString("sortBy") || "{}")
 
     if(routeURL.indexOf("recents") !== -1){

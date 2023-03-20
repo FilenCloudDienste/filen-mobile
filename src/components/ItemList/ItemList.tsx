@@ -101,6 +101,16 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
             const occupied: any = {}
     
             for(let i = 0; i < items.length; i++){
+                if(getFilePreviewType(getFileExt(items[i].name)) == "video"){
+                    if(typeof items[i].thumbnail !== "string"){
+                        continue
+                    }
+
+                    if(items[i].thumbnail.length <= 0){
+                        continue
+                    }
+                }
+
                 const itemDate = new Date(items[i].lastModified)
                 const itemYear = itemDate.getFullYear()
                 const occKey = itemYear
@@ -128,6 +138,16 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
             const occupied: any = {}
     
             for(let i = 0; i < items.length; i++){
+                if(getFilePreviewType(getFileExt(items[i].name)) == "video"){
+                    if(typeof items[i].thumbnail !== "string"){
+                        continue
+                    }
+
+                    if(items[i].thumbnail.length <= 0){
+                        continue
+                    }
+                }
+
                 const itemDate = new Date(items[i].lastModified)
                 const itemYear = itemDate.getFullYear()
                 const itemMonth = itemDate.getMonth()
@@ -154,6 +174,16 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
             const occupied: any = {}
     
             for(let i = 0; i < items.length; i++){
+                if(getFilePreviewType(getFileExt(items[i].name)) == "video"){
+                    if(typeof items[i].thumbnail !== "string"){
+                        continue
+                    }
+
+                    if(items[i].thumbnail.length <= 0){
+                        continue
+                    }
+                }
+                
                 const itemDate = new Date(items[i].lastModified)
                 const itemYear = itemDate.getFullYear()
                 const itemMonth = itemDate.getMonth()

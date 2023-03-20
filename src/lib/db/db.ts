@@ -2,8 +2,12 @@ import SQLite from "react-native-sqlite-storage"
 import { Asset } from "expo-media-library"
 import { getAssetId } from "../helpers"
 import memoryCache from "../memoryCache"
+import { Semaphore } from "../helpers"
 
 SQLite.enablePromise(true)
+
+const readSemaphore = new Semaphore(256)
+const writeSemaphore = new Semaphore(128)
 
 const keyValueTableSQL = `CREATE TABLE IF NOT EXISTS key_value (\
     key TEXT, \
@@ -32,11 +36,19 @@ const cameraUploadLastSizeIndexesSQL = `CREATE INDEX asset_id_index ON camera_up
 export let db: SQLite.SQLiteDatabase | null = null
 
 export const query = async (stmt: string, params: any[] | undefined = undefined) => {
+    const semaphore = stmt.toLowerCase().indexOf("select ") !== -1 ? readSemaphore : writeSemaphore
+
+    await semaphore.acquire()
+
     if(!db){
         throw new Error("DB not initialized")
     }
 
-    return await db.executeSql(stmt, params)
+    const res = await db.executeSql(stmt, params)
+
+    semaphore.release()
+
+    return res
 }
 
 export const get = async <T>(key: string): Promise<any> => {
