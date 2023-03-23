@@ -10,9 +10,21 @@ const before = new MMKV({
     id: STORAGE_ID
 })
 
-// Kept for legacy purposes
+// Overwrite default methods to fit our codebase
 
 export const storage = Object.assign(mmkv, {
+    set: (key: string, value: any) => {
+        if(before.contains(key)){
+            before.delete(key)
+        }
+
+        before.set(key, value)
+    },
+    delete: (key: string) => {
+        if(before.contains(key)){
+            before.delete(key)
+        }
+    },
     getBoolean: (key: string) => {
         const data = before.getBoolean(key)
     

@@ -1,6 +1,6 @@
 import { apiRequest, folderPresent } from "../../api"
 import storage from "../../storage"
-import { getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getRouteURL, canCompressThumbnail, simpleDate, convertTimestampToMs, getMasterKeys, getParent } from "../../helpers"
+import { getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getRouteURL, canCompressThumbnail, simpleDate, convertTimestampToMs, getMasterKeys, getParent, Semaphore } from "../../helpers"
 import striptags from "striptags"
 import { getDownloadPath, queueFileDownload } from "../download/download"
 import * as fs from "../../fs"
@@ -21,6 +21,8 @@ import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 import { getThumbnailCacheKey } from "../thumbnails"
 import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata, FileMetadata } from "../../crypto"
 import * as db from "../../db"
+
+const itemsSemaphore = new Semaphore(128)
 
 export interface BuildFolder {
     folder: any,
@@ -255,7 +257,21 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             }
     
             for(const file of response.data){
-                promises.push(buildFile({ file, masterKeys, userId }))
+                promises.push(
+                    new Promise((resolve, reject) => {
+                        itemsSemaphore.acquire().then(() => {
+                            buildFile({ file, masterKeys, userId }).then((item) => {
+                                itemsSemaphore.release()
+
+                                resolve(item)
+                            }).catch((err) => {
+                                itemsSemaphore.release()
+
+                                reject(err)
+                            })
+                        })
+                    })
+                )
             }
         }
         else if(url.indexOf("shared-in") !== -1){
@@ -282,6 +298,8 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             for(const folder of response.data.folders){
                 promises.push(
                     new Promise(async (resolve, reject) => {
+                        await itemsSemaphore.acquire()
+
                         try{
                             const item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey })
                             
@@ -289,17 +307,33 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
                             memoryCache.set("itemCache:folder:" + folder.uuid, item)
 
-                            return resolve(item)
+                            resolve(item)
                         }
                         catch(e){
-                            return reject(e)
+                            reject(e)
                         }
+
+                        itemsSemaphore.release()
                     })
                 )
             }
     
             for(const file of response.data.uploads){
-                promises.push(buildFile({ file, masterKeys, sharedIn: true, privateKey, userId }))
+                promises.push(
+                    new Promise((resolve, reject) => {
+                        itemsSemaphore.acquire().then(() => {
+                            buildFile({ file, masterKeys, sharedIn: true, privateKey, userId }).then((item) => {
+                                itemsSemaphore.release()
+
+                                resolve(item)
+                            }).catch((err) => {
+                                itemsSemaphore.release()
+
+                                reject(err)
+                            })
+                        })
+                    })
+                )
             }
         }
         else if(url.indexOf("shared-out") !== -1){
@@ -323,6 +357,8 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             for(let folder of response.data.folders){
                 promises.push(
                     new Promise(async (resolve, reject) => {
+                        await itemsSemaphore.acquire()
+
                         try{
                             folder.name = folder.metadata
                 
@@ -332,17 +368,33 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
                             memoryCache.set("itemCache:folder:" + folder.uuid, item)
 
-                            return resolve(item)
+                            resolve(item)
                         }
                         catch(e){
-                            return reject(e)
+                            reject(e)
                         }
+
+                        itemsSemaphore.release()
                     })
                 )
             }
     
             for(const file of response.data.uploads){
-                promises.push(buildFile({ file, masterKeys, userId }))
+                promises.push(
+                    new Promise((resolve, reject) => {
+                        itemsSemaphore.acquire().then(() => {
+                            buildFile({ file, masterKeys, userId }).then((item) => {
+                                itemsSemaphore.release()
+
+                                resolve(item)
+                            }).catch((err) => {
+                                itemsSemaphore.release()
+
+                                reject(err)
+                            })
+                        })
+                    })
+                )
             }
         }
         else if(url.indexOf("photos") !== -1){
@@ -397,8 +449,12 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             for(const file of response.data.uploads){
                 promises.push(
                     new Promise(async (resolve, reject) => {
+                        await itemsSemaphore.acquire()
+
                         try{
                             const item = await buildFile({ file, masterKeys, userId })
+
+                            itemsSemaphore.release()
     
                             if(canCompressThumbnail(getFileExt(item.name))){
                                 return resolve(item)
@@ -407,6 +463,8 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
                             return resolve(null)
                         }
                         catch(e){
+                            itemsSemaphore.release()
+
                             return reject(e)
                         }
                     })
@@ -459,6 +517,8 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
             for(const folder of response.data.folders){
                 promises.push(
                     new Promise(async (resolve, reject) => {
+                        await itemsSemaphore.acquire()
+
                         try{
                             const item = await buildFolder({ folder, masterKeys })
 
@@ -466,17 +526,33 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
                             memoryCache.set("itemCache:folder:" + folder.uuid, item)
 
-                            return resolve(item)
+                            resolve(item)
                         }
                         catch(e){
-                            return reject(e)
+                            reject(e)
                         }
+
+                        itemsSemaphore.release()
                     })
                 )
             }
     
             for(const file of response.data.uploads){
-                promises.push(buildFile({ file, masterKeys, userId }))
+                promises.push(
+                    new Promise((resolve, reject) => {
+                        itemsSemaphore.acquire().then(() => {
+                            buildFile({ file, masterKeys, userId }).then((item) => {
+                                itemsSemaphore.release()
+
+                                resolve(item)
+                            }).catch((err) => {
+                                itemsSemaphore.release()
+
+                                reject(err)
+                            })
+                        })
+                    })
+                )
             }
         }
 

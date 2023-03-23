@@ -3,11 +3,13 @@ import { Asset } from "expo-media-library"
 import { getAssetId } from "../helpers"
 import memoryCache from "../memoryCache"
 import { Semaphore } from "../helpers"
+import storage from "../storage"
 
 SQLite.enablePromise(true)
 
 const readSemaphore = new Semaphore(256)
 const writeSemaphore = new Semaphore(128)
+const PREFIX = "kv:"
 
 const keyValueTableSQL = `CREATE TABLE IF NOT EXISTS key_value (\
     key TEXT, \
@@ -53,13 +55,13 @@ export const query = async (stmt: string, params: any[] | undefined = undefined)
 
 export const get = async <T>(key: string): Promise<any> => {
     try{
-        const [ result ] = await query("SELECT value FROM key_value WHERE key = ? ORDER BY rowid DESC LIMIT 1", [key])
+        const value = storage.getString(PREFIX + key)
 
-        if(result.rows.length !== 1){
+        if(typeof value == "undefined"){
             return null
         }
 
-        return JSON.parse(result.rows.item(0)['value']) as any as T
+        return JSON.parse(value) as any as T
     }
     catch(e){
         console.error(e)
@@ -70,13 +72,7 @@ export const get = async <T>(key: string): Promise<any> => {
 
 export const has = async (key: string): Promise<boolean> => {
     try{
-        const [ result ] = await query("SELECT rowid FROM key_value WHERE key = ? ORDER BY rowid DESC LIMIT 1", [key])
-
-        if(result.rows.length !== 1){
-            return false
-        }
-
-        return true
+        return storage.contains(PREFIX + key)
     }
     catch(e){
         console.error(e)
@@ -87,7 +83,7 @@ export const has = async (key: string): Promise<boolean> => {
 
 export const remove = async (key: string): Promise<void> => {
     try{
-        await query("DELETE FROM key_value WHERE key = ?", [key])
+        storage.delete(PREFIX + key)
     }
     catch(e){
         console.error(e)
@@ -96,9 +92,7 @@ export const remove = async (key: string): Promise<void> => {
 
 export const set = async (key: string, value: any) => {
     try{
-        const hasKey = await has(key)
-    
-        await (hasKey ? query("UPDATE key_value SET value = ? WHERE key = ?", [JSON.stringify(value), key]) : query("INSERT INTO key_value (key, value) VALUES (?, ?)", [key, JSON.stringify(value)]))
+        storage.set(PREFIX + key, JSON.stringify(value))
     }
     catch(e){
         console.error(e)

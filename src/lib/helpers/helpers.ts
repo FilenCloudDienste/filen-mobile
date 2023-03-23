@@ -355,12 +355,12 @@ export const simpleDate = (timestamp: number): string => {
     try{
         const date = new Date(convertTimestampToMs(timestamp))
 
-        return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
+        return date.toLocaleDateString("de-DE") + ", " + date.toLocaleTimeString("de-DE")
     }
     catch(e){
         const date = new Date()
 
-        return date.toLocaleDateString() + ", " + date.toLocaleTimeString()
+        return date.toLocaleDateString("de-DE") + ", " + date.toLocaleTimeString("de-DE")
     }
 }
 
@@ -755,11 +755,11 @@ export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "d
 
     if(type == "nameAsc"){
         let sortedFiles = files.sort((a, b) => {
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, "en", { numeric: true })
         })
 
         let sortedFolders = folders.sort((a, b) => {
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, "en", { numeric: true })
         })
 
         return sortedFolders.concat(sortedFiles)
@@ -786,6 +786,17 @@ export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "d
 
         return sortedFolders.concat(sortedFiles)
     }
+    else if(type == "dateDesc"){
+        let sortedFiles = files.sort((a, b) => {
+            return b.lastModifiedSort - a.lastModifiedSort
+        })
+
+        let sortedFolders = folders.sort((a, b) => {
+            return b.timestamp - a.timestamp
+        })
+
+        return sortedFolders.concat(sortedFiles)
+    }
     else if(type == "typeAsc"){
         let sortedFiles = files.sort((a, b) => {
             if(typeof a.mime == "undefined"){
@@ -804,7 +815,7 @@ export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "d
                 b.mime = "_"
             }
 
-            return a.mime.localeCompare(b.mime)
+            return a.mime.localeCompare(b.mime, "en", { numeric: true })
         })
 
         let sortedFolders = folders.sort((a, b) => {
@@ -815,11 +826,11 @@ export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "d
     }
     else if(type == "nameDesc"){
         let sortedFiles = files.sort((a, b) => {
-            return b.name.localeCompare(a.name)
+            return b.name.localeCompare(a.name, "en", { numeric: true })
         })
 
         let sortedFolders = folders.sort((a, b) => {
-            return b.name.localeCompare(a.name)
+            return b.name.localeCompare(a.name, "en", { numeric: true })
         })
 
         return sortedFolders.concat(sortedFiles)
@@ -853,7 +864,7 @@ export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "d
                 b.mime = "_"
             }
 
-            return b.mime.localeCompare(a.mime)
+            return b.mime.localeCompare(a.mime, "en", { numeric: true })
         })
 
         let sortedFolders = folders.sort((a, b) => {
@@ -868,7 +879,7 @@ export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "d
         })
 
         let sortedFolders = folders.sort((a, b) => {
-            return b.timestamp - a.timestamp
+            return a.timestamp - b.timestamp
         })
 
         return sortedFolders.concat(sortedFiles)
@@ -888,11 +899,11 @@ export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "d
         //default, nameAsc
 
         const sortedFiles = files.sort((a, b) => {
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, "en", { numeric: true })
         })
 
         const sortedFolders = folders.sort((a, b) => {
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, "en", { numeric: true })
         })
 
         return sortedFolders.concat(sortedFiles)

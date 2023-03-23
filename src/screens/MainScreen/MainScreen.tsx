@@ -145,7 +145,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
         const currentParent: string = getParent(route)
 
         if(isMounted() && (currentParent == parent || (item.offline && parent == "offline"))){
-            setItems(items => sortItems({ items: [...items.filter(filterItem => filterItem.name.toLowerCase() !== item.name.toLowerCase()), item], passedRoute: route }))
+            setItems(items => sortItems({ items: [...items.filter(filterItem => filterItem.name.toLowerCase() !== item.name.toLowerCase() && filterItem.uuid !== item.uuid), item], passedRoute: route }))
         }
     }, [route])
 

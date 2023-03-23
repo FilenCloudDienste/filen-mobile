@@ -467,8 +467,6 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
         }
 
         if(data.events.length > 0){
-            console.log(data.events[data.events.length - 1].uuid)
-
             if(isMounted()){
                 setEvents((prev: any) => refresh ? data.events : [...prev, ...data.events])
             }
@@ -510,8 +508,6 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
                         if(events.length > 0 && !onEndReachedCalledDuringMomentum.current && canPaginate.current){
                             onEndReachedCalledDuringMomentum.current = true
                             canPaginate.current = false
-
-                            console.log(events[events.length - 1].timestamp)
 
                             getEvents(events[events.length - 1].timestamp)
                         }

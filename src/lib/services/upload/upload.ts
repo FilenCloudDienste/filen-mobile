@@ -365,7 +365,7 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
                 return reject("notEnoughRemoteStorage")
             }
             else{
-                showToast({ message: err.toString() })
+                //showToast({ message: err.toString() })
 
                 console.error(err)
 

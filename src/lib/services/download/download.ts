@@ -459,7 +459,7 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
         delete currentDownloads[file.uuid]
         
         if(err.toString() !== "stopped"){
-            showToast({ message: err.toString() })
+            //showToast({ message: err.toString() })
 
             DeviceEventEmitter.emit("download", {
                 type: "err",

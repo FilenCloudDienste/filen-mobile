@@ -613,6 +613,18 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
     return new Promise((resolve, reject) => {
         encryptData(buffer, key, false, false).then((encrypted) => {
             let lastBytes = 0
+
+            try{
+                var chunkHash = bufferToHash(encrypted.byteLength > 0 ? encrypted : Buffer.from([1]), "sha1")
+            }
+            catch(e){
+                return reject(e)
+            }
+
+            if(buffer.byteLength > 0){
+                queryParams = queryParams + "&chunkHash=" + encodeURIComponent(chunkHash)
+            }
+
             const urlParams = new URLSearchParams(queryParams)
             const uuid = urlParams.get("uuid") || ""
 
@@ -713,12 +725,16 @@ const normalizeRNFilePath = (path) => {
     return path
 }
 
+const bufferToHash = (buffer, hash) => {
+    return crypto.createHash(hash).update(buffer).digest("hex")
+}
+
 const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize) => {
     return new Promise((resolve, reject) => {
         path = pathModule.normalize(normalizeRNFilePath(path))
 
         readChunk(path, (chunkIndex * chunkSize), chunkSize).then((buffer) => {
-            const maxTries = 8
+            const maxTries = 16
             let currentTries = 0
             const triesTimeout = 3000
 
