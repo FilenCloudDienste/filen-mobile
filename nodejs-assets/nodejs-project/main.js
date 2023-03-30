@@ -615,14 +615,14 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
             let lastBytes = 0
 
             try{
-                var chunkHash = bufferToHash(encrypted.byteLength > 0 ? encrypted : Buffer.from([1]), "sha1")
+                var chunkHash = bufferToHash(encrypted.byteLength > 0 ? encrypted : Buffer.from([1]), "sha512")
             }
             catch(e){
                 return reject(e)
             }
 
             if(buffer.byteLength > 0){
-                queryParams = queryParams + "&chunkHash=" + encodeURIComponent(chunkHash)
+                queryParams = queryParams + "&hash=" + encodeURIComponent(chunkHash)
             }
 
             const urlParams = new URLSearchParams(queryParams)
