@@ -84,8 +84,8 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
 
         if(!isOnline()){
             try{
-                if((await db.has(cacheKey))){
-                    return resolve(await db.get(cacheKey))
+                if((await db.dbFs.has(cacheKey))){
+                    return resolve(await db.dbFs.get(cacheKey))
                 }
             }
             catch(e){
@@ -98,8 +98,8 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
         const request = async () => {
             if(tries >= maxTries){
                 try{
-                    if((await db.has(cacheKey))){
-                        return resolve(await db.get(cacheKey))
+                    if((await db.dbFs.has(cacheKey))){
+                        return resolve(await db.dbFs.get(cacheKey))
                     }
                 }
                 catch(e){
@@ -136,7 +136,7 @@ export const apiRequest = ({ method, endpoint, data }: { method: string, endpoin
                     }
 
                     if(endpointsToCache.includes(endpoint)){
-                        db.set(cacheKey, response.data).catch(console.error)
+                        db.dbFs.set(cacheKey, response.data).catch(console.error)
                     }
 
                     return resolve(response.data)
@@ -204,7 +204,7 @@ export const folderExists = ({ name, parent }: { name: string, parent: string })
     })
 }
 
-export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey: string }): Promise<boolean> => {
+export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey: string }): Promise<any> => {
     return new Promise((resolve, reject) => {
         const max = 32
         let current = 0
@@ -239,7 +239,7 @@ export const markUploadAsDone = ({ uuid, uploadKey }: { uuid: string, uploadKey:
                     return reject(response.message)
                 }
     
-                return resolve(true)
+                return resolve(response.data)
             }).catch(reject)
         }
 
@@ -1183,7 +1183,7 @@ export const renameFolder = ({ folder, name }: { folder: any, name: string }): P
                                 }).catch(reject)
                             }
                             else{
-                                return resolve(true)
+                                return resolve(true) 
                             }
                         }).catch(reject)
                     }).catch(reject)

@@ -172,7 +172,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     const populateList = useCallback(async (skipCache: boolean = false, passedURL: string | null = null) => {
         try{
             const startingURL = passedURL ? passedURL : getRouteURL(route)
-            const hasItemsInDb = await db.has("loadItems:" + startingURL)
+            const hasItemsInDb = await db.dbFs.has("loadItems:" + startingURL)
 
             if(!hasItemsInDb){
                 setLoadDone(false)
@@ -210,12 +210,12 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
     }, [dimensions, portrait, contentHeight, bottomBarHeight, topBarHeight, routeURL])
 
     const searchFilteredItems = useMemo(() => {
-        if(searchTerm.length <= 0){
+        if(searchTerm.length <= 0 || routeURL.indexOf("photos") !== -1){
             return items
         }
 
         return items.filter(item => item.name.toLowerCase().trim().indexOf(searchTerm.toLowerCase().trim()) !== -1)
-    }, [searchTerm, items])
+    }, [searchTerm, items, routeURL])
 
     useEffect(() => {
         setPortrait(dimensions.height >= dimensions.width)

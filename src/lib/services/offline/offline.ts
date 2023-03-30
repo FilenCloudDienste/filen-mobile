@@ -16,7 +16,7 @@ export const getOfflineList = async (): Promise<Item[]> => {
         throw new Error("userId in storage invalid length")
     }
 
-    const offlineList = await db.get("offlineList:" + userId)
+    const offlineList: Item[] = await db.dbFs.get("offlineList:" + userId)
 
     if(!offlineList){
         return []
@@ -36,7 +36,7 @@ export const saveOfflineList = async ({ list }: { list: Item[] }): Promise<boole
         throw new Error("userId in storage invalid length")
     }
 
-    await db.set("offlineList:" + userId, list)
+    await db.dbFs.set("offlineList:" + userId, list)
 
     return true
 }
@@ -71,7 +71,7 @@ export const addItemToOfflineList = async ({ item }: { item: Item }): Promise<bo
     newList.push(offlineItem)
 
     await Promise.all([
-        db.set(userId + ":offlineItems:" + offlineItem.uuid, true),
+        db.dbFs.set(userId + ":offlineItems:" + offlineItem.uuid, true),
         saveOfflineList({ list: newList })
     ])
 
@@ -114,7 +114,7 @@ export const removeItemFromOfflineList = async ({ item }: { item: Item }): Promi
     }
 
     await Promise.all([
-        db.remove(userId + ":offlineItems:" + item.uuid),
+        db.dbFs.remove(userId + ":offlineItems:" + item.uuid),
         saveOfflineList({ list: newList })
     ])
 

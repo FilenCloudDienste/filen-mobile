@@ -3,7 +3,7 @@ import { View, TouchableHighlight, Text, Switch, Pressable, Platform, ScrollView
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { formatBytes, getFilenameFromPath, safeAwait } from "../../lib/helpers"
+import { formatBytes, getFilenameFromPath } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
@@ -11,7 +11,7 @@ import { waitForStateUpdate } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
 import { getColor } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
-import RNFS from "react-native-fs"
+import * as fs from "../../lib/fs"
 import { getDownloadPath } from "../../lib/services/download/download"
 import { hasStoragePermissions } from "../../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
@@ -309,23 +309,20 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
                             const avatarPath = path + avatarName
         
                             try{
-                                if((await RNFS.exists(avatarPath))){
-                                    await RNFS.unlink(avatarPath)
+                                if((await fs.stat(avatarPath)).exists){
+                                    await fs.unlink(avatarPath)
                                 }
                             }
                             catch(e){
                                 //console.log(e)
                             }
         
-                            RNFS.downloadFile({
-                                fromUrl: userInfo.avatarURL,
-                                toFile: avatarPath
-                            }).promise.then(async () => {
+                            fs.downloadFile(userInfo.avatarURL, avatarPath).then(async (res) => {
                                 try{
                                     if(typeof userAvatarCached == "string"){
                                         if(userAvatarCached.length > 4){
-                                            if((await RNFS.exists(MISC_BASE_PATH + userAvatarCached))){
-                                                await RNFS.unlink(MISC_BASE_PATH + userAvatarCached)
+                                            if((await fs.stat(MISC_BASE_PATH + userAvatarCached)).exists){
+                                                await fs.unlink(MISC_BASE_PATH + userAvatarCached)
                                             }
                                         }
                                     }
@@ -345,8 +342,8 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
                             getDownloadPath({ type: "misc" }).then((path) => {
                                 const avatarPath = path + userAvatarCached
             
-                                RNFS.exists(avatarPath).then((exists) => {
-                                    if(!exists){
+                                fs.stat(avatarPath).then((stat) => {
+                                    if(!stat.exists){
                                         setUserAvatarCached("")
         
                                         setTimeout(() => {

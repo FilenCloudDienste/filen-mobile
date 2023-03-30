@@ -212,12 +212,8 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
     }, [items, photosRange, lang, itemsPerRow, viewModeParsed, routeURL])
 
     const getThumbnail = useCallback((item: Item) => {
-        if(item.type == "file"){
-            if(canCompressThumbnail(getFileExt(item.name))){
-                if(typeof item.thumbnail !== "string" && isMounted()){
-                    void generateItemThumbnail({ item })
-                }
-            }
+        if(item.type == "file" && canCompressThumbnail(getFileExt(item.name)) && typeof item.thumbnail !== "string" && isMounted()){
+            generateItemThumbnail({ item })
         }
     }, [])
 
@@ -371,7 +367,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                         index={index} 
                         darkMode={darkMode} 
                         selected={item.selected} 
-                        thumbnail={item.thumbnail as string} 
+                        thumbnail={item.thumbnail} 
                         name={item.name} 
                         size={item.size} 
                         color={item.color} 
@@ -395,7 +391,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                     index={index} 
                     darkMode={darkMode} 
                     selected={item.selected} 
-                    thumbnail={item.thumbnail as string} 
+                    thumbnail={item.thumbnail} 
                     name={item.name} 
                     size={item.size} 
                     color={item.color} 
@@ -418,7 +414,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                     index={index} 
                     darkMode={darkMode} 
                     selected={item.selected} 
-                    thumbnail={item.thumbnail as string} 
+                    thumbnail={item.thumbnail} 
                     name={item.name} 
                     size={item.size} 
                     color={item.color} 
@@ -441,7 +437,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
                 index={index} 
                 darkMode={darkMode} 
                 selected={item.selected} 
-                thumbnail={item.thumbnail as string} 
+                thumbnail={item.thumbnail} 
                 name={item.name} 
                 size={item.size} 
                 color={item.color} 
@@ -490,7 +486,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
         if(isMounted()){
             setScrolledToBottom(false)
         }
-    }, [listKey, items])
+    }, [])
 
     useEffect(() => {
         if(isMounted()){

@@ -32,7 +32,6 @@ local.properties
 
 # node.js
 #
-node_modules/
 npm-debug.log
 yarn-error.log
 
@@ -61,7 +60,6 @@ buck-out/
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
 /.pnp
 .pnp.js
 
@@ -84,7 +82,6 @@ yarn-error.log*
 
 .git/
 build/
-node_modules/
 #public/
 #capacitor.config.json
 #ionic.config.json
@@ -168,10 +165,8 @@ local.properties
 #/android/
 
 # Node
-node_modules
 *.log
 .nvm
-/bots/node_modules/
 package-lock.json
 
 # OS X
@@ -229,7 +224,6 @@ package-lock.json
 *.hprof
 
 
-node_modules/**/*
 .expo/*
 npm-debug.*
 *.jks
@@ -281,7 +275,6 @@ local.properties
 
 # node.js
 #
-node_modules/
 npm-debug.log
 yarn-error.log
 
@@ -321,3 +314,5 @@ ios/.xcode.env.local
 /vendor/bundle/
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*
+
+**/node_modules/**/*

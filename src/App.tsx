@@ -328,16 +328,10 @@ export const App = Sentry.wrap(memo(() => {
         })
 
         const navigationRefListener = (event: any) => {
-            if(typeof event.data !== "undefined"){
-                if(typeof event.data.state !== "undefined"){
-                    if(typeof event.data.state.routes !== "undefined"){
-                        if(event.data.state.routes && Array.isArray(event.data.state.routes)){
-                            setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
-                            setCurrentRoutes(event.data.state.routes)
-                            setScrolledToBottom(false)
-                        }
-                    }
-                }
+            if(event.data && event.data.state && Array.isArray(event.data.state.routes)){
+                setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
+                setCurrentRoutes(event.data.state.routes)
+                setScrolledToBottom(false)
             }
         }
 
@@ -368,58 +362,58 @@ export const App = Sentry.wrap(memo(() => {
             }
         })
 
-        const selectMediaScreenUploadListener = DeviceEventEmitter.addListener("selectMediaScreenUpload", ({ assets, parent }: { assets: Asset[], parent: string }) => {
-            setTimeout(async () => {
-                showFullScreenLoadingModal()
+        const selectMediaScreenUploadListener = DeviceEventEmitter.addListener("selectMediaScreenUpload", async ({ assets, parent }: { assets: Asset[], parent: string }) => {
+            await new Promise(resolve => setTimeout(resolve, 750))
 
-                try{
-                    const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + storage.getNumber("userId"))
+            showFullScreenLoadingModal()
 
-                    for(let i = 0; i < assets.length; i++){
-                        const assetURI = await getAssetURI(assets[i].asset)
-                        const tmp = (await getDownloadPath({ type: "temp" })).slice(0, -1)
-                        const tmpPath = tmp + "/" + await generateRandomString(16) + assets[i].asset.filename
+            try{
+                const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + storage.getNumber("userId"))
 
-                        await fs.copy(assetURI, tmpPath)
+                for(let i = 0; i < assets.length; i++){
+                    const assetURI = await getAssetURI(assets[i].asset)
+                    const tmp = (await getDownloadPath({ type: "temp" })).slice(0, -1)
+                    const tmpPath = tmp + "/" + await generateRandomString(16) + assets[i].asset.filename
 
-                        const stat = await fs.stat(tmpPath)
-                        const lastModified = await getLastModified(tmpPath, assets[i].asset.filename, convertTimestampToMs(assets[i].asset.creationTime || assets[i].asset.modificationTime || new Date().getTime()))
+                    await fs.copy(assetURI, tmpPath)
 
-                        if(stat.exists && stat.size){
-                            let filePath = tmpPath
-                            let fileName = assets[i].asset.filename
+                    const stat = await fs.stat(tmpPath)
+                    const lastModified = await getLastModified(tmpPath, assets[i].asset.filename, convertTimestampToMs(assets[i].asset.creationTime || assets[i].asset.modificationTime || new Date().getTime()))
 
-                            if(Platform.OS == "ios" && !cameraUploadEnableHeic && tmpPath.toLowerCase().endsWith(".heic") && assets[i].asset.mediaType == "photo" && tmpPath.toLowerCase().indexOf("fullsizerender") == -1){
-                                const convertedPath = await convertHeicToJPGIOS(tmpPath)
-                                const assetFilenameWithoutEx = assets[i].asset.filename.indexOf(".") !== -1 ? assets[i].asset.filename.substring(0, assets[i].asset.filename.lastIndexOf(".")) : assets[i].asset.filename
+                    if(stat.exists && stat.size){
+                        let filePath = tmpPath
+                        let fileName = assets[i].asset.filename
 
-                                await fs.unlink(tmpPath)
+                        if(Platform.OS == "ios" && !cameraUploadEnableHeic && tmpPath.toLowerCase().endsWith(".heic") && assets[i].asset.mediaType == "photo" && tmpPath.toLowerCase().indexOf("fullsizerender") == -1){
+                            const convertedPath = await convertHeicToJPGIOS(tmpPath)
+                            const assetFilenameWithoutEx = assets[i].asset.filename.indexOf(".") !== -1 ? assets[i].asset.filename.substring(0, assets[i].asset.filename.lastIndexOf(".")) : assets[i].asset.filename
 
-                                filePath = convertedPath
-                                fileName = assetFilenameWithoutEx + ".JPG"
-                            }
+                            await fs.unlink(tmpPath)
 
-                            queueFileUpload({
-                                file: {
-                                    path: filePath,
-                                    name: fileName,
-                                    size: stat.size,
-                                    mime: mimeTypes.lookup(fileName) || "",
-                                    lastModified
-                                },
-                                parent
-                            }).catch(console.error)
+                            filePath = convertedPath
+                            fileName = assetFilenameWithoutEx + ".JPG"
                         }
+
+                        queueFileUpload({
+                            file: {
+                                path: filePath,
+                                name: fileName,
+                                size: stat.size,
+                                mime: mimeTypes.lookup(fileName) || "",
+                                lastModified
+                            },
+                            parent
+                        }).catch(console.error)
                     }
                 }
-                catch(e: any){
-                    console.error(e)
+            }
+            catch(e: any){
+                console.error(e)
 
-                    showToast({ message: e.toString() })
-                }
+                showToast({ message: e.toString() })
+            }
 
-                hideFullScreenLoadingModal()
-            }, 750)
+            hideFullScreenLoadingModal()
         })
 
         getCfg().then(setCFG).catch(console.error)

@@ -11,7 +11,7 @@ import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../../lib/permissions"
 import { getColor } from "../../../style/colors"
-import ReactNativeBlobUtil from "react-native-blob-util"
+import * as fs from "../../../lib/fs"
 import RNDocumentPicker, { DocumentPickerResponse } from "react-native-document-picker"
 import * as RNImagePicker from "react-native-image-picker"
 import mimeTypes from "mime-types"
@@ -65,13 +65,17 @@ const BottomBarAddActionSheet = memo(() => {
 
 				const fileURI = decodeURIComponent(asset.uri.replace("file://", ""))
 
-				ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
+				fs.stat(fileURI).then((info) => {
+					if(!info.exists){
+						return reject(new Error(fileURI + " does not exist"))
+					}
+
 					return resolve({
 						path: fileURI,
 						name: i18n(lang, getFilePreviewType(getFileExt(fileURI)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(fileURI),
-						size: info.size as number,
+						size: info.size,
 						mime: mimeTypes.lookup(fileURI) || "",
-						lastModified: convertTimestampToMs(info.lastModified || new Date().getTime())
+						lastModified: convertTimestampToMs(info.modificationTime || new Date().getTime())
 					})
 				}).catch(reject)
 			})
@@ -188,15 +192,27 @@ const BottomBarAddActionSheet = memo(() => {
 
 				const fileURI = decodeURIComponent(result.fileCopyUri.replace("file://", "").replace("file:", ""))
 
-				ReactNativeBlobUtil.fs.stat(fileURI).then((info) => {
-					getLastModified(fileURI, result.name, convertTimestampToMs(info.lastModified || new Date().getTime())).then((lastModified) => {
-						return resolve({
+				fs.stat(fileURI).then((info) => {
+					if(!info.exists){
+						return reject(new Error(fileURI + " does not exist"))
+					}
+
+					getLastModified(fileURI, result.name, convertTimestampToMs(info.modificationTime || new Date().getTime())).then((lastModified) => {
+						return console.log({
 							path: fileURI,
 							name: result.name,
-							size: info.size as number,
+							size: info.size,
 							mime: mimeTypes.lookup(result.name) || result.type || "",
 							lastModified
 						})
+
+						/*return resolve({
+							path: fileURI,
+							name: result.name,
+							size: info.size,
+							mime: mimeTypes.lookup(result.name) || result.type || "",
+							lastModified
+						})*/
 					}).catch(reject)
 				}).catch(reject)
 			})

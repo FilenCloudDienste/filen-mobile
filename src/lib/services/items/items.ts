@@ -22,7 +22,7 @@ import { getThumbnailCacheKey } from "../thumbnails"
 import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata, FileMetadata } from "../../crypto"
 import * as db from "../../db"
 
-const itemsSemaphore = new Semaphore(128)
+const itemsSemaphore = new Semaphore(2048)
 
 export interface BuildFolder {
     folder: any,
@@ -33,21 +33,21 @@ export interface BuildFolder {
 }
 
 export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "" }: BuildFolder): Promise<Item> => {
-    const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn.toString()
+    const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn
 
     if(memoryCache.has(cacheKey)){
         name = memoryCache.get(cacheKey)
     }
     else{
         if(!sharedIn){
-            if(typeof masterKeys !== "undefined" && typeof folder.name !== "undefined"){
+            if(Array.isArray(masterKeys) && typeof folder.name !== "undefined"){
                 name = await decryptFolderName(masterKeys, folder.name, folder.uuid)
                 
                 memoryCache.set(cacheKey, name)
             }
         }
         else{
-            if(typeof privateKey !== "undefined" && typeof folder.metadata !== "undefined"){
+            if(Array.isArray(masterKeys) && typeof folder.metadata !== "undefined"){
                 name = await decryptFolderNamePrivateKey(privateKey, folder.metadata, folder.uuid)
                 
                 memoryCache.set(cacheKey, name)
@@ -103,21 +103,21 @@ export interface BuildFile {
 }
 
 export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0, hash: "" }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
-    const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn.toString()
+    const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn
 
     if(memoryCache.has(cacheKey)){
         metadata = memoryCache.get(cacheKey)
     }
     else{
         if(!sharedIn){
-            if(typeof masterKeys !== "undefined" && typeof file.metadata !== "undefined"){
+            if(Array.isArray(masterKeys) && typeof file.metadata !== "undefined"){
                 metadata = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
 
                 memoryCache.set(cacheKey, metadata)
             }
         }
         else{
-            if(typeof privateKey !== "undefined" && typeof file.metadata !== "undefined"){
+            if(Array.isArray(masterKeys) && typeof file.metadata !== "undefined"){
                 metadata = await decryptFileMetadataPrivateKey(file.metadata, privateKey, file.uuid)
                 
                 memoryCache.set(cacheKey, metadata)
@@ -207,22 +207,6 @@ export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], p
     }
 
     return items
-}
-
-export interface LoadItems {
-    parent: string,
-    prevItems: Item[],
-    setItems: React.Dispatch<React.SetStateAction<Item[]>>,
-    masterKeys: string[],
-    setLoadDone: React.Dispatch<React.SetStateAction<boolean>>,
-    bypassCache?: boolean,
-    isFollowUpRequest?: boolean,
-    callStack?: number,
-    navigation?: any,
-    isMounted: () => boolean,
-    route?: any,
-    setProgress?: any,
-    loadFolderSizes?: boolean
 }
 
 export const loadItems = async (route: any, skipCache: boolean = false): Promise<{ cached: boolean, items: Item[] }> => {
@@ -414,14 +398,8 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
                 }
             }
 
-            let folderExists: boolean = false
             const isFolderPresent = await folderPresent({ uuid: cameraUploadParent })
-
-            if(isFolderPresent.present){
-                if(!isFolderPresent.trash){
-                    folderExists = true
-                }
-            }
+            const folderExists: boolean = isFolderPresent.present && !isFolderPresent.trash
 
             if(!folderExists){
                 return {
@@ -453,12 +431,14 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
                         try{
                             const item = await buildFile({ file, masterKeys, userId })
-
-                            itemsSemaphore.release()
     
                             if(canCompressThumbnail(getFileExt(item.name))){
+                                itemsSemaphore.release()
+
                                 return resolve(item)
                             }
+
+                            itemsSemaphore.release()
 
                             return resolve(null)
                         }
@@ -595,7 +575,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
         items = sortItems({ items, passedRoute: route }).filter(item => item.name.length > 0)
 
-        await db.set("loadItems:" + url, items)
+        await db.dbFs.set("loadItems:" + url, items)
 
         memoryCache.set("loadItems:" + url, items)
 
@@ -609,7 +589,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
         }
     }
 
-    const cached = await db.get("loadItems:" + url)
+    const cached = await db.dbFs.get("loadItems:" + url)
 
     if(!isOnline()){
         if(cached && Array.isArray(cached)){

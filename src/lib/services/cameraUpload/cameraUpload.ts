@@ -19,7 +19,6 @@ import * as fs from "../../fs"
 import * as db from "../../db"
 import Exif from "react-native-exif"
 import moment from "moment"
-import MediaMeta from "react-native-media-meta"
 
 const CryptoJS = require("crypto-js")
 
@@ -59,7 +58,7 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
         storage.set("cameraUploadUploaded", 0)
         storage.set("cameraUploadTotal", 0)
         
-        db.remove("loadItems:photos").catch(console.error)
+        db.dbFs.remove("loadItems:photos").catch(console.error)
     }
 }
 
@@ -171,23 +170,10 @@ export const getLastModified = async (path: string, name: string, fallback: numb
                 return ts
             }
         }
-
-        if(videoExts.includes(getFileExt(name))){
-            const metadata = await MediaMeta.get(path.split("file://").join(""), { getThumb: false })
-            const date = Platform.OS == "ios" ? metadata['creationDate'] : metadata['creation_time']
-            
-            if(typeof date == "string"){
-                const parsed = new Date(date)
-
-                if(parsed instanceof Date){
-                    return convertTimestampToMs(parsed.getTime())
-                }
-            }
-        }
     }
     catch{}
 
-    return lastModified
+    return convertTimestampToMs(lastModified)
 }
 
 export const getMediaTypes = () => {
@@ -429,7 +415,7 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
     const items: CameraUploadItems = {}
     const sorted = response.data.uploads.sort((a: any, b: any) => a.timestamp - b.timestamp)
     const last = sorted[sorted.length - 1]
-    const cameraUploadLastLoadRemote = await db.get("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID) as { uuid: string, count: number, items: CameraUploadItems }
+    const cameraUploadLastLoadRemote = await db.dbFs.get("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID) as { uuid: string, count: number, items: CameraUploadItems }
 
     if(cameraUploadLastLoadRemote){
         if(
@@ -458,7 +444,7 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
         }
     }
 
-    await db.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, {
+    await db.dbFs.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, {
         uuid: last.uuid,
         count: response.data.uploads.length,
         items

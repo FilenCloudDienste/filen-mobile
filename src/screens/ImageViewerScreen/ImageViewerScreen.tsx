@@ -90,6 +90,10 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
             }
         }
 
+        if(items.length == 1){
+            return [items, 0]
+        }
+
         if(!imgFound){
             return [[], -1]
         }

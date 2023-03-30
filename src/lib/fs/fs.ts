@@ -3,6 +3,8 @@ import { toExpoFsPath, toExpoFsPathWithoutEncode } from "../helpers"
 
 export const cacheDirectory = FileSystem.cacheDirectory
 export const documentDirectory = FileSystem.documentDirectory
+export const bundleDirectory = FileSystem.bundleDirectory
+export const saf = FileSystem.StorageAccessFramework
 
 export const copy = async (from: string, to: string) => {
     await FileSystem.copyAsync({
@@ -38,6 +40,10 @@ export const readAsString = async (path: string, encoding: FileSystem.EncodingTy
     })
 }
 
+export const writeAsString = async (path: string, contents: string, options: FileSystem.WritingOptions = {}) => {
+    return await FileSystem.writeAsStringAsync(path, contents, options)
+}
+
 export const readDirectory = async (path: string) => {
     return await FileSystem.readDirectoryAsync(toExpoFsPath(path))
 }
@@ -46,4 +52,8 @@ export const mkdir = async (path: string, intermediates: boolean = true) => {
     await FileSystem.makeDirectoryAsync(toExpoFsPath(path), {
         intermediates
     })
+}
+
+export const downloadFile = async (uri: string, fileUri: string, options: FileSystem.DownloadOptions = {}) => {
+    return await FileSystem.downloadAsync(uri, fileUri, options)
 }

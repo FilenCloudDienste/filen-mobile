@@ -4,6 +4,9 @@ import { getAssetId } from "../helpers"
 import memoryCache from "../memoryCache"
 import { Semaphore } from "../helpers"
 import storage from "../storage"
+import { memoize } from "lodash"
+import * as fs from "../fs"
+import { getDownloadPath } from "../services/download"
 
 SQLite.enablePromise(true)
 
@@ -99,6 +102,102 @@ export const set = async (key: string, value: any) => {
     }
 }
 
+export const hashDbFsKey = memoize(async (key: string): Promise<string> => {
+    return await nodeThread.hashFn({ string: key })
+})
+
+export const dbFs = {
+    get: async <T>(key: string) => {
+        if(memoryCache.has(PREFIX + key)){
+            return memoryCache.get(PREFIX + key) as any as T
+        }
+
+        const keyHashed = await hashDbFsKey(key)
+        const path = await getDownloadPath({ type: "db" }) + keyHashed
+        const stat = await fs.stat(path)
+
+        if(!stat.exists){
+            return null
+        }
+
+        const value = JSON.parse(await fs.readAsString(path, "utf8"))
+
+        if(!value){
+            return null
+        }
+
+        if(!value.value || !value.key){
+            return null
+        }
+
+        return value.value as any as T
+    },
+    set: async (key: string, value: any) => {
+        const keyHashed = await hashDbFsKey(key)
+        const path = await getDownloadPath({ type: "db" }) + keyHashed
+
+        await fs.writeAsString(path, JSON.stringify({
+            key,
+            value
+        }), {
+            encoding: "utf8"
+        })
+
+        memoryCache.set(PREFIX + key, value)
+    },
+    has: async (key: string) => {
+        if(memoryCache.has(PREFIX + key)){
+            return true
+        }
+
+        const keyHashed = await hashDbFsKey(key)
+        const path = await getDownloadPath({ type: "db" }) + keyHashed
+        const stat = await fs.stat(path)
+
+        if(!stat.exists){
+            return false
+        }
+
+        return true
+    },
+    remove: async (key: string) => {
+        const keyHashed = await hashDbFsKey(key)
+        const path = await getDownloadPath({ type: "db" }) + keyHashed
+        const stat = await fs.stat(path)
+
+        if(!stat.exists){
+            return
+        }
+
+        await fs.unlink(path)
+
+        memoryCache.delete(PREFIX + key)
+    },
+    warmUp: async () => {
+        const path = await getDownloadPath({ type: "db" })
+        const dir = await fs.readDirectory(path)
+        const keyHashed = await hashDbFsKey("warmUp")
+
+        for(const file of dir){
+            if(file.length == keyHashed.length){
+                const value = JSON.parse(await fs.readAsString(path + file, "utf8"))
+
+                if(!value){
+                    continue
+                }
+
+                if(!value.value || !value.key){
+                    continue
+                }
+
+                if(value.key.indexOf("loadItems:") !== -1){
+                    memoryCache.set(PREFIX + value.key, value.value)
+                }
+            }
+        }
+    }
+}
+
 export const cameraUpload = {
     getLastModified: async (asset: Asset): Promise<number> => {
         const assetId = getAssetId(asset)
@@ -184,34 +283,4 @@ export const init = async () => {
 
     await query(cameraUploadLastSizeSQL)
     await query(cameraUploadLastSizeIndexesSQL).catch(() => {})
-}
-
-export const warmupDbCache = async () => {
-    const [
-        [ loadItemsResult ],
-        [ itemCacheResult ],
-        [ folderSizeCacheResult ]
-    ] = await Promise.all([
-        query("SELECT * FROM key_value WHERE key LIKE '%loadItems:%'"),
-        query("SELECT * FROM key_value WHERE key LIKE '%itemCache:%'"),
-        query("SELECT * FROM key_value WHERE key LIKE '%folderSizeCache:%'")
-    ])
-
-    for(let i = 0; i < loadItemsResult.rows.length; i++){
-        const row = loadItemsResult.rows.item(i)
-
-        memoryCache.set(row['key'], JSON.parse(row['value']))
-    }
-
-    for(let i = 0; i < itemCacheResult.rows.length; i++){
-        const row = itemCacheResult.rows.item(i)
-
-        memoryCache.set(row['key'], JSON.parse(row['value']))
-    }
-
-    for(let i = 0; i < folderSizeCacheResult.rows.length; i++){
-        const row = folderSizeCacheResult.rows.item(i)
-
-        memoryCache.set(row['key'], JSON.parse(row['value']))
-    }
 }

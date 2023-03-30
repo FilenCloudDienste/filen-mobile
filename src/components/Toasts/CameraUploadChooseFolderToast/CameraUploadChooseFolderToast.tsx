@@ -10,7 +10,7 @@ import { getColor } from "../../../style"
 import { hideAllToasts } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { NavigationContainerRef } from "@react-navigation/native"
-import { query } from "../../../lib/db"
+import * as db from "../../../lib/db"
 import memoryCache from "../../../lib/memoryCache"
 
 const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?: string | undefined, navigation?: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
@@ -47,7 +47,7 @@ const CameraUploadChooseFolderToast = memo(({ message, navigation }: { message?:
         storage.set("cameraUploadUploaded", 0)
         storage.set("cameraUploadTotal", 0)
 
-        query("DELETE FROM key_value WHERE key = ?", ["loadItems:photos"])
+        db.dbFs.remove("loadItems:photos").catch(console.error)
 
         hideAllToasts()
 

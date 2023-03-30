@@ -16,7 +16,7 @@ import { addToSavedToGallery } from "../../../lib/services/items"
 import { removeFromOfflineStorage } from "../../../lib/services/offline"
 import { getColor } from "../../../style/colors"
 import { navigationAnimation } from "../../../lib/state"
-import ReactNativeBlobUtil from "react-native-blob-util"
+import * as fs from "../../../lib/fs"
 import * as MediaLibrary from "expo-media-library"
 import { isOnline } from "../../../lib/services/isOnline"
 import useNetworkInfo from "../../../lib/services/isOnline/useNetworkInfo"
@@ -200,7 +200,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		}
 
 		downloadFile(currentActionSheetItem, false, currentActionSheetItem.chunks).then((path) => {
-			ReactNativeBlobUtil.fs.readFile(path, "utf8").then((data) => {
+			fs.readAsString(path, "utf8").then((data) => {
 				setTextEditorState("edit")
 				setTextEditorParent(currentActionSheetItem.parent)
 				setCreateTextFileDialogName(currentActionSheetItem.name)

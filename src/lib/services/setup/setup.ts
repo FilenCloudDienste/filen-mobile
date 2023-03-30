@@ -9,7 +9,7 @@ import { getOfflineList, removeItemFromOfflineList } from "../offline"
 import { validate } from "uuid"
 import { Item } from "../../../types"
 import * as fs from "../../fs"
-import { init as initDb, warmupDbCache } from "../../db"
+import { init as initDb, dbFs } from "../../db"
 import FastImage from "react-native-fast-image"
 
 const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
@@ -188,7 +188,7 @@ export const clearCacheDirectories = async () => {
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
     await initDb()
 
-    warmupDbCache().catch(console.error)
+    dbFs.warmUp().catch(console.error)
     checkOfflineItems().catch(console.error)
     clearCacheDirectories().catch(console.error)
 

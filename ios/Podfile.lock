@@ -9,7 +9,7 @@ PODS:
     - ExpoModulesCore
   - EXFont (11.1.1):
     - ExpoModulesCore
-  - EXMediaLibrary (15.2.2):
+  - EXMediaLibrary (15.2.3):
     - ExpoModulesCore
     - React-Core
   - Expo (48.0.6):
@@ -274,9 +274,9 @@ PODS:
   - React-jsinspector (0.71.3)
   - React-logger (0.71.3):
     - glog
-  - react-native-blob-util (0.17.2):
+  - react-native-blob-util (0.17.3):
     - React-Core
-  - react-native-document-picker (8.1.1):
+  - react-native-document-picker (8.2.0):
     - React-Core
   - react-native-exif (0.5.0):
     - React
@@ -287,8 +287,6 @@ PODS:
   - react-native-image-resizer (1.4.5):
     - React-Core
   - react-native-ios-assset-exporter (0.1.7):
-    - React-Core
-  - react-native-meta-media (0.0.11):
     - React-Core
   - react-native-mmkv (2.6.3):
     - MMKV (>= 1.2.13)
@@ -396,8 +394,6 @@ PODS:
     - React-Core
   - RNFlashList (1.4.0):
     - React-Core
-  - RNFS (2.20.0):
-    - React-Core
   - RNGestureHandler (2.9.0):
     - React-Core
   - RNPermissions (3.8.0):
@@ -462,7 +458,6 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - react-native-ios-assset-exporter (from `../node_modules/react-native-ios-asset-exporter`)
-  - react-native-meta-media (from `../node_modules/react-native-media-meta`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -485,7 +480,6 @@ DEPENDENCIES:
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
-  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -583,8 +577,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-resizer"
   react-native-ios-assset-exporter:
     :path: "../node_modules/react-native-ios-asset-exporter"
-  react-native-meta-media:
-    :path: "../node_modules/react-native-media-meta"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
@@ -629,8 +621,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-file-viewer"
   RNFlashList:
     :path: "../node_modules/@shopify/flash-list"
-  RNFS:
-    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNPermissions:
@@ -653,7 +643,7 @@ SPEC CHECKSUMS:
   EXConstants: f348da07e21b23d2b085e270d7b74f282df1a7d9
   EXFileSystem: 844e86ca9b5375486ecc4ef06d3838d5597d895d
   EXFont: 6ea3800df746be7233208d80fe379b8ed74f4272
-  EXMediaLibrary: 792fe9b828b5bfa2c5a8b629730f175af2938285
+  EXMediaLibrary: 587cd8aad27a6fc8d7c38b950bc75bc1845a7480
   Expo: 04ba1ddde0be07aff4306ae636a1804810679145
   ExpoClipboard: 9b87df0ad145e3aa841614fab6aea54b7a604850
   ExpoKeepAwake: 69f5f627670d62318410392d03e0b5db0f85759a
@@ -683,14 +673,13 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 891dad49e50d35fba97eeb43a35ae7470a8e10b2
   React-jsinspector: 9f7c9137605e72ca0343db4cea88006cb94856dd
   React-logger: 957e5dc96d9dbffc6e0f15e0ee4d2b42829ff207
-  react-native-blob-util: 31b9463ef2efe90e841e7525d687ec69b1d71157
-  react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
+  react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
+  react-native-document-picker: 495c444c0c773c6e83a5d91165890ecb1c0a399a
   react-native-exif: c43e7c18af8bfa133c79145671a0f036e413468e
   react-native-heic-converter: 6fe467bc07bd9822455865ea8b86d35cde149450
   react-native-image-picker: ec9b713e248760bfa0f879f0715391de4651a7cb
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-ios-assset-exporter: 50839b94246887e9c2179c39f8c0163d9d823332
-  react-native-meta-media: ee837c99adfdc2d6f14bd129b97f9bd3e84434d8
   react-native-mmkv: 2e5bf67513cc8deed86fcffe87e12b8cc250dfab
   react-native-netinfo: 2517ad504b3d303e90d7a431b0fcaef76d207983
   react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
@@ -713,7 +702,6 @@ SPEC CHECKSUMS:
   RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
   RNFileViewer: ce7ca3ac370e18554d35d6355cffd7c30437c592
   RNFlashList: 399bf6a0db68f594ad2c86aaff3ea39564f39f8a
-  RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
   RNPermissions: ee0d19dc2aee51875bd2596c782d217a06daa758
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f

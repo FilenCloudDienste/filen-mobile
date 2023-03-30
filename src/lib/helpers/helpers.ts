@@ -61,7 +61,7 @@ export const getMasterKeys = (): string[] => {
 }
 
 export const calcSpeed = (now: number, started: number, bytes: number): number => {
-    now = new Date().getTime() - 1000
+    now = Date.now() - 1000
 
     const secondsDiff: number = ((now - started) / 1000)
     const bps: number = Math.floor((bytes / secondsDiff) * 1)
@@ -70,7 +70,7 @@ export const calcSpeed = (now: number, started: number, bytes: number): number =
 }
 
 export const calcTimeLeft = (loadedBytes: number, totalBytes: number, started: number): number => {
-    const elapsed: number = (new Date().getTime() - started)
+    const elapsed: number = (Date.now() - started)
     const speed: number = (loadedBytes / (elapsed / 1000))
     const remaining: number = ((totalBytes - loadedBytes) / speed)
 
@@ -211,10 +211,6 @@ export const getRandomArbitrary = (min: number, max: number): number => {
     return Math.floor(Math.random() * (max - min) + min)
 }
 
-export const sleep = (ms: number = 1000): Promise<void> => {
-    return new Promise(resolve => setTimeout(resolve, ms))
-}
-
 export const formatBytes = (bytes: number, decimals: number = 2) => {
     if(bytes == 0){
         return "0 Bytes"
@@ -227,35 +223,6 @@ export const formatBytes = (bytes: number, decimals: number = 2) => {
     let i = Math.floor(Math.log(bytes) / Math.log(k))
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
-}
-
-export const arrayBufferToHex = (buffer: ArrayBuffer): string => {
-    return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, "0")).join("")
-}
-
-export function convertBinaryStringToUint8Array(bStr: string): ArrayBuffer {
-    var i: number, len: number = bStr.length, u8_array: Uint8Array = new Uint8Array(len);
-    for (var i = 0; i < len; i++) {
-        u8_array[i] = bStr.charCodeAt(i);
-    }
-    return u8_array;
-}
-
-export function convertWordArrayToUint8Array(wordArray: any): ArrayBuffer {
-    let arrayOfWords = wordArray.hasOwnProperty("words") ? wordArray.words : []
-    let length = wordArray.hasOwnProperty("sigBytes") ? wordArray.sigBytes : arrayOfWords.length * 4
-    let uInt8Array = new Uint8Array(length), index=0, word, i
-
-    for(i = 0; i < length; i++){
-        word = arrayOfWords[i]
-
-        uInt8Array[index++] = word >> 24
-        uInt8Array[index++] = (word >> 16) & 0xff
-        uInt8Array[index++] = (word >> 8) & 0xff
-        uInt8Array[index++] = word & 0xff
-    }
-
-    return uInt8Array
 }
 
 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -322,45 +289,27 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
     return arraybuffer;
 }
 
-export const uInt8ArrayConcat = (arrays: Uint8Array[]): Uint8Array => {
-    // sum of individual array lengths
-    let totalLength = arrays.reduce((acc, value) => acc + value.length, 0);
-  
-    let result = new Uint8Array(totalLength);
-  
-    // for each array - copy it over result
-    // next array is copied right after the previous one
-    let length = 0;
-
-    for(let array of arrays) {
-      result.set(array, length);
-      length += array.length;
-    }
-  
-    return result;
-}
-
 export const convertTimestampToMs = (timestamp: number): number => {
-    const date = new Date(timestamp * 1000)
+    try{
+        const floored = Math.floor(timestamp)
 
-    if(date.getFullYear() > 2100){
-        return Math.floor(timestamp)
+        if(floored.toString().length >= 13){
+            return floored
+        }
+    
+        return Math.floor(floored * 1000)
     }
-    else{
-        return Math.floor(timestamp * 1000)
+    catch(e){
+        return timestamp
     }
 }
 
 export const simpleDate = (timestamp: number): string => {
     try{
-        const date = new Date(convertTimestampToMs(timestamp))
-
-        return date.toLocaleDateString("de-DE") + ", " + date.toLocaleTimeString("de-DE")
+        return new Date(convertTimestampToMs(timestamp)).toString().split(" ").slice(0, 5).join(" ")
     }
     catch(e){
-        const date = new Date()
-
-        return date.toLocaleDateString("de-DE") + ", " + date.toLocaleTimeString("de-DE")
+        return new Date().toString().split(" ").slice(0, 5).join(" ")
     }
 }
 
@@ -377,17 +326,15 @@ export const normalizePhotosRange = (range: string | undefined): string => {
 }
 
 export const randomIdUnsafe = (): string => {
-    return Math.random().toString().slice(3) + Math.random().toString().slice(3) + Math.random().toString().slice(3)
+    return Math.random().toString().slice(3)
 }
 
-export const generateRandomString = (length: number = 32): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        global.nodeThread.generateRandomString({ charLength: length }).then(resolve).catch(reject)
-    })
+export const generateRandomString = async (length: number = 32): Promise<string> => {
+    return await global.nodeThread.generateRandomString({ charLength: length })
 }
 
 export function unixTimestamp(): number {
-    return Math.floor((+new Date()) / 1000)
+    return Math.floor(Date.now() / 1000)
 }
 
 export const canCompressThumbnail = (ext: string): boolean => {
@@ -910,48 +857,6 @@ export const orderItemsByType = (items: Item[], type: "nameAsc" | "sizeAsc" | "d
     }
 }
 
-export function compareVersions(current: string, got: string): string {
-	function compare(a: string, b: string) {
-		if (a === b) {
-		   return 0;
-		}
-	
-		var a_components = a.split(".");
-		var b_components = b.split(".");
-	
-		var len = Math.min(a_components.length, b_components.length);
-
-		for (var i = 0; i < len; i++) {
-			if (parseInt(a_components[i]) > parseInt(b_components[i])) {
-				return 1;
-			}
-	
-			if (parseInt(a_components[i]) < parseInt(b_components[i])) {
-				return -1;
-			}
-		}
-	
-		if (a_components.length > b_components.length) {
-			return 1;
-		}
-	
-		if (a_components.length < b_components.length) {
-			return -1;
-		}
-	
-		return 0;
-	}
-
-	let res = compare(current, got)
-
-	if(res == -1){
-		return "update"
-	}
-	else{
-		return "ok"
-	}
-}
-
 export interface SemaphoreInterface {
     acquire: Function,
     release: Function,
@@ -1013,19 +918,8 @@ export interface SemaphoreInterface {
       }
 } as any as { new (max: number): SemaphoreInterface }
 
-export const utf8ToHex = (str: string): string => {
-    return Array.from(str).map(c => 
-        c.charCodeAt(0) < 128 ? c.charCodeAt(0).toString(16) : encodeURIComponent(c).replace(/\%/g, "").toLowerCase()
-    ).join('')
-}
-
 export const getAPIKey = (): string => {
-    try{
-        return storage.getString("apiKey") || ""
-    }
-    catch(e){
-        return ""
-    }
+    return storage.getString("apiKey") || ""
 }
 
 export const getFileExt = (name: string): string => {
@@ -1134,16 +1028,6 @@ export const toExpoFsPathWithoutEncode = (path: string) => {
     }
 
     return path
-}
-
-export const toBlobUtilFsPath = (path: string) => {
-    return path.split("file://").join("").split("file:/").join("").split("file:").join("")
-}
-
-export const convertPhAssetToAssetsLibrary = (localId: string, ext: string): string => {
-    const hash = localId.split("/")[0]
-
-    return "assets-library://asset/asset." + ext + "?id=" + hash + "&ext=" + ext
 }
 
 export const getAssetId = (asset: MediaLibrary.Asset) => asset.id

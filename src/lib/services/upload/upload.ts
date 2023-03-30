@@ -374,7 +374,12 @@ export const queueFileUpload = ({ file, parent, includeFileHash = false, isCamer
         }
 
         try{
-            await markUploadAsDone({ uuid, uploadKey })
+            const doneRes = await markUploadAsDone({ uuid, uploadKey })
+
+            if(doneRes.data && doneRes.data.chunks){
+                item.chunks = doneRes.data.chunks
+                fileChunks = doneRes.data.chunks
+            }
 
             item.timestamp = Math.floor(+new Date() / 1000)
 

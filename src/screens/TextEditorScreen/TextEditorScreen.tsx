@@ -4,7 +4,7 @@ import useLang from "../../lib/hooks/useLang"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { showToast } from "../../components/Toasts"
-import RNFS from "react-native-fs"
+import * as fs from "../../lib/fs"
 import { getDownloadPath } from "../../lib/services/download/download"
 import { queueFileUpload } from "../../lib/services/upload/upload"
 import { useStore } from "../../lib/state"
@@ -123,23 +123,29 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
             path = path + fileName
 
             try{
-                if((await RNFS.exists(path))){
-                    await RNFS.unlink(path)
+                if((await fs.stat(path)).exists){
+                    await fs.unlink(path)
                 }
             }
             catch(e){
                 //console.log(e)
             }
 
-            RNFS.writeFile(path, value, "utf8").then(async () => {
+            fs.writeAsString(path, value, {
+                encoding: "utf8"
+            }).then(async () => {
                 try{
-                    var stat = await RNFS.stat(path)
+                    var stat = await fs.stat(path)
                 }
                 catch(e: any){
                     console.log(e)
 
                     showToast({ message: e.toString() })
 
+                    return
+                }
+
+                if(!stat.exists){
                     return
                 }
 
