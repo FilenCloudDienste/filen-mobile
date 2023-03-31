@@ -13,7 +13,6 @@ import memoryCache from "../../memoryCache"
 import * as fs from "../../../lib/fs"
 import { isOnline, isWifi } from "../isOnline"
 import { MB } from "../../constants"
-import { memoize } from "lodash"
 
 const downloadSemaphore = new Semaphore(3)
 const maxThreads = 32
@@ -22,7 +21,7 @@ const downloadWriteThreadsSemaphore = new Semaphore(256)
 const currentDownloads: Record<string, boolean> = {}
 const addDownloadMutex = new Semaphore(1)
 
-export const getDownloadPath = memoize(async ({ type = "temp" }: { type: string }): Promise<string> => {
+export const getDownloadPath = async ({ type = "temp" }: { type: string }): Promise<string> => {
     if(Platform.OS == "android"){
         if(type == "temp"){
             return fs.cacheDirectory.endsWith("/") ? fs.cacheDirectory : fs.cacheDirectory + "/"
@@ -132,7 +131,7 @@ export const getDownloadPath = memoize(async ({ type = "temp" }: { type: string 
             return path + "/"
         }
     }
-}, ({ type = "temp" }: { type: string }) => type)
+}
 
 export interface QueueFileDownload {
     file: Item,
@@ -281,8 +280,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     callOptionalCallback(err)
 
                     console.error(err)
-    
-                    return console.log(err)
                 })
             }).catch((err) => {
                 showToast({ message: err.toString() })
@@ -290,8 +287,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                 callOptionalCallback(err)
 
                 console.error(err)
-
-                return console.log(err)
             })
         }
         else{
@@ -316,8 +311,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                             callOptionalCallback(err)
 
                             console.error(err)
-    
-                            return console.log(err)
                         })
                     }).catch((err) => {
                         showToast({ message: err.toString() })
@@ -325,8 +318,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         callOptionalCallback(err)
 
                         console.error(err)
-    
-                        return console.log(err)
                     })
                 }
                 else{
@@ -353,8 +344,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                         callOptionalCallback(err)
 
                         console.error(err)
-        
-                        return console.log(err)
                     })
                 }
             }
@@ -382,8 +371,6 @@ export const queueFileDownload = async ({ file, storeOffline = false, optionalCa
                     callOptionalCallback(err)
 
                     console.error(err)
-    
-                    return console.log(err)
                 })
             }
         }
