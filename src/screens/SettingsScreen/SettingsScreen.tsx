@@ -294,7 +294,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 
     const cacheUserAvatar = () => {
         if(typeof userInfo !== "undefined"){
-            if(userInfo.avatarURL.indexOf("https://down.") !== -1){
+            if(userInfo.avatarURL.indexOf("https://") !== -1){
                 const avatarName = getFilenameFromPath(userInfo.avatarURL)
 
                 if(userAvatarCached !== avatarName){

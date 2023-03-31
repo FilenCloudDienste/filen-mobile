@@ -288,6 +288,8 @@ PODS:
     - React-Core
   - react-native-ios-assset-exporter (0.1.7):
     - React-Core
+  - react-native-meta-media (0.0.11):
+    - React-Core
   - react-native-mmkv (2.6.3):
     - MMKV (>= 1.2.13)
     - React-Core
@@ -458,6 +460,7 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - react-native-ios-assset-exporter (from `../node_modules/react-native-ios-asset-exporter`)
+  - react-native-meta-media (from `../node_modules/react-native-media-meta`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -577,6 +580,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-resizer"
   react-native-ios-assset-exporter:
     :path: "../node_modules/react-native-ios-asset-exporter"
+  react-native-meta-media:
+    :path: "../node_modules/react-native-media-meta"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
@@ -680,6 +685,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: ec9b713e248760bfa0f879f0715391de4651a7cb
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-ios-assset-exporter: 50839b94246887e9c2179c39f8c0163d9d823332
+  react-native-meta-media: ee837c99adfdc2d6f14bd129b97f9bd3e84434d8
   react-native-mmkv: 2e5bf67513cc8deed86fcffe87e12b8cc250dfab
   react-native-netinfo: 2517ad504b3d303e90d7a431b0fcaef76d207983
   react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc

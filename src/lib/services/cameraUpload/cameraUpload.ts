@@ -19,6 +19,7 @@ import * as fs from "../../fs"
 import * as db from "../../db"
 import Exif from "react-native-exif"
 import moment from "moment"
+import MediaMeta from "react-native-media-meta"
 
 const CryptoJS = require("crypto-js")
 
@@ -168,6 +169,19 @@ export const getLastModified = async (path: string, name: string, fallback: numb
                 const ts = convertTimestampToMs(parsed.toDate().getTime())
         
                 return ts
+            }
+        }
+
+        if(videoExts.includes(getFileExt(name))){
+            const metadata = await MediaMeta.get(path.split("file://").join(""), { getThumb: false })
+            const date = Platform.OS == "ios" ? metadata['creationDate'] : metadata['creation_time']
+            
+            if(typeof date == "string"){
+                const parsed = new Date(date)
+
+                if(parsed instanceof Date){
+                    return convertTimestampToMs(parsed.getTime())
+                }
             }
         }
     }

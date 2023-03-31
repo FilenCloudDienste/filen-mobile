@@ -1,6 +1,6 @@
 import { updateKeys } from "../user/keys"
 import { apiRequest } from "../../api"
-import { getAPIKey, promiseAllSettled } from "../../helpers"
+import { getAPIKey, promiseAllSettled, toExpoFsPath } from "../../helpers"
 import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
 import { showToast } from "../../../components/Toasts"
@@ -123,6 +123,8 @@ export const checkOfflineItems = async () => {
 export const clearCacheDirectories = async () => {
     await FastImage.clearDiskCache().catch(console.error)
 
+    preloadAvatar().catch(console.error)
+
     const deletePromises = []
     const cachedDownloadsPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
     const cacheDownloadsItems = await fs.readDirectory(cachedDownloadsPath)
@@ -183,6 +185,34 @@ export const clearCacheDirectories = async () => {
     }
 
     await promiseAllSettled(deletePromises)
+}
+
+export const preloadAvatar = async () => {
+    const userId = storage.getNumber("userId")
+
+    if(userId == 0){
+        return
+    }
+
+    const userAvatarCached = storage.getString("userAvatarCached:" + userId)
+
+    if(typeof userAvatarCached !== "string"){
+        return
+    }
+
+    const miscPath = await getDownloadPath({ type: "misc" })
+    const avatarPath = miscPath + userAvatarCached
+    const stat = await fs.stat(avatarPath)
+
+    if(!stat.exists){
+        return
+    }
+
+    FastImage.preload([
+        {
+            uri: toExpoFsPath(avatarPath)
+        }
+    ])
 }
 
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
