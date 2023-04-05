@@ -71,7 +71,7 @@ export const addItemToOfflineList = async ({ item }: { item: Item }): Promise<bo
     newList.push(offlineItem)
 
     await Promise.all([
-        db.dbFs.set(userId + ":offlineItems:" + offlineItem.uuid, true),
+        db.set(userId + ":offlineItems:" + offlineItem.uuid, true),
         saveOfflineList({ list: newList })
     ])
 
@@ -114,7 +114,7 @@ export const removeItemFromOfflineList = async ({ item }: { item: Item }): Promi
     }
 
     await Promise.all([
-        db.dbFs.remove(userId + ":offlineItems:" + item.uuid),
+        db.remove(userId + ":offlineItems:" + item.uuid),
         saveOfflineList({ list: newList })
     ])
 

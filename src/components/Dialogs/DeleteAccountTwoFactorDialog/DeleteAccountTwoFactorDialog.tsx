@@ -11,93 +11,98 @@ import { DeviceEventEmitter } from "react-native"
 import { NavigationContainerRef } from "@react-navigation/native"
 
 export interface DeleteAccountTwoFactorDialogProps {
-    navigation: NavigationContainerRef<ReactNavigation.RootParamList>
+	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 }
 
 const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFactorDialogProps) => {
-    const [value, setValue] = useState<string>("")
-    const inputRef = useRef<any>()
-    const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
-    const lang = useLang()
-    const [open, setOpen] = useState<boolean>(false)
+	const [value, setValue] = useState<string>("")
+	const inputRef = useRef<any>()
+	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
+	const lang = useLang()
+	const [open, setOpen] = useState<boolean>(false)
 
-    const deleteAcc = useCallback(() => {
-        if(buttonsDisabled){
-            return
-        }
+	const deleteAcc = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
 
-        setButtonsDisabled(true)
-        setOpen(false)
+		setButtonsDisabled(true)
+		setOpen(false)
 
-        Keyboard.dismiss()
+		Keyboard.dismiss()
 
-        useStore.setState({ fullscreenLoadingModalVisible: true })
+		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-        const twoFactorKey = value.trim()
+		const twoFactorKey = value.trim()
 
-        if(twoFactorKey.length == 0){
-            return
-        }
+		if (twoFactorKey.length == 0) {
+			return
+		}
 
-        deleteAccount({ twoFactorKey }).then(() => {
-            setButtonsDisabled(false)
+		deleteAccount({ twoFactorKey })
+			.then(() => {
+				setButtonsDisabled(false)
 
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+				useStore.setState({ fullscreenLoadingModalVisible: false })
 
-            logout({ navigation })
-        }).catch((err) => {
-            console.error(err)
+				logout({ navigation })
+			})
+			.catch(err => {
+				console.error(err)
 
-            setButtonsDisabled(false)
+				setButtonsDisabled(false)
 
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+				useStore.setState({ fullscreenLoadingModalVisible: false })
 
-            showToast({ message: err.toString() })
-        })
-    }, [buttonsDisabled, value, lang])
+				showToast({ message: err.toString() })
+			})
+	}, [buttonsDisabled, value, lang])
 
-    useEffect(() => {
-		const openDeleteAccountTwoFactorDialogListener = DeviceEventEmitter.addListener("openDeleteAccountTwoFactorDialog", () => {
-			setButtonsDisabled(false)
-            setOpen(true)
-		})
+	useEffect(() => {
+		const openDeleteAccountTwoFactorDialogListener = DeviceEventEmitter.addListener(
+			"openDeleteAccountTwoFactorDialog",
+			() => {
+				setButtonsDisabled(false)
+				setOpen(true)
+			}
+		)
 
 		return () => {
 			openDeleteAccountTwoFactorDialogListener.remove()
 		}
-    }, [])
+	}, [])
 
-    return (
-        <Dialog.Container
-            visible={open}
-            useNativeDriver={false}
-            onRequestClose={() => setOpen(false)}
-            onBackdropPress={() => {
-                if(!buttonsDisabled){
-                    setOpen(false)
-                }
-            }}
-        >
-            <Dialog.Title>{i18n(lang, "deleteAccount")}</Dialog.Title>
-            <Dialog.Input
-                placeholder={i18n(lang, "code")}
-                value={value}
-                autoFocus={true}
-                onChangeText={(val) => setValue(val)}
-                textInputRef={inputRef}
-            />
-            <Dialog.Button
-                label={i18n(lang, "cancel")}
-                disabled={buttonsDisabled}
-                onPress={() => setOpen(false)}
-            />
-            <Dialog.Button
-                label={i18n(lang, "delete")}
-                disabled={buttonsDisabled}
-                onPress={deleteAcc}
-            />
-        </Dialog.Container>
-    )
+	return (
+		<Dialog.Container
+			visible={open}
+			useNativeDriver={false}
+			onRequestClose={() => setOpen(false)}
+			onBackdropPress={() => {
+				if (!buttonsDisabled) {
+					setOpen(false)
+				}
+			}}
+		>
+			<Dialog.Title>{i18n(lang, "deleteAccount")}</Dialog.Title>
+			<Dialog.Input
+				placeholder={i18n(lang, "code")}
+				value={value}
+				autoFocus={true}
+				onChangeText={val => setValue(val)}
+				textInputRef={inputRef}
+			/>
+			<Dialog.Button
+				label={i18n(lang, "cancel")}
+				disabled={buttonsDisabled}
+				onPress={() => setOpen(false)}
+			/>
+			<Dialog.Button
+				label={i18n(lang, "delete")}
+				disabled={buttonsDisabled}
+				onPress={deleteAcc}
+			/>
+		</Dialog.Container>
+	)
 })
 
 export default DeleteAccountTwoFactorDialog

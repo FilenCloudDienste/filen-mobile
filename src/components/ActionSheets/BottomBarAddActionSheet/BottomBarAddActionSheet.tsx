@@ -198,21 +198,13 @@ const BottomBarAddActionSheet = memo(() => {
 					}
 
 					getLastModified(fileURI, result.name, convertTimestampToMs(info.modificationTime || new Date().getTime())).then((lastModified) => {
-						return console.log({
+						return resolve({
 							path: fileURI,
 							name: result.name,
 							size: info.size,
 							mime: mimeTypes.lookup(result.name) || result.type || "",
 							lastModified
 						})
-
-						/*return resolve({
-							path: fileURI,
-							name: result.name,
-							size: info.size,
-							mime: mimeTypes.lookup(result.name) || result.type || "",
-							lastModified
-						})*/
 					}).catch(reject)
 				}).catch(reject)
 			})

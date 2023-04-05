@@ -7,442 +7,456 @@ import { i18n } from "../../i18n"
 import { useStore } from "../../lib/state"
 import { navigationAnimation } from "../../lib/state"
 import { CommonActions } from "@react-navigation/native"
-import { SheetManager } from "react-native-actions-sheet"
+import { hideAllActionSheets } from "../../components/ActionSheets"
 import * as LocalAuthentication from "expo-local-authentication"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
+import { hasBiometricPermissions } from "../../lib/permissions"
+import { safeAwait } from "../../lib/helpers"
 
 let canGoBack: boolean = false
 
 export interface PINCodeRowProps {
-    numbers?: number[],
-    updatePinCode: (number: number) => void,
-    promptBiometrics: () => void
+	numbers?: number[]
+	updatePinCode: (number: number) => void
+	promptBiometrics: () => void
 }
 
 export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }: PINCodeRowProps) => {
-    const darkMode = useDarkMode()
+	const darkMode = useDarkMode()
 
-    const [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor] = useMemo(() => {
-        const buttonWidthHeight: number = 70
-        const buttonFontSize: number = 22
-        const buttonColor: string = darkMode ? "#333333" : "lightgray"
-        const buttonFontColor: string = getColor(darkMode, "textPrimary")
+	const [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor] = useMemo(() => {
+		const buttonWidthHeight: number = 70
+		const buttonFontSize: number = 22
+		const buttonColor: string = darkMode ? "#333333" : "lightgray"
+		const buttonFontColor: string = getColor(darkMode, "textPrimary")
 
-        return [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor]
-    }, [darkMode])
+		return [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor]
+	}, [darkMode])
 
-    return (
-        <View
-            style={{
-                width: 270,
-                height: "auto",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 15
-            }}
-        >
-            {
-                typeof numbers !== "undefined" ? numbers.map((num) => {
-                    return (
-                        <TouchableOpacity
-                            key={num}
-                            style={{
-                                height: buttonWidthHeight,
-                                width: buttonWidthHeight,
-                                borderRadius: buttonWidthHeight,
-                                backgroundColor: buttonColor,
-                                justifyContent: "center",
-                                alignItems: "center"
-                            }}
-                            onPress={() => updatePinCode(num)}
-                        >
-                            <Text
-                                style={{
-                                    fontSize: buttonFontSize,
-                                    color: buttonFontColor
-                                }}
-                            >
-                                {num}
-                            </Text>
-                        </TouchableOpacity>
-                    )
-                }) : (
-                    <>
-                        <TouchableOpacity
-                            style={{
-                                height: buttonWidthHeight,
-                                width: buttonWidthHeight,
-                                borderRadius: buttonWidthHeight,
-                                backgroundColor: buttonColor,
-                                justifyContent: "center",
-                                alignItems: "center"
-                            }}
-                            onPress={() => promptBiometrics()}
-                        >
-                            <Text
-                                style={{
-                                    fontSize: buttonFontSize
-                                }}
-                            >
-                                <Ionicon
-                                    name="finger-print-outline"
-                                    size={buttonFontSize}
-                                    color={buttonFontColor}
-                                />
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={{
-                                height: buttonWidthHeight,
-                                width: buttonWidthHeight,
-                                borderRadius: buttonWidthHeight,
-                                backgroundColor: buttonColor,
-                                justifyContent: "center",
-                                alignItems: "center"
-                            }}
-                            onPress={() => updatePinCode(0)}
-                        >
-                            <Text
-                                style={{
-                                    fontSize: buttonFontSize,
-                                    color: buttonFontColor
-                                }}
-                            >
-                                0
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={{
-                                height: buttonWidthHeight,
-                                width: buttonWidthHeight,
-                                borderRadius: buttonWidthHeight,
-                                backgroundColor: buttonColor,
-                                justifyContent: "center",
-                                alignItems: "center"
-                            }}
-                            onPress={() => updatePinCode(-1)}
-                        >
-                            <Text
-                                style={{
-                                    fontSize: buttonFontSize
-                                }}
-                            >
-                                <Ionicon
-                                    name="backspace-outline"
-                                    size={buttonFontSize}
-                                    color={buttonFontColor} 
-                                />
-                            </Text>
-                        </TouchableOpacity>
-                    </>
-                )
-            }
-        </View>
-    )
+	return (
+		<View
+			style={{
+				width: 270,
+				height: "auto",
+				flexDirection: "row",
+				justifyContent: "space-between",
+				marginBottom: 15
+			}}
+		>
+			{typeof numbers !== "undefined" ? (
+				numbers.map(num => {
+					return (
+						<TouchableOpacity
+							key={num}
+							style={{
+								height: buttonWidthHeight,
+								width: buttonWidthHeight,
+								borderRadius: buttonWidthHeight,
+								backgroundColor: buttonColor,
+								justifyContent: "center",
+								alignItems: "center"
+							}}
+							onPress={() => updatePinCode(num)}
+						>
+							<Text
+								style={{
+									fontSize: buttonFontSize,
+									color: buttonFontColor
+								}}
+							>
+								{num}
+							</Text>
+						</TouchableOpacity>
+					)
+				})
+			) : (
+				<>
+					<TouchableOpacity
+						style={{
+							height: buttonWidthHeight,
+							width: buttonWidthHeight,
+							borderRadius: buttonWidthHeight,
+							backgroundColor: buttonColor,
+							justifyContent: "center",
+							alignItems: "center"
+						}}
+						onPress={() => promptBiometrics()}
+					>
+						<Text
+							style={{
+								fontSize: buttonFontSize
+							}}
+						>
+							<Ionicon
+								name="finger-print-outline"
+								size={buttonFontSize}
+								color={buttonFontColor}
+							/>
+						</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						style={{
+							height: buttonWidthHeight,
+							width: buttonWidthHeight,
+							borderRadius: buttonWidthHeight,
+							backgroundColor: buttonColor,
+							justifyContent: "center",
+							alignItems: "center"
+						}}
+						onPress={() => updatePinCode(0)}
+					>
+						<Text
+							style={{
+								fontSize: buttonFontSize,
+								color: buttonFontColor
+							}}
+						>
+							0
+						</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						style={{
+							height: buttonWidthHeight,
+							width: buttonWidthHeight,
+							borderRadius: buttonWidthHeight,
+							backgroundColor: buttonColor,
+							justifyContent: "center",
+							alignItems: "center"
+						}}
+						onPress={() => updatePinCode(-1)}
+					>
+						<Text
+							style={{
+								fontSize: buttonFontSize
+							}}
+						>
+							<Ionicon
+								name="backspace-outline"
+								size={buttonFontSize}
+								color={buttonFontColor}
+							/>
+						</Text>
+					</TouchableOpacity>
+				</>
+			)}
+		</View>
+	)
 })
 
 export interface BiometricAuthScreenProps {
-    navigation: any
+	navigation: any
 }
 
 export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProps) => {
-    const darkMode = useDarkMode()
-    const lang = useLang()
-    const [ userId ] = useMMKVNumber("userId", storage)
-    const biometricAuthScreenState = useStore(state => state.biometricAuthScreenState)
-    const [pinCode, setPinCode] = useState<string>("")
-    const [confirmPinCode, setConfirmPinCode] = useState<string>("")
-    const [confirmPinCodeVisible, setConfirmPinCodeVisible] = useState<boolean>(false)
-    const headerTextColor: string = darkMode ? "white" : "gray"
-    const [dotColor, setDotColor] = useState<string>(headerTextColor)
-    const [showingBiometrics, setShowingBiometrics] = useState<boolean>(false)
-    const [ shakeAnimation ] = useState<Animated.Value>(new Animated.Value(0))
-    const setIsAuthing = useStore(state => state.setIsAuthing)
-    const appState = useRef(AppState.currentState)
-    const setBiometricAuthScreenVisible = useStore(state => state.setBiometricAuthScreenVisible)
-    const [ startOnCloudScreen ] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
-    const dimensions = useWindowDimensions()
+	const darkMode = useDarkMode()
+	const lang = useLang()
+	const [userId] = useMMKVNumber("userId", storage)
+	const biometricAuthScreenState = useStore(state => state.biometricAuthScreenState)
+	const [pinCode, setPinCode] = useState<string>("")
+	const [confirmPinCode, setConfirmPinCode] = useState<string>("")
+	const [confirmPinCodeVisible, setConfirmPinCodeVisible] = useState<boolean>(false)
+	const headerTextColor: string = darkMode ? "white" : "gray"
+	const [dotColor, setDotColor] = useState<string>(headerTextColor)
+	const [showingBiometrics, setShowingBiometrics] = useState<boolean>(false)
+	const [shakeAnimation] = useState<Animated.Value>(new Animated.Value(0))
+	const setIsAuthing = useStore(state => state.setIsAuthing)
+	const appState = useRef(AppState.currentState)
+	const setBiometricAuthScreenVisible = useStore(state => state.setBiometricAuthScreenVisible)
+	const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
+	const dimensions = useWindowDimensions()
 
-    const startShake = useCallback(() => {
-        Animated.sequence([
-            Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-            Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
-            Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-            Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
-            Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-            Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true })
-        ]).start()
+	const startShake = useCallback(() => {
+		Animated.sequence([
+			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+			Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
+			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+			Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
+			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
+			Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true })
+		]).start()
 
-        setTimeout(() => {
-            setDotColor(headerTextColor)
-        }, 700)
-    }, [])
+		setTimeout(() => {
+			setDotColor(headerTextColor)
+		}, 700)
+	}, [])
 
-    const authed = useCallback(() => {
-        setConfirmPinCode("")
-        setPinCode("")
-        setConfirmPinCodeVisible(false)
-        setShowingBiometrics(false)
+	const authed = useCallback(() => {
+		setConfirmPinCode("")
+		setPinCode("")
+		setConfirmPinCodeVisible(false)
+		setShowingBiometrics(false)
 
-        canGoBack = true
+		canGoBack = true
 
-        navigationAnimation({ enable: false }).then(() => {
-            let wasSetupScreen = false
+		navigationAnimation({ enable: false }).then(() => {
+			let wasSetupScreen = false
 
-            if(typeof navigation !== "undefined" && typeof navigation.getState == "function"){
-                const navState = navigation.getState()
+			if (typeof navigation !== "undefined" && typeof navigation.getState == "function") {
+				const navState = navigation.getState()
 
-                if(navState && typeof navState.routes !== "undefined" && Array.isArray(navState.routes)){
-                    const routes = navState.routes
+				if (navState && typeof navState.routes !== "undefined" && Array.isArray(navState.routes)) {
+					const routes = navState.routes
 
-                    for(let i = 0; i < routes.length; i++){
-                        if(routes[i].name == "SetupScreen"){
-                            wasSetupScreen = true
-                        }
-                    }
-                }
-            }
+					for (let i = 0; i < routes.length; i++) {
+						if (routes[i].name == "SetupScreen") {
+							wasSetupScreen = true
+						}
+					}
+				}
+			}
 
-            setIsAuthing(false)
+			setIsAuthing(false)
 
-            storage.set("lastBiometricScreen:" + userId, new Date().getTime())
+			storage.set("lastBiometricScreen:" + userId, new Date().getTime())
 
-            if(wasSetupScreen){
-                navigationAnimation({ enable: true }).then(() => {
-                    navigation.dispatch(CommonActions.reset({
-                        index: 0,
-                        routes: [
-                            {
-                                name: "MainScreen",
-                                params: {
-                                    parent: startOnCloudScreen ? (storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base") : "recents"
-                                }
-                            }
-                        ]
-                    }))
-                })
-            }
-            else{
-                navigation.goBack()
-            }
-        })
-    }, [startOnCloudScreen, navigation, userId])
+			if (wasSetupScreen) {
+				navigationAnimation({ enable: true }).then(() => {
+					navigation.dispatch(
+						CommonActions.reset({
+							index: 0,
+							routes: [
+								{
+									name: "MainScreen",
+									params: {
+										parent: startOnCloudScreen
+											? storage.getBoolean("defaultDriveOnly:" + userId)
+												? storage.getString("defaultDriveUUID:" + userId)
+												: "base"
+											: "recents"
+									}
+								}
+							]
+						})
+					)
+				})
+			} else {
+				navigation.goBack()
+			}
+		})
+	}, [startOnCloudScreen, navigation, userId])
 
-    const updatePinCode = useCallback((num: number) => {
-        setDotColor(headerTextColor)
+	const updatePinCode = useCallback(
+		(num: number) => {
+			setDotColor(headerTextColor)
 
-        if(num == -1){
-            if(pinCode.length > 0){
-                setPinCode(code => code.substring(0, (code.length - 1)))
-            }
-            
-            return
-        }
+			if (num == -1) {
+				if (pinCode.length > 0) {
+					setPinCode(code => code.substring(0, code.length - 1))
+				}
 
-        const newCode = pinCode + "" + num.toString()
+				return
+			}
 
-        if(newCode.length <= 4){
-            setPinCode(newCode)
-        }
+			const newCode = pinCode + "" + num.toString()
 
-        if(newCode.length >= 4){
-            if(confirmPinCodeVisible){
-                if(newCode == confirmPinCode){
-                    storage.set("pinCode:" + userId, confirmPinCode)
-                    storage.set("biometricPinAuth:" + userId, true)
+			if (newCode.length <= 4) {
+				setPinCode(newCode)
+			}
 
-                    authed()
-                }
-                else{
-                    startShake()
-                    setDotColor("red")
-                    setConfirmPinCode("")
-                    setPinCode("")
-                    setConfirmPinCodeVisible(false)
-                }
-            }
-            else{
-                if(biometricAuthScreenState == "setup"){
-                    setConfirmPinCode(newCode)
-                    setPinCode("")
-                    setConfirmPinCodeVisible(true)
-                }
-                else{
-                    const storedPinCode = storage.getString("pinCode:" + userId) || "1234567890"
+			if (newCode.length >= 4) {
+				if (confirmPinCodeVisible) {
+					if (newCode == confirmPinCode) {
+						storage.set("pinCode:" + userId, confirmPinCode)
+						storage.set("biometricPinAuth:" + userId, true)
 
-                    if(newCode == storedPinCode){
-                        authed()
-                    }
-                    else{
-                        setPinCode("")
-                        setDotColor("red")
-                        startShake()
-                    }
-                }
-            }
-        }
-    }, [confirmPinCodeVisible, biometricAuthScreenState, confirmPinCode, pinCode, userId])
+						authed()
+					} else {
+						startShake()
+						setDotColor("red")
+						setConfirmPinCode("")
+						setPinCode("")
+						setConfirmPinCodeVisible(false)
+					}
+				} else {
+					if (biometricAuthScreenState == "setup") {
+						setConfirmPinCode(newCode)
+						setPinCode("")
+						setConfirmPinCodeVisible(true)
+					} else {
+						const storedPinCode = storage.getString("pinCode:" + userId) || "1234567890"
 
-    const promptBiometrics = useCallback(async () => {
-        if(biometricAuthScreenState == "setup" || showingBiometrics || storage.getBoolean("onlyUsePINCode:" + userId)){
-            return
-        }
+						if (newCode == storedPinCode) {
+							authed()
+						} else {
+							setPinCode("")
+							setDotColor("red")
+							startShake()
+						}
+					}
+				}
+			}
+		},
+		[confirmPinCodeVisible, biometricAuthScreenState, confirmPinCode, pinCode, userId]
+	)
 
-        await new Promise((resolve) => {
-            const wait = setInterval(() => {
-                if(appState.current == "active"){
-                    clearInterval(wait)
+	const promptBiometrics = useCallback(async () => {
+		if (
+			biometricAuthScreenState == "setup" ||
+			showingBiometrics ||
+			storage.getBoolean("onlyUsePINCode:" + userId)
+		) {
+			return
+		}
 
-                    return resolve(true)
-                }
-            }, 100)
-        })
+		await new Promise<void>(resolve => {
+			const wait = setInterval(() => {
+				if (appState.current == "active") {
+					clearInterval(wait)
 
-        LocalAuthentication.hasHardwareAsync().then((available) => {
-            if(!available){
-                return
-            }
+					return resolve()
+				}
+			}, 100)
+		})
 
-            LocalAuthentication.authenticateAsync({
-                cancelLabel: i18n(lang, "cancel"),
-                promptMessage: i18n(lang, "biometricAuthPrompt"),
-                disableDeviceFallback: true
-            }).then((res) => {
-                setShowingBiometrics(false)
-                    
-                if(!res.success){
-                    return
-                }
+		hideAllActionSheets().catch(console.error)
 
-                authed()
-            }).catch(console.error)
-        }).catch(console.error)
-    }, [biometricAuthScreenState, showingBiometrics, lang, userId])
+		const [authErr, authResponse] = await safeAwait(
+			LocalAuthentication.authenticateAsync({
+				cancelLabel: i18n(lang, "cancel"),
+				promptMessage: i18n(lang, "biometricAuthPrompt")
+			})
+		)
 
-    useEffect(() => {
-        setIsAuthing(true)
-        setBiometricAuthScreenVisible(true)
+		if (authErr) {
+			console.error(authErr)
+		} else {
+			if (authResponse.success) {
+				authed()
+			}
+		}
 
-        canGoBack = false
+		setShowingBiometrics(false)
+	}, [biometricAuthScreenState, showingBiometrics, lang, userId])
 
-        SheetManager.hideAll()
+	useEffect(() => {
+		setIsAuthing(true)
+		setBiometricAuthScreenVisible(true)
 
-        useStore.setState({
-            renameDialogVisible: false,
-            createFolderDialogVisible: false,
-            createTextFileDialogVisible: false,
-            redeemCodeDialogVisible: false,
-            disable2FATwoFactorDialogVisible: false,
-            bulkShareDialogVisible: false
-        })
+		canGoBack = false
 
-        const removeListener = (e: any): void => {
-            if(!canGoBack){
-                e.preventDefault()
-            }
-        }
+		hideAllActionSheets().catch(console.error)
 
-        navigation.addListener("beforeRemove", removeListener)
+		useStore.setState({
+			renameDialogVisible: false,
+			createFolderDialogVisible: false,
+			createTextFileDialogVisible: false,
+			redeemCodeDialogVisible: false,
+			disable2FATwoFactorDialogVisible: false,
+			bulkShareDialogVisible: false
+		})
 
-        const appStateListener = AppState.addEventListener("change", (nextAppState: AppStateStatus) => {
-            appState.current = nextAppState
-        })
+		const removeListener = (e: any): void => {
+			if (!canGoBack) {
+				e.preventDefault()
+			}
+		}
 
-        setTimeout(promptBiometrics, 250)
+		navigation.addListener("beforeRemove", removeListener)
 
-        return () => {
-            navigation.removeListener("beforeRemove", removeListener)
-            appStateListener.remove()
-            setBiometricAuthScreenVisible(false)
-        }
-    }, [])
+		const appStateListener = AppState.addEventListener("change", (nextAppState: AppStateStatus) => {
+			appState.current = nextAppState
 
-    return (
-        <View
-            style={{
-                height: dimensions.height,
-                width: "100%",
-                backgroundColor: getColor(darkMode, "backgroundPrimary"),
-                justifyContent: "center",
-                alignItems: "center"
-            }}
-        >
-            <View
-                style={{
-                    marginBottom: 100
-                }}
-            >
-                {
-                    biometricAuthScreenState == "setup" ? (
-                        <Text
-                            style={{
-                                color: headerTextColor,
-                                fontSize: 19
-                            }}
-                        >
-                            {confirmPinCodeVisible ? i18n(lang, "confirmPinCode") : i18n(lang, "setupPinCode")}
-                        </Text>
-                    ) : (
-                        <Text
-                            style={{
-                                color: headerTextColor,
-                                fontSize: 19
-                            }}
-                        >
-                            {i18n(lang, "enterPinCode")}
-                        </Text>
-                    )
-                }
-                <Animated.View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        marginTop: 35,
-                        transform: [
-                            {
-                                translateX: shakeAnimation
-                            }
-                        ]
-                    }}
-                >
-                    {
-                        Array.from(Array(4).keys()).map((key) => {
-                            return (
-                                <Ionicon
-                                    key={key}
-                                    name={pinCode.charAt(key).length > 0 ? "radio-button-on-outline" : "radio-button-off-outline"}
-                                    size={22}
-                                    color={dotColor}
-                                    style={{
-                                        marginLeft: 5
-                                    }}
-                                />
-                            )
-                        })
-                    }
-                </Animated.View>
-            </View>
-            <PINCodeRow
-                numbers={[1, 2, 3]}
-                updatePinCode={updatePinCode}
-                promptBiometrics={promptBiometrics}
-            />
-            <PINCodeRow
-                numbers={[4, 5, 6]}
-                updatePinCode={updatePinCode}
-                promptBiometrics={promptBiometrics} 
-            />
-            <PINCodeRow 
-                numbers={[7, 8, 9]} 
-                updatePinCode={updatePinCode} 
-                promptBiometrics={promptBiometrics} 
-            />
-            <PINCodeRow 
-                updatePinCode={updatePinCode} 
-                promptBiometrics={promptBiometrics} 
-            />
-        </View>
-    )
+			if (nextAppState == "active") {
+				hideAllActionSheets().catch(console.error)
+			}
+		})
+
+		setTimeout(promptBiometrics, 250)
+
+		return () => {
+			navigation.removeListener("beforeRemove", removeListener)
+			appStateListener.remove()
+
+			setBiometricAuthScreenVisible(false)
+		}
+	}, [])
+
+	return (
+		<View
+			style={{
+				height: dimensions.height,
+				width: "100%",
+				backgroundColor: getColor(darkMode, "backgroundPrimary"),
+				justifyContent: "center",
+				alignItems: "center"
+			}}
+		>
+			<View
+				style={{
+					marginBottom: 100
+				}}
+			>
+				{biometricAuthScreenState == "setup" ? (
+					<Text
+						style={{
+							color: headerTextColor,
+							fontSize: 19
+						}}
+					>
+						{confirmPinCodeVisible ? i18n(lang, "confirmPinCode") : i18n(lang, "setupPinCode")}
+					</Text>
+				) : (
+					<Text
+						style={{
+							color: headerTextColor,
+							fontSize: 19
+						}}
+					>
+						{i18n(lang, "enterPinCode")}
+					</Text>
+				)}
+				<Animated.View
+					style={{
+						flexDirection: "row",
+						justifyContent: "center",
+						marginTop: 35,
+						transform: [
+							{
+								translateX: shakeAnimation
+							}
+						]
+					}}
+				>
+					{Array.from(Array(4).keys()).map(key => {
+						return (
+							<Ionicon
+								key={key}
+								name={
+									pinCode.charAt(key).length > 0
+										? "radio-button-on-outline"
+										: "radio-button-off-outline"
+								}
+								size={22}
+								color={dotColor}
+								style={{
+									marginLeft: 5
+								}}
+							/>
+						)
+					})}
+				</Animated.View>
+			</View>
+			<PINCodeRow
+				numbers={[1, 2, 3]}
+				updatePinCode={updatePinCode}
+				promptBiometrics={promptBiometrics}
+			/>
+			<PINCodeRow
+				numbers={[4, 5, 6]}
+				updatePinCode={updatePinCode}
+				promptBiometrics={promptBiometrics}
+			/>
+			<PINCodeRow
+				numbers={[7, 8, 9]}
+				updatePinCode={updatePinCode}
+				promptBiometrics={promptBiometrics}
+			/>
+			<PINCodeRow
+				updatePinCode={updatePinCode}
+				promptBiometrics={promptBiometrics}
+			/>
+		</View>
+	)
 })

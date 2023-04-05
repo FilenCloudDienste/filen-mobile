@@ -16,176 +16,182 @@ let currentToastQueue: number = 0
 export type ToastType = "normal" | "move" | "moveBulk" | "upload" | "cameraUploadChooseFolder"
 
 export interface ShowToast {
-    type?: ToastType,
-    message?: string,
-    swipeEnabled?: boolean,
-    duration?: number,
-    animationType?: "slide-in" | "zoom-in",
-    animationDuration?: number,
-    bottomOffset?: number,
-    offset?: number,
-    offsetBottom?: number,
-    offsetTop?: number,
-    placement?: "bottom" | "top",
-    navigation?: any,
-    items?: Item[]
+	type?: ToastType
+	message?: string
+	swipeEnabled?: boolean
+	duration?: number
+	animationType?: "slide-in" | "zoom-in"
+	animationDuration?: number
+	bottomOffset?: number
+	offset?: number
+	offsetBottom?: number
+	offsetTop?: number
+	placement?: "bottom" | "top"
+	navigation?: any
+	items?: Item[]
 }
 
-export const showToast = (
-    {
-        type = "normal",
-        message,
-        swipeEnabled = false,
-        duration = 5000,
-        animationType = "slide-in",
-        animationDuration = 100,
-        bottomOffset = 0,
-        offset = 50,
-        offsetBottom = 50,
-        offsetTop = 50,
-        placement = "bottom",
-        navigation = undefined,
-        items = []
-    }: ShowToast
-) => {
-    if(typeof global.toast == "undefined" || global.toast == null || typeof global.toast.hideAll !== "function"){
-        return
-    }
-    
-    if(currentToastQueue >= toastQueueLimit){
-        return setTimeout(() => {
-            showToast({
-                type,
-                message,
-                swipeEnabled,
-                duration,
-                animationType,
-                animationDuration,
-                bottomOffset,
-                offset,
-                offsetBottom,
-                offsetTop,
-                placement,
-                navigation
-            })
-        }, 100)
-    }
+export const showToast = ({
+	type = "normal",
+	message,
+	swipeEnabled = false,
+	duration = 5000,
+	animationType = "slide-in",
+	animationDuration = 100,
+	bottomOffset = 0,
+	offset = 50,
+	offsetBottom = 50,
+	offsetTop = 50,
+	placement = "bottom",
+	navigation = undefined,
+	items = []
+}: ShowToast) => {
+	if (typeof global.toast == "undefined" || global.toast == null || typeof global.toast.hideAll !== "function") {
+		return
+	}
 
-    currentToastQueue += 1
+	if (currentToastQueue >= toastQueueLimit) {
+		return setTimeout(() => {
+			showToast({
+				type,
+				message,
+				swipeEnabled,
+				duration,
+				animationType,
+				animationDuration,
+				bottomOffset,
+				offset,
+				offsetBottom,
+				offsetTop,
+				placement,
+				navigation
+			})
+		}, 100)
+	}
 
-    setTimeout(() => {
-        currentToastQueue -= 1
-    }, (duration + getRandomArbitrary(500, 1000)))
-    
-    const darkMode = storage.getBoolean("darkMode")
-    const insets = useStore.getState().insets as any
+	currentToastQueue += 1
 
-    if(typeof insets !== "undefined"){
-        offsetBottom = insets.bottom + 55
-        offsetTop = insets.top + 80
-    }
+	setTimeout(() => {
+		currentToastQueue -= 1
+	}, duration + getRandomArbitrary(500, 1000))
 
-    useStore.setState({
-        toastBottomOffset: offsetBottom,
-        toastTopOffset: offsetTop
-    })
+	const darkMode = storage.getBoolean("darkMode")
+	const insets = useStore.getState().insets as any
 
-    let toastId: string = ""
+	if (typeof insets !== "undefined") {
+		offsetBottom = insets.bottom + 55
+		offsetTop = insets.top + 80
+	}
 
-    if(type == "normal"){
-        toastId = global.toast.show(<NormalToast message={message} />, {
-            type: "custom",
-            style: {
-                backgroundColor: getColor(darkMode, "backgroundTertiary"),
-                borderRadius: 10
-            },
-            swipeEnabled,
-            duration,
-            animationType,
-            animationDuration,
-            placement
-        })
-    }
-    else if(type == "move"){
-        hideAllToasts()
-        
-        toastId = global.toast.show(<MoveToast message={message} />, {
-            type: "custom",
-            style: {
-                backgroundColor: getColor(darkMode, "backgroundTertiary"),
-                borderRadius: 10
-            },
-            swipeEnabled,
-            duration: 86400000,
-            animationType,
-            animationDuration,
-            placement
-        })
-    }
-    else if(type == "moveBulk" && Array.isArray(items)){
-        hideAllToasts()
-        
-        toastId = global.toast.show(<MoveBulkToast message={message} items={items} />, {
-            type: "custom",
-            style: {
-                backgroundColor: getColor(darkMode, "backgroundTertiary"),
-                borderRadius: 10
-            },
-            swipeEnabled,
-            duration: 86400000,
-            animationType,
-            animationDuration,
-            placement
-        })
-    }
-    else if(type == "upload"){
-        hideAllToasts()
-        
-        toastId = global.toast.show(<UploadToast />, {
-            type: "custom",
-            style: {
-                backgroundColor: getColor(darkMode, "backgroundTertiary"),
-                borderRadius: 10
-            },
-            swipeEnabled,
-            duration: 86400000,
-            animationType,
-            animationDuration,
-            placement
-        })
-    }
-    else if(type == "cameraUploadChooseFolder"){
-        hideAllToasts()
+	useStore.setState({
+		toastBottomOffset: offsetBottom,
+		toastTopOffset: offsetTop
+	})
 
-        toastId = global.toast.show(<CameraUploadChooseFolderToast message={message} navigation={navigation} />, {
-            type: "custom",
-            style: {
-                backgroundColor: getColor(darkMode, "backgroundTertiary"),
-                borderRadius: 10
-            },
-            swipeEnabled,
-            duration: 86400000,
-            animationType,
-            animationDuration,
-            placement
-        })
-    }
+	let toastId: string = ""
 
-    return toastId
+	if (type == "normal") {
+		toastId = global.toast.show(<NormalToast message={message} />, {
+			type: "custom",
+			style: {
+				backgroundColor: getColor(darkMode, "backgroundTertiary"),
+				borderRadius: 10
+			},
+			swipeEnabled,
+			duration,
+			animationType,
+			animationDuration,
+			placement
+		})
+	} else if (type == "move") {
+		hideAllToasts()
+
+		toastId = global.toast.show(<MoveToast message={message} />, {
+			type: "custom",
+			style: {
+				backgroundColor: getColor(darkMode, "backgroundTertiary"),
+				borderRadius: 10
+			},
+			swipeEnabled,
+			duration: 86400000,
+			animationType,
+			animationDuration,
+			placement
+		})
+	} else if (type == "moveBulk" && Array.isArray(items)) {
+		hideAllToasts()
+
+		toastId = global.toast.show(
+			<MoveBulkToast
+				message={message}
+				items={items}
+			/>,
+			{
+				type: "custom",
+				style: {
+					backgroundColor: getColor(darkMode, "backgroundTertiary"),
+					borderRadius: 10
+				},
+				swipeEnabled,
+				duration: 86400000,
+				animationType,
+				animationDuration,
+				placement
+			}
+		)
+	} else if (type == "upload") {
+		hideAllToasts()
+
+		toastId = global.toast.show(<UploadToast />, {
+			type: "custom",
+			style: {
+				backgroundColor: getColor(darkMode, "backgroundTertiary"),
+				borderRadius: 10
+			},
+			swipeEnabled,
+			duration: 86400000,
+			animationType,
+			animationDuration,
+			placement
+		})
+	} else if (type == "cameraUploadChooseFolder") {
+		hideAllToasts()
+
+		toastId = global.toast.show(
+			<CameraUploadChooseFolderToast
+				message={message}
+				navigation={navigation}
+			/>,
+			{
+				type: "custom",
+				style: {
+					backgroundColor: getColor(darkMode, "backgroundTertiary"),
+					borderRadius: 10
+				},
+				swipeEnabled,
+				duration: 86400000,
+				animationType,
+				animationDuration,
+				placement
+			}
+		)
+	}
+
+	return toastId
 }
 
 export const hideToast = ({ id }: { id: string }) => {
-    if(typeof global.toast == "undefined" || global.toast == null || typeof global.toast.hideAll !== "function"){
-        return
-    }
+	if (typeof global.toast == "undefined" || global.toast == null || typeof global.toast.hideAll !== "function") {
+		return
+	}
 
-    return global?.toast?.hide(id)
+	return global?.toast?.hide(id)
 }
 
 export const hideAllToasts = () => {
-    if(typeof global.toast == "undefined" || global.toast == null || typeof global.toast.hideAll !== "function"){
-        return
-    }
+	if (typeof global.toast == "undefined" || global.toast == null || typeof global.toast.hideAll !== "function") {
+		return
+	}
 
-    return global?.toast?.hideAll()
+	return global?.toast?.hideAll()
 }

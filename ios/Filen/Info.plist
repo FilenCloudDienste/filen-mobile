@@ -62,6 +62,8 @@
 	<string>Please allow access to your photo library so that Filen can save photos on your device.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Please allow access to your photos so that Filen can back them up.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Play music directly in the Filen app.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>

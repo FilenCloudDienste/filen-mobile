@@ -9,145 +9,149 @@ import { i18n } from "../../../i18n"
 import { DeviceEventEmitter, Keyboard } from "react-native"
 
 const CreateFolderDialog = memo(() => {
-    const [value, setValue] = useState<string>("Untitled folder")
-    const inputRef = useRef<any>()
-    const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
-    const lang = useLang()
-    const [open, setOpen] = useState<boolean>(false)
+	const [value, setValue] = useState<string>("Untitled folder")
+	const inputRef = useRef<any>()
+	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
+	const lang = useLang()
+	const [open, setOpen] = useState<boolean>(false)
 
-    const create = useCallback(() => {
-        if(buttonsDisabled){
-            return
-        }
+	const create = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
 
-        setButtonsDisabled(true)
-        setOpen(false)
+		setButtonsDisabled(true)
+		setOpen(false)
 
-        Keyboard.dismiss()
+		Keyboard.dismiss()
 
-        useStore.setState({ fullscreenLoadingModalVisible: true })
+		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-        const parent = getParent()
-        const name = value.trim()
+		const parent = getParent()
+		const name = value.trim()
 
-        if(!fileAndFolderNameValidation(name)){
-            setButtonsDisabled(false)
+		if (!fileAndFolderNameValidation(name)) {
+			setButtonsDisabled(false)
 
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+			useStore.setState({ fullscreenLoadingModalVisible: false })
 
-            showToast({ message: i18n(lang, "invalidFolderName") })
+			showToast({ message: i18n(lang, "invalidFolderName") })
 
-            return
-        }
+			return
+		}
 
-        if(name.length <= 0 || name.length >= 255){
-            setButtonsDisabled(false)
+		if (name.length <= 0 || name.length >= 255) {
+			setButtonsDisabled(false)
 
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+			useStore.setState({ fullscreenLoadingModalVisible: false })
 
-            showToast({ message: i18n(lang, "invalidFolderName") })
+			showToast({ message: i18n(lang, "invalidFolderName") })
 
-            return
-        }
+			return
+		}
 
-        folderExists({
-            name,
-            parent
-        }).then((res) => {
-            if(res.exists){
-                setButtonsDisabled(false)
+		folderExists({
+			name,
+			parent
+		})
+			.then(res => {
+				if (res.exists) {
+					setButtonsDisabled(false)
 
-                useStore.setState({ fullscreenLoadingModalVisible: false })
+					useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [name]) })
+					showToast({ message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [name]) })
 
-                return
-            }
+					return
+				}
 
-            createFolder({
-                name,
-                parent
-            }).then(() => {
-                DeviceEventEmitter.emit("event", {
-                    type: "reload-list",
-                    data: {
-                        parent
-                    }
-                })
+				createFolder({
+					name,
+					parent
+				})
+					.then(() => {
+						DeviceEventEmitter.emit("event", {
+							type: "reload-list",
+							data: {
+								parent
+							}
+						})
 
-                setButtonsDisabled(false)
+						setButtonsDisabled(false)
 
-                useStore.setState({ fullscreenLoadingModalVisible: false })
+						useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                //showToast({ message: i18n(lang, "folderCreated", true, ["__NAME__"], [name]) })
-            }).catch((err) => {
-                console.error(err)
+						//showToast({ message: i18n(lang, "folderCreated", true, ["__NAME__"], [name]) })
+					})
+					.catch(err => {
+						console.error(err)
 
-                setButtonsDisabled(false)
+						setButtonsDisabled(false)
 
-                useStore.setState({ fullscreenLoadingModalVisible: false })
+						useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                showToast({ message: err.toString() })
-            })
-        }).catch((err) => {
-            console.error(err)
-            
-            setButtonsDisabled(false)
+						showToast({ message: err.toString() })
+					})
+			})
+			.catch(err => {
+				console.error(err)
 
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+				setButtonsDisabled(false)
 
-            showToast({ message: err.toString() })
-        })
-    }, [lang, buttonsDisabled, value])
+				useStore.setState({ fullscreenLoadingModalVisible: false })
 
-    useEffect(() => {
+				showToast({ message: err.toString() })
+			})
+	}, [lang, buttonsDisabled, value])
+
+	useEffect(() => {
 		const openCreateFolderDialogListener = DeviceEventEmitter.addListener("openCreateFolderDialog", () => {
 			setButtonsDisabled(false)
-            setValue("Untitled folder")
-            setOpen(true)
+			setValue("Untitled folder")
+			setOpen(true)
 
-            setTimeout(() => {
-                inputRef?.current?.focus()
-            }, 500)
+			setTimeout(() => {
+				inputRef?.current?.focus()
+			}, 500)
 		})
 
 		return () => {
 			openCreateFolderDialogListener.remove()
 		}
-    }, [])
+	}, [])
 
-    return (
-        <Dialog.Container
-            visible={open}
-            useNativeDriver={false}
-            onRequestClose={() => setOpen(false)}
-            onBackdropPress={() => {
-                if(!buttonsDisabled){
-                    setOpen(false)
-                }
-            }}
-        >
-            <Dialog.Title>{i18n(lang, "newFolder")}</Dialog.Title>
-            <Dialog.Input
-                placeholder={i18n(lang, "folderName")}
-                value={value}
-                selection={undefined}
-                autoFocus={true}
-                onChangeText={(val) => setValue(val)}
-                textInputRef={inputRef}
-            />
-            <Dialog.Button
-                label={i18n(lang, "cancel")}
-                disabled={buttonsDisabled}
-                onPress={() => setOpen(false)}
-            />
-            <Dialog.Button
-                label={i18n(lang, "create")}
-                disabled={buttonsDisabled}
-                onPress={create}
-            />
-        </Dialog.Container>
-    )
+	return (
+		<Dialog.Container
+			visible={open}
+			useNativeDriver={false}
+			onRequestClose={() => setOpen(false)}
+			onBackdropPress={() => {
+				if (!buttonsDisabled) {
+					setOpen(false)
+				}
+			}}
+		>
+			<Dialog.Title>{i18n(lang, "newFolder")}</Dialog.Title>
+			<Dialog.Input
+				placeholder={i18n(lang, "folderName")}
+				value={value}
+				selection={undefined}
+				autoFocus={true}
+				onChangeText={val => setValue(val)}
+				textInputRef={inputRef}
+			/>
+			<Dialog.Button
+				label={i18n(lang, "cancel")}
+				disabled={buttonsDisabled}
+				onPress={() => setOpen(false)}
+			/>
+			<Dialog.Button
+				label={i18n(lang, "create")}
+				disabled={buttonsDisabled}
+				onPress={create}
+			/>
+		</Dialog.Container>
+	)
 })
 
 export default CreateFolderDialog

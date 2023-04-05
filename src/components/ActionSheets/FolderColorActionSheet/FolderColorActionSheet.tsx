@@ -14,71 +14,87 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { Item } from "../../../types"
 
 const FolderColorActionSheet = memo(() => {
-    const darkMode = useDarkMode()
+	const darkMode = useDarkMode()
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
 	const availableFolderColors = getAvailableFolderColors()
 
-	const changeColor = useCallback(async (color: string) => {
-		if(typeof currentItem == "undefined"){
-			return
-		}
+	const changeColor = useCallback(
+		async (color: string) => {
+			if (typeof currentItem == "undefined") {
+				return
+			}
 
-		if(buttonsDisabled){
-			return
-		}
+			if (buttonsDisabled) {
+				return
+			}
 
-		setButtonsDisabled(true)
+			setButtonsDisabled(true)
 
-		await SheetManager.hide("FolderColorActionSheet")
+			await SheetManager.hide("FolderColorActionSheet")
 
-		useStore.setState({ fullscreenLoadingModalVisible: true })
+			useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		changeFolderColor({
-			folder: currentItem,
-			color
-		}).then(async () => {
-			DeviceEventEmitter.emit("event", {
-				type: "change-folder-color",
-				data: {
-					uuid: currentItem.uuid,
-					color
-				}
+			changeFolderColor({
+				folder: currentItem,
+				color
 			})
+				.then(async () => {
+					DeviceEventEmitter.emit("event", {
+						type: "change-folder-color",
+						data: {
+							uuid: currentItem.uuid,
+							color
+						}
+					})
 
-			setButtonsDisabled(false)
+					setButtonsDisabled(false)
 
-			useStore.setState({ fullscreenLoadingModalVisible: false })
+					useStore.setState({ fullscreenLoadingModalVisible: false })
 
-			showToast({ message: i18n(lang, "folderColorChanged", true, ["__NAME__", "__COLOR__"], [currentItem.name, i18n(lang, "color_" + color)]) })
-		}).catch((err) => {
-			console.error(err)
+					showToast({
+						message: i18n(
+							lang,
+							"folderColorChanged",
+							true,
+							["__NAME__", "__COLOR__"],
+							[currentItem.name, i18n(lang, "color_" + color)]
+						)
+					})
+				})
+				.catch(err => {
+					console.error(err)
 
-			setButtonsDisabled(false)
+					setButtonsDisabled(false)
 
-			useStore.setState({ fullscreenLoadingModalVisible: false })
+					useStore.setState({ fullscreenLoadingModalVisible: false })
 
-			showToast({ message: err.toString() })
-		})
-	}, [buttonsDisabled, currentItem, lang])
+					showToast({ message: err.toString() })
+				})
+		},
+		[buttonsDisabled, currentItem, lang]
+	)
 
 	useEffect(() => {
-		const openFolderColorActionSheetListener = DeviceEventEmitter.addListener("openFolderColorActionSheet", (item: Item) => {
-			setCurrentItem(item)
+		const openFolderColorActionSheetListener = DeviceEventEmitter.addListener(
+			"openFolderColorActionSheet",
+			(item: Item) => {
+				setCurrentItem(item)
 
-			SheetManager.show("FolderColorActionSheet")
-		})
+				SheetManager.show("FolderColorActionSheet")
+			}
+		)
 
 		return () => {
 			openFolderColorActionSheetListener.remove()
 		}
 	}, [])
 
-    return (
+	return (
 		// @ts-ignore
-        <ActionSheet
+		<ActionSheet
 			id="FolderColorActionSheet"
 			gestureEnabled={true}
 			containerStyle={{
@@ -90,36 +106,38 @@ const FolderColorActionSheet = memo(() => {
 				display: "none"
 			}}
 		>
-          	<View
+			<View
 				style={{
-					paddingBottom: (insets.bottom + 25)
+					paddingBottom: insets.bottom + 25
 				}}
 			>
 				<ActionSheetIndicator />
 				<ItemActionSheetItemHeader />
-				{
-					Object.keys(availableFolderColors).map((prop) => {
-						if(prop == "default_ios"){
-							return null
-						}
+				{Object.keys(availableFolderColors).map(prop => {
+					if (prop == "default_ios") {
+						return null
+					}
 
-						if(typeof currentItem == "undefined"){
-							return null
-						}
+					if (typeof currentItem == "undefined") {
+						return null
+					}
 
-						return (
-							<ActionButton
-								key={prop}
-								onPress={() => changeColor(prop)}
-								color={prop == "default" ? availableFolderColors['default_ios'] as string : availableFolderColors[prop] as string}
-								text={i18n(lang, "color_" + prop)}
-							/>
-						)
-					})
-				}
-          	</View>
-        </ActionSheet>
-    )
+					return (
+						<ActionButton
+							key={prop}
+							onPress={() => changeColor(prop)}
+							color={
+								prop == "default"
+									? (availableFolderColors["default_ios"] as string)
+									: (availableFolderColors[prop] as string)
+							}
+							text={i18n(lang, "color_" + prop)}
+						/>
+					)
+				})}
+			</View>
+		</ActionSheet>
+	)
 })
 
 export default FolderColorActionSheet

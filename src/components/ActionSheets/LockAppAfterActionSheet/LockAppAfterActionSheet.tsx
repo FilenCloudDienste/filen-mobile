@@ -12,23 +12,26 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 
 const LockAppAfterActionSheet = memo(() => {
-    const darkMode = useDarkMode()
+	const darkMode = useDarkMode()
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
-	const [ userId ] = useMMKVNumber("userId", storage)
+	const [userId] = useMMKVNumber("userId", storage)
 	const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
 
-	const setLock = useCallback(async (seconds: number) => {
-		setLockAppAfter(seconds)
+	const setLock = useCallback(
+		async (seconds: number) => {
+			setLockAppAfter(seconds)
 
-		storage.set("biometricPinAuthTimeout:" + userId, (Math.floor(+new Date()) + (seconds * 1000)))
+			storage.set("biometricPinAuthTimeout:" + userId, Math.floor(+new Date()) + seconds * 1000)
 
-		await SheetManager.hide("LockAppAfterActionSheet")
-	}, [userId])
+			await SheetManager.hide("LockAppAfterActionSheet")
+		},
+		[userId]
+	)
 
-    return (
+	return (
 		// @ts-ignore
-        <ActionSheet
+		<ActionSheet
 			id="LockAppAfterActionSheet"
 			gestureEnabled={true}
 			containerStyle={{
@@ -40,9 +43,9 @@ const LockAppAfterActionSheet = memo(() => {
 				display: "none"
 			}}
 		>
-          	<View
+			<View
 				style={{
-					paddingBottom: (insets.bottom + 25),
+					paddingBottom: insets.bottom + 25,
 					paddingTop: 50
 				}}
 			>
@@ -151,9 +154,9 @@ const LockAppAfterActionSheet = memo(() => {
 						) : undefined
 					}
 				/>
-          	</View>
-        </ActionSheet>
-    )
+			</View>
+		</ActionSheet>
+	)
 })
 
 export default LockAppAfterActionSheet

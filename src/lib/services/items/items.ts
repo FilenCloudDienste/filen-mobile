@@ -1,6 +1,18 @@
 import { apiRequest, folderPresent } from "../../api"
 import storage from "../../storage"
-import { getAPIKey, orderItemsByType, getFilePreviewType, getFileExt, getRouteURL, canCompressThumbnail, simpleDate, convertTimestampToMs, getMasterKeys, getParent, Semaphore } from "../../helpers"
+import {
+	getAPIKey,
+	orderItemsByType,
+	getFilePreviewType,
+	getFileExt,
+	getRouteURL,
+	canCompressThumbnail,
+	simpleDate,
+	convertTimestampToMs,
+	getMasterKeys,
+	getParent,
+	Semaphore
+} from "../../helpers"
 import striptags from "striptags"
 import { getDownloadPath, queueFileDownload } from "../download/download"
 import * as fs from "../../fs"
@@ -19,826 +31,901 @@ import { MB } from "../../constants"
 import { Asset } from "expo-media-library"
 import { getLocalAssetsMutex, getAssetURI } from "../cameraUpload"
 import { getThumbnailCacheKey } from "../thumbnails"
-import { decryptFolderNamePrivateKey, decryptFileMetadataPrivateKey, decryptFolderName, decryptFileMetadata, FileMetadata } from "../../crypto"
+import {
+	decryptFolderNamePrivateKey,
+	decryptFileMetadataPrivateKey,
+	decryptFolderName,
+	decryptFileMetadata,
+	FileMetadata
+} from "../../crypto"
 import * as db from "../../db"
 
 const itemsSemaphore = new Semaphore(2048)
 
 export interface BuildFolder {
-    folder: any,
-    name?: string,
-    masterKeys?: string[],
-    sharedIn?: boolean,
-    privateKey?: string
+	folder: any
+	name?: string
+	masterKeys?: string[]
+	sharedIn?: boolean
+	privateKey?: string
 }
 
-export const buildFolder = async ({ folder, name = "", masterKeys = [], sharedIn = false, privateKey = "" }: BuildFolder): Promise<Item> => {
-    const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn
+export const buildFolder = async ({
+	folder,
+	name = "",
+	masterKeys = [],
+	sharedIn = false,
+	privateKey = ""
+}: BuildFolder): Promise<Item> => {
+	const cacheKey = "itemMetadata:folder:" + folder.uuid + ":" + folder.name + ":" + sharedIn
 
-    if(memoryCache.has(cacheKey)){
-        name = memoryCache.get(cacheKey)
-    }
-    else{
-        if(!sharedIn){
-            if(Array.isArray(masterKeys) && typeof folder.name !== "undefined"){
-                name = await decryptFolderName(masterKeys, folder.name, folder.uuid)
-                
-                memoryCache.set(cacheKey, name)
-            }
-        }
-        else{
-            if(Array.isArray(masterKeys) && typeof folder.metadata !== "undefined"){
-                name = await decryptFolderNamePrivateKey(privateKey, folder.metadata, folder.uuid)
-                
-                memoryCache.set(cacheKey, name)
-            }
-        }
-    }
+	if (memoryCache.has(cacheKey)) {
+		name = memoryCache.get(cacheKey)
+	} else {
+		if (!sharedIn) {
+			if (Array.isArray(masterKeys) && typeof folder.name !== "undefined") {
+				name = await decryptFolderName(masterKeys, folder.name, folder.uuid)
 
-    const folderLastModified = convertTimestampToMs(folder.timestamp)
-    const cachedSize = memoryCache.has("folderSizeCache:" + folder.uuid) ? memoryCache.get("folderSizeCache:" + folder.uuid) : await db.get("folderSizeCache:" + folder.uuid)
+				memoryCache.set(cacheKey, name)
+			}
+		} else {
+			if (Array.isArray(masterKeys) && typeof folder.metadata !== "undefined") {
+				name = await decryptFolderNamePrivateKey(privateKey, folder.metadata, folder.uuid)
 
-    return {
-        id: folder.uuid,
-        type: "folder",
-        uuid: folder.uuid,
-        name: striptags(name),
-        date: simpleDate(folderLastModified),
-        timestamp: folder.timestamp,
-        lastModified: folderLastModified,
-        lastModifiedSort: parseFloat(folderLastModified + "." + folder.uuid.replace(/\D/g, "")),
-        parent: folder.parent || "base",
-        receiverId: typeof folder.receiverId == "number" ? folder.receiverId : 0,
-        receiverEmail: typeof folder.receiverEmail == "string" ? folder.receiverEmail : "",
-        sharerId: typeof folder.sharerId == "number" ? folder.sharerId : 0,
-        sharerEmail: typeof folder.sharerEmail == "string" ? folder.sharerEmail : "",
-        color: folder.color || null,
-        favorited: folder.favorited == 1 ? true : false,
-        isBase: typeof folder.parent == "string" ? false : true,
-        isSync: folder.is_sync || false,
-        isDefault: folder.is_default || false,
-        size: cachedSize ? cachedSize > 0 ? cachedSize : 0 : 0,
-        selected: false,
-        mime: "",
-        key: "",
-        offline: false,
-        bucket: "",
-        region: "",
-        rm: "",
-        chunks: 0,
-        thumbnail: undefined,
-        version: 0,
-        hash: ""
-    }
+				memoryCache.set(cacheKey, name)
+			}
+		}
+	}
+
+	const folderLastModified = convertTimestampToMs(folder.timestamp)
+	const cachedSize = memoryCache.has("folderSizeCache:" + folder.uuid)
+		? memoryCache.get("folderSizeCache:" + folder.uuid)
+		: await db.get("folderSizeCache:" + folder.uuid)
+
+	return {
+		id: folder.uuid,
+		type: "folder",
+		uuid: folder.uuid,
+		name: striptags(name),
+		date: simpleDate(folderLastModified),
+		timestamp: folder.timestamp,
+		lastModified: folderLastModified,
+		lastModifiedSort: parseFloat(folderLastModified + "." + folder.uuid.replace(/\D/g, "")),
+		parent: folder.parent || "base",
+		receiverId: typeof folder.receiverId == "number" ? folder.receiverId : 0,
+		receiverEmail: typeof folder.receiverEmail == "string" ? folder.receiverEmail : "",
+		sharerId: typeof folder.sharerId == "number" ? folder.sharerId : 0,
+		sharerEmail: typeof folder.sharerEmail == "string" ? folder.sharerEmail : "",
+		color: folder.color || null,
+		favorited: folder.favorited == 1 ? true : false,
+		isBase: typeof folder.parent == "string" ? false : true,
+		isSync: folder.is_sync || false,
+		isDefault: folder.is_default || false,
+		size: cachedSize ? (cachedSize > 0 ? cachedSize : 0) : 0,
+		selected: false,
+		mime: "",
+		key: "",
+		offline: false,
+		bucket: "",
+		region: "",
+		rm: "",
+		chunks: 0,
+		thumbnail: undefined,
+		version: 0,
+		hash: ""
+	}
 }
 
 export interface BuildFile {
-    file: any,
-    metadata?: FileMetadata,
-    masterKeys?: string[],
-    sharedIn?: boolean,
-    privateKey?: string,
-    routeURL?: string,
-    userId?: number
+	file: any
+	metadata?: FileMetadata
+	masterKeys?: string[]
+	sharedIn?: boolean
+	privateKey?: string
+	routeURL?: string
+	userId?: number
 }
 
-export const buildFile = async ({ file, metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0, hash: "" }, masterKeys = [], sharedIn = false, privateKey = "", routeURL = "", userId = 0 }: BuildFile): Promise<Item> => {
-    const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn
+export const buildFile = async ({
+	file,
+	metadata = { name: "", mime: "", size: 0, key: "", lastModified: 0, hash: "" },
+	masterKeys = [],
+	sharedIn = false,
+	privateKey = "",
+	routeURL = "",
+	userId = 0
+}: BuildFile): Promise<Item> => {
+	const cacheKey = "itemMetadata:file:" + file.uuid + ":" + file.metadata + ":" + sharedIn
 
-    if(memoryCache.has(cacheKey)){
-        metadata = memoryCache.get(cacheKey)
-    }
-    else{
-        if(!sharedIn){
-            if(Array.isArray(masterKeys) && typeof file.metadata !== "undefined"){
-                metadata = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
+	if (memoryCache.has(cacheKey)) {
+		metadata = memoryCache.get(cacheKey)
+	} else {
+		if (!sharedIn) {
+			if (Array.isArray(masterKeys) && typeof file.metadata !== "undefined") {
+				metadata = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
 
-                memoryCache.set(cacheKey, metadata)
-            }
-        }
-        else{
-            if(Array.isArray(masterKeys) && typeof file.metadata !== "undefined"){
-                metadata = await decryptFileMetadataPrivateKey(file.metadata, privateKey, file.uuid)
-                
-                memoryCache.set(cacheKey, metadata)
-            }
-        }
-    }
+				memoryCache.set(cacheKey, metadata)
+			}
+		} else {
+			if (Array.isArray(masterKeys) && typeof file.metadata !== "undefined") {
+				metadata = await decryptFileMetadataPrivateKey(file.metadata, privateKey, file.uuid)
 
-    let thumbnailCachePath = undefined
+				memoryCache.set(cacheKey, metadata)
+			}
+		}
+	}
 
-    if(canCompressThumbnail(getFileExt(metadata.name))){
-        const thumbnailCacheKey = getThumbnailCacheKey({ uuid: file.uuid }).cacheKey
+	let thumbnailCachePath = undefined
 
-        if(memoryCache.has(thumbnailCacheKey)){
-            thumbnailCachePath = memoryCache.get(thumbnailCacheKey)
-        }
-        else{
-            const thumbnailCache = storage.getString(thumbnailCacheKey)
-    
-            if(typeof thumbnailCache == "string"){
-                if(thumbnailCache.length > 0){
-                    thumbnailCachePath = thumbnailCache
-                    
-                    memoryCache.set(thumbnailCacheKey, thumbnailCache)
-                }
-            }
-        }
-    }
+	if (canCompressThumbnail(getFileExt(metadata.name))) {
+		const thumbnailCacheKey = getThumbnailCacheKey({ uuid: file.uuid }).cacheKey
 
-    const fileLastModified = typeof metadata.lastModified == "number" && !isNaN(metadata.lastModified) && metadata.lastModified > 1348846653  ? convertTimestampToMs(metadata.lastModified) : convertTimestampToMs(file.timestamp)
-    const isAvailableOffline = await db.has(userId + ":offlineItems:" + file.uuid)
+		if (memoryCache.has(thumbnailCacheKey)) {
+			thumbnailCachePath = memoryCache.get(thumbnailCacheKey)
+		} else {
+			const thumbnailCache = storage.getString(thumbnailCacheKey)
 
-    return {
-        id: file.uuid,
-        type: "file",
-        uuid: file.uuid,
-        name: striptags(metadata.name),
-        mime: metadata.mime,
-        size: typeof file.size == "number" ? file.size : typeof file.chunks_size == "number" ? file.chunks_size : 0,
-        key: metadata.key,
-        lastModified: fileLastModified,
-        lastModifiedSort: parseFloat(fileLastModified + "." + file.uuid.replace(/\D/g, "")),
-        bucket: file.bucket,
-        region: file.region,
-        parent: file.parent || "base",
-        rm: file.rm,
-        chunks: file.chunks,
-        date: simpleDate(fileLastModified),
-        timestamp: file.timestamp,
-        receiverId: typeof file.receiverId == "number" ? file.receiverId : 0,
-        receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,
-        sharerId: typeof file.sharerId == "number" ? file.sharerId : 0,
-        sharerEmail: typeof file.sharerEmail == "string" ? file.sharerEmail : undefined,
-        offline: isAvailableOffline,
-        version: file.version,
-        favorited: file.favorited,
-        thumbnail: thumbnailCachePath,
-        selected: false,
-        color: null,
-        isBase: false,
-        isSync: false,
-        isDefault: false,
-        hash: typeof metadata.hash == "string" && metadata.hash.length > 0 ? metadata.hash : ""
-    }
+			if (typeof thumbnailCache == "string") {
+				if (thumbnailCache.length > 0) {
+					thumbnailCachePath = thumbnailCache
+
+					memoryCache.set(thumbnailCacheKey, thumbnailCache)
+				}
+			}
+		}
+	}
+
+	const fileLastModified =
+		typeof metadata.lastModified == "number" && !isNaN(metadata.lastModified) && metadata.lastModified > 1348846653
+			? convertTimestampToMs(metadata.lastModified)
+			: convertTimestampToMs(file.timestamp)
+	const isAvailableOffline = await db.has(userId + ":offlineItems:" + file.uuid)
+
+	return {
+		id: file.uuid,
+		type: "file",
+		uuid: file.uuid,
+		name: striptags(metadata.name),
+		mime: metadata.mime,
+		size: typeof file.size == "number" ? file.size : typeof file.chunks_size == "number" ? file.chunks_size : 0,
+		key: metadata.key,
+		lastModified: fileLastModified,
+		lastModifiedSort: parseFloat(fileLastModified + "." + file.uuid.replace(/\D/g, "")),
+		bucket: file.bucket,
+		region: file.region,
+		parent: file.parent || "base",
+		rm: file.rm,
+		chunks: file.chunks,
+		date: simpleDate(fileLastModified),
+		timestamp: file.timestamp,
+		receiverId: typeof file.receiverId == "number" ? file.receiverId : 0,
+		receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,
+		sharerId: typeof file.sharerId == "number" ? file.sharerId : 0,
+		sharerEmail: typeof file.sharerEmail == "string" ? file.sharerEmail : undefined,
+		offline: isAvailableOffline,
+		version: file.version,
+		favorited: file.favorited,
+		thumbnail: thumbnailCachePath,
+		selected: false,
+		color: null,
+		isBase: false,
+		isSync: false,
+		isDefault: false,
+		hash: typeof metadata.hash == "string" && metadata.hash.length > 0 ? metadata.hash : ""
+	}
 }
 
-export const sortItems = ({ items, passedRoute = undefined }: { items: Item[], passedRoute: any }): Item[] => {
-    let routeURL = ""
+export const sortItems = ({ items, passedRoute = undefined }: { items: Item[]; passedRoute: any }): Item[] => {
+	let routeURL = ""
 
-    if(typeof passedRoute !== "undefined"){
-        routeURL = getRouteURL(passedRoute)
-    }
-    else{
-        routeURL = getRouteURL()
-    }
+	if (typeof passedRoute !== "undefined") {
+		routeURL = getRouteURL(passedRoute)
+	} else {
+		routeURL = getRouteURL()
+	}
 
-    if(routeURL.indexOf("photos") !== -1){
-        return items.sort((a, b) => b.lastModifiedSort - a.lastModifiedSort)
-    }
+	if (routeURL.indexOf("recent") !== -1) {
+		return items.sort((a, b) => b.timestamp - a.timestamp)
+	}
 
-    const sortBy = JSON.parse(storage.getString("sortBy") || "{}")
+	if (routeURL.indexOf("photos") !== -1) {
+		return items.sort((a, b) => b.lastModifiedSort - a.lastModifiedSort)
+	}
 
-    if(routeURL.indexOf("recents") !== -1){
-        items = items
-    }
-    else{
-        items = orderItemsByType(items, sortBy[routeURL])
-    }
+	const sortBy = JSON.parse(storage.getString("sortBy") || "{}")
 
-    return items
+	return orderItemsByType(items, sortBy[routeURL])
 }
 
-export const loadItems = async (route: any, skipCache: boolean = false): Promise<{ cached: boolean, items: Item[] }> => {
-    const uuid: string = getParent(route)
-    const url: string = getRouteURL(route)
-    const userId = storage.getNumber("userId")
-    const masterKeys = getMasterKeys()
-    const privateKey = storage.getString("privateKey")
+export const loadItems = async (
+	route: any,
+	skipCache: boolean = false
+): Promise<{ cached: boolean; items: Item[] }> => {
+	const uuid: string = getParent(route)
+	const url: string = getRouteURL(route)
+	const userId = storage.getNumber("userId")
+	const masterKeys = getMasterKeys()
+	const privateKey = storage.getString("privateKey")
 
-    if(userId == 0 || masterKeys.length <= 0){
-        throw new Error("Invalid user data")
-    }
+	if (userId == 0 || masterKeys.length <= 0) {
+		throw new Error("Invalid user data")
+	}
 
-    const refresh = async (): Promise<{ cached: boolean, items: Item[] }> => {
-        if(!isOnline()){
-            throw new Error("Device offline")
-        }
+	const refresh = async (): Promise<{ cached: boolean; items: Item[] }> => {
+		if (!isOnline()) {
+			throw new Error("Device offline")
+		}
 
-        const promises: Promise<Item>[] = []
+		const promises: Promise<Item>[] = []
 
-        if(url.indexOf("recents") !== -1){
-            const response = await apiRequest({
-                method: "POST",
-                endpoint: "/v1/user/recent",
-                data: {
-                    apiKey: getAPIKey()
-                }
-            })
-    
-            if(!response.status){
-                throw new Error(response.message)
-            }
-    
-            for(const file of response.data){
-                promises.push(
-                    new Promise((resolve, reject) => {
-                        itemsSemaphore.acquire().then(() => {
-                            buildFile({ file, masterKeys, userId }).then((item) => {
-                                itemsSemaphore.release()
+		if (url.indexOf("recents") !== -1) {
+			const response = await apiRequest({
+				method: "POST",
+				endpoint: "/v1/user/recent",
+				data: {
+					apiKey: getAPIKey()
+				}
+			})
 
-                                resolve(item)
-                            }).catch((err) => {
-                                itemsSemaphore.release()
+			if (!response.status) {
+				throw new Error(response.message)
+			}
 
-                                reject(err)
-                            })
-                        })
-                    })
-                )
-            }
-        }
-        else if(url.indexOf("shared-in") !== -1){
-            if(typeof privateKey !== "string"){
-                throw new Error("Invalid user data")
-            }
+			for (const file of response.data) {
+				promises.push(
+					new Promise((resolve, reject) => {
+						itemsSemaphore.acquire().then(() => {
+							buildFile({ file, masterKeys, userId })
+								.then(item => {
+									itemsSemaphore.release()
 
-            const response = await apiRequest({
-                method: "POST",
-                endpoint: "/v1/user/shared/in",
-                data: {
-                    apiKey: getAPIKey(),
-                    uuid,
-                    folders: JSON.stringify(["shared-in"]),
-                    page: 1,
-                    app: "true"
-                }
-            })
-    
-            if(!response.status){
-                throw new Error(response.message)
-            }
-    
-            for(const folder of response.data.folders){
-                promises.push(
-                    new Promise(async (resolve, reject) => {
-                        await itemsSemaphore.acquire()
+									resolve(item)
+								})
+								.catch(err => {
+									itemsSemaphore.release()
 
-                        try{
-                            const item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey })
-                            
-                            await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
+									reject(err)
+								})
+						})
+					})
+				)
+			}
+		} else if (url.indexOf("shared-in") !== -1) {
+			if (typeof privateKey !== "string") {
+				throw new Error("Invalid user data")
+			}
 
-                            memoryCache.set("itemCache:folder:" + folder.uuid, item)
+			const response = await apiRequest({
+				method: "POST",
+				endpoint: "/v1/user/shared/in",
+				data: {
+					apiKey: getAPIKey(),
+					uuid,
+					folders: JSON.stringify(["shared-in"]),
+					page: 1,
+					app: "true"
+				}
+			})
 
-                            resolve(item)
-                        }
-                        catch(e){
-                            reject(e)
-                        }
+			if (!response.status) {
+				throw new Error(response.message)
+			}
 
-                        itemsSemaphore.release()
-                    })
-                )
-            }
-    
-            for(const file of response.data.uploads){
-                promises.push(
-                    new Promise((resolve, reject) => {
-                        itemsSemaphore.acquire().then(() => {
-                            buildFile({ file, masterKeys, sharedIn: true, privateKey, userId }).then((item) => {
-                                itemsSemaphore.release()
+			for (const folder of response.data.folders) {
+				promises.push(
+					new Promise(async (resolve, reject) => {
+						await itemsSemaphore.acquire()
 
-                                resolve(item)
-                            }).catch((err) => {
-                                itemsSemaphore.release()
+						try {
+							const item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey })
 
-                                reject(err)
-                            })
-                        })
-                    })
-                )
-            }
-        }
-        else if(url.indexOf("shared-out") !== -1){
-            const response = await apiRequest({
-                method: "POST",
-                endpoint: "/v1/user/shared/out",
-                data: {
-                    apiKey: getAPIKey(),
-                    uuid,
-                    folders: JSON.stringify(["default"]),
-                    page: 1,
-                    app: "true",
-                    receiverId: global.currentReceiverId
-                }
-            })
-    
-            if(!response.status){
-                throw new Error(response.message)
-            }
-    
-            for(let folder of response.data.folders){
-                promises.push(
-                    new Promise(async (resolve, reject) => {
-                        await itemsSemaphore.acquire()
+							await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
 
-                        try{
-                            folder.name = folder.metadata
-                
-                            const item = await buildFolder({ folder, masterKeys })
-                            
-                            await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
+							memoryCache.set("itemCache:folder:" + folder.uuid, item)
 
-                            memoryCache.set("itemCache:folder:" + folder.uuid, item)
+							resolve(item)
+						} catch (e) {
+							reject(e)
+						}
 
-                            resolve(item)
-                        }
-                        catch(e){
-                            reject(e)
-                        }
+						itemsSemaphore.release()
+					})
+				)
+			}
 
-                        itemsSemaphore.release()
-                    })
-                )
-            }
-    
-            for(const file of response.data.uploads){
-                promises.push(
-                    new Promise((resolve, reject) => {
-                        itemsSemaphore.acquire().then(() => {
-                            buildFile({ file, masterKeys, userId }).then((item) => {
-                                itemsSemaphore.release()
+			for (const file of response.data.uploads) {
+				promises.push(
+					new Promise((resolve, reject) => {
+						itemsSemaphore.acquire().then(() => {
+							buildFile({ file, masterKeys, sharedIn: true, privateKey, userId })
+								.then(item => {
+									itemsSemaphore.release()
 
-                                resolve(item)
-                            }).catch((err) => {
-                                itemsSemaphore.release()
+									resolve(item)
+								})
+								.catch(err => {
+									itemsSemaphore.release()
 
-                                reject(err)
-                            })
-                        })
-                    })
-                )
-            }
-        }
-        else if(url.indexOf("photos") !== -1){
-            const cameraUploadParent = storage.getString("cameraUploadFolderUUID:" + userId)
-    
-            if(typeof cameraUploadParent !== "string"){
-                return {
-                    cached: false,
-                    items: []
-                }
-            }
+									reject(err)
+								})
+						})
+					})
+				)
+			}
+		} else if (url.indexOf("shared-out") !== -1) {
+			const response = await apiRequest({
+				method: "POST",
+				endpoint: "/v1/user/shared/out",
+				data: {
+					apiKey: getAPIKey(),
+					uuid,
+					folders: JSON.stringify(["default"]),
+					page: 1,
+					app: "true",
+					receiverId: global.currentReceiverId
+				}
+			})
 
-            if(cameraUploadParent.length < 16){
-                return {
-                    cached: false,
-                    items: []
-                }
-            }
+			if (!response.status) {
+				throw new Error(response.message)
+			}
 
-            const isFolderPresent = await folderPresent({ uuid: cameraUploadParent })
-            const folderExists: boolean = isFolderPresent.present && !isFolderPresent.trash
+			for (let folder of response.data.folders) {
+				promises.push(
+					new Promise(async (resolve, reject) => {
+						await itemsSemaphore.acquire()
 
-            if(!folderExists){
-                return {
-                    cached: false,
-                    items: []
-                }
-            }
+						try {
+							folder.name = folder.metadata
 
-            const response = await apiRequest({
-                method: "POST",
-                endpoint: "/v1/dir/content",
-                data: {
-                    apiKey: getAPIKey(),
-                    uuid: cameraUploadParent,
-                    folders: JSON.stringify(["default"]),
-                    page: 1,
-                    app: "true"
-                }
-            })
+							const item = await buildFolder({ folder, masterKeys })
 
-            if(!response.status){
-                throw new Error(response.message)
-            }
-    
-            for(const file of response.data.uploads){
-                promises.push(
-                    new Promise(async (resolve, reject) => {
-                        await itemsSemaphore.acquire()
+							await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
 
-                        try{
-                            const item = await buildFile({ file, masterKeys, userId })
-    
-                            if(canCompressThumbnail(getFileExt(item.name))){
-                                itemsSemaphore.release()
+							memoryCache.set("itemCache:folder:" + folder.uuid, item)
 
-                                return resolve(item)
-                            }
+							resolve(item)
+						} catch (e) {
+							reject(e)
+						}
 
-                            itemsSemaphore.release()
+						itemsSemaphore.release()
+					})
+				)
+			}
 
-                            return resolve(null)
-                        }
-                        catch(e){
-                            itemsSemaphore.release()
+			for (const file of response.data.uploads) {
+				promises.push(
+					new Promise((resolve, reject) => {
+						itemsSemaphore.acquire().then(() => {
+							buildFile({ file, masterKeys, userId })
+								.then(item => {
+									itemsSemaphore.release()
 
-                            return reject(e)
-                        }
-                    })
-                )
-            }
-        }
-        else if(url.indexOf("offline") !== -1){
-            const [ list, offlinePath ] = await Promise.all([
-                getOfflineList(),
-                getDownloadPath({ type: "offline" })
-            ])
-    
-            for(let file of list){
-                file.offline = true
-    
-                const itemOfflinePath = getItemOfflinePath(offlinePath, file)
-    
-                if(!(await fs.stat(itemOfflinePath)).exists){
-                    await removeFromOfflineStorage({ item: file })
+									resolve(item)
+								})
+								.catch(err => {
+									itemsSemaphore.release()
 
-                    if(isOnline()){
-                        queueFileDownload({
-                            file,
-                            storeOffline: true
-                        }).catch(console.error)
-                    }
-                }
-                else{
-                    promises.push(Promise.resolve(file))
-                }
-            }
-        }
-        else{
-            const response = await apiRequest({
-                method: "POST",
-                endpoint: "/v1/dir/content",
-                data: {
-                    apiKey: getAPIKey(),
-                    uuid,
-                    folders: JSON.stringify(["default"]),
-                    page: 1,
-                    app: "true"
-                }
-            })
-    
-            if(!response.status){
-                throw new Error(response.message)
-            }
-    
-            for(const folder of response.data.folders){
-                promises.push(
-                    new Promise(async (resolve, reject) => {
-                        await itemsSemaphore.acquire()
+									reject(err)
+								})
+						})
+					})
+				)
+			}
+		} else if (url.indexOf("photos") !== -1) {
+			const cameraUploadParent = storage.getString("cameraUploadFolderUUID:" + userId)
 
-                        try{
-                            const item = await buildFolder({ folder, masterKeys })
+			if (typeof cameraUploadParent !== "string") {
+				return {
+					cached: false,
+					items: []
+				}
+			}
 
-                            await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
+			if (cameraUploadParent.length < 16) {
+				return {
+					cached: false,
+					items: []
+				}
+			}
 
-                            memoryCache.set("itemCache:folder:" + folder.uuid, item)
+			const isFolderPresent = await folderPresent({ uuid: cameraUploadParent })
+			const folderExists: boolean = isFolderPresent.present && !isFolderPresent.trash
 
-                            resolve(item)
-                        }
-                        catch(e){
-                            reject(e)
-                        }
+			if (!folderExists) {
+				return {
+					cached: false,
+					items: []
+				}
+			}
 
-                        itemsSemaphore.release()
-                    })
-                )
-            }
-    
-            for(const file of response.data.uploads){
-                promises.push(
-                    new Promise((resolve, reject) => {
-                        itemsSemaphore.acquire().then(() => {
-                            buildFile({ file, masterKeys, userId }).then((item) => {
-                                itemsSemaphore.release()
+			const response = await apiRequest({
+				method: "POST",
+				endpoint: "/v1/dir/content",
+				data: {
+					apiKey: getAPIKey(),
+					uuid: cameraUploadParent,
+					folders: JSON.stringify(["default"]),
+					page: 1,
+					app: "true"
+				}
+			})
 
-                                resolve(item)
-                            }).catch((err) => {
-                                itemsSemaphore.release()
+			if (!response.status) {
+				throw new Error(response.message)
+			}
 
-                                reject(err)
-                            })
-                        })
-                    })
-                )
-            }
-        }
+			for (const file of response.data.uploads) {
+				promises.push(
+					new Promise(async (resolve, reject) => {
+						await itemsSemaphore.acquire()
 
-        let items = (await Promise.all(promises)).filter(item => item !== null && typeof item.uuid == "string")
+						try {
+							const item = await buildFile({ file, masterKeys, userId })
 
-        if(url.indexOf("shared-in") !== -1){
-            const groups: Item[] = []
-            const sharedTo: { [key: string]: ItemReceiver[] } = {}
-            const added: { [key: string]: boolean } = {}
-    
-            for(let i = 0; i < items.length; i++){
-                if(Array.isArray(sharedTo[items[i].uuid])){
-                    sharedTo[items[i].uuid].push({
-                        id: items[i].receiverId,
-                        email: items[i].receiverEmail
-                    })
-                }
-                else{
-                    sharedTo[items[i].uuid] = [{
-                        id: items[i].receiverId,
-                        email: items[i].receiverEmail
-                    }]
-                }
-            }
-    
-            for(let i = 0; i < items.length; i++){
-                if(Array.isArray(sharedTo[items[i].uuid])){
-                    items[i].receivers = sharedTo[items[i].uuid]
-                }
-    
-                if(!added[items[i].uuid]){
-                    added[items[i].uuid] = true
-    
-                    groups.push(items[i])
-                }
-            }
-    
-            items = groups
-        }
+							if (canCompressThumbnail(getFileExt(item.name))) {
+								itemsSemaphore.release()
 
-        items = sortItems({ items, passedRoute: route }).filter(item => item.name.length > 0)
+								return resolve(item)
+							}
 
-        await db.dbFs.set("loadItems:" + url, items)
+							itemsSemaphore.release()
 
-        memoryCache.set("loadItems:" + url, items)
+							return resolve(null)
+						} catch (e) {
+							itemsSemaphore.release()
 
-        if(url.indexOf("offline") !== -1){
-            checkOfflineItems(items).catch(console.error)
-        }
+							return reject(e)
+						}
+					})
+				)
+			}
+		} else if (url.indexOf("offline") !== -1) {
+			const [list, offlinePath] = await Promise.all([getOfflineList(), getDownloadPath({ type: "offline" })])
 
-        return {
-            cached: false,
-            items
-        }
-    }
+			for (let file of list) {
+				file.offline = true
 
-    const cached = await db.dbFs.get("loadItems:" + url)
+				const itemOfflinePath = getItemOfflinePath(offlinePath, file)
 
-    if(!isOnline()){
-        if(cached && Array.isArray(cached)){
-            memoryCache.set("loadItems:" + url, sortItems({ items: cached, passedRoute: route }).filter(item => item !== null && typeof item.uuid == "string" && item.name.length > 0))
+				if (!(await fs.stat(itemOfflinePath)).exists) {
+					await removeFromOfflineStorage({ item: file })
 
-            return {
-                cached: true,
-                items: cached as Item[]
-            }
-        }
-        
-        return {
-            cached: false,
-            items: []
-        }
-    }
+					if (isOnline()) {
+						queueFileDownload({
+							file,
+							storeOffline: true
+						}).catch(console.error)
+					}
+				} else {
+					promises.push(Promise.resolve(file))
+				}
+			}
+		} else {
+			const response = await apiRequest({
+				method: "POST",
+				endpoint: "/v1/dir/content",
+				data: {
+					apiKey: getAPIKey(),
+					uuid,
+					folders: JSON.stringify(["default"]),
+					page: 1,
+					app: "true"
+				}
+			})
 
-    if(cached && !skipCache){
-        memoryCache.set("loadItems:" + url, cached)
+			if (!response.status) {
+				throw new Error(response.message)
+			}
 
-        return {
-            cached: true,
-            items: cached as Item[]
-        }
-    }
+			for (const folder of response.data.folders) {
+				promises.push(
+					new Promise(async (resolve, reject) => {
+						await itemsSemaphore.acquire()
 
-    return await refresh()
+						try {
+							const item = await buildFolder({ folder, masterKeys })
+
+							await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
+
+							memoryCache.set("itemCache:folder:" + folder.uuid, item)
+
+							resolve(item)
+						} catch (e) {
+							reject(e)
+						}
+
+						itemsSemaphore.release()
+					})
+				)
+			}
+
+			for (const file of response.data.uploads) {
+				promises.push(
+					new Promise((resolve, reject) => {
+						itemsSemaphore.acquire().then(() => {
+							buildFile({ file, masterKeys, userId })
+								.then(item => {
+									itemsSemaphore.release()
+
+									resolve(item)
+								})
+								.catch(err => {
+									itemsSemaphore.release()
+
+									reject(err)
+								})
+						})
+					})
+				)
+			}
+		}
+
+		let items = (await Promise.all(promises)).filter(item => item !== null && typeof item.uuid == "string")
+
+		if (url.indexOf("shared-in") !== -1) {
+			const groups: Item[] = []
+			const sharedTo: Record<string, ItemReceiver[]> = {}
+			const added: Record<string, boolean> = {}
+
+			for (let i = 0; i < items.length; i++) {
+				if (Array.isArray(sharedTo[items[i].uuid])) {
+					sharedTo[items[i].uuid].push({
+						id: items[i].receiverId,
+						email: items[i].receiverEmail
+					})
+				} else {
+					sharedTo[items[i].uuid] = [
+						{
+							id: items[i].receiverId,
+							email: items[i].receiverEmail
+						}
+					]
+				}
+			}
+
+			for (let i = 0; i < items.length; i++) {
+				if (Array.isArray(sharedTo[items[i].uuid])) {
+					items[i].receivers = sharedTo[items[i].uuid]
+				}
+
+				if (!added[items[i].uuid]) {
+					added[items[i].uuid] = true
+
+					groups.push(items[i])
+				}
+			}
+
+			items = groups
+		}
+
+		items = sortItems({ items, passedRoute: route }).filter(item => item.name.length > 0)
+
+		await db.dbFs.set("loadItems:" + url, items)
+
+		memoryCache.set("loadItems:" + url, items)
+
+		if (url.indexOf("offline") !== -1) {
+			checkOfflineItems(items).catch(console.error)
+		}
+
+		return {
+			cached: false,
+			items
+		}
+	}
+
+	const cached = await db.dbFs.get("loadItems:" + url)
+
+	if (!isOnline()) {
+		if (cached && Array.isArray(cached)) {
+			const sorted = sortItems({ items: cached, passedRoute: route }).filter(
+				item => item !== null && typeof item.uuid == "string" && item.name.length > 0
+			)
+
+			memoryCache.set("loadItems:" + url, sorted)
+
+			return {
+				cached: true,
+				items: sorted as Item[]
+			}
+		}
+
+		return {
+			cached: false,
+			items: []
+		}
+	}
+
+	if (cached && Array.isArray(cached) && !skipCache) {
+		const sorted = sortItems({ items: cached, passedRoute: route }).filter(
+			item => item !== null && typeof item.uuid == "string" && item.name.length > 0
+		)
+
+		memoryCache.set("loadItems:" + url, sorted)
+
+		return {
+			cached: true,
+			items: sorted as Item[]
+		}
+	}
+
+	return await refresh()
 }
 
-export const previewItem = async ({ item, setCurrentActionSheetItem = true, navigation }: { item: Item, setCurrentActionSheetItem?: boolean, navigation?: any }) => {
-    if(item.size >= (MB * 1024)){
-        DeviceEventEmitter.emit("event", {
-            type: "open-item-actionsheet",
-            data: item
-        })
+export const previewItem = async ({
+	item,
+	setCurrentActionSheetItem = true,
+	navigation
+}: {
+	item: Item
+	setCurrentActionSheetItem?: boolean
+	navigation?: any
+}) => {
+	if (item.size >= MB * 1024) {
+		DeviceEventEmitter.emit("event", {
+			type: "open-item-actionsheet",
+			data: item
+		})
 
-        return
-    }
+		return
+	}
 
-    const previewType = getFilePreviewType(getFileExt(item.name))
-    const canThumbnail = canCompressThumbnail(getFileExt(item.name))
+	const previewType = getFilePreviewType(getFileExt(item.name))
+	const canThumbnail = canCompressThumbnail(getFileExt(item.name))
 
-    if(!["image", "video", "text", "code", "pdf", "doc", "audio"].includes(previewType)){
-        DeviceEventEmitter.emit("event", {
-            type: "open-item-actionsheet",
-            data: item
-        })
+	if (item.size >= 131072 && (previewType == "code" || previewType == "text")) {
+		DeviceEventEmitter.emit("event", {
+			type: "open-item-actionsheet",
+			data: item
+		})
 
-        return
-    }
+		return
+	}
 
-    let existsOffline = false
-    let offlinePath = ""
+	if (!["image", "video", "text", "code", "pdf", "doc", "audio"].includes(previewType)) {
+		DeviceEventEmitter.emit("event", {
+			type: "open-item-actionsheet",
+			data: item
+		})
 
-    try{
-        offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
+		return
+	}
 
-        if((await fs.stat(offlinePath)).exists){
-            existsOffline = true
-        }
-    }
-    catch(e){
-        //console.log(e)
-    }
+	let existsOffline = false
+	let offlinePath = ""
 
-    if(previewType == "image"){
-        if(!canThumbnail){
-            DeviceEventEmitter.emit("event", {
-                type: "open-item-actionsheet",
-                data: item
-            })
-    
-            return
-        }
+	try {
+		offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
 
-        if(typeof item.thumbnail !== "string"){
-            return
-        }
+		if ((await fs.stat(offlinePath)).exists) {
+			existsOffline = true
+		}
+	} catch (e) {
+		//console.log(e)
+	}
 
-        if(!isOnline() && !existsOffline){
-            showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+	if (previewType == "image") {
+		if (!canThumbnail) {
+			DeviceEventEmitter.emit("event", {
+				type: "open-item-actionsheet",
+				data: item
+			})
 
-            return
-        }
-        
-        await navigationAnimation({ enable: true })
+			return
+		}
 
-        navigation.dispatch(StackActions.push("ImageViewerScreen", {
-            uuid: item.uuid
-        }))
+		if (typeof item.thumbnail !== "string") {
+			return
+		}
 
-        return
-    }
+		if (!isOnline() && !existsOffline) {
+			showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
 
-    const open = (path: string, offlineMode: boolean = false) => {
-        setTimeout(() => {
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+			return
+		}
 
-            if(offlineMode){
-                return FileViewer.open(path, {
-                    displayName: item.name,
-                    showOpenWithDialog: false
-                }).then(() => {
-                    //console.log(path)
-                }).catch((err) => {
-                    console.log(err)
+		await navigationAnimation({ enable: true })
 
-                    showToast({ message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name]) })
-                })
-            }
+		navigation.dispatch(
+			StackActions.push("ImageViewerScreen", {
+				uuid: item.uuid
+			})
+		)
 
-            if(previewType == "video"){
-                FileViewer.open(path, {
-                    displayName: item.name,
-                    showOpenWithDialog: false
-                }).then(() => {
-                    //console.log(path)
-                }).catch((err) => {
-                    console.log(err)
+		return
+	}
 
-                    showToast({ message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name]) })
-                })
-            }
-            else if(previewType == "pdf" || previewType == "doc"){
-                FileViewer.open(path, {
-                    displayName: item.name,
-                    showOpenWithDialog: false
-                }).then(() => {
-                    //console.log(path)
-                }).catch((err) => {
-                    console.log(err)
+	const open = (path: string, offlineMode: boolean = false) => {
+		setTimeout(
+			() => {
+				useStore.setState({ fullscreenLoadingModalVisible: false })
 
-                    showToast({ message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name]) })
-                })
-            }
-            else if(previewType == "text" || previewType == "code"){
-                fs.readAsString(path, "utf8").then((content) => {
-                    if(setCurrentActionSheetItem){
-                        useStore.setState({ currentActionSheetItem: item })
-                    }
+				if (offlineMode) {
+					return FileViewer.open(path, {
+						displayName: item.name,
+						showOpenWithDialog: false
+					})
+						.then(() => {
+							//console.log(path)
+						})
+						.catch(err => {
+							console.log(err)
 
-                    useStore.setState({
-                        textEditorState: "view",
-                        textEditorParent: item.parent,
-                        createTextFileDialogName: item.name,
-                        textEditorText: content
-                    })
-														
-					navigationAnimation({ enable: true }).then(() => {
-                        navigation.dispatch(StackActions.push("TextEditorScreen"))
-                    })
-                }).catch((err) => {
-                    console.log(err)
-                })
-            }
-        }, existsOffline ? 1 : 100)
-    }
+							showToast({
+								message: i18n(
+									storage.getString("lang"),
+									"couldNotOpenFileLocally",
+									true,
+									["__NAME__"],
+									[item.name]
+								)
+							})
+						})
+				}
 
-    if(existsOffline){
-        open(offlinePath, true)
+				if (previewType == "video") {
+					FileViewer.open(path, {
+						displayName: item.name,
+						showOpenWithDialog: false
+					})
+						.then(() => {
+							//console.log(path)
+						})
+						.catch(err => {
+							console.log(err)
 
-        return
-    }
+							showToast({
+								message: i18n(
+									storage.getString("lang"),
+									"couldNotOpenFileLocally",
+									true,
+									["__NAME__"],
+									[item.name]
+								)
+							})
+						})
+				} else if (previewType == "pdf" || previewType == "doc") {
+					FileViewer.open(path, {
+						displayName: item.name,
+						showOpenWithDialog: false
+					})
+						.then(() => {
+							//console.log(path)
+						})
+						.catch(err => {
+							console.log(err)
 
-    if(!isOnline() && !existsOffline){
-        showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+							showToast({
+								message: i18n(
+									storage.getString("lang"),
+									"couldNotOpenFileLocally",
+									true,
+									["__NAME__"],
+									[item.name]
+								)
+							})
+						})
+				} else if (previewType == "text" || previewType == "code") {
+					fs.readAsString(path, "utf8")
+						.then(content => {
+							if (setCurrentActionSheetItem) {
+								useStore.setState({ currentActionSheetItem: item })
+							}
 
-        return
-    }
+							useStore.setState({
+								textEditorState: "view",
+								textEditorParent: item.parent,
+								createTextFileDialogName: item.name,
+								textEditorText: content
+							})
 
-    if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()){
-        showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+							navigationAnimation({ enable: true }).then(() => {
+								navigation.dispatch(StackActions.push("TextEditorScreen"))
+							})
+						})
+						.catch(err => {
+							console.log(err)
+						})
+				}
+			},
+			existsOffline ? 1 : 100
+		)
+	}
 
-        return
-    }
+	if (existsOffline) {
+		open(offlinePath, true)
 
-    useStore.setState({ fullscreenLoadingModalVisible: true, fullscreenLoadingModalDismissable: true })
+		return
+	}
 
-    queueFileDownload({
-        file: item,
-        optionalCallback: (err: any, path: string) => {
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+	if (!isOnline() && !existsOffline) {
+		showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
 
-            if(err){
-                console.log(err)
+		return
+	}
 
-                showToast({ message: err.toString() })
+	if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()) {
+		showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
 
-                return
-            }
+		return
+	}
 
-            open(path)
-        },
-        isPreview: true
-    }).catch((err) => {
-        if(err.toString() == "stopped"){
-            return
-        }
+	useStore.setState({ fullscreenLoadingModalVisible: true, fullscreenLoadingModalDismissable: true })
 
-        if(err.toString() == "wifiOnly"){
-            showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+	queueFileDownload({
+		file: item,
+		optionalCallback: (err: any, path: string) => {
+			useStore.setState({ fullscreenLoadingModalVisible: false })
 
-            return
-        }
+			if (err) {
+				console.log(err)
 
-        console.error(err)
+				showToast({ message: err.toString() })
 
-        showToast({ message: err.toString() })
-    })
+				return
+			}
+
+			open(path)
+		},
+		isPreview: true
+	}).catch(err => {
+		if (err.toString() == "stopped") {
+			return
+		}
+
+		if (err.toString() == "wifiOnly") {
+			showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+
+			return
+		}
+
+		console.error(err)
+
+		showToast({ message: err.toString() })
+	})
 }
 
 export const convertHeic = async (item: Item, path: string): Promise<string> => {
-    const tmpPath = await getDownloadPath({ type: "temp" })
-    const outputPath: string = tmpPath + item.uuid + "_convertHeic.jpg"
+	const tmpPath = await getDownloadPath({ type: "temp" })
+	const outputPath: string = tmpPath + item.uuid + "_convertHeic.jpg"
 
-    try{
-        if((await fs.stat(outputPath)).exists){
-            return outputPath
-        }
-    }
-    catch(e){
-        //console.log(e)
-    }
+	try {
+		if ((await fs.stat(outputPath)).exists) {
+			return outputPath
+		}
+	} catch (e) {
+		//console.log(e)
+	}
 
-    return global.nodeThread.convertHeic({
-        input: path,
-        output: outputPath,
-        format: "JPEG"
-    })
+	return global.nodeThread.convertHeic({
+		input: path,
+		output: outputPath,
+		format: "JPEG"
+	})
 }
 
 export const addToSavedToGallery = async (asset: Asset) => {
-    await getLocalAssetsMutex.acquire()
+	await getLocalAssetsMutex.acquire()
 
-    try{
-        const assetURI = await getAssetURI(asset)
-        const stat = await fs.stat(assetURI)
+	try {
+		const assetURI = await getAssetURI(asset)
+		const stat = await fs.stat(assetURI)
 
-        if(stat.exists){
-            await Promise.all([
-                db.cameraUpload.setLastModified(asset, convertTimestampToMs(asset.modificationTime)),
-                db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || asset.modificationTime)),
-                db.cameraUpload.setLastSize(asset, stat.size || 0)
-            ])
-        }
-    }
-    catch(e){
-        console.error(e)
-    }
+		if (stat.exists) {
+			await Promise.all([
+				db.cameraUpload.setLastModified(asset, convertTimestampToMs(asset.modificationTime)),
+				db.cameraUpload.setLastModifiedStat(
+					asset,
+					convertTimestampToMs(stat.modificationTime || asset.modificationTime)
+				),
+				db.cameraUpload.setLastSize(asset, stat.size || 0)
+			])
+		}
+	} catch (e) {
+		console.error(e)
+	}
 
-    getLocalAssetsMutex.release()
+	getLocalAssetsMutex.release()
 }

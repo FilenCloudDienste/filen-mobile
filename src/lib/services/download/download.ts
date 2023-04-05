@@ -22,585 +22,636 @@ const currentDownloads: Record<string, boolean> = {}
 const addDownloadMutex = new Semaphore(1)
 
 export const getDownloadPath = async ({ type = "temp" }: { type: string }): Promise<string> => {
-    if(Platform.OS == "android"){
-        if(type == "temp"){
-            return fs.cacheDirectory.endsWith("/") ? fs.cacheDirectory : fs.cacheDirectory + "/"
-        }
-        else if(type == "thumbnail"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "thumbnailCache"
+	if (Platform.OS == "android") {
+		if (type == "temp") {
+			return fs.cacheDirectory.endsWith("/") ? fs.cacheDirectory : fs.cacheDirectory + "/"
+		} else if (type == "thumbnail") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "thumbnailCache"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "offline"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "offlineFiles"
+			return path + "/"
+		} else if (type == "offline") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "offlineFiles"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "misc"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "misc"
+			return path + "/"
+		} else if (type == "misc") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "misc"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "cachedDownloads"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "cachedDownloads"
+			return path + "/"
+		} else if (type == "cachedDownloads") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "cachedDownloads"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "download"){
-            return ReactNativeBlobUtil.fs.dirs.DownloadDir + "/"
-        }
-        else if(type == "node"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "node"
+			return path + "/"
+		} else if (type == "download") {
+			return ReactNativeBlobUtil.fs.dirs.DownloadDir + "/"
+		} else if (type == "node") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "node"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "db"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "db"
+			return path + "/"
+		} else if (type == "db") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "db"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-    }
-    else{
-        if(type == "temp"){
-            return fs.cacheDirectory.endsWith("/") ? fs.cacheDirectory : fs.cacheDirectory + "/"
-        }
-        else if(type == "thumbnail"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "thumbnailCache"
+			return path + "/"
+		}
+	} else {
+		if (type == "temp") {
+			return fs.cacheDirectory.endsWith("/") ? fs.cacheDirectory : fs.cacheDirectory + "/"
+		} else if (type == "thumbnail") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "thumbnailCache"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "offline"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "offlineFiles"
+			return path + "/"
+		} else if (type == "offline") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "offlineFiles"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "misc"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "misc"
+			return path + "/"
+		} else if (type == "misc") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "misc"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "cachedDownloads"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "cachedDownloads"
+			return path + "/"
+		} else if (type == "cachedDownloads") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "cachedDownloads"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "download"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "Downloads"
+			return path + "/"
+		} else if (type == "download") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "Downloads"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-        else if(type == "db"){
-            const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-            const path = root + "db"
+			return path + "/"
+		} else if (type == "db") {
+			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
+			const path = root + "db"
 
-            await fs.mkdir(path, true)
+			await fs.mkdir(path, true)
 
-            return path + "/"
-        }
-    }
+			return path + "/"
+		}
+	}
 }
 
 export interface QueueFileDownload {
-    file: Item,
-    storeOffline?: boolean,
-    optionalCallback?: Function,
-    saveToGalleryCallback?: Function,
-    isOfflineUpdate?: boolean,
-    isPreview?: boolean,
-    showNotification?: boolean
+	file: Item
+	storeOffline?: boolean
+	optionalCallback?: Function
+	saveToGalleryCallback?: Function
+	isOfflineUpdate?: boolean
+	isPreview?: boolean
+	showNotification?: boolean
 }
 
-export const queueFileDownload = async ({ file, storeOffline = false, optionalCallback = undefined, saveToGalleryCallback = undefined, isOfflineUpdate = false, isPreview = false, showNotification = false }: QueueFileDownload) => {
-    const callOptionalCallback = (...args: any) => {
-        if(typeof optionalCallback == "function"){
-            optionalCallback(...args)
-        }
-    }
+export const queueFileDownload = async ({
+	file,
+	storeOffline = false,
+	optionalCallback = undefined,
+	saveToGalleryCallback = undefined,
+	isOfflineUpdate = false,
+	isPreview = false,
+	showNotification = false
+}: QueueFileDownload) => {
+	const callOptionalCallback = (...args: any) => {
+		if (typeof optionalCallback == "function") {
+			optionalCallback(...args)
+		}
+	}
 
-    if(!isOnline()){
-        callOptionalCallback(new Error("device is offline"))
+	if (!isOnline()) {
+		callOptionalCallback(new Error("device is offline"))
 
-        showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
+		showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
 
-        return
-    }
+		return
+	}
 
-    if(typeof saveToGalleryCallback == "function"){
-        try{
-            const offlinePath = await getDownloadPath({ type: "offline" })
-    
-            if((await fs.stat(getItemOfflinePath(offlinePath, file))).exists){
-                callOptionalCallback(null, getItemOfflinePath(offlinePath, file))
+	if (typeof saveToGalleryCallback == "function") {
+		try {
+			const offlinePath = await getDownloadPath({ type: "offline" })
 
-                saveToGalleryCallback(getItemOfflinePath(offlinePath, file))
+			if ((await fs.stat(getItemOfflinePath(offlinePath, file))).exists) {
+				callOptionalCallback(null, getItemOfflinePath(offlinePath, file))
 
-                return
-            }
-        }
-        catch(e){
-            console.log(e)
-        }
-    }
+				saveToGalleryCallback(getItemOfflinePath(offlinePath, file))
 
-    await addDownloadMutex.acquire()
+				return
+			}
+		} catch (e) {
+			console.log(e)
+		}
+	}
 
-    if(typeof currentDownloads[file.uuid] !== "undefined"){
-        callOptionalCallback(new Error("Already downloading this file"))
+	await addDownloadMutex.acquire()
 
-        showToast({ message: i18n(storage.getString("lang"), "alreadyDownloadingFile", true, ["__NAME__"], [file.name]) })
+	if (typeof currentDownloads[file.uuid] !== "undefined") {
+		callOptionalCallback(new Error("Already downloading this file"))
 
-        addDownloadMutex.release()
+		showToast({
+			message: i18n(storage.getString("lang"), "alreadyDownloadingFile", true, ["__NAME__"], [file.name])
+		})
 
-        return
-    }
+		addDownloadMutex.release()
 
-    currentDownloads[file.uuid] = true
+		return
+	}
 
-    addDownloadMutex.release()
+	currentDownloads[file.uuid] = true
 
-    DeviceEventEmitter.emit("download", {
-        type: "start",
-        data: file
-    })
+	addDownloadMutex.release()
 
-    if(!isPreview){
-        await downloadSemaphore.acquire()
-    }
+	DeviceEventEmitter.emit("download", {
+		type: "start",
+		data: file
+	})
 
-    try{
-        var downloadPath = await getDownloadPath({ type: (storeOffline ? "offline" : "download") })
-    }
-    catch(e){
-        console.error(e)
+	if (!isPreview) {
+		await downloadSemaphore.acquire()
+	}
 
-        callOptionalCallback(new Error("could not get download path"))
+	try {
+		var downloadPath = await getDownloadPath({ type: storeOffline ? "offline" : "download" })
+	} catch (e) {
+		console.error(e)
 
-        downloadSemaphore.release()
+		callOptionalCallback(new Error("could not get download path"))
 
-        delete currentDownloads[file.uuid]
+		downloadSemaphore.release()
 
-        showToast({ message: i18n(storage.getString("lang"), "couldNotGetDownloadPath") })
+		delete currentDownloads[file.uuid]
 
-        return
-    }
+		showToast({ message: i18n(storage.getString("lang"), "couldNotGetDownloadPath") })
 
-    try{
-        if(storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()){
-            downloadSemaphore.release()
+		return
+	}
 
-            delete currentDownloads[file.uuid]
+	try {
+		if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()) {
+			downloadSemaphore.release()
 
-            return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
-        }
-    }
-    catch(e){
-        console.log(e)
-    }
+			delete currentDownloads[file.uuid]
 
-    const filePath = downloadPath + file.name
+			return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+		}
+	} catch (e) {
+		console.log(e)
+	}
 
-    downloadFile(file, true, file.chunks).then(async (path) => {
-        delete currentDownloads[file.uuid]
+	const filePath = downloadPath + file.name
 
-        downloadSemaphore.release()
+	downloadFile(file, true, file.chunks)
+		.then(async path => {
+			delete currentDownloads[file.uuid]
 
-        if(isPreview){
-            return callOptionalCallback(null, path)
-        }
+			downloadSemaphore.release()
 
-        if(typeof saveToGalleryCallback == "function"){
-            callOptionalCallback(null, path)
-            
-            return saveToGalleryCallback(path)
-        }
+			if (isPreview) {
+				return callOptionalCallback(null, path)
+			}
 
-        if(storeOffline){
-            const offlinePath = getItemOfflinePath(downloadPath, file)
+			if (typeof saveToGalleryCallback == "function") {
+				callOptionalCallback(null, path)
 
-            try{
-                if((await fs.stat(offlinePath)).exists){
-                    await fs.unlink(offlinePath)
-                }
-            }
-            catch(e){
-                //console.log(e)
-            }
+				return saveToGalleryCallback(path)
+			}
 
-            fs.move(path, offlinePath).then(() => {
-                addItemToOfflineList({
-                    item: file
-                }).then(() => {
-                    DeviceEventEmitter.emit("event", {
-                        type: "mark-item-offline",
-                        data: {
-                            uuid: file.uuid,
-                            value: true
-                        }
-                    })
+			if (storeOffline) {
+				const offlinePath = getItemOfflinePath(downloadPath, file)
 
-                    callOptionalCallback(null, offlinePath)
+				try {
+					if ((await fs.stat(offlinePath)).exists) {
+						await fs.unlink(offlinePath)
+					}
+				} catch (e) {
+					//console.log(e)
+				}
 
-                    return console.log(file.name + " download done")
-                }).catch((err) => {
-                    showToast({ message: err.toString() })
+				fs.move(path, offlinePath)
+					.then(() => {
+						addItemToOfflineList({
+							item: file
+						})
+							.then(() => {
+								DeviceEventEmitter.emit("event", {
+									type: "mark-item-offline",
+									data: {
+										uuid: file.uuid,
+										value: true
+									}
+								})
 
-                    callOptionalCallback(err)
+								callOptionalCallback(null, offlinePath)
 
-                    console.error(err)
-                })
-            }).catch((err) => {
-                showToast({ message: err.toString() })
+								return console.log(file.name + " download done")
+							})
+							.catch(err => {
+								showToast({ message: err.toString() })
 
-                callOptionalCallback(err)
+								callOptionalCallback(err)
 
-                console.error(err)
-            })
-        }
-        else{
-            if(Platform.OS == "android"){
-                if(Platform.constants.Version >= 29){
-                    ReactNativeBlobUtil.MediaCollection.copyToMediaStore({
-                        name: file.name,
-                        parentFolder: "",
-                        mimeType: file.mime
-                    }, "Download", path).then(() => {
-                        fs.unlink(path).then(() => {
-                            if(showNotification || useStore.getState().imagePreviewModalVisible){
-                                showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
-                            }
+								console.error(err)
+							})
+					})
+					.catch(err => {
+						showToast({ message: err.toString() })
 
-                            callOptionalCallback(null, "")
-    
-                            return console.log(file.name + " download done")
-                        }).catch((err) => {
-                            showToast({ message: err.toString() })
+						callOptionalCallback(err)
 
-                            callOptionalCallback(err)
+						console.error(err)
+					})
+			} else {
+				if (Platform.OS == "android") {
+					if (Platform.constants.Version >= 29) {
+						ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
+							{
+								name: file.name,
+								parentFolder: "",
+								mimeType: file.mime
+							},
+							"Download",
+							path
+						)
+							.then(() => {
+								fs.unlink(path)
+									.then(() => {
+										if (showNotification || useStore.getState().imagePreviewModalVisible) {
+											showToast({
+												message: i18n(
+													storage.getString("lang"),
+													"fileDownloaded",
+													true,
+													["__NAME__"],
+													[file.name]
+												)
+											})
+										}
 
-                            console.error(err)
-                        })
-                    }).catch((err) => {
-                        showToast({ message: err.toString() })
+										callOptionalCallback(null, "")
 
-                        callOptionalCallback(err)
+										return console.log(file.name + " download done")
+									})
+									.catch(err => {
+										showToast({ message: err.toString() })
 
-                        console.error(err)
-                    })
-                }
-                else{
-                    try{
-                        if((await fs.stat(filePath)).exists){
-                            await fs.unlink(filePath)
-                        }
-                    }
-                    catch(e){
-                        //console.log(e)
-                    }
-    
-                    fs.move(path, filePath).then(() => {
-                        if(showNotification || useStore.getState().imagePreviewModalVisible){
-                            showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
-                        }
+										callOptionalCallback(err)
 
-                        callOptionalCallback(null, filePath)
-        
-                        return console.log(file.name + " download done")
-                    }).catch((err) => {
-                        showToast({ message: err.toString() })
+										console.error(err)
+									})
+							})
+							.catch(err => {
+								showToast({ message: err.toString() })
 
-                        callOptionalCallback(err)
+								callOptionalCallback(err)
 
-                        console.error(err)
-                    })
-                }
-            }
-            else{
-                try{
-                    if((await fs.stat(filePath)).exists){
-                        await fs.unlink(filePath)
-                    }
-                }
-                catch(e){
-                    //console.log(e)
-                }
+								console.error(err)
+							})
+					} else {
+						try {
+							if ((await fs.stat(filePath)).exists) {
+								await fs.unlink(filePath)
+							}
+						} catch (e) {
+							//console.log(e)
+						}
 
-                fs.move(path, filePath).then(() => {
-                    if(showNotification || useStore.getState().imagePreviewModalVisible){
-                        showToast({ message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name]) })
-                    }
+						fs.move(path, filePath)
+							.then(() => {
+								if (showNotification || useStore.getState().imagePreviewModalVisible) {
+									showToast({
+										message: i18n(
+											storage.getString("lang"),
+											"fileDownloaded",
+											true,
+											["__NAME__"],
+											[file.name]
+										)
+									})
+								}
 
-                    callOptionalCallback(null, filePath)
-    
-                    return console.log(file.name + " download done")
-                }).catch((err) => {
-                    showToast({ message: err.toString() })
+								callOptionalCallback(null, filePath)
 
-                    callOptionalCallback(err)
+								return console.log(file.name + " download done")
+							})
+							.catch(err => {
+								showToast({ message: err.toString() })
 
-                    console.error(err)
-                })
-            }
-        }
-    }).catch((err) => {
-        downloadSemaphore.release()
+								callOptionalCallback(err)
 
-        delete currentDownloads[file.uuid]
-        
-        if(err.toString() !== "stopped"){
-            //showToast({ message: err.toString() })
+								console.error(err)
+							})
+					}
+				} else {
+					try {
+						if ((await fs.stat(filePath)).exists) {
+							await fs.unlink(filePath)
+						}
+					} catch (e) {
+						//console.log(e)
+					}
 
-            DeviceEventEmitter.emit("download", {
-                type: "err",
-                data: file,
-                err: err.toString()
-            })
+					fs.move(path, filePath)
+						.then(() => {
+							if (showNotification || useStore.getState().imagePreviewModalVisible) {
+								showToast({
+									message: i18n(
+										storage.getString("lang"),
+										"fileDownloaded",
+										true,
+										["__NAME__"],
+										[file.name]
+									)
+								})
+							}
 
-            console.error(err)
-        }
+							callOptionalCallback(null, filePath)
 
-        return callOptionalCallback(err)
-    })
+							return console.log(file.name + " download done")
+						})
+						.catch(err => {
+							showToast({ message: err.toString() })
+
+							callOptionalCallback(err)
+
+							console.error(err)
+						})
+				}
+			}
+		})
+		.catch(err => {
+			downloadSemaphore.release()
+
+			delete currentDownloads[file.uuid]
+
+			if (err.toString() !== "stopped") {
+				//showToast({ message: err.toString() })
+
+				DeviceEventEmitter.emit("download", {
+					type: "err",
+					data: file,
+					err: err.toString()
+				})
+
+				console.error(err)
+			}
+
+			return callOptionalCallback(err)
+		})
 }
 
 export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks: number): Promise<string> => {
-    memoryCache.set("showDownloadProgress:" + file.uuid, showProgress)
+	memoryCache.set("showDownloadProgress:" + file.uuid, showProgress)
 
-    return new Promise((resolve, reject) => {
-        getDownloadPath({ type: "cachedDownloads" }).then(async (cachedDownloadsPath) => {
-            try{
-                if((await DeviceInfo.getFreeDiskStorage()) < ((MB * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
-                    await clearCacheDirectories()
-    
-                    await new Promise((resolve) => setTimeout(() => resolve(true), 5000))
-    
-                    if((await DeviceInfo.getFreeDiskStorage()) < ((MB * 256) + file.size)){ // We keep a 256 MB buffer in case previous downloads are still being written to the FS
-                        return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
-                    }
-                }
-            }
-            catch(e){
-                return reject(e)
-            }
+	return new Promise((resolve, reject) => {
+		getDownloadPath({ type: "cachedDownloads" })
+			.then(async cachedDownloadsPath => {
+				try {
+					if ((await DeviceInfo.getFreeDiskStorage()) < MB * 256 + file.size) {
+						// We keep a 256 MB buffer in case previous downloads are still being written to the FS
+						await clearCacheDirectories()
 
-            if(showProgress){
-                DeviceEventEmitter.emit("download", {
-                    type: "start",
-                    data: file
-                })
-            }
-    
-            const tmpPath = fs.cacheDirectory.split("file://").join("") + randomIdUnsafe() + file.uuid + "." + getFileExt(file.name)
-            let currentWriteIndex = 0
-            let didStop = false
-            let paused = false
-            let stopped = false
-    
-            const stopInterval = setInterval(() => {
-                if(stopped && !didStop){
-                    didStop = true
-    
-                    clearInterval(stopInterval)
-                }
-            }, 250)
+						await new Promise(resolve => setTimeout(() => resolve(true), 5000))
 
-            const pauseListener = DeviceEventEmitter.addListener("pauseTransfer", (uuid) => {
-                if(uuid == file.uuid){
-                    paused = true
-                }
-            })
+						if ((await DeviceInfo.getFreeDiskStorage()) < MB * 256 + file.size) {
+							// We keep a 256 MB buffer in case previous downloads are still being written to the FS
+							return reject(i18n(storage.getString("lang"), "deviceOutOfStorage"))
+						}
+					}
+				} catch (e) {
+					return reject(e)
+				}
 
-            const resumeListener = DeviceEventEmitter.addListener("resumeTransfer", (uuid) => {
-                if(uuid == file.uuid){
-                    paused = false
-                }
-            })
+				if (showProgress) {
+					DeviceEventEmitter.emit("download", {
+						type: "start",
+						data: file
+					})
+				}
 
-            const stopListener = DeviceEventEmitter.addListener("stopTransfer", (uuid) => {
-                if(uuid == file.uuid){
-                    stopped = true
-                }
-            })
+				const tmpPath =
+					fs.cacheDirectory.split("file://").join("") +
+					randomIdUnsafe() +
+					file.uuid +
+					"." +
+					getFileExt(file.name)
+				let currentWriteIndex = 0
+				let didStop = false
+				let paused = false
+				let stopped = false
 
-            const cleanup = () => {
-                clearInterval(stopInterval)
+				const stopInterval = setInterval(() => {
+					if (stopped && !didStop) {
+						didStop = true
 
-                stopListener.remove()
-                pauseListener.remove()
-                resumeListener.remove()
-            }
-    
-            const downloadTask = (index: number): Promise<{ index: number, path: string }> => {
-                return new Promise(async (resolve, reject) => {
-                    if(paused){
-                        await new Promise((resolve) => {
-                            const wait = setInterval(() => {
-                                if(!paused || stopped){
-                                    clearInterval(wait)
-        
-                                    return resolve(true)
-                                }
-                            }, 250)
-                        })
-                    }
-        
-                    if(didStop){
-                        return reject("stopped")
-                    }
-    
-                    const destPath = fs.cacheDirectory.split("file://").join("") + randomIdUnsafe() + "." + file.uuid + ".chunk." + index
-    
-                    global.nodeThread.downloadDecryptAndWriteFileChunk({
-                        destPath,
-                        uuid: file.uuid,
-                        region: file.region,
-                        bucket: file.bucket,
-                        index,
-                        key: file.key,
-                        version: file.version
-                    }).then(() => {
-                        return resolve({
-                            index,
-                            path: destPath
-                        })
-                    }).catch(reject)
-                })
-            }
-    
-            const write = (index: number, path: string) => {
-                if(index !== currentWriteIndex){
-                    return setTimeout(() => {
-                        write(index, path)
-                    }, 10)
-                }
-    
-                if(index == 0){
-                    fs.move(path, tmpPath).then(() => {
-                        currentWriteIndex += 1
+						clearInterval(stopInterval)
+					}
+				}, 250)
 
-                        downloadWriteThreadsSemaphore.release()
-                    }).catch(reject)
-                }
-                else{
-                    global.nodeThread.appendFileToFile({
-                        first: tmpPath,
-                        second: path
-                    }).then(() => {
-                        currentWriteIndex += 1
+				const pauseListener = DeviceEventEmitter.addListener("pauseTransfer", uuid => {
+					if (uuid == file.uuid) {
+						paused = true
+					}
+				})
 
-                        downloadWriteThreadsSemaphore.release()
-                    }).catch(reject)
-                }
-            }
+				const resumeListener = DeviceEventEmitter.addListener("resumeTransfer", uuid => {
+					if (uuid == file.uuid) {
+						paused = false
+					}
+				})
 
-            if(showProgress){
-                DeviceEventEmitter.emit("download", {
-                    type: "started",
-                    data: file
-                })
-            }
+				const stopListener = DeviceEventEmitter.addListener("stopTransfer", uuid => {
+					if (uuid == file.uuid) {
+						stopped = true
+					}
+				})
 
-            const chunksToDownload: number = maxChunks
+				const cleanup = () => {
+					clearInterval(stopInterval)
 
-            try{
-                await new Promise((resolve, reject) => {
-                    let done = 0
-    
-                    for(let i = 0; i < chunksToDownload; i++){
-                        Promise.all([
-                            downloadThreadsSemaphore.acquire(),
-                            downloadWriteThreadsSemaphore.acquire()
-                        ]).then(() => {
-                            downloadTask(i).then(({ index, path }) => {
-                                write(index, path)
-    
-                                done += 1
-    
-                                downloadThreadsSemaphore.release()
-    
-                                if(done >= chunksToDownload){
-                                    return resolve(true)
-                                }
-                            }).catch((err) => {
-                                downloadThreadsSemaphore.release()
-                                downloadWriteThreadsSemaphore.release()
-    
-                                return reject(err)
-                            })
-                        })
-                    }
-                })
-    
-                await new Promise((resolve) => {
-                    if(currentWriteIndex >= chunksToDownload){
-                        return resolve(true)
-                    }
-    
-                    const wait = setInterval(() => {
-                        if(currentWriteIndex >= chunksToDownload){
-                            clearInterval(wait)
-    
-                            return resolve(true)
-                        }
-                    }, 100)
-                })
-            }
-            catch(e: any){
-                cleanup()
+					stopListener.remove()
+					pauseListener.remove()
+					resumeListener.remove()
+				}
 
-                if(showProgress){
-                    DeviceEventEmitter.emit("download", {
-                        type: "err",
-                        err: e.toString(),
-                        data: file
-                    })
-                }
-    
-                return reject(e)
-            }
+				const downloadTask = (index: number): Promise<{ index: number; path: string }> => {
+					return new Promise(async (resolve, reject) => {
+						if (paused) {
+							await new Promise(resolve => {
+								const wait = setInterval(() => {
+									if (!paused || stopped) {
+										clearInterval(wait)
 
-            if(showProgress){
-                DeviceEventEmitter.emit("download", {
-                    type: "done",
-                    data: file
-                })
-            }
-    
-            cleanup()
-    
-            return resolve(tmpPath)
-        }).catch(reject)
-    })
+										return resolve(true)
+									}
+								}, 250)
+							})
+						}
+
+						if (didStop) {
+							return reject("stopped")
+						}
+
+						const destPath =
+							fs.cacheDirectory.split("file://").join("") +
+							randomIdUnsafe() +
+							"." +
+							file.uuid +
+							".chunk." +
+							index
+
+						global.nodeThread
+							.downloadDecryptAndWriteFileChunk({
+								destPath,
+								uuid: file.uuid,
+								region: file.region,
+								bucket: file.bucket,
+								index,
+								key: file.key,
+								version: file.version
+							})
+							.then(() => {
+								return resolve({
+									index,
+									path: destPath
+								})
+							})
+							.catch(reject)
+					})
+				}
+
+				const write = (index: number, path: string) => {
+					if (index !== currentWriteIndex) {
+						return setTimeout(() => {
+							write(index, path)
+						}, 10)
+					}
+
+					if (index == 0) {
+						fs.move(path, tmpPath)
+							.then(() => {
+								currentWriteIndex += 1
+
+								downloadWriteThreadsSemaphore.release()
+							})
+							.catch(reject)
+					} else {
+						global.nodeThread
+							.appendFileToFile({
+								first: tmpPath,
+								second: path
+							})
+							.then(() => {
+								currentWriteIndex += 1
+
+								downloadWriteThreadsSemaphore.release()
+							})
+							.catch(reject)
+					}
+				}
+
+				if (showProgress) {
+					DeviceEventEmitter.emit("download", {
+						type: "started",
+						data: file
+					})
+				}
+
+				const chunksToDownload: number = maxChunks
+
+				try {
+					await new Promise((resolve, reject) => {
+						let done = 0
+
+						for (let i = 0; i < chunksToDownload; i++) {
+							Promise.all([
+								downloadThreadsSemaphore.acquire(),
+								downloadWriteThreadsSemaphore.acquire()
+							]).then(() => {
+								downloadTask(i)
+									.then(({ index, path }) => {
+										write(index, path)
+
+										done += 1
+
+										downloadThreadsSemaphore.release()
+
+										if (done >= chunksToDownload) {
+											return resolve(true)
+										}
+									})
+									.catch(err => {
+										downloadThreadsSemaphore.release()
+										downloadWriteThreadsSemaphore.release()
+
+										return reject(err)
+									})
+							})
+						}
+					})
+
+					await new Promise(resolve => {
+						if (currentWriteIndex >= chunksToDownload) {
+							return resolve(true)
+						}
+
+						const wait = setInterval(() => {
+							if (currentWriteIndex >= chunksToDownload) {
+								clearInterval(wait)
+
+								return resolve(true)
+							}
+						}, 100)
+					})
+				} catch (e: any) {
+					cleanup()
+
+					if (showProgress) {
+						DeviceEventEmitter.emit("download", {
+							type: "err",
+							err: e.toString(),
+							data: file
+						})
+					}
+
+					return reject(e)
+				}
+
+				if (showProgress) {
+					DeviceEventEmitter.emit("download", {
+						type: "done",
+						data: file
+					})
+				}
+
+				cleanup()
+
+				return resolve(tmpPath)
+			})
+			.catch(reject)
+	})
 }

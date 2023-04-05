@@ -13,85 +13,91 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { Item } from "../../../types"
 
 const ShareActionSheet = memo(() => {
-    const darkMode = useDarkMode()
+	const darkMode = useDarkMode()
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
 	const [email, setEmail] = useState<string>("")
 	const [isLoading, setIsLoading] = useState<boolean>(false)
-	const [progress, setProgress] = useState<{ itemsDone: number, totalItems: number }>({ itemsDone: 0, totalItems: 1 })
+	const [progress, setProgress] = useState<{ itemsDone: number; totalItems: number }>({ itemsDone: 0, totalItems: 1 })
 	const inputRef = useRef<any>()
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
 
 	const share = useCallback(() => {
-		if(buttonsDisabled || isLoading){
+		if (buttonsDisabled || isLoading) {
 			return
 		}
 
-		if(email == storage.getString("email")){
+		if (email == storage.getString("email")) {
 			return
 		}
 
 		setButtonsDisabled(true)
 		setIsLoading(true)
 
-		getPublicKeyFromEmail({ email }).then((publicKey) => {
-			if(typeof publicKey !== "string"){
-				setButtonsDisabled(false)
-				setIsLoading(false)
-				setEmail("")
+		getPublicKeyFromEmail({ email })
+			.then(publicKey => {
+				if (typeof publicKey !== "string") {
+					setButtonsDisabled(false)
+					setIsLoading(false)
+					setEmail("")
 
-				showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
+					showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
 
-				return
-			}
-
-			if(publicKey.length < 16){
-				setButtonsDisabled(false)
-				setIsLoading(false)
-				setEmail("")
-
-				showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
-
-				return
-			}
-
-			shareItemToUser({
-				item: currentItem,
-				publicKey,
-				email,
-				progressCallback: (itemsDone: number, totalItems: number) => {
-					setProgress({ itemsDone, totalItems })
+					return
 				}
-			}).then(() => {
-				setButtonsDisabled(false)
-				setIsLoading(false)
-				setEmail("")
 
-				showToast({ message: i18n(lang, "sharedWithSuccess", true, ["__EMAIL__"], [email]), placement: "top" })
-			}).catch((err) => {
+				if (publicKey.length < 16) {
+					setButtonsDisabled(false)
+					setIsLoading(false)
+					setEmail("")
+
+					showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
+
+					return
+				}
+
+				shareItemToUser({
+					item: currentItem,
+					publicKey,
+					email,
+					progressCallback: (itemsDone: number, totalItems: number) => {
+						setProgress({ itemsDone, totalItems })
+					}
+				})
+					.then(() => {
+						setButtonsDisabled(false)
+						setIsLoading(false)
+						setEmail("")
+
+						showToast({
+							message: i18n(lang, "sharedWithSuccess", true, ["__EMAIL__"], [email]),
+							placement: "top"
+						})
+					})
+					.catch(err => {
+						console.error(err)
+
+						showToast({ message: err.toString(), placement: "top" })
+
+						setButtonsDisabled(false)
+						setIsLoading(false)
+					})
+			})
+			.catch(err => {
 				console.error(err)
 
-				showToast({ message: err.toString(), placement: "top" })
+				if (err.toString().toLowerCase().indexOf("not found") !== -1) {
+					showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
+
+					setEmail("")
+				} else {
+					showToast({ message: err.toString(), placement: "top" })
+				}
 
 				setButtonsDisabled(false)
 				setIsLoading(false)
 			})
-		}).catch((err) => {
-			console.error(err)
-
-			if(err.toString().toLowerCase().indexOf("not found") !== -1){
-				showToast({ message: i18n(lang, "shareUserNotFound"), placement: "top" })
-
-				setEmail("")
-			}
-			else{
-				showToast({ message: err.toString(), placement: "top" })
-			}
-
-			setButtonsDisabled(false)
-			setIsLoading(false)
-		})
 	}, [buttonsDisabled, currentItem, email, isLoading, lang])
 
 	useEffect(() => {
@@ -105,8 +111,8 @@ const ShareActionSheet = memo(() => {
 			SheetManager.show("ShareActionSheet")
 
 			setTimeout(() => {
-				if(typeof inputRef.current !== "undefined" && inputRef.current !== null){
-					if(typeof inputRef.current.focus == "function"){
+				if (typeof inputRef.current !== "undefined" && inputRef.current !== null) {
+					if (typeof inputRef.current.focus == "function") {
 						inputRef.current.focus()
 					}
 				}
@@ -118,9 +124,9 @@ const ShareActionSheet = memo(() => {
 		}
 	}, [])
 
-    return (
+	return (
 		// @ts-ignore
-        <ActionSheet
+		<ActionSheet
 			id="ShareActionSheet"
 			gestureEnabled={buttonsDisabled ? false : true}
 			closeOnPressBack={buttonsDisabled ? false : true}
@@ -135,106 +141,102 @@ const ShareActionSheet = memo(() => {
 				display: "none"
 			}}
 		>
-          	<View
+			<View
 				style={{
-					paddingBottom: (insets.bottom + 25)
+					paddingBottom: insets.bottom + 25
 				}}
 			>
 				<ActionSheetIndicator />
 				<ItemActionSheetItemHeader />
-				{
-					isLoading ? (
-						<View
-							style={{
-								width: "100%",
-								height: 100,
-								justifyContent: "center",
-								alignItems: "center"
-							}}
-						>
-                            <ActivityIndicator
-								size="small"
-								color={getColor(darkMode, "textPrimary")}
-							/>
-							{
-								typeof currentItem !== "undefined" && currentItem.type == "folder" && (
-									<Text
-										style={{
-											color: getColor(darkMode, "textPrimary"),
-											marginTop: 15,
-											fontSize: 15,
-											fontWeight: "400"
-										}}
-									>
-										{i18n(lang, "folderPublicLinkProgress", true, ["__DONE__", "__TOTAL__"], [progress.itemsDone, progress.totalItems])}
-									</Text>
-								)
-							}
-                        </View>
-					) : (
-						<View
-							style={{
-								width: "100%",
-								height: 45,
-								flexDirection: "row",
-								justifyContent: "space-between",
-								borderBottomColor: getColor(darkMode, "actionSheetBorder"),
-								borderBottomWidth: 1,
-								paddingLeft: 15,
-								paddingRight: 15
-							}}
-						>
-							<TextInput 
-								placeholder={i18n(lang, "sharePlaceholder")} 
-								value={email} 
-								onChangeText={setEmail} 
-								ref={inputRef}
-								autoCapitalize="none"
-								textContentType="emailAddress"
-								keyboardType="email-address"
-								returnKeyType="done"
-								placeholderTextColor={getColor(darkMode, "textSecondary")}
+				{isLoading ? (
+					<View
+						style={{
+							width: "100%",
+							height: 100,
+							justifyContent: "center",
+							alignItems: "center"
+						}}
+					>
+						<ActivityIndicator
+							size="small"
+							color={getColor(darkMode, "textPrimary")}
+						/>
+						{typeof currentItem !== "undefined" && currentItem.type == "folder" && (
+							<Text
 								style={{
-									width: "75%",
-									paddingLeft: 0,
-									paddingRight: 0,
-									color: getColor(darkMode, "textPrimary")
-								}}
-							/>
-							<View
-								style={{
-									flexDirection: "row"
+									color: getColor(darkMode, "textPrimary"),
+									marginTop: 15,
+									fontSize: 15,
+									fontWeight: "400"
 								}}
 							>
-								{
-									email.length > 0 && (
-										<TouchableOpacity
-											onPress={share}
+								{i18n(
+									lang,
+									"folderPublicLinkProgress",
+									true,
+									["__DONE__", "__TOTAL__"],
+									[progress.itemsDone, progress.totalItems]
+								)}
+							</Text>
+						)}
+					</View>
+				) : (
+					<View
+						style={{
+							width: "100%",
+							height: 45,
+							flexDirection: "row",
+							justifyContent: "space-between",
+							borderBottomColor: getColor(darkMode, "actionSheetBorder"),
+							borderBottomWidth: 1,
+							paddingLeft: 15,
+							paddingRight: 15
+						}}
+					>
+						<TextInput
+							placeholder={i18n(lang, "sharePlaceholder")}
+							value={email}
+							onChangeText={setEmail}
+							ref={inputRef}
+							autoCapitalize="none"
+							textContentType="emailAddress"
+							keyboardType="email-address"
+							returnKeyType="done"
+							placeholderTextColor={getColor(darkMode, "textSecondary")}
+							style={{
+								width: "75%",
+								paddingLeft: 0,
+								paddingRight: 0,
+								color: getColor(darkMode, "textPrimary")
+							}}
+						/>
+						<View
+							style={{
+								flexDirection: "row"
+							}}
+						>
+							{email.length > 0 && (
+								<TouchableOpacity onPress={share}>
+									{!buttonsDisabled && (
+										<Text
+											style={{
+												paddingTop: 12,
+												color: "#0A84FF",
+												fontSize: 15,
+												fontWeight: "400"
+											}}
 										>
-											{
-												!buttonsDisabled && (
-													<Text
-														style={{
-															paddingTop: 12,
-															color: "#0A84FF",
-															fontSize: 15,
-															fontWeight: "400"
-														}}
-													>
-														{i18n(lang, "share")}
-													</Text>
-												)
-											}
-										</TouchableOpacity>
-									)
-								}
-							</View>
+											{i18n(lang, "share")}
+										</Text>
+									)}
+								</TouchableOpacity>
+							)}
 						</View>
-					)
-				}
-          	</View>
-        </ActionSheet>
-    )
+					</View>
+				)}
+			</View>
+		</ActionSheet>
+	)
 })
 
 export default ShareActionSheet

@@ -9,101 +9,108 @@ import { DeviceEventEmitter } from "react-native"
 import { Item } from "../../../types"
 
 const ConfirmStopSharingDialog = memo(() => {
-    const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
-    const lang = useLang()
-    const [open, setOpen] = useState<boolean>(false)
-    const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
+	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
+	const lang = useLang()
+	const [open, setOpen] = useState<boolean>(false)
+	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
 
-    const stopSharing = useCallback(() => {
-        if(typeof currentItem == "undefined" || buttonsDisabled){
-            return
-        }
+	const stopSharing = useCallback(() => {
+		if (typeof currentItem == "undefined" || buttonsDisabled) {
+			return
+		}
 
-        if(typeof currentItem.receivers == "undefined" || !Array.isArray(currentItem.receivers)){
-            return
-        }
+		if (typeof currentItem.receivers == "undefined" || !Array.isArray(currentItem.receivers)) {
+			return
+		}
 
-        setButtonsDisabled(true)
-        setOpen(false)
+		setButtonsDisabled(true)
+		setOpen(false)
 
-        useStore.setState({ fullscreenLoadingModalVisible: true })
+		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-        const promises = []
+		const promises = []
 
-        for(let i = 0; i < currentItem.receivers.length; i++){
-            const item: Item = {
-                ...currentItem,
-                receiverId: currentItem.receivers[i].id,
-                receiverEmail: currentItem.receivers[i].email
-            } 
+		for (let i = 0; i < currentItem.receivers.length; i++) {
+			const item: Item = {
+				...currentItem,
+				receiverId: currentItem.receivers[i].id,
+				receiverEmail: currentItem.receivers[i].email
+			}
 
-            promises.push(new Promise((resolve, reject) => {
-                stopSharingItem({ item }).then(resolve).catch(reject)
-            }))
-        }
+			promises.push(
+				new Promise((resolve, reject) => {
+					stopSharingItem({ item }).then(resolve).catch(reject)
+				})
+			)
+		}
 
-        Promise.all(promises).then(() => {
-            DeviceEventEmitter.emit("event", {
-                type: "remove-item",
-                data: {
-                    uuid: currentItem.uuid
-                }
-            })
+		Promise.all(promises)
+			.then(() => {
+				DeviceEventEmitter.emit("event", {
+					type: "remove-item",
+					data: {
+						uuid: currentItem.uuid
+					}
+				})
 
-            setButtonsDisabled(false)
+				setButtonsDisabled(false)
 
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+				useStore.setState({ fullscreenLoadingModalVisible: false })
 
-            //showToast({ message: i18n(lang, "stoppedSharingItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
-        }).catch((err) => {
-            console.error(err)
-            
-            setButtonsDisabled(false)
+				//showToast({ message: i18n(lang, "stoppedSharingItem", true, ["__NAME__"], [currentActionSheetItem.name]) })
+			})
+			.catch(err => {
+				console.error(err)
 
-            useStore.setState({ fullscreenLoadingModalVisible: false })
+				setButtonsDisabled(false)
 
-            showToast({ message: err.toString() })
-        })
-    }, [currentItem, buttonsDisabled, lang])
+				useStore.setState({ fullscreenLoadingModalVisible: false })
 
-    useEffect(() => {
-		const openConfirmStopSharingDialogListener = DeviceEventEmitter.addListener("openConfirmStopSharingDialog", (item: Item) => {
-			setButtonsDisabled(false)
-            setCurrentItem(item)
-            setOpen(true)
-		})
+				showToast({ message: err.toString() })
+			})
+	}, [currentItem, buttonsDisabled, lang])
+
+	useEffect(() => {
+		const openConfirmStopSharingDialogListener = DeviceEventEmitter.addListener(
+			"openConfirmStopSharingDialog",
+			(item: Item) => {
+				setButtonsDisabled(false)
+				setCurrentItem(item)
+				setOpen(true)
+			}
+		)
 
 		return () => {
 			openConfirmStopSharingDialogListener.remove()
 		}
-    }, [])
+	}, [])
 
-    return (
-        <>
-            {
-                typeof currentItem !== "undefined" && (
-                    <Dialog.Container
-                        visible={open}
-                        useNativeDriver={false}
-                        onRequestClose={() => setOpen(false)}
-                        onBackdropPress={() => setOpen(false)}
-                    >
-                        <Dialog.Title>{i18n(lang, "stopSharingConfirmation", true, ["__NAME__"], [currentItem.name])}</Dialog.Title>
-                        <Dialog.Button
-                            label={i18n(lang, "cancel")}
-                            disabled={buttonsDisabled}
-                            onPress={() => setOpen(false)}
-                        />
-                        <Dialog.Button
-                            label={i18n(lang, "stopSharing")}
-                            disabled={buttonsDisabled}
-                            onPress={stopSharing}
-                        />
-                    </Dialog.Container>
-                )
-            }
-        </>
-    )
+	return (
+		<>
+			{typeof currentItem !== "undefined" && (
+				<Dialog.Container
+					visible={open}
+					useNativeDriver={false}
+					onRequestClose={() => setOpen(false)}
+					onBackdropPress={() => setOpen(false)}
+				>
+					<Dialog.Title>
+						{i18n(lang, "stopSharingConfirmation", true, ["__NAME__"], [currentItem.name])}
+					</Dialog.Title>
+					<Dialog.Button
+						label={i18n(lang, "cancel")}
+						disabled={buttonsDisabled}
+						onPress={() => setOpen(false)}
+					/>
+					<Dialog.Button
+						label={i18n(lang, "stopSharing")}
+						disabled={buttonsDisabled}
+						onPress={stopSharing}
+					/>
+				</Dialog.Container>
+			)}
+		</>
+	)
 })
 
 export default ConfirmStopSharingDialog

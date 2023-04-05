@@ -12,64 +12,64 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 const striptags = require("striptags")
 
 export const GDPRScreen = memo(({ navigation }: { navigation: any }) => {
-    const darkMode = useDarkMode()
-    const lang = useLang()
-    const [gdpr, setGdpr] = useState<string>("")
-    const [isLoading, setIsLoading] = useState<boolean>(true)
-    const isMounted: () => boolean = useMountedState()
-    
-    useEffect(() => {
-        fetchGDPRInfo().then((info) => {
-            if(isMounted()){
-                setGdpr(JSON.stringify(info, null, 2))
-                setIsLoading(false)
-            }
-        }).catch((err) => {
-            console.log(err)
+	const darkMode = useDarkMode()
+	const lang = useLang()
+	const [gdpr, setGdpr] = useState<string>("")
+	const [isLoading, setIsLoading] = useState<boolean>(true)
+	const isMounted = useMountedState()
 
-            showToast({ message: err.toString() })
-        })
-    }, [])
+	useEffect(() => {
+		fetchGDPRInfo()
+			.then(info => {
+				if (isMounted()) {
+					setGdpr(JSON.stringify(info, null, 2))
+					setIsLoading(false)
+				}
+			})
+			.catch(err => {
+				console.log(err)
 
-    return (
-        <>
-            <DefaultTopBar
-                onPressBack={() => navigation.goBack()}
-                leftText={i18n(lang, "accountSettings")}
-                middleText={i18n(lang, "showGDPR")}
-            />
-            <ScrollView
-                style={{
-                    height: "100%",
-                    width: "100%",
-                    backgroundColor: getColor(darkMode, "backgroundPrimary"),
-                    marginTop: 10
-                }}
-            >
-                {
-                    isLoading ? (
-                        <ActivityIndicator
-                            size={"small"}
-                            color={getColor(darkMode, "textPrimary")}
-                            style={{
-                                marginTop: "70%"
-                            }}
-                        />
-                    ) : (
-                        <Text
-                            style={{
-                                color: getColor(darkMode, "textPrimary"),
-                                paddingLeft: 20,
-                                paddingRight: 20,
-                                paddingTop: 5,
-                                paddingBottom: 25
-                            }}
-                        >
-                            {striptags(gdpr)}    
-                        </Text>
-                    )
-                }
-            </ScrollView>
-        </>
-    )
+				showToast({ message: err.toString() })
+			})
+	}, [])
+
+	return (
+		<>
+			<DefaultTopBar
+				onPressBack={() => navigation.goBack()}
+				leftText={i18n(lang, "accountSettings")}
+				middleText={i18n(lang, "showGDPR")}
+			/>
+			<ScrollView
+				style={{
+					height: "100%",
+					width: "100%",
+					backgroundColor: getColor(darkMode, "backgroundPrimary"),
+					marginTop: 10
+				}}
+			>
+				{isLoading ? (
+					<ActivityIndicator
+						size={"small"}
+						color={getColor(darkMode, "textPrimary")}
+						style={{
+							marginTop: "70%"
+						}}
+					/>
+				) : (
+					<Text
+						style={{
+							color: getColor(darkMode, "textPrimary"),
+							paddingLeft: 20,
+							paddingRight: 20,
+							paddingTop: 5,
+							paddingBottom: 25
+						}}
+					>
+						{striptags(gdpr)}
+					</Text>
+				)}
+			</ScrollView>
+		</>
+	)
 })

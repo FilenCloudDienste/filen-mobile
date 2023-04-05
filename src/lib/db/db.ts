@@ -179,8 +179,14 @@ export const dbFs = {
         const keyHashed = await hashDbFsKey("warmUp")
 
         for(const file of dir){
-            if(file.length == keyHashed.length){
-                const value = JSON.parse(await fs.readAsString(path + file, "utf8"))
+            if(file.length === keyHashed.length){
+                const read = await fs.readAsString(path + file, "utf8")
+
+                if(read.slice(0, 64).indexOf("loadItems:") == -1){
+                    continue
+                }
+
+                const value = JSON.parse(read)
 
                 if(!value){
                     continue
@@ -190,9 +196,11 @@ export const dbFs = {
                     continue
                 }
 
-                if(value.key.indexOf("loadItems:") !== -1){
-                    memoryCache.set(PREFIX + value.key, value.value)
+                if(value.key.indexOf("loadItems:") == -1){
+                    continue
                 }
+
+                memoryCache.set(PREFIX + value.key, value.value)
             }
         }
     }

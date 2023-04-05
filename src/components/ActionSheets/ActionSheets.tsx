@@ -15,11 +15,11 @@ import useLang from "../../lib/hooks/useLang"
 import * as db from "../../lib/db"
 
 export interface ActionButtonProps {
-	onPress: any,
-	icon?: any,
-	text: string,
-	color?: string,
-	key?: string | number,
+	onPress: any
+	icon?: any
+	text: string
+	color?: string
+	key?: string | number
 	rightComponent?: any
 }
 
@@ -45,79 +45,79 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 					paddingRight: 20
 				}}
 			>
-				{
-					typeof color !== "undefined" ? (
-						<View
-							style={{
-								backgroundColor: color,
-								height: 22,
-								width: 22,
-								borderRadius: 22,
-								marginTop: 12
-							}}
+				{typeof color !== "undefined" ? (
+					<View
+						style={{
+							backgroundColor: color,
+							height: 22,
+							width: 22,
+							borderRadius: 22,
+							marginTop: 12
+						}}
+					/>
+				) : (
+					<View
+						style={{
+							paddingTop: 11
+						}}
+					>
+						<Ionicon
+							name={icon}
+							size={22}
+							color={getColor(darkMode, "textSecondary")}
 						/>
-					) : (
-						<View
+					</View>
+				)}
+				{typeof rightComponent !== "undefined" ? (
+					<View
+						style={{
+							paddingTop: 5,
+							marginLeft: 15,
+							borderBottomColor: darkMode
+								? getColor(darkMode, "actionSheetBorder")
+								: getColor(darkMode, "primaryBorder"),
+							borderBottomWidth: darkMode ? 1 : 0.5,
+							width: "100%",
+							justifyContent: "space-between",
+							alignItems: "center",
+							flexDirection: "row",
+							paddingRight: 20
+						}}
+					>
+						<Text
 							style={{
-								paddingTop: 11
+								color: getColor(darkMode, "textPrimary"),
+								fontSize: 15,
+								fontWeight: "400"
 							}}
 						>
-							<Ionicon
-								name={icon}
-								size={22}
-								color={getColor(darkMode, "textSecondary")}
-							/>
-						</View>
-					)
-				}
-				{
-					typeof rightComponent !== "undefined" ? (
-						<View
+							{text}
+						</Text>
+						{rightComponent}
+					</View>
+				) : (
+					<View
+						style={{
+							paddingTop: 14,
+							marginLeft: 15,
+							borderBottomColor: darkMode
+								? getColor(darkMode, "actionSheetBorder")
+								: getColor(darkMode, "primaryBorder"),
+							borderBottomWidth: darkMode ? 1 : 0.5,
+							width: "100%"
+						}}
+					>
+						<Text
 							style={{
-								paddingTop: 5,
-								marginLeft: 15,
-								borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
-                        		borderBottomWidth: darkMode ? 1 : 0.5,
-								width: "100%",
-								justifyContent: "space-between",
-								alignItems: "center",
-								flexDirection: "row",
-								paddingRight: 20
+								color: getColor(darkMode, "textPrimary"),
+								fontSize: 15,
+								fontWeight: "400"
 							}}
 						>
-							<Text
-								style={{
-									color: getColor(darkMode, "textPrimary"),
-									fontSize: 15,
-									fontWeight: "400"
-								}}
-							>
-								{text}
-							</Text>
-							{rightComponent}
-						</View>
-					) : (
-						<View
-							style={{
-								paddingTop: 14,
-								marginLeft: 15,
-								borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
-                        		borderBottomWidth: darkMode ? 1 : 0.5,
-								width: "100%"
-							}}
-						>
-							<Text
-								style={{
-									color: getColor(darkMode, "textPrimary"),
-									fontSize: 15,
-									fontWeight: "400"
-								}}
-							>
-								{text}
-							</Text>
-						</View>
-					)
-				}
+							{text}
+						</Text>
+					</View>
+				)}
 			</View>
 		</TouchableHighlight>
 	)
@@ -126,32 +126,34 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 export const ItemActionSheetItemHeader = memo(() => {
 	const darkMode = useDarkMode()
 	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
-	const [ userId ] = useMMKVNumber("userId", storage)
+	const [userId] = useMMKVNumber("userId", storage)
 	const lang = useLang()
-    const [ hideThumbnails ] = useMMKVBoolean("hideThumbnails:" + userId, storage)
-    const [ hideFileNames ] = useMMKVBoolean("hideFileNames:" + userId, storage)
-	const [ hideSizes ] = useMMKVBoolean("hideSizes:" + userId, storage)
+	const [hideThumbnails] = useMMKVBoolean("hideThumbnails:" + userId, storage)
+	const [hideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
+	const [hideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
 	const [folderSizeCache, setFolderSizeCache] = useState<number>(0)
 
 	useEffect(() => {
-		if(!currentActionSheetItem){
+		if (!currentActionSheetItem) {
 			return
 		}
 
-		db.get("folderSizeCache:" + currentActionSheetItem.uuid).then((cachedSize) => {
-			if(!cachedSize){
-				return
-			}
+		db.get("folderSizeCache:" + currentActionSheetItem.uuid)
+			.then(cachedSize => {
+				if (!cachedSize) {
+					return
+				}
 
-			if(cachedSize <= 0){
-				return
-			}
+				if (cachedSize <= 0) {
+					return
+				}
 
-			setFolderSizeCache(cachedSize)
-		}).catch(console.error)
+				setFolderSizeCache(cachedSize)
+			})
+			.catch(console.error)
 	}, [])
 
-	if(typeof currentActionSheetItem == "undefined"){
+	if (typeof currentActionSheetItem == "undefined") {
 		return null
 	}
 
@@ -172,24 +174,28 @@ export const ItemActionSheetItemHeader = memo(() => {
 				paddingRight: 20
 			}}
 		>
-			{
-				currentActionSheetItem.type == "folder" ? (
-					<Ionicon
-						name="ios-folder"
-						size={40}
-						color={getFolderColor(currentActionSheetItem.color)}
-					/>
-				) : (
-					<Image
-						source={hideThumbnails ? getImageForItem(currentActionSheetItem) : typeof currentActionSheetItem.thumbnail !== "undefined" ? { uri: "file://" + THUMBNAIL_BASE_PATH + currentActionSheetItem.uuid + ".jpg" } : getImageForItem(currentActionSheetItem)}
-						style={{
-							width: 40,
-							height: 40,
-							borderRadius: 5
-						}}
-					/>
-				)
-			}
+			{currentActionSheetItem.type == "folder" ? (
+				<Ionicon
+					name="ios-folder"
+					size={40}
+					color={getFolderColor(currentActionSheetItem.color)}
+				/>
+			) : (
+				<Image
+					source={
+						hideThumbnails
+							? getImageForItem(currentActionSheetItem)
+							: typeof currentActionSheetItem.thumbnail !== "undefined"
+							? { uri: "file://" + THUMBNAIL_BASE_PATH + currentActionSheetItem.uuid + ".jpg" }
+							: getImageForItem(currentActionSheetItem)
+					}
+					style={{
+						width: 40,
+						height: 40,
+						borderRadius: 5
+					}}
+				/>
+			)}
 			<View
 				style={{
 					width: "75%",
@@ -204,7 +210,9 @@ export const ItemActionSheetItemHeader = memo(() => {
 					}}
 					numberOfLines={1}
 				>
-					{hideFileNames ? i18n(lang, currentActionSheetItem.type == "folder" ? "folder" : "file") : currentActionSheetItem.name}
+					{hideFileNames
+						? i18n(lang, currentActionSheetItem.type == "folder" ? "folder" : "file")
+						: currentActionSheetItem.name}
 				</Text>
 				<Text
 					style={{
@@ -214,41 +222,43 @@ export const ItemActionSheetItemHeader = memo(() => {
 					}}
 					numberOfLines={1}
 				>
-					{
-						typeof currentActionSheetItem.offline == "boolean" && currentActionSheetItem.offline && (
-							<>
-								<Ionicon
-									name="arrow-down-circle"
-									size={12}
-									color="green" 
-								/>
-								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-							</>
-						)
-					}
-					{
-						typeof currentActionSheetItem.favorited == "boolean" && currentActionSheetItem.favorited && (
-							<>
-								<Ionicon
-									name="heart"
-									size={12}
-									color="white"
-								/>
-								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
-							</>
-						)
-					}
-					{hideSizes ? formatBytes(0) : formatBytes(currentActionSheetItem.type == "file" ? currentActionSheetItem.size : folderSizeCache)}
-					{
-						typeof currentActionSheetItem.sharerEmail == "string" && currentActionSheetItem.sharerEmail.length > 0 && getParent().length < 32 && (
+					{typeof currentActionSheetItem.offline == "boolean" && currentActionSheetItem.offline && (
+						<>
+							<Ionicon
+								name="arrow-down-circle"
+								size={12}
+								color="green"
+							/>
+							<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+						</>
+					)}
+					{typeof currentActionSheetItem.favorited == "boolean" && currentActionSheetItem.favorited && (
+						<>
+							<Ionicon
+								name="heart"
+								size={12}
+								color="white"
+							/>
+							<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
+						</>
+					)}
+					{hideSizes
+						? formatBytes(0)
+						: formatBytes(
+								currentActionSheetItem.type == "file" ? currentActionSheetItem.size : folderSizeCache
+						  )}
+					{typeof currentActionSheetItem.sharerEmail == "string" &&
+						currentActionSheetItem.sharerEmail.length > 0 &&
+						getParent().length < 32 && (
 							<>
 								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
 								<Text>{currentActionSheetItem.sharerEmail}</Text>
 							</>
-						)
-					}
-					{
-						typeof currentActionSheetItem.receivers !== "undefined" && Array.isArray(currentActionSheetItem.receivers) && currentActionSheetItem.receivers.length > 0 && getParent().length < 32 && (
+						)}
+					{typeof currentActionSheetItem.receivers !== "undefined" &&
+						Array.isArray(currentActionSheetItem.receivers) &&
+						currentActionSheetItem.receivers.length > 0 &&
+						getParent().length < 32 && (
 							<>
 								<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
 								<Ionicon
@@ -258,8 +268,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 								/>
 								<Text>&nbsp;{currentActionSheetItem.receivers.length}</Text>
 							</>
-						)
-					}
+						)}
 					&nbsp;&nbsp;&#8226;&nbsp;&nbsp;
 					{currentActionSheetItem.date}
 				</Text>
@@ -267,6 +276,21 @@ export const ItemActionSheetItemHeader = memo(() => {
 		</View>
 	)
 })
+
+export const hideAllActionSheets = async () => {
+	await Promise.all([
+		SheetManager.hide("BottomBarAddActionSheet"),
+		SheetManager.hide("FileVersionsActionSheet"),
+		SheetManager.hide("FolderColorActionSheet"),
+		SheetManager.hide("ItemActionSheet"),
+		SheetManager.hide("LockAppAfterActionSheet"),
+		SheetManager.hide("ProfilePictureActionSheet"),
+		SheetManager.hide("PublicLinkActionSheet"),
+		SheetManager.hide("ShareActionSheet"),
+		SheetManager.hide("SortByActionSheet"),
+		SheetManager.hide("TopBarActionSheet")
+	])
+}
 
 export const ActionSheetIndicator = memo(() => {
 	const darkMode = useDarkMode()
@@ -288,18 +312,7 @@ export const ActionSheetIndicator = memo(() => {
 					alignItems: "center",
 					justifyContent: "center"
 				}}
-				onPress={() => {
-					SheetManager.hide("BottomBarAddActionSheet")
-					SheetManager.hide("FileVersionsActionSheet")
-					SheetManager.hide("FolderColorActionSheet")
-					SheetManager.hide("ItemActionSheet")
-					SheetManager.hide("LockAppAfterActionSheet")
-					SheetManager.hide("ProfilePictureActionSheet")
-					SheetManager.hide("PublicLinkActionSheet")
-					SheetManager.hide("ShareActionSheet")
-					SheetManager.hide("SortByActionSheet")
-					SheetManager.hide("TopBarActionSheet")
-				}}
+				onPress={() => hideAllActionSheets()}
 			>
 				<Ionicon
 					name="close"

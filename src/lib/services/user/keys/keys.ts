@@ -6,264 +6,305 @@ import { showToast } from "../../../../components/Toasts"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { encryptMetadata, decryptMetadata } from "../../../crypto"
 
-export const updateKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        const masterKeys: string[] = getMasterKeys()
-        const apiKey: string = getAPIKey()
+export const updateKeypair = ({
+	publicKey,
+	privateKey,
+	navigation
+}: {
+	publicKey: string
+	privateKey: string
+	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
+}): Promise<boolean> => {
+	return new Promise((resolve, reject) => {
+		const masterKeys: string[] = getMasterKeys()
+		const apiKey: string = getAPIKey()
 
-        if(masterKeys.length == 0){
-            logout({ navigation })
+		if (masterKeys.length == 0) {
+			logout({ navigation })
 
-            showToast({ message: "No master keys found - 1" })
+			showToast({ message: "No master keys found - 1" })
 
-            return reject("No master keys found")
-        }
+			return reject("No master keys found")
+		}
 
-        encryptMetadata(privateKey, masterKeys[masterKeys.length - 1]).then((encryptedPrivateKey) => {
-            apiRequest({
-                method: "POST",
-                endpoint: "/v1/user/keyPair/update",
-                data: {
-                    apiKey,
-                    publicKey,
-                    privateKey: encryptedPrivateKey
-                }
-            }).then((response) => {
-                if(!response.status){
-                    if(response.message.toLowerCase().indexOf("api key not found") !== -1){
-                        logout({ navigation })
+		encryptMetadata(privateKey, masterKeys[masterKeys.length - 1])
+			.then(encryptedPrivateKey => {
+				apiRequest({
+					method: "POST",
+					endpoint: "/v1/user/keyPair/update",
+					data: {
+						apiKey,
+						publicKey,
+						privateKey: encryptedPrivateKey
+					}
+				})
+					.then(response => {
+						if (!response.status) {
+							if (response.message.toLowerCase().indexOf("api key not found") !== -1) {
+								logout({ navigation })
 
-                        return reject("API key not found")
-                    }
+								return reject("API key not found")
+							}
 
-                    return reject(response.message)
-                }
+							return reject(response.message)
+						}
 
-                return resolve(true)
-            }).catch(reject)
-        }).catch(reject)
-    })
+						return resolve(true)
+					})
+					.catch(reject)
+			})
+			.catch(reject)
+	})
 }
 
-export const setKeypair = ({ publicKey, privateKey, navigation }: { publicKey: string, privateKey: string, navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        const masterKeys: string[] = getMasterKeys()
-        const apiKey: string = getAPIKey()
+export const setKeypair = ({
+	publicKey,
+	privateKey,
+	navigation
+}: {
+	publicKey: string
+	privateKey: string
+	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
+}): Promise<boolean> => {
+	return new Promise((resolve, reject) => {
+		const masterKeys: string[] = getMasterKeys()
+		const apiKey: string = getAPIKey()
 
-        if(masterKeys.length == 0){
-            logout({ navigation })
+		if (masterKeys.length == 0) {
+			logout({ navigation })
 
-            showToast({ message: "No master keys found - 2" })
+			showToast({ message: "No master keys found - 2" })
 
-            return reject("No master keys found")
-        }
-    
-        encryptMetadata(privateKey, masterKeys[masterKeys.length - 1]).then((encryptedPrivateKey) => {
-            apiRequest({
-                method: "POST",
-                endpoint: "/v1/user/keyPair/set",
-                data: {
-                    apiKey,
-                    publicKey,
-                    privateKey: encryptedPrivateKey
-                }
-            }).then((response) => {
-                if(!response.status){
-                    if(response.message.toLowerCase().indexOf("api key not found") !== -1){
-                        logout({ navigation })
+			return reject("No master keys found")
+		}
 
-                        return resolve(true)
-                    }
+		encryptMetadata(privateKey, masterKeys[masterKeys.length - 1])
+			.then(encryptedPrivateKey => {
+				apiRequest({
+					method: "POST",
+					endpoint: "/v1/user/keyPair/set",
+					data: {
+						apiKey,
+						publicKey,
+						privateKey: encryptedPrivateKey
+					}
+				})
+					.then(response => {
+						if (!response.status) {
+							if (response.message.toLowerCase().indexOf("api key not found") !== -1) {
+								logout({ navigation })
 
-                    return reject(response.message)
-                }
-    
-                return resolve(true)
-            }).catch(reject)
-        }).catch(reject)
-    })
+								return resolve(true)
+							}
+
+							return reject(response.message)
+						}
+
+						return resolve(true)
+					})
+					.catch(reject)
+			})
+			.catch(reject)
+	})
 }
 
-export const updatePublicAndPrivateKey = ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        const masterKeys: string[] = getMasterKeys()
-        const apiKey: string = getAPIKey()
+export const updatePublicAndPrivateKey = ({
+	navigation
+}: {
+	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
+}): Promise<boolean> => {
+	return new Promise((resolve, reject) => {
+		const masterKeys: string[] = getMasterKeys()
+		const apiKey: string = getAPIKey()
 
-        if(masterKeys.length == 0){
-            logout({ navigation })
+		if (masterKeys.length == 0) {
+			logout({ navigation })
 
-            showToast({ message: "No master keys found - 3" })
+			showToast({ message: "No master keys found - 3" })
 
-            return reject("No master keys found")
-        }
+			return reject("No master keys found")
+		}
 
-        apiRequest({
-            method: "POST",
-            endpoint: "/v1/user/keyPair/info",
-            data: {
-                apiKey
-            }
-        }).then(async (response) => {
-            if(!response.status){
-                if(response.message.toLowerCase().indexOf("api key not found") !== -1){
-                    logout({ navigation })
+		apiRequest({
+			method: "POST",
+			endpoint: "/v1/user/keyPair/info",
+			data: {
+				apiKey
+			}
+		})
+			.then(async response => {
+				if (!response.status) {
+					if (response.message.toLowerCase().indexOf("api key not found") !== -1) {
+						logout({ navigation })
 
-                    return reject("API key not found")
-                }
+						return reject("API key not found")
+					}
 
-                return reject(response.message)
-            }
+					return reject(response.message)
+				}
 
-            if(response.data.publicKey.length > 16 && response.data.privateKey.length > 16 && Array.isArray(masterKeys)){
-                let privateKey = ""
+				if (
+					response.data.publicKey.length > 16 &&
+					response.data.privateKey.length > 16 &&
+					Array.isArray(masterKeys)
+				) {
+					let privateKey = ""
 
-                for(let i = 0; i < masterKeys.length; i++){
-                    try{
-                        const decrypted = await decryptMetadata(response.data.privateKey, masterKeys[i])
+					for (let i = 0; i < masterKeys.length; i++) {
+						try {
+							const decrypted = await decryptMetadata(response.data.privateKey, masterKeys[i])
 
-                        if(typeof decrypted == "string"){
-                            if(decrypted.length > 16){
-                                privateKey = decrypted
-                            }
-                        }
-                    }
-                    catch(e){
-                        continue
-                    }
-                }
+							if (typeof decrypted == "string") {
+								if (decrypted.length > 16) {
+									privateKey = decrypted
+								}
+							}
+						} catch (e) {
+							continue
+						}
+					}
 
-                if(privateKey.length > 16){
-                    try{
-                        storage.set("publicKey", response.data.publicKey)
-                        storage.set("privateKey", privateKey)
-                    }
-                    catch(e){
-                        return reject(e)
-                    }
+					if (privateKey.length > 16) {
+						try {
+							storage.set("publicKey", response.data.publicKey)
+							storage.set("privateKey", privateKey)
+						} catch (e) {
+							return reject(e)
+						}
 
-                    console.log("Public and private key updated.")
+						console.log("Public and private key updated.")
 
-                    updateKeypair({ publicKey: response.data.publicKey, privateKey, navigation }).then(() => {
-                        console.log("User keypair updated.")
+						updateKeypair({ publicKey: response.data.publicKey, privateKey, navigation })
+							.then(() => {
+								console.log("User keypair updated.")
 
-                        return resolve(true)
-                    }).catch(reject)
-                }
-                else{
-                    console.log("Could not decrypt private key.")
+								return resolve(true)
+							})
+							.catch(reject)
+					} else {
+						console.log("Could not decrypt private key.")
 
-                    return resolve(true)
-                }
-            }
-            else{
-                try{
-                    var generatedKeypair = await global.nodeThread.generateKeypair()
-                    var b64PubKey = generatedKeypair.publicKey
-                    var b64PrivKey = generatedKeypair.privateKey
-                }
-                catch(e){
-                    return reject(e)
-                }
+						return resolve(true)
+					}
+				} else {
+					try {
+						var generatedKeypair = await global.nodeThread.generateKeypair()
+						var b64PubKey = generatedKeypair.publicKey
+						var b64PrivKey = generatedKeypair.privateKey
+					} catch (e) {
+						return reject(e)
+					}
 
-                if(b64PubKey.length > 16 && b64PrivKey.length > 16){
-                    setKeypair({ publicKey: b64PubKey, privateKey: b64PrivKey, navigation }).then(() => {
-                        storage.set("publicKey", b64PubKey)
-                        storage.set("privateKey", b64PrivKey)
+					if (b64PubKey.length > 16 && b64PrivKey.length > 16) {
+						setKeypair({ publicKey: b64PubKey, privateKey: b64PrivKey, navigation })
+							.then(() => {
+								storage.set("publicKey", b64PubKey)
+								storage.set("privateKey", b64PrivKey)
 
-                        console.log("User keypair generated and updated.")
+								console.log("User keypair generated and updated.")
 
-                        return resolve(true)
-                    }).catch(reject)
-                }
-                else{
-                    return reject("Key lengths invalid")
-                }
-            }
-        }).catch(reject)
-    })
+								return resolve(true)
+							})
+							.catch(reject)
+					} else {
+						return reject("Key lengths invalid")
+					}
+				}
+			})
+			.catch(reject)
+	})
 }
 
-export const updateKeys = ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        let masterKeys = getMasterKeys()
-        let apiKey = getAPIKey()
+export const updateKeys = ({
+	navigation
+}: {
+	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
+}): Promise<boolean> => {
+	return new Promise((resolve, reject) => {
+		let masterKeys = getMasterKeys()
+		let apiKey = getAPIKey()
 
-        if(masterKeys.length == 0){
-            logout({ navigation })
-    
-            return reject("No master keys found")
-        }
+		if (masterKeys.length == 0) {
+			logout({ navigation })
 
-        encryptMetadata(masterKeys.join("|"), masterKeys[masterKeys.length - 1]).then((encryptedMasterKeys) => {
-            apiRequest({
-                method: "POST",
-                endpoint: "/v1/user/masterKeys",
-                data: {
-                    apiKey,
-                    masterKeys: encryptedMasterKeys
-                }
-            }).then(async (response) => {
-                if(!response.status){
-                    if(response.message.toLowerCase().indexOf("api key not found") !== -1){
-                        logout({ navigation })
-    
-                        return reject("API key not found")
-                    }
+			return reject("No master keys found")
+		}
 
-                    return reject(response.message)
-                }
+		encryptMetadata(masterKeys.join("|"), masterKeys[masterKeys.length - 1])
+			.then(encryptedMasterKeys => {
+				apiRequest({
+					method: "POST",
+					endpoint: "/v1/user/masterKeys",
+					data: {
+						apiKey,
+						masterKeys: encryptedMasterKeys
+					}
+				})
+					.then(async response => {
+						if (!response.status) {
+							if (response.message.toLowerCase().indexOf("api key not found") !== -1) {
+								logout({ navigation })
 
-                let newMasterKeys: any = ""
+								return reject("API key not found")
+							}
 
-                for(let i = 0; i < masterKeys.length; i++){
-                    try{
-                        let decrypted = await decryptMetadata(response.data.keys, masterKeys[i])
-            
-                        if(typeof decrypted == "string"){
-                            if(decrypted.length > 16){
-                                newMasterKeys = decrypted
-                            }
-                        }
-                    }
-                    catch(e){
-                        continue
-                    }
-                }
+							return reject(response.message)
+						}
 
-                if(newMasterKeys.length > 16){
-                    try{
-                        newMasterKeys = newMasterKeys.split("|")
+						let newMasterKeys: any = ""
 
-                        storage.set("masterKeys", JSON.stringify(newMasterKeys))
+						for (let i = 0; i < masterKeys.length; i++) {
+							try {
+								let decrypted = await decryptMetadata(response.data.keys, masterKeys[i])
 
-                        masterKeys = newMasterKeys
-                    }
-                    catch(e){
-                        return reject(e)
-                    }
+								if (typeof decrypted == "string") {
+									if (decrypted.length > 16) {
+										newMasterKeys = decrypted
+									}
+								}
+							} catch (e) {
+								continue
+							}
+						}
 
-                    console.log("Master keys updated.")
+						if (newMasterKeys.length > 16) {
+							try {
+								newMasterKeys = newMasterKeys.split("|")
 
-                    updatePublicAndPrivateKey({ navigation }).then(() => {
-                        return resolve(true)
-                    }).catch((err) => {
-                        console.log(err)
+								storage.set("masterKeys", JSON.stringify(newMasterKeys))
 
-                        return resolve(true)
-                    })
-                }
-                else{
-                    console.log("Could not decrypt master keys.")
+								masterKeys = newMasterKeys
+							} catch (e) {
+								return reject(e)
+							}
 
-                    updatePublicAndPrivateKey({ navigation }).then(() => {
-                        return resolve(true)
-                    }).catch((err) => {
-                        console.log(err)
-                        
-                        return resolve(true)
-                    })
-                }
-            }).catch(reject)
-        }).catch(reject)
-    })
+							console.log("Master keys updated.")
+
+							updatePublicAndPrivateKey({ navigation })
+								.then(() => {
+									return resolve(true)
+								})
+								.catch(err => {
+									console.log(err)
+
+									return resolve(true)
+								})
+						} else {
+							console.log("Could not decrypt master keys.")
+
+							updatePublicAndPrivateKey({ navigation })
+								.then(() => {
+									return resolve(true)
+								})
+								.catch(err => {
+									console.log(err)
+
+									return resolve(true)
+								})
+						}
+					})
+					.catch(reject)
+			})
+			.catch(reject)
+	})
 }

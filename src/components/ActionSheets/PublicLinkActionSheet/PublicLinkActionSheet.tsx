@@ -1,5 +1,15 @@
 import React, { useEffect, useState, memo, useRef, useCallback } from "react"
-import { View, Text, DeviceEventEmitter, Platform, ActivityIndicator, Switch, TextInput, TouchableOpacity, Share } from "react-native"
+import {
+	View,
+	Text,
+	DeviceEventEmitter,
+	Platform,
+	ActivityIndicator,
+	Switch,
+	TextInput,
+	TouchableOpacity,
+	Share
+} from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -17,119 +27,133 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { decryptFolderLinkKey } from "../../../lib/crypto"
 
 const PublicLinkActionSheet = memo(() => {
-    const darkMode = useDarkMode()
+	const darkMode = useDarkMode()
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
-    const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
-    const currentItemRef = useRef<Item | undefined>(undefined)
-    const [fetchingInfo, setFetchingInfo] = useState<boolean>(false)
-    const [info, setInfo] = useState<any>(undefined)
-    const [passwordDummy, setPasswordDummy] = useState<string>("")
-    const [linkEnabed, setLinkEnabled] = useState<boolean>(false)
-    const [progress, setProgress] = useState<{ current: number, total: number }>({ current: 0, total: 0 })
-    const [downloadBtnEnabled, setDownloadBtnEnabled] = useState<boolean>(false)
-    const [linkURL, setLinkURL] = useState<string>("")
+	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
+	const currentItemRef = useRef<Item | undefined>(undefined)
+	const [fetchingInfo, setFetchingInfo] = useState<boolean>(false)
+	const [info, setInfo] = useState<any>(undefined)
+	const [passwordDummy, setPasswordDummy] = useState<string>("")
+	const [linkEnabed, setLinkEnabled] = useState<boolean>(false)
+	const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 })
+	const [downloadBtnEnabled, setDownloadBtnEnabled] = useState<boolean>(false)
+	const [linkURL, setLinkURL] = useState<string>("")
 
-    const fetchInfo = useCallback((item: Item, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false): void => {
-        setInfo(undefined)
-        setFetchingInfo(true)
-        setPasswordDummy("")
-        setLinkEnabled(false)
-        setDownloadBtnEnabled(false)
+	const fetchInfo = useCallback(
+		(item: Item, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false): void => {
+			setInfo(undefined)
+			setFetchingInfo(true)
+			setPasswordDummy("")
+			setLinkEnabled(false)
+			setDownloadBtnEnabled(false)
 
-        const req = () => {
-            itemPublicLinkInfo({ item }).then(async (info) => {
-                if(waitUntilEnabled){
-                    if(item.type == "folder"){
-                        if(typeof info.exists == "boolean" && !info.exists){
-                            return setTimeout(req, 250)
-                        }
-                    }
-                    else{
-                        if(typeof info.enabled == "boolean" && !info.enabled){
-                            return setTimeout(req, 250)
-                        }
-                    }
-                }
+			const req = () => {
+				itemPublicLinkInfo({ item })
+					.then(async info => {
+						if (waitUntilEnabled) {
+							if (item.type == "folder") {
+								if (typeof info.exists == "boolean" && !info.exists) {
+									return setTimeout(req, 250)
+								}
+							} else {
+								if (typeof info.enabled == "boolean" && !info.enabled) {
+									return setTimeout(req, 250)
+								}
+							}
+						}
 
-                if(waitUntilDisabled){
-                    if(item.type == "folder"){
-                        if(typeof info.exists == "boolean" && info.exists){
-                            return setTimeout(req, 250)
-                        }
-                    }
-                    else{
-                        if(typeof info.enabled == "boolean" && info.enabled){
-                            return setTimeout(req, 250)
-                        }
-                    }
-                }
+						if (waitUntilDisabled) {
+							if (item.type == "folder") {
+								if (typeof info.exists == "boolean" && info.exists) {
+									return setTimeout(req, 250)
+								}
+							} else {
+								if (typeof info.enabled == "boolean" && info.enabled) {
+									return setTimeout(req, 250)
+								}
+							}
+						}
 
-                if(item.type == "folder" && typeof info.exists == "boolean" && info.exists){
-                    const masterKeys: string[] = getMasterKeys()
-                    const keyDecrypted: string = await decryptFolderLinkKey(masterKeys, info.key)
-    
-                    if(keyDecrypted.length == 0){
-                        SheetManager.hide("PublicLinkActionSheet")
-    
-                        return
-                    }
-    
-                    setLinkEnabled(typeof info.exists == "boolean" && info.exists && typeof keyDecrypted == "string" && keyDecrypted.length >= 32)
-                    setDownloadBtnEnabled(false)
-                    setLinkURL(typeof keyDecrypted == "string" && keyDecrypted.length >= 32 ? "https://drive.filen.io/f/" + info.uuid +  "#" + keyDecrypted : "")
-                }
-                else{
-                    setLinkEnabled(typeof info.enabled == "boolean" && info.enabled)
-                    setDownloadBtnEnabled(typeof info.downloadBtn == "string" ? (info.downloadBtn == "enable") : (info.downloadBtn == 1))
-                    setLinkURL("https://drive.filen.io/d/" + info.uuid +  "#" + item.key)
-                }
-    
-                setInfo(info)
-                setFetchingInfo(false)
-            }).catch((err) => {
-                setFetchingInfo(false)
-    
-                console.error(err)
-            })
-        }
+						if (item.type == "folder" && typeof info.exists == "boolean" && info.exists) {
+							const masterKeys: string[] = getMasterKeys()
+							const keyDecrypted: string = await decryptFolderLinkKey(masterKeys, info.key)
 
-        req()
-    }, [])
+							if (keyDecrypted.length == 0) {
+								SheetManager.hide("PublicLinkActionSheet")
 
-    const enable = useCallback(async () => {
-        if(typeof currentItem == "undefined"){
-            return
-        }
+								return
+							}
 
-        setFetchingInfo(true)
-        setProgress({ current: 0, total: 0 })
+							setLinkEnabled(
+								typeof info.exists == "boolean" &&
+									info.exists &&
+									typeof keyDecrypted == "string" &&
+									keyDecrypted.length >= 32
+							)
+							setDownloadBtnEnabled(false)
+							setLinkURL(
+								typeof keyDecrypted == "string" && keyDecrypted.length >= 32
+									? "https://drive.filen.io/f/" + info.uuid + "#" + keyDecrypted
+									: ""
+							)
+						} else {
+							setLinkEnabled(typeof info.enabled == "boolean" && info.enabled)
+							setDownloadBtnEnabled(
+								typeof info.downloadBtn == "string"
+									? info.downloadBtn == "enable"
+									: info.downloadBtn == 1
+							)
+							setLinkURL("https://drive.filen.io/d/" + info.uuid + "#" + item.key)
+						}
 
-        try{
-            await enableItemPublicLink(currentItem, (current, total) => setProgress({ current, total }))
+						setInfo(info)
+						setFetchingInfo(false)
+					})
+					.catch(err => {
+						setFetchingInfo(false)
 
-            fetchInfo(currentItem, true)
-        }
-        catch(e: any){
-            console.error(e)
+						console.error(err)
+					})
+			}
 
-            fetchInfo(currentItem)
-        }
+			req()
+		},
+		[]
+	)
 
-        setProgress({ current: 0, total: 0 })
-    }, [currentItem])
+	const enable = useCallback(async () => {
+		if (typeof currentItem == "undefined") {
+			return
+		}
 
-    const disable = useCallback(async () => {
-        if(typeof currentItem == "undefined" || typeof info == "undefined"){
-            return
-        }
+		setFetchingInfo(true)
+		setProgress({ current: 0, total: 0 })
 
-        setFetchingInfo(true)
+		try {
+			await enableItemPublicLink(currentItem, (current, total) => setProgress({ current, total }))
 
-        try{
-            await disableItemPublicLink(currentItem, info.uuid)
+			fetchInfo(currentItem, true)
+		} catch (e: any) {
+			console.error(e)
 
-			if(getRouteURL().indexOf("links") !== -1){
+			fetchInfo(currentItem)
+		}
+
+		setProgress({ current: 0, total: 0 })
+	}, [currentItem])
+
+	const disable = useCallback(async () => {
+		if (typeof currentItem == "undefined" || typeof info == "undefined") {
+			return
+		}
+
+		setFetchingInfo(true)
+
+		try {
+			await disableItemPublicLink(currentItem, info.uuid)
+
+			if (getRouteURL().indexOf("links") !== -1) {
 				DeviceEventEmitter.emit("event", {
 					type: "remove-item",
 					data: currentItem
@@ -137,50 +161,54 @@ const PublicLinkActionSheet = memo(() => {
 
 				SheetManager.hide("PublicLinkActionSheet")
 			}
-        }
-        catch(e: any){
-            console.error(e)
-        }
+		} catch (e: any) {
+			console.error(e)
+		}
 
-        fetchInfo(currentItem)
-    }, [currentItem, info])
+		fetchInfo(currentItem)
+	}, [currentItem, info])
 
-    const save = useCallback(async (expirationText: string, password: string, downloadBtn: "enable" | "disable") => {
-        if(typeof currentItem == "undefined" || typeof info == "undefined"){
-            return
-        }
+	const save = useCallback(
+		async (expirationText: string, password: string, downloadBtn: "enable" | "disable") => {
+			if (typeof currentItem == "undefined" || typeof info == "undefined") {
+				return
+			}
 
-        setFetchingInfo(true)
+			setFetchingInfo(true)
 
-        try{
-            await editItemPublicLink(currentItem, info.uuid, expirationText, password, downloadBtn)
-        }
-        catch(e: any){
-            console.error(e)
-        }
+			try {
+				await editItemPublicLink(currentItem, info.uuid, expirationText, password, downloadBtn)
+			} catch (e: any) {
+				console.error(e)
+			}
 
-        fetchInfo(currentItem)
-    }, [currentItem, info])
+			fetchInfo(currentItem)
+		},
+		[currentItem, info]
+	)
 
-    useEffect(() => {
-		const showItemActionSheetListener = DeviceEventEmitter.addListener("showPublicLinkActionSheet", (item: Item) => {
-			setCurrentItem(item)
+	useEffect(() => {
+		const showItemActionSheetListener = DeviceEventEmitter.addListener(
+			"showPublicLinkActionSheet",
+			(item: Item) => {
+				setCurrentItem(item)
 
-            currentItemRef.current = item
+				currentItemRef.current = item
 
-            SheetManager.show("PublicLinkActionSheet")
+				SheetManager.show("PublicLinkActionSheet")
 
-            fetchInfo(item)
-		})
+				fetchInfo(item)
+			}
+		)
 
 		return () => {
 			showItemActionSheetListener.remove()
 		}
-    }, [])
+	}, [])
 
-    return (
+	return (
 		// @ts-ignore
-        <ActionSheet
+		<ActionSheet
 			id="PublicLinkActionSheet"
 			gestureEnabled={!fetchingInfo}
 			closeOnPressBack={!fetchingInfo}
@@ -190,395 +218,402 @@ const PublicLinkActionSheet = memo(() => {
 				backgroundColor: getColor(darkMode, "backgroundSecondary"),
 				borderTopLeftRadius: 15,
 				borderTopRightRadius: 15,
-                minHeight: 300
+				minHeight: 300
 			}}
 			indicatorStyle={{
 				display: "none"
 			}}
 		>
-          	<View
+			<View
 				style={{
 					paddingBottom: insets.bottom + (Platform.OS == "android" ? 25 : 0)
 				}}
 			>
 				<ActionSheetIndicator />
 				<ItemActionSheetItemHeader />
-				{
-					fetchingInfo ? (
+				{fetchingInfo ? (
+					<View
+						style={{
+							width: "100%",
+							justifyContent: "center",
+							alignItems: "center"
+						}}
+					>
+						<ActivityIndicator
+							size="small"
+							color={getColor(darkMode, "textPrimary")}
+						/>
+						{progress.total > 0 && (
+							<Text
+								style={{
+									color: getColor(darkMode, "textPrimary"),
+									marginTop: 15,
+									fontSize: 15,
+									fontWeight: "400"
+								}}
+							>
+								{i18n(
+									lang,
+									"folderPublicLinkProgress",
+									true,
+									["__DONE__", "__TOTAL__"],
+									[progress.current, progress.total]
+								)}
+							</Text>
+						)}
+					</View>
+				) : (
+					<>
 						<View
 							style={{
 								width: "100%",
-								justifyContent: "center",
-								alignItems: "center"
+								height: 45,
+								flexDirection: "row",
+								justifyContent: "space-between",
+								borderBottomColor: getColor(darkMode, "actionSheetBorder"),
+								borderBottomWidth: 1,
+								paddingLeft: 15,
+								paddingRight: 15
 							}}
 						>
-                            <ActivityIndicator
-								size="small"
-								color={getColor(darkMode, "textPrimary")}
-							/>
-                            {
-								progress.total > 0 && (
-									<Text
-										style={{
-											color: getColor(darkMode, "textPrimary"),
-											marginTop: 15,
-											fontSize: 15,
-											fontWeight: "400"
-										}}
-									>
-										{i18n(lang, "folderPublicLinkProgress", true, ["__DONE__", "__TOTAL__"], [progress.current, progress.total])}
-									</Text>
-								)
-							}
-                        </View>
-					) : (
-						<>
-							<View
+							<Text
 								style={{
-									width: "100%",
-									height: 45,
-									flexDirection: "row",
-									justifyContent: "space-between",
-									borderBottomColor: getColor(darkMode, "actionSheetBorder"),
-									borderBottomWidth: 1,
-									paddingLeft: 15,
-									paddingRight: 15
+									color: getColor(darkMode, "textPrimary"),
+									paddingTop: 12,
+									fontSize: 15,
+									fontWeight: "400"
 								}}
 							>
-								<Text
-									style={{
-										color: getColor(darkMode, "textPrimary"),
-										paddingTop: 12,
-										fontSize: 15,
-										fontWeight: "400"
+								{i18n(lang, "publicLinkEnabled")}
+							</Text>
+							<View
+								style={{
+									paddingTop: Platform.OS == "ios" ? 6 : 8
+								}}
+							>
+								<Switch
+									trackColor={getColor(darkMode, "switchTrackColor")}
+									thumbColor={
+										linkEnabed
+											? getColor(darkMode, "switchThumbColorEnabled")
+											: getColor(darkMode, "switchThumbColorDisabled")
+									}
+									ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+									onValueChange={() => {
+										if (linkEnabed) {
+											disable()
+										} else {
+											enable()
+										}
 									}}
-								>
-									{i18n(lang, "publicLinkEnabled")}
-								</Text>
+									value={linkEnabed}
+								/>
+							</View>
+						</View>
+						{typeof currentItem !== "undefined" && typeof info !== "undefined" && linkEnabed && (
+							<>
 								<View
 									style={{
-										paddingTop: Platform.OS == "ios" ? 6 : 8
+										width: "100%",
+										height: 45,
+										flexDirection: "row",
+										justifyContent: "space-between",
+										borderBottomColor: getColor(darkMode, "actionSheetBorder"),
+										borderBottomWidth: 1,
+										paddingLeft: 15,
+										paddingRight: 15
 									}}
 								>
-									<Switch
-										trackColor={getColor(darkMode, "switchTrackColor")}
-										thumbColor={linkEnabed ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
-										ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-										onValueChange={() => {
-											if(linkEnabed){
-                                                disable()
-                                            }
-                                            else{
-                                                enable()
-                                            }
+									<TouchableOpacity
+										style={{
+											width: "65%"
 										}}
-										value={linkEnabed}
-									/>
-								</View>
-							</View>
-							{
-								typeof currentItem !== "undefined" && typeof info !== "undefined" && linkEnabed && (
-									<>
-										<View
+										onPress={() => {
+											Clipboard.setString(linkURL)
+
+											showToast({ message: i18n(lang, "copiedToClipboard"), placement: "top" })
+										}}
+									>
+										<Text
 											style={{
-												width: "100%",
-												height: 45,
-												flexDirection: "row",
-												justifyContent: "space-between",
-												borderBottomColor: getColor(darkMode, "actionSheetBorder"),
-												borderBottomWidth: 1,
-												paddingLeft: 15,
-												paddingRight: 15
+												color: getColor(darkMode, "textSecondary"),
+												paddingTop: 12,
+												fontSize: 15,
+												fontWeight: "400"
+											}}
+											numberOfLines={1}
+										>
+											{linkURL}
+										</Text>
+									</TouchableOpacity>
+									<View
+										style={{
+											flexDirection: "row"
+										}}
+									>
+										<TouchableOpacity
+											onPress={() => {
+												Share.share({
+													url: linkURL
+												})
 											}}
 										>
-											<TouchableOpacity
+											<Text
 												style={{
-													width: "65%"
-												}}
-												onPress={() => {
-													Clipboard.setString(linkURL)
-												
-													showToast({ message: i18n(lang, "copiedToClipboard"), placement: "top" })
-												}}
-											>
-												<Text
-													style={{
-														color: getColor(darkMode, "textSecondary"),
-														paddingTop: 12,
-														fontSize: 15,
-														fontWeight: "400"
-													}}
-													numberOfLines={1}
-												>
-													{linkURL}
-												</Text>
-											</TouchableOpacity>
-											<View
-												style={{
-													flexDirection: "row"
-												}}
-											>
-												<TouchableOpacity
-													onPress={() => {
-														Share.share({
-															url: linkURL
-														})
-													}}
-												>
-													<Text
-														style={{
-															paddingTop: 13,
-															color: "#0A84FF",
-															fontSize: 15,
-															fontWeight: "400"
-														}}
-													>
-														{i18n(lang, "share")}
-													</Text>
-												</TouchableOpacity>
-												<TouchableOpacity
-													onPress={() => {
-														Clipboard.setString(linkURL)
-													
-														showToast({ message: i18n(lang, "copiedToClipboard"), placement: "top" })
-													}}
-												>
-													<Text
-														style={{
-															paddingTop: 13,
-															color: "#0A84FF",
-															fontSize: 15,
-															fontWeight: "400",
-															marginLeft: 15
-														}}
-													>
-														{i18n(lang, "copy")}
-													</Text>
-												</TouchableOpacity>
-											</View>
-										</View>
-										<View
-											style={{
-												width: "100%",
-												height: 45,
-												flexDirection: "row",
-												justifyContent: "space-between",
-												borderBottomColor: getColor(darkMode, "actionSheetBorder"),
-												borderBottomWidth: 1,
-												paddingLeft: 15,
-												paddingRight: 15
-											}}
-										>
-											<TextInput
-												secureTextEntry={true}
-												value={passwordDummy}
-												onChangeText={setPasswordDummy}
-                                                placeholder={typeof info.password == "string" && info.password.length > 32 ? new Array(16).join("*") : i18n(lang, "publicLinkPassword")}
-												placeholderTextColor="gray"
-												style={{
-													width: "60%",
-													paddingLeft: 0,
-													paddingRight: 0,
-													color: getColor(darkMode, "textPrimary"),
+													paddingTop: 13,
+													color: "#0A84FF",
 													fontSize: 15,
 													fontWeight: "400"
 												}}
-											/>
-											<View
+											>
+												{i18n(lang, "share")}
+											</Text>
+										</TouchableOpacity>
+										<TouchableOpacity
+											onPress={() => {
+												Clipboard.setString(linkURL)
+
+												showToast({
+													message: i18n(lang, "copiedToClipboard"),
+													placement: "top"
+												})
+											}}
+										>
+											<Text
 												style={{
-													flexDirection: "row"
+													paddingTop: 13,
+													color: "#0A84FF",
+													fontSize: 15,
+													fontWeight: "400",
+													marginLeft: 15
 												}}
 											>
-                                                {
-													typeof info.password == "string" && info.password.length > 32 && (
-														<TouchableOpacity
-															onPress={() => save(info.expirationText, "", info.downloadBtn)}
-														>
-															<Text
-																style={{
-																	paddingTop: 12,
-																	color: "#0A84FF",
-																	fontSize: 15,
-																	fontWeight: "400",
-																	marginLeft: 15
-																}}
-															>
-																{i18n(lang, "remove")}
-															</Text>
-														</TouchableOpacity>
-													)
-												}
-												{
-													passwordDummy.length > 0 && (
-														<TouchableOpacity
-															onPress={() => save(info.expirationText, passwordDummy, info.downloadBtn)}
-														>
-															<Text
-																style={{
-																	paddingTop: 12,
-																	color: "#0A84FF",
-																	fontSize: 15,
-																	fontWeight: "400",
-																	marginLeft: 15
-																}}
-															>
-																{i18n(lang, "save")}
-															</Text>
-														</TouchableOpacity>
-													)
-												}
-											</View>
-										</View>
-										{
-											typeof currentItem !== "undefined" && currentItem.type == "file" && (
-												<View
-													style={{
-														width: "100%",
-														height: 45,
-														flexDirection: "row",
-														justifyContent: "space-between",
-														borderBottomColor: getColor(darkMode, "actionSheetBorder"),
-														borderBottomWidth: 1,
-														paddingLeft: 15,
-														paddingRight: 15
-													}}
-												>
-													<Text
-														style={{
-															color: getColor(darkMode, "textPrimary"),
-															paddingTop: 12,
-															fontSize: 15,
-															fontWeight: "400"
-														}}
-													>
-														{i18n(lang, "publicLinkDownloadBtnEnabled")}
-													</Text>
-													<View
-														style={{
-															paddingTop: Platform.OS == "ios" ? 7 : 8
-														}}
-													>
-														<Switch
-															trackColor={getColor(darkMode, "switchTrackColor")}
-															thumbColor={downloadBtnEnabled ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")}
-															ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-															onValueChange={(value) => save(info.expirationText, passwordDummy, value ? "enable" : "disable")}
-															value={downloadBtnEnabled}
-														/>
-													</View>
-												</View>
-											)
+												{i18n(lang, "copy")}
+											</Text>
+										</TouchableOpacity>
+									</View>
+								</View>
+								<View
+									style={{
+										width: "100%",
+										height: 45,
+										flexDirection: "row",
+										justifyContent: "space-between",
+										borderBottomColor: getColor(darkMode, "actionSheetBorder"),
+										borderBottomWidth: 1,
+										paddingLeft: 15,
+										paddingRight: 15
+									}}
+								>
+									<TextInput
+										secureTextEntry={true}
+										value={passwordDummy}
+										onChangeText={setPasswordDummy}
+										placeholder={
+											typeof info.password == "string" && info.password.length > 32
+												? new Array(16).join("*")
+												: i18n(lang, "publicLinkPassword")
 										}
-										<RNPickerSelect
-											onValueChange={(value) => {
-												setInfo((prev: any) => ({
-                                                    ...prev,
-                                                    expirationText: value
-                                                }))
-
-                                                if(Platform.OS == "android"){
-                                                    save(value, passwordDummy, info.downloadBtn)
-                                                }
-											}}
-											onDonePress={() => save(info.expirationText, passwordDummy, info.downloadBtn)}
-											value={info.expirationText}
-											placeholder={{}}
-											items={[
-												{
-													label: i18n(lang, "publicLinkExpiresNever"),
-													value: "never"
-												},
-												{
-													label: i18n(lang, "publicLinkExpiresHour", true, ["__NUM__"], [1]),
-													value: "1h"
-												},
-												{
-													label: i18n(lang, "publicLinkExpiresHours", true, ["__NUM__"], [6]),
-													value: "6h"
-												},
-												{
-													label: i18n(lang, "publicLinkExpiresDay", true, ["__NUM__"], [1]),
-													value: "1d"
-												},
-												{
-													label: i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [3]),
-													value: "3d"
-												},
-												{
-													label: i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [7]),
-													value: "7d"
-												},
-												{
-													label: i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [14]),
-													value: "14d"
-												},
-												{
-													label: i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [30]),
-													value: "30d"
-												}
-											]}
-										>
+										placeholderTextColor="gray"
+										style={{
+											width: "60%",
+											paddingLeft: 0,
+											paddingRight: 0,
+											color: getColor(darkMode, "textPrimary"),
+											fontSize: 15,
+											fontWeight: "400"
+										}}
+									/>
+									<View
+										style={{
+											flexDirection: "row"
+										}}
+									>
+										{typeof info.password == "string" && info.password.length > 32 && (
 											<TouchableOpacity
-												style={{
-													width: "100%",
-													flexDirection: "row",
-													justifyContent: "space-between",
-													marginTop: 15,
-													height: 45
-												}}
+												onPress={() => save(info.expirationText, "", info.downloadBtn)}
 											>
 												<Text
 													style={{
-														marginLeft: 15,
-														color: getColor(darkMode, "textPrimary"),
+														paddingTop: 12,
+														color: "#0A84FF",
 														fontSize: 15,
-														fontWeight: "400"
+														fontWeight: "400",
+														marginLeft: 15
 													}}
 												>
-													{
-														info.expirationText == "never" && i18n(lang, "publicLinkExpiresNever")
-													}
-													{
-														info.expirationText == "1h" && i18n(lang, "publicLinkExpiresHour", true, ["__NUM__"], [1])
-													}
-													{
-														info.expirationText == "6h" && i18n(lang, "publicLinkExpiresHours", true, ["__NUM__"], [6])
-													}
-													{
-														info.expirationText == "1d" && i18n(lang, "publicLinkExpiresDay", true, ["__NUM__"], [1])
-													}
-													{
-														info.expirationText == "3d" && i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [3])
-													}
-													{
-														info.expirationText == "7d" && i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [7])
-													}
-													{
-														info.expirationText == "14d" && i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [14])
-													}
-													{
-														info.expirationText == "30d" && i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [30])
-													}
+													{i18n(lang, "remove")}
 												</Text>
-												<Ionicon
-													name="chevron-forward-outline"
-													size={18}
-													color={getColor(darkMode, "textPrimary")}
-													style={{
-														marginRight: 15
-													}}
-												/>
 											</TouchableOpacity>
-										</RNPickerSelect>
-									</>
-								)
-							}
-						</>
-					)
-				}
-          	</View>
-        </ActionSheet>
-    )
+										)}
+										{passwordDummy.length > 0 && (
+											<TouchableOpacity
+												onPress={() =>
+													save(info.expirationText, passwordDummy, info.downloadBtn)
+												}
+											>
+												<Text
+													style={{
+														paddingTop: 12,
+														color: "#0A84FF",
+														fontSize: 15,
+														fontWeight: "400",
+														marginLeft: 15
+													}}
+												>
+													{i18n(lang, "save")}
+												</Text>
+											</TouchableOpacity>
+										)}
+									</View>
+								</View>
+								{typeof currentItem !== "undefined" && currentItem.type == "file" && (
+									<View
+										style={{
+											width: "100%",
+											height: 45,
+											flexDirection: "row",
+											justifyContent: "space-between",
+											borderBottomColor: getColor(darkMode, "actionSheetBorder"),
+											borderBottomWidth: 1,
+											paddingLeft: 15,
+											paddingRight: 15
+										}}
+									>
+										<Text
+											style={{
+												color: getColor(darkMode, "textPrimary"),
+												paddingTop: 12,
+												fontSize: 15,
+												fontWeight: "400"
+											}}
+										>
+											{i18n(lang, "publicLinkDownloadBtnEnabled")}
+										</Text>
+										<View
+											style={{
+												paddingTop: Platform.OS == "ios" ? 7 : 8
+											}}
+										>
+											<Switch
+												trackColor={getColor(darkMode, "switchTrackColor")}
+												thumbColor={
+													downloadBtnEnabled
+														? getColor(darkMode, "switchThumbColorEnabled")
+														: getColor(darkMode, "switchThumbColorDisabled")
+												}
+												ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+												onValueChange={value =>
+													save(
+														info.expirationText,
+														passwordDummy,
+														value ? "enable" : "disable"
+													)
+												}
+												value={downloadBtnEnabled}
+											/>
+										</View>
+									</View>
+								)}
+								<RNPickerSelect
+									onValueChange={value => {
+										setInfo((prev: any) => ({
+											...prev,
+											expirationText: value
+										}))
+
+										if (Platform.OS == "android") {
+											save(value, passwordDummy, info.downloadBtn)
+										}
+									}}
+									onDonePress={() => save(info.expirationText, passwordDummy, info.downloadBtn)}
+									value={info.expirationText}
+									placeholder={{}}
+									items={[
+										{
+											label: i18n(lang, "publicLinkExpiresNever"),
+											value: "never"
+										},
+										{
+											label: i18n(lang, "publicLinkExpiresHour", true, ["__NUM__"], [1]),
+											value: "1h"
+										},
+										{
+											label: i18n(lang, "publicLinkExpiresHours", true, ["__NUM__"], [6]),
+											value: "6h"
+										},
+										{
+											label: i18n(lang, "publicLinkExpiresDay", true, ["__NUM__"], [1]),
+											value: "1d"
+										},
+										{
+											label: i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [3]),
+											value: "3d"
+										},
+										{
+											label: i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [7]),
+											value: "7d"
+										},
+										{
+											label: i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [14]),
+											value: "14d"
+										},
+										{
+											label: i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [30]),
+											value: "30d"
+										}
+									]}
+								>
+									<TouchableOpacity
+										style={{
+											width: "100%",
+											flexDirection: "row",
+											justifyContent: "space-between",
+											marginTop: 15,
+											height: 45
+										}}
+									>
+										<Text
+											style={{
+												marginLeft: 15,
+												color: getColor(darkMode, "textPrimary"),
+												fontSize: 15,
+												fontWeight: "400"
+											}}
+										>
+											{info.expirationText == "never" && i18n(lang, "publicLinkExpiresNever")}
+											{info.expirationText == "1h" &&
+												i18n(lang, "publicLinkExpiresHour", true, ["__NUM__"], [1])}
+											{info.expirationText == "6h" &&
+												i18n(lang, "publicLinkExpiresHours", true, ["__NUM__"], [6])}
+											{info.expirationText == "1d" &&
+												i18n(lang, "publicLinkExpiresDay", true, ["__NUM__"], [1])}
+											{info.expirationText == "3d" &&
+												i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [3])}
+											{info.expirationText == "7d" &&
+												i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [7])}
+											{info.expirationText == "14d" &&
+												i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [14])}
+											{info.expirationText == "30d" &&
+												i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [30])}
+										</Text>
+										<Ionicon
+											name="chevron-forward-outline"
+											size={18}
+											color={getColor(darkMode, "textPrimary")}
+											style={{
+												marginRight: 15
+											}}
+										/>
+									</TouchableOpacity>
+								</RNPickerSelect>
+							</>
+						)}
+					</>
+				)}
+			</View>
+		</ActionSheet>
+	)
 })
 
 export default PublicLinkActionSheet

@@ -5,7 +5,14 @@ import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
-import { formatBytes, convertUint8ArrayToBinaryString, base64ToArrayBuffer, getAPIServer, getAPIKey, safeAwait } from "../../../lib/helpers"
+import {
+	formatBytes,
+	convertUint8ArrayToBinaryString,
+	base64ToArrayBuffer,
+	getAPIServer,
+	getAPIKey,
+	safeAwait
+} from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../../lib/permissions"
@@ -16,45 +23,51 @@ import * as RNImagePicker from "react-native-image-picker"
 import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 
-const allowedTypes: string[] = [
-	"image/jpg",
-	"image/png",
-	"image/jpeg"
-]
+const allowedTypes: string[] = ["image/jpg", "image/png", "image/jpeg"]
 
 const ProfilePictureActionSheet = memo(() => {
-    const darkMode = useDarkMode()
+	const darkMode = useDarkMode()
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
 
 	const uploadAvatarImage = useCallback((uri: string) => {
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		ReactNativeBlobUtil.fs.readFile(uri, "base64").then((base64) => {
-			ReactNativeBlobUtil.fetch("POST", getAPIServer() + "/v1/user/avatar/upload/" + getAPIKey(), {}, convertUint8ArrayToBinaryString(base64ToArrayBuffer(base64))).then((response) => {
-				const json = response.json()
+		ReactNativeBlobUtil.fs
+			.readFile(uri, "base64")
+			.then(base64 => {
+				ReactNativeBlobUtil.fetch(
+					"POST",
+					getAPIServer() + "/v1/user/avatar/upload/" + getAPIKey(),
+					{},
+					convertUint8ArrayToBinaryString(base64ToArrayBuffer(base64))
+				)
+					.then(response => {
+						const json = response.json()
 
-				useStore.setState({ fullscreenLoadingModalVisible: false })
-		
-				if(!json.status){
-					return showToast({ message: json.message })
-				}
+						useStore.setState({ fullscreenLoadingModalVisible: false })
 
-				updateUserInfo()
-			}).catch((err) => {
+						if (!json.status) {
+							return showToast({ message: json.message })
+						}
+
+						updateUserInfo()
+					})
+					.catch(err => {
+						console.error(err)
+
+						useStore.setState({ fullscreenLoadingModalVisible: false })
+
+						showToast({ message: err.toString() })
+					})
+			})
+			.catch(err => {
 				console.error(err)
-	
+
 				useStore.setState({ fullscreenLoadingModalVisible: false })
-	
+
 				showToast({ message: err.toString() })
 			})
-		}).catch((err) => {
-			console.error(err)
-
-			useStore.setState({ fullscreenLoadingModalVisible: false })
-
-			showToast({ message: err.toString() })
-		})
 	}, [])
 
 	const takePhoto = useCallback(async () => {
@@ -63,80 +76,85 @@ const ProfilePictureActionSheet = memo(() => {
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasCameraPermissions(true))
 
-		if(hasPermissionsError){
+		if (hasPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		if(!hasPermissionsResult){
+		if (!hasPermissionsResult) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), Math.floor(+new Date()) + 500000)
 
-		RNImagePicker.launchCamera({
-			maxWidth: 999999999,
-			maxHeight: 999999999,
-			videoQuality: "low",
-			cameraType: "back",
-			quality: 0.2,
-			includeBase64: false,
-			saveToPhotos: false,
-			mediaType: "photo"
-		}, (response) => {
-			if(response.errorMessage){
-				console.log(response.errorMessage)
+		RNImagePicker.launchCamera(
+			{
+				maxWidth: 999999999,
+				maxHeight: 999999999,
+				videoQuality: "low",
+				cameraType: "back",
+				quality: 0.2,
+				includeBase64: false,
+				saveToPhotos: false,
+				mediaType: "photo"
+			},
+			response => {
+				if (response.errorMessage) {
+					console.log(response.errorMessage)
 
-				showToast({ message: response.errorMessage })
+					showToast({ message: response.errorMessage })
 
-				return
+					return
+				}
+
+				if (response.didCancel) {
+					return
+				}
+
+				if (response.errorMessage) {
+					console.error(response.errorMessage)
+
+					showToast({ message: response.errorMessage.toString() })
+
+					return
+				}
+
+				if (typeof response.assets == "undefined") {
+					return
+				}
+
+				if (!Array.isArray(response.assets)) {
+					return
+				}
+
+				if (typeof response.assets[0] == "undefined") {
+					return
+				}
+
+				const image = response.assets[0]
+
+				if (!allowedTypes.includes(image.type as string)) {
+					showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+					return
+				}
+
+				if ((image.fileSize as number) > 1024 * 1024 * 2.99) {
+					useStore.setState({ fullscreenLoadingModalVisible: false })
+
+					showToast({
+						message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(1024 * 1024 * 3)])
+					})
+
+					return
+				}
+
+				uploadAvatarImage(decodeURIComponent(image.uri as string))
 			}
-			
-			if(response.didCancel){
-				return
-			}
-
-			if(response.errorMessage){
-				console.error(response.errorMessage)
-
-				showToast({ message: response.errorMessage.toString() })
-
-				return
-			}
-
-			if(typeof response.assets == "undefined"){
-				return
-			}
-
-			if(!Array.isArray(response.assets)){
-				return
-			}
-
-			if(typeof response.assets[0] == "undefined"){
-				return
-			}
-
-			const image = response.assets[0]
-
-			if(!allowedTypes.includes(image.type as string)){
-				showToast({ message: i18n(lang, "avatarInvalidImage") })
-
-				return
-			}
-
-			if(image.fileSize as number > ((1024 * 1024) * 2.99)){
-				useStore.setState({ fullscreenLoadingModalVisible: false })
-	
-				showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
-
-				return
-			}
-
-			uploadAvatarImage(decodeURIComponent(image.uri as string))
-		})
+		)
 	}, [lang])
 
 	const fromGallery = useCallback(async () => {
@@ -144,84 +162,91 @@ const ProfilePictureActionSheet = memo(() => {
 		await new Promise(resolve => setTimeout(resolve, 100))
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
-		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(
+			hasPhotoLibraryPermissions(true)
+		)
 
-		if(hasStoragePermissionsError || hasPhotoLibraryPermissionsError){
+		if (hasStoragePermissionsError || hasPhotoLibraryPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		if(!hasStoragePermissionsResult || !hasPhotoLibraryPermissionsResult){
+		if (!hasStoragePermissionsResult || !hasPhotoLibraryPermissionsResult) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), Math.floor(+new Date()) + 500000)
 
-		RNImagePicker.launchImageLibrary({
-			mediaType: "photo",
-			selectionLimit: 1,
-			quality: 0.2,
-			videoQuality: "low",
-			includeBase64: false,
-			maxWidth: 999999999,
-			maxHeight: 999999999
-		}, (response) => {
-			if(response.didCancel){
-				return
+		RNImagePicker.launchImageLibrary(
+			{
+				mediaType: "photo",
+				selectionLimit: 1,
+				quality: 0.2,
+				videoQuality: "low",
+				includeBase64: false,
+				maxWidth: 999999999,
+				maxHeight: 999999999
+			},
+			response => {
+				if (response.didCancel) {
+					return
+				}
+
+				if (response.errorMessage) {
+					console.error(response.errorMessage)
+
+					showToast({ message: response.errorMessage.toString() })
+
+					return
+				}
+
+				if (typeof response.assets == "undefined") {
+					showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+					return
+				}
+
+				if (!Array.isArray(response.assets)) {
+					showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+					return
+				}
+
+				if (typeof response.assets[0] == "undefined") {
+					showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+					return
+				}
+
+				const image = response.assets[0]
+
+				if (!allowedTypes.includes(image.type as string)) {
+					showToast({ message: i18n(lang, "avatarInvalidImage") })
+
+					return
+				}
+
+				if ((image.fileSize as number) > 1024 * 1024 * 2.99) {
+					useStore.setState({ fullscreenLoadingModalVisible: false })
+
+					showToast({
+						message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(1024 * 1024 * 3)])
+					})
+
+					return
+				}
+
+				uploadAvatarImage(decodeURIComponent(image.uri as string))
 			}
-
-			if(response.errorMessage){
-				console.error(response.errorMessage)
-
-				showToast({ message: response.errorMessage.toString() })
-
-				return
-			}
-
-			if(typeof response.assets == "undefined"){
-				showToast({ message: i18n(lang, "avatarInvalidImage") })
-
-				return
-			}
-
-			if(!Array.isArray(response.assets)){
-				showToast({ message: i18n(lang, "avatarInvalidImage") })
-
-				return
-			}
-
-			if(typeof response.assets[0] == "undefined"){
-				showToast({ message: i18n(lang, "avatarInvalidImage") })
-
-				return
-			}
-
-			const image = response.assets[0]
-
-			if(!allowedTypes.includes(image.type as string)){
-				showToast({ message: i18n(lang, "avatarInvalidImage") })
-
-				return
-			}
-
-			if(image.fileSize as number > ((1024 * 1024) * 2.99)){
-				useStore.setState({ fullscreenLoadingModalVisible: false })
-	
-				showToast({ message: i18n(lang, "avatarMaxImageSize", true, ["__SIZE__"], [formatBytes(((1024 * 1024) * 3))]) })
-
-				return
-			}
-
-			uploadAvatarImage(decodeURIComponent(image.uri as string))
-		})
+		)
 	}, [])
 
-    return (
+	return (
 		// @ts-ignore
-        <ActionSheet
+		<ActionSheet
 			id="ProfilePictureActionSheet"
 			gestureEnabled={true}
 			containerStyle={{
@@ -233,9 +258,9 @@ const ProfilePictureActionSheet = memo(() => {
 				display: "none"
 			}}
 		>
-          	<View
+			<View
 				style={{
-					paddingBottom: (insets.bottom + 25)
+					paddingBottom: insets.bottom + 25
 				}}
 			>
 				<ActionSheetIndicator />
@@ -255,8 +280,8 @@ const ProfilePictureActionSheet = memo(() => {
 					text={i18n(lang, "uploadFromGallery")}
 				/>
 			</View>
-        </ActionSheet>
-    )
+		</ActionSheet>
+	)
 })
 
 export default ProfilePictureActionSheet
