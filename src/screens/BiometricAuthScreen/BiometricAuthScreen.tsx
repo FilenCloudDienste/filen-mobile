@@ -169,12 +169,12 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
 	const startShake = useCallback(() => {
 		Animated.sequence([
-			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-			Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
-			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-			Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: true }),
-			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: true }),
-			Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: true })
+			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: false }),
+			Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: false }),
+			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: false }),
+			Animated.timing(shakeAnimation, { toValue: -10, duration: 100, useNativeDriver: false }),
+			Animated.timing(shakeAnimation, { toValue: 10, duration: 100, useNativeDriver: false }),
+			Animated.timing(shakeAnimation, { toValue: 0, duration: 100, useNativeDriver: false })
 		]).start()
 
 		setTimeout(() => {

@@ -68,7 +68,7 @@ const CreateTextFileDialog = memo(({ navigation }: CreateTextFileDialogProps) =>
 	return (
 		<Dialog.Container
 			visible={open}
-			useNativeDriver={true}
+			useNativeDriver={false}
 			onRequestClose={() => setOpen(false)}
 			onBackdropPress={() => setOpen(false)}
 			contentStyle={
@@ -95,7 +95,7 @@ const CreateTextFileDialog = memo(({ navigation }: CreateTextFileDialogProps) =>
 				onChangeText={val => setValue(val)}
 				textInputRef={inputRef}
 				cursorColor={Platform.OS == "android" && getColor(darkMode, "linkPrimary")}
-				underlineColorAndroid={getColor(darkMode, "primaryBorder")}
+				underlineColorAndroid={getColor(darkMode, "backgroundTertiary")}
 				style={
 					Platform.OS == "android" && {
 						color: getColor(darkMode, "textPrimary")

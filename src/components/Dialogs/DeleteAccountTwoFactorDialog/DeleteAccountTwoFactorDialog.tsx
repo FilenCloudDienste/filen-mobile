@@ -78,7 +78,7 @@ const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFacto
 	return (
 		<Dialog.Container
 			visible={open}
-			useNativeDriver={true}
+			useNativeDriver={false}
 			onRequestClose={() => setOpen(false)}
 			onBackdropPress={() => {
 				if (!buttonsDisabled) {
@@ -109,7 +109,7 @@ const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFacto
 				onChangeText={val => setValue(val)}
 				textInputRef={inputRef}
 				cursorColor={Platform.OS == "android" && getColor(darkMode, "linkPrimary")}
-				underlineColorAndroid={getColor(darkMode, "primaryBorder")}
+				underlineColorAndroid={getColor(darkMode, "backgroundTertiary")}
 				style={
 					Platform.OS == "android" && {
 						color: getColor(darkMode, "textPrimary")

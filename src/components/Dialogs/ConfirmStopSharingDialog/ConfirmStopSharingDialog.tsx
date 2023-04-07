@@ -93,7 +93,7 @@ const ConfirmStopSharingDialog = memo(() => {
 			{typeof currentItem !== "undefined" && (
 				<Dialog.Container
 					visible={open}
-					useNativeDriver={true}
+					useNativeDriver={false}
 					onRequestClose={() => setOpen(false)}
 					onBackdropPress={() => setOpen(false)}
 					contentStyle={

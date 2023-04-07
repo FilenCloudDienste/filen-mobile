@@ -479,7 +479,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 								: { marginBottom: 35 }
 							: {})
 					}}
-					readOnly={isScrolling && !keyboard.keyboardShown}
+					readOnly={Platform.OS == "ios" && isScrolling && !keyboard.keyboardShown}
 					autoFocus={textEditorText.length == 0}
 					onChange={e => {
 						setValue(e)
