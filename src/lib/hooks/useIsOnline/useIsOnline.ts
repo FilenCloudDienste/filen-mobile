@@ -1,20 +1,16 @@
 import { useEffect, useState } from "react"
-import { DeviceEventEmitter } from "react-native"
 import { isOnline } from "../../services/isOnline"
 
 const useIsOnline = (): boolean => {
-	const [data, setData] = useState<boolean>(isOnline())
+	const [data, setData] = useState<boolean>(true)
 
 	useEffect(() => {
-		const listener = DeviceEventEmitter.addListener(
-			"networkInfoChange",
-			({ online, wifi }: { online: boolean; wifi: boolean }) => {
-				setData(online)
-			}
-		)
+		const interval = setInterval(async () => {
+			setData(await isOnline())
+		}, 5000)
 
 		return () => {
-			listener.remove()
+			clearInterval(interval)
 		}
 	}, [])
 

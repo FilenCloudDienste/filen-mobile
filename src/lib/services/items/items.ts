@@ -252,7 +252,7 @@ export const loadItems = async (
 	}
 
 	const refresh = async (): Promise<{ cached: boolean; items: Item[] }> => {
-		if (!isOnline()) {
+		if (!(await isOnline())) {
 			throw new Error("Device offline")
 		}
 
@@ -492,7 +492,7 @@ export const loadItems = async (
 				if (!(await fs.stat(itemOfflinePath)).exists) {
 					await removeFromOfflineStorage({ item: file })
 
-					if (isOnline()) {
+					if (await isOnline()) {
 						queueFileDownload({
 							file,
 							storeOffline: true
@@ -618,7 +618,7 @@ export const loadItems = async (
 
 	const cached = await db.dbFs.get("loadItems:" + url)
 
-	if (!isOnline()) {
+	if (!(await isOnline())) {
 		if (cached && Array.isArray(cached)) {
 			const sorted = sortItems({ items: cached, passedRoute: route }).filter(
 				item => item !== null && typeof item.uuid == "string" && item.name.length > 0
@@ -720,7 +720,7 @@ export const previewItem = async ({
 			return
 		}
 
-		if (!isOnline() && !existsOffline) {
+		if (!(await isOnline()) && !existsOffline) {
 			showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
 
 			return
@@ -840,13 +840,13 @@ export const previewItem = async ({
 		return
 	}
 
-	if (!isOnline() && !existsOffline) {
+	if (!(await isOnline()) && !existsOffline) {
 		showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
 
 		return
 	}
 
-	if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()) {
+	if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !(await isWifi())) {
 		showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
 
 		return

@@ -20,6 +20,7 @@ import { getColor } from "../../../style"
 import { hideAllToasts, showToast } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import storage from "../../../lib/storage"
+import ReactNativeBlobUtil from "react-native-blob-util"
 
 const UploadToast = memo(() => {
 	const darkMode = useDarkMode()
@@ -79,36 +80,58 @@ const UploadToast = memo(() => {
 							path = decodeURIComponent(path)
 						}
 
-						fs.stat(item).then(stat => {
-							if (stat.isDirectory) {
-								reject(i18n(lang, "cannotShareDirIntoApp"))
+						if (Platform.OS == "android") {
+							ReactNativeBlobUtil.fs.stat(item).then(stat => {
+								if (stat.type == "directory") {
+									reject(new Error(i18n(lang, "cannotShareDirIntoApp")))
 
-								return
-							}
+									return
+								}
 
-							if (!stat.exists || !stat.size) {
-								reject("File not found")
+								ReactNativeBlobUtil.fs
+									.cp(item, path)
+									.then(() => {
+										const name = stat.filename
+										const type = mime.lookup(stat.filename) || ""
+										const ext = mime.extension(stat.filename) || ""
+										const size = stat.size
 
-								return
-							}
+										return resolve({ path, ext, type, size, name })
+									})
+									.catch(reject)
+							})
+						} else {
+							fs.stat(item).then(stat => {
+								if (!stat.exists || !stat.size) {
+									reject(new Error("Item not found"))
 
-							fs.copy(item, path)
-								.then(() => {
-									const name = getFilenameFromPath(item)
-									const type = mime.lookup(name) || ""
-									const ext = mime.extension(type as string) || ""
-									const size = stat.size
+									return
+								}
 
-									return resolve({ path, ext, type, size, name })
-								})
-								.catch(reject)
-						})
+								if (stat.isDirectory) {
+									reject(new Error(i18n(lang, "cannotShareDirIntoApp")))
+
+									return
+								}
+
+								fs.copy(item, path)
+									.then(() => {
+										const name = getFilenameFromPath(stat.uri)
+										const type = mime.lookup(name) || ""
+										const ext = mime.extension(name) || ""
+										const size = stat.size
+
+										return resolve({ path, ext, type, size, name })
+									})
+									.catch(reject)
+							})
+						}
 					})
-					.catch(reject)
+					.catch(() => reject(new Error("Item not found")))
 			})
 		}
 
-		const limit = 100
+		const limit = 1000
 
 		if (items.length >= limit) {
 			showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
@@ -129,7 +152,7 @@ const UploadToast = memo(() => {
 									name,
 									size,
 									mime: type,
-									lastModified: new Date().getTime()
+									lastModified: Date.now()
 								},
 								parent
 							})

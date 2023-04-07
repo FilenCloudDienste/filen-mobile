@@ -496,7 +496,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 	const init = useRef<boolean>(false)
 
 	const getEvents = useCallback(
-		async (timestamp: number = Math.floor(new Date().getTime() / 1000) + 60, refresh: boolean = false) => {
+		async (timestamp: number = Math.floor(Date.now() / 1000) + 60, refresh: boolean = false) => {
 			setIsLoading(true)
 
 			const [err, data] = await safeAwait(fetchEvents({ timestamp, filter }))
@@ -620,7 +620,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 
 								await new Promise(resolve => setTimeout(resolve, 500))
 
-								getEvents(Math.floor(new Date().getTime() / 1000) + 60, true)
+								getEvents(Math.floor(Date.now() / 1000) + 60, true)
 							}}
 							tintColor={getColor(darkMode, "textPrimary")}
 						/>

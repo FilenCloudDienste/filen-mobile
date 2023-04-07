@@ -221,7 +221,7 @@ const ItemListPhotos = memo(
 				{scrollDate.length > 0 && items.length > 0 && normalizedPhotoRange == "all" && (
 					<View
 						style={{
-							backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(128, 128, 128, 0.6)",
+							backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(90, 90, 90, 0.65)",
 							width: "auto",
 							height: "auto",
 							borderRadius: 15,
@@ -251,7 +251,7 @@ const ItemListPhotos = memo(
 						{normalizedPhotoRange == "all" && (
 							<View
 								style={{
-									backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(128, 128, 128, 0.6)",
+									backgroundColor: darkMode ? "rgba(34, 34, 34, 0.6)" : "rgba(90, 90, 90, 0.65)",
 									width: "auto",
 									height: "auto",
 									borderRadius: 15,
@@ -320,7 +320,7 @@ const ItemListPhotos = memo(
 						)}
 						<View
 							style={{
-								backgroundColor: darkMode ? "rgba(34, 34, 34, 0.7)" : "rgba(128, 128, 128, 0.8)",
+								backgroundColor: darkMode ? "rgba(34, 34, 34, 0.7)" : "rgba(90, 90, 90, 0.65)",
 								width: "auto",
 								height: "auto",
 								borderRadius: 15,
@@ -344,7 +344,7 @@ const ItemListPhotos = memo(
 												normalizedPhotoRange == key
 													? darkMode
 														? "gray"
-														: "darkgray"
+														: "gray"
 													: "transparent",
 											width: "auto",
 											height: "auto",

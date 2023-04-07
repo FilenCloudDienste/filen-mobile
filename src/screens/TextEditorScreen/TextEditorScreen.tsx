@@ -350,7 +350,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 							name: fileName,
 							size: stat.size,
 							mime: "text/plain",
-							lastModified: new Date().getTime()
+							lastModified: Date.now()
 						},
 						parent
 					}).catch(err => {
@@ -474,11 +474,13 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 						inputLineHeight: 21,
 						highlighterLineHeight: 21,
 						...(keyboard.keyboardShown
-							? { marginBottom: keyboard.keyboardHeight - insets.bottom + 10 }
+							? Platform.OS == "ios"
+								? { marginBottom: keyboard.keyboardHeight - insets.bottom + 10 }
+								: { marginBottom: 35 }
 							: {})
 					}}
 					readOnly={isScrolling && !keyboard.keyboardShown}
-					autoFocus={false}
+					autoFocus={textEditorText.length == 0}
 					onChange={e => {
 						setValue(e)
 						setTextEditorState("edit")
@@ -486,7 +488,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 					initialValue={textEditorText.length > 0 ? textEditorText : ""}
 					language={getLanguageOfFile(fileName) as Languages}
 					syntaxStyle={darkMode ? CodeEditorSyntaxStyles.monokai : CodeEditorSyntaxStyles.github}
-					showLineNumbers={true}
+					showLineNumbers={Platform.OS == "ios"}
 				/>
 			</SafeAreaView>
 		</>

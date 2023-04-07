@@ -59,11 +59,11 @@ export const queueFileUpload = ({
 			return reject("master keys !== array")
 		}
 
-		if (!isOnline()) {
+		if (!(await isOnline())) {
 			return reject(i18n(storage.getString("lang"), "deviceOffline"))
 		}
 
-		if (storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && !isWifi()) {
+		if (storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && !(await isWifi())) {
 			return reject("wifiOnly")
 		}
 
@@ -94,7 +94,7 @@ export const queueFileUpload = ({
 			metadata: "",
 			chunks: 0,
 			parent,
-			timestamp: Math.floor(+new Date() / 1000),
+			timestamp: Math.floor(Date.now() / 1000),
 			version: uploadVersion,
 			versionedUUID: undefined,
 			region: "",
@@ -450,7 +450,7 @@ export const queueFileUpload = ({
 				fileChunks = doneRes.data.chunks
 			}
 
-			item.timestamp = Math.floor(+new Date() / 1000)
+			item.timestamp = Math.floor(Date.now() / 1000)
 
 			await checkIfItemParentIsShared({
 				type: "file",

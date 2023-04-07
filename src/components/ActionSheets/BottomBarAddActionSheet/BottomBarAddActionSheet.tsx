@@ -5,7 +5,14 @@ import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
-import { getRandomArbitrary, convertTimestampToMs, getFileExt, getParent, getFilePreviewType, safeAwait } from "../../../lib/helpers"
+import {
+	getRandomArbitrary,
+	convertTimestampToMs,
+	getFileExt,
+	getParent,
+	getFilePreviewType,
+	safeAwait
+} from "../../../lib/helpers"
 import { queueFileUpload, UploadFile } from "../../../lib/services/upload/upload"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
@@ -20,7 +27,7 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { getLastModified } from "../../../lib/services/cameraUpload"
 
 const BottomBarAddActionSheet = memo(() => {
-    const darkMode = useDarkMode()
+	const darkMode = useDarkMode()
 	const currentRoutes = useStore(state => state.currentRoutes)
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
@@ -43,119 +50,133 @@ const BottomBarAddActionSheet = memo(() => {
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasCameraPermissions(true))
 
-		if(hasPermissionsError){
+		if (hasPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		if(!hasPermissionsResult){
+		if (!hasPermissionsResult) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
 
 		const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
 			return new Promise((resolve, reject) => {
-				if(!asset.uri){
+				if (!asset.uri) {
 					return reject(new Error("Could not copy file"))
 				}
 
 				const fileURI = decodeURIComponent(asset.uri.replace("file://", ""))
 
-				fs.stat(fileURI).then((info) => {
-					if(!info.exists){
-						return reject(new Error(fileURI + " does not exist"))
-					}
+				fs.stat(fileURI)
+					.then(info => {
+						if (!info.exists) {
+							return reject(new Error(fileURI + " does not exist"))
+						}
 
-					return resolve({
-						path: fileURI,
-						name: i18n(lang, getFilePreviewType(getFileExt(fileURI)) == "image" ? "photo" : "video") + "_" + new Date().toISOString().split(":").join("-").split(".").join("-") + getRandomArbitrary(1, 999999999) +  "." + getFileExt(fileURI),
-						size: info.size,
-						mime: mimeTypes.lookup(fileURI) || "",
-						lastModified: convertTimestampToMs(info.modificationTime || new Date().getTime())
+						return resolve({
+							path: fileURI,
+							name:
+								i18n(lang, getFilePreviewType(getFileExt(fileURI)) == "image" ? "photo" : "video") +
+								"_" +
+								new Date().toISOString().split(":").join("-").split(".").join("-") +
+								getRandomArbitrary(1, 999999999) +
+								"." +
+								getFileExt(fileURI),
+							size: info.size,
+							mime: mimeTypes.lookup(fileURI) || "",
+							lastModified: convertTimestampToMs(info.modificationTime || Date.now())
+						})
 					})
-				}).catch(reject)
+					.catch(reject)
 			})
 		}
 
-		RNImagePicker.launchCamera({
-			maxWidth: 999999999,
-			maxHeight: 999999999,
-			videoQuality: "high",
-			cameraType: "back",
-			quality: 1,
-			includeBase64: false,
-			saveToPhotos: false,
-			mediaType: "photo",
-			durationLimit: 86400000
-		}, async (response) => {
-			if(response.errorMessage){
-				console.error(response.errorMessage)
+		RNImagePicker.launchCamera(
+			{
+				maxWidth: 999999999,
+				maxHeight: 999999999,
+				videoQuality: "high",
+				cameraType: "back",
+				quality: 1,
+				includeBase64: false,
+				saveToPhotos: false,
+				mediaType: "photo",
+				durationLimit: 86400000
+			},
+			async response => {
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
 
-				showToast({ message: response.errorMessage })
+				if (response.errorMessage) {
+					console.error(response.errorMessage)
 
-				return
-			}
-			
-			if(response.didCancel){
-				return
-			}
+					showToast({ message: response.errorMessage })
 
-			const parent = getParent()
+					return
+				}
 
-			if(parent.length < 16){
-				return
-			}
+				if (response.didCancel) {
+					return
+				}
 
-			if(response.assets){
-				for(const asset of response.assets){
-					if(asset.uri){
-						try{
-							const file = await getFileInfo(asset)
+				const parent = getParent()
 
-							queueFileUpload({ file, parent }).catch((err) => {
-								if(err == "wifiOnly"){
-									return showToast({ message: i18n(lang, "onlyWifiUploads") })
-								}
+				if (parent.length < 16) {
+					return
+				}
 
-								console.error(err)
+				if (response.assets) {
+					for (const asset of response.assets) {
+						if (asset.uri) {
+							try {
+								const file = await getFileInfo(asset)
 
-								showToast({ message: err.toString() })
-							})
-						}
-						catch(e: any){
-							console.error(e)
+								queueFileUpload({ file, parent }).catch(err => {
+									if (err == "wifiOnly") {
+										return showToast({ message: i18n(lang, "onlyWifiUploads") })
+									}
 
-							showToast({ message: e.toString() })
+									console.error(err)
+
+									showToast({ message: err.toString() })
+								})
+							} catch (e: any) {
+								console.error(e)
+
+								showToast({ message: e.toString() })
+							}
 						}
 					}
 				}
 			}
-		})
+		)
 	}, [])
 
 	const uploadFromGallery = useCallback(async () => {
 		await SheetManager.hide("BottomBarAddActionSheet")
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
-		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(
+			hasPhotoLibraryPermissions(true)
+		)
 
-		if(hasStoragePermissionsError || hasPhotoLibraryPermissionsError){
+		if (hasStoragePermissionsError || hasPhotoLibraryPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		if(!hasStoragePermissionsResult || !hasPhotoLibraryPermissionsResult){
+		if (!hasStoragePermissionsResult || !hasPhotoLibraryPermissionsResult) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
 
 		DeviceEventEmitter.emit("openSelectMediaScreen")
 	}, [])
@@ -166,94 +187,103 @@ const BottomBarAddActionSheet = memo(() => {
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-		if(hasPermissionsError){
+		if (hasPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		if(!hasPermissionsResult){
+		if (!hasPermissionsResult) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
 
 			return
 		}
 
-		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), (Math.floor(+new Date()) + 500000))
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
 
 		const getFileInfo = (result: DocumentPickerResponse): Promise<UploadFile> => {
 			return new Promise((resolve, reject) => {
-				if(result.copyError){
+				if (result.copyError) {
 					return reject(new Error("Could not copy file"))
 				}
 
-				if(typeof result.fileCopyUri !== "string"){
+				if (typeof result.fileCopyUri !== "string") {
 					return reject(new Error("Could not copy file"))
 				}
 
 				const fileURI = decodeURIComponent(result.fileCopyUri.replace("file://", "").replace("file:", ""))
 
-				fs.stat(fileURI).then((info) => {
-					if(!info.exists){
-						return reject(new Error(fileURI + " does not exist"))
-					}
+				fs.stat(fileURI)
+					.then(info => {
+						if (!info.exists) {
+							return reject(new Error(fileURI + " does not exist"))
+						}
 
-					getLastModified(fileURI, result.name, convertTimestampToMs(info.modificationTime || new Date().getTime())).then((lastModified) => {
-						return resolve({
-							path: fileURI,
-							name: result.name,
-							size: info.size,
-							mime: mimeTypes.lookup(result.name) || result.type || "",
-							lastModified
-						})
-					}).catch(reject)
-				}).catch(reject)
+						getLastModified(fileURI, result.name, convertTimestampToMs(info.modificationTime || Date.now()))
+							.then(lastModified => {
+								return resolve({
+									path: fileURI,
+									name: result.name,
+									size: info.size,
+									mime: mimeTypes.lookup(result.name) || result.type || "",
+									lastModified
+								})
+							})
+							.catch(reject)
+					})
+					.catch(reject)
 			})
 		}
 
 		RNDocumentPicker.pickMultiple({
 			type: [RNDocumentPicker.types.allFiles],
 			copyTo: "cachesDirectory"
-		}).then(async (result) => {
-			const parent = getParent()
-
-			if(parent.length < 16){
-				return
-			}
-
-			for(let i = 0; i < result.length; i++){
-				try{
-					const file = await getFileInfo(result[i])
-
-					queueFileUpload({ file, parent }).catch((err) => {
-						if(err == "wifiOnly"){
-							return showToast({ message: i18n(lang, "onlyWifiUploads") })
-						}
-
-						console.error(err)
-
-						showToast({ message: err.toString() })
-					})
-				}
-				catch(e: any){
-					console.log(e)
-
-					showToast({ message: e.toString() })
-				}
-			}
-		}).catch((err) => {
-			if(RNDocumentPicker.isCancel(err)){
-				return
-			}
-
-			console.log(err)
-
-			showToast({ message: err.toString() })
 		})
+			.then(async result => {
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+
+				const parent = getParent()
+
+				if (parent.length < 16) {
+					return
+				}
+
+				for (let i = 0; i < result.length; i++) {
+					try {
+						const file = await getFileInfo(result[i])
+
+						queueFileUpload({ file, parent }).catch(err => {
+							if (err == "wifiOnly") {
+								return showToast({ message: i18n(lang, "onlyWifiUploads") })
+							}
+
+							console.error(err)
+
+							showToast({ message: err.toString() })
+						})
+					} catch (e: any) {
+						console.log(e)
+
+						showToast({ message: e.toString() })
+					}
+				}
+			})
+			.catch(err => {
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+
+				if (RNDocumentPicker.isCancel(err)) {
+					return
+				}
+
+				console.log(err)
+
+				showToast({ message: err.toString() })
+			})
 	}, [])
 
-    return (
+	return (
 		// @ts-ignore
-        <ActionSheet
+		<ActionSheet
 			id="BottomBarAddActionSheet"
 			gestureEnabled={true}
 			containerStyle={{
@@ -265,9 +295,9 @@ const BottomBarAddActionSheet = memo(() => {
 				display: "none"
 			}}
 		>
-          	<View
+			<View
 				style={{
-					paddingBottom: (insets.bottom + 25)
+					paddingBottom: insets.bottom + 25
 				}}
 			>
 				<ActionSheetIndicator />
@@ -281,20 +311,18 @@ const BottomBarAddActionSheet = memo(() => {
 					icon="folder-outline"
 					text={i18n(lang, "createFolder")}
 				/>
-				{
-					typeof currentRoutes == "object"
-					&& Array.isArray(currentRoutes)
-					&& typeof currentRoutes[currentRoutes.length - 1].params == "object"
-					&& typeof currentRoutes[currentRoutes.length - 1].params.parent !== "undefined"
-					&& currentRoutes[currentRoutes.length - 1].params.parent !== "base"
-					&& (
+				{typeof currentRoutes == "object" &&
+					Array.isArray(currentRoutes) &&
+					typeof currentRoutes[currentRoutes.length - 1].params == "object" &&
+					typeof currentRoutes[currentRoutes.length - 1].params.parent !== "undefined" &&
+					currentRoutes[currentRoutes.length - 1].params.parent !== "base" && (
 						<>
 							<ActionButton
 								onPress={createTextFile}
 								icon="create-outline"
 								text={i18n(lang, "createTextFile")}
 							/>
-							<ActionButton 
+							<ActionButton
 								onPress={takePhoto}
 								icon="camera-outline"
 								text={i18n(lang, "takePhotoAndUpload")}
@@ -310,11 +338,10 @@ const BottomBarAddActionSheet = memo(() => {
 								text={i18n(lang, "uploadFiles")}
 							/>
 						</>
-					)
-				}
+					)}
 			</View>
-        </ActionSheet>
-    )
+		</ActionSheet>
+	)
 })
 
 export default BottomBarAddActionSheet

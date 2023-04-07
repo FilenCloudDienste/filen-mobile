@@ -37,6 +37,7 @@ import { showToast } from "../../components/Toasts"
 import { getAssetURI, videoExts, photoExts } from "../../lib/services/cameraUpload"
 import * as fs from "../../lib/fs"
 import { FlashList } from "@shopify/flash-list"
+import storage from "../../lib/storage"
 
 const videoThumbnailSemaphore = new Semaphore(5)
 const ALBUM_ROW_HEIGHT = 70
@@ -561,7 +562,10 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 		return (
 			<>
 				<DefaultTopBar
-					onPressBack={() => navigation.goBack()}
+					onPressBack={() => {
+						storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+						navigation.goBack()
+					}}
 					leftText={i18n(lang, "back")}
 					middleText={"Error"}
 				/>
@@ -586,6 +590,8 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 					<DefaultTopBar
 						onPressBack={() => {
 							if (typeof params.prevNavigationState !== "undefined") {
+								storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+
 								navigationAnimation({ enable: true }).then(() => {
 									const newRoutes = [
 										...params.prevNavigationState.routes.map(route => ({
@@ -629,7 +635,10 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 									right: 15,
 									left: 15
 								}}
-								onPress={() => navigation.goBack()}
+								onPress={() => {
+									storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+									navigation.goBack()
+								}}
 							>
 								<Text
 									style={{
@@ -666,7 +675,10 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 			) : (
 				<>
 					<DefaultTopBar
-						onPressBack={() => navigation.goBack()}
+						onPressBack={() => {
+							storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+							navigation.goBack()
+						}}
 						leftText={i18n(lang, "albums")}
 						middleText={i18n(lang, "select")}
 						rightComponent={
@@ -686,6 +698,11 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 									}}
 									onPress={() => {
 										if (typeof params.prevNavigationState !== "undefined") {
+											storage.set(
+												"lastBiometricScreen:" + storage.getNumber("userId"),
+												Date.now() - 5000
+											)
+
 											DeviceEventEmitter.emit("selectMediaScreenUpload", {
 												assets: selectedAssets,
 												parent: getParent(
@@ -717,7 +734,14 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 										alignItems: "flex-end",
 										paddingRight: 15
 									}}
-									onPress={() => navigation.dispatch(StackActions.pop(2))}
+									onPress={() => {
+										storage.set(
+											"lastBiometricScreen:" + storage.getNumber("userId"),
+											Date.now() - 5000
+										)
+
+										navigation.dispatch(StackActions.pop(2))
+									}}
 								>
 									<Text
 										style={{

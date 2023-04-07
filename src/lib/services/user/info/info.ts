@@ -2,8 +2,8 @@ import { fetchUserInfo, fetchUserUsage } from "../../../api"
 import storage from "../../../storage"
 import { isOnline } from "../../isOnline"
 
-export const updateUserUsage = (): void => {
-	if (!isOnline()) {
+export const updateUserUsage = async (): Promise<void> => {
+	if (!(await isOnline())) {
 		return
 	}
 
@@ -12,8 +12,8 @@ export const updateUserUsage = (): void => {
 		.catch(console.error)
 }
 
-export const updateUserInfo = (): void => {
-	if (!isOnline()) {
+export const updateUserInfo = async (): Promise<void> => {
+	if (!(await isOnline())) {
 		return
 	}
 

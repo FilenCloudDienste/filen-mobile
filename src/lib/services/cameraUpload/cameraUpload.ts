@@ -590,7 +590,7 @@ export const copyFile = async (
 	const lastModified = await getLastModified(
 		tmp.split("file://").join(""),
 		asset.filename,
-		convertTimestampToMs(asset.creationTime || asset.modificationTime || new Date().getTime())
+		convertTimestampToMs(asset.creationTime || asset.modificationTime || Date.now())
 	)
 
 	return {
@@ -713,9 +713,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 									getLastModified(
 										resource.localFileLocations.split("file://").join(""),
 										asset.filename,
-										convertTimestampToMs(
-											asset.creationTime || asset.modificationTime || new Date().getTime()
-										)
+										convertTimestampToMs(asset.creationTime || asset.modificationTime || Date.now())
 									)
 										.then(lastModified => {
 											console.log(lastModified)
@@ -753,9 +751,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 									getLastModified(
 										resource.localFileLocations.split("file://").join(""),
 										asset.filename,
-										convertTimestampToMs(
-											asset.creationTime || asset.modificationTime || new Date().getTime()
-										)
+										convertTimestampToMs(asset.creationTime || asset.modificationTime || Date.now())
 									)
 										.then(lastModified => {
 											return resolve({
@@ -790,7 +786,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = false): Promise<void> => {
 	await runMutex.acquire()
 
-	if (runTimeout > new Date().getTime() && !runOnce) {
+	if (runTimeout > Date.now() && !runOnce) {
 		runMutex.release()
 
 		return
@@ -801,7 +797,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		const userId = storage.getNumber("userId")
 
 		if (!isLoggedIn || userId == 0) {
-			runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
 			if (runOnce) return
@@ -820,7 +816,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 				!(await hasReadPermissions(true)) ||
 				!(await hasWritePermissions(true))
 			) {
-				runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+				runTimeout = Date.now() + (TIMEOUT - 1000)
 				runMutex.release()
 
 				setTimeout(() => {
@@ -835,10 +831,10 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 
 		const cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
 		const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
-		const now = new Date().getTime()
+		const now = Date.now()
 
 		if (!cameraUploadEnabled) {
-			runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
 			if (runOnce) return
@@ -851,7 +847,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		}
 
 		if (typeof cameraUploadFolderUUID !== "string") {
-			runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
 			if (runOnce) return
@@ -864,7 +860,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		}
 
 		if (cameraUploadFolderUUID.length < 32 || !validate(cameraUploadFolderUUID)) {
-			runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
 			if (runOnce) return
@@ -876,8 +872,8 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			return
 		}
 
-		if (!isOnline()) {
-			runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+		if (!(await isOnline())) {
+			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
 			if (runOnce) return
@@ -889,8 +885,8 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			return
 		}
 
-		if (storage.getBoolean("onlyWifiUploads:" + userId) && !isWifi()) {
-			runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+		if (storage.getBoolean("onlyWifiUploads:" + userId) && !(await isWifi())) {
+			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
 			if (runOnce) return
@@ -912,7 +908,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		}
 
 		if (!folderExists) {
-			runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
 			disableCameraUpload(true)
@@ -933,8 +929,8 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		storage.set("cameraUploadTotal", Object.keys(local).length)
 		storage.set("cameraUploadUploaded", currentlyUploadedCount)
 
-		if (new Date().getTime() > now + MAX_FETCH_TIME && runOnce) {
-			runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+		if (Date.now() > now + MAX_FETCH_TIME && runOnce) {
+			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
 			return
@@ -1050,7 +1046,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			storage.set("cameraUploadUploaded", Object.keys(local).length)
 		}
 
-		runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+		runTimeout = Date.now() + (TIMEOUT - 1000)
 		runMutex.release()
 
 		if (runOnce) return
@@ -1063,7 +1059,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 	} catch (e) {
 		console.error(e)
 
-		runTimeout = new Date().getTime() + (TIMEOUT - 1000)
+		runTimeout = Date.now() + (TIMEOUT - 1000)
 		runMutex.release()
 
 		if (runOnce) return

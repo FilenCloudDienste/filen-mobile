@@ -1,51 +1,29 @@
 import * as Network from "expo-network"
-import { DeviceEventEmitter } from "react-native"
-import { AppState } from "react-native"
 
-let STATE_INTERVAL: any
-const info = {
-	online: true,
-	wifi: true
-}
+export const isOnline = async (): Promise<boolean> => {
+	try {
+		const state = await Network.getNetworkStateAsync()
 
-export const runWifiCheck = () => {
-	Network.getNetworkStateAsync()
-		.then(state => {
-			DeviceEventEmitter.emit("networkInfoChange", {
-				online: state.isInternetReachable && state.isConnected,
-				wifi: state.type == Network.NetworkStateType.WIFI
-			})
+		return state.isInternetReachable && state.isConnected
+	} catch (e) {
+		console.error(e)
 
-			info.online = state.isInternetReachable && state.isConnected
-			info.wifi = state.type == Network.NetworkStateType.WIFI
-		})
-		.catch(console.error)
-}
-
-export const run = () => {
-	clearInterval(STATE_INTERVAL)
-
-	runWifiCheck()
-
-	STATE_INTERVAL = setInterval(runWifiCheck, 15000)
-}
-
-run()
-
-AppState.addEventListener("change", nextAppState => {
-	if (nextAppState == "active") {
-		runWifiCheck()
+		return true
 	}
-})
-
-export const isOnline = (): boolean => {
-	return info.online
 }
 
 export const networkState = async () => {
-	return Network.getNetworkStateAsync()
+	return await Network.getNetworkStateAsync()
 }
 
-export const isWifi = (): boolean => {
-	return info.wifi
+export const isWifi = async (): Promise<boolean> => {
+	try {
+		const state = await Network.getNetworkStateAsync()
+
+		return state.type === Network.NetworkStateType.WIFI
+	} catch (e) {
+		console.error(e)
+
+		return true
+	}
 }

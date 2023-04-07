@@ -88,7 +88,7 @@ const ProfilePictureActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), Math.floor(+new Date()) + 500000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
 
 		RNImagePicker.launchCamera(
 			{
@@ -102,6 +102,8 @@ const ProfilePictureActionSheet = memo(() => {
 				mediaType: "photo"
 			},
 			response => {
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+
 				if (response.errorMessage) {
 					console.log(response.errorMessage)
 
@@ -178,7 +180,7 @@ const ProfilePictureActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("biometricPinAuthTimeout:" + storage.getNumber("userId"), Math.floor(+new Date()) + 500000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
 
 		RNImagePicker.launchImageLibrary(
 			{
@@ -191,6 +193,8 @@ const ProfilePictureActionSheet = memo(() => {
 				maxHeight: 999999999
 			},
 			response => {
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+
 				if (response.didCancel) {
 					return
 				}

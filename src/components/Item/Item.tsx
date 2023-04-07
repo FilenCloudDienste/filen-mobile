@@ -27,8 +27,6 @@ import { Item } from "../../types"
 import { fetchFolderSize } from "../../lib/api"
 import memoryCache from "../../lib/memoryCache"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
-import { isOnline } from "../../lib/services/isOnline"
-import { useMountedState } from "react-use"
 import FastImage from "react-native-fast-image"
 import * as db from "../../lib/db"
 import { checkItemThumbnail } from "../../lib/services/thumbnails"
@@ -60,7 +58,7 @@ export const ListItem = memo(
 		const fetched = useRef<boolean>(false)
 
 		useEffect(() => {
-			if (item.type == "folder" && isOnline() && !fetched.current) {
+			if (item.type == "folder" && !fetched.current) {
 				fetched.current = true
 
 				fetchFolderSize({ folder: item, routeURL: getRouteURL(route) })
@@ -291,7 +289,7 @@ export const GridItem = memo(
 		}, [dimensions, insets])
 
 		useEffect(() => {
-			if (item.type == "folder" && isOnline() && !fetched.current) {
+			if (item.type == "folder" && !fetched.current) {
 				fetched.current = true
 
 				fetchFolderSize({ folder: item, routeURL: getRouteURL(route) })

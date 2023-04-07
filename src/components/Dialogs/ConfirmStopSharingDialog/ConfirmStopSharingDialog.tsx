@@ -5,14 +5,17 @@ import useLang from "../../../lib/hooks/useLang"
 import { stopSharingItem } from "../../../lib/api"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Text, Platform } from "react-native"
 import { Item } from "../../../types"
+import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { getColor } from "../../../style"
 
 const ConfirmStopSharingDialog = memo(() => {
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
 	const lang = useLang()
 	const [open, setOpen] = useState<boolean>(false)
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
+	const darkMode = useDarkMode()
 
 	const stopSharing = useCallback(() => {
 		if (typeof currentItem == "undefined" || buttonsDisabled) {
@@ -90,22 +93,37 @@ const ConfirmStopSharingDialog = memo(() => {
 			{typeof currentItem !== "undefined" && (
 				<Dialog.Container
 					visible={open}
-					useNativeDriver={false}
+					useNativeDriver={true}
 					onRequestClose={() => setOpen(false)}
 					onBackdropPress={() => setOpen(false)}
+					contentStyle={
+						Platform.OS == "android" && {
+							backgroundColor: getColor(darkMode, "backgroundSecondary")
+						}
+					}
 				>
 					<Dialog.Title>
-						{i18n(lang, "stopSharingConfirmation", true, ["__NAME__"], [currentItem.name])}
+						<Text
+							style={
+								Platform.OS == "android" && {
+									color: getColor(darkMode, "textPrimary")
+								}
+							}
+						>
+							{i18n(lang, "stopSharingConfirmation", true, ["__NAME__"], [currentItem.name])}
+						</Text>
 					</Dialog.Title>
 					<Dialog.Button
 						label={i18n(lang, "cancel")}
 						disabled={buttonsDisabled}
 						onPress={() => setOpen(false)}
+						color={getColor(darkMode, "linkPrimary")}
 					/>
 					<Dialog.Button
 						label={i18n(lang, "stopSharing")}
 						disabled={buttonsDisabled}
 						onPress={stopSharing}
+						color={getColor(darkMode, "linkPrimary")}
 					/>
 				</Dialog.Container>
 			)}

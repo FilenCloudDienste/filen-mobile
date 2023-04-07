@@ -64,10 +64,10 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
 
 	getDownloadPath({ type: "thumbnail" })
 		.then(path => {
-			const remove = () => {
+			const remove = async () => {
 				delete isCheckingThumbnailForItemUUID[item.uuid]
 
-				if (!isOnline()) {
+				if (!(await isOnline())) {
 					return
 				}
 
@@ -100,7 +100,7 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
 		})
 }
 
-export const generateItemThumbnail = ({
+export const generateItemThumbnail = async ({
 	item,
 	skipInViewCheck = false,
 	path = undefined,
@@ -186,7 +186,7 @@ export const generateItemThumbnail = ({
 		}
 	}
 
-	if (!isOnline()) {
+	if (!(await isOnline())) {
 		if (typeof callback == "function") {
 			callback(true)
 		}
@@ -194,7 +194,7 @@ export const generateItemThumbnail = ({
 		return false
 	}
 
-	if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()) {
+	if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !(await isWifi())) {
 		if (typeof callback == "function") {
 			callback(true)
 		}

@@ -405,12 +405,12 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 				paddingTop: 10,
 				alignItems: "center"
 			}}
-			onPress={() => {
+			onPress={async () => {
 				if (!navigationEnabled) {
 					return
 				}
 
-				if (!isOnline()) {
+				if (!(await isOnline())) {
 					showToast({ message: i18n(lang, "deviceOffline") })
 
 					return
@@ -422,7 +422,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 			}}
 		>
 			<TouchableOpacity
-				onPress={() => {
+				onPress={async () => {
 					return
 
 					if (Platform.OS == "android") {
@@ -430,7 +430,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 						return
 					}
 
-					if (!isOnline()) {
+					if (!(await isOnline())) {
 						showToast({ message: i18n(lang, "deviceOffline") })
 
 						return
@@ -592,8 +592,8 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 			</SettingsGroup>
 			<SettingsGroup>
 				<SettingsButtonLinkHighlight
-					onPress={() => {
-						if (!isOnline()) {
+					onPress={async () => {
+						if (!(await isOnline())) {
 							return showToast({ message: i18n(lang, "deviceOffline") })
 						}
 
@@ -612,8 +612,8 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 					iconName="trash-outline"
 				/>
 				<SettingsButtonLinkHighlight
-					onPress={() => {
-						if (!isOnline()) {
+					onPress={async () => {
+						if (!(await isOnline())) {
 							return showToast({ message: i18n(lang, "deviceOffline") })
 						}
 
@@ -627,8 +627,8 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 					iconName="repeat-outline"
 				/>
 				<SettingsButtonLinkHighlight
-					onPress={() => {
-						if (!isOnline()) {
+					onPress={async () => {
+						if (!(await isOnline())) {
 							return showToast({ message: i18n(lang, "deviceOffline") })
 						}
 
@@ -644,8 +644,8 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 			</SettingsGroup>
 			<SettingsGroup>
 				<SettingsButtonLinkHighlight
-					onPress={() => {
-						if (!isOnline()) {
+					onPress={async () => {
+						if (!(await isOnline())) {
 							return showToast({ message: i18n(lang, "deviceOffline") })
 						}
 

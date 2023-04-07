@@ -6,8 +6,10 @@ import { getParent } from "../../../lib/helpers"
 import { i18n } from "../../../i18n"
 import { navigationAnimation } from "../../../lib/state"
 import { StackActions } from "@react-navigation/native"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Text, Platform } from "react-native"
 import { NavigationContainerRef } from "@react-navigation/native"
+import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { getColor } from "../../../style"
 
 export interface CreateTextFileDialogProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -22,6 +24,7 @@ const CreateTextFileDialog = memo(({ navigation }: CreateTextFileDialogProps) =>
 	const setCreateTextFileDialogName = useStore(state => state.setCreateTextFileDialogName)
 	const setTextEditorParent = useStore(state => state.setTextEditorParent)
 	const [open, setOpen] = useState<boolean>(false)
+	const darkMode = useDarkMode()
 
 	const create = useCallback(() => {
 		const name = value.trim()
@@ -65,25 +68,43 @@ const CreateTextFileDialog = memo(({ navigation }: CreateTextFileDialogProps) =>
 	return (
 		<Dialog.Container
 			visible={open}
-			useNativeDriver={false}
+			useNativeDriver={true}
 			onRequestClose={() => setOpen(false)}
 			onBackdropPress={() => setOpen(false)}
+			contentStyle={
+				Platform.OS == "android" && {
+					backgroundColor: getColor(darkMode, "backgroundSecondary")
+				}
+			}
 		>
-			<Dialog.Title>{i18n(lang, "createTextFile")}</Dialog.Title>
+			<Dialog.Title>
+				<Text
+					style={
+						Platform.OS == "android" && {
+							color: getColor(darkMode, "textPrimary")
+						}
+					}
+				>
+					{i18n(lang, "createTextFile")}
+				</Text>
+			</Dialog.Title>
 			<Dialog.Input
 				placeholder={i18n(lang, "fileName")}
 				value={value}
 				autoFocus={true}
 				onChangeText={val => setValue(val)}
 				textInputRef={inputRef}
+				cursorColor={Platform.OS == "android" && getColor(darkMode, "linkPrimary")}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "cancel")}
 				onPress={() => setOpen(false)}
+				color={getColor(darkMode, "linkPrimary")}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "create")}
 				onPress={create}
+				color={getColor(darkMode, "linkPrimary")}
 			/>
 		</Dialog.Container>
 	)

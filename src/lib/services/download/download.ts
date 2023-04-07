@@ -144,7 +144,7 @@ export const queueFileDownload = async ({
 		}
 	}
 
-	if (!isOnline()) {
+	if (!(await isOnline())) {
 		callOptionalCallback(new Error("device is offline"))
 
 		showToast({ message: i18n(storage.getString("lang"), "deviceOffline") })
@@ -212,7 +212,7 @@ export const queueFileDownload = async ({
 	}
 
 	try {
-		if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !isWifi()) {
+		if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !(await isWifi())) {
 			downloadSemaphore.release()
 
 			delete currentDownloads[file.uuid]

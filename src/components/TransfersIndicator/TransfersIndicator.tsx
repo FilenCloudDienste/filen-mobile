@@ -142,7 +142,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 
 	useEffect(() => {
 		const uploadListener = DeviceEventEmitter.addListener("upload", data => {
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (data.type == "start") {
 				setCurrentUploads((prev: any) => ({
@@ -213,7 +213,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 				}
 			}
 
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			if (data.type == "start") {
 				setCurrentDownloads((prev: any) => ({
@@ -278,7 +278,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 		})
 
 		const uploadProgressListener = DeviceEventEmitter.addListener("uploadProgress", (data: ProgressData) => {
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			setCurrentUploads((prev: any) =>
 				Object.keys(prev).filter(key => key == data.data.uuid).length > 0
@@ -317,7 +317,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 				}
 			}
 
-			const now: number = new Date().getTime()
+			const now: number = Date.now()
 
 			setCurrentDownloads((prev: any) =>
 				Object.keys(prev).filter(key => key == data.data.uuid).length > 0

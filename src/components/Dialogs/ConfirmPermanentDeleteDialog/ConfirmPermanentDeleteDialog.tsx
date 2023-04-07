@@ -5,14 +5,17 @@ import useLang from "../../../lib/hooks/useLang"
 import { deleteItemPermanently } from "../../../lib/api"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Platform, Text } from "react-native"
 import { Item } from "../../../types"
+import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { getColor } from "../../../style"
 
 const ConfirmPermanentDeleteDialog = memo(() => {
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
 	const lang = useLang()
 	const [open, setOpen] = useState<boolean>(false)
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
+	const darkMode = useDarkMode()
 
 	const permanentDelete = useCallback(() => {
 		if (typeof currentItem == "undefined" || buttonsDisabled) {
@@ -70,22 +73,37 @@ const ConfirmPermanentDeleteDialog = memo(() => {
 			{typeof currentItem !== "undefined" && (
 				<Dialog.Container
 					visible={open}
-					useNativeDriver={false}
+					useNativeDriver={true}
 					onRequestClose={() => setOpen(false)}
 					onBackdropPress={() => setOpen(false)}
+					contentStyle={
+						Platform.OS == "android" && {
+							backgroundColor: getColor(darkMode, "backgroundSecondary")
+						}
+					}
 				>
 					<Dialog.Title>
-						{i18n(lang, "itemDeletedPermanentlyConfirmation", true, ["__NAME__"], [currentItem.name])}
+						<Text
+							style={
+								Platform.OS == "android" && {
+									color: getColor(darkMode, "textPrimary")
+								}
+							}
+						>
+							{i18n(lang, "itemDeletedPermanentlyConfirmation", true, ["__NAME__"], [currentItem.name])}
+						</Text>
 					</Dialog.Title>
 					<Dialog.Button
 						label={i18n(lang, "cancel")}
 						disabled={buttonsDisabled}
 						onPress={() => setOpen(false)}
+						color={getColor(darkMode, "linkPrimary")}
 					/>
 					<Dialog.Button
 						label={i18n(lang, "deletePermanently")}
 						disabled={buttonsDisabled}
 						onPress={permanentDelete}
+						color={getColor(darkMode, "linkPrimary")}
 					/>
 				</Dialog.Container>
 			)}

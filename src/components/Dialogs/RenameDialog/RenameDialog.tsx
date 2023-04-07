@@ -6,8 +6,10 @@ import { fileAndFolderNameValidation } from "../../../lib/helpers"
 import { folderExists, fileExists, renameFile, renameFolder } from "../../../lib/api"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
-import { DeviceEventEmitter, Keyboard } from "react-native"
+import { DeviceEventEmitter, Keyboard, Text, Platform } from "react-native"
 import { Item } from "../../../types"
+import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { getColor } from "../../../style"
 
 const RenameDialog = memo(() => {
 	const [value, setValue] = useState<string>("")
@@ -17,6 +19,7 @@ const RenameDialog = memo(() => {
 	const [ext, setExt] = useState<string>("")
 	const [open, setOpen] = useState<boolean>(false)
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
+	const darkMode = useDarkMode()
 
 	const rename = useCallback(() => {
 		if (typeof currentItem == "undefined" || buttonsDisabled) {
@@ -227,30 +230,48 @@ const RenameDialog = memo(() => {
 	return (
 		<Dialog.Container
 			visible={open}
-			useNativeDriver={false}
+			useNativeDriver={true}
 			onRequestClose={() => setOpen(false)}
 			onBackdropPress={() => {
 				if (!buttonsDisabled) {
 					setOpen(false)
 				}
 			}}
+			contentStyle={
+				Platform.OS == "android" && {
+					backgroundColor: getColor(darkMode, "backgroundSecondary")
+				}
+			}
 		>
-			<Dialog.Title>{i18n(lang, "rename")}</Dialog.Title>
+			<Dialog.Title>
+				<Text
+					style={
+						Platform.OS == "android" && {
+							color: getColor(darkMode, "textPrimary")
+						}
+					}
+				>
+					{i18n(lang, "rename")}
+				</Text>
+			</Dialog.Title>
 			<Dialog.Input
 				placeholder={i18n(lang, "newName")}
 				value={value}
 				onChangeText={val => setValue(val)}
 				textInputRef={inputRef}
+				cursorColor={Platform.OS == "android" && getColor(darkMode, "linkPrimary")}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "cancel")}
 				disabled={buttonsDisabled}
 				onPress={() => setOpen(false)}
+				color={getColor(darkMode, "linkPrimary")}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "rename")}
 				disabled={buttonsDisabled}
 				onPress={rename}
+				color={getColor(darkMode, "linkPrimary")}
 			/>
 		</Dialog.Container>
 	)

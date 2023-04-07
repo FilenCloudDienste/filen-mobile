@@ -76,7 +76,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 						getFileExt(currentActionSheetItem.name)
 					)
 				) {
-					if (isOnline()) {
+					if (await isOnline()) {
 						setCanSaveToGallery(true)
 					} else {
 						if (isAvailableOffline) {
@@ -86,7 +86,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				}
 			} else {
 				if (["jpg", "jpeg", "png", "gif", "mov", "mp4"].includes(getFileExt(currentActionSheetItem.name))) {
-					if (isOnline()) {
+					if (await isOnline()) {
 						setCanSaveToGallery(true)
 					} else {
 						if (isAvailableOffline) {
@@ -105,7 +105,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 			setCanDownload(false)
 
-			if (isOnline()) {
+			if (await isOnline()) {
 				setCanDownload(true)
 			} else {
 				if (isAvailableOffline) {
@@ -571,7 +571,9 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [networkInfo])
 
 	useEffect(() => {
-		setIsDeviceOnline(isOnline())
+		;(async () => {
+			setIsDeviceOnline(await isOnline())
+		})()
 
 		if (typeof currentActionSheetItem !== "undefined") {
 			can()

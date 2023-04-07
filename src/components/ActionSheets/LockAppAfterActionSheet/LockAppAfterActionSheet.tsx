@@ -22,7 +22,7 @@ const LockAppAfterActionSheet = memo(() => {
 		async (seconds: number) => {
 			setLockAppAfter(seconds)
 
-			storage.set("biometricPinAuthTimeout:" + userId, Math.floor(+new Date()) + seconds * 1000)
+			storage.set("lastBiometricScreen:" + userId, Math.floor(Date.now()) + seconds * 1000)
 
 			await SheetManager.hide("LockAppAfterActionSheet")
 		},

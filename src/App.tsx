@@ -244,7 +244,7 @@ export const App = Sentry.wrap(
 
 				if (
 					storage.getBoolean("biometricPinAuth:" + userId) &&
-					new Date().getTime() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
+					Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
 					!isRouteInStack(navigationRef, ["BiometricAuthScreen"])
 				) {
 					setBiometricAuthScreenState("auth")
@@ -350,7 +350,7 @@ export const App = Sentry.wrap(
 						lockAppAfter = Math.floor(lockAppAfter * 1000)
 
 						if (
-							new Date().getTime() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
+							Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
 							storage.getBoolean("biometricPinAuth:" + userId)
 						) {
 							setBiometricAuthScreenState("auth")
@@ -407,7 +407,7 @@ export const App = Sentry.wrap(
 			const selectMediaScreenUploadListener = DeviceEventEmitter.addListener(
 				"selectMediaScreenUpload",
 				async ({ assets, parent }: { assets: Asset[]; parent: string }) => {
-					await new Promise(resolve => setTimeout(resolve, 750))
+					await new Promise(resolve => setTimeout(resolve, 500))
 
 					showFullScreenLoadingModal()
 
@@ -428,9 +428,7 @@ export const App = Sentry.wrap(
 								tmpPath,
 								assets[i].asset.filename,
 								convertTimestampToMs(
-									assets[i].asset.creationTime ||
-										assets[i].asset.modificationTime ||
-										new Date().getTime()
+									assets[i].asset.creationTime || assets[i].asset.modificationTime || Date.now()
 								)
 							)
 

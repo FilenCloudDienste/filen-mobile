@@ -6,7 +6,9 @@ import { fileAndFolderNameValidation, getParent } from "../../../lib/helpers"
 import { folderExists, createFolder } from "../../../lib/api"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
-import { DeviceEventEmitter, Keyboard } from "react-native"
+import { DeviceEventEmitter, Keyboard, Text, Platform } from "react-native"
+import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { getColor } from "../../../style"
 
 const CreateFolderDialog = memo(() => {
 	const [value, setValue] = useState<string>("Untitled folder")
@@ -14,6 +16,7 @@ const CreateFolderDialog = memo(() => {
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
 	const lang = useLang()
 	const [open, setOpen] = useState<boolean>(false)
+	const darkMode = useDarkMode()
 
 	const create = useCallback(() => {
 		if (buttonsDisabled) {
@@ -123,15 +126,30 @@ const CreateFolderDialog = memo(() => {
 	return (
 		<Dialog.Container
 			visible={open}
-			useNativeDriver={false}
+			useNativeDriver={true}
 			onRequestClose={() => setOpen(false)}
 			onBackdropPress={() => {
 				if (!buttonsDisabled) {
 					setOpen(false)
 				}
 			}}
+			contentStyle={
+				Platform.OS == "android" && {
+					backgroundColor: getColor(darkMode, "backgroundSecondary")
+				}
+			}
 		>
-			<Dialog.Title>{i18n(lang, "newFolder")}</Dialog.Title>
+			<Dialog.Title>
+				<Text
+					style={
+						Platform.OS == "android" && {
+							color: getColor(darkMode, "textPrimary")
+						}
+					}
+				>
+					{i18n(lang, "newFolder")}
+				</Text>
+			</Dialog.Title>
 			<Dialog.Input
 				placeholder={i18n(lang, "folderName")}
 				value={value}
@@ -139,16 +157,19 @@ const CreateFolderDialog = memo(() => {
 				autoFocus={true}
 				onChangeText={val => setValue(val)}
 				textInputRef={inputRef}
+				cursorColor={Platform.OS == "android" && getColor(darkMode, "linkPrimary")}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "cancel")}
 				disabled={buttonsDisabled}
 				onPress={() => setOpen(false)}
+				color={getColor(darkMode, "linkPrimary")}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "create")}
 				disabled={buttonsDisabled}
 				onPress={create}
+				color={getColor(darkMode, "linkPrimary")}
 			/>
 		</Dialog.Container>
 	)

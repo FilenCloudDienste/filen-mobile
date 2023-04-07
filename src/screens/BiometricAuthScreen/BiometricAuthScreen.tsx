@@ -209,7 +209,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
 			setIsAuthing(false)
 
-			storage.set("lastBiometricScreen:" + userId, new Date().getTime())
+			storage.set("lastBiometricScreen:" + userId, Date.now())
 
 			if (wasSetupScreen) {
 				navigationAnimation({ enable: true }).then(() => {

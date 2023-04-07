@@ -329,7 +329,7 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
 			size: 0,
 			mime: "",
 			key: "",
-			lastModified: Math.floor(+new Date() / 1000),
+			lastModified: Date.now(),
 			hash: ""
 		}
 

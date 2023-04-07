@@ -238,7 +238,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 					setLoadDone(true)
 				}
 
-				if (cached && isOnline()) {
+				if (cached && (await isOnline())) {
 					populateList(true, startingURL).catch(console.error)
 				}
 			} catch (e) {

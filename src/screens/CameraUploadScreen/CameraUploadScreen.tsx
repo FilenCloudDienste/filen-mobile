@@ -263,7 +263,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 									setCameraUploadAfterEnabled(newValue)
 
 									if (newValue) {
-										storage.set("cameraUploadAfterEnabledTime:" + userId, new Date().getTime())
+										storage.set("cameraUploadAfterEnabledTime:" + userId, Date.now())
 									} else {
 										storage.set("cameraUploadAfterEnabledTime:" + userId, 0)
 									}

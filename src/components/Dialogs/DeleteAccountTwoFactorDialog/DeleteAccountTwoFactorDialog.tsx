@@ -7,8 +7,10 @@ import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { Keyboard } from "react-native"
 import { logout } from "../../../lib/services/auth/logout"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Text, Platform } from "react-native"
 import { NavigationContainerRef } from "@react-navigation/native"
+import useDarkMode from "../../../lib/hooks/useDarkMode"
+import { getColor } from "../../../style"
 
 export interface DeleteAccountTwoFactorDialogProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -20,6 +22,7 @@ const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFacto
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
 	const lang = useLang()
 	const [open, setOpen] = useState<boolean>(false)
+	const darkMode = useDarkMode()
 
 	const deleteAcc = useCallback(() => {
 		if (buttonsDisabled) {
@@ -75,31 +78,49 @@ const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFacto
 	return (
 		<Dialog.Container
 			visible={open}
-			useNativeDriver={false}
+			useNativeDriver={true}
 			onRequestClose={() => setOpen(false)}
 			onBackdropPress={() => {
 				if (!buttonsDisabled) {
 					setOpen(false)
 				}
 			}}
+			contentStyle={
+				Platform.OS == "android" && {
+					backgroundColor: getColor(darkMode, "backgroundSecondary")
+				}
+			}
 		>
-			<Dialog.Title>{i18n(lang, "deleteAccount")}</Dialog.Title>
+			<Dialog.Title>
+				<Text
+					style={
+						Platform.OS == "android" && {
+							color: getColor(darkMode, "textPrimary")
+						}
+					}
+				>
+					{i18n(lang, "deleteAccount")}
+				</Text>
+			</Dialog.Title>
 			<Dialog.Input
 				placeholder={i18n(lang, "code")}
 				value={value}
 				autoFocus={true}
 				onChangeText={val => setValue(val)}
 				textInputRef={inputRef}
+				cursorColor={Platform.OS == "android" && getColor(darkMode, "linkPrimary")}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "cancel")}
 				disabled={buttonsDisabled}
 				onPress={() => setOpen(false)}
+				color={getColor(darkMode, "linkPrimary")}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "delete")}
 				disabled={buttonsDisabled}
 				onPress={deleteAcc}
+				color={getColor(darkMode, "linkPrimary")}
 			/>
 		</Dialog.Container>
 	)

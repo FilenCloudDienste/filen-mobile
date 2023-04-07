@@ -10,255 +10,250 @@ import { fetchOfflineFilesInfo } from "../../api"
 import { decryptFileMetadata } from "../../crypto"
 
 export const getOfflineList = async (): Promise<Item[]> => {
-    const userId = storage.getNumber("userId")
+	const userId = storage.getNumber("userId")
 
-    if(userId == 0){
-        throw new Error("userId in storage invalid length")
-    }
+	if (userId == 0) {
+		throw new Error("userId in storage invalid length")
+	}
 
-    const offlineList: Item[] = await db.dbFs.get("offlineList:" + userId)
+	const offlineList: Item[] = await db.dbFs.get("offlineList:" + userId)
 
-    if(!offlineList){
-        return []
-    }
+	if (!offlineList) {
+		return []
+	}
 
-    if(offlineList.length <= 0){
-        return []
-    }
+	if (offlineList.length <= 0) {
+		return []
+	}
 
-    return offlineList
+	return offlineList
 }
 
 export const saveOfflineList = async ({ list }: { list: Item[] }): Promise<boolean> => {
-    const userId = storage.getNumber("userId")
+	const userId = storage.getNumber("userId")
 
-    if(userId == 0){
-        throw new Error("userId in storage invalid length")
-    }
+	if (userId == 0) {
+		throw new Error("userId in storage invalid length")
+	}
 
-    await db.dbFs.set("offlineList:" + userId, list)
+	await db.dbFs.set("offlineList:" + userId, list)
 
-    return true
+	return true
 }
 
 export const addItemToOfflineList = async ({ item }: { item: Item }): Promise<boolean> => {
-    const userId = storage.getNumber("userId")
+	const userId = storage.getNumber("userId")
 
-    if(userId == 0){
-        throw new Error("userId in storage invalid length")
-    }
-    
-    const offlineList = await getOfflineList()
-    const offlineItem = item
+	if (userId == 0) {
+		throw new Error("userId in storage invalid length")
+	}
 
-    offlineItem.selected = false
+	const offlineList = await getOfflineList()
+	const offlineItem = item
 
-    const newList = [...offlineList]
-    let exists = false
+	offlineItem.selected = false
 
-    for(let i = 0; i < newList.length; i++){
-        if(newList[i].uuid == offlineItem.uuid){
-            exists = true
-        }
-    }
+	const newList = [...offlineList]
+	let exists = false
 
-    if(exists){
-        return true
-    }
+	for (let i = 0; i < newList.length; i++) {
+		if (newList[i].uuid == offlineItem.uuid) {
+			exists = true
+		}
+	}
 
-    offlineItem.offline = true
+	if (exists) {
+		return true
+	}
 
-    newList.push(offlineItem)
+	offlineItem.offline = true
 
-    await Promise.all([
-        db.set(userId + ":offlineItems:" + offlineItem.uuid, true),
-        saveOfflineList({ list: newList })
-    ])
+	newList.push(offlineItem)
 
-    return true
+	await Promise.all([db.set(userId + ":offlineItems:" + offlineItem.uuid, true), saveOfflineList({ list: newList })])
+
+	return true
 }
 
-export const changeItemNameInOfflineList = async ({ item, name }: { item: Item, name: string }): Promise<boolean> => {
-    const userId = storage.getNumber("userId")
+export const changeItemNameInOfflineList = async ({ item, name }: { item: Item; name: string }): Promise<boolean> => {
+	const userId = storage.getNumber("userId")
 
-    if(userId == 0){
-        throw new Error("userId in storage invalid length")
-    }
-    
-    const offlineList = await getOfflineList()
-    const newList = offlineList.map(mapItem => mapItem.uuid == item.uuid ? {...mapItem, name} : mapItem)
+	if (userId == 0) {
+		throw new Error("userId in storage invalid length")
+	}
 
-    await saveOfflineList({ list: newList })
+	const offlineList = await getOfflineList()
+	const newList = offlineList.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, name } : mapItem))
 
-    return true
+	await saveOfflineList({ list: newList })
+
+	return true
 }
 
 export const removeItemFromOfflineList = async ({ item }: { item: Item }): Promise<boolean> => {
-    const userId = storage.getNumber("userId")
+	const userId = storage.getNumber("userId")
 
-    if(typeof userId !== "number"){
-        throw new Error("userId in storage !== number")
-    }
+	if (typeof userId !== "number") {
+		throw new Error("userId in storage !== number")
+	}
 
-    if(userId == 0){
-        throw new Error("userId in storage invalid length")
-    }
+	if (userId == 0) {
+		throw new Error("userId in storage invalid length")
+	}
 
-    const offlineList = await getOfflineList()
-    const newList = [...offlineList]
+	const offlineList = await getOfflineList()
+	const newList = [...offlineList]
 
-    for(let i = 0; i < newList.length; i++){
-        if(newList[i].uuid == item.uuid){
-            newList.splice(i, 1)
-        }
-    }
+	for (let i = 0; i < newList.length; i++) {
+		if (newList[i].uuid == item.uuid) {
+			newList.splice(i, 1)
+		}
+	}
 
-    await Promise.all([
-        db.remove(userId + ":offlineItems:" + item.uuid),
-        saveOfflineList({ list: newList })
-    ])
+	await Promise.all([db.remove(userId + ":offlineItems:" + item.uuid), saveOfflineList({ list: newList })])
 
-    return true
+	return true
 }
 
 export const getItemOfflinePath = (offlinePath: string, item: Item): string => {
-    return offlinePath + item.uuid + item.name + "_" + item.uuid + "." + getFileExt(item.name)
+	return offlinePath + item.uuid + item.name + "_" + item.uuid + "." + getFileExt(item.name)
 }
 
 export const removeFromOfflineStorage = async ({ item }: { item: Item }): Promise<boolean> => {
-    const path = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
+	const path = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
 
-    try{
-        if((await fs.stat(path)).exists){
-            await fs.unlink(path)
-        }
-    }
-    catch(e){
-        console.log(e)
-    }
+	try {
+		if ((await fs.stat(path)).exists) {
+			await fs.unlink(path)
+		}
+	} catch (e) {
+		console.log(e)
+	}
 
-    await removeItemFromOfflineList({ item })
-    
-    DeviceEventEmitter.emit("event", {
-        type: "mark-item-offline",
-        data: {
-            uuid: item.uuid,
-            value: false
-        }
-    })
+	await removeItemFromOfflineList({ item })
 
-    return true
+	DeviceEventEmitter.emit("event", {
+		type: "mark-item-offline",
+		data: {
+			uuid: item.uuid,
+			value: false
+		}
+	})
+
+	return true
 }
 
 export const checkOfflineItems = async (items: Item[]) => {
-    const userId = storage.getNumber("userId")
-    const masterKeys = getMasterKeys()
+	const userId = storage.getNumber("userId")
+	const masterKeys = getMasterKeys()
 
-    if(userId == 0 || masterKeys.length <= 0){
-        throw new Error("Invalid user data")
-    }
+	if (userId == 0 || masterKeys.length <= 0) {
+		throw new Error("Invalid user data")
+	}
 
-    const offlineFilesToFetchInfo = items.map(item => item.uuid)
-    
-    if(offlineFilesToFetchInfo.length > 0 && isOnline()){
-        const offlineFilesInfo = await fetchOfflineFilesInfo({ files: offlineFilesToFetchInfo })
+	const offlineFilesToFetchInfo = items.map(item => item.uuid)
 
-        for(let i = 0; i < items.length; i++){
-            const prop = items[i].uuid
-            const itemUUID = items[i].uuid
-            const itemName = items[i].name
+	if (offlineFilesToFetchInfo.length > 0 && (await isOnline())) {
+		const offlineFilesInfo = await fetchOfflineFilesInfo({ files: offlineFilesToFetchInfo })
 
-            if(typeof offlineFilesInfo[prop] !== "undefined"){
-                if(offlineFilesInfo[prop].exists){
-                    items[i].favorited = offlineFilesInfo[prop].favorited
+		for (let i = 0; i < items.length; i++) {
+			const prop = items[i].uuid
+			const itemUUID = items[i].uuid
+			const itemName = items[i].name
 
-                    const metadata = await (
-                        offlineFilesInfo[prop].isVersioned ?
-                            decryptFileMetadata(masterKeys, offlineFilesInfo[prop].versionedInfo.metadata, offlineFilesInfo[prop].versionedInfo.uuid)
-                            : decryptFileMetadata(masterKeys, offlineFilesInfo[prop].metadata, prop)
-                    )
+			if (typeof offlineFilesInfo[prop] !== "undefined") {
+				if (offlineFilesInfo[prop].exists) {
+					items[i].favorited = offlineFilesInfo[prop].favorited
 
-                    if(typeof metadata == "object"){
-                        if(offlineFilesInfo[prop].isVersioned || items[i].name !== metadata.name){
-                            let newItem = items[i]
-    
-                            if(offlineFilesInfo[prop].isVersioned){
-                                newItem.uuid = offlineFilesInfo[prop].versionedUUID
-                                newItem.region = offlineFilesInfo[prop].versionedInfo.region
-                                newItem.bucket = offlineFilesInfo[prop].versionedInfo.bucket
-                                newItem.chunks = offlineFilesInfo[prop].versionedInfo.chunks
-                                newItem.timestamp = offlineFilesInfo[prop].versionedInfo.timestamp
-                                newItem.rm = offlineFilesInfo[prop].versionedInfo.rm
-                                newItem.thumbnail = undefined
-                                newItem.date = simpleDate(offlineFilesInfo[prop].versionedInfo.timestamp)
-                            }
+					const metadata = await (offlineFilesInfo[prop].isVersioned
+						? decryptFileMetadata(
+								masterKeys,
+								offlineFilesInfo[prop].versionedInfo.metadata,
+								offlineFilesInfo[prop].versionedInfo.uuid
+						  )
+						: decryptFileMetadata(masterKeys, offlineFilesInfo[prop].metadata, prop))
 
-                            newItem.offline = true
-                            newItem.name = metadata.name
-                            newItem.size = metadata.size
-                            newItem.mime = metadata.mime
-                            newItem.key = metadata.key
-                            newItem.lastModified = metadata.lastModified
+					if (typeof metadata == "object") {
+						if (offlineFilesInfo[prop].isVersioned || items[i].name !== metadata.name) {
+							let newItem = items[i]
 
-                            if(offlineFilesInfo[prop].isVersioned){
-                                queueFileDownload({
-                                    file: newItem,
-                                    storeOffline: true,
-                                    isOfflineUpdate: true,
-                                    optionalCallback: () => {
-                                        removeFromOfflineStorage({
-                                            item: {
-                                                uuid: itemUUID,
-                                                name: itemName
-                                            } as Item
-                                        })
+							if (offlineFilesInfo[prop].isVersioned) {
+								newItem.uuid = offlineFilesInfo[prop].versionedUUID
+								newItem.region = offlineFilesInfo[prop].versionedInfo.region
+								newItem.bucket = offlineFilesInfo[prop].versionedInfo.bucket
+								newItem.chunks = offlineFilesInfo[prop].versionedInfo.chunks
+								newItem.timestamp = offlineFilesInfo[prop].versionedInfo.timestamp
+								newItem.rm = offlineFilesInfo[prop].versionedInfo.rm
+								newItem.thumbnail = undefined
+								newItem.date = simpleDate(offlineFilesInfo[prop].versionedInfo.timestamp)
+							}
 
-                                        DeviceEventEmitter.emit("event", {
-                                            type: "remove-item",
-                                            data: {
-                                                uuid: itemUUID
-                                            }
-                                        })
+							newItem.offline = true
+							newItem.name = metadata.name
+							newItem.size = metadata.size
+							newItem.mime = metadata.mime
+							newItem.key = metadata.key
+							newItem.lastModified = metadata.lastModified
 
-                                        DeviceEventEmitter.emit("event", {
-                                            type: "add-item",
-                                            data: {
-                                                item: newItem,
-                                                parent: newItem.parent
-                                            }
-                                        })
-                                    }
-                                }).catch(console.error)
-                            }
-                            else{
-                                await new Promise((resolve, reject) => {
-                                    changeItemNameInOfflineList({ item: items[i], name: metadata.name }).then(() => {
-                                        DeviceEventEmitter.emit("event", {
-                                            type: "change-item-name",
-                                            data: {
-                                                uuid: items[i].uuid,
-                                                name: metadata.name
-                                            }
-                                        })
+							if (offlineFilesInfo[prop].isVersioned) {
+								queueFileDownload({
+									file: newItem,
+									storeOffline: true,
+									isOfflineUpdate: true,
+									optionalCallback: () => {
+										removeFromOfflineStorage({
+											item: {
+												uuid: itemUUID,
+												name: itemName
+											} as Item
+										})
 
-                                        return resolve(true)
-                                    }).catch(reject)
-                                })
-                            }
-                        }
-                    }
-                }
-                else{
-                    await removeFromOfflineStorage({ item: items[i] })
+										DeviceEventEmitter.emit("event", {
+											type: "remove-item",
+											data: {
+												uuid: itemUUID
+											}
+										})
 
-                    DeviceEventEmitter.emit("event", {
-                        type: "remove-item",
-                        data: {
-                            uuid: prop
-                        }
-                    })
-                }
-            }
-        }
-    }
+										DeviceEventEmitter.emit("event", {
+											type: "add-item",
+											data: {
+												item: newItem,
+												parent: newItem.parent
+											}
+										})
+									}
+								}).catch(console.error)
+							} else {
+								await new Promise((resolve, reject) => {
+									changeItemNameInOfflineList({ item: items[i], name: metadata.name })
+										.then(() => {
+											DeviceEventEmitter.emit("event", {
+												type: "change-item-name",
+												data: {
+													uuid: items[i].uuid,
+													name: metadata.name
+												}
+											})
+
+											return resolve(true)
+										})
+										.catch(reject)
+								})
+							}
+						}
+					}
+				} else {
+					await removeFromOfflineStorage({ item: items[i] })
+
+					DeviceEventEmitter.emit("event", {
+						type: "remove-item",
+						data: {
+							uuid: prop
+						}
+					})
+				}
+			}
+		}
+	}
 }
