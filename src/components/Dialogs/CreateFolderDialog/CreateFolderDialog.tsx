@@ -158,6 +158,12 @@ const CreateFolderDialog = memo(() => {
 				onChangeText={val => setValue(val)}
 				textInputRef={inputRef}
 				cursorColor={Platform.OS == "android" && getColor(darkMode, "linkPrimary")}
+				underlineColorAndroid={getColor(darkMode, "primaryBorder")}
+				style={
+					Platform.OS == "android" && {
+						color: getColor(darkMode, "textPrimary")
+					}
+				}
 			/>
 			<Dialog.Button
 				label={i18n(lang, "cancel")}
