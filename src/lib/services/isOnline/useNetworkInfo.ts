@@ -11,6 +11,19 @@ export const useNetworkInfo = () => {
 	const [state, setState] = useState<NetworkInfo>({ online: true, wifi: true })
 
 	useEffect(() => {
+		;(async () => {
+			try {
+				const info = await networkState()
+
+				setState({
+					online: info.isConnected && info.isInternetReachable,
+					wifi: info.type === Network.NetworkStateType.WIFI
+				})
+			} catch (e) {
+				console.error(e)
+			}
+		})()
+
 		const interval = setInterval(async () => {
 			try {
 				const info = await networkState()
