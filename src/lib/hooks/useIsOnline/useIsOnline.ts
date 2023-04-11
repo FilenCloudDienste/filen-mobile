@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { isOnline } from "../../services/isOnline"
 
 const useIsOnline = (): boolean => {
 	const [data, setData] = useState<boolean>(true)
 
-	useEffect(() => {
+	const update = useCallback(() => {
 		;(async () => {
 			setData(await isOnline())
 		})()
+	}, [])
 
-		const interval = setInterval(async () => {
-			setData(await isOnline())
-		}, 5000)
+	useEffect(() => {
+		update()
+
+		const interval = setInterval(update, 5000)
 
 		return () => {
 			clearInterval(interval)

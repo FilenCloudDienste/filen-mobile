@@ -1,6 +1,6 @@
 import storage from "../../storage"
 import { queueFileUpload, UploadFile } from "../upload/upload"
-import { Platform, NativeModules } from "react-native"
+import { Platform } from "react-native"
 import {
 	promiseAllSettled,
 	convertTimestampToMs,
@@ -15,7 +15,6 @@ import {
 import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import mimeTypes from "mime-types"
-// @ts-ignore
 import RNHeicConverter from "react-native-heic-converter"
 import {
 	hasPhotoLibraryPermissions,
@@ -32,9 +31,6 @@ import path from "path"
 import { decryptFileMetadata } from "../../crypto"
 import * as fs from "../../fs"
 import * as db from "../../db"
-import Exif from "react-native-exif"
-import moment from "moment"
-import MediaMeta from "react-native-media-meta"
 
 const CryptoJS = require("crypto-js")
 
@@ -45,7 +41,7 @@ const MAX_FETCH_TIME: number = 15000
 let askedForPermissions: boolean = false
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout: number = 0
-let fallbackInterval: any
+let fallbackInterval: NodeJS.Timer
 const getFilesMutex = new Semaphore(1)
 
 export const runMutex = new Semaphore(1)
@@ -542,7 +538,7 @@ export const convertHeicToJPGIOS = async (inputPath: string) => {
 		return inputPath
 	}
 
-	const { success, path, error }: { success: boolean; path: string; error: any } = await RNHeicConverter.convert({
+	const { success, path, error } = await RNHeicConverter.convert({
 		path: toExpoFsPath(inputPath),
 		quality: 1,
 		extension: "jpg"
@@ -783,10 +779,10 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 	}
 }
 
-export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = false): Promise<void> => {
+export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 	await runMutex.acquire()
 
-	if (runTimeout > Date.now() && !runOnce) {
+	if (runTimeout > Date.now()) {
 		runMutex.release()
 
 		return
@@ -800,8 +796,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
-			if (runOnce) return
-
 			setTimeout(() => {
 				runCameraUpload(maxQueue)
 			}, TIMEOUT)
@@ -809,7 +803,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			return
 		}
 
-		if (!runOnce && !askedForPermissions) {
+		if (!askedForPermissions) {
 			if (
 				!(await hasStoragePermissions(true)) ||
 				!(await hasPhotoLibraryPermissions(true)) ||
@@ -837,8 +831,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
-			if (runOnce) return
-
 			setTimeout(() => {
 				runCameraUpload(maxQueue)
 			}, TIMEOUT)
@@ -849,8 +841,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		if (typeof cameraUploadFolderUUID !== "string") {
 			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
-
-			if (runOnce) return
 
 			setTimeout(() => {
 				runCameraUpload(maxQueue)
@@ -863,8 +853,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
-			if (runOnce) return
-
 			setTimeout(() => {
 				runCameraUpload(maxQueue)
 			}, TIMEOUT)
@@ -876,8 +864,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
-			if (runOnce) return
-
 			setTimeout(() => {
 				runCameraUpload(maxQueue)
 			}, TIMEOUT)
@@ -888,8 +874,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		if (storage.getBoolean("onlyWifiUploads:" + userId) && !(await isWifi())) {
 			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
-
-			if (runOnce) return
 
 			setTimeout(() => {
 				runCameraUpload(maxQueue)
@@ -913,8 +897,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 
 			disableCameraUpload(true)
 
-			if (runOnce) return
-
 			setTimeout(() => {
 				runCameraUpload(maxQueue)
 			}, TIMEOUT)
@@ -929,7 +911,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		storage.set("cameraUploadTotal", Object.keys(local).length)
 		storage.set("cameraUploadUploaded", currentlyUploadedCount)
 
-		if (Date.now() > now + MAX_FETCH_TIME && runOnce) {
+		if (Date.now() > now + MAX_FETCH_TIME) {
 			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 
@@ -1025,7 +1007,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			const delta = deltas[i]
 
 			if (typeof delta.item.asset == "undefined") continue
-			if ((delta.item.asset.mediaType == "video" || delta.item.asset.mediaType == "unknown") && runOnce) continue
+			if (delta.item.asset.mediaType == "video" || delta.item.asset.mediaType == "unknown") continue
 
 			const assetId = getAssetId(delta.item.asset)
 
@@ -1049,8 +1031,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		runTimeout = Date.now() + (TIMEOUT - 1000)
 		runMutex.release()
 
-		if (runOnce) return
-
 		setTimeout(() => {
 			runCameraUpload(maxQueue)
 		}, TIMEOUT)
@@ -1061,8 +1041,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 
 		runTimeout = Date.now() + (TIMEOUT - 1000)
 		runMutex.release()
-
-		if (runOnce) return
 
 		setTimeout(() => {
 			runCameraUpload(maxQueue)

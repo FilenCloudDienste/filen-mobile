@@ -1,6 +1,6 @@
 {
 	"name": "filen-mobile",
-	"version": "2.0.53",
+	"version": "2.0.54",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
@@ -48,7 +48,6 @@
 		"intl": "1.2.5",
 		"lodash": "4.17.21",
 		"mime-types": "2.1.34",
-		"moment": "^2.29.4",
 		"nodejs-mobile-react-native": "github:Dwynr/nodejs-mobile-react-native",
 		"react": "18.2.0",
 		"react-dom": "^18.2.0",
@@ -58,7 +57,6 @@
 		"react-native-device-info": "8.4.8",
 		"react-native-dialog": "^9.3.0",
 		"react-native-document-picker": "^8.2.0",
-		"react-native-exif": "^0.5.0",
 		"react-native-fast-image": "^8.6.3",
 		"react-native-file-viewer": "^2.1.5",
 		"react-native-gesture-handler": "^2.9.0",
@@ -66,7 +64,6 @@
 		"react-native-image-picker": "^5.3.1",
 		"react-native-image-resizer": "^1.4.5",
 		"react-native-ios-asset-exporter": "^0.1.7",
-		"react-native-media-meta": "github:Dwynr/react-native-media-meta",
 		"react-native-mmkv": "^2.6.3",
 		"react-native-permissions": "^3.8.0",
 		"react-native-picker-select": "8.0.4",

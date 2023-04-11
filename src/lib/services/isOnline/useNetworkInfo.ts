@@ -1,6 +1,6 @@
 import * as Network from "expo-network"
 import { networkState } from "./isOnline"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 export interface NetworkInfo {
 	online: boolean
@@ -10,7 +10,7 @@ export interface NetworkInfo {
 export const useNetworkInfo = () => {
 	const [state, setState] = useState<NetworkInfo>({ online: true, wifi: true })
 
-	useEffect(() => {
+	const update = useCallback(() => {
 		;(async () => {
 			try {
 				const info = await networkState()
@@ -23,19 +23,12 @@ export const useNetworkInfo = () => {
 				console.error(e)
 			}
 		})()
+	}, [])
 
-		const interval = setInterval(async () => {
-			try {
-				const info = await networkState()
+	useEffect(() => {
+		update()
 
-				setState({
-					online: info.isConnected && info.isInternetReachable,
-					wifi: info.type === Network.NetworkStateType.WIFI
-				})
-			} catch (e) {
-				console.error(e)
-			}
-		}, 5000)
+		const interval = setInterval(update, 5000)
 
 		return () => {
 			clearInterval(interval)

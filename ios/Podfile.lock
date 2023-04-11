@@ -278,8 +278,6 @@ PODS:
     - React-Core
   - react-native-document-picker (8.2.0):
     - React-Core
-  - react-native-exif (0.5.0):
-    - React
   - react-native-heic-converter (1.3.1):
     - React
   - react-native-image-picker (5.3.1):
@@ -287,8 +285,6 @@ PODS:
   - react-native-image-resizer (1.4.5):
     - React-Core
   - react-native-ios-assset-exporter (0.1.7):
-    - React-Core
-  - react-native-meta-media (0.0.11):
     - React-Core
   - react-native-mmkv (2.6.3):
     - MMKV (>= 1.2.13)
@@ -455,12 +451,10 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
-  - react-native-exif (from `../node_modules/react-native-exif`)
   - react-native-heic-converter (from `../node_modules/react-native-heic-converter`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - react-native-ios-assset-exporter (from `../node_modules/react-native-ios-asset-exporter`)
-  - react-native-meta-media (from `../node_modules/react-native-media-meta`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -570,8 +564,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-blob-util"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
-  react-native-exif:
-    :path: "../node_modules/react-native-exif"
   react-native-heic-converter:
     :path: "../node_modules/react-native-heic-converter"
   react-native-image-picker:
@@ -580,8 +572,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-resizer"
   react-native-ios-assset-exporter:
     :path: "../node_modules/react-native-ios-asset-exporter"
-  react-native-meta-media:
-    :path: "../node_modules/react-native-media-meta"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
@@ -680,12 +670,10 @@ SPEC CHECKSUMS:
   React-logger: 957e5dc96d9dbffc6e0f15e0ee4d2b42829ff207
   react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
   react-native-document-picker: 495c444c0c773c6e83a5d91165890ecb1c0a399a
-  react-native-exif: c43e7c18af8bfa133c79145671a0f036e413468e
   react-native-heic-converter: 6fe467bc07bd9822455865ea8b86d35cde149450
   react-native-image-picker: ec9b713e248760bfa0f879f0715391de4651a7cb
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-ios-assset-exporter: 50839b94246887e9c2179c39f8c0163d9d823332
-  react-native-meta-media: ee837c99adfdc2d6f14bd129b97f9bd3e84434d8
   react-native-mmkv: 2e5bf67513cc8deed86fcffe87e12b8cc250dfab
   react-native-netinfo: 2517ad504b3d303e90d7a431b0fcaef76d207983
   react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
