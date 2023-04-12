@@ -13,23 +13,25 @@ export const hasWritePermissions = async (requestPermissions: boolean): Promise<
 		return true
 	}
 
-	const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
+	if (Platform.OS == "android" && Platform.constants.Version <= 29) {
+		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
 
-	if (!has) {
-		if (!requestPermissions) {
-			return false
-		}
+		if (!has) {
+			if (!requestPermissions) {
+				return false
+			}
 
-		const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
-			title: i18n(storage.getString("lang"), "permissionsWriteTitle"),
-			message: i18n(storage.getString("lang"), "permissionsWriteTitle"),
-			buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
-			buttonPositive: i18n(storage.getString("lang"), "ok"),
-			buttonNegative: i18n(storage.getString("lang"), "cancel")
-		})
+			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
+				title: i18n(storage.getString("lang"), "permissionsWriteTitle"),
+				message: i18n(storage.getString("lang"), "permissionsWriteTitle"),
+				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
+				buttonPositive: i18n(storage.getString("lang"), "ok"),
+				buttonNegative: i18n(storage.getString("lang"), "cancel")
+			})
 
-		if (get !== PermissionsAndroid.RESULTS.GRANTED) {
-			return false
+			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
+				return false
+			}
 		}
 	}
 
@@ -45,23 +47,25 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 		return true
 	}
 
-	const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
+	if (Platform.OS == "android" && Platform.constants.Version <= 29) {
+		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
 
-	if (!has) {
-		if (!requestPermissions) {
-			return false
-		}
+		if (!has) {
+			if (!requestPermissions) {
+				return false
+			}
 
-		const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
-			title: i18n(storage.getString("lang"), "permissionsReadTitle"),
-			message: i18n(storage.getString("lang"), "permissionsReadTitle"),
-			buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
-			buttonPositive: i18n(storage.getString("lang"), "ok"),
-			buttonNegative: i18n(storage.getString("lang"), "cancel")
-		})
+			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
+				title: i18n(storage.getString("lang"), "permissionsReadTitle"),
+				message: i18n(storage.getString("lang"), "permissionsReadTitle"),
+				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
+				buttonPositive: i18n(storage.getString("lang"), "ok"),
+				buttonNegative: i18n(storage.getString("lang"), "cancel")
+			})
 
-		if (get !== PermissionsAndroid.RESULTS.GRANTED) {
-			return false
+			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
+				return false
+			}
 		}
 	}
 
