@@ -21,7 +21,6 @@ import * as LocalAuthentication from "expo-local-authentication"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import { hasBiometricPermissions } from "../../lib/permissions"
 import { safeAwait } from "../../lib/helpers"
 
 let canGoBack: boolean = false
