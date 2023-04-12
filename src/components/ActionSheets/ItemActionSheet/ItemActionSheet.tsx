@@ -67,9 +67,6 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 					: await db.has(userId + ":offlineItems:" + currentActionSheetItem.uuid)
 			const routeURL: string = getRouteURL()
 
-			setCanSaveToGallery(false)
-			setCanEdit(false)
-
 			if (Platform.OS == "ios") {
 				if (
 					["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(
@@ -81,6 +78,8 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 					} else {
 						if (isAvailableOffline) {
 							setCanSaveToGallery(true)
+						} else {
+							setCanSaveToGallery(false)
 						}
 					}
 				}
@@ -91,6 +90,8 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 					} else {
 						if (isAvailableOffline) {
 							setCanSaveToGallery(true)
+						} else {
+							setCanSaveToGallery(false)
 						}
 					}
 				}
@@ -101,15 +102,17 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				routeURL.indexOf("shared") == -1
 			) {
 				setCanEdit(true)
+			} else {
+				setCanEdit(false)
 			}
-
-			setCanDownload(false)
 
 			if (await isOnline()) {
 				setCanDownload(true)
 			} else {
 				if (isAvailableOffline) {
 					setCanDownload(true)
+				} else {
+					setCanDownload(false)
 				}
 			}
 		}
