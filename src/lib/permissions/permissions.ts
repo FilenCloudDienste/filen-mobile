@@ -23,7 +23,7 @@ export const hasWritePermissions = async (requestPermissions: boolean): Promise<
 
 			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
 				title: i18n(storage.getString("lang"), "permissionsWriteTitle"),
-				message: i18n(storage.getString("lang"), "permissionsWriteTitle"),
+				message: i18n(storage.getString("lang"), "permissionsWriteMessage"),
 				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
 				buttonPositive: i18n(storage.getString("lang"), "ok"),
 				buttonNegative: i18n(storage.getString("lang"), "cancel")
@@ -57,7 +57,7 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 
 			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
 				title: i18n(storage.getString("lang"), "permissionsReadTitle"),
-				message: i18n(storage.getString("lang"), "permissionsReadTitle"),
+				message: i18n(storage.getString("lang"), "permissionsReadMessage"),
 				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
 				buttonPositive: i18n(storage.getString("lang"), "ok"),
 				buttonNegative: i18n(storage.getString("lang"), "cancel")
@@ -101,7 +101,7 @@ export const hasCameraPermissions = async (requestPermissions: boolean): Promise
 
 			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
 				title: i18n(storage.getString("lang"), "permissionsCameraTitle"),
-				message: i18n(storage.getString("lang"), "permissionsCameraTitle"),
+				message: i18n(storage.getString("lang"), "permissionsCameraMessage"),
 				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
 				buttonPositive: i18n(storage.getString("lang"), "ok"),
 				buttonNegative: i18n(storage.getString("lang"), "cancel")
@@ -141,6 +141,28 @@ export const hasBiometricPermissions = async (requestPermissions: boolean): Prom
 export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): Promise<boolean> => {
 	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
 		return true
+	}
+
+	if (Platform.OS == "android" && Platform.constants.Version >= 29) {
+		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION)
+
+		if (!has) {
+			if (!requestPermissions) {
+				return false
+			}
+
+			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION, {
+				title: i18n(storage.getString("lang"), "permissionsMediaLocationTitle"),
+				message: i18n(storage.getString("lang"), "permissionsMediaLocationMessage"),
+				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
+				buttonPositive: i18n(storage.getString("lang"), "ok"),
+				buttonNegative: i18n(storage.getString("lang"), "cancel")
+			})
+
+			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
+				return false
+			}
+		}
 	}
 
 	const hasMediaLib = await MediaLibrary.getPermissionsAsync(false)
