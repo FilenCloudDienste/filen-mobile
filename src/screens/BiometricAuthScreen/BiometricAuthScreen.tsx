@@ -91,19 +91,29 @@ export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }: PI
 							justifyContent: "center",
 							alignItems: "center"
 						}}
-						onPress={() => promptBiometrics()}
+						onPress={() => {
+							if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+								return
+							}
+
+							promptBiometrics()
+						}}
 					>
-						<Text
-							style={{
-								fontSize: buttonFontSize
-							}}
-						>
-							<Ionicon
-								name="finger-print-outline"
-								size={buttonFontSize}
-								color={buttonFontColor}
-							/>
-						</Text>
+						{Platform.OS == "android" && Platform.constants.Version <= 22 ? (
+							<></>
+						) : (
+							<Text
+								style={{
+									fontSize: buttonFontSize
+								}}
+							>
+								<Ionicon
+									name="finger-print-outline"
+									size={buttonFontSize}
+									color={buttonFontColor}
+								/>
+							</Text>
+						)}
 					</TouchableOpacity>
 					<TouchableOpacity
 						style={{
