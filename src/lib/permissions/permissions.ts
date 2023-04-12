@@ -1,20 +1,32 @@
 import { Platform, PermissionsAndroid } from "react-native"
 import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } from "react-native-permissions"
 import * as MediaLibrary from "expo-media-library"
+import storage from "../storage"
+import { i18n } from "../../i18n"
 
 export const hasWritePermissions = async (requestPermissions: boolean): Promise<boolean> => {
 	if (Platform.OS == "ios") {
 		return true
 	}
 
-	const has = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
+	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+		return true
+	}
+
+	const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
 
 	if (!has) {
 		if (!requestPermissions) {
 			return false
 		}
 
-		const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
+		const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
+			title: i18n(storage.getString("lang"), "permissionsWriteTitle"),
+			message: i18n(storage.getString("lang"), "permissionsWriteTitle"),
+			buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
+			buttonPositive: i18n(storage.getString("lang"), "ok"),
+			buttonNegative: i18n(storage.getString("lang"), "cancel")
+		})
 
 		if (get !== PermissionsAndroid.RESULTS.GRANTED) {
 			return false
@@ -29,6 +41,10 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 		return true
 	}
 
+	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+		return true
+	}
+
 	const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
 
 	if (!has) {
@@ -36,7 +52,13 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 			return false
 		}
 
-		const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
+		const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
+			title: i18n(storage.getString("lang"), "permissionsReadTitle"),
+			message: i18n(storage.getString("lang"), "permissionsReadTitle"),
+			buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
+			buttonPositive: i18n(storage.getString("lang"), "ok"),
+			buttonNegative: i18n(storage.getString("lang"), "cancel")
+		})
 
 		if (get !== PermissionsAndroid.RESULTS.GRANTED) {
 			return false
@@ -47,6 +69,10 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 }
 
 export const hasCameraPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+		return true
+	}
+
 	if (Platform.OS == "ios") {
 		const has = await check(PERMISSIONS.IOS.CAMERA)
 
@@ -69,7 +95,13 @@ export const hasCameraPermissions = async (requestPermissions: boolean): Promise
 				return false
 			}
 
-			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA)
+			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
+				title: i18n(storage.getString("lang"), "permissionsCameraTitle"),
+				message: i18n(storage.getString("lang"), "permissionsCameraTitle"),
+				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
+				buttonPositive: i18n(storage.getString("lang"), "ok"),
+				buttonNegative: i18n(storage.getString("lang"), "cancel")
+			})
 
 			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
 				return false
@@ -103,6 +135,10 @@ export const hasBiometricPermissions = async (requestPermissions: boolean): Prom
 }
 
 export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+		return true
+	}
+
 	const hasMediaLib = await MediaLibrary.getPermissionsAsync(false)
 
 	if (!hasMediaLib.granted) {
@@ -140,7 +176,13 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 				return false
 			}
 
-			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION)
+			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION, {
+				title: i18n(storage.getString("lang"), "permissionsMediaLocationTitle"),
+				message: i18n(storage.getString("lang"), "permissionsMediaLocationTitle"),
+				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
+				buttonPositive: i18n(storage.getString("lang"), "ok"),
+				buttonNegative: i18n(storage.getString("lang"), "cancel")
+			})
 
 			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
 				return false
@@ -153,6 +195,10 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 
 export const hasStoragePermissions = async (requestPermissions: boolean): Promise<boolean> => {
 	if (Platform.OS == "ios") {
+		return true
+	}
+
+	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
 		return true
 	}
 
