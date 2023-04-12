@@ -1,5 +1,14 @@
 import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "react"
-import { View, Text, TouchableOpacity, useWindowDimensions, Animated, AppState, AppStateStatus } from "react-native"
+import {
+	View,
+	Text,
+	TouchableOpacity,
+	useWindowDimensions,
+	Animated,
+	AppState,
+	AppStateStatus,
+	Platform
+} from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -295,7 +304,8 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 		if (
 			biometricAuthScreenState == "setup" ||
 			showingBiometrics ||
-			storage.getBoolean("onlyUsePINCode:" + userId)
+			storage.getBoolean("onlyUsePINCode:" + userId) ||
+			(Platform.OS == "android" && Platform.constants.Version <= 22)
 		) {
 			return
 		}
