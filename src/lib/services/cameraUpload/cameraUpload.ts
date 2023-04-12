@@ -700,19 +700,12 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 										? assetFilenameWithoutEx + "_" + nameWithoutEx + ".JPG"
 										: nameWithoutEx + ".JPG"
 
-									console.log(
-										"getting ,lm",
-										toExpoFsPath(resource.localFileLocations).split("file://").join(""),
-										asset.filename
-									)
-
 									getLastModified(
 										resource.localFileLocations.split("file://").join(""),
 										asset.filename,
 										convertTimestampToMs(asset.creationTime || asset.modificationTime || Date.now())
 									)
 										.then(lastModified => {
-											console.log(lastModified)
 											return resolve({
 												path: convertedPath.split("file://").join(""),
 												name: newName,
@@ -803,26 +796,6 @@ export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 			return
 		}
 
-		if (!askedForPermissions) {
-			if (
-				!(await hasStoragePermissions(true)) ||
-				!(await hasPhotoLibraryPermissions(true)) ||
-				!(await hasReadPermissions(true)) ||
-				!(await hasWritePermissions(true))
-			) {
-				runTimeout = Date.now() + (TIMEOUT - 1000)
-				runMutex.release()
-
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-
-				return
-			}
-
-			askedForPermissions = true
-		}
-
 		const cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
 		const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
 		const now = Date.now()
@@ -880,6 +853,26 @@ export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 			}, TIMEOUT)
 
 			return
+		}
+
+		if (!askedForPermissions) {
+			if (
+				!(await hasStoragePermissions(true)) ||
+				!(await hasPhotoLibraryPermissions(true)) ||
+				!(await hasReadPermissions(true)) ||
+				!(await hasWritePermissions(true))
+			) {
+				runTimeout = Date.now() + (TIMEOUT - 1000)
+				runMutex.release()
+
+				setTimeout(() => {
+					runCameraUpload(maxQueue)
+				}, TIMEOUT)
+
+				return
+			}
+
+			askedForPermissions = true
 		}
 
 		let folderExists = false

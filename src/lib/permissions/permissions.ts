@@ -1,4 +1,4 @@
-import { Platform } from "react-native"
+import { Platform, PermissionsAndroid } from "react-native"
 import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } from "react-native-permissions"
 import * as MediaLibrary from "expo-media-library"
 
@@ -7,16 +7,16 @@ export const hasWritePermissions = async (requestPermissions: boolean): Promise<
 		return true
 	}
 
-	const has = await check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE)
+	const has = PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
 
-	if (has !== RESULTS.GRANTED) {
+	if (!has) {
 		if (!requestPermissions) {
 			return false
 		}
 
-		const get = await request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE)
+		const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
 
-		if (get !== RESULTS.GRANTED) {
+		if (get !== PermissionsAndroid.RESULTS.GRANTED) {
 			return false
 		}
 	}
@@ -29,16 +29,16 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 		return true
 	}
 
-	const has = await check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE)
+	const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
 
-	if (has !== RESULTS.GRANTED) {
+	if (!has) {
 		if (!requestPermissions) {
 			return false
 		}
 
-		const get = await request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE)
+		const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
 
-		if (get !== RESULTS.GRANTED) {
+		if (get !== PermissionsAndroid.RESULTS.GRANTED) {
 			return false
 		}
 	}
@@ -47,18 +47,33 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 }
 
 export const hasCameraPermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	const permissions = Platform.OS == "android" ? PERMISSIONS.ANDROID.CAMERA : PERMISSIONS.IOS.CAMERA
-	const has = await check(permissions)
+	if (Platform.OS == "ios") {
+		const has = await check(PERMISSIONS.IOS.CAMERA)
 
-	if (has !== RESULTS.GRANTED) {
-		if (!requestPermissions) {
-			return false
+		if (has !== RESULTS.GRANTED) {
+			if (!requestPermissions) {
+				return false
+			}
+
+			const get = await request(PERMISSIONS.IOS.CAMERA)
+
+			if (get !== RESULTS.GRANTED) {
+				return false
+			}
 		}
+	} else {
+		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)
 
-		const get = await request(permissions)
+		if (!has) {
+			if (!requestPermissions) {
+				return false
+			}
 
-		if (get !== RESULTS.GRANTED) {
-			return false
+			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA)
+
+			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
+				return false
+			}
 		}
 	}
 
@@ -88,11 +103,6 @@ export const hasBiometricPermissions = async (requestPermissions: boolean): Prom
 }
 
 export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	const permissions =
-		Platform.OS == "ios"
-			? [PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
-			: [PERMISSIONS.ANDROID.ACCESS_MEDIA_LOCATION]
-
 	const hasMediaLib = await MediaLibrary.getPermissionsAsync(false)
 
 	if (!hasMediaLib.granted) {
@@ -107,17 +117,34 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 		}
 	}
 
-	const has = await checkMultiple(permissions)
+	if (Platform.OS == "ios") {
+		const permissions = [PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
+		const has = await checkMultiple(permissions)
 
-	if (Object.values(has).filter(value => value == RESULTS.GRANTED).length <= 0) {
-		if (!requestPermissions) {
-			return false
+		if (Object.values(has).filter(value => value == RESULTS.GRANTED).length <= 0) {
+			if (!requestPermissions) {
+				return false
+			}
+
+			const get = await requestMultiple(permissions)
+
+			if (Object.values(get).filter(value => value == RESULTS.GRANTED).length <= 0) {
+				return false
+			}
 		}
+	} else {
+		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION)
 
-		const get = await requestMultiple(permissions)
+		if (!has) {
+			if (!requestPermissions) {
+				return false
+			}
 
-		if (Object.values(get).filter(value => value == RESULTS.GRANTED).length <= 0) {
-			return false
+			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION)
+
+			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
+				return false
+			}
 		}
 	}
 
