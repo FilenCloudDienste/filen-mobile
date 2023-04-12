@@ -146,6 +146,10 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 			return false
 		}
 
+		if (!hasMediaLib.canAskAgain) {
+			return false
+		}
+
 		const getMediaLib = await MediaLibrary.requestPermissionsAsync(false)
 
 		if (!getMediaLib.granted) {
@@ -165,26 +169,6 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 			const get = await requestMultiple(permissions)
 
 			if (Object.values(get).filter(value => value == RESULTS.GRANTED).length <= 0) {
-				return false
-			}
-		}
-	} else {
-		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION)
-
-		if (!has) {
-			if (!requestPermissions) {
-				return false
-			}
-
-			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION, {
-				title: i18n(storage.getString("lang"), "permissionsMediaLocationTitle"),
-				message: i18n(storage.getString("lang"), "permissionsMediaLocationTitle"),
-				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
-				buttonPositive: i18n(storage.getString("lang"), "ok"),
-				buttonNegative: i18n(storage.getString("lang"), "cancel")
-			})
-
-			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
 				return false
 			}
 		}

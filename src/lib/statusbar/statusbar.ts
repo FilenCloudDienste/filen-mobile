@@ -6,7 +6,11 @@ import { getColor } from "../../style"
 export const setStatusBarStyle = (darkMode: boolean): void => {
 	if (Platform.OS == "android") {
 		NavigationBar.setBackgroundColorAsync(getColor(darkMode, "backgroundPrimary")).catch(console.error)
-		NavigationBar.setBorderColorAsync(getColor(darkMode, "backgroundPrimary")).catch(console.error)
+
+		if (Platform.constants.Version >= 28) {
+			NavigationBar.setBorderColorAsync(getColor(darkMode, "backgroundPrimary")).catch(console.error)
+		}
+
 		NavigationBar.setButtonStyleAsync(darkMode ? "dark" : "light").catch(console.error)
 		StatusBar.setStatusBarBackgroundColor(getColor(darkMode, "backgroundPrimary"), true)
 		StatusBar.setStatusBarTranslucent(false)
