@@ -217,7 +217,9 @@ export const queueFileDownload = async ({
 
 			delete currentDownloads[file.uuid]
 
-			return showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+			showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+
+			return
 		}
 	} catch (e) {
 		console.log(e)
@@ -232,13 +234,17 @@ export const queueFileDownload = async ({
 			downloadSemaphore.release()
 
 			if (isPreview) {
-				return callOptionalCallback(null, path)
+				callOptionalCallback(null, path)
+
+				return
 			}
 
 			if (typeof saveToGalleryCallback == "function") {
 				callOptionalCallback(null, path)
 
-				return saveToGalleryCallback(path)
+				saveToGalleryCallback(path)
+
+				return
 			}
 
 			if (storeOffline) {
@@ -268,7 +274,7 @@ export const queueFileDownload = async ({
 
 								callOptionalCallback(null, offlinePath)
 
-								return console.log(file.name + " download done")
+								console.log(file.name + " download done")
 							})
 							.catch(err => {
 								showToast({ message: err.toString() })
@@ -314,7 +320,7 @@ export const queueFileDownload = async ({
 
 										callOptionalCallback(null, "")
 
-										return console.log(file.name + " download done")
+										console.log(file.name + " download done")
 									})
 									.catch(err => {
 										showToast({ message: err.toString() })
@@ -356,7 +362,7 @@ export const queueFileDownload = async ({
 
 								callOptionalCallback(null, filePath)
 
-								return console.log(file.name + " download done")
+								console.log(file.name + " download done")
 							})
 							.catch(err => {
 								showToast({ message: err.toString() })
@@ -391,7 +397,7 @@ export const queueFileDownload = async ({
 
 							callOptionalCallback(null, filePath)
 
-							return console.log(file.name + " download done")
+							console.log(file.name + " download done")
 						})
 						.catch(err => {
 							showToast({ message: err.toString() })
@@ -420,7 +426,7 @@ export const queueFileDownload = async ({
 				console.error(err)
 			}
 
-			return callOptionalCallback(err)
+			callOptionalCallback(err)
 		})
 }
 
