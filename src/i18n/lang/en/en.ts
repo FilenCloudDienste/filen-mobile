@@ -431,12 +431,12 @@ export const en: {
 	cameraUploadKeepLivePhotoVideoOnly: "Keep live photo video only",
 	cameraUploadSaveAllAssets: "Save all assets",
 	permissionsWriteTitle: "Write permissions",
-	permissionsWriteMessage: "Filen needs write permissions to operate properly.",
+	permissionsWriteMessage: "Filen requires write permissions to operate properly.",
 	permissionsAskMeLater: "Ask me later",
 	permissionsReadTitle: "Read permissions",
-	permissionsReadMessage: "Filen needs read permissions to operate properly.",
+	permissionsReadMessage: "Filen requires read permissions to operate properly.",
 	permissionsCameraTitle: "Camera permissions",
-	permissionsCameraMessage: "Filen needs camera permissions to operate properly.",
+	permissionsCameraMessage: "Filen requires camera permissions to operate properly.",
 	permissionsMediaLocationTitle: "Media location permissions",
-	permissionsMediaLocationMessage: "Filen needs media location permissions to operate properly."
+	permissionsMediaLocationMessage: "Filen requires media location permissions to operate properly."
 }
