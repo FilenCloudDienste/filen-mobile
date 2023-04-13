@@ -15,6 +15,7 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import FastImage from "react-native-fast-image"
 import { clearCacheDirectories } from "../../lib/services/setup"
+import { getColor } from "../../style"
 
 export const calculateFolderSize = async (folderPath: string, size: number = 0): Promise<number> => {
 	if (folderPath.slice(0, -1) == "/") {
@@ -94,7 +95,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
 				style={{
 					height: "100%",
 					width: "100%",
-					backgroundColor: darkMode ? "black" : "white",
+					backgroundColor: getColor(darkMode, "backgroundPrimary"),
 					marginTop: 10
 				}}
 			>

@@ -14,7 +14,7 @@ import {
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { formatBytes, getFilenameFromPath } from "../../lib/helpers"
+import { formatBytes, getFilenameFromPath, safeAwait } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 import { StackActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
@@ -24,7 +24,7 @@ import { getColor } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
 import * as fs from "../../lib/fs"
 import { getDownloadPath } from "../../lib/services/download/download"
-import { hasStoragePermissions } from "../../lib/permissions"
+import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../../lib/statusbar"
 import { isOnline } from "../../lib/services/isOnline"
@@ -646,12 +646,33 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 				<SettingsButtonLinkHighlight
 					onPress={async () => {
 						if (!(await isOnline())) {
-							return showToast({ message: i18n(lang, "deviceOffline") })
+							showToast({ message: i18n(lang, "deviceOffline") })
+
+							return
 						}
 
-						navigationAnimation({ enable: true }).then(() => {
-							navigation.dispatch(StackActions.push("CameraUploadScreen"))
-						})
+						const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(
+							hasStoragePermissions(true)
+						)
+						const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(
+							hasPhotoLibraryPermissions(true)
+						)
+
+						if (hasStoragePermissionsError || hasPhotoLibraryPermissionsError) {
+							showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+							return
+						}
+
+						if (!hasStoragePermissionsResult || !hasPhotoLibraryPermissionsResult) {
+							showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+							return
+						}
+
+						await navigationAnimation({ enable: true })
+
+						navigation.dispatch(StackActions.push("CameraUploadScreen"))
 					}}
 					title={i18n(lang, "cameraUpload")}
 					borderBottomRadius={10}
