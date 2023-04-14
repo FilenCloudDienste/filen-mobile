@@ -416,5 +416,14 @@ export const uk: {
     cameraUploadConvertLiveAndBurstAndKeepOriginal: "Конвертувати та зберігати оригінал",
     cameraUploadKeepImageOnly: "Зберігати лише зображення",
     cameraUploadKeepLivePhotoVideoOnly: "Зберігати лише відео",
-    cameraUploadSaveAllAssets: "Зберігати все"
+    cameraUploadSaveAllAssets: "Зберігати все",
+    permissionsWriteTitle: "Права на запис",
+    permissionsWriteMessage: "Для правильної роботи Filen потрібні права на запис.",
+    permissionsAskMeLater: "Спитати пізніше",
+    permissionsReadTitle: "Права на читання",
+    permissionsReadMessage: "Для правильної роботи Filen потрібні права на читання.",
+    permissionsCameraTitle: "Доступ до камери",
+    permissionsCameraMessage: "Для правильної роботи Filen потрібен доступ до камери.",
+    permissionsMediaLocationTitle: "Доступ до медіафайлів",
+    permissionsMediaLocationMessage: "Для коректної роботи Filen потрібен доступ до медіафайлів."
 }
