@@ -416,5 +416,14 @@ export const ru: {
     cameraUploadConvertLiveAndBurstAndKeepOriginal: "Конвертировать и сохранить оригинал",
     cameraUploadKeepImageOnly: "Сохранять только изображение",
     cameraUploadKeepLivePhotoVideoOnly: "Сохранять только видео",
-    cameraUploadSaveAllAssets: "Сохранять всё"
+    cameraUploadSaveAllAssets: "Сохранять всё",
+    permissionsWriteTitle: "Права на запись",
+    permissionsWriteMessage: "Для правильной работы Filen требуются права на запись.",
+    permissionsAskMeLater: "Спросить позже",
+    permissionsReadTitle: "Права на чтение",
+    permissionsReadMessage: "Для правильной работы Filen требуются права на чтение.",
+    permissionsCameraTitle: "Доступ к камере",
+    permissionsCameraMessage: "Для правильной работы Filen требуется доступ к камере.",
+    permissionsMediaLocationTitle: "Доступ к медиафайлам",
+    permissionsMediaLocationMessage: "Для корректной работы Filen требуется доступ к медиафайлам."
 }
