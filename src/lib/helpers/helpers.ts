@@ -1038,6 +1038,14 @@ export const toExpoFsPath = (path: string) => {
 	return path
 }
 
+export const toExpoFsPathWithoutEncode = (path: string) => {
+	if (path.indexOf("file://") == -1) {
+		return "file://" + path
+	}
+
+	return path
+}
+
 export const getAssetId = (asset: MediaLibrary.Asset) => asset.id
 
 export function msToMinutesAndSeconds(ms: number) {

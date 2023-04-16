@@ -677,7 +677,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 
 					filesToUploadPromises.push(
 						new Promise<UploadFile>((resolve, reject) => {
-							fs.stat(convertedPath)
+							fs.statWithoutEncode(convertedPath)
 								.then(stat => {
 									if (!stat.exists) {
 										return reject(
@@ -722,7 +722,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 				} else {
 					filesToUploadPromises.push(
 						new Promise<UploadFile>((resolve, reject) => {
-							fs.stat(resource.localFileLocations)
+							fs.statWithoutEncode(resource.localFileLocations)
 								.then(stat => {
 									if (!stat.exists) {
 										return reject(new Error("Asset does not exist " + asset.id))
