@@ -22,7 +22,6 @@ import { isOnline, isWifi } from "../isOnline"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { getThumbnailCacheKey } from "../thumbnails"
 import { encryptMetadata } from "../../crypto"
-import { Platform } from "react-native"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
@@ -71,20 +70,17 @@ export const queueFileUpload = ({
 		file.path = decodeURIComponent(file.path)
 		file.name = decodeURIComponent(file.name)
 
-		if (Platform.OS === "ios") {
-			// Get the real file size on iOS (after HEIC conversion for example)
-			try {
-				var stat = await fs.stat(file.path)
-			} catch (e) {
-				return reject(e)
-			}
-
-			if (!stat.exists) {
-				return reject(new Error("File not found"))
-			}
-
-			file.size = stat.size
+		try {
+			var stat = await fs.stat(file.path)
+		} catch (e) {
+			return reject(e)
 		}
+
+		if (!stat.exists) {
+			return reject(new Error("File not found"))
+		}
+
+		file.size = stat.size
 
 		const fileName = file.name.split("/").join("_").split("\\").join("_")
 		const item = {
