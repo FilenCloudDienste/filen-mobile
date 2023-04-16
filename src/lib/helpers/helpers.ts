@@ -1027,9 +1027,11 @@ export const isNavReady = (
 }
 
 export const toExpoFsPath = (path: string) => {
-	path = encodeURI(decodeURI(path))
+	const before = path
 
-	if (path.indexOf("file://") == -1) {
+	path = Platform.OS == "ios" ? encodeURI(decodeURI(path)) : encodeURI(path)
+
+	if (before.indexOf("file://") == -1) {
 		return "file://" + path
 	}
 
