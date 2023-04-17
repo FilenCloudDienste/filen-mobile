@@ -187,14 +187,14 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 		const permissions = [PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
 		const has = await checkMultiple(permissions)
 
-		if (Object.values(has).filter(value => value == RESULTS.GRANTED).length <= 0) {
+		if (Object.values(has).filter(value => value == RESULTS.GRANTED).length !== 2) {
 			if (!requestPermissions) {
 				return false
 			}
 
 			const get = await requestMultiple(permissions)
 
-			if (Object.values(get).filter(value => value == RESULTS.GRANTED).length <= 0) {
+			if (Object.values(get).filter(value => value == RESULTS.GRANTED).length !== 2) {
 				return false
 			}
 		}
