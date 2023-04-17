@@ -37,7 +37,6 @@ const CryptoJS = require("crypto-js")
 const TIMEOUT: number = 5000
 const FAILED: Record<string, number> = {}
 const MAX_FAILED: number = 1
-const MAX_FETCH_TIME: number = 15000
 let askedForPermissions: boolean = false
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout: number = 0
@@ -903,13 +902,6 @@ export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 
 		storage.set("cameraUploadTotal", Object.keys(local).length)
 		storage.set("cameraUploadUploaded", currentlyUploadedCount)
-
-		if (Date.now() > now + MAX_FETCH_TIME) {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
-			return
-		}
 
 		let currentQueue = 0
 		const uploads: Promise<void>[] = []
