@@ -67,8 +67,8 @@ export const queueFileUpload = ({
 			return reject("wifiOnly")
 		}
 
-		file.path = decodeURIComponent(file.path)
-		file.name = decodeURIComponent(file.name)
+		//file.path = decodeURIComponent(file.path)
+		//file.name = decodeURIComponent(file.name)
 
 		try {
 			var stat = await fs.stat(file.path)

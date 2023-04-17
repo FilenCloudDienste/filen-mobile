@@ -237,7 +237,7 @@ export const AssetItem = memo(
 				) : (
 					<Image
 						source={{
-							uri: item.asset.uri
+							uri: encodeURI(item.asset.uri)
 						}}
 						style={{
 							width: size,
@@ -369,7 +369,7 @@ export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItem
 					{image.length > 0 ? (
 						<Image
 							source={{
-								uri: image
+								uri: encodeURI(image)
 							}}
 							style={{
 								width: 50,
