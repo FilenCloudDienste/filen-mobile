@@ -1,5 +1,5 @@
 import ReactNativeBlobUtil from "react-native-blob-util"
-import { Semaphore, getFileExt, randomIdUnsafe } from "../../helpers"
+import { Semaphore, getFileExt, randomIdUnsafe, toBlobUtilPathDecode } from "../../helpers"
 import { Platform, DeviceEventEmitter } from "react-native"
 import { useStore } from "../../state"
 import { i18n } from "../../../i18n"
@@ -293,85 +293,49 @@ export const queueFileDownload = async ({
 					})
 			} else {
 				if (Platform.OS == "android") {
-					if (Platform.constants.Version >= 29) {
-						ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
-							{
-								name: file.name,
-								parentFolder: "",
-								mimeType: file.mime
-							},
-							"Download",
-							path
-						)
-							.then(() => {
-								fs.unlink(path)
-									.then(() => {
-										if (showNotification || useStore.getState().imagePreviewModalVisible) {
-											showToast({
-												message: i18n(
-													storage.getString("lang"),
-													"fileDownloaded",
-													true,
-													["__NAME__"],
-													[file.name]
-												)
-											})
-										}
+					ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
+						{
+							name: file.name,
+							parentFolder: "",
+							mimeType: file.mime
+						},
+						"Download",
+						toBlobUtilPathDecode(path)
+					)
+						.then(() => {
+							fs.unlink(path)
+								.then(() => {
+									if (showNotification || useStore.getState().imagePreviewModalVisible) {
+										showToast({
+											message: i18n(
+												storage.getString("lang"),
+												"fileDownloaded",
+												true,
+												["__NAME__"],
+												[file.name]
+											)
+										})
+									}
 
-										callOptionalCallback(null, "")
+									callOptionalCallback(null, "")
 
-										console.log(file.name + " download done")
-									})
-									.catch(err => {
-										showToast({ message: err.toString() })
+									console.log(file.name + " download done")
+								})
+								.catch(err => {
+									showToast({ message: err.toString() })
 
-										callOptionalCallback(err)
+									callOptionalCallback(err)
 
-										console.error(err)
-									})
-							})
-							.catch(err => {
-								showToast({ message: err.toString() })
+									console.error(err)
+								})
+						})
+						.catch(err => {
+							showToast({ message: err.toString() })
 
-								callOptionalCallback(err)
+							callOptionalCallback(err)
 
-								console.error(err)
-							})
-					} else {
-						try {
-							if ((await fs.stat(filePath)).exists) {
-								await fs.unlink(filePath)
-							}
-						} catch (e) {
-							//console.log(e)
-						}
-
-						fs.move(path, filePath)
-							.then(() => {
-								if (showNotification || useStore.getState().imagePreviewModalVisible) {
-									showToast({
-										message: i18n(
-											storage.getString("lang"),
-											"fileDownloaded",
-											true,
-											["__NAME__"],
-											[file.name]
-										)
-									})
-								}
-
-								callOptionalCallback(null, filePath)
-
-								console.log(file.name + " download done")
-							})
-							.catch(err => {
-								showToast({ message: err.toString() })
-
-								callOptionalCallback(err)
-
-								console.error(err)
-							})
-					}
+							console.error(err)
+						})
 				} else {
 					try {
 						if ((await fs.stat(filePath)).exists) {

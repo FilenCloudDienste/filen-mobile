@@ -1046,6 +1046,38 @@ export const toExpoFsPathWithoutEncode = (path: string) => {
 	return path
 }
 
+export const toBlobUtilPath = (path: string) => {
+	if (path.indexOf("file://") !== -1) {
+		return encodeURI(path.split("file://").join(""))
+	}
+
+	return encodeURI(path)
+}
+
+export const toBlobUtilPathWithoutEncode = (path: string) => {
+	if (path.indexOf("file://") !== -1) {
+		return path.split("file://").join("")
+	}
+
+	return path
+}
+
+export const toBlobUtilPathDecode = (path: string) => {
+	try {
+		if (path.indexOf("file://") !== -1) {
+			return decodeURI(path.split("file://").join(""))
+		}
+
+		return decodeURI(path)
+	} catch {
+		if (path.indexOf("file://") !== -1) {
+			return path.split("file://").join("")
+		}
+
+		return path
+	}
+}
+
 export const getAssetId = (asset: MediaLibrary.Asset) => asset.id
 
 export function msToMinutesAndSeconds(ms: number) {

@@ -797,7 +797,6 @@ export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 
 		const cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
 		const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
-		const now = Date.now()
 
 		if (!cameraUploadEnabled) {
 			runTimeout = Date.now() + (TIMEOUT - 1000)
@@ -990,10 +989,6 @@ export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 
 		for (let i = 0; i < deltas.length; i++) {
 			const delta = deltas[i]
-
-			if (typeof delta.item.asset == "undefined") continue
-			if (delta.item.asset.mediaType == "video" || delta.item.asset.mediaType == "unknown") continue
-
 			const assetId = getAssetId(delta.item.asset)
 
 			if (maxQueue > currentQueue && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED) {
