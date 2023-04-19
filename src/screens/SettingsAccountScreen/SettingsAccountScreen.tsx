@@ -69,29 +69,13 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 					<>
 						<SettingsGroup marginTop={5}>
 							<SettingsButtonLinkHighlight
-								onPress={() => {
-									Linking.canOpenURL("https://drive.filen.io")
-										.then(supported => {
-											if (supported) {
-												Linking.openURL("https://drive.filen.io").catch(console.error)
-											}
-										})
-										.catch(console.error)
-								}}
+								onPress={() => Linking.openURL("https://drive.filen.io").catch(console.error)}
 								title={i18n(lang, "changeEmailPassword")}
 								withBottomBorder={true}
 								borderTopRadius={10}
 							/>
 							<SettingsButtonLinkHighlight
-								onPress={() => {
-									Linking.canOpenURL("https://drive.filen.io")
-										.then(supported => {
-											if (supported) {
-												Linking.openURL("https://drive.filen.io").catch(console.error)
-											}
-										})
-										.catch(console.error)
-								}}
+								onPress={() => Linking.openURL("https://drive.filen.io").catch(console.error)}
 								title={i18n(lang, accountSettings.twoFactorEnabled ? "disable2FA" : "enable2FA")}
 								withBottomBorder={true}
 							/>

@@ -144,15 +144,7 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
 					style={{
 						color: getColor(darkMode, "linkPrimary")
 					}}
-					onPress={() => {
-						Linking.canOpenURL("https://filen.io/terms")
-							.then(supported => {
-								if (supported) {
-									Linking.openURL("https://filen.io/terms").catch(console.error)
-								}
-							})
-							.catch(console.error)
-					}}
+					onPress={() => Linking.openURL("https://filen.io/terms").catch(console.error)}
 				>
 					&nbsp;Terms of Service
 				</Text>
@@ -161,15 +153,7 @@ export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
 					style={{
 						color: getColor(darkMode, "linkPrimary")
 					}}
-					onPress={() => {
-						Linking.canOpenURL("https://filen.io/privacy")
-							.then(supported => {
-								if (supported) {
-									Linking.openURL("https://filen.io/privacy").catch(console.error)
-								}
-							})
-							.catch(console.error)
-					}}
+					onPress={() => Linking.openURL("https://filen.io/privacy").catch(console.error)}
 				>
 					&nbsp;Privacy Policy
 				</Text>

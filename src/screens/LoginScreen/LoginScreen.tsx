@@ -177,15 +177,7 @@ export const LoginScreen = memo(({ navigation, setSetupDone }: LoginScreenProps)
 					alignItems: "center",
 					marginTop: 20
 				}}
-				onPress={() => {
-					Linking.canOpenURL("https://drive.filen.io/forgot-password")
-						.then(supported => {
-							if (supported) {
-								Linking.openURL("https://drive.filen.io/forgot-password").catch(console.error)
-							}
-						})
-						.catch(console.error)
-				}}
+				onPress={() => Linking.openURL("https://drive.filen.io/forgot-password").catch(console.error)}
 			>
 				<Text
 					style={{
