@@ -95,15 +95,18 @@ export const es: {
     restore: "Restaurar",
     deletePermanently: "Eliminar permanentemente",
     itemDeletedPermanently: "__NAME__ se ha borrado permanentemente",
-    itemDeletedPermanentlyConfirmation: "¿Está seguro de que quiere eliminar permanentemente __NAME__? ¡Esta acción es definitiva!",
+    itemDeletedPermanentlyConfirmation: 
+        "¿Está seguro de que quiere eliminar permanentemente __NAME__? ¡Esta acción es definitiva!",
     sharedIn: "Compartido",
     sharedOut: "Compartiendo",
     loadingItemList: "Cargando...",
     publicLinks: "Enlaces",
     stopSharing: "Dejar de compartir",
-    stopSharingConfirmation: "¿Está seguro que quiere dejar de compartir __NAME__? ¡Otros ya no podrán acceder al elemento compartido!",
+    stopSharingConfirmation: 
+        "¿Está seguro que quiere dejar de compartir __NAME__? ¡Otros ya no podrán acceder al elemento compartido!",
     removeFromSharedIn: "Eliminar",
-    removeFromSharedInConfirmation: "¿Está seguro de que quiere eliminar __NAME__? ¡Ya no podrá acceder al elemento compartido!",
+    removeFromSharedInConfirmation: 
+        "¿Está seguro de que quiere eliminar __NAME__? ¡Ya no podrá acceder al elemento compartido!",
     stoppedSharingItem: "Dejó de compartir __NAME__",
     removedFromSharedIn: "Se ha eliminado __NAME__",
     events: "Eventos",
@@ -253,7 +256,8 @@ export const es: {
     invalidEmail: "Dirección de correo electrónico inválida",
     back: "Atrás",
     sendRecoveryEmailBtn: "Enviar el enlace de recuperación",
-    forgotPasswordWarning: "Al restablecer su contraseña, reconoce que perderá el acceso a todos los datos almacenados en su cuenta debido al funcionamiento del cifrado de extremo a extremo de conocimiento cero. El restablecimiento de la contraseña generará una nueva clave de cifrado.",
+    forgotPasswordWarning: 
+        "Al restablecer su contraseña, reconoce que perderá el acceso a todos los datos almacenados en su cuenta debido al funcionamiento del cifrado de extremo a extremo de conocimiento cero. El restablecimiento de la contraseña generará una nueva clave de cifrado.",
     forgotPasswordSent: "Se ha enviado un correo con enlace de recuperación a __EMAIL__",
     resendConfirmationSent: "Se ha enviado el correo de confirmación __EMAIL__",
     noImagesUploadedYet: "Aún no se han subido fotos",
@@ -266,7 +270,8 @@ export const es: {
     noSearchFound: 'No se ha encontrado nada que coincida con «__TERM__».',
     noItemsInTrash: "No hay elementos en la papelera",
     clearThumbnailCache: "Borrar la caché de las miniaturas",
-    clearThumbnailCacheInfo: "Borrar la caché de miniaturas liberará el almacenamiento del dispositivo y borrará las miniaturas antiguas que ya no se utilicen, pero también ralentizará las futuras cargas de miniaturas porque la aplicación tendrá que volver a guardar todas las miniaturas en la caché",
+    clearThumbnailCacheInfo: 
+        "Borrar la caché de miniaturas liberará el almacenamiento del dispositivo y borrará las miniaturas antiguas que ya no se utilicen, pero también ralentizará las futuras cargas de miniaturas porque la aplicación tendrá que volver a guardar todas las miniaturas en la caché",
     thumbnailCacheCleared: "Se ha borrado la caché de las miniaturas",
     version: "Versión",
     textEditorPlaceholder: "Escribe algo...",
@@ -297,9 +302,12 @@ export const es: {
     code: "Código",
     codeRedeemSuccess: "Se ha canjeado el código __CODE__ correctamente",
     inviteCount: "Personas invitadas",
-    inviteInfo: "Invite a sus amigos y familiares a Filen. Usted y la persona que recomiende recibirán 10 GB de almacenamiento de forma permanente. Esto se aplica a cada persona que recomiendes.",
-    inviteInfo2: "Cuando alguien hace clic en tu enlace de recomendación, Filen guarda una «cookie» en su navegador que permanece durante 30 días. Esto significa que seguirás recibiendo la bonificación cuando la persona no se registre directamente.",
-    shareRefLinkMessage: "Regístrate en el almacenamiento en la nube totalmente cifrado de Filen utilizando este enlace y obtén 10 GB de almacenamiento gratis",
+    inviteInfo: 
+        "Invite a sus amigos y familiares a Filen. Usted y la persona que recomiende recibirán 10 GB de almacenamiento de forma permanente. Esto se aplica a cada persona que recomiendes.",
+    inviteInfo2: 
+        "Cuando alguien hace clic en tu enlace de recomendación, Filen guarda una «cookie» en su navegador que permanece durante 30 días. Esto significa que seguirás recibiendo la bonificación cuando la persona no se registre directamente.",
+    shareRefLinkMessage: 
+        "Regístrate en el almacenamiento en la nube totalmente cifrado de Filen utilizando este enlace y obtén 10 GB de almacenamiento gratis",
     disable2FAInfo: "No se recomienda desactivar el doble factor de autenticación, ya que hace que su cuenta sea más vulnerable.",
     twoFactorEnabledSuccess: "Se ha activado la autenticación de doble factor",
     twoFactorDisabledSuccess: "Se ha desactivado la autenticación de doble factor",
@@ -347,13 +355,16 @@ export const es: {
     itemsSavedToGallery: "Se han guardado __COUNT__ elementos en la galería",
     selectedItemsTrashed: "Se han enviado a la papelera los elementos seleccionados",
     sharedWithSuccessBulk: "__COUNT__ elementos compartidos con  __EMAIL__",
-    deleteSelectedItemsPermanentlyWarning: "¿Está seguro de que desea eliminar los elementos seleccionados de forma permanente? Esta acción no se puede deshacer.",
+    deleteSelectedItemsPermanentlyWarning: 
+        "¿Está seguro de que desea eliminar los elementos seleccionados de forma permanente? Esta acción no se puede deshacer.",
     deleteSelectedItemsPermanentlySuccess: "Se han eliminado __COUNT__ elementos permanentemente",
     restoreSelectedItems: "Restablecer los elementos seleccionados",
     restoreSelectedItemsSuccess: "Se han restauraurado __COUNT__ elementos de la papelera",
     stoppedSharingSelectedItems: "Se han dejado de compartir __COUNT__ elementos",
-    bulkStopSharingWarning: "¿Está seguro de que quiere dejar de compartir __COUNT__ elementos? ¡Otros ya no podrán acceder a ellos!",
-    bulkRemoveSharedInWarning: "¿Está seguro de que quiere eliminar __COUNT__ elementos? Ya no podrás acceder a ellos.",
+    bulkStopSharingWarning: 
+        "¿Está seguro de que quiere dejar de compartir __COUNT__ elementos? ¡Otros ya no podrán acceder a ellos!",
+    bulkRemoveSharedInWarning: 
+        "¿Está seguro de que quiere eliminar __COUNT__ elementos? Ya no podrás acceder a ellos.",
     bulkRemoveSharedInSuccess: "Se han eliminado __COUNT__ elementos compartidos por otros",
     sortBy: "Ordenar por",
     sortByName: "Nombre",
@@ -367,9 +378,11 @@ export const es: {
     finished: "Terminadas",
     noFinishedTransfers: "Todavía no se han terminado las transferencias",
     emptyTrash: "Vaciar la papelera",
-    emptyTrashWarning: "¿Está seguro de que quiere vaciar la paplera? ¡Esto eliminará de la misma todos los ficheros y carpetas, la acción no puede deshacerse!",
+    emptyTrashWarning: 
+        "¿Está seguro de que quiere vaciar la paplera? ¡Esto eliminará de la misma todos los ficheros y carpetas, la acción no puede deshacerse!",
     disableBiometricPinAuth: "Desactivar la autentificación biométrica/PIN",
-    disableBiometricPinAuthWarning: "No se recomienda desactivar la autenticación biométrica/PIN, ¿Aun así desea continuar?",
+    disableBiometricPinAuthWarning: 
+        "No se recomienda desactivar la autenticación biométrica/PIN, ¿Aun así desea continuar?",
     twoFactorAuthentication: "Doble factor de autenticación",
     changeEmail: "Cambiar la dirección de correo electrónico",
     changePassword: "Cambiar la contraseña",
@@ -416,5 +429,14 @@ export const es: {
     cameraUploadConvertLiveAndBurstAndKeepOriginal: "Convertir y mantener la original",
     cameraUploadKeepImageOnly: "Mantener sólo imágenes",
     cameraUploadKeepLivePhotoVideoOnly: "Mantener sólo vídeos de «Live photo»",
-    cameraUploadSaveAllAssets: "Guardar todos los recursos"
+    cameraUploadSaveAllAssets: "Guardar todos los recursos",
+    permissionsWriteTitle: "Permisos de escritura",
+	permissionsWriteMessage: "«Filen» requiere permisos de escritura para funcionar correctamente.",
+	permissionsAskMeLater: "Pregúntame más tarde",
+	permissionsReadTitle: "Permisos de lectura",
+	permissionsReadMessage: "«Filen» requiere permisos de lectura para funcionar correctamente.",
+	permissionsCameraTitle: "Permisos de la cámara",
+	permissionsCameraMessage: "«Filen» requiere los permisos de la cámara para funcionar correctamente.",
+	permissionsMediaLocationTitle: "Permisos de ubicación",
+	permissionsMediaLocationMessage: "Filen» requiere permisos de ubicación para funcionar correctamnte."
 }
