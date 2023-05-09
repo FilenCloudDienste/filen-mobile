@@ -416,4 +416,13 @@ export const zh: {
     cameraUploadKeepImageOnly: "只保留图片",
     cameraUploadKeepLivePhotoVideoOnly: "只保留实况照片视频",
     cameraUploadSaveAllAssets: "保存所有资产"
+    permissionsWriteTitle: "写入权限",
+	permissionsWriteMessage: "Filen 需要获得写入权限才能正常运行。",
+	permissionsAskMeLater: "之后再问我",
+	permissionsReadTitle: "读取权限",
+	permissionsReadMessage: "Filen 需要获得读取权限才能正常运行。",
+	permissionsCameraTitle: "相机权限",
+	permissionsCameraMessage: "Filen 需要获得相机权限才能正常运行。",
+	permissionsMediaLocationTitle: "媒体保存位置权限",
+	permissionsMediaLocationMessage: "Filen 需要获得媒体保存位置权限才能正常运行。"
 }
