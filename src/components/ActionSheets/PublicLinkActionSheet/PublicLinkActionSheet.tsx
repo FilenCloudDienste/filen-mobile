@@ -1,15 +1,5 @@
 import React, { useEffect, useState, memo, useRef, useCallback } from "react"
-import {
-	View,
-	Text,
-	DeviceEventEmitter,
-	Platform,
-	ActivityIndicator,
-	Switch,
-	TextInput,
-	TouchableOpacity,
-	Share
-} from "react-native"
+import { View, Text, DeviceEventEmitter, Platform, ActivityIndicator, Switch, TextInput, TouchableOpacity, Share } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -40,87 +30,77 @@ const PublicLinkActionSheet = memo(() => {
 	const [downloadBtnEnabled, setDownloadBtnEnabled] = useState<boolean>(false)
 	const [linkURL, setLinkURL] = useState<string>("")
 
-	const fetchInfo = useCallback(
-		(item: Item, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false): void => {
-			setInfo(undefined)
-			setFetchingInfo(true)
-			setPasswordDummy("")
-			setLinkEnabled(false)
-			setDownloadBtnEnabled(false)
+	const fetchInfo = useCallback((item: Item, waitUntilEnabled: boolean = false, waitUntilDisabled: boolean = false): void => {
+		setInfo(undefined)
+		setFetchingInfo(true)
+		setPasswordDummy("")
+		setLinkEnabled(false)
+		setDownloadBtnEnabled(false)
 
-			const req = () => {
-				itemPublicLinkInfo({ item })
-					.then(async info => {
-						if (waitUntilEnabled) {
-							if (item.type == "folder") {
-								if (typeof info.exists == "boolean" && !info.exists) {
-									return setTimeout(req, 250)
-								}
-							} else {
-								if (typeof info.enabled == "boolean" && !info.enabled) {
-									return setTimeout(req, 250)
-								}
+		const req = () => {
+			itemPublicLinkInfo(item)
+				.then(async info => {
+					if (waitUntilEnabled) {
+						if (item.type == "folder") {
+							if (typeof info.exists == "boolean" && !info.exists) {
+								return setTimeout(req, 250)
 							}
-						}
-
-						if (waitUntilDisabled) {
-							if (item.type == "folder") {
-								if (typeof info.exists == "boolean" && info.exists) {
-									return setTimeout(req, 250)
-								}
-							} else {
-								if (typeof info.enabled == "boolean" && info.enabled) {
-									return setTimeout(req, 250)
-								}
-							}
-						}
-
-						if (item.type == "folder" && typeof info.exists == "boolean" && info.exists) {
-							const masterKeys: string[] = getMasterKeys()
-							const keyDecrypted: string = await decryptFolderLinkKey(masterKeys, info.key)
-
-							if (keyDecrypted.length == 0) {
-								SheetManager.hide("PublicLinkActionSheet")
-
-								return
-							}
-
-							setLinkEnabled(
-								typeof info.exists == "boolean" &&
-									info.exists &&
-									typeof keyDecrypted == "string" &&
-									keyDecrypted.length >= 32
-							)
-							setDownloadBtnEnabled(false)
-							setLinkURL(
-								typeof keyDecrypted == "string" && keyDecrypted.length >= 32
-									? "https://drive.filen.io/f/" + info.uuid + "#" + keyDecrypted
-									: ""
-							)
 						} else {
-							setLinkEnabled(typeof info.enabled == "boolean" && info.enabled)
-							setDownloadBtnEnabled(
-								typeof info.downloadBtn == "string"
-									? info.downloadBtn == "enable"
-									: info.downloadBtn == 1
-							)
-							setLinkURL("https://drive.filen.io/d/" + info.uuid + "#" + item.key)
+							if (typeof info.enabled == "boolean" && !info.enabled) {
+								return setTimeout(req, 250)
+							}
+						}
+					}
+
+					if (waitUntilDisabled) {
+						if (item.type == "folder") {
+							if (typeof info.exists == "boolean" && info.exists) {
+								return setTimeout(req, 250)
+							}
+						} else {
+							if (typeof info.enabled == "boolean" && info.enabled) {
+								return setTimeout(req, 250)
+							}
+						}
+					}
+
+					if (item.type == "folder" && typeof info.exists == "boolean" && info.exists) {
+						const masterKeys: string[] = getMasterKeys()
+						const keyDecrypted: string = await decryptFolderLinkKey(masterKeys, info.key)
+
+						if (keyDecrypted.length == 0) {
+							SheetManager.hide("PublicLinkActionSheet")
+
+							return
 						}
 
-						setInfo(info)
-						setFetchingInfo(false)
-					})
-					.catch(err => {
-						setFetchingInfo(false)
+						setLinkEnabled(
+							typeof info.exists == "boolean" && info.exists && typeof keyDecrypted == "string" && keyDecrypted.length >= 32
+						)
+						setDownloadBtnEnabled(false)
+						setLinkURL(
+							typeof keyDecrypted == "string" && keyDecrypted.length >= 32
+								? "https://drive.filen.io/f/" + info.uuid + "#" + keyDecrypted
+								: ""
+						)
+					} else {
+						setLinkEnabled(typeof info.enabled == "boolean" && info.enabled)
+						setDownloadBtnEnabled(typeof info.downloadBtn == "string" ? info.downloadBtn == "enable" : info.downloadBtn == 1)
+						setLinkURL("https://drive.filen.io/d/" + info.uuid + "#" + item.key)
+					}
 
-						console.error(err)
-					})
-			}
+					setInfo(info)
+					setFetchingInfo(false)
+				})
+				.catch(err => {
+					setFetchingInfo(false)
 
-			req()
-		},
-		[]
-	)
+					console.error(err)
+				})
+		}
+
+		req()
+	}, [])
 
 	const enable = useCallback(async () => {
 		if (typeof currentItem == "undefined") {
@@ -188,18 +168,15 @@ const PublicLinkActionSheet = memo(() => {
 	)
 
 	useEffect(() => {
-		const showItemActionSheetListener = DeviceEventEmitter.addListener(
-			"showPublicLinkActionSheet",
-			(item: Item) => {
-				setCurrentItem(item)
+		const showItemActionSheetListener = DeviceEventEmitter.addListener("showPublicLinkActionSheet", (item: Item) => {
+			setCurrentItem(item)
 
-				currentItemRef.current = item
+			currentItemRef.current = item
 
-				SheetManager.show("PublicLinkActionSheet")
+			SheetManager.show("PublicLinkActionSheet")
 
-				fetchInfo(item)
-			}
-		)
+			fetchInfo(item)
+		})
 
 		return () => {
 			showItemActionSheetListener.remove()
@@ -430,9 +407,7 @@ const PublicLinkActionSheet = memo(() => {
 										}}
 									>
 										{typeof info.password == "string" && info.password.length > 32 && (
-											<TouchableOpacity
-												onPress={() => save(info.expirationText, "", info.downloadBtn)}
-											>
+											<TouchableOpacity onPress={() => save(info.expirationText, "", info.downloadBtn)}>
 												<Text
 													style={{
 														paddingTop: 12,
@@ -447,11 +422,7 @@ const PublicLinkActionSheet = memo(() => {
 											</TouchableOpacity>
 										)}
 										{passwordDummy.length > 0 && (
-											<TouchableOpacity
-												onPress={() =>
-													save(info.expirationText, passwordDummy, info.downloadBtn)
-												}
-											>
+											<TouchableOpacity onPress={() => save(info.expirationText, passwordDummy, info.downloadBtn)}>
 												<Text
 													style={{
 														paddingTop: 12,
@@ -504,11 +475,7 @@ const PublicLinkActionSheet = memo(() => {
 												}
 												ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
 												onValueChange={value =>
-													save(
-														info.expirationText,
-														passwordDummy,
-														value ? "enable" : "disable"
-													)
+													save(info.expirationText, passwordDummy, value ? "enable" : "disable")
 												}
 												value={downloadBtnEnabled}
 											/>
@@ -582,20 +549,13 @@ const PublicLinkActionSheet = memo(() => {
 											}}
 										>
 											{info.expirationText == "never" && i18n(lang, "publicLinkExpiresNever")}
-											{info.expirationText == "1h" &&
-												i18n(lang, "publicLinkExpiresHour", true, ["__NUM__"], [1])}
-											{info.expirationText == "6h" &&
-												i18n(lang, "publicLinkExpiresHours", true, ["__NUM__"], [6])}
-											{info.expirationText == "1d" &&
-												i18n(lang, "publicLinkExpiresDay", true, ["__NUM__"], [1])}
-											{info.expirationText == "3d" &&
-												i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [3])}
-											{info.expirationText == "7d" &&
-												i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [7])}
-											{info.expirationText == "14d" &&
-												i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [14])}
-											{info.expirationText == "30d" &&
-												i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [30])}
+											{info.expirationText == "1h" && i18n(lang, "publicLinkExpiresHour", true, ["__NUM__"], [1])}
+											{info.expirationText == "6h" && i18n(lang, "publicLinkExpiresHours", true, ["__NUM__"], [6])}
+											{info.expirationText == "1d" && i18n(lang, "publicLinkExpiresDay", true, ["__NUM__"], [1])}
+											{info.expirationText == "3d" && i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [3])}
+											{info.expirationText == "7d" && i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [7])}
+											{info.expirationText == "14d" && i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [14])}
+											{info.expirationText == "30d" && i18n(lang, "publicLinkExpiresDays", true, ["__NUM__"], [30])}
 										</Text>
 										<Ionicon
 											name="chevron-forward-outline"

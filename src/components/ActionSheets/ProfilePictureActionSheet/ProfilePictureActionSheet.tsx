@@ -5,23 +5,18 @@ import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
-import {
-	formatBytes,
-	convertUint8ArrayToBinaryString,
-	base64ToArrayBuffer,
-	getAPIServer,
-	getAPIKey,
-	safeAwait
-} from "../../../lib/helpers"
+import { formatBytes, getAPIServer, getAPIKey, safeAwait, randomIdUnsafe } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../../lib/permissions"
 import { getColor } from "../../../style/colors"
 import { updateUserInfo } from "../../../lib/services/user/info"
-import ReactNativeBlobUtil from "react-native-blob-util"
 import * as RNImagePicker from "react-native-image-picker"
 import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
+import axios from "axios"
+
+const CryptoJS = require("crypto-js")
 
 const allowedTypes: string[] = ["image/jpg", "image/png", "image/jpeg"]
 
@@ -30,44 +25,42 @@ const ProfilePictureActionSheet = memo(() => {
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
 
-	const uploadAvatarImage = useCallback((uri: string) => {
+	const uploadAvatarImage = useCallback(async (base64: string) => {
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		ReactNativeBlobUtil.fs
-			.readFile(uri, "base64")
-			.then(base64 => {
-				ReactNativeBlobUtil.fetch(
-					"POST",
-					getAPIServer() + "/v1/user/avatar/upload/" + getAPIKey(),
-					{},
-					convertUint8ArrayToBinaryString(base64ToArrayBuffer(base64))
-				)
-					.then(response => {
-						const json = response.json()
+		try {
+			const response = await axios.post(
+				getAPIServer() + "/v3/user/avatar",
+				JSON.stringify({
+					avatar: base64,
+					hash: CryptoJS.SHA512(base64).toString(CryptoJS.enc.Hex)
+				}),
+				{
+					headers: {
+						Authorization: "Bearer " + getAPIKey(),
+						"Content-Type": "application/json"
+					}
+				}
+			)
 
-						useStore.setState({ fullscreenLoadingModalVisible: false })
+			if (!response.data.status) {
+				console.error(new Error(response.data.message))
 
-						if (!json.status) {
-							return showToast({ message: json.message })
-						}
-
-						updateUserInfo()
-					})
-					.catch(err => {
-						console.error(err)
-
-						useStore.setState({ fullscreenLoadingModalVisible: false })
-
-						showToast({ message: err.toString() })
-					})
-			})
-			.catch(err => {
-				console.error(err)
+				showToast({ message: response.data.message })
 
 				useStore.setState({ fullscreenLoadingModalVisible: false })
 
-				showToast({ message: err.toString() })
-			})
+				return
+			}
+
+			updateUserInfo()
+		} catch (e: any) {
+			console.error(e)
+
+			showToast({ message: e.toString() })
+		}
+
+		useStore.setState({ fullscreenLoadingModalVisible: false })
 	}, [])
 
 	const takePhoto = useCallback(async () => {
@@ -97,7 +90,7 @@ const ProfilePictureActionSheet = memo(() => {
 				videoQuality: "low",
 				cameraType: "back",
 				quality: 0.2,
-				includeBase64: false,
+				includeBase64: true,
 				saveToPhotos: false,
 				mediaType: "photo"
 			},
@@ -138,7 +131,7 @@ const ProfilePictureActionSheet = memo(() => {
 
 				const image = response.assets[0]
 
-				if (!allowedTypes.includes(image.type as string)) {
+				if (!allowedTypes.includes(image.type as string) || typeof image.base64 !== "string") {
 					showToast({ message: i18n(lang, "avatarInvalidImage") })
 
 					return
@@ -154,7 +147,7 @@ const ProfilePictureActionSheet = memo(() => {
 					return
 				}
 
-				uploadAvatarImage(decodeURIComponent(image.uri as string))
+				uploadAvatarImage(image.base64)
 			}
 		)
 	}, [lang])
@@ -164,9 +157,7 @@ const ProfilePictureActionSheet = memo(() => {
 		await new Promise(resolve => setTimeout(resolve, 100))
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
-		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(
-			hasPhotoLibraryPermissions(true)
-		)
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
 
 		if (hasStoragePermissionsError || hasPhotoLibraryPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
@@ -188,7 +179,7 @@ const ProfilePictureActionSheet = memo(() => {
 				selectionLimit: 1,
 				quality: 0.2,
 				videoQuality: "low",
-				includeBase64: false,
+				includeBase64: true,
 				maxWidth: 999999999,
 				maxHeight: 999999999
 			},
@@ -227,7 +218,7 @@ const ProfilePictureActionSheet = memo(() => {
 
 				const image = response.assets[0]
 
-				if (!allowedTypes.includes(image.type as string)) {
+				if (!allowedTypes.includes(image.type as string) || typeof image.base64 !== "string") {
 					showToast({ message: i18n(lang, "avatarInvalidImage") })
 
 					return
@@ -243,7 +234,7 @@ const ProfilePictureActionSheet = memo(() => {
 					return
 				}
 
-				uploadAvatarImage(decodeURIComponent(image.uri as string))
+				uploadAvatarImage(image.base64)
 			}
 		)
 	}, [])

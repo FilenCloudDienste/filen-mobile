@@ -8,14 +8,14 @@ import { Item } from "../../types"
 
 export const getAPIServer = (): string => {
 	const servers = [
-		"https://api.filen.io",
-		"https://api.filen.net",
-		"https://api.filen-1.net",
-		"https://api.filen-2.net",
-		"https://api.filen-3.net",
-		"https://api.filen-4.net",
-		"https://api.filen-5.net",
-		"https://api.filen-6.net"
+		"https://gateway.filen.io",
+		"https://gateway.filen.net",
+		"https://gateway.filen-1.net",
+		"https://gateway.filen-2.net",
+		"https://gateway.filen-3.net",
+		"https://gateway.filen-4.net",
+		"https://gateway.filen-5.net",
+		"https://gateway.filen-6.net"
 	]
 
 	return servers[getRandomArbitrary(0, servers.length - 1)]
@@ -38,14 +38,14 @@ export const getDownloadServer = (): string => {
 
 export const getUploadServer = (): string => {
 	const servers = [
-		"https://up.filen.io",
-		"https://up.filen.net",
-		"https://up.filen-1.net",
-		"https://up.filen-2.net",
-		"https://up.filen-3.net",
-		"https://up.filen-4.net",
-		"https://up.filen-5.net",
-		"https://up.filen-6.net"
+		"https://ingest.filen.io",
+		"https://ingest.filen.net",
+		"https://ingest.filen-1.net",
+		"https://ingest.filen-2.net",
+		"https://ingest.filen-3.net",
+		"https://ingest.filen-4.net",
+		"https://ingest.filen-5.net",
+		"https://ingest.filen-6.net"
 	]
 
 	return servers[getRandomArbitrary(0, servers.length - 1)]
@@ -333,8 +333,8 @@ export const canCompressThumbnail = (ext: string): boolean => {
 			case "jpg":
 			case "png":
 			case "gif":
-			//case "heif":
-			//case "heic":
+			case "heif":
+			case "heic":
 			case "mp4":
 			case "webm":
 			case "webp":
@@ -373,8 +373,8 @@ export const canCompressThumbnailLocally = (ext: string): boolean => {
 			case "jpg":
 			case "png":
 			case "gif":
-			//case "heif":
-			//case "heic":
+			case "heif":
+			case "heic":
 			case "mp4":
 			case "webm":
 			case "webp":
@@ -415,8 +415,8 @@ export const getFilePreviewType = (ext: string) => {
 			case "gif":
 			case "svg":
 			case "webp":
-				//case "heif":
-				//case "heic":
+			case "heif":
+			case "heic":
 				return "image"
 				break
 			case "mp3":
@@ -1004,9 +1004,7 @@ export const isBetween = (num: number, start: number, end: number) => {
 	return false
 }
 
-export const isNavReady = (
-	navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>
-): Promise<boolean> => {
+export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>): Promise<boolean> => {
 	return new Promise(resolve => {
 		if (typeof navigationRef !== "undefined" && typeof navigationRef.isReady == "function") {
 			if (navigationRef.isReady()) {

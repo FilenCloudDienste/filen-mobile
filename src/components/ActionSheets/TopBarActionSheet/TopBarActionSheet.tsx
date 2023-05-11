@@ -111,9 +111,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 			extArray = ["jpg", "jpeg", "png", "gif", "mov", "mp4"]
 		}
 
-		return currentItems.filter(item => item.selected && extArray.includes(getFileExt(item.name))).length > 0
-			? true
-			: false
+		return currentItems.filter(item => item.selected && extArray.includes(getFileExt(item.name))).length > 0 ? true : false
 	}, [currentItems])
 
 	const doesSelectedItemsContainFolders = useCallback(() => {
@@ -243,7 +241,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		bulkRestore({ items })
+		bulkRestore(items)
 			.then(() => {
 				useStore.setState({ fullscreenLoadingModalVisible: false })
 
@@ -283,7 +281,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 					onPress: () => {
 						useStore.setState({ fullscreenLoadingModalVisible: true })
 
-						bulkDeletePermanently({ items })
+						bulkDeletePermanently(items)
 							.then(() => {
 								useStore.setState({ fullscreenLoadingModalVisible: false })
 
@@ -329,7 +327,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		bulkFavorite({ value: 1, items })
+		bulkFavorite(1, items)
 			.then(() => {
 				useStore.setState({ fullscreenLoadingModalVisible: false })
 
@@ -355,7 +353,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		bulkFavorite({ value: 0, items })
+		bulkFavorite(0, items)
 			.then(() => {
 				useStore.setState({ fullscreenLoadingModalVisible: false })
 
@@ -382,9 +380,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		useStore.setState({ fullscreenLoadingModalVisible: false })
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
-		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(
-			hasPhotoLibraryPermissions(true)
-		)
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
 
 		if (hasStoragePermissionsError || hasPhotoLibraryPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
@@ -579,7 +575,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		bulkTrash({ items })
+		bulkTrash(items)
 			.then(() => {
 				useStore.setState({ fullscreenLoadingModalVisible: false })
 
@@ -623,7 +619,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 					onPress: () => {
 						useStore.setState({ fullscreenLoadingModalVisible: true })
 
-						bulkStopSharing({ items })
+						bulkStopSharing(items)
 							.then(() => {
 								useStore.setState({ fullscreenLoadingModalVisible: false })
 
@@ -675,7 +671,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 					onPress: () => {
 						useStore.setState({ fullscreenLoadingModalVisible: true })
 
-						bulkRemoveSharedIn({ items })
+						bulkRemoveSharedIn(items)
 							.then(() => {
 								useStore.setState({ fullscreenLoadingModalVisible: false })
 
@@ -861,15 +857,13 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 				*/}
 				{currentRouteName !== "TransfersScreen" && (
 					<>
-						{routeURL.indexOf("photos") == -1 &&
-							routeURL.indexOf("recents") == -1 &&
-							currentItems.length > 0 && (
-								<ActionButton
-									onPress={sortBy}
-									icon="funnel-outline"
-									text={i18n(lang, "sortBy")}
-								/>
-							)}
+						{routeURL.indexOf("photos") == -1 && routeURL.indexOf("recents") == -1 && currentItems.length > 0 && (
+							<ActionButton
+								onPress={sortBy}
+								icon="funnel-outline"
+								text={i18n(lang, "sortBy")}
+							/>
+						)}
 						{canShowSelectAllItems && currentItems.length > 0 && (
 							<ActionButton
 								onPress={selectAll}
@@ -1009,11 +1003,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 							<ActionButton
 								onPress={updateViewMode}
 								icon={viewModeParsed[routeURL] !== "grid" ? "grid-outline" : "list-outline"}
-								text={
-									viewModeParsed[routeURL] !== "grid"
-										? i18n(lang, "gridView")
-										: i18n(lang, "listView")
-								}
+								text={viewModeParsed[routeURL] !== "grid" ? i18n(lang, "gridView") : i18n(lang, "listView")}
 							/>
 						)}
 						{canShowTransfersButton && (

@@ -27,7 +27,7 @@ const ConfirmRemoveFromSharedInDialog = memo(() => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		removeSharedInItem({ item: currentItem })
+		removeSharedInItem(currentItem.uuid)
 			.then(() => {
 				DeviceEventEmitter.emit("event", {
 					type: "remove-item",

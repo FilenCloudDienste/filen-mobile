@@ -6,15 +6,7 @@ import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload, downloadFile } from "../../../lib/services/download/download"
-import {
-	getFileExt,
-	getParent,
-	getRouteURL,
-	getFilePreviewType,
-	calcPhotosGridSize,
-	toExpoFsPath,
-	safeAwait
-} from "../../../lib/helpers"
+import { getFileExt, getParent, getRouteURL, getFilePreviewType, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { StackActions } from "@react-navigation/native"
@@ -62,17 +54,11 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		if (typeof currentActionSheetItem !== "undefined") {
 			const userId: number = storage.getNumber("userId")
 			const isAvailableOffline =
-				currentActionSheetItem.type == "folder"
-					? false
-					: await db.has(userId + ":offlineItems:" + currentActionSheetItem.uuid)
+				currentActionSheetItem.type == "folder" ? false : await db.has(userId + ":offlineItems:" + currentActionSheetItem.uuid)
 			const routeURL: string = getRouteURL()
 
 			if (Platform.OS == "ios") {
-				if (
-					["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(
-						getFileExt(currentActionSheetItem.name)
-					)
-				) {
+				if (["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(getFileExt(currentActionSheetItem.name))) {
 					if (await isOnline()) {
 						setCanSaveToGallery(true)
 					} else {
@@ -153,9 +139,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		useStore.setState({ fullscreenLoadingModalVisible: false })
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
-		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(
-			hasPhotoLibraryPermissions(true)
-		)
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
 
 		if (hasStoragePermissionsError || hasPhotoLibraryPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
@@ -367,12 +351,9 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		const value = currentActionSheetItem.favorited ? 0 : 1
+		const value: 0 | 1 = currentActionSheetItem.favorited ? 0 : 1
 
-		favoriteItem({
-			item: currentActionSheetItem,
-			value
-		})
+		favoriteItem(currentActionSheetItem.type, currentActionSheetItem.uuid, value)
 			.then(async () => {
 				DeviceEventEmitter.emit("event", {
 					type: "mark-item-favorite",
@@ -420,7 +401,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		trashItem({ item: currentActionSheetItem })
+		trashItem(currentActionSheetItem.type, currentActionSheetItem.uuid)
 			.then(() => {
 				DeviceEventEmitter.emit("event", {
 					type: "remove-item",
@@ -473,7 +454,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
 		const restore = () => {
-			restoreItem({ item: currentActionSheetItem })
+			restoreItem(currentActionSheetItem.type, currentActionSheetItem.uuid)
 				.then(() => {
 					DeviceEventEmitter.emit("event", {
 						type: "remove-item",
@@ -504,13 +485,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 						useStore.setState({ fullscreenLoadingModalVisible: false })
 
 						return showToast({
-							message: i18n(
-								lang,
-								"alreadyExistsAtRestoreDestination",
-								true,
-								["__NAME__"],
-								[currentActionSheetItem.name]
-							)
+							message: i18n(lang, "alreadyExistsAtRestoreDestination", true, ["__NAME__"], [currentActionSheetItem.name])
 						})
 					}
 
@@ -530,13 +505,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 						useStore.setState({ fullscreenLoadingModalVisible: false })
 
 						return showToast({
-							message: i18n(
-								lang,
-								"alreadyExistsAtRestoreDestination",
-								true,
-								["__NAME__"],
-								[currentActionSheetItem.name]
-							)
+							message: i18n(lang, "alreadyExistsAtRestoreDestination", true, ["__NAME__"], [currentActionSheetItem.name])
 						})
 					}
 
@@ -665,15 +634,13 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									text={i18n(lang, "download")}
 								/>
 							)}
-							{currentActionSheetItem.type == "file" &&
-								itemListParent !== "trash" &&
-								currentActionSheetItem.offline && (
-									<ActionButton
-										onPress={removeFromOffline}
-										icon="close-circle-outline"
-										text={i18n(lang, "removeFromOfflineStorage")}
-									/>
-								)}
+							{currentActionSheetItem.type == "file" && itemListParent !== "trash" && currentActionSheetItem.offline && (
+								<ActionButton
+									onPress={removeFromOffline}
+									icon="close-circle-outline"
+									text={i18n(lang, "removeFromOfflineStorage")}
+								/>
+							)}
 							{isDeviceOnline &&
 								currentActionSheetItem.type == "file" &&
 								itemListParent !== "trash" &&
@@ -702,11 +669,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									<ActionButton
 										onPress={favorite}
 										icon="heart-outline"
-										text={
-											currentActionSheetItem.favorited
-												? i18n(lang, "unfavorite")
-												: i18n(lang, "favorite")
-										}
+										text={currentActionSheetItem.favorited ? i18n(lang, "unfavorite") : i18n(lang, "favorite")}
 									/>
 								)}
 							{isDeviceOnline &&

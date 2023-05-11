@@ -37,10 +37,7 @@ const FolderColorActionSheet = memo(() => {
 
 			useStore.setState({ fullscreenLoadingModalVisible: true })
 
-			changeFolderColor({
-				folder: currentItem,
-				color
-			})
+			changeFolderColor(currentItem.uuid, color)
 				.then(async () => {
 					DeviceEventEmitter.emit("event", {
 						type: "change-folder-color",
@@ -78,14 +75,11 @@ const FolderColorActionSheet = memo(() => {
 	)
 
 	useEffect(() => {
-		const openFolderColorActionSheetListener = DeviceEventEmitter.addListener(
-			"openFolderColorActionSheet",
-			(item: Item) => {
-				setCurrentItem(item)
+		const openFolderColorActionSheetListener = DeviceEventEmitter.addListener("openFolderColorActionSheet", (item: Item) => {
+			setCurrentItem(item)
 
-				SheetManager.show("FolderColorActionSheet")
-			}
-		)
+			SheetManager.show("FolderColorActionSheet")
+		})
 
 		return () => {
 			openFolderColorActionSheetListener.remove()

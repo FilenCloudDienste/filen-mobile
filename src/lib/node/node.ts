@@ -13,12 +13,7 @@ declare global {
 		pingPong: (callback: (status: boolean) => boolean) => void
 		encryptData: (params: { base64: string; key: string }) => Promise<any>
 		decryptData: (params: { base64: string; key: string; version: number }) => Promise<any>
-		downloadAndDecryptChunk: (params: {
-			url: string
-			timeout: number
-			key: string
-			version: number
-		}) => Promise<any>
+		downloadAndDecryptChunk: (params: { url: string; timeout: number; key: string; version: number }) => Promise<any>
 		deriveKeyFromPassword: (params: {
 			password: string
 			salt: string
@@ -46,6 +41,7 @@ declare global {
 			queryParams: string
 			chunkIndex: number
 			chunkSize: number
+			apiKey: string
 		}) => Promise<any>
 		getDataDir: () => Promise<string>
 		appendFileToFile: (params: { first: string; second: string }) => Promise<boolean>
@@ -401,7 +397,7 @@ global.nodeThread = {
 			})
 		})
 	},
-	encryptAndUploadFileChunk: ({ path, key, queryParams, chunkIndex, chunkSize }) => {
+	encryptAndUploadFileChunk: ({ path, key, queryParams, chunkIndex, chunkSize, apiKey }) => {
 		const id = (currentId += 1)
 
 		return new Promise((resolve, reject) => {
@@ -416,7 +412,8 @@ global.nodeThread = {
 					key,
 					queryParams,
 					chunkIndex,
-					chunkSize
+					chunkSize,
+					apiKey
 				})
 			})
 		})

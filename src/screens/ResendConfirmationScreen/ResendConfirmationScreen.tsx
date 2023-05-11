@@ -84,7 +84,7 @@ export const ResendConfirmationScreen = memo(({ navigation }: ResendConfirmation
 					try {
 						var res = await apiRequest({
 							method: "POST",
-							endpoint: "/v1/confirmation/resend",
+							endpoint: "/v3/confirmation/send",
 							data: {
 								email: resendEmail
 							}

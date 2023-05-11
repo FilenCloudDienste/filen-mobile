@@ -1,14 +1,5 @@
 import React, { useEffect, useState, memo, useRef, useCallback } from "react"
-import {
-	View,
-	Text,
-	ScrollView,
-	RefreshControl,
-	ActivityIndicator,
-	TouchableHighlight,
-	useWindowDimensions,
-	FlatList
-} from "react-native"
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableHighlight, useWindowDimensions, FlatList } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButton } from "../SettingsScreen/SettingsScreen"
@@ -46,7 +37,7 @@ export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenPro
 	useEffect(() => {
 		setIsLoading(true)
 
-		fetchEventInfo({ uuid })
+		fetchEventInfo(uuid)
 			.then(info => {
 				if (isMounted()) {
 					setEventInfo(info)
@@ -279,13 +270,7 @@ export const getEventText = async ({ item, masterKeys, lang }: GetEventText) => 
 		case "folderRenamed":
 			decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
 			decryptedOld = await decryptFolderName(masterKeys, item.info.oldName, item.info.uuid)
-			eventText = i18n(
-				lang,
-				"eventFolderRenamedInfo",
-				true,
-				["__NAME__", "__NEW__"],
-				[striptags(decryptedOld), striptags(decrypted)]
-			)
+			eventText = i18n(lang, "eventFolderRenamedInfo", true, ["__NAME__", "__NEW__"], [striptags(decryptedOld), striptags(decrypted)])
 			break
 		case "subFolderCreated":
 		case "baseFolderCreated":
@@ -499,7 +484,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 		async (timestamp: number = Math.floor(Date.now() / 1000) + 60, refresh: boolean = false) => {
 			setIsLoading(true)
 
-			const [err, data] = await safeAwait(fetchEvents({ timestamp, filter }))
+			const [err, data] = await safeAwait(fetchEvents(timestamp, filter))
 
 			setIsLoading(false)
 			setRefreshing(false)

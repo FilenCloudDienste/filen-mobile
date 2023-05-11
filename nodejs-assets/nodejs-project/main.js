@@ -162,11 +162,7 @@ const encryptData = (data, key, convertToBase64 = true, isBase64 = true) => {
 			}
 
 			const iv = randomString(12)
-			const cipher = crypto.createCipheriv(
-				"aes-256-gcm",
-				utf8StringToArrayBuffer(key),
-				utf8StringToArrayBuffer(iv)
-			)
+			const cipher = crypto.createCipheriv("aes-256-gcm", utf8StringToArrayBuffer(key), utf8StringToArrayBuffer(iv))
 			const encrypted = arrayBufferConcat(cipher.update(buffer), cipher.final())
 			const authTag = cipher.getAuthTag()
 			const ciphertext = arrayBufferConcat(encrypted, authTag)
@@ -200,9 +196,7 @@ const decryptData = (data, key, version, returnBase64 = true, isBase64 = true) =
 
 				if (sliced.indexOf("Salted") !== -1) {
 					if (returnBase64) {
-						return resolve(
-							arrayBufferToBase64(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(encrypted, key)))
-						)
+						return resolve(arrayBufferToBase64(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(encrypted, key))))
 					} else {
 						return resolve(convertWordArrayToArrayBuffer(CryptoJS.AES.decrypt(encrypted, key)))
 					}
@@ -242,18 +236,12 @@ const decryptData = (data, key, version, returnBase64 = true, isBase64 = true) =
 				const authTag = encData.slice(encData.byteLength - ((128 + 7) >> 3))
 				const ciphertext = encData.slice(0, encData.byteLength - authTag.byteLength)
 
-				const decipher = crypto.createDecipheriv(
-					"aes-256-gcm",
-					utf8StringToArrayBuffer(key),
-					utf8StringToArrayBuffer(iv)
-				)
+				const decipher = crypto.createDecipheriv("aes-256-gcm", utf8StringToArrayBuffer(key), utf8StringToArrayBuffer(iv))
 
 				decipher.setAuthTag(authTag)
 
 				if (returnBase64) {
-					return resolve(
-						arrayBufferToBase64(arrayBufferConcat(decipher.update(ciphertext), decipher.final()))
-					)
+					return resolve(arrayBufferToBase64(arrayBufferConcat(decipher.update(ciphertext), decipher.final())))
 				} else {
 					return resolve(arrayBufferConcat(decipher.update(ciphertext), decipher.final()))
 				}
@@ -309,8 +297,7 @@ const deriveKeyFromPassword = (password, salt, iterations, hash, bitLength, retu
 
 		bitLength = bitLength / 8
 
-		const cacheKey =
-			password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex.toString()
+		const cacheKey = password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex.toString()
 
 		if (typeof cachedDerivedKeys[cacheKey] !== "undefined") {
 			return resolve(cachedDerivedKeys[cacheKey])
@@ -378,11 +365,7 @@ const decryptMetadata = (data, key) => {
 							const authTag = encData.slice(encData.byteLength - ((128 + 7) >> 3))
 							const ciphertext = encData.slice(0, encData.byteLength - authTag.byteLength)
 
-							const decipher = crypto.createDecipheriv(
-								"aes-256-gcm",
-								derivedKey,
-								utf8StringToArrayBuffer(iv)
-							)
+							const decipher = crypto.createDecipheriv("aes-256-gcm", derivedKey, utf8StringToArrayBuffer(iv))
 
 							decipher.setAuthTag(authTag)
 
@@ -660,7 +643,7 @@ const readChunk = (path, offset, length) => {
 	})
 }
 
-const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
+const encryptAndUploadChunkBuffer = (buffer, key, queryParams, apiKey) => {
 	return new Promise((resolve, reject) => {
 		encryptData(buffer, key, false, false)
 			.then(encrypted => {
@@ -702,13 +685,14 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams) => {
 				const req = https.request(
 					{
 						method: "POST",
-						hostname: "up.filen.io",
-						path: "/v2/upload?" + queryParams,
+						hostname: "ingest.filen.io",
+						path: "/v3/upload?" + queryParams,
 						port: 443,
 						timeout: 86400000,
 						agent: httpsUploadAgent,
 						headers: {
-							"User-Agent": "filen-mobile"
+							"User-Agent": "filen-mobile",
+							Authorization: "Bearer " + apiKey
 						}
 					},
 					response => {
@@ -782,7 +766,7 @@ const bufferToHash = (buffer, hash) => {
 	return crypto.createHash(hash).update(buffer).digest("hex")
 }
 
-const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize) => {
+const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize, apiKey) => {
 	return new Promise((resolve, reject) => {
 		path = pathModule.normalize(normalizeRNFilePath(path))
 
@@ -799,7 +783,7 @@ const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize
 
 					currentTries += 1
 
-					encryptAndUploadChunkBuffer(buffer, key, queryParams)
+					encryptAndUploadChunkBuffer(buffer, key, queryParams, apiKey)
 						.then(resolve)
 						.catch(err => {
 							if (err == "not200") {
@@ -1088,14 +1072,7 @@ rn_bridge.channel.on("message", message => {
 				tasksRunning -= 1
 			})
 	} else if (request.type == "deriveKeyFromPassword") {
-		deriveKeyFromPassword(
-			request.password,
-			request.salt,
-			request.iterations,
-			request.hash,
-			request.bitLength,
-			request.returnHex
-		)
+		deriveKeyFromPassword(request.password, request.salt, request.iterations, request.hash, request.bitLength, request.returnHex)
 			.then(key => {
 				rn_bridge.channel.send({
 					id: request.id,
@@ -1375,7 +1352,7 @@ rn_bridge.channel.on("message", message => {
 				tasksRunning -= 1
 			})
 	} else if (request.type == "encryptAndUploadFileChunk") {
-		encryptAndUploadFileChunk(request.path, request.key, request.queryParams, request.chunkIndex, request.chunkSize)
+		encryptAndUploadFileChunk(request.path, request.key, request.queryParams, request.chunkIndex, request.chunkSize, request.apiKey)
 			.then(res => {
 				rn_bridge.channel.send({
 					id: request.id,

@@ -27,7 +27,7 @@ const ConfirmPermanentDeleteDialog = memo(() => {
 
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
-		deleteItemPermanently({ item: currentItem })
+		deleteItemPermanently(currentItem.type, currentItem.uuid)
 			.then(() => {
 				DeviceEventEmitter.emit("event", {
 					type: "remove-item",

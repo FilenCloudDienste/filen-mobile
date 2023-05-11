@@ -276,8 +276,7 @@ export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonPro
 						<Text
 							style={{
 								color: getColor(darkMode, "textPrimary"),
-								paddingTop:
-									typeof rightComponent !== "undefined" ? (Platform.OS == "android" ? 3 : 7) : 0
+								paddingTop: typeof rightComponent !== "undefined" ? (Platform.OS == "android" ? 3 : 7) : 0
 							}}
 							numberOfLines={1}
 						>
@@ -423,13 +422,6 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 		>
 			<TouchableOpacity
 				onPress={async () => {
-					return
-
-					if (Platform.OS == "android") {
-						// @ TODO fix android avatar upload
-						return
-					}
-
 					if (!(await isOnline())) {
 						showToast({ message: i18n(lang, "deviceOffline") })
 
@@ -651,9 +643,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 							return
 						}
 
-						const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(
-							hasStoragePermissions(true)
-						)
+						const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
 						const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(
 							hasPhotoLibraryPermissions(true)
 						)
@@ -765,9 +755,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 						<Switch
 							trackColor={getColor(darkMode, "switchTrackColor")}
 							thumbColor={
-								hideRecents
-									? getColor(darkMode, "switchThumbColorEnabled")
-									: getColor(darkMode, "switchThumbColorDisabled")
+								hideRecents ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")
 							}
 							ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
 							onValueChange={() => setHideRecents(!hideRecents)}
@@ -860,9 +848,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 						<Switch
 							trackColor={getColor(darkMode, "switchTrackColor")}
 							thumbColor={
-								hideSizes
-									? getColor(darkMode, "switchThumbColorEnabled")
-									: getColor(darkMode, "switchThumbColorDisabled")
+								hideSizes ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")
 							}
 							ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
 							onValueChange={() => setHideSizes(!hideSizes)}

@@ -17,15 +17,7 @@ export interface Register {
 	navigation: any
 }
 
-export const register = async ({
-	email,
-	password,
-	confirmPassword,
-	setEmail,
-	setPassword,
-	setConfirmPassword,
-	navigation
-}: Register) => {
+export const register = async ({ email, password, confirmPassword, setEmail, setPassword, setConfirmPassword, navigation }: Register) => {
 	const lang = storage.getString("lang")
 
 	useStore.setState({ fullscreenLoadingModalVisible: true })
@@ -89,11 +81,10 @@ export const register = async ({
 	try {
 		var res = await apiRequest({
 			method: "POST",
-			endpoint: "/v1/register",
+			endpoint: "/v3/register",
 			data: {
 				email,
 				password,
-				passwordRepeat: confirmPassword,
 				salt,
 				authVersion: 2
 			}
@@ -143,9 +134,7 @@ export const register = async ({
 			setConfirmPassword("")
 
 			return showToast({ message: i18n(lang, "registerEmailAlreadyRegistered") })
-		} else if (
-			res.message.toLowerCase().indexOf("we could not send an email at self time, please try again later") !== -1
-		) {
+		} else if (res.message.toLowerCase().indexOf("we could not send an email at self time, please try again later") !== -1) {
 			setEmail("")
 			setPassword("")
 			setConfirmPassword("")

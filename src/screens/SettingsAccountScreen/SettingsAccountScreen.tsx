@@ -141,10 +141,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 																			})
 
 																			showToast({
-																				message: i18n(
-																					lang,
-																					"deleteAllFilesSuccess"
-																				)
+																				message: i18n(lang, "deleteAllFilesSuccess")
 																			})
 
 																			setAccountSettings((prev: any) => ({
@@ -224,17 +221,12 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 																			})
 
 																			showToast({
-																				message: i18n(
-																					lang,
-																					"deleteAllVersionedFilesSuccess"
-																				)
+																				message: i18n(lang, "deleteAllVersionedFilesSuccess")
 																			})
 
 																			setAccountSettings((prev: any) => ({
 																				...prev,
-																				storageUsed:
-																					prev.storageUsed -
-																					prev.versionedStorage
+																				storageUsed: prev.storageUsed - prev.versionedStorage
 																			}))
 																			setAccountSettings((prev: any) => ({
 																				...prev,
@@ -341,18 +333,15 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 																					fullscreenLoadingModalVisible: false
 																				})
 
-																				DeviceEventEmitter.emit(
-																					"openDeleteAccountTwoFactorDialog"
-																				)
+																				DeviceEventEmitter.emit("openDeleteAccountTwoFactorDialog")
 
 																				return
 																			}
 
-																			deleteAccount({ twoFactorKey: "XXXXXX" })
+																			deleteAccount("XXXXXX")
 																				.then(() => {
 																					useStore.setState({
-																						fullscreenLoadingModalVisible:
-																							false
+																						fullscreenLoadingModalVisible: false
 																					})
 
 																					logout({ navigation })
@@ -361,8 +350,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 																					console.log(err)
 
 																					useStore.setState({
-																						fullscreenLoadingModalVisible:
-																							false
+																						fullscreenLoadingModalVisible: false
 																					})
 
 																					showToast({

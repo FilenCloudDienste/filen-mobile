@@ -117,7 +117,7 @@ export const login = async ({
 	try {
 		var authInfo = await apiRequest({
 			method: "POST",
-			endpoint: "/v1/auth/info",
+			endpoint: "/v3/auth/info",
 			data: {
 				email
 			}
@@ -175,11 +175,11 @@ export const login = async ({
 	try {
 		var res = await apiRequest({
 			method: "POST",
-			endpoint: "/v1/login",
+			endpoint: "/v3/login",
 			data: {
 				email,
 				password: passwordToSend,
-				twoFactorKey,
+				twoFactorCode: twoFactorKey,
 				authVersion
 			}
 		})
@@ -237,11 +237,9 @@ export const login = async ({
 	try {
 		var userInfo = await new Promise((resolve, reject) => {
 			apiRequest({
-				method: "POST",
-				endpoint: "/v1/user/info",
-				data: {
-					apiKey: res.data.apiKey
-				}
+				method: "GET",
+				endpoint: "/v3/user/info",
+				apiKey: res.data.apiKey
 			})
 				.then(response => {
 					if (!response.status) {

@@ -35,7 +35,7 @@ const ShareActionSheet = memo(() => {
 		setButtonsDisabled(true)
 		setIsLoading(true)
 
-		getPublicKeyFromEmail({ email })
+		getPublicKeyFromEmail(email)
 			.then(publicKey => {
 				if (typeof publicKey !== "string") {
 					setButtonsDisabled(false)

@@ -1,6 +1,6 @@
 import { updateKeys } from "../user/keys"
 import { apiRequest } from "../../api"
-import { getAPIKey, promiseAllSettled, toExpoFsPath } from "../../helpers"
+import { promiseAllSettled, toExpoFsPath } from "../../helpers"
 import storage from "../../storage"
 import { getDownloadPath } from "../download/download"
 import { showToast } from "../../../components/Toasts"
@@ -12,7 +12,6 @@ import * as fs from "../../fs"
 import { init as initDb, dbFs } from "../../db"
 import FastImage from "react-native-fast-image"
 
-const ONLY_DEFAULT_DRIVE_ENABLED: boolean = true
 const CACHE_CLEARING_ENABLED: boolean = true
 
 const DONT_DELETE: string[] = [
@@ -31,11 +30,11 @@ const DONT_DELETE: string[] = [
 	"a document being saved by"
 ]
 
-export const canDelete = (name: string) => {
+export const canDelete = (name: string): boolean => {
 	return DONT_DELETE.filter(d => name.toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0
 }
 
-export const checkOfflineItems = async () => {
+export const checkOfflineItems = async (): Promise<void> => {
 	const deletePromises = []
 
 	let [list, offlinePath] = await Promise.all([getOfflineList(), getDownloadPath({ type: "offline" })])
@@ -119,7 +118,7 @@ export const checkOfflineItems = async () => {
 	await promiseAllSettled(deletePromises)
 }
 
-export const clearCacheDirectories = async () => {
+export const clearCacheDirectories = async (): Promise<void> => {
 	await FastImage.clearDiskCache().catch(console.error)
 
 	preloadAvatar().catch(console.error)
@@ -182,7 +181,7 @@ export const clearCacheDirectories = async () => {
 	await promiseAllSettled(deletePromises)
 }
 
-export const preloadAvatar = async () => {
+export const preloadAvatar = async (): Promise<void> => {
 	const userId = storage.getNumber("userId")
 
 	if (userId == 0) {
@@ -210,11 +209,7 @@ export const preloadAvatar = async () => {
 	])
 }
 
-export const setup = async ({
-	navigation
-}: {
-	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
-}): Promise<boolean> => {
+export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<void> => {
 	await initDb()
 
 	dbFs.warmUp().catch(console.error)
@@ -224,11 +219,8 @@ export const setup = async ({
 	await updateKeys({ navigation })
 
 	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v1/user/baseFolders",
-		data: {
-			apiKey: getAPIKey()
-		}
+		method: "GET",
+		endpoint: "/v3/user/baseFolder"
 	})
 
 	if (!response.status) {
@@ -239,17 +231,6 @@ export const setup = async ({
 		throw new Error(response.message)
 	}
 
-	for (let i = 0; i < response.data.folders.length; i++) {
-		if (response.data.folders[i].is_default) {
-			storage.set("defaultDriveUUID:" + storage.getNumber("userId"), response.data.folders[i].uuid)
-		}
-	}
-
-	if (response.data.folders.length == 1 && ONLY_DEFAULT_DRIVE_ENABLED) {
-		storage.set("defaultDriveOnly:" + storage.getNumber("userId"), true)
-	} else {
-		storage.set("defaultDriveOnly:" + storage.getNumber("userId"), false)
-	}
-
-	return true
+	storage.set("defaultDriveUUID:" + storage.getNumber("userId"), response.data.uuid)
+	storage.set("defaultDriveOnly:" + storage.getNumber("userId"), true)
 }

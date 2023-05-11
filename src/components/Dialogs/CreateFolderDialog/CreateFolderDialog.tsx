@@ -68,10 +68,7 @@ const CreateFolderDialog = memo(() => {
 					return
 				}
 
-				createFolder({
-					name,
-					parent
-				})
+				createFolder(name, parent)
 					.then(() => {
 						DeviceEventEmitter.emit("event", {
 							type: "reload-list",

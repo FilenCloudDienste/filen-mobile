@@ -29,7 +29,7 @@ const FileVersionsActionSheet = memo(() => {
 			setVersionData([])
 			setIsLoading(true)
 
-			fetchFileVersionData({ file: currentItemRef.current })
+			fetchFileVersionData(currentItemRef.current.uuid)
 				.then(versions => {
 					setVersionData(versions)
 					setButtonsDisabled(false)
@@ -110,21 +110,18 @@ const FileVersionsActionSheet = memo(() => {
 	)
 
 	useEffect(() => {
-		const openFileVersionsActionSheetListener = DeviceEventEmitter.addListener(
-			"openFileVersionsActionSheet",
-			(item: Item) => {
-				setButtonsDisabled(true)
-				setVersionData([])
-				setIsLoading(true)
-				setCurrentItem(item)
+		const openFileVersionsActionSheetListener = DeviceEventEmitter.addListener("openFileVersionsActionSheet", (item: Item) => {
+			setButtonsDisabled(true)
+			setVersionData([])
+			setIsLoading(true)
+			setCurrentItem(item)
 
-				currentItemRef.current = item
+			currentItemRef.current = item
 
-				fetchVersions()
+			fetchVersions()
 
-				SheetManager.show("FileVersionsActionSheet")
-			}
-		)
+			SheetManager.show("FileVersionsActionSheet")
+		})
 
 		return () => {
 			openFileVersionsActionSheetListener.remove()

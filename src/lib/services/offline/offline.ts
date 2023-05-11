@@ -154,7 +154,7 @@ export const checkOfflineItems = async (items: Item[]) => {
 	const offlineFilesToFetchInfo = items.map(item => item.uuid)
 
 	if (offlineFilesToFetchInfo.length > 0 && (await isOnline())) {
-		const offlineFilesInfo = await fetchOfflineFilesInfo({ files: offlineFilesToFetchInfo })
+		const offlineFilesInfo = await fetchOfflineFilesInfo(offlineFilesToFetchInfo)
 
 		for (let i = 0; i < items.length; i++) {
 			const prop = items[i].uuid

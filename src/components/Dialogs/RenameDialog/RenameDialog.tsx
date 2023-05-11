@@ -85,7 +85,7 @@ const RenameDialog = memo(() => {
 						}
 					}
 
-					renameFolder({ folder: item, name })
+					renameFolder(item, name)
 						.then(() => {
 							DeviceEventEmitter.emit("event", {
 								type: "change-item-name",
@@ -155,7 +155,7 @@ const RenameDialog = memo(() => {
 						}
 					}
 
-					renameFile({ file: item, name })
+					renameFile(item, name)
 						.then(() => {
 							DeviceEventEmitter.emit("event", {
 								type: "change-item-name",

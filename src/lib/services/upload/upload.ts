@@ -67,9 +67,6 @@ export const queueFileUpload = ({
 			return reject("wifiOnly")
 		}
 
-		//file.path = decodeURIComponent(file.path)
-		//file.name = decodeURIComponent(file.name)
-
 		try {
 			var stat = await fs.stat(file.path)
 		} catch (e) {
@@ -106,7 +103,6 @@ export const queueFileUpload = ({
 		const chunkSizeToUse = 1024 * 1024 * 1
 		let dummyOffset = 0
 		let fileChunks = 0
-		const expire = "never"
 		const lastModified = file.lastModified
 		let paused = false
 		let stopped = false
@@ -239,23 +235,14 @@ export const queueFileUpload = ({
 				path: file.path,
 				key,
 				queryParams: new URLSearchParams({
-					apiKey,
 					uuid,
-					name: nameEnc,
-					nameHashed: nameH,
-					size: sizeEnc,
-					chunks: fileChunks.toString(),
-					mime: mimeEnc,
 					index: index.toString(),
-					rm,
-					expire,
 					uploadKey,
-					metaData,
-					parent,
-					version: uploadVersion.toString()
+					parent
 				}).toString(),
 				chunkIndex: index,
-				chunkSize: chunkSizeToUse
+				chunkSize: chunkSizeToUse,
+				apiKey
 			})
 		}
 
@@ -264,29 +251,22 @@ export const queueFileUpload = ({
 			data: item
 		})
 
-		try {
-			const res = await upload(0)
-
-			item.region = res.data.region
-			item.bucket = res.data.bucket
-		} catch (e) {
-			err = e
-		}
-
 		if (typeof err == "undefined") {
 			try {
 				await new Promise((resolve, reject) => {
-					let done = 1
+					let done = 0
 
-					for (let i = 1; i < fileChunks + 1; i++) {
+					for (let i = 0; i < fileChunks; i++) {
 						uploadThreadsSemaphore.acquire().then(() => {
 							upload(i)
-								.then(() => {
+								.then(res => {
 									done += 1
+									item.region = res.data.region
+									item.bucket = res.data.bucket
 
 									uploadThreadsSemaphore.release()
 
-									if (done >= fileChunks + 1) {
+									if (done >= fileChunks) {
 										return resolve(true)
 									}
 								})
@@ -339,22 +319,13 @@ export const queueFileUpload = ({
 													quality: 1
 												})
 													.then(({ uri }) => {
-														ImageResizer.createResizedImage(
-															toExpoFsPath(uri),
-															width,
-															height,
-															"JPEG",
-															quality
-														)
+														ImageResizer.createResizedImage(toExpoFsPath(uri), width, height, "JPEG", quality)
 															.then(compressed => {
 																fs.unlink(uri)
 																	.then(() => {
 																		fs.move(compressed.uri, dest)
 																			.then(() => {
-																				storage.set(
-																					cacheKey,
-																					item.uuid + ".jpg"
-																				)
+																				storage.set(cacheKey, item.uuid + ".jpg")
 																				memoryCache.set(
 																					"cachedThumbnailPaths:" + uuid,
 																					item.uuid + ".jpg"
@@ -370,21 +341,12 @@ export const queueFileUpload = ({
 													})
 													.catch(resolve)
 											} else {
-												ImageResizer.createResizedImage(
-													toExpoFsPath(file.path),
-													width,
-													height,
-													"JPEG",
-													quality
-												)
+												ImageResizer.createResizedImage(toExpoFsPath(file.path), width, height, "JPEG", quality)
 													.then(compressed => {
 														fs.move(compressed.uri, dest)
 															.then(() => {
 																storage.set(cacheKey, item.uuid + ".jpg")
-																memoryCache.set(
-																	"cachedThumbnailPaths:" + uuid,
-																	item.uuid + ".jpg"
-																)
+																memoryCache.set("cachedThumbnailPaths:" + uuid, item.uuid + ".jpg")
 
 																return resolve()
 															})
@@ -443,12 +405,20 @@ export const queueFileUpload = ({
 		}
 
 		try {
-			const doneRes = await markUploadAsDone({ uuid, uploadKey })
+			const done = await markUploadAsDone({
+				uuid,
+				name: nameEnc,
+				nameHashed: nameH,
+				size: sizeEnc,
+				chunks: fileChunks,
+				mime: mimeEnc,
+				rm,
+				metadata: metaData,
+				version: uploadVersion,
+				uploadKey
+			})
 
-			if (doneRes.data && doneRes.data.chunks) {
-				item.chunks = doneRes.data.chunks
-				fileChunks = doneRes.data.chunks
-			}
+			fileChunks = done.chunks
 
 			item.timestamp = Math.floor(Date.now() / 1000)
 

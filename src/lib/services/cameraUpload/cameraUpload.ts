@@ -16,12 +16,7 @@ import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import mimeTypes from "mime-types"
 import RNHeicConverter from "react-native-heic-converter"
-import {
-	hasPhotoLibraryPermissions,
-	hasReadPermissions,
-	hasWritePermissions,
-	hasStoragePermissions
-} from "../../permissions"
+import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
 import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
 import pathModule from "path"
@@ -91,7 +86,8 @@ export const photoExts: string[] = [
 	"ico",
 	"cur",
 	"tif",
-	"tiff"
+	"tiff",
+	"dng"
 ]
 
 export const videoExts: string[] = [
@@ -398,20 +394,15 @@ export const loadLocal = async (): Promise<CameraUploadItems> => {
 }
 
 export const loadRemote = async (): Promise<CameraUploadItems> => {
-	const apiKey = getAPIKey()
 	const masterKeys = getMasterKeys()
 	const userId = storage.getNumber("userId")
 	const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId) || ""
 
 	const response = await apiRequest({
 		method: "POST",
-		endpoint: "/v1/dir/content",
+		endpoint: "/v3/dir/content",
 		data: {
-			apiKey,
-			uuid: cameraUploadFolderUUID,
-			folders: JSON.stringify(["default"]),
-			page: 1,
-			app: "true"
+			uuid: cameraUploadFolderUUID
 		}
 	})
 
@@ -422,9 +413,11 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 	const items: CameraUploadItems = {}
 	const sorted = response.data.uploads.sort((a: any, b: any) => a.timestamp - b.timestamp)
 	const last = sorted[sorted.length - 1]
-	const cameraUploadLastLoadRemote = (await db.dbFs.get(
-		"cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID
-	)) as { uuid: string; count: number; items: CameraUploadItems }
+	const cameraUploadLastLoadRemote = (await db.dbFs.get("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID)) as {
+		uuid: string
+		count: number
+		items: CameraUploadItems
+	}
 
 	if (cameraUploadLastLoadRemote) {
 		if (cameraUploadLastLoadRemote.count == sorted.length && cameraUploadLastLoadRemote.uuid == last.uuid) {
@@ -550,12 +543,7 @@ export const convertHeicToJPGIOS = async (inputPath: string) => {
 	return path
 }
 
-export const copyFile = async (
-	asset: MediaLibrary.Asset,
-	assetURI: string,
-	tmp: string,
-	enableHeic: boolean
-): Promise<UploadFile> => {
+export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp: string, enableHeic: boolean): Promise<UploadFile> => {
 	let name = asset.filename
 
 	if (Platform.OS == "ios" && !enableHeic && assetURI.toLowerCase().endsWith(".heic") && asset.mediaType == "photo") {
@@ -616,9 +604,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 		if (
 			cameraUploadOnlyUploadOriginal ||
 			Platform.OS == "android" ||
-			(!cameraUploadOnlyUploadOriginal &&
-				!cameraUploadConvertLiveAndBurst &&
-				!cameraUploadConvertLiveAndBurstAndKeepOriginal)
+			(!cameraUploadOnlyUploadOriginal && !cameraUploadConvertLiveAndBurst && !cameraUploadConvertLiveAndBurstAndKeepOriginal)
 		) {
 			originalKept = true
 
@@ -626,13 +612,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 		}
 
 		if (Platform.OS == "ios" && !originalKept) {
-			const exportedAssets = await exportPhotoAssets(
-				[asset.id],
-				fs.cacheDirectory!.substring(8),
-				tmpPrefix,
-				true,
-				false
-			)
+			const exportedAssets = await exportPhotoAssets([asset.id], fs.cacheDirectory!.substring(8), tmpPrefix, true, false)
 
 			if (exportedAssets.error && exportedAssets.error.length > 0) {
 				getFilesMutex.release()
@@ -642,8 +622,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 
 			const filesToUploadPromises: Promise<UploadFile>[] = []
 			const isConvertedLivePhoto =
-				exportedAssets.exportResults!.filter(res => res.localFileLocations.toLowerCase().endsWith(".mov"))
-					.length > 0
+				exportedAssets.exportResults!.filter(res => res.localFileLocations.toLowerCase().endsWith(".mov")).length > 0
 
 			for (const resource of exportedAssets.exportResults!) {
 				if (
@@ -679,18 +658,14 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 							fs.statWithoutEncode(convertedPath)
 								.then(stat => {
 									if (!stat.exists) {
-										return reject(
-											new Error("Asset does not exist (after HEIC conversion) " + asset.id)
-										)
+										return reject(new Error("Asset does not exist (after HEIC conversion) " + asset.id))
 									}
 
 									const assetFilenameWithoutEx =
 										asset.filename.indexOf(".") !== -1
 											? asset.filename.substring(0, asset.filename.lastIndexOf("."))
 											: asset.filename
-									const fileNameEx = (
-										resource.localFileLocations.split(tmpPrefix).pop() || asset.filename
-									).split(".")
+									const fileNameEx = (resource.localFileLocations.split(tmpPrefix).pop() || asset.filename).split(".")
 									const nameWithoutEx =
 										asset.filename.indexOf(".") !== -1
 											? fileNameEx.slice(0, fileNameEx.length - 1).join(".")
@@ -874,7 +849,7 @@ export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 		}
 
 		let folderExists = false
-		const isFolderPresent = await folderPresent({ uuid: cameraUploadFolderUUID })
+		const isFolderPresent = await folderPresent(cameraUploadFolderUUID)
 
 		if (isFolderPresent.present) {
 			if (!isFolderPresent.trash) {
@@ -974,10 +949,7 @@ export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 			if (stat.exists) {
 				await Promise.all([
 					db.cameraUpload.setLastModified(asset, convertTimestampToMs(delta.item.lastModified)),
-					db.cameraUpload.setLastModifiedStat(
-						asset,
-						convertTimestampToMs(stat.modificationTime || delta.item.lastModified)
-					),
+					db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || delta.item.lastModified)),
 					db.cameraUpload.setLastSize(asset, stat.size || 0)
 				])
 			}

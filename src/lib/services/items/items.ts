@@ -1,7 +1,6 @@
 import { apiRequest, folderPresent } from "../../api"
 import storage from "../../storage"
 import {
-	getAPIKey,
 	orderItemsByType,
 	getFilePreviewType,
 	getFileExt,
@@ -40,7 +39,7 @@ import {
 } from "../../crypto"
 import * as db from "../../db"
 
-const itemsSemaphore = new Semaphore(2048)
+const itemsSemaphore = new Semaphore(4096)
 
 export interface BuildFolder {
 	folder: any
@@ -237,10 +236,7 @@ export const sortItems = ({ items, passedRoute = undefined }: { items: Item[]; p
 	return orderItemsByType(items, sortBy[routeURL])
 }
 
-export const loadItems = async (
-	route: any,
-	skipCache: boolean = false
-): Promise<{ cached: boolean; items: Item[] }> => {
+export const loadItems = async (route: any, skipCache: boolean = false): Promise<{ cached: boolean; items: Item[] }> => {
 	const uuid: string = getParent(route)
 	const url: string = getRouteURL(route)
 	const userId = storage.getNumber("userId")
@@ -258,20 +254,20 @@ export const loadItems = async (
 
 		const promises: Promise<Item>[] = []
 
-		if (url.indexOf("recents") !== -1) {
+		if (url.indexOf("recent") !== -1) {
 			const response = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/user/recent",
+				endpoint: "/v3/dir/content",
 				data: {
-					apiKey: getAPIKey()
+					uuid: "recents"
 				}
 			})
 
 			if (!response.status) {
-				throw new Error(response.message)
+				throw new Error(response.message + ": " + response.code)
 			}
 
-			for (const file of response.data) {
+			for (const file of response.data.uploads) {
 				promises.push(
 					new Promise((resolve, reject) => {
 						itemsSemaphore.acquire().then(() => {
@@ -297,18 +293,14 @@ export const loadItems = async (
 
 			const response = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/user/shared/in",
+				endpoint: "/v3/shared/in",
 				data: {
-					apiKey: getAPIKey(),
-					uuid,
-					folders: JSON.stringify(["shared-in"]),
-					page: 1,
-					app: "true"
+					uuid
 				}
 			})
 
 			if (!response.status) {
-				throw new Error(response.message)
+				throw new Error(response.message + ": " + response.code)
 			}
 
 			for (const folder of response.data.folders) {
@@ -355,19 +347,15 @@ export const loadItems = async (
 		} else if (url.indexOf("shared-out") !== -1) {
 			const response = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/user/shared/out",
+				endpoint: "/v3/shared/out",
 				data: {
-					apiKey: getAPIKey(),
 					uuid,
-					folders: JSON.stringify(["default"]),
-					page: 1,
-					app: "true",
 					receiverId: global.currentReceiverId
 				}
 			})
 
 			if (!response.status) {
-				throw new Error(response.message)
+				throw new Error(response.message + ": " + response.code)
 			}
 
 			for (let folder of response.data.folders) {
@@ -430,7 +418,7 @@ export const loadItems = async (
 				}
 			}
 
-			const isFolderPresent = await folderPresent({ uuid: cameraUploadParent })
+			const isFolderPresent = await folderPresent(cameraUploadParent)
 			const folderExists: boolean = isFolderPresent.present && !isFolderPresent.trash
 
 			if (!folderExists) {
@@ -442,18 +430,14 @@ export const loadItems = async (
 
 			const response = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/dir/content",
+				endpoint: "/v3/dir/content",
 				data: {
-					apiKey: getAPIKey(),
-					uuid: cameraUploadParent,
-					folders: JSON.stringify(["default"]),
-					page: 1,
-					app: "true"
+					uuid: cameraUploadParent
 				}
 			})
 
 			if (!response.status) {
-				throw new Error(response.message)
+				throw new Error(response.message + ": " + response.code)
 			}
 
 			for (const file of response.data.uploads) {
@@ -505,18 +489,14 @@ export const loadItems = async (
 		} else {
 			const response = await apiRequest({
 				method: "POST",
-				endpoint: "/v1/dir/content",
+				endpoint: "/v3/dir/content",
 				data: {
-					apiKey: getAPIKey(),
-					uuid,
-					folders: JSON.stringify(["default"]),
-					page: 1,
-					app: "true"
+					uuid
 				}
 			})
 
 			if (!response.status) {
-				throw new Error(response.message)
+				throw new Error(response.message + ": " + response.code)
 			}
 
 			for (const folder of response.data.folders) {
@@ -754,13 +734,7 @@ export const previewItem = async ({
 							console.log(err)
 
 							showToast({
-								message: i18n(
-									storage.getString("lang"),
-									"couldNotOpenFileLocally",
-									true,
-									["__NAME__"],
-									[item.name]
-								)
+								message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name])
 							})
 						})
 				}
@@ -777,13 +751,7 @@ export const previewItem = async ({
 							console.log(err)
 
 							showToast({
-								message: i18n(
-									storage.getString("lang"),
-									"couldNotOpenFileLocally",
-									true,
-									["__NAME__"],
-									[item.name]
-								)
+								message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name])
 							})
 						})
 				} else if (previewType == "pdf" || previewType == "doc") {
@@ -798,13 +766,7 @@ export const previewItem = async ({
 							console.log(err)
 
 							showToast({
-								message: i18n(
-									storage.getString("lang"),
-									"couldNotOpenFileLocally",
-									true,
-									["__NAME__"],
-									[item.name]
-								)
+								message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name])
 							})
 						})
 				} else if (previewType == "text" || previewType == "code") {
@@ -916,10 +878,7 @@ export const addToSavedToGallery = async (asset: Asset) => {
 		if (stat.exists) {
 			await Promise.all([
 				db.cameraUpload.setLastModified(asset, convertTimestampToMs(asset.modificationTime)),
-				db.cameraUpload.setLastModifiedStat(
-					asset,
-					convertTimestampToMs(stat.modificationTime || asset.modificationTime)
-				),
+				db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || asset.modificationTime)),
 				db.cameraUpload.setLastSize(asset, stat.size || 0)
 			])
 		}

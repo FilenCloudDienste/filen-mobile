@@ -40,11 +40,7 @@ const ConfirmStopSharingDialog = memo(() => {
 				receiverEmail: currentItem.receivers[i].email
 			}
 
-			promises.push(
-				new Promise((resolve, reject) => {
-					stopSharingItem({ item }).then(resolve).catch(reject)
-				})
-			)
+			promises.push(stopSharingItem(item.uuid, item.receiverId))
 		}
 
 		Promise.all(promises)
@@ -74,14 +70,11 @@ const ConfirmStopSharingDialog = memo(() => {
 	}, [currentItem, buttonsDisabled, lang])
 
 	useEffect(() => {
-		const openConfirmStopSharingDialogListener = DeviceEventEmitter.addListener(
-			"openConfirmStopSharingDialog",
-			(item: Item) => {
-				setButtonsDisabled(false)
-				setCurrentItem(item)
-				setOpen(true)
-			}
-		)
+		const openConfirmStopSharingDialogListener = DeviceEventEmitter.addListener("openConfirmStopSharingDialog", (item: Item) => {
+			setButtonsDisabled(false)
+			setCurrentItem(item)
+			setOpen(true)
+		})
 
 		return () => {
 			openConfirmStopSharingDialogListener.remove()

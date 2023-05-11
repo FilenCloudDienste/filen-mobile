@@ -11,15 +11,7 @@ import {
 } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { getImageForItem } from "../../assets/thumbnails"
-import {
-	formatBytes,
-	getFolderColor,
-	calcPhotosGridSize,
-	getRouteURL,
-	getParent,
-	getFileExt,
-	getFilePreviewType
-} from "../../lib/helpers"
+import { formatBytes, getFolderColor, calcPhotosGridSize, getRouteURL, getParent, getFileExt, getFilePreviewType } from "../../lib/helpers"
 import { i18n } from "../../i18n"
 import { getColor } from "../../style/colors"
 import { EdgeInsets } from "react-native-safe-area-context"
@@ -53,215 +45,209 @@ export interface ListItemProps extends ItemBaseProps {
 	route: any
 }
 
-export const ListItem = memo(
-	({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
-		const fetched = useRef<boolean>(false)
+export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
+	const fetched = useRef<boolean>(false)
 
-		useEffect(() => {
-			if (item.type == "folder" && !fetched.current) {
-				fetched.current = true
+	useEffect(() => {
+		if (item.type == "folder" && !fetched.current) {
+			fetched.current = true
 
-				fetchFolderSize({ folder: item, routeURL: getRouteURL(route) })
-					.then(fetchedSize => {
-						DeviceEventEmitter.emit("event", {
-							type: "folder-size",
-							data: {
-								uuid: item.uuid,
-								size: fetchedSize
-							}
-						})
-
-						memoryCache.set("folderSizeCache:" + item.uuid, fetchedSize)
-						db.set("folderSizeCache:" + item.uuid, fetchedSize).catch(console.error)
+			fetchFolderSize(item, getRouteURL(route))
+				.then(fetchedSize => {
+					DeviceEventEmitter.emit("event", {
+						type: "folder-size",
+						data: {
+							uuid: item.uuid,
+							size: fetchedSize
+						}
 					})
-					.catch(console.error)
-			}
-		}, [item.uuid, item.name, index, route])
 
-		return (
-			<TouchableHighlight
-				underlayColor={getColor(darkMode, "backgroundTertiary")}
+					memoryCache.set("folderSizeCache:" + item.uuid, fetchedSize)
+					db.set("folderSizeCache:" + item.uuid, fetchedSize).catch(console.error)
+				})
+				.catch(console.error)
+		}
+	}, [item.uuid, item.name, index, route])
+
+	return (
+		<TouchableHighlight
+			underlayColor={getColor(darkMode, "backgroundTertiary")}
+			style={{
+				width: "100%",
+				height: 60
+			}}
+			onPress={() => {
+				DeviceEventEmitter.emit("event", {
+					type: "item-onpress",
+					data: item
+				})
+			}}
+			onLongPress={() => {
+				DeviceEventEmitter.emit("event", {
+					type: "item-onlongpress",
+					data: item
+				})
+			}}
+		>
+			<View
 				style={{
+					backgroundColor: item.selected ? getColor(darkMode, "backgroundTertiary") : getColor(darkMode, "backgroundPrimary"),
 					width: "100%",
-					height: 60
-				}}
-				onPress={() => {
-					DeviceEventEmitter.emit("event", {
-						type: "item-onpress",
-						data: item
-					})
-				}}
-				onLongPress={() => {
-					DeviceEventEmitter.emit("event", {
-						type: "item-onlongpress",
-						data: item
-					})
+					height: 60,
+					flexDirection: "row",
+					alignItems: "center",
+					paddingLeft: 15,
+					paddingRight: 25
 				}}
 			>
 				<View
 					style={{
-						backgroundColor: item.selected
-							? getColor(darkMode, "backgroundTertiary")
-							: getColor(darkMode, "backgroundPrimary"),
-						width: "100%",
-						height: 60,
+						width: 40
+					}}
+				>
+					{item.type == "folder" ? (
+						<Ionicon
+							name="ios-folder"
+							size={40}
+							color={getFolderColor(item.color)}
+						/>
+					) : (
+						<FastImage
+							source={
+								hideThumbnails
+									? getImageForItem(item)
+									: typeof item.thumbnail !== "undefined"
+									? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
+									: getImageForItem(item)
+							}
+							style={{
+								width: 40,
+								height: 40,
+								borderRadius: 5
+							}}
+							onError={() => {
+								if (typeof item.thumbnail == "string") {
+									void checkItemThumbnail({ item })
+								}
+							}}
+						/>
+					)}
+				</View>
+				<View
+					style={{
 						flexDirection: "row",
+						justifyContent: "space-between",
 						alignItems: "center",
-						paddingLeft: 15,
-						paddingRight: 25
+						width: "100%",
+						height: "100%",
+						marginLeft: 15,
+						borderBottomColor: getColor(darkMode, "primaryBorder"),
+						borderBottomWidth: 0.5
 					}}
 				>
 					<View
 						style={{
-							width: 40
+							paddingTop: 2,
+							width: "75%"
 						}}
 					>
-						{item.type == "folder" ? (
-							<Ionicon
-								name="ios-folder"
-								size={40}
-								color={getFolderColor(item.color)}
-							/>
-						) : (
-							<FastImage
-								source={
-									hideThumbnails
-										? getImageForItem(item)
-										: typeof item.thumbnail !== "undefined"
-										? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
-										: getImageForItem(item)
-								}
-								style={{
-									width: 40,
-									height: 40,
-									borderRadius: 5
-								}}
-								onError={() => {
-									if (typeof item.thumbnail == "string") {
-										void checkItemThumbnail({ item })
-									}
-								}}
-							/>
-						)}
-					</View>
-					<View
-						style={{
-							flexDirection: "row",
-							justifyContent: "space-between",
-							alignItems: "center",
-							width: "100%",
-							height: "100%",
-							marginLeft: 15,
-							borderBottomColor: getColor(darkMode, "primaryBorder"),
-							borderBottomWidth: 0.5
-						}}
-					>
-						<View
+						<Text
 							style={{
-								paddingTop: 2,
-								width: "75%"
+								color: getColor(darkMode, "textPrimary"),
+								fontSize: 15,
+								fontWeight: "400"
 							}}
+							numberOfLines={1}
 						>
-							<Text
-								style={{
-									color: getColor(darkMode, "textPrimary"),
-									fontSize: 15,
-									fontWeight: "400"
-								}}
-								numberOfLines={1}
-							>
-								{hideFileNames ? i18n(lang, item.type == "folder" ? "folder" : "file") : item.name}
-							</Text>
-							<Text
-								style={{
-									color: "gray",
-									fontSize: 11,
-									marginTop: 4
-								}}
-								numberOfLines={1}
-							>
-								{item.offline ? (
+							{hideFileNames ? i18n(lang, item.type == "folder" ? "folder" : "file") : item.name}
+						</Text>
+						<Text
+							style={{
+								color: "gray",
+								fontSize: 11,
+								marginTop: 4
+							}}
+							numberOfLines={1}
+						>
+							{item.offline ? (
+								<>
+									<Ionicon
+										name="arrow-down-circle"
+										size={12}
+										color={"green"}
+									/>
+									<Text>&nbsp;&nbsp;</Text>
+								</>
+							) : (
+								<></>
+							)}
+							{item.favorited ? (
+								<>
+									<Ionicon
+										name="heart"
+										size={12}
+										color={getColor(darkMode, "textPrimary")}
+									/>
+									<Text>&nbsp;&nbsp;</Text>
+								</>
+							) : (
+								<></>
+							)}
+							{hideSizes ? formatBytes(0) : formatBytes(item.size)}
+							{typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && getParent(route).length < 32 && (
+								<>
+									<Text>&nbsp;&#8226;&nbsp;</Text>
+									<Text>{item.sharerEmail}</Text>
+								</>
+							)}
+							{typeof item.receivers !== "undefined" &&
+								Array.isArray(item.receivers) &&
+								item.receivers.length > 0 &&
+								getParent(route).length < 32 && (
 									<>
+										<Text>&nbsp;&#8226;&nbsp;</Text>
 										<Ionicon
-											name="arrow-down-circle"
-											size={12}
-											color={"green"}
-										/>
-										<Text>&nbsp;&nbsp;</Text>
-									</>
-								) : (
-									<></>
-								)}
-								{item.favorited ? (
-									<>
-										<Ionicon
-											name="heart"
+											name="people-outline"
 											size={12}
 											color={getColor(darkMode, "textPrimary")}
 										/>
-										<Text>&nbsp;&nbsp;</Text>
+										<Text>&nbsp;{item.receivers.length}</Text>
 									</>
-								) : (
-									<></>
 								)}
-								{hideSizes ? formatBytes(0) : formatBytes(item.size)}
-								{typeof item.sharerEmail == "string" &&
-									item.sharerEmail.length > 0 &&
-									getParent(route).length < 32 && (
-										<>
-											<Text>&nbsp;&#8226;&nbsp;</Text>
-											<Text>{item.sharerEmail}</Text>
-										</>
-									)}
-								{typeof item.receivers !== "undefined" &&
-									Array.isArray(item.receivers) &&
-									item.receivers.length > 0 &&
-									getParent(route).length < 32 && (
-										<>
-											<Text>&nbsp;&#8226;&nbsp;</Text>
-											<Ionicon
-												name="people-outline"
-												size={12}
-												color={getColor(darkMode, "textPrimary")}
-											/>
-											<Text>&nbsp;{item.receivers.length}</Text>
-										</>
-									)}
-								&nbsp;&nbsp;&#8226;&nbsp;&nbsp;
-								{item.date}
-							</Text>
-						</View>
-						<TouchableOpacity
-							hitSlop={{
-								top: 15,
-								bottom: 15,
-								right: 15,
-								left: 15
-							}}
-							style={{
-								backgroundColor: "transparent",
-								position: "absolute",
-								right: 45
-							}}
-							onPress={() => {
-								DeviceEventEmitter.emit("event", {
-									type: "open-item-actionsheet",
-									data: item
-								})
-							}}
-						>
-							<Ionicon
-								name="ellipsis-horizontal-sharp"
-								size={18}
-								color={getColor(darkMode, "textSecondary")}
-							/>
-						</TouchableOpacity>
+							&nbsp;&nbsp;&#8226;&nbsp;&nbsp;
+							{item.date}
+						</Text>
 					</View>
+					<TouchableOpacity
+						hitSlop={{
+							top: 15,
+							bottom: 15,
+							right: 15,
+							left: 15
+						}}
+						style={{
+							backgroundColor: "transparent",
+							position: "absolute",
+							right: 45
+						}}
+						onPress={() => {
+							DeviceEventEmitter.emit("event", {
+								type: "open-item-actionsheet",
+								data: item
+							})
+						}}
+					>
+						<Ionicon
+							name="ellipsis-horizontal-sharp"
+							size={18}
+							color={getColor(darkMode, "textSecondary")}
+						/>
+					</TouchableOpacity>
 				</View>
-			</TouchableHighlight>
-		)
-	}
-)
+			</View>
+		</TouchableHighlight>
+	)
+})
 
 export interface GridItemProps extends ItemBaseProps {
 	itemsPerRow: number
@@ -269,18 +255,7 @@ export interface GridItemProps extends ItemBaseProps {
 }
 
 export const GridItem = memo(
-	({
-		insets,
-		item,
-		index,
-		darkMode,
-		hideFileNames,
-		hideThumbnails,
-		lang,
-		itemsPerRow,
-		hideSizes,
-		route
-	}: GridItemProps) => {
+	({ insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow, hideSizes, route }: GridItemProps) => {
 		const dimensions = useWindowDimensions()
 		const fetched = useRef<boolean>(false)
 
@@ -292,7 +267,7 @@ export const GridItem = memo(
 			if (item.type == "folder" && !fetched.current) {
 				fetched.current = true
 
-				fetchFolderSize({ folder: item, routeURL: getRouteURL(route) })
+				fetchFolderSize(item, getRouteURL(route))
 					.then(fetchedSize => {
 						DeviceEventEmitter.emit("event", {
 							type: "folder-size",
@@ -313,9 +288,7 @@ export const GridItem = memo(
 			<Pressable
 				style={{
 					margin: 2,
-					backgroundColor: item.selected
-						? getColor(darkMode, "backgroundTertiary")
-						: getColor(darkMode, "backgroundPrimary"),
+					backgroundColor: item.selected ? getColor(darkMode, "backgroundTertiary") : getColor(darkMode, "backgroundPrimary"),
 					height: Math.floor(windowWidth / itemsPerRow) + 55,
 					width: Math.floor(windowWidth / itemsPerRow),
 					borderRadius: 10,
@@ -627,109 +600,107 @@ export interface PhotosRangeItemProps extends ItemBaseProps {
 	item: any
 }
 
-export const PhotosRangeItem = memo(
-	({ item, index, darkMode, hideThumbnails, photosRangeItemClick }: PhotosRangeItemProps) => {
-		const dimensions = useWindowDimensions()
+export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, photosRangeItemClick }: PhotosRangeItemProps) => {
+	const dimensions = useWindowDimensions()
 
-		const imageWidthAndHeight = useMemo(() => {
-			const imageWidthAndHeight = Math.floor(dimensions.width - 30)
+	const imageWidthAndHeight = useMemo(() => {
+		const imageWidthAndHeight = Math.floor(dimensions.width - 30)
 
-			return imageWidthAndHeight
-		}, [dimensions])
+		return imageWidthAndHeight
+	}, [dimensions])
 
-		return (
-			<TouchableOpacity
-				activeOpacity={0.6}
+	return (
+		<TouchableOpacity
+			activeOpacity={0.6}
+			style={{
+				height: imageWidthAndHeight,
+				width: imageWidthAndHeight,
+				paddingLeft: 30,
+				alignItems: "center",
+				justifyContent: "center",
+				marginBottom: 25
+			}}
+			onPress={() => photosRangeItemClick(item)}
+		>
+			<FastImage
+				source={
+					hideThumbnails
+						? getImageForItem(item)
+						: typeof item.thumbnail !== "undefined"
+						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
+						: getImageForItem(item)
+				}
 				style={{
-					height: imageWidthAndHeight,
-					width: imageWidthAndHeight,
-					paddingLeft: 30,
-					alignItems: "center",
-					justifyContent: "center",
-					marginBottom: 25
+					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
+					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
+					zIndex: 2,
+					borderRadius: typeof item.thumbnail !== "undefined" ? 15 : 0
 				}}
-				onPress={() => photosRangeItemClick(item)}
-			>
-				<FastImage
-					source={
-						hideThumbnails
-							? getImageForItem(item)
-							: typeof item.thumbnail !== "undefined"
-							? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
-							: getImageForItem(item)
+				onError={() => {
+					if (typeof item.thumbnail == "string") {
+						void checkItemThumbnail({ item })
 					}
+				}}
+			/>
+			<View
+				style={{
+					backgroundColor: darkMode ? "rgba(34, 34, 34, 0.5)" : "rgba(128, 128, 128, 0.6)",
+					position: "absolute",
+					zIndex: 100,
+					top: 15,
+					left: 30,
+					padding: 5,
+					paddingLeft: 10,
+					paddingRight: 10,
+					borderRadius: 15
+				}}
+			>
+				<Text
 					style={{
-						width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
-						height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
-						zIndex: 2,
-						borderRadius: typeof item.thumbnail !== "undefined" ? 15 : 0
+						color: "white",
+						fontWeight: "bold",
+						fontSize: 20
 					}}
-					onError={() => {
-						if (typeof item.thumbnail == "string") {
-							void checkItemThumbnail({ item })
-						}
-					}}
-				/>
+				>
+					{item.title}
+				</Text>
+			</View>
+			{typeof item.remainingItems == "number" && item.remainingItems > 1 && (
 				<View
 					style={{
-						backgroundColor: darkMode ? "rgba(34, 34, 34, 0.5)" : "rgba(128, 128, 128, 0.6)",
+						backgroundColor: darkMode ? "rgba(34, 34, 34, 0.7)" : "rgba(128, 128, 128, 0.7)",
+						width: "auto",
+						height: "auto",
+						borderRadius: 15,
 						position: "absolute",
 						zIndex: 100,
-						top: 15,
-						left: 30,
 						padding: 5,
 						paddingLeft: 10,
-						paddingRight: 10,
-						borderRadius: 15
+						top: 15,
+						right: 0,
+						flexDirection: "row"
 					}}
+					pointerEvents="box-none"
 				>
 					<Text
 						style={{
 							color: "white",
-							fontWeight: "bold",
-							fontSize: 20
+							fontSize: 15
 						}}
 					>
-						{item.title}
+						{item.remainingItems}
 					</Text>
-				</View>
-				{typeof item.remainingItems == "number" && item.remainingItems > 1 && (
-					<View
+					<Ionicon
+						name="chevron-forward-outline"
+						size={16}
+						color="white"
 						style={{
-							backgroundColor: darkMode ? "rgba(34, 34, 34, 0.7)" : "rgba(128, 128, 128, 0.7)",
-							width: "auto",
-							height: "auto",
-							borderRadius: 15,
-							position: "absolute",
-							zIndex: 100,
-							padding: 5,
-							paddingLeft: 10,
-							top: 15,
-							right: 0,
-							flexDirection: "row"
+							marginTop: Platform.OS == "android" ? 2.25 : 0.5,
+							marginLeft: 2
 						}}
-						pointerEvents="box-none"
-					>
-						<Text
-							style={{
-								color: "white",
-								fontSize: 15
-							}}
-						>
-							{item.remainingItems}
-						</Text>
-						<Ionicon
-							name="chevron-forward-outline"
-							size={16}
-							color="white"
-							style={{
-								marginTop: Platform.OS == "android" ? 2.25 : 0.5,
-								marginLeft: 2
-							}}
-						/>
-					</View>
-				)}
-			</TouchableOpacity>
-		)
-	}
-)
+					/>
+				</View>
+			)}
+		</TouchableOpacity>
+	)
+})
