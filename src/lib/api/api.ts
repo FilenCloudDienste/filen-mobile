@@ -130,26 +130,19 @@ export const apiRequest = ({
 			})
 				.then(response => {
 					if (response.status !== 200) {
-						if (typeof response.data.message === "string") {
-							if (
-								response.data.message.toLowerCase().indexOf("invalid api key") !== -1 ||
-								response.data.message.toLowerCase().indexOf("api key not found") !== -1
-							) {
-								const navigation = useStore.getState().navigation
-
-								if (typeof navigation !== "undefined") {
-									logout({ navigation })
-
-									reject(new Error(response.data.message + ": " + response.data.code))
-
-									return
-								}
-							}
-						}
-
 						reject(new Error(response.statusText))
 
 						return
+					}
+
+					if (typeof response.data.code === "string" && response.data.code === "api_key_not_found") {
+						const navigation = useStore.getState().navigation
+
+						if (typeof navigation !== "undefined") {
+							logout({ navigation })
+
+							return
+						}
 					}
 
 					if (endpointsToCache.includes(endpoint)) {
@@ -2189,7 +2182,7 @@ export const fetchEvents = async (lastTimestamp: number = Math.floor(Date.now() 
 		throw new Error(response.message)
 	}
 
-	return response.data.events
+	return response.data
 }
 
 export const fetchEventInfo = async (uuid: string): Promise<any> => {

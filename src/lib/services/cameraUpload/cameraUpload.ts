@@ -4,7 +4,6 @@ import { Platform } from "react-native"
 import {
 	promiseAllSettled,
 	convertTimestampToMs,
-	getAPIKey,
 	getMasterKeys,
 	toExpoFsPath,
 	getAssetId,
@@ -119,6 +118,8 @@ export const videoExts: string[] = [
 ]
 
 export const isExtensionAllowed = (ext: string) => {
+	return true
+
 	if (ext.length == 0) {
 		return false
 	}
@@ -154,13 +155,17 @@ export const isExtensionAllowed = (ext: string) => {
 }
 
 export const getAssetDeltaName = (name: string) => {
-	if (name.indexOf(".") == -1) {
+	try {
+		if (name.indexOf(".") == -1) {
+			return name
+		}
+
+		const parsed = pathModule.parse(name)
+
+		return parsed.name
+	} catch {
 		return name
 	}
-
-	const parsed = pathModule.parse(name)
-
-	return parsed.name
 }
 
 export const getLastModified = async (path: string, name: string, fallback: number): Promise<number> => {
@@ -173,22 +178,26 @@ export const getMediaTypes = () => {
 	const userId: number = storage.getNumber("userId")
 	const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
 	const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
-	let assetTypes: MediaLibrary.MediaTypeValue[] = ["photo", "video", "unknown"]
+	let assetTypes: MediaLibrary.MediaTypeValue[] = [
+		MediaLibrary.MediaType.video,
+		MediaLibrary.MediaType.photo,
+		MediaLibrary.MediaType.unknown
+	]
 
 	if (cameraUploadIncludeImages && !cameraUploadIncludeVideos) {
-		assetTypes = ["photo", "unknown"]
+		assetTypes = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.unknown]
 	}
 
 	if (!cameraUploadIncludeImages && cameraUploadIncludeVideos) {
-		assetTypes = ["video", "unknown"]
+		assetTypes = [MediaLibrary.MediaType.video, MediaLibrary.MediaType.unknown]
 	}
 
 	if (cameraUploadIncludeImages && cameraUploadIncludeVideos) {
-		assetTypes = ["photo", "video", "unknown"]
+		assetTypes = [MediaLibrary.MediaType.video, MediaLibrary.MediaType.photo, MediaLibrary.MediaType.unknown]
 	}
 
 	if (userId == 0) {
-		assetTypes = ["photo", "unknown"]
+		assetTypes = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.unknown]
 	}
 
 	return assetTypes
@@ -202,7 +211,7 @@ export const getAssetsFromAlbum = (album: MediaLibrary.AlbumRef): Promise<MediaL
 			MediaLibrary.getAssetsAsync({
 				...(typeof after !== "undefined" ? { after } : {}),
 				first: 256,
-				mediaType: ["photo", "video", "unknown"],
+				mediaType: [MediaLibrary.MediaType.video, MediaLibrary.MediaType.photo, MediaLibrary.MediaType.unknown],
 				sortBy: [[MediaLibrary.SortBy.creationTime, false]],
 				album
 			})
@@ -253,7 +262,7 @@ export const getLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
 		cameraUploadExcludedAlbums = {}
 	}
 
-	const promises = []
+	const promises: Promise<void>[] = []
 	const assets: MediaLibrary.Asset[] = []
 	const existingIds: Record<string, boolean> = {}
 
@@ -263,25 +272,25 @@ export const getLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
 		}
 
 		promises.push(
-			new Promise((resolve, reject) => {
+			new Promise<void>((resolve, reject) => {
 				getAssetsFromAlbum(albums[i])
 					.then(fetched => {
 						for (let i = 0; i < fetched.length; i++) {
-							if (!existingIds[fetched[i].id]) {
+							if (!existingIds[fetched[i].id] && typeof fetched[i].filename === "string" && fetched[i].filename.length > 0) {
 								existingIds[fetched[i].id] = true
 
 								assets.push(fetched[i])
 							}
 						}
 
-						return resolve(true)
+						resolve()
 					})
 					.catch(reject)
 			})
 		)
 	}
 
-	await Promise.all(promises)
+	await promiseAllSettled(promises)
 
 	return assets
 }
@@ -500,25 +509,31 @@ export const getAssetURI = async (asset: MediaLibrary.Asset) => {
 		shouldDownloadFromNetwork: true
 	})
 
+	if (!info) {
+		throw new Error("No asset URI found for " + asset.id)
+	}
+
 	let assetURI: string = ""
 
-	if (Platform.OS == "android") {
-		if (asset.uri.length > 0) {
+	if (Platform.OS === "android") {
+		if (typeof asset.uri === "string" && asset.uri.length > 0) {
 			assetURI = asset.uri
 		} else {
-			if (typeof info.localUri == "string" && info.localUri.length > 0) {
+			if (typeof info.localUri === "string" && info.localUri.length > 0) {
 				assetURI = info.localUri
 			}
 		}
 	} else {
-		if (typeof info.localUri == "string" && info.localUri.length > 0) {
+		if (typeof info.localUri === "string" && info.localUri.length > 0) {
 			assetURI = info.localUri
 		} else {
-			assetURI = info.uri
+			if (typeof info.uri === "string" && info.uri.length > 0) {
+				assetURI = info.uri
+			}
 		}
 	}
 
-	if (typeof assetURI == "string" && assetURI.length > 0) {
+	if (typeof assetURI === "string" && assetURI.length > 0) {
 		return assetURI
 	}
 
@@ -620,7 +635,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 				throw new Error("exportPhotoAssets error codes: " + exportedAssets.error.map(error => error).join(", "))
 			}
 
-			const filesToUploadPromises: Promise<UploadFile>[] = []
+			const filesToUploadPromises: Promise<void>[] = []
 			const isConvertedLivePhoto =
 				exportedAssets.exportResults!.filter(res => res.localFileLocations.toLowerCase().endsWith(".mov")).length > 0
 
@@ -654,7 +669,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 					await fs.unlink(resource.localFileLocations).catch(console.error)
 
 					filesToUploadPromises.push(
-						new Promise<UploadFile>((resolve, reject) => {
+						new Promise<void>((resolve, reject) => {
 							fs.statWithoutEncode(convertedPath)
 								.then(stat => {
 									if (!stat.exists) {
@@ -680,13 +695,15 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 										convertTimestampToMs(asset.creationTime || asset.modificationTime || Date.now())
 									)
 										.then(lastModified => {
-											return resolve({
+											files.push({
 												path: convertedPath.split("file://").join(""),
 												name: newName,
 												mime: mimeTypes.lookup(convertedPath) || "",
 												size: stat.size,
 												lastModified
 											})
+
+											resolve()
 										})
 										.catch(reject)
 								})
@@ -695,7 +712,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 					)
 				} else {
 					filesToUploadPromises.push(
-						new Promise<UploadFile>((resolve, reject) => {
+						new Promise<void>((resolve, reject) => {
 							fs.statWithoutEncode(resource.localFileLocations)
 								.then(stat => {
 									if (!stat.exists) {
@@ -717,13 +734,15 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 										convertTimestampToMs(asset.creationTime || asset.modificationTime || Date.now())
 									)
 										.then(lastModified => {
-											return resolve({
+											files.push({
 												path: resource.localFileLocations.split("file://").join(""),
 												name: name,
 												mime: mimeTypes.lookup(resource.localFileLocations) || "",
 												size: stat.size,
 												lastModified
 											})
+
+											resolve()
 										})
 										.catch(reject)
 								})
@@ -733,7 +752,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 				}
 			}
 
-			files.push(...(await Promise.all(filesToUploadPromises)))
+			await promiseAllSettled(filesToUploadPromises)
 		}
 
 		getFilesMutex.release()
@@ -817,7 +836,7 @@ export const runCameraUpload = async (maxQueue: number = 16): Promise<void> => {
 			return
 		}
 
-		if (storage.getBoolean("onlyWifiUploads:" + userId) && !(await isWifi())) {
+		if (storage.getBoolean("onlyWifiUploads") && !(await isWifi())) {
 			runTimeout = Date.now() + (TIMEOUT - 1000)
 			runMutex.release()
 

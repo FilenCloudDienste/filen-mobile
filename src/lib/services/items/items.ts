@@ -808,7 +808,7 @@ export const previewItem = async ({
 		return
 	}
 
-	if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !(await isWifi())) {
+	if (storage.getBoolean("onlyWifiDownloads") && !(await isWifi())) {
 		showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
 
 		return

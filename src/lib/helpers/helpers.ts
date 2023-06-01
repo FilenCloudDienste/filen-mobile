@@ -931,13 +931,17 @@ export const getAPIKey = (): string => {
 }
 
 export const getFileExt = (name: string): string => {
-	if (name.indexOf(".") == -1) {
+	try {
+		if (name.indexOf(".") == -1) {
+			return ""
+		}
+
+		let ex = name.split(".")
+
+		return ex[ex.length - 1].toLowerCase()
+	} catch {
 		return ""
 	}
-
-	let ex = name.split(".")
-
-	return ex[ex.length - 1].toLowerCase()
 }
 
 export const promiseAllSettled = (promises: Promise<any>[]) =>
@@ -1025,39 +1029,55 @@ export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<Reac
 }
 
 export const toExpoFsPath = (path: string) => {
-	const before = path
+	try {
+		const before = path
 
-	path = encodeURI(path)
+		path = encodeURI(path)
 
-	if (before.indexOf("file://") == -1) {
-		return "file://" + path
+		if (before.indexOf("file://") == -1) {
+			return "file://" + path
+		}
+
+		return path
+	} catch {
+		return path
 	}
-
-	return path
 }
 
 export const toExpoFsPathWithoutEncode = (path: string) => {
-	if (path.indexOf("file://") == -1) {
-		return "file://" + path
-	}
+	try {
+		if (path.indexOf("file://") == -1) {
+			return "file://" + path
+		}
 
-	return path
+		return path
+	} catch {
+		return path
+	}
 }
 
 export const toBlobUtilPath = (path: string) => {
-	if (path.indexOf("file://") !== -1) {
-		return encodeURI(path.split("file://").join(""))
-	}
+	try {
+		if (path.indexOf("file://") !== -1) {
+			return encodeURI(path.split("file://").join(""))
+		}
 
-	return encodeURI(path)
+		return encodeURI(path)
+	} catch {
+		return path
+	}
 }
 
 export const toBlobUtilPathWithoutEncode = (path: string) => {
-	if (path.indexOf("file://") !== -1) {
-		return path.split("file://").join("")
-	}
+	try {
+		if (path.indexOf("file://") !== -1) {
+			return path.split("file://").join("")
+		}
 
-	return path
+		return path
+	} catch {
+		return path
+	}
 }
 
 export const toBlobUtilPathDecode = (path: string) => {
@@ -1068,11 +1088,15 @@ export const toBlobUtilPathDecode = (path: string) => {
 
 		return decodeURI(path)
 	} catch {
-		if (path.indexOf("file://") !== -1) {
-			return path.split("file://").join("")
-		}
+		try {
+			if (path.indexOf("file://") !== -1) {
+				return path.split("file://").join("")
+			}
 
-		return path
+			return path
+		} catch {
+			return path
+		}
 	}
 }
 

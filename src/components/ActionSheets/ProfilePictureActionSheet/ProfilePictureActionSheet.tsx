@@ -247,7 +247,8 @@ const ProfilePictureActionSheet = memo(() => {
 			containerStyle={{
 				backgroundColor: getColor(darkMode, "backgroundSecondary"),
 				borderTopLeftRadius: 15,
-				borderTopRightRadius: 15
+				borderTopRightRadius: 15,
+				paddingBottom: 15
 			}}
 			indicatorStyle={{
 				display: "none"

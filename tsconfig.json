@@ -1,27 +1,28 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "jsx": "react-native",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "target": "es2015",
-    "module": "esnext",
-    "typeRoots": ["node_modules/@types"],
-    "lib": ["es2017", "dom"],
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@nex/data": ["libs/data/src/index.ts"],
-      "@nex/ui": ["libs/ui/src/index.ts"]
-    }
-  },
-  "exclude": ["node_modules", "tmp"]
+	"compileOnSave": false,
+	"compilerOptions": {
+		"jsx": "react-native",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"rootDir": ".",
+		"sourceMap": true,
+		"declaration": false,
+		"moduleResolution": "node",
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"target": "es2015",
+		"module": "esnext",
+		"typeRoots": ["node_modules/@types"],
+		"lib": ["es2017", "dom"],
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"baseUrl": ".",
+		"paths": {
+			"@nex/data": ["libs/data/src/index.ts"],
+			"@nex/ui": ["libs/ui/src/index.ts"]
+		},
+		"noEmitOnError": true
+	},
+	"exclude": ["node_modules", "tmp"]
 }

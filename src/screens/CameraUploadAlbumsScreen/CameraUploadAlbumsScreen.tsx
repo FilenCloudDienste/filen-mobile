@@ -8,7 +8,7 @@ import { showToast } from "../../components/Toasts"
 import { getColor } from "../../style/colors"
 import * as MediaLibrary from "expo-media-library"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../lib/permissions"
-import { Semaphore } from "../../lib/helpers"
+import { Semaphore, promiseAllSettled } from "../../lib/helpers"
 import pathModule from "path"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -43,7 +43,7 @@ export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, exclude
 	useEffect(() => {
 		getLastImageOfAlbum(album.album)
 			.then(uri => {
-				if (uri.length > 0 && isMounted()) {
+				if (typeof uri === "string" && uri.length > 0 && isMounted()) {
 					setImage(uri)
 				}
 			})
@@ -144,7 +144,7 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [cameraUploadExcludedAlbumns] = useMMKVString("cameraUploadExcludedAlbums:" + userId, storage)
-	const [excludedAlbums, setExcludedAlbums] = useState<{ [key: string]: boolean }>({})
+	const [excludedAlbums, setExcludedAlbums] = useState<Record<string, boolean>>({})
 	const [fetchedAlbums, setFetchedAlbums] = useState<Album[]>([])
 	const [hasPermissions, setHasPermissions] = useState<boolean>(false)
 	const [loading, setLoading] = useState<boolean>(true)
@@ -156,25 +156,32 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 				includeSmartAlbums: true
 			})
 				.then(fetched => {
-					const promises: Promise<Album>[] = []
+					const promises: Promise<void>[] = []
+					const albums: Album[] = []
 
 					for (let i = 0; i < fetched.length; i++) {
 						promises.push(
-							new Promise<Album>((resolve, reject) => {
+							new Promise<void>((resolve, reject) => {
 								fetchAssetsSemaphore.acquire().then(() => {
 									if (fetched[i].assetCount <= 0) {
 										fetchAssetsSemaphore.release()
 
-										return resolve({
+										albums.push({
 											album: fetched[i],
 											path: ""
 										})
+
+										resolve()
 									}
 
 									MediaLibrary.getAssetsAsync({
 										album: fetched[i],
-										mediaType: ["photo", "video", "unknown"],
-										first: 64
+										mediaType: [
+											MediaLibrary.MediaType.video,
+											MediaLibrary.MediaType.photo,
+											MediaLibrary.MediaType.unknown
+										],
+										first: 256
 									})
 										.then(async assets => {
 											const paths: string[] = []
@@ -187,17 +194,17 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 
 											const sorted =
 												Platform.OS == "android"
-													? paths
-															.map(path => pathModule.dirname(path))
-															.sort((a, b) => a.length - b.length)
+													? paths.map(path => pathModule.dirname(path)).sort((a, b) => a.length - b.length)
 													: paths
 
 											fetchAssetsSemaphore.release()
 
-											return resolve({
+											albums.push({
 												album: fetched[i],
 												path: sorted.length == 0 ? "" : sorted[0]
 											})
+
+											resolve()
 										})
 										.catch(err => {
 											fetchAssetsSemaphore.release()
@@ -209,8 +216,8 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 						)
 					}
 
-					Promise.all(promises)
-						.then(albums => resolve(albums.sort((a, b) => b.album.assetCount - a.album.assetCount)))
+					promiseAllSettled(promises)
+						.then(() => resolve(albums.sort((a, b) => b.album.assetCount - a.album.assetCount)))
 						.catch(err => {
 							showToast({ message: err.toString() })
 

@@ -211,18 +211,14 @@ export const queueFileDownload = async ({
 		return
 	}
 
-	try {
-		if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !(await isWifi())) {
-			downloadSemaphore.release()
+	if (storage.getBoolean("onlyWifiDownloads") && !(await isWifi())) {
+		downloadSemaphore.release()
 
-			delete currentDownloads[file.uuid]
+		delete currentDownloads[file.uuid]
 
-			showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
+		showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
 
-			return
-		}
-	} catch (e) {
-		console.log(e)
+		return
 	}
 
 	const filePath = downloadPath + file.name
@@ -307,13 +303,7 @@ export const queueFileDownload = async ({
 								.then(() => {
 									if (showNotification || useStore.getState().imagePreviewModalVisible) {
 										showToast({
-											message: i18n(
-												storage.getString("lang"),
-												"fileDownloaded",
-												true,
-												["__NAME__"],
-												[file.name]
-											)
+											message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name])
 										})
 									}
 
@@ -349,13 +339,7 @@ export const queueFileDownload = async ({
 						.then(() => {
 							if (showNotification || useStore.getState().imagePreviewModalVisible) {
 								showToast({
-									message: i18n(
-										storage.getString("lang"),
-										"fileDownloaded",
-										true,
-										["__NAME__"],
-										[file.name]
-									)
+									message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name])
 								})
 							}
 
@@ -423,12 +407,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks
 					})
 				}
 
-				const tmpPath =
-					fs.cacheDirectory.split("file://").join("") +
-					randomIdUnsafe() +
-					file.uuid +
-					"." +
-					getFileExt(file.name)
+				const tmpPath = fs.cacheDirectory.split("file://").join("") + randomIdUnsafe() + file.uuid + "." + getFileExt(file.name)
 				let currentWriteIndex = 0
 				let didStop = false
 				let paused = false
@@ -487,12 +466,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks
 						}
 
 						const destPath =
-							fs.cacheDirectory.split("file://").join("") +
-							randomIdUnsafe() +
-							"." +
-							file.uuid +
-							".chunk." +
-							index
+							fs.cacheDirectory.split("file://").join("") + randomIdUnsafe() + "." + file.uuid + ".chunk." + index
 
 						global.nodeThread
 							.downloadDecryptAndWriteFileChunk({
@@ -558,10 +532,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks
 						let done = 0
 
 						for (let i = 0; i < chunksToDownload; i++) {
-							Promise.all([
-								downloadThreadsSemaphore.acquire(),
-								downloadWriteThreadsSemaphore.acquire()
-							]).then(() => {
+							Promise.all([downloadThreadsSemaphore.acquire(), downloadWriteThreadsSemaphore.acquire()]).then(() => {
 								downloadTask(i)
 									.then(({ index, path }) => {
 										write(index, path)

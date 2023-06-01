@@ -23,21 +23,14 @@ export interface ItemListPhotosProps {
 }
 
 const ItemListPhotos = memo(
-	({
-		navigation,
-		scrollDate,
-		items,
-		normalizedPhotoRange,
-		calcedPhotosGridSize,
-		setScrollIndex
-	}: ItemListPhotosProps) => {
+	({ navigation, scrollDate, items, normalizedPhotoRange, calcedPhotosGridSize, setScrollIndex }: ItemListPhotosProps) => {
 		const networkInfo = useNetworkInfo()
 		const lang = useLang()
 		const darkMode = useDarkMode()
 		const [userId] = useMMKVNumber("userId", storage)
 		const [cameraUploadTotal] = useMMKVNumber("cameraUploadTotal", storage)
 		const [cameraUploadUploaded] = useMMKVNumber("cameraUploadUploaded", storage)
-		const [onlyWifiUploads] = useMMKVBoolean("onlyWifiUploads:" + userId, storage)
+		const [onlyWifiUploads] = useMMKVBoolean("onlyWifiUploads", storage)
 		const [cameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + userId, storage)
 		const [photosGridSize, setPhotosGridSize] = useMMKVNumber("photosGridSize", storage)
 		const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
@@ -340,12 +333,7 @@ const ItemListPhotos = memo(
 									<TouchableOpacity
 										key={index.toString()}
 										style={{
-											backgroundColor:
-												normalizedPhotoRange == key
-													? darkMode
-														? "gray"
-														: "gray"
-													: "transparent",
+											backgroundColor: normalizedPhotoRange == key ? (darkMode ? "gray" : "gray") : "transparent",
 											width: "auto",
 											height: "auto",
 											paddingTop: 5,

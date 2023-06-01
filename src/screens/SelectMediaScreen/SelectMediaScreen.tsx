@@ -19,14 +19,7 @@ import { i18n } from "../../i18n"
 import * as MediaLibrary from "expo-media-library"
 import { CommonActions } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
-import {
-	getFileExt,
-	getFilePreviewType,
-	Semaphore,
-	msToMinutesAndSeconds,
-	getParent,
-	toExpoFsPath
-} from "../../lib/helpers"
+import { getFileExt, getFilePreviewType, Semaphore, msToMinutesAndSeconds, getParent, toExpoFsPath } from "../../lib/helpers"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { useMountedState } from "react-use"
@@ -59,7 +52,7 @@ export const fetchAssets = async (
 	const fetched = await MediaLibrary.getAssetsAsync({
 		...(typeof after !== "undefined" ? { after } : {}),
 		first: count,
-		mediaType: ["photo", "video", "unknown"],
+		mediaType: [MediaLibrary.MediaType.video, MediaLibrary.MediaType.photo, MediaLibrary.MediaType.unknown],
 		sortBy: [[MediaLibrary.SortBy.creationTime, false]],
 		...(album !== "allAssetsCombined" ? { album } : {})
 	})
@@ -103,27 +96,29 @@ export const getVideoThumbnail = async (asset: MediaLibrary.Asset): Promise<stri
 
 export const getLastImageOfAlbum = async (album: MediaLibrary.Album): Promise<string> => {
 	const result = await MediaLibrary.getAssetsAsync({
-		first: 64,
+		first: 256,
 		mediaType: ["photo", "video", "unknown"],
 		sortBy: [[MediaLibrary.SortBy.creationTime, false]],
 		album
 	})
 
-	if (result.assets.length == 0) {
+	if (!result) {
+		throw new Error("Could not fetch assets")
+	}
+
+	if (result.assets.length === 0) {
 		return ""
 	}
 
-	const filtered = result.assets
-		.filter(asset => isNameAllowed(asset.filename))
-		.sort((a, b) => b.creationTime - a.creationTime)
+	const filtered = result.assets.filter(asset => isNameAllowed(asset.filename)).sort((a, b) => b.creationTime - a.creationTime)
 
-	if (filtered.length == 0) {
+	if (filtered.length === 0) {
 		return ""
 	}
 
 	const asset = filtered[0]
 
-	if (getFilePreviewType(getFileExt(asset.filename)) == "video") {
+	if (getFilePreviewType(getFileExt(asset.filename)) === "video") {
 		try {
 			const uri = await getVideoThumbnail(asset)
 
@@ -144,6 +139,10 @@ export const fetchAlbums = async (): Promise<Album[]> => {
 	const albums = await MediaLibrary.getAlbumsAsync({
 		includeSmartAlbums: true
 	})
+
+	if (!albums) {
+		throw new Error("Could not fetch albums")
+	}
 
 	for (let i = 0; i < albums.length; i++) {
 		if (albums[i].assetCount > 0) {
@@ -180,7 +179,7 @@ export const AssetItem = memo(
 		}, [containerWidth, insets])
 
 		useEffect(() => {
-			if (item.type == "video" && !init.current) {
+			if (item.type === "video" && !init.current) {
 				init.current = true
 
 				getVideoThumbnail(item.asset)
@@ -473,12 +472,8 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 
 	const [selectedAssets, photoCount, videoCount] = useMemo(() => {
 		const selectedAssets = assets.filter(asset => asset.selected)
-		const photoCount = assets.filter(
-			asset => getFilePreviewType(getFileExt(asset.asset.filename)) == "image"
-		).length
-		const videoCount = assets.filter(
-			asset => getFilePreviewType(getFileExt(asset.asset.filename)) == "video"
-		).length
+		const photoCount = assets.filter(asset => getFilePreviewType(getFileExt(asset.asset.filename)) == "image").length
+		const videoCount = assets.filter(asset => getFilePreviewType(getFileExt(asset.asset.filename)) == "video").length
 
 		return [selectedAssets, photoCount, videoCount]
 	}, [assets])
@@ -521,7 +516,11 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 							currentAssetsAfter.current = fetched.assets[fetched.assets.length - 1].asset
 
 							if (isMounted()) {
-								setAssets(fetched.assets)
+								setAssets(
+									fetched.assets.filter(
+										asset => typeof asset.asset.filename === "string" && asset.asset.filename.length > 0
+									)
+								)
 							}
 						}
 
@@ -698,17 +697,12 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 									}}
 									onPress={() => {
 										if (typeof params.prevNavigationState !== "undefined") {
-											storage.set(
-												"lastBiometricScreen:" + storage.getNumber("userId"),
-												Date.now() - 5000
-											)
+											storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
 
 											DeviceEventEmitter.emit("selectMediaScreenUpload", {
 												assets: selectedAssets,
 												parent: getParent(
-													params.prevNavigationState.routes[
-														params.prevNavigationState.routes.length - 1
-													]
+													params.prevNavigationState.routes[params.prevNavigationState.routes.length - 1]
 												)
 											})
 
@@ -735,10 +729,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 										paddingRight: 15
 									}}
 									onPress={() => {
-										storage.set(
-											"lastBiometricScreen:" + storage.getNumber("userId"),
-											Date.now() - 5000
-										)
+										storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
 
 										navigation.dispatch(StackActions.pop(2))
 									}}
@@ -786,8 +777,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 									fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current)
 										.then(fetched => {
 											if (fetched.assets.length > 0) {
-												currentAssetsAfter.current =
-													fetched.assets[fetched.assets.length - 1].asset
+												currentAssetsAfter.current = fetched.assets[fetched.assets.length - 1].asset
 
 												if (isMounted()) {
 													setAssets(prev => {
@@ -800,7 +790,10 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 														return [
 															...prev,
 															...fetched.assets.filter(
-																asset => !existingIds[asset.asset.id]
+																asset =>
+																	!existingIds[asset.asset.id] &&
+																	typeof asset.asset.filename === "string" &&
+																	asset.asset.filename.length > 0
 															)
 														]
 													})

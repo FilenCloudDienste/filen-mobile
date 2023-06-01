@@ -51,11 +51,7 @@ export const queueFileUpload = ({
 		const masterKeys = getMasterKeys()
 		const apiKey = getAPIKey()
 
-		if (!Array.isArray(masterKeys)) {
-			return reject("master keys !== array")
-		}
-
-		if (masterKeys.length <= 0) {
+		if (!Array.isArray(masterKeys) || masterKeys.length <= 0) {
 			return reject("master keys !== array")
 		}
 
@@ -63,7 +59,7 @@ export const queueFileUpload = ({
 			return reject(i18n(storage.getString("lang"), "deviceOffline"))
 		}
 
-		if (storage.getBoolean("onlyWifiUploads:" + storage.getNumber("userId")) && !(await isWifi())) {
+		if (storage.getBoolean("onlyWifiUploads") && !(await isWifi())) {
 			return reject("wifiOnly")
 		}
 

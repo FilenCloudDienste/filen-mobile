@@ -12,9 +12,7 @@ import { getFileExt, getFilePreviewType, toExpoFsPath } from "../../helpers"
 
 const isGeneratingThumbnailForItemUUID: Record<string, boolean> = {}
 const isCheckingThumbnailForItemUUID: Record<string, boolean> = {}
-const thumbnailGenerationErrorCount: Record<string, number> = JSON.parse(
-	storage.getString("thumbnailGenerationErrorCount") || "{}"
-)
+const thumbnailGenerationErrorCount: Record<string, number> = JSON.parse(storage.getString("thumbnailGenerationErrorCount") || "{}")
 const thumbnailGenerationErrorCountSession: Record<string, number> = {}
 
 export const getThumbnailCacheKey = ({
@@ -194,7 +192,7 @@ export const generateItemThumbnail = async ({
 		return false
 	}
 
-	if (storage.getBoolean("onlyWifiDownloads:" + storage.getNumber("userId")) && !(await isWifi())) {
+	if (storage.getBoolean("onlyWifiDownloads") && !(await isWifi())) {
 		if (typeof callback == "function") {
 			callback(true)
 		}
@@ -340,11 +338,7 @@ export const generateItemThumbnail = async ({
 						return generateThumbnail(path, dest)
 					}
 
-					downloadFile(
-						item,
-						false,
-						filePreviewType == "video" ? (item.chunks < 16 ? item.chunks : 16) : item.chunks
-					)
+					downloadFile(item, false, filePreviewType == "video" ? (item.chunks < 16 ? item.chunks : 16) : item.chunks)
 						.then(downloadedPath => {
 							generateThumbnail(downloadedPath, dest)
 						})
