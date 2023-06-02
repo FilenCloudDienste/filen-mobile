@@ -100,65 +100,71 @@ export const apiRequest = ({
 			return
 		}
 
-		const request = async () => {
-			if (tries >= maxTries) {
-				try {
-					if (await db.dbFs.has(cacheKey)) {
-						resolve(await db.dbFs.get(cacheKey))
+		nodeThread
+			.createHashHexFromString({ name: "sha512", data: JSON.stringify(typeof data !== "undefined" ? data : {}) })
+			.then(checksum => {
+				const request = async () => {
+					if (tries >= maxTries) {
+						try {
+							if (await db.dbFs.has(cacheKey)) {
+								resolve(await db.dbFs.get(cacheKey))
 
-						return
-					}
-				} catch (e) {
-					console.error(e)
-				}
-
-				reject(i18n(storage.getString("lang"), "deviceOffline"))
-
-				return
-			}
-
-			tries += 1
-
-			axios({
-				method: method.toLowerCase(),
-				url: getAPIServer() + endpoint,
-				timeout: 60000,
-				data,
-				headers: {
-					Authorization: "Bearer " + dbAPIKey
-				}
-			})
-				.then(response => {
-					if (response.status !== 200) {
-						reject(new Error(response.statusText))
-
-						return
-					}
-
-					if (typeof response.data.code === "string" && response.data.code === "api_key_not_found") {
-						const navigation = useStore.getState().navigation
-
-						if (typeof navigation !== "undefined") {
-							logout({ navigation })
-
-							return
+								return
+							}
+						} catch (e) {
+							console.error(e)
 						}
+
+						reject(i18n(storage.getString("lang"), "deviceOffline"))
+
+						return
 					}
 
-					if (endpointsToCache.includes(endpoint)) {
-						db.dbFs.set(cacheKey, response.data).catch(console.error)
-					}
+					tries += 1
 
-					resolve(response.data)
-				})
-				.catch(err => {
-					console.error(err)
+					axios({
+						method: method.toLowerCase(),
+						url: getAPIServer() + endpoint,
+						timeout: 900000,
+						data,
+						headers: {
+							Authorization: "Bearer " + dbAPIKey,
+							Checksum: checksum
+						}
+					})
+						.then(response => {
+							if (response.status !== 200) {
+								reject(new Error(response.statusText))
 
-					setTimeout(request, retryTimeout)
-				})
-		}
+								return
+							}
 
-		request()
+							if (typeof response.data.code === "string" && response.data.code === "api_key_not_found") {
+								const navigation = useStore.getState().navigation
+
+								if (typeof navigation !== "undefined") {
+									logout({ navigation })
+
+									return
+								}
+							}
+
+							if (endpointsToCache.includes(endpoint)) {
+								db.dbFs.set(cacheKey, response.data).catch(console.error)
+							}
+
+							resolve(response.data)
+						})
+						.catch(err => {
+							console.error(err)
+
+							setTimeout(request, retryTimeout)
+						})
+				}
+
+				request()
+			})
+			.catch(reject)
 	})
 }
 

@@ -5,7 +5,7 @@ import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
-import { formatBytes, getAPIServer, getAPIKey, safeAwait, randomIdUnsafe } from "../../../lib/helpers"
+import { formatBytes, getAPIServer, getAPIKey, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../../lib/permissions"
@@ -29,19 +29,19 @@ const ProfilePictureActionSheet = memo(() => {
 		useStore.setState({ fullscreenLoadingModalVisible: true })
 
 		try {
-			const response = await axios.post(
-				getAPIServer() + "/v3/user/avatar",
-				JSON.stringify({
-					avatar: base64,
-					hash: CryptoJS.SHA512(base64).toString(CryptoJS.enc.Hex)
-				}),
-				{
-					headers: {
-						Authorization: "Bearer " + getAPIKey(),
-						"Content-Type": "application/json"
-					}
+			const data = JSON.stringify({
+				avatar: base64,
+				hash: CryptoJS.SHA512(base64).toString(CryptoJS.enc.Hex)
+			})
+
+			const checksum = await nodeThread.createHashHexFromString({ name: "sha512", data })
+			const response = await axios.post(getAPIServer() + "/v3/user/avatar", data, {
+				headers: {
+					Authorization: "Bearer " + getAPIKey(),
+					"Content-Type": "application/json",
+					Checksum: checksum
 				}
-			)
+			})
 
 			if (!response.data.status) {
 				console.error(new Error(response.data.message))

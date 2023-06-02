@@ -643,6 +643,16 @@ const readChunk = (path, offset, length) => {
 	})
 }
 
+const parseURLParamsSearch = urlParams => {
+	const params = {}
+
+	urlParams.forEach((value, key) => {
+		params[key] = value
+	})
+
+	return params
+}
+
 const encryptAndUploadChunkBuffer = (buffer, key, queryParams, apiKey) => {
 	return new Promise((resolve, reject) => {
 		encryptData(buffer, key, false, false)
@@ -665,6 +675,8 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams, apiKey) => {
 
 				const urlParams = new URLSearchParams(queryParams)
 				const uuid = urlParams.get("uuid") || ""
+				const parsedURLParams = parseURLParamsSearch(urlParams)
+				const checksum = crypto.createHash("sha512").update(JSON.stringify(parsedURLParams)).digest("hex")
 
 				const calcProgress = written => {
 					let bytes = written
@@ -696,7 +708,8 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams, apiKey) => {
 						agent: httpsUploadAgent,
 						headers: {
 							"User-Agent": "filen-mobile",
-							Authorization: "Bearer " + apiKey
+							Authorization: "Bearer " + apiKey,
+							Checksum: checksum
 						}
 					},
 					response => {
@@ -1457,6 +1470,24 @@ rn_bridge.channel.on("message", message => {
 
 				tasksRunning -= 1
 			})
+	} else if (request.type == "createHashHexFromString") {
+		try {
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				response: crypto.createHash(request.name).update(request.data).digest("hex")
+			})
+
+			tasksRunning -= 1
+		} catch (e) {
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				err: e.toString()
+			})
+
+			tasksRunning -= 1
+		}
 	} else {
 		rn_bridge.channel.send({
 			id: request.id,

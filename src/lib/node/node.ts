@@ -56,6 +56,7 @@ declare global {
 		}) => Promise<string>
 		getFileHash: (params: { path: string; hashName: string }) => Promise<string>
 		convertHeic: (params: { input: string; output: string; format: "JPEG" | "PNG" }) => Promise<string>
+		createHashHexFromString: (params: { name: string; data: string }) => Promise<string>
 	}
 }
 
@@ -503,6 +504,23 @@ global.nodeThread = {
 					input,
 					output,
 					format
+				})
+			})
+		})
+	},
+	createHashHexFromString: ({ name, data }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "createHashHexFromString",
+					name,
+					data
 				})
 			})
 		})
