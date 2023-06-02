@@ -647,17 +647,21 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams, apiKey) => {
 	return new Promise((resolve, reject) => {
 		encryptData(buffer, key, false, false)
 			.then(encrypted => {
+				if (!(encrypted instanceof Buffer)) {
+					reject(new Error("Invalid chunk"))
+
+					return
+				}
+
 				let lastBytes = 0
 
 				try {
-					var chunkHash = bufferToHash(encrypted.byteLength > 0 ? encrypted : Buffer.from([1]), "sha512")
+					var chunkHash = bufferToHash(encrypted, "sha512")
 				} catch (e) {
 					return reject(e)
 				}
 
-				if (buffer.byteLength > 0) {
-					queryParams = queryParams + "&hash=" + encodeURIComponent(chunkHash)
-				}
+				queryParams = queryParams + "&hash=" + encodeURIComponent(chunkHash)
 
 				const urlParams = new URLSearchParams(queryParams)
 				const uuid = urlParams.get("uuid") || ""
