@@ -104,6 +104,11 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
 						onPress={() => storage.set("lang", "ko")}
 						borderBottomRadius={10}
 					/>
+					<SettingsButtonLinkHighlight
+						title="Português"
+						onPress={() => storage.set("lang", "pt")}
+						borderBottomRadius={10}
+					/>
 				</SettingsGroup>
 				<View style={{ height: 25 }}></View>
 			</ScrollView>
