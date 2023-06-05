@@ -434,5 +434,6 @@ export const en: {
 	permissionsMediaLocationTitle: "Media location permissions",
 	permissionsMediaLocationMessage: "Filen requires media location permissions to operate properly.",
 	hideTextEditorLineNumbers: "Hide editor line numbers",
-	sortByUploadDate: "Upload date"
+	sortByUploadDate: "Upload date",
+	cameraUploadCompressImages: "Compress images"
 }

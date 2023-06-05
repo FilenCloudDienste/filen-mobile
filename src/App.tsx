@@ -3,13 +3,7 @@ import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatu
 import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import {
-	NavigationContainer,
-	createNavigationContainerRef,
-	StackActions,
-	CommonActions,
-	DarkTheme
-} from "@react-navigation/native"
+import { NavigationContainer, createNavigationContainerRef, StackActions, CommonActions, DarkTheme } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { MainScreen } from "./screens/MainScreen"
 import { LoginScreen } from "./screens/LoginScreen"
@@ -39,7 +33,7 @@ import { InviteScreen } from "./screens/InviteScreen"
 import { TextEditorScreen } from "./screens/TextEditorScreen"
 import ImageViewerScreen from "./screens/ImageViewerScreen/ImageViewerScreen"
 import { CameraUploadAlbumsScreen } from "./screens/CameraUploadAlbumsScreen"
-import { isRouteInStack, isNavReady, generateRandomString, convertTimestampToMs } from "./lib/helpers"
+import { isRouteInStack, isNavReady, generateRandomString, convertTimestampToMs, getFileExt } from "./lib/helpers"
 import * as Sentry from "@sentry/react-native"
 import { getColor } from "./style"
 import PublicLinkActionSheet from "./components/ActionSheets/PublicLinkActionSheet"
@@ -66,15 +60,12 @@ import useLang from "./lib/hooks/useLang"
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake"
 import SelectMediaScreen from "./screens/SelectMediaScreen"
 import { Asset } from "./screens/SelectMediaScreen/SelectMediaScreen"
-import { getAssetURI, getLastModified, convertHeicToJPGIOS } from "./lib/services/cameraUpload"
+import { getAssetURI, getLastModified, convertHeicToJPGIOS, compressImage, compressableImageExts } from "./lib/services/cameraUpload"
 import { queueFileUpload } from "./lib/services/upload"
 import * as fs from "./lib/fs"
 import { getDownloadPath } from "./lib/services/download"
 import mimeTypes from "mime-types"
-import {
-	showFullScreenLoadingModal,
-	hideFullScreenLoadingModal
-} from "./components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
+import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "./components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import { getCfg } from "./lib/api"
 import { ICFG } from "./types"
 import Announcements from "./components/Announcements"
@@ -154,10 +145,7 @@ export const App = Sentry.wrap(
 							if (Platform.OS == "android") {
 								if (Array.isArray(items.data)) {
 									for (let i = 0; i < items.data.length; i++) {
-										if (
-											items.data[i].indexOf("file://") == -1 &&
-											items.data[i].indexOf("content://") == -1
-										) {
+										if (items.data[i].indexOf("file://") == -1 && items.data[i].indexOf("content://") == -1) {
 											containsValidItems = false
 										}
 									}
@@ -168,10 +156,7 @@ export const App = Sentry.wrap(
 								}
 							} else {
 								for (let i = 0; i < items.data.length; i++) {
-									if (
-										items.data[i].data.indexOf("file://") == -1 &&
-										items.data[i].data.indexOf("content://") == -1
-									) {
+									if (items.data[i].data.indexOf("file://") == -1 && items.data[i].data.indexOf("content://") == -1) {
 										containsValidItems = false
 									}
 								}
@@ -192,11 +177,7 @@ export const App = Sentry.wrap(
 
 		const setAppearance = useCallback(() => {
 			setTimeout(() => {
-				if (
-					typeof userSelectedTheme == "string" &&
-					userSelectedTheme.length > 1 &&
-					storage.getBoolean("dontFollowSystemTheme")
-				) {
+				if (typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 && storage.getBoolean("dontFollowSystemTheme")) {
 					if (userSelectedTheme == "dark") {
 						storage.set("darkMode", true)
 
@@ -355,11 +336,7 @@ export const App = Sentry.wrap(
 						) {
 							setBiometricAuthScreenState("auth")
 
-							if (
-								navigationRef &&
-								navigationRef.current &&
-								typeof navigationRef.current.dispatch == "function"
-							) {
+							if (navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function") {
 								navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
 							}
 						}
@@ -412,9 +389,8 @@ export const App = Sentry.wrap(
 					showFullScreenLoadingModal()
 
 					try {
-						const cameraUploadEnableHeic = storage.getBoolean(
-							"cameraUploadEnableHeic:" + storage.getNumber("userId")
-						)
+						const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + storage.getNumber("userId"))
+						const cameraUploadCompressImages = storage.getBoolean("cameraUploadCompressImages:" + storage.getNumber("userId"))
 
 						for (let i = 0; i < assets.length; i++) {
 							const assetURI = await getAssetURI(assets[i].asset)
@@ -427,9 +403,7 @@ export const App = Sentry.wrap(
 							const lastModified = await getLastModified(
 								tmpPath,
 								assets[i].asset.filename,
-								convertTimestampToMs(
-									assets[i].asset.creationTime || assets[i].asset.modificationTime || Date.now()
-								)
+								convertTimestampToMs(assets[i].asset.creationTime || assets[i].asset.modificationTime || Date.now())
 							)
 
 							if (stat.exists && stat.size) {
@@ -439,22 +413,24 @@ export const App = Sentry.wrap(
 								if (
 									Platform.OS == "ios" &&
 									!cameraUploadEnableHeic &&
-									tmpPath.toLowerCase().endsWith(".heic") &&
+									filePath.toLowerCase().endsWith(".heic") &&
 									assets[i].asset.mediaType == "photo" &&
-									tmpPath.toLowerCase().indexOf("fullsizerender") == -1
+									filePath.toLowerCase().indexOf("fullsizerender") == -1
 								) {
-									const convertedPath = await convertHeicToJPGIOS(tmpPath)
-									const assetFilenameWithoutEx =
-										assets[i].asset.filename.indexOf(".") !== -1
-											? assets[i].asset.filename.substring(
-													0,
-													assets[i].asset.filename.lastIndexOf(".")
-											  )
-											: assets[i].asset.filename
-
-									await fs.unlink(tmpPath)
+									const convertedPath = await convertHeicToJPGIOS(filePath)
+									const newName =
+										fileName.indexOf(".") !== -1 ? fileName.substring(0, fileName.lastIndexOf(".")) + ".JPG" : fileName
 
 									filePath = convertedPath
+									fileName = newName
+								}
+
+								if (cameraUploadCompressImages && compressableImageExts.includes(getFileExt(filePath))) {
+									const compressed = await compressImage(filePath)
+									const assetFilenameWithoutEx =
+										fileName.indexOf(".") !== -1 ? fileName.substring(0, fileName.lastIndexOf(".")) : fileName
+
+									filePath = compressed
 									fileName = assetFilenameWithoutEx + ".JPG"
 								}
 
@@ -508,9 +484,7 @@ export const App = Sentry.wrap(
 								mode="padding"
 								style={{
 									backgroundColor:
-										currentScreenName == "ImageViewerScreen"
-											? "black"
-											: getColor(darkMode, "backgroundPrimary"),
+										currentScreenName == "ImageViewerScreen" ? "black" : getColor(darkMode, "backgroundPrimary"),
 									paddingTop: 5,
 									height: "100%",
 									width: "100%"
@@ -526,9 +500,7 @@ export const App = Sentry.wrap(
 										onLayout={e => setContentHeight(e.nativeEvent.layout.height)}
 									>
 										<Stack.Navigator
-											initialRouteName={
-												isLoggedIn ? (setupDone ? "MainScreen" : "SetupScreen") : "LoginScreen"
-											}
+											initialRouteName={isLoggedIn ? (setupDone ? "MainScreen" : "SetupScreen") : "LoginScreen"}
 											screenOptions={{
 												animation: showNavigationAnimation ? "default" : "none",
 												headerShown: false
@@ -714,9 +686,7 @@ export const App = Sentry.wrap(
 										{typeof cfg !== "undefined" &&
 											setupDone &&
 											isLoggedIn &&
-											["MainScreen", "SettingsScreen"].includes(currentScreenName) && (
-												<Announcements cfg={cfg} />
-											)}
+											["MainScreen", "SettingsScreen"].includes(currentScreenName) && <Announcements cfg={cfg} />}
 										{setupDone &&
 											isLoggedIn &&
 											[

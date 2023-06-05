@@ -28,25 +28,13 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [cameraUploadEnabled, setCameraUploadEnabled] = useMMKVBoolean("cameraUploadEnabled:" + userId, storage)
-	const [cameraUploadIncludeImages, setCameraUploadIncludeImages] = useMMKVBoolean(
-		"cameraUploadIncludeImages:" + userId,
-		storage
-	)
-	const [cameraUploadIncludeVideos, setCameraUploadIncludeVideos] = useMMKVBoolean(
-		"cameraUploadIncludeVideos:" + userId,
-		storage
-	)
+	const [cameraUploadIncludeImages, setCameraUploadIncludeImages] = useMMKVBoolean("cameraUploadIncludeImages:" + userId, storage)
+	const [cameraUploadIncludeVideos, setCameraUploadIncludeVideos] = useMMKVBoolean("cameraUploadIncludeVideos:" + userId, storage)
 	const [cameraUploadFolderUUID] = useMMKVString("cameraUploadFolderUUID:" + userId, storage)
 	const [cameraUploadFolderName] = useMMKVString("cameraUploadFolderName:" + userId, storage)
 	const [hasPermissions, setHasPermissions] = useState<boolean>(false)
-	const [cameraUploadEnableHeic, setCameraUploadEnableHeic] = useMMKVBoolean(
-		"cameraUploadEnableHeic:" + userId,
-		storage
-	)
-	const [cameraUploadAfterEnabled, setCameraUploadAfterEnabled] = useMMKVBoolean(
-		"cameraUploadAfterEnabled:" + userId,
-		storage
-	)
+	const [cameraUploadEnableHeic, setCameraUploadEnableHeic] = useMMKVBoolean("cameraUploadEnableHeic:" + userId, storage)
+	const [cameraUploadAfterEnabled, setCameraUploadAfterEnabled] = useMMKVBoolean("cameraUploadAfterEnabled:" + userId, storage)
 	const [cameraUploadOnlyUploadOriginal, setCameraUploadOnlyUploadOriginal] = useMMKVBoolean(
 		"cameraUploadOnlyUploadOriginal:" + userId,
 		storage
@@ -55,8 +43,11 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 		"cameraUploadConvertLiveAndBurst:" + userId,
 		storage
 	)
-	const [cameraUploadConvertLiveAndBurstAndKeepOriginal, setCameraUploadConvertLiveAndBurstAndKeepOriginal] =
-		useMMKVBoolean("cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId, storage)
+	const [cameraUploadConvertLiveAndBurstAndKeepOriginal, setCameraUploadConvertLiveAndBurstAndKeepOriginal] = useMMKVBoolean(
+		"cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId,
+		storage
+	)
+	const [cameraUploadCompressImages, setCameraUploadCompressImages] = useMMKVBoolean("cameraUploadCompressImages:" + userId, storage)
 
 	const chooseFolder = async () => {
 		await navigationAnimation({ enable: true })
@@ -65,26 +56,16 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 
 		navigation.dispatch(
 			StackActions.push("MainScreen", {
-				parent: storage.getBoolean("defaultDriveOnly:" + userId)
-					? storage.getString("defaultDriveUUID:" + userId)
-					: "base"
+				parent: storage.getBoolean("defaultDriveOnly:" + userId) ? storage.getString("defaultDriveUUID:" + userId) : "base"
 			})
 		)
 	}
 
 	useEffect(() => {
-		if (
-			!cameraUploadOnlyUploadOriginal &&
-			!cameraUploadConvertLiveAndBurst &&
-			!cameraUploadConvertLiveAndBurstAndKeepOriginal
-		) {
+		if (!cameraUploadOnlyUploadOriginal && !cameraUploadConvertLiveAndBurst && !cameraUploadConvertLiveAndBurstAndKeepOriginal) {
 			setCameraUploadOnlyUploadOriginal(true)
 		}
-	}, [
-		cameraUploadOnlyUploadOriginal,
-		cameraUploadConvertLiveAndBurst,
-		cameraUploadConvertLiveAndBurstAndKeepOriginal
-	])
+	}, [cameraUploadOnlyUploadOriginal, cameraUploadConvertLiveAndBurst, cameraUploadConvertLiveAndBurstAndKeepOriginal])
 
 	useEffect(() => {
 		Promise.all([hasStoragePermissions(true), hasPhotoLibraryPermissions(true)])
@@ -273,6 +254,23 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 						}
 					/>
 					<SettingsButtonLinkHighlight
+						title={i18n(lang, "cameraUploadCompressImages")}
+						withBottomBorder={true}
+						rightComponent={
+							<Switch
+								trackColor={getColor(darkMode, "switchTrackColor")}
+								thumbColor={
+									cameraUploadCompressImages
+										? getColor(darkMode, "switchThumbColorEnabled")
+										: getColor(darkMode, "switchThumbColorDisabled")
+								}
+								ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+								onValueChange={() => setCameraUploadCompressImages(!cameraUploadCompressImages)}
+								value={cameraUploadCompressImages}
+							/>
+						}
+					/>
+					<SettingsButtonLinkHighlight
 						onPress={() => {
 							navigationAnimation({ enable: true }).then(() => {
 								navigation.dispatch(StackActions.push("CameraUploadAlbumsScreen"))
@@ -435,15 +433,9 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 																			showFullScreenLoadingModal()
 
 																			await Promise.all([
-																				db.query(
-																					"DELETE FROM camera_upload_last_modified"
-																				),
-																				db.query(
-																					"DELETE FROM camera_upload_last_modified_stat"
-																				),
-																				db.query(
-																					"DELETE FROM camera_upload_last_size"
-																				)
+																				db.query("DELETE FROM camera_upload_last_modified"),
+																				db.query("DELETE FROM camera_upload_last_modified_stat"),
+																				db.query("DELETE FROM camera_upload_last_size")
 																			]).catch(console.error)
 
 																			hideFullScreenLoadingModal()

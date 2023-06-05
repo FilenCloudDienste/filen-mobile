@@ -437,5 +437,6 @@ export const de: {
 	permissionsMediaLocationTitle: "Medienort Zugriff",
 	permissionsMediaLocationMessage: "Filen benötigt Medienort Zugriff um richtig zu funktionieren.",
 	hideTextEditorLineNumbers: "Editor Zeilennummern ausblenden",
-	sortByUploadDate: "Upload Datum"
+	sortByUploadDate: "Upload Datum",
+	cameraUploadCompressImages: "Bilder komprimieren"
 }

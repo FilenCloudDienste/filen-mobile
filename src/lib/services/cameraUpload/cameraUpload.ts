@@ -25,6 +25,7 @@ import path from "path"
 import { decryptFileMetadata } from "../../crypto"
 import * as fs from "../../fs"
 import * as db from "../../db"
+import ImageResizer from "react-native-image-resizer"
 
 const CryptoJS = require("crypto-js")
 
@@ -116,6 +117,8 @@ export const videoExts: string[] = [
 	"m4v",
 	"3gp"
 ]
+
+export const compressableImageExts = ["png", "jpg", "jpeg", "webp", "gif"]
 
 export const isExtensionAllowed = (ext: string) => {
 	return true
@@ -555,18 +558,60 @@ export const convertHeicToJPGIOS = async (inputPath: string) => {
 		throw new Error("Could not convert " + inputPath + " from HEIC to JPG")
 	}
 
+	try {
+		if ((await fs.stat(inputPath)).exists) {
+			await fs.unlink(inputPath)
+		}
+	} catch (e) {
+		console.error(e)
+	}
+
 	return path
+}
+
+export const compressImage = async (inputPath: string) => {
+	if (!compressableImageExts.includes(getFileExt(inputPath))) {
+		return inputPath
+	}
+
+	try {
+		const compressed = await ImageResizer.createResizedImage(
+			toExpoFsPath(inputPath),
+			999999999,
+			999999999,
+			"JPEG",
+			80,
+			undefined,
+			undefined,
+			true,
+			{
+				mode: "contain",
+				onlyScaleDown: true
+			}
+		)
+
+		if ((await fs.stat(inputPath)).exists) {
+			await fs.unlink(inputPath)
+		}
+
+		return toExpoFsPath(compressed.path)
+	} catch (e) {
+		console.error(e)
+
+		return inputPath
+	}
 }
 
 export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp: string, enableHeic: boolean): Promise<UploadFile> => {
 	let name = asset.filename
+	const assetURIBefore = assetURI
 
 	if (Platform.OS == "ios" && !enableHeic && assetURI.toLowerCase().endsWith(".heic") && asset.mediaType == "photo") {
 		assetURI = await convertHeicToJPGIOS(assetURI)
 
 		const parsedName = path.parse(name)
 
-		name = parsedName.name + ".JPG"
+		name = getFileExt(assetURI) !== getFileExt(assetURIBefore) ? parsedName.name + ".JPG" : name
 	}
 
 	try {
@@ -611,6 +656,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 		const cameraUploadConvertLiveAndBurstAndKeepOriginal = storage.getBoolean(
 			"cameraUploadConvertLiveAndBurstAndKeepOriginal:" + userId
 		)
+		const cameraUploadCompressImages = storage.getBoolean("cameraUploadCompressImages:" + userId)
 		const tmpPrefix = randomIdUnsafe() + "_"
 		const tmp = fs.cacheDirectory + tmpPrefix + asset.filename
 		const files: UploadFile[] = []
@@ -685,9 +731,12 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 										asset.filename.indexOf(".") !== -1
 											? fileNameEx.slice(0, fileNameEx.length - 1).join(".")
 											: asset.filename
-									const newName = !nameWithoutEx.includes(assetFilenameWithoutEx)
-										? assetFilenameWithoutEx + "_" + nameWithoutEx + ".JPG"
-										: nameWithoutEx + ".JPG"
+									const newName =
+										getFileExt(convertedPath) !== getFileExt(resource.localFileLocations)
+											? !nameWithoutEx.includes(assetFilenameWithoutEx)
+												? assetFilenameWithoutEx + "_" + nameWithoutEx + ".JPG"
+												: nameWithoutEx + ".JPG"
+											: asset.filename
 
 									getLastModified(
 										resource.localFileLocations.split("file://").join(""),
@@ -753,6 +802,24 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 			}
 
 			await promiseAllSettled(filesToUploadPromises)
+		}
+
+		if (cameraUploadCompressImages) {
+			for (let i = 0; i < files.length; i++) {
+				if (compressableImageExts.includes(getFileExt(files[i].path))) {
+					const compressed = await compressImage(files[i].path)
+					const newName =
+						files[i].name.indexOf(".") !== -1
+							? files[i].name.substring(0, files[i].name.lastIndexOf(".")) + ".JPG"
+							: files[i].name
+
+					files[i] = {
+						...files[i],
+						path: compressed,
+						name: newName
+					}
+				}
+			}
 		}
 
 		getFilesMutex.release()
