@@ -17,6 +17,8 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useKeyboard } from "@react-native-community/hooks"
 import { useMountedState } from "react-use"
+import { useMMKVNumber, useMMKVBoolean } from "react-native-mmkv"
+import storage from "../../lib/storage"
 
 export type Languages =
 	| "1c"
@@ -286,9 +288,10 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
 	const isMounted = useMountedState()
 	const [isScrolling, setIsScrolling] = useState<boolean>(false)
+	const [userId] = useMMKVNumber("userId", storage)
+	const [hideEditorLineNumbers] = useMMKVBoolean("hideEditorLineNumbers:" + userId, storage)
 
-	const fileName: string =
-		textEditorState == "edit" ? createTextFileDialogName : (currentActionSheetItem?.name as string)
+	const fileName: string = textEditorState == "edit" ? createTextFileDialogName : (currentActionSheetItem?.name as string)
 
 	const save = useCallback(() => {
 		if (value.length <= 0) {
@@ -488,7 +491,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 					initialValue={textEditorText.length > 0 ? textEditorText : ""}
 					language={getLanguageOfFile(fileName) as Languages}
 					syntaxStyle={darkMode ? CodeEditorSyntaxStyles.monokai : CodeEditorSyntaxStyles.github}
-					showLineNumbers={Platform.OS == "ios"}
+					showLineNumbers={Platform.OS === "ios" && !hideEditorLineNumbers}
 				/>
 			</SafeAreaView>
 		</>

@@ -95,8 +95,7 @@ export const en: {
 	restore: "Restore",
 	deletePermanently: "Delete permanently",
 	itemDeletedPermanently: "__NAME__ deleted permanently",
-	itemDeletedPermanentlyConfirmation:
-		"Are you sure you want to delete __NAME__ permanently? This action cannot be undone!",
+	itemDeletedPermanentlyConfirmation: "Are you sure you want to delete __NAME__ permanently? This action cannot be undone!",
 	sharedIn: "Shared",
 	sharedOut: "Sharing",
 	loadingItemList: "Loading...",
@@ -105,8 +104,7 @@ export const en: {
 	stopSharingConfirmation:
 		"Are you sure you want to stop sharing __NAME__? The other party will no longer be able to access the shared item!",
 	removeFromSharedIn: "Remove",
-	removeFromSharedInConfirmation:
-		"Are you sure you want to remove __NAME__? You will no longer be able to access the shared item!",
+	removeFromSharedInConfirmation: "Are you sure you want to remove __NAME__? You will no longer be able to access the shared item!",
 	stoppedSharingItem: "Stopped sharing __NAME__",
 	removedFromSharedIn: "Removed __NAME__",
 	events: "Events",
@@ -306,8 +304,7 @@ export const en: {
 		"Invite friends and family to Filen! You and the person you refer receive 10 GB of storage permanently. This applies to every person you refer.",
 	inviteInfo2:
 		"When someone clicks your referral link Filen saves a cookie in their browser which stays there for 30 days. That means you will still get the bonus when the person does not sign up directly.",
-	shareRefLinkMessage:
-		"Sign up to Filen's fully end to end encrypted cloud storage using my link and get 10 GB of storage for free!",
+	shareRefLinkMessage: "Sign up to Filen's fully end to end encrypted cloud storage using my link and get 10 GB of storage for free!",
 	disable2FAInfo: "Disabling Two Factor Authentication is not recommended as it makes your account more vulnerable.",
 	twoFactorEnabledSuccess: "Two Factor Authentication enabled",
 	twoFactorDisabledSuccess: "Two Factor Authentication disabled",
@@ -355,16 +352,14 @@ export const en: {
 	itemsSavedToGallery: "__COUNT__ items saved to gallery",
 	selectedItemsTrashed: "Selected items moved to trash folder",
 	sharedWithSuccessBulk: "__COUNT__ items shared with __EMAIL__",
-	deleteSelectedItemsPermanentlyWarning:
-		"Are you sure you want to delete the selected items permanently? This action cannot be undone!",
+	deleteSelectedItemsPermanentlyWarning: "Are you sure you want to delete the selected items permanently? This action cannot be undone!",
 	deleteSelectedItemsPermanentlySuccess: "Permanently deleted __COUNT__ items",
 	restoreSelectedItems: "Restore selected items",
 	restoreSelectedItemsSuccess: "Restored __COUNT__ items from the trash",
 	stoppedSharingSelectedItems: "Stopped sharing __COUNT__ items",
 	bulkStopSharingWarning:
 		"Are you sure you want to stop sharing __COUNT__ items? The other party will not be able to access them anymore!",
-	bulkRemoveSharedInWarning:
-		"Are you sure you want to remove __COUNT__ shared items? You will no longer be able to access them!",
+	bulkRemoveSharedInWarning: "Are you sure you want to remove __COUNT__ shared items? You will no longer be able to access them!",
 	bulkRemoveSharedInSuccess: "Removed __COUNT__ items from incoming shares",
 	sortBy: "Sort by",
 	sortByName: "name",
@@ -381,8 +376,7 @@ export const en: {
 	emptyTrashWarning:
 		"Are you sure you want to empty your trash? This will delete all files and folders inside the trash permanently and cannot be undone!",
 	disableBiometricPinAuth: "Disable Biometric/PIN Auth",
-	disableBiometricPinAuthWarning:
-		"Disabling Biometric/PIN authentication is not recommended, do you want to proceed anyways?",
+	disableBiometricPinAuthWarning: "Disabling Biometric/PIN authentication is not recommended, do you want to proceed anyways?",
 	twoFactorAuthentication: "Two Factor Authentication",
 	changeEmail: "Change email",
 	changePassword: "Change password",
@@ -438,5 +432,7 @@ export const en: {
 	permissionsCameraTitle: "Camera permissions",
 	permissionsCameraMessage: "Filen requires camera permissions to operate properly.",
 	permissionsMediaLocationTitle: "Media location permissions",
-	permissionsMediaLocationMessage: "Filen requires media location permissions to operate properly."
+	permissionsMediaLocationMessage: "Filen requires media location permissions to operate properly.",
+	hideTextEditorLineNumbers: "Hide editor line numbers",
+	sortByUploadDate: "Upload date"
 }

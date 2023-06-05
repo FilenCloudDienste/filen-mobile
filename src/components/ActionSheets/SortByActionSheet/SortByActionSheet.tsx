@@ -33,7 +33,6 @@ const SortByActionSheet = memo(() => {
 	}, [sortBy])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="SortByActionSheet"
 			gestureEnabled={true}
@@ -107,6 +106,14 @@ const SortByActionSheet = memo(() => {
 							}}
 							icon="time-outline"
 							text={i18n(lang, "sortByDate")}
+						/>
+						<ActionButton
+							onPress={() => {
+								setSortBy("uploadDate")
+								setShowASCDESC(true)
+							}}
+							icon="time-outline"
+							text={i18n(lang, "sortByUploadDate")}
 						/>
 						<ActionButton
 							onPress={() => {

@@ -252,8 +252,7 @@ export const de: {
 	apiError: "API Fehler, bitte versuchen Sie es später noch einmal",
 	registerSuccess: "Konto erstellt, bitte bestätigen Sie die an Sie gesendete E-Mail",
 	registerEmailAlreadyRegistered: "Diese E-Mail Adresse ist bereits registriert",
-	registerCouldNotSendEmail:
-		"Die Bestätigungs-E-Mail konnte nicht gesendet werden, bitte versuchen Sie es später noch einmal",
+	registerCouldNotSendEmail: "Die Bestätigungs-E-Mail konnte nicht gesendet werden, bitte versuchen Sie es später noch einmal",
 	invalidEmail: "Ungültige Emailadresse",
 	back: "Zurück",
 	sendRecoveryEmailBtn: "Link zur Wiederherstellung senden",
@@ -282,11 +281,9 @@ export const de: {
 	stop: "Stop",
 	pause: "Pause",
 	resume: "Fortfahren",
-	nodeJSProcessDied:
-		"Der Hintergrund- und Geschäftslogik-Thread reagiert nicht, bitte starten Sie die Anwendung neu, um dies zu beheben",
+	nodeJSProcessDied: "Der Hintergrund- und Geschäftslogik-Thread reagiert nicht, bitte starten Sie die Anwendung neu, um dies zu beheben",
 	hideFileFolderSize: "Datei und Ordnergröße ausblenden",
-	pleaseGrantPermission:
-		"Es konnten keine Berechtigungen für diese Aufgabe eingeholt werden, bitte aktivieren Sie diese manuell",
+	pleaseGrantPermission: "Es konnten keine Berechtigungen für diese Aufgabe eingeholt werden, bitte aktivieren Sie diese manuell",
 	changeEmailPassword: "E-Mail oder Passwort ändern",
 	enable2FA: "Zwei-Faktor-Authentifizierung aktivieren",
 	disable2FA: "Zwei-Faktor-Authentifizierung deaktivieren",
@@ -296,8 +293,7 @@ export const de: {
 	redeemACode: "Code einlösen",
 	invite: "Einladen",
 	deleteAccount: "Konto Löschen",
-	deleteAllFilesInfo:
-		"Dadurch werden alle Dateien und Ordner endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden!",
+	deleteAllFilesInfo: "Dadurch werden alle Dateien und Ordner endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden!",
 	deleteAllVersionedFilesInfo:
 		"Dadurch werden alle versionierten Dateien endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden!",
 	deleteAccountInfo: "Dadurch wird Ihr Konto sofort gelöscht. Diese Aktion kann nicht rückgängig gemacht werden!",
@@ -313,8 +309,7 @@ export const de: {
 		"Wenn jemand auf Ihren Empfehlungslink klickt, speichert Filen ein Cookie in seinem Browser, welcher 30 Tage lang dort bleibt. Das bedeutet, dass Sie den Bonus auch dann erhalten, wenn sich die Person nicht direkt anmeldet.",
 	shareRefLinkMessage:
 		"Melden Sie sich über meinen Link bei Filen's vollständig verschlüsseltem Cloud-Speicher an und erhalten Sie 10 GB Speicherplatz kostenlos!",
-	disable2FAInfo:
-		"Die Deaktivierung der Zwei Faktor Authentifizierung wird nicht empfohlen, da sie Ihr Konto angreifbarer macht.",
+	disable2FAInfo: "Die Deaktivierung der Zwei Faktor Authentifizierung wird nicht empfohlen, da sie Ihr Konto angreifbarer macht.",
 	twoFactorEnabledSuccess: "Zwei Faktor Authentifizierung aktiviert",
 	twoFactorDisabledSuccess: "Zwei Faktor Authentifizierung deaktiviert",
 	disable: "Deaktiviere",
@@ -395,8 +390,7 @@ export const de: {
 	updateNeeded: "Bitte aktualisieren Sie die App, um die neuesten Funktionen und Fehlerbehebungen zu nutzen!",
 	updateAvailable: "Aktualisierung verfügbar",
 	updateNow: "Jetzt aktualisieren",
-	couldNotOpenAppStoreLink:
-		"Der Link zum App Store konnte nicht geöffnet werden, bitte aktualisieren Sie die App manuell",
+	couldNotOpenAppStoreLink: "Der Link zum App Store konnte nicht geöffnet werden, bitte aktualisieren Sie die App manuell",
 	notEnoughRemoteStorage: "Nicht genug Cloud-Speicher",
 	newPasswordPlaceholder: "Neues Passwort",
 	confirmNewPasswordPlaceholder: "Neues Passwort bestätigen",
@@ -441,5 +435,7 @@ export const de: {
 	permissionsCameraTitle: "Kamera Zugriff",
 	permissionsCameraMessage: "Filen benötigt Kamera Zugriff um richtig zu funktionieren.",
 	permissionsMediaLocationTitle: "Medienort Zugriff",
-	permissionsMediaLocationMessage: "Filen benötigt Medienort Zugriff um richtig zu funktionieren."
+	permissionsMediaLocationMessage: "Filen benötigt Medienort Zugriff um richtig zu funktionieren.",
+	hideTextEditorLineNumbers: "Editor Zeilennummern ausblenden",
+	sortByUploadDate: "Upload Datum"
 }

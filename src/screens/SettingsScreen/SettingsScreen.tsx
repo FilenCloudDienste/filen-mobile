@@ -559,6 +559,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 	const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 	const [dontFollowSystemTheme, setDontFollowSystemTheme] = useMMKVBoolean("dontFollowSystemTheme", storage)
 	const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
+	const [hideEditorLineNumbers, setHideEditorLineNumbers] = useMMKVBoolean("hideEditorLineNumbers:" + userId, storage)
 
 	return (
 		<ScrollView
@@ -853,6 +854,24 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 							ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
 							onValueChange={() => setHideSizes(!hideSizes)}
 							value={hideSizes}
+						/>
+					}
+				/>
+				<SettingsButtonLinkHighlight
+					title={i18n(lang, "hideTextEditorLineNumbers")}
+					iconBackgroundColor={getColor(darkMode, "indigo")}
+					iconName="code-outline"
+					rightComponent={
+						<Switch
+							trackColor={getColor(darkMode, "switchTrackColor")}
+							thumbColor={
+								hideEditorLineNumbers
+									? getColor(darkMode, "switchThumbColorEnabled")
+									: getColor(darkMode, "switchThumbColorDisabled")
+							}
+							ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+							onValueChange={() => setHideEditorLineNumbers(!hideEditorLineNumbers)}
+							value={hideEditorLineNumbers}
 						/>
 					}
 				/>

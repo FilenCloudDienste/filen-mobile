@@ -327,14 +327,16 @@ export function unixTimestamp(): number {
 }
 
 export const canCompressThumbnail = (ext: string): boolean => {
-	if (Platform.OS == "android") {
+	if (Platform.OS === "android") {
 		switch (ext.toLowerCase()) {
+			case "heif":
+			case "heic":
+				return Platform.constants.Version >= 30
+				break
 			case "jpeg":
 			case "jpg":
 			case "png":
 			case "gif":
-			case "heif":
-			case "heic":
 			case "mp4":
 			case "webm":
 			case "webp":
@@ -367,14 +369,16 @@ export const canCompressThumbnail = (ext: string): boolean => {
 }
 
 export const canCompressThumbnailLocally = (ext: string): boolean => {
-	if (Platform.OS == "android") {
+	if (Platform.OS === "android") {
 		switch (ext.toLowerCase()) {
+			case "heif":
+			case "heic":
+				return Platform.constants.Version >= 30
+				break
 			case "jpeg":
 			case "jpg":
 			case "png":
 			case "gif":
-			case "heif":
-			case "heic":
 			case "mp4":
 			case "webm":
 			case "webp":
@@ -407,16 +411,21 @@ export const canCompressThumbnailLocally = (ext: string): boolean => {
 }
 
 export const getFilePreviewType = (ext: string) => {
-	if (Platform.OS == "android") {
+	if (Platform.OS === "android") {
 		switch (ext.toLowerCase()) {
+			case "heif":
+			case "heic":
+				return Platform.constants.Version >= 30 ? "image" : "none"
+				break
+			case "hevc":
+				return Platform.constants.Version >= 30 ? "video" : "none"
+				break
 			case "jpeg":
 			case "jpg":
 			case "png":
 			case "gif":
 			case "svg":
 			case "webp":
-			case "heif":
-			case "heic":
 				return "image"
 				break
 			case "mp3":
@@ -706,9 +715,11 @@ export const orderItemsByType = (
 		| "dateDesc"
 		| "typeDesc"
 		| "lastModifiedDesc"
-): any[] => {
-	let files = []
-	let folders = []
+		| "uploadDateAsc"
+		| "uploadDateDesc"
+): Item[] => {
+	let files: Item[] = []
+	let folders: Item[] = []
 
 	for (let i = 0; i < items.length; i++) {
 		if (items[i].type == "file") {
@@ -843,6 +854,26 @@ export const orderItemsByType = (
 	} else if (type == "lastModifiedDesc") {
 		let sortedFiles = files.sort((a, b) => {
 			return b.lastModifiedSort - a.lastModifiedSort
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "uploadDateAsc") {
+		let sortedFiles = files.sort((a, b) => {
+			return a.timestamp - b.timestamp
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return a.timestamp - b.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "uploadDateDesc") {
+		let sortedFiles = files.sort((a, b) => {
+			return b.timestamp - a.timestamp
 		})
 
 		let sortedFolders = folders.sort((a, b) => {
