@@ -11,11 +11,11 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 
 const MoveToast = memo(({ message }: { message?: string | undefined }) => {
 	const darkMode = useDarkMode()
-	const currentActionSheetItem = useStore(state => state.currentActionSheetItem) as any
+	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
 	const [buttonsDisabled, setButtonsDisabled] = useState(false)
 	const lang = useLang()
 	const initParent = useRef<any>()
-	const currentRoutes = useStore(state => state.currentRoutes) as any
+	const currentRoutes = useStore(state => state.currentRoutes)
 	const [currentParent, setCurrentParent] = useState("")
 	const [currentRouteURL, setCurrentRouteURL] = useState("")
 
@@ -38,19 +38,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
 
 		const parent = getParent()
 
-		if (
-			[
-				"recents",
-				"shared-in",
-				"shared-out",
-				"links",
-				"favorites",
-				"offline",
-				"cloud",
-				"photos",
-				"settings"
-			].includes(parent)
-		) {
+		if (["recents", "shared-in", "shared-out", "links", "favorites", "offline", "cloud", "photos", "settings"].includes(parent)) {
 			showToast({ message: i18n(lang, "cannotMoveFileHere") })
 
 			return
@@ -67,7 +55,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
 			return
 		}
 
-		if (currentActionSheetItem.parent == parent) {
+		if (currentActionSheetItem.parent === parent || currentRouteURL.indexOf(currentActionSheetItem.uuid) !== -1) {
 			showToast({ message: i18n(lang, "moveSameParentFolder") })
 
 			return
@@ -95,13 +83,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
 						useStore.setState({ fullscreenLoadingModalVisible: false })
 
 						showToast({
-							message: i18n(
-								lang,
-								"alreadyExistsInThisFolder",
-								true,
-								["__NAME__"],
-								[currentActionSheetItem.name]
-							)
+							message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name])
 						})
 
 						return
@@ -163,13 +145,7 @@ const MoveToast = memo(({ message }: { message?: string | undefined }) => {
 						useStore.setState({ fullscreenLoadingModalVisible: false })
 
 						showToast({
-							message: i18n(
-								lang,
-								"alreadyExistsInThisFolder",
-								true,
-								["__NAME__"],
-								[currentActionSheetItem.name]
-							)
+							message: i18n(lang, "alreadyExistsInThisFolder", true, ["__NAME__"], [currentActionSheetItem.name])
 						})
 
 						return

@@ -44,19 +44,7 @@ const MoveBulkToast = memo(({ message, items }: { message?: string | undefined; 
 
 		const parent = getParent()
 
-		if (
-			[
-				"recents",
-				"shared-in",
-				"shared-out",
-				"links",
-				"favorites",
-				"offline",
-				"cloud",
-				"photos",
-				"settings"
-			].includes(parent)
-		) {
+		if (["recents", "shared-in", "shared-out", "links", "favorites", "offline", "cloud", "photos", "settings"].includes(parent)) {
 			showToast({ message: i18n(lang, "cannotMoveItemsHere") })
 
 			return
@@ -68,7 +56,10 @@ const MoveBulkToast = memo(({ message, items }: { message?: string | undefined; 
 			return
 		}
 
-		if (items.filter(item => item.parent == parent).length > 0) {
+		if (
+			items.filter(item => item.parent === parent).length > 0 ||
+			items.filter(item => currentRouteURL.indexOf(item.uuid) !== -1).length > 0
+		) {
 			showToast({ message: i18n(lang, "moveSameParentFolder") })
 
 			return
