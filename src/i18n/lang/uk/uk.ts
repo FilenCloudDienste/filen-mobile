@@ -425,5 +425,7 @@ export const uk: {
     permissionsCameraTitle: "Доступ до камери",
     permissionsCameraMessage: "Для правильної роботи Filen потрібен доступ до камери.",
     permissionsMediaLocationTitle: "Доступ до медіафайлів",
-    permissionsMediaLocationMessage: "Для коректної роботи Filen потрібен доступ до медіафайлів."
+    permissionsMediaLocationMessage: "Для коректної роботи Filen потрібен доступ до медіафайлів.",
+	hideTextEditorLineNumbers: "Приховати номери рядків редактора",
+	sortByUploadDate: "Датою завантаження"
 }

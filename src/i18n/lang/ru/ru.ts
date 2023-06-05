@@ -425,5 +425,7 @@ export const ru: {
     permissionsCameraTitle: "Доступ к камере",
     permissionsCameraMessage: "Для правильной работы Filen требуется доступ к камере.",
     permissionsMediaLocationTitle: "Доступ к медиафайлам",
-    permissionsMediaLocationMessage: "Для корректной работы Filen требуется доступ к медиафайлам."
+    permissionsMediaLocationMessage: "Для корректной работы Filen требуется доступ к медиафайлам.",
+	hideTextEditorLineNumbers: "Скрыть номера строк редактора",
+	sortByUploadDate: "Дате загрузки"
 }
