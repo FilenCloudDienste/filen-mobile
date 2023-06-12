@@ -544,7 +544,7 @@ export const getAssetURI = async (asset: MediaLibrary.Asset) => {
 }
 
 export const convertHeicToJPGIOS = async (inputPath: string) => {
-	if (!inputPath.toLowerCase().endsWith(".heic")) {
+	if (!inputPath.toLowerCase().endsWith(".heic") || Platform.OS !== "ios") {
 		return inputPath
 	}
 

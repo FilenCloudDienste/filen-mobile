@@ -1,7 +1,6 @@
 import SQLite from "react-native-sqlite-storage"
 import { Asset } from "expo-media-library"
 import { getAssetId } from "../helpers"
-import memoryCache from "../memoryCache"
 import { Semaphore } from "../helpers"
 import storage from "../storage"
 import { memoize } from "lodash"
@@ -66,7 +65,7 @@ export const get = async <T>(key: string): Promise<any> => {
 	try {
 		const value = storage.getString(PREFIX + key)
 
-		if (typeof value == "undefined") {
+		if (typeof value === "undefined") {
 			return null
 		}
 
@@ -110,10 +109,6 @@ export const hashDbFsKey = memoize(async (key: string): Promise<string> => {
 
 export const dbFs = {
 	get: async <T>(key: string) => {
-		if (memoryCache.has(PREFIX + key)) {
-			return memoryCache.get(PREFIX + key) as any as T
-		}
-
 		const keyHashed = await hashDbFsKey(key)
 		const path = (await getDownloadPath({ type: "db" })) + keyHashed
 		const stat = await fs.stat(path)
@@ -148,14 +143,8 @@ export const dbFs = {
 				encoding: "utf8"
 			}
 		)
-
-		memoryCache.set(PREFIX + key, value)
 	},
 	has: async (key: string) => {
-		if (memoryCache.has(PREFIX + key)) {
-			return true
-		}
-
 		const keyHashed = await hashDbFsKey(key)
 		const path = (await getDownloadPath({ type: "db" })) + keyHashed
 		const stat = await fs.stat(path)
@@ -176,8 +165,6 @@ export const dbFs = {
 		}
 
 		await fs.unlink(path)
-
-		memoryCache.delete(PREFIX + key)
 	},
 	warmUp: async () => {
 		const path = await getDownloadPath({ type: "db" })
@@ -188,7 +175,7 @@ export const dbFs = {
 			if (file.length === keyHashed.length) {
 				const read = await fs.readAsString(path + file, "utf8")
 
-				if (read.slice(0, 64).indexOf("loadItems:") == -1) {
+				if (read.slice(0, 64).indexOf("loadItems:") === -1) {
 					continue
 				}
 
@@ -202,11 +189,9 @@ export const dbFs = {
 					continue
 				}
 
-				if (value.key.indexOf("loadItems:") == -1) {
+				if (value.key.indexOf("loadItems:") === -1) {
 					continue
 				}
-
-				memoryCache.set(PREFIX + value.key, value.value)
 			}
 		}
 	}
@@ -242,21 +227,14 @@ export const cameraUpload = {
 	},
 	setLastModified: async (asset: Asset, lastModified: number): Promise<void> => {
 		const assetId = getAssetId(asset)
-		const [result] = await query(
-			"SELECT rowid FROM camera_upload_last_modified WHERE asset_id = ? ORDER BY rowid DESC LIMIT 1",
-			[assetId]
-		)
-		const hasRow = result.rows.length == 1
+		const [result] = await query("SELECT rowid FROM camera_upload_last_modified WHERE asset_id = ? ORDER BY rowid DESC LIMIT 1", [
+			assetId
+		])
+		const hasRow = result.rows.length === 1
 
 		await (hasRow
-			? query("UPDATE camera_upload_last_modified SET last_modified = ? WHERE asset_id = ?", [
-					lastModified,
-					assetId
-			  ])
-			: query("INSERT INTO camera_upload_last_modified (asset_id, last_modified) VALUES (?, ?)", [
-					assetId,
-					lastModified
-			  ]))
+			? query("UPDATE camera_upload_last_modified SET last_modified = ? WHERE asset_id = ?", [lastModified, assetId])
+			: query("INSERT INTO camera_upload_last_modified (asset_id, last_modified) VALUES (?, ?)", [assetId, lastModified]))
 	},
 	getLastModifiedStat: async (asset: Asset): Promise<number> => {
 		const assetId = getAssetId(asset)
@@ -273,28 +251,18 @@ export const cameraUpload = {
 	},
 	setLastModifiedStat: async (asset: Asset, lastModified: number): Promise<void> => {
 		const assetId = getAssetId(asset)
-		const [result] = await query(
-			"SELECT rowid FROM camera_upload_last_modified_stat WHERE asset_id = ? ORDER BY rowid DESC LIMIT 1",
-			[assetId]
-		)
-		const hasRow = result.rows.length == 1
+		const [result] = await query("SELECT rowid FROM camera_upload_last_modified_stat WHERE asset_id = ? ORDER BY rowid DESC LIMIT 1", [
+			assetId
+		])
+		const hasRow = result.rows.length === 1
 
 		await (hasRow
-			? query("UPDATE camera_upload_last_modified_stat SET last_modified = ? WHERE asset_id = ?", [
-					lastModified,
-					assetId
-			  ])
-			: query("INSERT INTO camera_upload_last_modified_stat (asset_id, last_modified) VALUES (?, ?)", [
-					assetId,
-					lastModified
-			  ]))
+			? query("UPDATE camera_upload_last_modified_stat SET last_modified = ? WHERE asset_id = ?", [lastModified, assetId])
+			: query("INSERT INTO camera_upload_last_modified_stat (asset_id, last_modified) VALUES (?, ?)", [assetId, lastModified]))
 	},
 	getLastSize: async (asset: Asset): Promise<number> => {
 		const assetId = getAssetId(asset)
-		const [result] = await query(
-			"SELECT size FROM camera_upload_last_size WHERE asset_id = ? ORDER BY rowid DESC LIMIT 1",
-			[assetId]
-		)
+		const [result] = await query("SELECT size FROM camera_upload_last_size WHERE asset_id = ? ORDER BY rowid DESC LIMIT 1", [assetId])
 
 		if (result.rows.length !== 1) {
 			return -1
@@ -304,11 +272,8 @@ export const cameraUpload = {
 	},
 	setLastSize: async (asset: Asset, size: number): Promise<void> => {
 		const assetId = getAssetId(asset)
-		const [result] = await query(
-			"SELECT rowid FROM camera_upload_last_size WHERE asset_id = ? ORDER BY rowid DESC LIMIT 1",
-			[assetId]
-		)
-		const hasRow = result.rows.length == 1
+		const [result] = await query("SELECT rowid FROM camera_upload_last_size WHERE asset_id = ? ORDER BY rowid DESC LIMIT 1", [assetId])
+		const hasRow = result.rows.length === 1
 
 		await (hasRow
 			? query("UPDATE camera_upload_last_size SET size = ? WHERE asset_id = ?", [size, assetId])

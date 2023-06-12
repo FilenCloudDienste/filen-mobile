@@ -8,5 +8,6 @@
 		"source.fixAll.eslint": false,
 		"source.fixAll.format": false
 	},
-	"typescript.tsdk": "node_modules\\typescript\\lib"
+	"typescript.tsdk": "node_modules\\typescript\\lib",
+	"java.configuration.updateBuildConfiguration": "disabled"
 }

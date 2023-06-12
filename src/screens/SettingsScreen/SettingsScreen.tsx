@@ -857,24 +857,26 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 						/>
 					}
 				/>
-				<SettingsButtonLinkHighlight
-					title={i18n(lang, "hideTextEditorLineNumbers")}
-					iconBackgroundColor={getColor(darkMode, "indigo")}
-					iconName="code-outline"
-					rightComponent={
-						<Switch
-							trackColor={getColor(darkMode, "switchTrackColor")}
-							thumbColor={
-								hideEditorLineNumbers
-									? getColor(darkMode, "switchThumbColorEnabled")
-									: getColor(darkMode, "switchThumbColorDisabled")
-							}
-							ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-							onValueChange={() => setHideEditorLineNumbers(!hideEditorLineNumbers)}
-							value={hideEditorLineNumbers}
-						/>
-					}
-				/>
+				{Platform.OS === "ios" && (
+					<SettingsButtonLinkHighlight
+						title={i18n(lang, "hideTextEditorLineNumbers")}
+						iconBackgroundColor={getColor(darkMode, "indigo")}
+						iconName="code-outline"
+						rightComponent={
+							<Switch
+								trackColor={getColor(darkMode, "switchTrackColor")}
+								thumbColor={
+									hideEditorLineNumbers
+										? getColor(darkMode, "switchThumbColorEnabled")
+										: getColor(darkMode, "switchThumbColorDisabled")
+								}
+								ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+								onValueChange={() => setHideEditorLineNumbers(!hideEditorLineNumbers)}
+								value={hideEditorLineNumbers}
+							/>
+						}
+					/>
+				)}
 			</SettingsGroup>
 			<SettingsGroup>
 				<SettingsButtonLinkHighlight

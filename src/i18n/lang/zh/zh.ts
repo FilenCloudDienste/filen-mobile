@@ -427,7 +427,7 @@ export const zh: {
 	permissionsCameraTitle: "相机权限",
 	permissionsCameraMessage: "Filen 需要获得相机权限才能正常运行。",
 	permissionsMediaLocationTitle: "媒体保存位置权限",
-	permissionsMediaLocationMessage: "Filen 需要获得媒体保存位置权限才能正常运行。"
+	permissionsMediaLocationMessage: "Filen 需要获得媒体保存位置权限才能正常运行。",
 	hideTextEditorLineNumbers: "隐藏编辑器行号",
 	sortByUploadDate: "上传日期",
 	cameraUploadCompressImages: "压缩图像"
