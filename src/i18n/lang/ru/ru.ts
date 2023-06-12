@@ -427,5 +427,6 @@ export const ru: {
     permissionsMediaLocationTitle: "Доступ к медиафайлам",
     permissionsMediaLocationMessage: "Для корректной работы Filen требуется доступ к медиафайлам.",
 	hideTextEditorLineNumbers: "Скрыть номера строк редактора",
-	sortByUploadDate: "Дате загрузки"
+	sortByUploadDate: "Дате загрузки",
+	cameraUploadCompressImages: "Сжимать изображения"
 }
