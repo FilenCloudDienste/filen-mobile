@@ -68,96 +68,13 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
 	}
 }
 
-export const photoExts: string[] = [
-	"jpg",
-	"jpeg",
-	"png",
-	"gif",
-	"heic",
-	"heif",
-	"apng",
-	"avif",
-	"jfif",
-	"pjpeg",
-	"pjp",
-	"svg",
-	"webp",
-	"bmp",
-	"ico",
-	"cur",
-	"tif",
-	"tiff",
-	"dng"
-]
-
-export const videoExts: string[] = [
-	"hevc",
-	"webm",
-	"mkv",
-	"flv",
-	"vob",
-	"ogv",
-	"ogg",
-	"drc",
-	"gifv",
-	"mng",
-	"avi",
-	"mts",
-	"m2ts2",
-	"ts",
-	"mov",
-	"wmv",
-	"mp4",
-	"m4p",
-	"m4v",
-	"mpg",
-	"mp2",
-	"mpeg",
-	"m2v",
-	"m4v",
-	"3gp"
-]
-
 export const compressableImageExts = ["png", "jpg", "jpeg", "webp", "gif"]
 
-export const isExtensionAllowed = (ext: string) => {
-	return true
-
-	if (ext.length == 0) {
-		return false
-	}
-
-	ext = ext.toLowerCase()
-
-	if (ext.indexOf(".") !== -1) {
-		ext = ext.split(".").join("")
-	}
-
-	const userId: number = storage.getNumber("userId")
-	const cameraUploadIncludeImages: boolean = storage.getBoolean("cameraUploadIncludeImages:" + userId)
-	const cameraUploadIncludeVideos: boolean = storage.getBoolean("cameraUploadIncludeVideos:" + userId)
-	const allowed: string[] = []
-
-	if (cameraUploadIncludeImages && !cameraUploadIncludeVideos) {
-		allowed.push(...photoExts)
-	}
-
-	if (!cameraUploadIncludeImages && cameraUploadIncludeVideos) {
-		allowed.push(...videoExts)
-	}
-
-	if (cameraUploadIncludeImages && cameraUploadIncludeVideos) {
-		allowed.push(...photoExts, ...videoExts)
-	}
-
-	if (userId == 0) {
-		allowed.push(...photoExts)
-	}
-
-	return allowed.filter(allowedExt => allowedExt == ext).length > 0
-}
-
 export const getAssetDeltaName = (name: string) => {
+	if (typeof name !== "string" || name.length <= 0) {
+		return name
+	}
+
 	try {
 		if (name.indexOf(".") == -1) {
 			return name
@@ -219,8 +136,12 @@ export const getAssetsFromAlbum = (album: MediaLibrary.AlbumRef): Promise<MediaL
 				album
 			})
 				.then(fetched => {
-					for (let i = 0; i < fetched.assets.length; i++) {
-						assets.push(fetched.assets[i])
+					const filtered = fetched.assets.filter(
+						asset => asset && typeof asset.filename === "string" && asset.filename.length > 0
+					)
+
+					for (const asset of filtered) {
+						assets.push(asset)
 					}
 
 					if (fetched.hasNextPage) {
@@ -279,7 +200,7 @@ export const getLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
 				getAssetsFromAlbum(albums[i])
 					.then(fetched => {
 						for (let i = 0; i < fetched.length; i++) {
-							if (!existingIds[fetched[i].id] && typeof fetched[i].filename === "string" && fetched[i].filename.length > 0) {
+							if (!existingIds[fetched[i].id]) {
 								existingIds[fetched[i].id] = true
 
 								assets.push(fetched[i])
@@ -311,8 +232,7 @@ export const fetchLocalAssets = async (): Promise<MediaLibrary.Asset[]> => {
 			.filter(
 				asset =>
 					mediaTypes.includes(asset.mediaType) &&
-					convertTimestampToMs(asset.creationTime) >= convertTimestampToMs(cameraUploadAfterEnabledTime) &&
-					isExtensionAllowed(getFileExt(asset.filename))
+					convertTimestampToMs(asset.creationTime) >= convertTimestampToMs(cameraUploadAfterEnabledTime)
 			)
 		const existingNames: Record<string, boolean> = {}
 		const result: MediaLibrary.Asset[] = []

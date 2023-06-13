@@ -9,5 +9,6 @@
 		"source.fixAll.format": false
 	},
 	"typescript.tsdk": "node_modules\\typescript\\lib",
-	"java.configuration.updateBuildConfiguration": "disabled"
+	"java.configuration.updateBuildConfiguration": "disabled",
+	"java.compile.nullAnalysis.mode": "disabled"
 }

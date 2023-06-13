@@ -962,6 +962,10 @@ export const getAPIKey = (): string => {
 }
 
 export const getFileExt = (name: string): string => {
+	if (typeof name !== "string" || name.length <= 0) {
+		return ""
+	}
+
 	try {
 		if (name.indexOf(".") == -1) {
 			return ""
@@ -1060,6 +1064,10 @@ export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<Reac
 }
 
 export const toExpoFsPath = (path: string) => {
+	if (typeof path !== "string" || path.length <= 0) {
+		return path
+	}
+
 	try {
 		const before = path
 
@@ -1076,6 +1084,10 @@ export const toExpoFsPath = (path: string) => {
 }
 
 export const toExpoFsPathWithoutEncode = (path: string) => {
+	if (typeof path !== "string" || path.length <= 0) {
+		return path
+	}
+
 	try {
 		if (path.indexOf("file://") == -1) {
 			return "file://" + path
@@ -1088,6 +1100,10 @@ export const toExpoFsPathWithoutEncode = (path: string) => {
 }
 
 export const toBlobUtilPath = (path: string) => {
+	if (typeof path !== "string" || path.length <= 0) {
+		return path
+	}
+
 	try {
 		if (path.indexOf("file://") !== -1) {
 			return encodeURI(path.split("file://").join(""))
@@ -1100,6 +1116,10 @@ export const toBlobUtilPath = (path: string) => {
 }
 
 export const toBlobUtilPathWithoutEncode = (path: string) => {
+	if (typeof path !== "string" || path.length <= 0) {
+		return path
+	}
+
 	try {
 		if (path.indexOf("file://") !== -1) {
 			return path.split("file://").join("")

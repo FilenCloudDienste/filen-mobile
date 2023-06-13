@@ -13,7 +13,7 @@ import pathModule from "path"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import { getLastImageOfAlbum, isNameAllowed } from "../SelectMediaScreen/SelectMediaScreen"
+import { getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
 import { useMountedState } from "react-use"
 
 const fetchAssetsSemaphore = new Semaphore(3)
@@ -181,16 +181,12 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 											MediaLibrary.MediaType.photo,
 											MediaLibrary.MediaType.unknown
 										],
-										first: 256
+										first: 64
 									})
-										.then(async assets => {
-											const paths: string[] = []
-
-											for (let x = 0; x < assets.assets.length; x++) {
-												if (isNameAllowed(assets.assets[x].filename)) {
-													paths.push(assets.assets[x].uri)
-												}
-											}
+										.then(assets => {
+											const paths = assets.assets
+												.filter(asset => asset && typeof asset.filename === "string" && asset.filename.length > 0)
+												.map(asset => asset.uri)
 
 											const sorted =
 												Platform.OS == "android"
@@ -209,7 +205,7 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 										.catch(err => {
 											fetchAssetsSemaphore.release()
 
-											return reject(err)
+											reject(err)
 										})
 								})
 							})
