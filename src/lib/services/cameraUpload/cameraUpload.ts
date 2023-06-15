@@ -520,9 +520,7 @@ export const compressImage = async (inputPath: string) => {
 			await fs.unlink(inputPath)
 		}
 
-		const statsAfter = await fs.stat(compressed.path)
-
-		if (statsAfter.exists && statsAfter.size >= statsBefore.size) {
+		if (compressed.size >= statsBefore.size) {
 			await fs.unlink(compressed.path)
 
 			return inputPath
