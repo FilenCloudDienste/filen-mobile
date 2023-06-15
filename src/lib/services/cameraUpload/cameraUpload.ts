@@ -495,6 +495,12 @@ export const compressImage = async (inputPath: string) => {
 	}
 
 	try {
+		const statsBefore = await fs.stat(inputPath)
+
+		if (!statsBefore.exists) {
+			return inputPath
+		}
+
 		const compressed = await ImageResizer.createResizedImage(
 			toExpoFsPath(inputPath),
 			999999999,
@@ -512,6 +518,14 @@ export const compressImage = async (inputPath: string) => {
 
 		if ((await fs.stat(inputPath)).exists) {
 			await fs.unlink(inputPath)
+		}
+
+		const statsAfter = await fs.stat(compressed.path)
+
+		if (statsAfter.exists && statsAfter.size >= statsBefore.size) {
+			await fs.unlink(compressed.path)
+
+			return inputPath
 		}
 
 		return toExpoFsPath(compressed.path)

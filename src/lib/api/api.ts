@@ -76,7 +76,7 @@ export const apiRequest = ({
 	return new Promise(async (resolve, reject) => {
 		const dbAPIKey = typeof apiKey === "string" && apiKey.length === 64 ? apiKey : getAPIKey()
 		const cacheKey = "apiCache:" + method.toUpperCase() + ":" + endpoint + ":" + JSON.stringify(data)
-		let maxTries = 16
+		let maxTries = 32
 		let tries = 0
 		const retryTimeout = 1000
 
@@ -139,11 +139,21 @@ export const apiRequest = ({
 								return
 							}
 
-							if (typeof response.data.code === "string" && response.data.code === "api_key_not_found") {
-								const navigation = useStore.getState().navigation
+							if (typeof response.data.code === "string") {
+								if (response.data.code === "api_key_not_found") {
+									const navigation = useStore.getState().navigation
 
-								if (typeof navigation !== "undefined") {
-									logout({ navigation })
+									if (typeof navigation !== "undefined") {
+										logout({ navigation })
+
+										return
+									}
+								}
+
+								if (response.data.code === "internal_error") {
+									console.error(new Error(response.data.message))
+
+									setTimeout(request, retryTimeout)
 
 									return
 								}
