@@ -45,7 +45,7 @@ const LockAppAfterActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 25,
+					paddingBottom: insets.bottom,
 					paddingTop: 50
 				}}
 			>

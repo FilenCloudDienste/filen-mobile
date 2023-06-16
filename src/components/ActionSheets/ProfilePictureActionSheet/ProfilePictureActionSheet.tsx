@@ -65,7 +65,7 @@ const ProfilePictureActionSheet = memo(() => {
 
 	const takePhoto = useCallback(async () => {
 		await SheetManager.hide("ProfilePictureActionSheet")
-		await new Promise(resolve => setTimeout(resolve, 100))
+		await new Promise(resolve => setTimeout(resolve, 250))
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasCameraPermissions(true))
 
@@ -154,7 +154,7 @@ const ProfilePictureActionSheet = memo(() => {
 
 	const fromGallery = useCallback(async () => {
 		await SheetManager.hide("ProfilePictureActionSheet")
-		await new Promise(resolve => setTimeout(resolve, 100))
+		await new Promise(resolve => setTimeout(resolve, 250))
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
 		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
@@ -256,7 +256,7 @@ const ProfilePictureActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 25
+					paddingBottom: insets.bottom
 				}}
 			>
 				<ActionSheetIndicator />

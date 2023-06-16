@@ -11,7 +11,7 @@ import * as Clipboard from "expo-clipboard"
 import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../../../style/colors"
 import { getMasterKeys, getRouteURL } from "../../../lib/helpers"
-import { ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
+import { ActionSheetIndicator, ItemActionSheetItemHeader, hideAllActionSheets } from "../ActionSheets"
 import { Item } from "../../../types"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { decryptFolderLinkKey } from "../../../lib/crypto"
@@ -69,7 +69,7 @@ const PublicLinkActionSheet = memo(() => {
 						const keyDecrypted: string = await decryptFolderLinkKey(masterKeys, info.key)
 
 						if (keyDecrypted.length == 0) {
-							SheetManager.hide("PublicLinkActionSheet")
+							await hideAllActionSheets().catch(console.error)
 
 							return
 						}
@@ -138,14 +138,21 @@ const PublicLinkActionSheet = memo(() => {
 					type: "remove-item",
 					data: currentItem
 				})
-
-				SheetManager.hide("PublicLinkActionSheet")
 			}
 		} catch (e: any) {
 			console.error(e)
 		}
 
-		fetchInfo(currentItem)
+		setFetchingInfo(false)
+		setLinkEnabled(false)
+		setInfo(undefined)
+
+		if (getRouteURL().indexOf("links") === -1) {
+			fetchInfo(currentItem)
+		} else {
+			await new Promise(resolve => setTimeout(resolve, 250))
+			await hideAllActionSheets().catch(console.error)
+		}
 	}, [currentItem, info])
 
 	const save = useCallback(
@@ -195,7 +202,7 @@ const PublicLinkActionSheet = memo(() => {
 				backgroundColor: getColor(darkMode, "backgroundSecondary"),
 				borderTopLeftRadius: 15,
 				borderTopRightRadius: 15,
-				minHeight: 300
+				minHeight: 350
 			}}
 			indicatorStyle={{
 				display: "none"
@@ -203,7 +210,7 @@ const PublicLinkActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS == "android" ? 25 : 0)
+					paddingBottom: insets.bottom
 				}}
 			>
 				<ActionSheetIndicator />
@@ -306,7 +313,7 @@ const PublicLinkActionSheet = memo(() => {
 											width: "65%"
 										}}
 										onPress={() => {
-											Clipboard.setString(linkURL)
+											Clipboard.setStringAsync(linkURL).catch(console.error)
 
 											showToast({ message: i18n(lang, "copiedToClipboard"), placement: "top" })
 										}}

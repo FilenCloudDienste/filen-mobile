@@ -544,7 +544,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
 		let items = (await Promise.all(promises)).filter(item => item !== null && typeof item.uuid == "string")
 
-		if (url.indexOf("shared-in") !== -1) {
+		if (url.indexOf("shared-out") !== -1) {
 			const groups: Item[] = []
 			const sharedTo: Record<string, ItemReceiver[]> = {}
 			const added: Record<string, boolean> = {}

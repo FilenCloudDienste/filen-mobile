@@ -5,14 +5,7 @@ import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
-import {
-	getRandomArbitrary,
-	convertTimestampToMs,
-	getFileExt,
-	getParent,
-	getFilePreviewType,
-	safeAwait
-} from "../../../lib/helpers"
+import { getRandomArbitrary, convertTimestampToMs, getFileExt, getParent, getFilePreviewType, safeAwait } from "../../../lib/helpers"
 import { queueFileUpload, UploadFile } from "../../../lib/services/upload/upload"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
@@ -160,9 +153,7 @@ const BottomBarAddActionSheet = memo(() => {
 		await SheetManager.hide("BottomBarAddActionSheet")
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
-		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(
-			hasPhotoLibraryPermissions(true)
-		)
+		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
 
 		if (hasStoragePermissionsError || hasPhotoLibraryPermissionsError) {
 			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
@@ -297,7 +288,7 @@ const BottomBarAddActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 25
+					paddingBottom: insets.bottom
 				}}
 			>
 				<ActionSheetIndicator />

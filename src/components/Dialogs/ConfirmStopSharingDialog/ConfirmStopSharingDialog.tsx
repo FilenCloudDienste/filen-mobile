@@ -115,7 +115,7 @@ const ConfirmStopSharingDialog = memo(() => {
 					<Dialog.Button
 						label={i18n(lang, "stopSharing")}
 						disabled={buttonsDisabled}
-						onPress={stopSharing}
+						onPress={() => stopSharing()}
 						color={getColor(darkMode, "linkPrimary")}
 					/>
 				</Dialog.Container>

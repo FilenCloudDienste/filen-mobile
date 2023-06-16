@@ -102,7 +102,7 @@ const FolderColorActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 25
+					paddingBottom: insets.bottom
 				}}
 			>
 				<ActionSheetIndicator />
