@@ -845,6 +845,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 					title={i18n(lang, "hideFileFolderSize")}
 					iconBackgroundColor={getColor(darkMode, "indigo")}
 					iconName="analytics-outline"
+					withBottomBorder={Platform.OS === "ios"}
 					rightComponent={
 						<Switch
 							trackColor={getColor(darkMode, "switchTrackColor")}

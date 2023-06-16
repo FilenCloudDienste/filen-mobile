@@ -415,38 +415,16 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 													},
 													{
 														text: i18n(lang, "ok"),
-														onPress: () => {
-															Alert.alert(
-																i18n(lang, "cameraUploadReset"),
-																i18n(lang, "areYouReallySure"),
-																[
-																	{
-																		text: i18n(lang, "cancel"),
-																		onPress: () => {
-																			return false
-																		},
-																		style: "cancel"
-																	},
-																	{
-																		text: i18n(lang, "ok"),
-																		onPress: async () => {
-																			showFullScreenLoadingModal()
+														onPress: async () => {
+															showFullScreenLoadingModal()
 
-																			await Promise.all([
-																				db.query("DELETE FROM camera_upload_last_modified"),
-																				db.query("DELETE FROM camera_upload_last_modified_stat"),
-																				db.query("DELETE FROM camera_upload_last_size")
-																			]).catch(console.error)
+															await Promise.all([
+																db.query("DELETE FROM camera_upload_last_modified"),
+																db.query("DELETE FROM camera_upload_last_modified_stat"),
+																db.query("DELETE FROM camera_upload_last_size")
+															]).catch(console.error)
 
-																			hideFullScreenLoadingModal()
-																		},
-																		style: "default"
-																	}
-																],
-																{
-																	cancelable: true
-																}
-															)
+															hideFullScreenLoadingModal()
 														},
 														style: "default"
 													}
