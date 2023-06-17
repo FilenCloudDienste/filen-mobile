@@ -6,6 +6,7 @@ import storage from "../storage"
 import { memoize } from "lodash"
 import * as fs from "../fs"
 import { getDownloadPath } from "../services/download"
+import memoryCache from "../memoryCache"
 
 SQLite.enablePromise(true)
 
@@ -109,6 +110,10 @@ export const hashDbFsKey = memoize(async (key: string): Promise<string> => {
 
 export const dbFs = {
 	get: async <T>(key: string) => {
+		if (memoryCache.has(PREFIX + key)) {
+			return memoryCache.get(PREFIX + key) as any as T
+		}
+
 		const keyHashed = await hashDbFsKey(key)
 		const path = (await getDownloadPath({ type: "db" })) + keyHashed
 		const stat = await fs.stat(path)
@@ -126,6 +131,8 @@ export const dbFs = {
 		if (!value.value || !value.key) {
 			return null
 		}
+
+		memoryCache.set(PREFIX + key, value.value)
 
 		return value.value as any as T
 	},
@@ -145,6 +152,10 @@ export const dbFs = {
 		)
 	},
 	has: async (key: string) => {
+		if (memoryCache.has(PREFIX + key)) {
+			return true
+		}
+
 		const keyHashed = await hashDbFsKey(key)
 		const path = (await getDownloadPath({ type: "db" })) + keyHashed
 		const stat = await fs.stat(path)
@@ -192,6 +203,8 @@ export const dbFs = {
 				if (value.key.indexOf("loadItems:") === -1) {
 					continue
 				}
+
+				memoryCache.set(PREFIX + value.key, value.value)
 			}
 		}
 	}
