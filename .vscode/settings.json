@@ -1,6 +1,6 @@
 {
 	"files.eol": "\n",
-	"editor.formatOnPaste": true,
+	"editor.formatOnPaste": false,
 	"editor.formatOnSave": true,
 	"editor.formatOnType": false,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",

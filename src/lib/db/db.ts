@@ -150,6 +150,8 @@ export const dbFs = {
 				encoding: "utf8"
 			}
 		)
+
+		memoryCache.set(PREFIX + key, value)
 	},
 	has: async (key: string) => {
 		if (memoryCache.has(PREFIX + key)) {
@@ -176,6 +178,10 @@ export const dbFs = {
 		}
 
 		await fs.unlink(path)
+
+		if (memoryCache.has(PREFIX + key)) {
+			memoryCache.delete(PREFIX + key)
+		}
 	},
 	warmUp: async () => {
 		const path = await getDownloadPath({ type: "db" })

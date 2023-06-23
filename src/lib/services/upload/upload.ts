@@ -464,31 +464,28 @@ export const queueFileUpload = ({
 			userId: storage.getNumber("userId")
 		})
 
-		// For some reason we need to add a timeout here for the events to fire because sometimes the even consumer does not work (maybe due to a race condition?)
-		setTimeout(() => {
-			DeviceEventEmitter.emit("event", {
-				type: "add-item",
-				data: {
-					item: builtFile,
-					parent: isCameraUpload ? "photos" : parent
-				}
-			})
+		DeviceEventEmitter.emit("event", {
+			type: "add-item",
+			data: {
+				item: builtFile,
+				parent: isCameraUpload ? "photos" : parent
+			}
+		})
 
-			DeviceEventEmitter.emit("event", {
-				type: "add-item",
-				data: {
-					item: builtFile,
-					parent: "recents"
-				}
-			})
+		DeviceEventEmitter.emit("event", {
+			type: "add-item",
+			data: {
+				item: builtFile,
+				parent: "recents"
+			}
+		})
 
-			DeviceEventEmitter.emit("upload", {
-				type: "done",
-				data: item
-			})
-		}, 250)
+		DeviceEventEmitter.emit("upload", {
+			type: "done",
+			data: item
+		})
 
-		return resolve(item)
+		resolve(item)
 
 		//showToast({ message: i18n(storage.getString("lang"), "fileUploaded", true, ["__NAME__"], [name]) })
 	})
