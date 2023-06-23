@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
@@ -256,7 +256,7 @@ const ProfilePictureActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom
+					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
 				<ActionSheetIndicator />

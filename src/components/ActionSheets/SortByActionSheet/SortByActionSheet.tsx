@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useCallback } from "react"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -51,7 +51,7 @@ const SortByActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom
+					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
 				<ActionSheetIndicator />

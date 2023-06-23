@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useCallback, useRef } from "react"
-import { View, Text, ScrollView, DeviceEventEmitter, ActivityIndicator, TouchableOpacity } from "react-native"
+import { View, Text, ScrollView, DeviceEventEmitter, ActivityIndicator, TouchableOpacity, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -147,7 +147,7 @@ const FileVersionsActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom
+					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
 				<ActionSheetIndicator />

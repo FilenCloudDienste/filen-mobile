@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useRef, useCallback } from "react"
-import { View, ActivityIndicator, Text, TextInput, TouchableOpacity, DeviceEventEmitter } from "react-native"
+import { View, ActivityIndicator, Text, TextInput, TouchableOpacity, DeviceEventEmitter, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
@@ -143,7 +143,7 @@ const ShareActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom
+					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
 				<ActionSheetIndicator />

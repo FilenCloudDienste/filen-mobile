@@ -570,7 +570,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		>
 			<ScrollView
 				style={{
-					paddingBottom: insets.bottom
+					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
 				{typeof currentActionSheetItem !== "undefined" && (
