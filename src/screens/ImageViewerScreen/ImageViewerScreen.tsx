@@ -201,30 +201,11 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 							updateItemThumbnail(image, toExpoFsPath(thumbPath))
 						}
 
-						if (Platform.OS == "android" && ["heic"].includes(getFileExt(image.file.name))) {
-							convertHeic(image.file, path)
-								.then(output => {
-									if (isMounted()) {
-										setImages(prev => ({
-											...prev,
-											[image.uuid]: toExpoFsPath(output)
-										}))
-									}
-								})
-								.catch(err => {
-									delete currentImagePreviewDownloads[image.uuid]
-
-									console.log(err)
-
-									showToast({ message: err.toString() })
-								})
-						} else {
-							if (isMounted()) {
-								setImages(prev => ({
-									...prev,
-									[image.uuid]: toExpoFsPath(path)
-								}))
-							}
+						if (isMounted()) {
+							setImages(prev => ({
+								...prev,
+								[image.uuid]: toExpoFsPath(path)
+							}))
 						}
 					}
 				})
