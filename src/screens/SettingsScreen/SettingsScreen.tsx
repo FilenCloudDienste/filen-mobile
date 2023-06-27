@@ -307,7 +307,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 
 	const cacheUserAvatar = () => {
 		if (typeof userInfo !== "undefined") {
-			if (userInfo.avatarURL.indexOf("https://") !== -1) {
+			if (typeof userInfo.avatarURL === "string" && userInfo.avatarURL.indexOf("https://") !== -1) {
 				const avatarName = getFilenameFromPath(userInfo.avatarURL)
 
 				if (userAvatarCached !== avatarName) {
@@ -433,9 +433,14 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 			>
 				<FastImage
 					source={
-						typeof userAvatarCached == "string" && userAvatarCached.length > 4
+						typeof userAvatarCached == "string" &&
+						userAvatarCached.length > 4 &&
+						typeof userInfo !== "undefined" &&
+						typeof userInfo.avatarURL === "string"
 							? { uri: "file://" + MISC_BASE_PATH + userAvatarCached }
-							: typeof userInfo !== "undefined" && userInfo.avatarURL.indexOf("https://down.") !== -1
+							: typeof userInfo !== "undefined" &&
+							  typeof userInfo.avatarURL === "string" &&
+							  userInfo.avatarURL.indexOf("https://down.") !== -1
 							? { uri: userInfo.avatarURL }
 							: require("../../assets/images/appstore.png")
 					}
