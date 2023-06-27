@@ -70,8 +70,18 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
 						withBottomBorder={true}
 					/>
 					<SettingsButtonLinkHighlight
+						title="Português"
+						onPress={() => storage.set("lang", "pt")}
+						borderBottomRadius={10}
+					/>
+					<SettingsButtonLinkHighlight
 						title="Русский"
 						onPress={() => storage.set("lang", "ru")}
+						withBottomBorder={true}
+					/>
+					<SettingsButtonLinkHighlight
+						title="Türk"
+						onPress={() => storage.set("lang", "tr")}
 						withBottomBorder={true}
 					/>
 					<SettingsButtonLinkHighlight
@@ -90,11 +100,6 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
 						withBottomBorder={true}
 					/>
 					<SettingsButtonLinkHighlight
-						title="Türk"
-						onPress={() => storage.set("lang", "tr")}
-						withBottomBorder={true}
-					/>
-					<SettingsButtonLinkHighlight
 						title="Ελληνικά"
 						onPress={() => storage.set("lang", "el")}
 						withBottomBorder={true}
@@ -103,11 +108,6 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
 						title="한국어"
 						onPress={() => storage.set("lang", "ko")}
 						withBottomBorder={true}
-					/>
-					<SettingsButtonLinkHighlight
-						title="Português"
-						onPress={() => storage.set("lang", "pt")}
-						borderBottomRadius={10}
 					/>
 				</SettingsGroup>
 				<View style={{ height: 25 }}></View>
