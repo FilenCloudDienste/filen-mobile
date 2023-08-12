@@ -13,7 +13,7 @@ export interface FileMetadata {
 export const deriveKeyFromPassword = async (
 	password: string,
 	salt: string,
-	iterations: number = 200000,
+	iterations: number = 210000,
 	hash: string = "SHA-512",
 	bitLength: number = 512,
 	returnHex: boolean = true
