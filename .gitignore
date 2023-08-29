@@ -86,7 +86,7 @@ build/
 #capacitor.config.json
 #ionic.config.json
 #package.json
-package-lock.json
+#package-lock.json
 #tsconfig.json
 #android/
 #ios/
@@ -167,7 +167,7 @@ local.properties
 # Node
 *.log
 .nvm
-package-lock.json
+#package-lock.json
 
 # OS X
 .DS_Store
@@ -233,7 +233,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
-package-lock.json
+#package-lock.json
 # macOS
 .DS_Store
 
