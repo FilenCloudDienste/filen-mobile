@@ -9,8 +9,6 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 
-const striptags = require("striptags")
-
 export const GDPRScreen = memo(({ navigation }: { navigation: any }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
@@ -66,7 +64,7 @@ export const GDPRScreen = memo(({ navigation }: { navigation: any }) => {
 							paddingBottom: 25
 						}}
 					>
-						{striptags(gdpr)}
+						{gdpr}
 					</Text>
 				)}
 			</ScrollView>

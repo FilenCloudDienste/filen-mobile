@@ -1,16 +1,162 @@
-import { AppRegistry } from "react-native"
+import { AppRegistry, Platform } from "react-native"
 import { name as appName } from "./app.json"
 import "./src/lib/globals"
 import "./src/lib/node"
 import { App } from "./src/App"
 import { runCameraUpload } from "./src/lib/services/cameraUpload"
+import notifee, { AndroidImportance } from "@notifee/react-native"
+import eventListener from "./src/lib/eventListener"
+import { i18n } from "./src/i18n"
+import storage from "./src/lib/storage"
 
-if(!__DEV__){
-    console.log = () => {}
-    console.error = () => {}
-    console.warn = () => {}
+if (!__DEV__) {
+	console.log = () => {}
+	console.error = () => {}
+	console.warn = () => {}
 }
 
-setTimeout(() => runCameraUpload(), 5000)
+const foregroundServices = {}
+let uploadNotification = null
+let downloadNotification = null
+
+eventListener.on("startForegroundService", type => {
+	if (Platform.OS === "ios") {
+		return
+	}
+
+	const showNotification = typeof foregroundServices[type] === "boolean" && foregroundServices[type] === false
+
+	foregroundServices[type] = true
+
+	if (showNotification) {
+		;(async () => {
+			const lang = storage.getString("lang") || "en"
+			const channelId = await notifee.createChannel({
+				id: "foregroundService",
+				name: "Foreground Service"
+			})
+
+			const notification = {
+				title:
+					type === "cameraUpload"
+						? i18n(lang, "cameraUploadNotificationTitle")
+						: type === "upload"
+						? i18n(lang, "uploadNotificationTitle")
+						: i18n(lang, "downloadNotificationTitle"),
+				android: {
+					channelId,
+					asForegroundService: true,
+					localOnly: true,
+					ongoing: true,
+					importance: AndroidImportance.HIGH,
+					progress: {
+						indeterminate: true
+					},
+					pressAction: {
+						id: "foregroundService",
+						launchActivity: "default"
+					},
+					groupSummary: true,
+					groupId: "foregroundService",
+					timestamp: Date.now()
+				},
+				data: {
+					type: "foregroundService"
+				}
+			}
+
+			const id = await notifee.displayNotification(notification)
+
+			if (type === "upload") {
+				uploadNotification = {
+					...notification,
+					id
+				}
+			}
+
+			if (type === "download") {
+				downloadNotification = {
+					...notification,
+					id
+				}
+			}
+		})().catch(console.error)
+	}
+})
+
+eventListener.on("stopForegroundService", type => {
+	if (Platform.OS === "ios") {
+		return
+	}
+
+	foregroundServices[type] = false
+})
+
+eventListener.on("foregroundServiceUploadDownloadProgress", progress => {
+	if (isNaN(progress) || Platform.OS === "ios") {
+		return
+	}
+
+	progress = Math.round(progress)
+	progress = progress <= 0 ? 0 : progress
+	progress = progress >= 100 ? 100 : progress
+
+	if (uploadNotification) {
+		notifee
+			.displayNotification({
+				...uploadNotification,
+				android: {
+					...uploadNotification.android,
+					progress: {
+						...uploadNotification.android.progress,
+						max: 100,
+						current: progress,
+						indeterminate: false
+					}
+				}
+			})
+			.catch(console.error)
+	}
+
+	if (downloadNotification) {
+		notifee
+			.displayNotification({
+				...downloadNotification,
+				android: {
+					...downloadNotification.android,
+					progress: {
+						...downloadNotification.android.progress,
+						max: 100,
+						current: progress,
+						indeterminate: false
+					}
+				}
+			})
+			.catch(console.error)
+	}
+})
+
+notifee.onBackgroundEvent(async () => {})
+
+if (Platform.OS === "android") {
+	notifee.registerForegroundService(() => {
+		return new Promise(resolve => {
+			const wait = setInterval(() => {
+				if (Object.keys(foregroundServices).filter(type => foregroundServices[type] === true).length <= 0) {
+					clearInterval(wait)
+
+					notifee
+						.stopForegroundService()
+						.then(() => resolve())
+						.catch(console.error)
+				}
+			}, 1000)
+		})
+	})
+}
+
+setTimeout(() => {
+	runCameraUpload()
+}, 5000)
 
 AppRegistry.registerComponent(appName, () => App)

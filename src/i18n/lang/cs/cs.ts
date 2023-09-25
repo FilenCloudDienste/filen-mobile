@@ -101,8 +101,7 @@ export const cs: {
 	loadingItemList: "Načítání...",
 	publicLinks: "Odkazy",
 	stopSharing: "Zastavit sdílení",
-	stopSharingConfirmation:
-		"Opravdu chcete zastavit sdílení __NAME__? Druhá strana již nebude moci přistupovat ke sdílené položce!",
+	stopSharingConfirmation: "Opravdu chcete zastavit sdílení __NAME__? Druhá strana již nebude moci přistupovat ke sdílené položce!",
 	removeFromSharedIn: "Odebrat",
 	removeFromSharedInConfirmation: "Opravdu chcete odebrat __NAME__? Nebudete již moci přistupovat ke sdílené položce!",
 	stoppedSharingItem: "Zastaveno sdílení __NAME__",
@@ -303,7 +302,8 @@ export const cs: {
 		"Pozvěte přátele a rodinu do Filen! Vy i osoba, kterou pozvete, získáte 10 GB úložného prostoru na trvalo. Toto platí pro každou osobu, kterou pozvete.",
 	inviteInfo2:
 		"Když někdo klikne na váš odkaz pro pozvání, Filen uloží cookie do jejich prohlížeče, která tam zůstane po dobu 30 dnů. To znamená, že stále dostanete bonus, když se osoba neregistruje přímo.",
-	shareRefLinkMessage: "Zaregistrujte se do plně end-to-end šifrovaného úložiště Filen pomocí mého odkazu a získejte 10 GB úložného prostoru zdarma!",
+	shareRefLinkMessage:
+		"Zaregistrujte se do plně end-to-end šifrovaného úložiště Filen pomocí mého odkazu a získejte 10 GB úložného prostoru zdarma!",
 	disable2FAInfo: "Zakázání dvoufaktorové autentizace není doporučeno, protože to způsobí, že váš účet bude zranitelnější.",
 	twoFactorEnabledSuccess: "Dvoufaktorová autentizace povolena",
 	twoFactorDisabledSuccess: "Dvoufaktorová autentizace zakázána",
@@ -356,8 +356,7 @@ export const cs: {
 	restoreSelectedItems: "Obnovit vybrané položky",
 	restoreSelectedItemsSuccess: "Obnoveno __COUNT__ položek z koše",
 	stoppedSharingSelectedItems: "Zastaveno sdílení __COUNT__ položek",
-	bulkStopSharingWarning:
-		"Opravdu chcete zastavit sdílení __COUNT__ položek? Druhá strana k nim již nebude mít přístup!",
+	bulkStopSharingWarning: "Opravdu chcete zastavit sdílení __COUNT__ položek? Druhá strana k nim již nebude mít přístup!",
 	bulkRemoveSharedInWarning: "Opravdu chcete odebrat __COUNT__ sdílených položek? K nim již nebudete mít přístup!",
 	bulkRemoveSharedInSuccess: "Odebráno __COUNT__ sdílených položek",
 	sortBy: "Seřadit podle",
@@ -372,8 +371,7 @@ export const cs: {
 	finished: "Dokončeno",
 	noFinishedTransfers: "Žádné dokončené přenosy",
 	emptyTrash: "Vyprázdnit koš",
-	emptyTrashWarning:
-		"Opravdu chcete vyprázdnit koš? Tato akce smaže všechny soubory a složky v koši trvale a nelze ji vrátit zpět!",
+	emptyTrashWarning: "Opravdu chcete vyprázdnit koš? Tato akce smaže všechny soubory a složky v koši trvale a nelze ji vrátit zpět!",
 	disableBiometricPinAuth: "Zakázat biometrickou/PIN autentizaci",
 	disableBiometricPinAuthWarning: "Zakázání biometrické/PIN autentizace není doporučeno, chcete pokračovat?",
 	twoFactorAuthentication: "Dvoufaktorová autentizace",
@@ -434,5 +432,5 @@ export const cs: {
 	permissionsMediaLocationMessage: "Filen vyžaduje oprávnění k médiím pro správné fungování.",
 	hideTextEditorLineNumbers: "Skrýt čísla řádků v editoru",
 	sortByUploadDate: "Datumu nahrání",
-	cameraUploadCompressImages: "Komprimovat fotografie",
+	cameraUploadCompressImages: "Komprimovat fotografie"
 }

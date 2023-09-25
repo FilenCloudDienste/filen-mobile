@@ -12,7 +12,6 @@ import {
 	getParent,
 	Semaphore
 } from "../../helpers"
-import striptags from "striptags"
 import { getDownloadPath, queueFileDownload } from "../download/download"
 import * as fs from "../../fs"
 import { DeviceEventEmitter } from "react-native"
@@ -85,7 +84,7 @@ export const buildFolder = async ({
 		id: folder.uuid,
 		type: "folder",
 		uuid: folder.uuid,
-		name: striptags(name),
+		name: name,
 		date: simpleDate(folderLastModified),
 		timestamp: folder.timestamp,
 		lastModified: folderLastModified,
@@ -184,7 +183,7 @@ export const buildFile = async ({
 		id: file.uuid,
 		type: "file",
 		uuid: file.uuid,
-		name: striptags(metadata.name),
+		name: metadata.name,
 		mime: metadata.mime,
 		size: typeof file.size == "number" ? file.size : typeof file.chunks_size == "number" ? file.chunks_size : 0,
 		key: metadata.key,

@@ -789,9 +789,9 @@ const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize
 
 		readChunk(path, chunkIndex * chunkSize, chunkSize)
 			.then(buffer => {
-				const maxTries = 16
+				const maxTries = Number.MAX_SAFE_INTEGER
 				let currentTries = 0
-				const triesTimeout = 3000
+				const triesTimeout = 1000
 
 				const doUpload = () => {
 					if (currentTries >= maxTries) {
@@ -832,6 +832,10 @@ const downloadFileChunk = (uuid, region, bucket, index) => {
 		})
 
 		request.on("response", response => {
+			if (response.statusCode === 404) {
+				return reject("404")
+			}
+
 			if (response.statusCode !== 200) {
 				return reject("not200")
 			}
@@ -883,9 +887,9 @@ const downloadDecryptAndWriteFileChunk = (destPath, uuid, region, bucket, index,
 	return new Promise((resolve, reject) => {
 		destPath = pathModule.normalize(destPath)
 
-		const maxTries = 32
+		let maxTries = Number.MAX_SAFE_INTEGER
 		let currentTries = 0
-		const triesTimeout = 3000
+		const triesTimeout = 1000
 
 		const doDownload = () => {
 			if (currentTries >= maxTries) {
@@ -917,6 +921,12 @@ const downloadDecryptAndWriteFileChunk = (destPath, uuid, region, bucket, index,
 						.catch(reject)
 				})
 				.catch(err => {
+					if (err === "404") {
+						maxTries = 32
+
+						return setTimeout(doDownload, triesTimeout)
+					}
+
 					if (err == "not200") {
 						return setTimeout(doDownload, triesTimeout)
 					}

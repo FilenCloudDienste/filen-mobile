@@ -15,7 +15,7 @@ import { es } from "./lang/es"
 import { ko } from "./lang/ko"
 import { pt } from "./lang/pt"
 
-const translations: Record<string, Record<string, string>> = {
+export const translations: Record<string, Record<string, string>> = {
 	cs,
 	en,
 	ja,
@@ -45,7 +45,7 @@ export const i18n = (
 		lang = "en"
 	}
 
-	if (typeof translations[lang] == "undefined") {
+	if (typeof translations[lang] === "undefined") {
 		lang = "en"
 	}
 
@@ -77,5 +77,5 @@ export const i18n = (
 }
 
 export const isLanguageAvailable = (lang: string = "en"): boolean => {
-	return typeof translations[lang] == "undefined" ? false : true
+	return typeof translations[lang] === "undefined" ? false : true
 }

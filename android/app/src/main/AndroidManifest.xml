@@ -19,6 +19,7 @@
     <uses-permission android:name="android.permission.ACTION_OPEN_DOCUMENT"/>
     <uses-permission android:name="android.permission.ACTION_OPEN_DOCUMENT_TREE"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
       android:name=".MainApplication"

@@ -435,5 +435,10 @@ export const en: {
 	permissionsMediaLocationMessage: "Filen requires media location permissions to operate properly.",
 	hideTextEditorLineNumbers: "Hide editor line numbers",
 	sortByUploadDate: "Upload date",
-	cameraUploadCompressImages: "Compress images"
+	cameraUploadCompressImages: "Compress images",
+	permissionsNotificationsTitle: "Notification permissions",
+	permissionsNotificationsMessage: "Filen requires notification permissions to operate properly.",
+	cameraUploadNotificationTitle: "Camera upload running",
+	uploadNotificationTitle: "Uploading files",
+	downloadNotificationTitle: "Downloading files"
 }

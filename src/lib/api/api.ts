@@ -17,7 +17,6 @@ import { useStore } from "../state"
 import { isOnline } from "../services/isOnline"
 import { Item, ICFG } from "../../types"
 import axios from "axios"
-import striptags from "striptags"
 import * as db from "../db"
 import memoryCache from "../memoryCache"
 
@@ -1592,7 +1591,7 @@ export const getDirectoryTree = (
 								id: folders[prop].uuid,
 								type: "folder",
 								uuid: folders[prop].uuid,
-								name: striptags(folders[prop].name),
+								name: folders[prop].name,
 								date: "",
 								timestamp: 0,
 								lastModified: 0,
@@ -1630,11 +1629,11 @@ export const getDirectoryTree = (
 								id: files[prop].uuid,
 								type: "file",
 								uuid: files[prop].uuid,
-								name: striptags(files[prop].metadata.name),
+								name: files[prop].metadata.name,
 								date: "",
-								timestamp: parseInt(striptags(files[prop].metadata.lastModified.toString())),
-								lastModified: parseInt(striptags(files[prop].metadata.lastModified.toString())),
-								lastModifiedSort: parseInt(striptags(files[prop].metadata.lastModified.toString())),
+								timestamp: parseInt(files[prop].metadata.lastModified.toString()),
+								lastModified: parseInt(files[prop].metadata.lastModified.toString()),
+								lastModifiedSort: parseInt(files[prop].metadata.lastModified.toString()),
 								parent: files[prop].parent,
 								receiverId: 0,
 								receiverEmail: "",
@@ -1645,10 +1644,10 @@ export const getDirectoryTree = (
 								isBase: false,
 								isSync: false,
 								isDefault: false,
-								size: parseInt(striptags(files[prop].metadata.size.toString())),
+								size: parseInt(files[prop].metadata.size.toString()),
 								selected: false,
-								mime: striptags(files[prop].metadata.mime),
-								key: striptags(files[prop].metadata.key),
+								mime: files[prop].metadata.mime,
+								key: files[prop].metadata.key,
 								offline: false,
 								bucket: files[prop].bucket,
 								region: files[prop].region,

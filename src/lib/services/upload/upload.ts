@@ -15,7 +15,6 @@ import { DeviceEventEmitter } from "react-native"
 import { getDownloadPath } from "../download/download"
 import { buildFile } from "../items"
 import ImageResizer from "react-native-image-resizer"
-import striptags from "striptags"
 import memoryCache from "../../memoryCache"
 import * as fs from "../../fs"
 import { isOnline, isWifi } from "../isOnline"
@@ -93,7 +92,7 @@ export const queueFileUpload = ({
 			region: "",
 			bucket: ""
 		}
-		const name = striptags(fileName)
+		const name = fileName
 		const size = file.size
 		const mime = file.mime || ""
 		const chunkSizeToUse = 1024 * 1024 * 1

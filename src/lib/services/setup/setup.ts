@@ -210,18 +210,24 @@ export const preloadAvatar = async (): Promise<void> => {
 }
 
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<void> => {
-	await initDb()
+	dbFs.warmUp()
+		.then(() =>
+			checkOfflineItems()
+				.then(() => clearCacheDirectories().catch(console.error))
+				.catch(console.error)
+		)
+		.catch(console.error)
 
-	dbFs.warmUp().catch(console.error)
-	checkOfflineItems().catch(console.error)
-	clearCacheDirectories().catch(console.error)
+	const result = await Promise.all([
+		initDb(),
+		updateKeys({ navigation }),
+		apiRequest({
+			method: "GET",
+			endpoint: "/v3/user/baseFolder"
+		})
+	])
 
-	await updateKeys({ navigation })
-
-	const response = await apiRequest({
-		method: "GET",
-		endpoint: "/v3/user/baseFolder"
-	})
+	const response = result[2]
 
 	if (!response.status) {
 		console.error(response.message)
