@@ -23,14 +23,14 @@ export const getAPIServer = (): string => {
 
 export const getDownloadServer = (): string => {
 	const servers = [
-		"https://down.filen.io",
-		"https://down.filen.net",
-		"https://down.filen-1.net",
-		"https://down.filen-2.net",
-		"https://down.filen-3.net",
-		"https://down.filen-4.net",
-		"https://down.filen-5.net",
-		"https://down.filen-6.net"
+		"https://egest.filen.io",
+		"https://egest.filen.net",
+		"https://egest.filen-1.net",
+		"https://egest.filen-2.net",
+		"https://egest.filen-3.net",
+		"https://egest.filen-4.net",
+		"https://egest.filen-5.net",
+		"https://egest.filen-6.net"
 	]
 
 	return servers[getRandomArbitrary(0, servers.length - 1)]

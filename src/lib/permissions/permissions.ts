@@ -4,6 +4,7 @@ import * as MediaLibrary from "expo-media-library"
 import storage from "../storage"
 import { i18n } from "../../i18n"
 import notifee from "@notifee/react-native"
+import { Notifications } from "react-native-notifications"
 
 export const hasWritePermissions = async (requestPermissions: boolean): Promise<boolean> => {
 	if (Platform.OS == "ios") {
@@ -249,6 +250,12 @@ export const hasNotificationPermissions = async (requestPermissions: boolean): P
 				return false
 			}
 		}
+	}
+
+	const hasPermissions = await Notifications.isRegisteredForRemoteNotifications()
+
+	if (!hasPermissions) {
+		return false
 	}
 
 	return true

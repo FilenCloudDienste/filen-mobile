@@ -820,7 +820,7 @@ const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize
 const downloadFileChunk = (uuid, region, bucket, index) => {
 	return new Promise((resolve, reject) => {
 		const request = https.request({
-			host: "down.filen.io",
+			host: "egest.filen.io",
 			port: 443,
 			path: "/" + region + "/" + bucket + "/" + uuid + "/" + index,
 			method: "GET",

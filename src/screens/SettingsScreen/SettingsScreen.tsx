@@ -440,7 +440,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 							? { uri: "file://" + MISC_BASE_PATH + userAvatarCached }
 							: typeof userInfo !== "undefined" &&
 							  typeof userInfo.avatarURL === "string" &&
-							  userInfo.avatarURL.indexOf("https://down.") !== -1
+							  userInfo.avatarURL.indexOf("https://egest.") !== -1
 							? { uri: userInfo.avatarURL }
 							: require("../../assets/images/appstore.png")
 					}

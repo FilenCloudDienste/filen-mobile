@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment, memo, useCallback } from "react"
-import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus, LogBox } from "react-native"
+import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus } from "react-native"
 import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -71,8 +71,6 @@ import { ICFG } from "./types"
 import Announcements from "./components/Announcements"
 import { SheetProvider } from "react-native-actions-sheet"
 import notifee, { EventType, InitialNotification } from "@notifee/react-native"
-
-LogBox.ignoreLogs(["new NativeEventEmitter", "Module AssetExporter", "DEPRECATED"])
 
 enableScreens(true)
 

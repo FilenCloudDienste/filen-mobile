@@ -11,6 +11,7 @@ import { Item } from "../../../types"
 import * as fs from "../../fs"
 import { init as initDb, dbFs } from "../../db"
 import FastImage from "react-native-fast-image"
+import { sharedStorage } from "../../storage/storage"
 
 const CACHE_CLEARING_ENABLED: boolean = true
 
@@ -237,6 +238,12 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 		throw new Error(response.message)
 	}
 
-	storage.set("defaultDriveUUID:" + storage.getNumber("userId"), response.data.uuid)
-	storage.set("defaultDriveOnly:" + storage.getNumber("userId"), true)
+	storage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
+	storage.set("defaultDriveOnly:" + (storage.getNumber("userId") || 0), true)
+
+	sharedStorage.set("apiKey", storage.getString("apiKey") || "")
+	sharedStorage.set("masterKeys", storage.getString("masterKeys") || "[]")
+	sharedStorage.set("isLoggedIn", storage.getBoolean("isLoggedIn"))
+	sharedStorage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
+	sharedStorage.set("userId", storage.getNumber("userId") || 0)
 }

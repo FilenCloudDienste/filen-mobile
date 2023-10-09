@@ -464,12 +464,14 @@ export const convertHeicToJPGIOS = async (inputPath: string) => {
 		throw new Error("Could not convert " + inputPath + " from HEIC to JPG")
 	}
 
-	try {
-		if ((await fs.stat(inputPath)).exists) {
-			await fs.unlink(inputPath)
+	if (inputPath.includes(fs.documentDirectory) || inputPath.includes(fs.cacheDirectory)) {
+		try {
+			if ((await fs.stat(inputPath)).exists) {
+				await fs.unlink(inputPath)
+			}
+		} catch (e) {
+			console.error(e)
 		}
-	} catch (e) {
-		console.error(e)
 	}
 
 	return path
@@ -508,7 +510,9 @@ export const compressImage = async (inputPath: string) => {
 			return inputPath
 		}
 
-		await fs.unlink(inputPath)
+		if (inputPath.includes(fs.documentDirectory) || inputPath.includes(fs.cacheDirectory)) {
+			await fs.unlink(inputPath)
+		}
 
 		return toExpoFsPath(compressed.path)
 	} catch (e) {
@@ -530,12 +534,14 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
 		name = getFileExt(assetURI) !== getFileExt(assetURIBefore) ? parsedName.name + ".JPG" : name
 	}
 
-	try {
-		if ((await fs.stat(tmp)).exists) {
-			await fs.unlink(tmp)
+	if (tmp.includes(fs.documentDirectory) || tmp.includes(fs.cacheDirectory)) {
+		try {
+			if ((await fs.stat(tmp)).exists) {
+				await fs.unlink(tmp)
+			}
+		} catch (e) {
+			console.error(e)
 		}
-	} catch (e) {
-		console.error(e)
 	}
 
 	await fs.copy(assetURI, tmp)
@@ -605,7 +611,8 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 				if (
 					cameraUploadConvertLiveAndBurst &&
 					isConvertedLivePhoto &&
-					!resource.localFileLocations.toLowerCase().endsWith(".mov")
+					!resource.localFileLocations.toLowerCase().endsWith(".mov") &&
+					(resource.localFileLocations.includes(fs.documentDirectory) || resource.localFileLocations.includes(fs.cacheDirectory))
 				) {
 					// Don't upload the original of a live photo if we do not want to keep it aswell
 					await fs.unlink(resource.localFileLocations).catch(console.error)
@@ -613,7 +620,10 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 					continue
 				}
 
-				if (resource.localFileLocations.toLowerCase().indexOf("penultimate") !== -1) {
+				if (
+					resource.localFileLocations.toLowerCase().indexOf("penultimate") !== -1 &&
+					(resource.localFileLocations.includes(fs.documentDirectory) || resource.localFileLocations.includes(fs.cacheDirectory))
+				) {
 					await fs.unlink(resource.localFileLocations).catch(console.error)
 
 					continue
@@ -628,7 +638,12 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 				) {
 					const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
 
-					await fs.unlink(resource.localFileLocations).catch(console.error)
+					if (
+						resource.localFileLocations.includes(fs.documentDirectory) ||
+						resource.localFileLocations.includes(fs.cacheDirectory)
+					) {
+						await fs.unlink(resource.localFileLocations).catch(console.error)
+					}
 
 					filesToUploadPromises.push(
 						new Promise<void>((resolve, reject) => {
@@ -963,7 +978,9 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 					isCameraUpload: true
 				}).catch(console.error)
 
-				await fs.unlink(file.path).catch(console.error)
+				if (file.path.includes(fs.documentDirectory) || file.path.includes(fs.cacheDirectory)) {
+					await fs.unlink(file.path).catch(console.error)
+				}
 			}
 
 			uploadedThisRun += 1

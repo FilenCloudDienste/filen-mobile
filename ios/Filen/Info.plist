@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AppGroup</key>
+	<string>group.io.filen.app</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<string>background-fetch</string>
+		<string>expo-background-fetch</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -52,8 +60,12 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Play music directly in the Filen app.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Please allow access to your camera so that Filen can upload photos you take inside the app.</string>
+	<key>NSExtensionFileProviderDocumentGroup</key>
+	<string>group.io.filen.app</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Please allow Filen to lock itself with FaceID or TouchID.</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -62,8 +74,6 @@
 	<string>Please allow access to your photo library so that Filen can save photos on your device.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Please allow access to your photos so that Filen can back them up.</string>
-	<key>NSAppleMusicUsageDescription</key>
-	<string>Play music directly in the Filen app.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
@@ -90,8 +100,10 @@
 	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>audio</string>
 		<string>fetch</string>
 		<string>processing</string>
+		<string>remote-notification</string>
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
@@ -112,11 +124,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-		<string>background-fetch</string>
-		<string>expo-background-fetch</string>
-	</array>
 </dict>
 </plist>

@@ -5,6 +5,7 @@ import { showToast } from "../../../../components/Toasts"
 import { useStore } from "../../../state"
 import { navigationAnimation } from "../../../state"
 import { Keyboard } from "react-native"
+import { sharedStorage } from "../../../storage/storage"
 
 const CryptoJS = require("crypto-js")
 
@@ -268,6 +269,13 @@ export const login = async ({
 		storage.set("authVersion", authVersion)
 		storage.set("isLoggedIn", true)
 		storage.set("setupDone", false)
+
+		sharedStorage.set("apiKey", res.data.apiKey)
+		sharedStorage.set("email", email)
+		sharedStorage.set("userId", (userInfo as any).id)
+		sharedStorage.set("masterKeys", JSON.stringify([masterKey]))
+		sharedStorage.set("authVersion", authVersion)
+		sharedStorage.set("isLoggedIn", true)
 	} catch (e: any) {
 		console.log(e)
 

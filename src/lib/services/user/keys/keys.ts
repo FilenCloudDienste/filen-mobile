@@ -4,6 +4,7 @@ import { logout } from "../../auth/logout"
 import { getMasterKeys, getAPIKey } from "../../../helpers"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { encryptMetadata, decryptMetadata } from "../../../crypto"
+import { sharedStorage } from "../../../storage/storage"
 
 export const updateKeypair = async ({
 	publicKey,
@@ -139,6 +140,9 @@ export const updatePublicAndPrivateKey = async ({
 		storage.set("publicKey", response.data.publicKey)
 		storage.set("privateKey", privateKey)
 
+		sharedStorage.set("publicKey", response.data.publicKey)
+		sharedStorage.set("privateKey", privateKey)
+
 		console.log("Public and private key updated.")
 
 		await updateKeypair({ publicKey: response.data.publicKey, privateKey, navigation })
@@ -157,6 +161,9 @@ export const updatePublicAndPrivateKey = async ({
 
 		storage.set("publicKey", b64PubKey)
 		storage.set("privateKey", b64PrivKey)
+
+		sharedStorage.set("publicKey", b64PubKey)
+		sharedStorage.set("privateKey", b64PrivKey)
 
 		console.log("User keypair generated and updated.")
 	}
@@ -206,6 +213,8 @@ export const updateKeys = async ({ navigation }: { navigation: NavigationContain
 		newMasterKeys = newMasterKeys.split("|")
 
 		storage.set("masterKeys", JSON.stringify(newMasterKeys))
+
+		sharedStorage.set("masterKeys", JSON.stringify(newMasterKeys))
 
 		console.log("Master keys updated")
 	}
