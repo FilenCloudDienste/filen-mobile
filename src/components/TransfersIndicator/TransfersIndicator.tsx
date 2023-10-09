@@ -10,10 +10,11 @@ import memoryCache from "../../lib/memoryCache"
 import { getColor } from "../../style"
 import { Circle } from "react-native-progress"
 import { TransfersIndicatorProps, IndicatorProps, Download, ProgressData } from "../../types"
+import eventListener from "../../lib/eventListener"
 
 export const Indicator = memo(({ darkMode, visible, navigation, progress, currentRouteName }: IndicatorProps) => {
 	const openTransfers = useCallback(async () => {
-		if (currentRouteName == "TransfersScreen") {
+		if (currentRouteName === "TransfersScreen") {
 			return
 		}
 
@@ -90,46 +91,44 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 	const progressStarted = useRef<number>(-1)
 
 	const throttledUpdate = useCallback(
-		throttle(
-			(currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible) => {
-				setCurrentUploadsGlobal(currentUploads)
-				setCurrentDownloadsGlobal(currentDownloads)
-				setFinishedTransfersGlobal(finishedTransfers)
+		throttle((currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible) => {
+			setCurrentUploadsGlobal(currentUploads)
+			setCurrentDownloadsGlobal(currentDownloads)
+			setFinishedTransfersGlobal(finishedTransfers)
 
-				if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0) {
-					setProgress((bytesSent.current / allBytes.current) * 100)
-				} else {
-					bytesSent.current = 0
-					progressStarted.current = -1
-					allBytes.current = 0
+			if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0) {
+				setProgress((bytesSent.current / allBytes.current) * 100)
+			} else {
+				bytesSent.current = 0
+				progressStarted.current = -1
+				allBytes.current = 0
 
-					setProgress(0)
-				}
+				setProgress(0)
+			}
 
-				if (
-					Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0 &&
-					currentRouteName !== "TransfersScreen" &&
-					!biometricAuthScreenVisible &&
-					currentRouteName !== "BiometricAuthScreen"
-				) {
-					setVisible(true)
-				} else {
-					setVisible(false)
-				}
-			},
-			100
-		),
+			if (
+				Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0 &&
+				currentRouteName !== "TransfersScreen" &&
+				!biometricAuthScreenVisible &&
+				currentRouteName !== "BiometricAuthScreen"
+			) {
+				setVisible(true)
+			} else {
+				setVisible(false)
+			}
+		}, 100),
 		[]
 	)
 
 	useEffect(() => {
-		throttledUpdate(
-			currentUploads,
-			currentDownloads,
-			finishedTransfers,
-			currentRouteName,
-			biometricAuthScreenVisible
-		)
+		eventListener.emit("foregroundServiceUploadDownloadProgress", progress)
+	}, [progress])
+
+	useEffect(() => {
+		throttledUpdate(currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible)
+
+		eventListener.emit(Object.keys(currentUploads).length > 0 ? "startForegroundService" : "stopForegroundService", "upload")
+		eventListener.emit(Object.keys(currentDownloads).length > 0 ? "startForegroundService" : "stopForegroundService", "download")
 	}, [currentUploads, currentDownloads, currentRouteName, biometricAuthScreenVisible, finishedTransfers])
 
 	useEffect(() => {
@@ -287,14 +286,9 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 							[data.data.uuid]: {
 								...prev[data.data.uuid],
 								percent:
-									((prev[data.data.uuid].bytes + data.data.bytes) /
-										Math.floor((prev[data.data.uuid].size || 0) * 1)) *
+									((prev[data.data.uuid].bytes + data.data.bytes) / Math.floor((prev[data.data.uuid].size || 0) * 1)) *
 									100,
-								lastBps: calcSpeed(
-									now,
-									prev[data.data.uuid].started,
-									prev[data.data.uuid].bytes + data.data.bytes
-								),
+								lastBps: calcSpeed(now, prev[data.data.uuid].started, prev[data.data.uuid].bytes + data.data.bytes),
 								lastTime: now,
 								bytes: prev[data.data.uuid].bytes + data.data.bytes,
 								timeLeft: calcTimeLeft(
@@ -326,14 +320,9 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 							[data.data.uuid]: {
 								...prev[data.data.uuid],
 								percent:
-									((prev[data.data.uuid].bytes + data.data.bytes) /
-										Math.floor((prev[data.data.uuid].size || 0) * 1)) *
+									((prev[data.data.uuid].bytes + data.data.bytes) / Math.floor((prev[data.data.uuid].size || 0) * 1)) *
 									100,
-								lastBps: calcSpeed(
-									now,
-									prev[data.data.uuid].started,
-									prev[data.data.uuid].bytes + data.data.bytes
-								),
+								lastBps: calcSpeed(now, prev[data.data.uuid].started, prev[data.data.uuid].bytes + data.data.bytes),
 								lastTime: now,
 								bytes: prev[data.data.uuid].bytes + data.data.bytes,
 								timeLeft: calcTimeLeft(

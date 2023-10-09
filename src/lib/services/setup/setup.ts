@@ -11,6 +11,7 @@ import { Item } from "../../../types"
 import * as fs from "../../fs"
 import { init as initDb, dbFs } from "../../db"
 import FastImage from "react-native-fast-image"
+import { sharedStorage } from "../../storage/storage"
 
 const CACHE_CLEARING_ENABLED: boolean = true
 
@@ -210,18 +211,24 @@ export const preloadAvatar = async (): Promise<void> => {
 }
 
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<void> => {
-	await initDb()
+	dbFs.warmUp()
+		.then(() =>
+			checkOfflineItems()
+				.then(() => clearCacheDirectories().catch(console.error))
+				.catch(console.error)
+		)
+		.catch(console.error)
 
-	dbFs.warmUp().catch(console.error)
-	checkOfflineItems().catch(console.error)
-	clearCacheDirectories().catch(console.error)
+	const result = await Promise.all([
+		initDb(),
+		updateKeys({ navigation }),
+		apiRequest({
+			method: "GET",
+			endpoint: "/v3/user/baseFolder"
+		})
+	])
 
-	await updateKeys({ navigation })
-
-	const response = await apiRequest({
-		method: "GET",
-		endpoint: "/v3/user/baseFolder"
-	})
+	const response = result[2]
 
 	if (!response.status) {
 		console.error(response.message)
@@ -231,6 +238,12 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 		throw new Error(response.message)
 	}
 
-	storage.set("defaultDriveUUID:" + storage.getNumber("userId"), response.data.uuid)
-	storage.set("defaultDriveOnly:" + storage.getNumber("userId"), true)
+	storage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
+	storage.set("defaultDriveOnly:" + (storage.getNumber("userId") || 0), true)
+
+	sharedStorage.set("apiKey", storage.getString("apiKey") || "")
+	sharedStorage.set("masterKeys", storage.getString("masterKeys") || "[]")
+	sharedStorage.set("isLoggedIn", storage.getBoolean("isLoggedIn"))
+	sharedStorage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
+	sharedStorage.set("userId", storage.getNumber("userId") || 0)
 }

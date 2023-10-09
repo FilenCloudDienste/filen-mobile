@@ -19,6 +19,14 @@
     <uses-permission android:name="android.permission.ACTION_OPEN_DOCUMENT"/>
     <uses-permission android:name="android.permission.ACTION_OPEN_DOCUMENT_TREE"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <meta-data
+      android:name="com.google.firebase.messaging.default_notification_icon"
+      android:resource="@mipmap/ic_launcher" />
+    <meta-data
+      android:name="com.google.firebase.messaging.default_notification_color"
+      android:resource="@color/colorAccent" />
 
     <application
       android:name=".MainApplication"

@@ -316,3 +316,8 @@ ios/.xcode.env.local
 .metro-health-check*
 
 **/node_modules/**/*
+
+misc.txt
+android/**/google-services.json
+ios/**/GoogleService-Info.plist
+GoogleService-Info.*

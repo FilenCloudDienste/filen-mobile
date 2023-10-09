@@ -56,6 +56,8 @@ target 'Filen' do
     # Note that if you have use_frameworks! enabled, Flipper will not work if enabled
     :flipper_configuration => flipper_config
   )
+	
+	pod 'OpenSSL-Universal'
 
   post_install do |installer|
     react_native_post_install(
@@ -108,4 +110,15 @@ target 'ShareExtension' do
   )
 
   pod 'RNShareMenu', :path => '../node_modules/react-native-share-menu'
+end
+
+target 'NotificationServiceExtension' do
+  pod "MMKVAppExtension", "1.2.16"
+	pod 'OpenSSL-Universal'
+end
+
+target 'FileProviderExt' do
+  pod "MMKVAppExtension", "1.2.16"
+	pod 'Alamofire'
+	pod 'OpenSSL-Universal'
 end

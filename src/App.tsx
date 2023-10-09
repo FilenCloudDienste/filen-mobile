@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment, memo, useCallback } from "react"
-import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus, LogBox } from "react-native"
+import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus } from "react-native"
 import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -70,8 +70,7 @@ import { getCfg } from "./lib/api"
 import { ICFG } from "./types"
 import Announcements from "./components/Announcements"
 import { SheetProvider } from "react-native-actions-sheet"
-
-LogBox.ignoreLogs(["new NativeEventEmitter", "Module AssetExporter", "DEPRECATED"])
+import notifee, { EventType, InitialNotification } from "@notifee/react-native"
 
 enableScreens(true)
 
@@ -112,6 +111,8 @@ export const App = Sentry.wrap(
 		const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
 		const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 		const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
+		const [fetchedInitialNotification, setFetchedInitialNotification] = useState<boolean>(false)
+		const [initialNotification, setInitialNotification] = useState<InitialNotification | null>(null)
 
 		const handleShare = useCallback(async (items: any) => {
 			if (!items) {
@@ -177,8 +178,8 @@ export const App = Sentry.wrap(
 
 		const setAppearance = useCallback(() => {
 			setTimeout(() => {
-				if (typeof userSelectedTheme == "string" && userSelectedTheme.length > 1 && storage.getBoolean("dontFollowSystemTheme")) {
-					if (userSelectedTheme == "dark") {
+				if (typeof userSelectedTheme === "string" && userSelectedTheme.length > 1 && storage.getBoolean("dontFollowSystemTheme")) {
+					if (userSelectedTheme === "dark") {
 						storage.set("darkMode", true)
 
 						setUserSelectedTheme("dark")
@@ -190,7 +191,7 @@ export const App = Sentry.wrap(
 						setStatusBarStyle(false)
 					}
 				} else {
-					if (Appearance.getColorScheme() == "dark") {
+					if (Appearance.getColorScheme() === "dark") {
 						storage.set("darkMode", true)
 
 						setUserSelectedTheme("dark")
@@ -214,10 +215,22 @@ export const App = Sentry.wrap(
 		}, [keepAppAwake])
 
 		useEffect(() => {
-			const nav = () => {
+			const nav = async () => {
+				try {
+					const initNotification = await notifee.getInitialNotification()
+
+					if (initNotification) {
+						setInitialNotification(initNotification)
+					}
+				} catch (e) {
+					console.error(e)
+				}
+
+				setFetchedInitialNotification(true)
+
 				let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
 
-				if (lockAppAfter == 0) {
+				if (lockAppAfter === 0) {
 					lockAppAfter = 300
 				}
 
@@ -265,7 +278,6 @@ export const App = Sentry.wrap(
 						typeof storage.getString("publicKey") == "string" &&
 						typeof storage.getNumber("userId") == "number"
 					) {
-						// @ts-ignore
 						if (
 							storage.getString("masterKeys").length > 16 &&
 							storage.getString("apiKey").length > 16 &&
@@ -320,7 +332,7 @@ export const App = Sentry.wrap(
 
 				await isNavReady(navigationRef)
 
-				if (nextAppState == "background") {
+				if (nextAppState === "background") {
 					if (!isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
 						let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
 
@@ -359,6 +371,7 @@ export const App = Sentry.wrap(
 			const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
 
 			setAppearance()
+			getCfg().then(setCFG).catch(console.error)
 
 			const appearanceListener = Appearance.addChangeListener(setAppearance)
 
@@ -369,7 +382,7 @@ export const App = Sentry.wrap(
 			const openSelectMediaScreenListener = DeviceEventEmitter.addListener("openSelectMediaScreen", async () => {
 				await navigationAnimation({ enable: true })
 
-				if (navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function") {
+				if (navigationRef && navigationRef.current && typeof navigationRef.current.dispatch === "function") {
 					const currentNavState = navigationRef.current.getState()
 
 					navigationRef.current.dispatch(
@@ -456,7 +469,22 @@ export const App = Sentry.wrap(
 				}
 			)
 
-			getCfg().then(setCFG).catch(console.error)
+			const notifeeOnForegroundListener = notifee.onForegroundEvent(async event => {
+				if (event.type === EventType.PRESS && event.detail && event.detail.notification) {
+					if (
+						event.detail.notification.data &&
+						event.detail.notification.data.type &&
+						event.detail.notification.data.type === "foregroundService" &&
+						navigationRef &&
+						navigationRef.current &&
+						typeof navigationRef.current.dispatch === "function"
+					) {
+						await navigationAnimation({ enable: true })
+
+						navigationRef.current.dispatch(StackActions.push("TransfersScreen"))
+					}
+				}
+			})
 
 			return () => {
 				shareMenuListener.remove()
@@ -465,6 +493,8 @@ export const App = Sentry.wrap(
 				appearanceListener.remove()
 				openSelectMediaScreenListener.remove()
 				selectMediaScreenUploadListener.remove()
+
+				notifeeOnForegroundListener()
 			}
 		}, [])
 
@@ -484,7 +514,7 @@ export const App = Sentry.wrap(
 								mode="padding"
 								style={{
 									backgroundColor:
-										currentScreenName == "ImageViewerScreen" ? "black" : getColor(darkMode, "backgroundPrimary"),
+										currentScreenName === "ImageViewerScreen" ? "black" : getColor(darkMode, "backgroundPrimary"),
 									paddingTop: 5,
 									height: "100%",
 									width: "100%"
@@ -500,7 +530,13 @@ export const App = Sentry.wrap(
 										onLayout={e => setContentHeight(e.nativeEvent.layout.height)}
 									>
 										<Stack.Navigator
-											initialRouteName={isLoggedIn ? (setupDone ? "MainScreen" : "SetupScreen") : "LoginScreen"}
+											initialRouteName={
+												isLoggedIn
+													? setupDone && fetchedInitialNotification
+														? "MainScreen"
+														: "SetupScreen"
+													: "LoginScreen"
+											}
 											screenOptions={{
 												animation: showNavigationAnimation ? "default" : "none",
 												headerShown: false
@@ -685,9 +721,11 @@ export const App = Sentry.wrap(
 										</Stack.Navigator>
 										{typeof cfg !== "undefined" &&
 											setupDone &&
+											fetchedInitialNotification &&
 											isLoggedIn &&
 											["MainScreen", "SettingsScreen"].includes(currentScreenName) && <Announcements cfg={cfg} />}
 										{setupDone &&
+											fetchedInitialNotification &&
 											isLoggedIn &&
 											[
 												"MainScreen",
@@ -704,7 +742,7 @@ export const App = Sentry.wrap(
 												"InviteScreen",
 												"TwoFactorScreen",
 												"ChangeEmailPasswordScreen",
-												...(Platform.OS == "ios" ? ["SelectMediaScreen"] : [])
+												...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
 											].includes(currentScreenName) && (
 												<View
 													style={{
