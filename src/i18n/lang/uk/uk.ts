@@ -428,5 +428,10 @@ export const uk: {
     permissionsMediaLocationMessage: "Для коректної роботи Filen потрібен доступ до медіафайлів.",
 	hideTextEditorLineNumbers: "Приховати номери рядків редактора",
 	sortByUploadDate: "Датою завантаження",
-	cameraUploadCompressImages: "Стискати зображення"
+	cameraUploadCompressImages: "Стискати зображення",
+	permissionsNotificationsTitle: "Дозвіл на показ повідомлень",
+	permissionsNotificationsMessage: "Для коректної роботи Filen потрібен дозвіл на показ повідомлень.",
+	cameraUploadNotificationTitle: "Завантаження медіа",
+	uploadNotificationTitle: "Завантаження файлів",
+	downloadNotificationTitle: "Скачування файлів"
 }
