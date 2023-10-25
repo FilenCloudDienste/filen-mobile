@@ -441,5 +441,10 @@ export const es: {
     permissionsMediaLocationMessage: "Filen requiere permisos de ubicación para funcionar correctamente.",
     hideTextEditorLineNumbers: "Ocultar números de línea del editor",
 	sortByUploadDate: "Fecha de subida",
-	cameraUploadCompressImages: "Comprimir imágenes"
+	cameraUploadCompressImages: "Comprimir imágenes",
+    permissionsNotificationsTitle: "Permisos de notificaciones",
+	permissionsNotificationsMessage: "Filen requiere permisos de notificación para funcionar correctamente.",
+	cameraUploadNotificationTitle: "Carga de la cámara en marcha",
+	uploadNotificationTitle: "Carga de archivos",
+	downloadNotificationTitle: "Descarga de archivos"
 }
