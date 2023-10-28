@@ -430,5 +430,10 @@ export const zh: {
 	permissionsMediaLocationMessage: "Filen 需要获得媒体保存位置权限才能正常运行。",
 	hideTextEditorLineNumbers: "隐藏编辑器行号",
 	sortByUploadDate: "上传日期",
-	cameraUploadCompressImages: "压缩图像"
+	cameraUploadCompressImages: "压缩图像",
+	permissionsNotificationsTitle: "通知权限",
+	permissionsNotificationsMessage: "Filen 需要通知权限才能正常操作。",
+	cameraUploadNotificationTitle: "相机上传运行中",
+	uploadNotificationTitle: "正在上传文件",
+	downloadNotificationTitle: "正在下载文件"
 }
