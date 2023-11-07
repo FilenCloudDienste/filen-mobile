@@ -18,25 +18,25 @@ const keyValueTableSQL = `CREATE TABLE IF NOT EXISTS key_value (\
     key TEXT, \
     value TEXT \
 )`
-const keyValueTableIndexesSQL = `CREATE INDEX key_index ON key_value (key)`
+const keyValueTableIndexesSQL = `CREATE INDEX IF NOT EXISTS key_index ON key_value (key)`
 
 const cameraUploadLastModifiedSQL = `CREATE TABLE IF NOT EXISTS camera_upload_last_modified (\
     asset_id TEXT, \
     last_modified INTEGER \
 )`
-const cameraUploadLastModifiedIndexesSQL = `CREATE INDEX asset_id_index ON camera_upload_last_modified (asset_id)`
+const cameraUploadLastModifiedIndexesSQL = `CREATE INDEX IF NOT EXISTS asset_id_index ON camera_upload_last_modified (asset_id)`
 
 const cameraUploadLastModifiedStatSQL = `CREATE TABLE IF NOT EXISTS camera_upload_last_modified_stat (\
     asset_id TEXT, \
     last_modified INTEGER \
 )`
-const cameraUploadLastModifiedStatIndexesSQL = `CREATE INDEX asset_id_index ON camera_upload_last_modified_stat (asset_id)`
+const cameraUploadLastModifiedStatIndexesSQL = `CREATE INDEX IF NOT EXISTS asset_id_index ON camera_upload_last_modified_stat (asset_id)`
 
 const cameraUploadLastSizeSQL = `CREATE TABLE IF NOT EXISTS camera_upload_last_size (\
     asset_id TEXT, \
     size INTEGER \
 )`
-const cameraUploadLastSizeIndexesSQL = `CREATE INDEX asset_id_index ON camera_upload_last_size (asset_id)`
+const cameraUploadLastSizeIndexesSQL = `CREATE INDEX IF NOT EXISTS asset_id_index ON camera_upload_last_size (asset_id)`
 
 export let db: SQLite.SQLiteDatabase | null = null
 

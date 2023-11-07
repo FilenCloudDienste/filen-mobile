@@ -22,19 +22,19 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   }
 
   var itemIdentifier: NSFileProviderItemIdentifier {
-    return self.identifier
+    self.identifier
   }
   
   var parentItemIdentifier: NSFileProviderItemIdentifier {
-    return self.parentIdentifier
+    self.parentIdentifier
   }
   
   var capabilities: NSFileProviderItemCapabilities {
-    return [.allowsReading, .allowsWriting, .allowsRenaming, .allowsReparenting, .allowsTrashing, .allowsDeleting]
+    [.allowsReading, .allowsWriting, .allowsRenaming, .allowsReparenting, .allowsTrashing, .allowsDeleting]
   }
   
   var filename: String {
-    return self.item.name
+    self.item.name
   }
   
   var documentSize: NSNumber? {
@@ -46,55 +46,47 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   }
   
   var creationDate: Date? {
-    return Date(timeIntervalSince1970: TimeInterval(self.item.timestamp))
+    Date(timeIntervalSince1970: TimeInterval(self.item.timestamp))
   }
   
   var contentModificationDate: Date? {
-    return self.item.type == .folder ? Date(timeIntervalSince1970: TimeInterval(self.item.timestamp)) : Date(timeIntervalSince1970: Double(FilenUtils.shared.convertUnixTimestampToSec(self.item.lastModified)))
+    self.item.type == .folder ? nil : Date(timeIntervalSince1970: TimeInterval(self.item.lastModified / 1000))
   }
   
   var contentType: UTType {
-    autoreleasepool {
-      if (self.identifier == NSFileProviderItemIdentifier.rootContainer || self.item.type == ItemType.folder || self.identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue) {
-        return .folder
-      }
-      
-      guard let ext = FileProviderUtils.shared.fileExtension(from: self.item.name) else { return .data }
-      
-      return UTType(filenameExtension: ext) ?? .data
-    }
+    self.item.type == .folder ? .folder : (UTType(filenameExtension: FileProviderUtils.shared.fileExtension(from: self.item.name) ?? "") ?? .data)
   }
   
   var favoriteRank: NSNumber? {
     get {
-      FileProviderUtils.shared.getFavoriteRank(uuid: itemIdentifier.rawValue)
+      nil //FileProviderUtils.shared.getFavoriteRank(uuid: itemIdentifier.rawValue)
     }
 
     set {
-      FileProviderUtils.shared.setFavoriteRank(uuid: itemIdentifier.rawValue, rank: newValue)
+      //FileProviderUtils.shared.setFavoriteRank(uuid: itemIdentifier.rawValue, rank: newValue)
     }
   }
 
   var tagData: Data? {
     get {
-      FileProviderUtils.shared.getTagData(uuid: itemIdentifier.rawValue)
+      nil //FileProviderUtils.shared.getTagData(uuid: itemIdentifier.rawValue)
     }
     
     set {
-      FileProviderUtils.shared.setTagData(uuid: itemIdentifier.rawValue, data: newValue)
+      //FileProviderUtils.shared.setTagData(uuid: itemIdentifier.rawValue, data: newValue)
     }
   }
   
   var childItemCount: NSNumber? {
-    return nil
+    nil
   }
   
   var versionIdentifier: Data? {
-    return self.item.uuid.data(using: .utf8)
+    nil
   }
   
   var isMostRecentVersionDownloaded: Bool {
-    return true
+    true
   }
   
   var isDownloaded: Bool {

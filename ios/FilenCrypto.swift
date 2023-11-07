@@ -9,6 +9,7 @@ import Foundation
 import CommonCrypto
 import Security
 import OpenSSL
+import IkigaJSON
 
 class FilenCrypto {
   static let shared: FilenCrypto = {
@@ -17,8 +18,8 @@ class FilenCrypto {
     return instance
   }()
   
-  public let jsonDecoder = JSONDecoder()
-  public let jsonEncoder = JSONEncoder()
+  public let jsonDecoder = IkigaJSONDecoder()
+  public let jsonEncoder = IkigaJSONEncoder()
   
   init () {
     SSL_library_init()
@@ -104,33 +105,16 @@ class FilenCrypto {
   
   func decryptFileMetadata (metadata: String, masterKeys: [String]) -> FileMetadata? {
     autoreleasepool {
-      var result: FileMetadata?
-      
       for masterKey in masterKeys.reversed() {
         do {
-          try autoreleasepool {
-            let decrypted = try self.decryptMetadata(metadata: metadata, key: masterKey)
-            let obj = try self.jsonDecoder.decode(FileMetadata.self, from: decrypted)
-            
-            if (obj.name.count > 0) {
-              result = obj
-            }
-          }
+          let obj = try self.jsonDecoder.decode(FileMetadata.self, from: try self.decryptMetadata(metadata: metadata, key: masterKey))
           
-          if result != nil {
-            break
+          if (obj.name.count > 0) {
+            return obj
           }
         } catch {
           continue
         }
-      }
-      
-      if let res = result {
-        if (res.name.count <= 0) {
-          return nil
-        }
-        
-        return res
       }
       
       return nil
@@ -143,32 +127,19 @@ class FilenCrypto {
         return "Default"
       }
       
-      var name = ""
-      
       for masterKey in masterKeys.reversed() {
         do {
-          try autoreleasepool {
-            let decrypted = try self.decryptMetadata(metadata: metadata, key: masterKey)
-            let obj = try self.jsonDecoder.decode(FolderMetadata.self, from: decrypted)
-            
-            if (obj.name.count > 0) {
-              name = obj.name
-            }
-          }
+          let obj = try self.jsonDecoder.decode(FolderMetadata.self, from: try self.decryptMetadata(metadata: metadata, key: masterKey))
           
-          if name.count > 0 {
-            break
+          if (obj.name.count > 0) {
+            return obj.name
           }
         } catch {
           continue
         }
       }
       
-      if (name.count <= 0) {
-        return nil
-      }
-      
-      return name
+      return nil
     }
   }
   
@@ -510,7 +481,9 @@ class FilenCrypto {
           outputStream.close()
         }
         
-        let ctx = EVP_CIPHER_CTX_new()
+        guard let ctx = EVP_CIPHER_CTX_new() else {
+          throw NSError(domain: "streamDecryptData", code: 9, userInfo: nil)
+        }
         
         defer {
           EVP_CIPHER_CTX_free(ctx)

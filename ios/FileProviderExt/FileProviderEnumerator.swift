@@ -15,6 +15,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
   private let closingRangeData = "}".data(using: .utf8)!
   private let openingRangeData = "{".data(using: .utf8)!
   private let commaData = ",".data(using: .utf8)!
+  private let endData = "]}}".data(using: .utf8)!
       
   init (identifier: NSFileProviderItemIdentifier) {
     self.identifier = identifier
@@ -30,7 +31,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
     try autoreleasepool {
       var decryptedName: FolderMetadata?
       
-      if let row = try FileProviderUtils.shared.openDb().run("SELECT name FROM decrypted_folder_metadata WHERE uuid = ?", [folder.uuid]).makeIterator().next() {
+      if let row = try FileProviderUtils.shared.openDb().run("SELECT name FROM decrypted_folder_metadata WHERE used_metadata = ?", [folder.name]).makeIterator().next() {
         if let name = row[0] as? String {
           decryptedName = FolderMetadata(name: name)
         }
@@ -41,10 +42,11 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           decryptedName = FolderMetadata(name: decrypted)
           
           try FileProviderUtils.shared.openDb().run(
-            "INSERT OR REPLACE INTO decrypted_folder_metadata (uuid, name) VALUES (?, ?)",
+            "INSERT OR IGNORE INTO decrypted_folder_metadata (uuid, name, used_metadata) VALUES (?, ?, ?)",
             [
               folder.uuid,
-              decrypted
+              decrypted,
+              folder.name
             ]
           )
         }
@@ -52,7 +54,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       
       if let decryptedName = decryptedName {
         try FileProviderUtils.shared.openDb().run(
-          "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           [
             folder.uuid,
             folder.parent,
@@ -117,7 +119,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
     try autoreleasepool {
       var decryptedMetadata: FileMetadata?
       
-      if let row = try FileProviderUtils.shared.openDb().run("SELECT name, size, mime, key, lastModified FROM decrypted_file_metadata WHERE uuid = ?", [file.uuid]).makeIterator().next() {
+      if let row = try FileProviderUtils.shared.openDb().run("SELECT name, size, mime, key, lastModified FROM decrypted_file_metadata WHERE used_metadata = ?", [file.metadata]).makeIterator().next() {
         if let name = row[0] as? String, let size = row[1] as? Int64, let mime = row[2] as? String, let key = row[3] as? String, let lastModified = row[4] as? Int64 {
           decryptedMetadata = FileMetadata(
             name: name,
@@ -140,14 +142,15 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           )
           
           try FileProviderUtils.shared.openDb().run(
-            "INSERT OR REPLACE INTO decrypted_file_metadata (uuid, name, size, mime, key, lastModified) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO decrypted_file_metadata (uuid, name, size, mime, key, lastModified, used_metadata) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
               file.uuid,
               decrypted.name,
               decrypted.size ?? 0,
               decrypted.mime ?? "",
               decrypted.key,
-              decrypted.lastModified ?? file.timestamp
+              decrypted.lastModified ?? file.timestamp,
+              file.metadata
             ]
           )
         }
@@ -155,7 +158,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       
       if let decryptedMetadata = decryptedMetadata {
         try FileProviderUtils.shared.openDb().run(
-          "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           [
             file.uuid,
             file.parent,
@@ -239,7 +242,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         
         if (self.identifier == NSFileProviderItemIdentifier.rootContainer || self.identifier.rawValue == rootFolderUUID || self.identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue) {
           try FileProviderUtils.shared.openDb().run(
-            "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
               rootFolderUUID,
               rootFolderUUID,
@@ -258,7 +261,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           )
           
           try FileProviderUtils.shared.openDb().run(
-            "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
               NSFileProviderItemIdentifier.rootContainer.rawValue,
               rootFolderUUID,
@@ -294,39 +297,44 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           throw NSError(domain: "enumerateItems", code: 1, userInfo: nil)
         }
         
+        inputStream.open()
+        
         defer {
           inputStream.close()
         }
-        
-        inputStream.open()
         
         let bufferSize = 1024
         var buffer = [UInt8](repeating: 0, count: bufferSize)
         var accumulatedData = Data()
         var currentState: FetchFolderContentJSONParseState = .lookingForData
         var didParseFiles = false
+        var didEnumerate = false
 
-        while inputStream.hasBytesAvailable {
+        while inputStream.hasBytesAvailable || accumulatedData.count > 0 {
           autoreleasepool {
             let bytesRead = inputStream.read(&buffer, maxLength: bufferSize)
             
-            if bytesRead > 0 {
+            if bytesRead > 0 || accumulatedData.count > 0 {
               accumulatedData.append(contentsOf: buffer[0..<bytesRead])
                 
               switch currentState {
               case .lookingForData:
-                if let uploadsRange = accumulatedData.range(of: self.uploadsRangeData) {
-                  accumulatedData.removeSubrange(0..<uploadsRange.endIndex)
+                if let dataRange = accumulatedData.range(of: self.uploadsRangeData) {
+                  accumulatedData.removeSubrange(0..<dataRange.endIndex)
                   currentState = .parsingData
                 }
                 
               case .parsingData:
+                if let foldersRange = accumulatedData.range(of: self.foldersRangeData) {
+                  accumulatedData.removeSubrange(foldersRange.startIndex..<foldersRange.endIndex)
+                }
+                
+                if let endRange = accumulatedData.range(of: self.endData) {
+                  accumulatedData.removeSubrange(endRange.startIndex..<endRange.endIndex)
+                }
+                
                 while let endIndex = accumulatedData.range(of: self.closingRangeData) {
                   autoreleasepool {
-                    if let foldersRange = accumulatedData.range(of: self.foldersRangeData) {
-                      accumulatedData.removeSubrange(foldersRange.startIndex..<foldersRange.endIndex)
-                    }
-                    
                     var data = accumulatedData[0..<endIndex.endIndex]
                     
                     if data.prefix(1) == self.commaData {
@@ -342,6 +350,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                           
                           if (processed.item.name.count > 0) {
                             observer.didEnumerate([processed])
+                            didEnumerate = true
                           }
                         } else {
                           if let folder = try? FileProviderUtils.shared.jsonDecoder.decode(FetchFolderContentsFolder.self, from: data) {
@@ -351,6 +360,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                             
                             if (processed.item.name.count > 0) {
                               observer.didEnumerate([processed])
+                              didEnumerate = true
                             }
                           }
                         }
@@ -365,6 +375,10 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
               }
             }
           }
+        }
+        
+        if !didEnumerate {
+          observer.didEnumerate([])
         }
         
         observer.finishEnumerating(upTo: nil)

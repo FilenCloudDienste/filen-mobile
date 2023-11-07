@@ -26,8 +26,8 @@ struct FetchFolderContentsFolder: Decodable {
   var color: String?
   var timestamp: Int
   var favorited: Int
-  var is_sync: Int
-  var is_default: Int
+  var is_sync: Int?
+  var is_default: Int?
 }
 
 struct FetchFolderContentsData: Decodable {

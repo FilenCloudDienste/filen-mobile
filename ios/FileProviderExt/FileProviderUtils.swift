@@ -33,10 +33,8 @@ class FileProviderUtils {
   
   public let jsonDecoder = IkigaJSONDecoder()
   public let jsonEncoder = IkigaJSONEncoder()
-  private let metadataPath = NSFileProviderManager.default.documentStorageURL.appendingPathComponent("metadata", isDirectory: true)
   private let tempPath = NSFileProviderManager.default.documentStorageURL.appendingPathComponent("temp", isDirectory: true)
   private let dbPath = NSFileProviderManager.default.documentStorageURL.appendingPathComponent("db", isDirectory: true)
-  private var metadataPathCreated = false
   private var tempPathCreated = false
   private var dbPathCreated = false
   private var db: Connection?
@@ -48,7 +46,7 @@ class FileProviderUtils {
         return self.db!
       }
       
-      let dbPath = try self.getDbPath().appendingPathComponent("db.sqlite3", isDirectory: false)
+      let dbPath = try self.getDbPath().appendingPathComponent("db_v1.sqlite3", isDirectory: false)
       
       self.db = try Connection(dbPath.path)
       
@@ -60,37 +58,23 @@ class FileProviderUtils {
       try self.db!.execute("CREATE INDEX IF NOT EXISTS uuid_index ON items (uuid)")
       try self.db!.execute("CREATE UNIQUE INDEX IF NOT EXISTS uuid_unique ON items (uuid)")
       
-      try self.db!.execute("CREATE TABLE IF NOT EXISTS decrypted_file_metadata (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '', size INTEGER NOT NULL DEFAULT 0, mime TEXT NOT NULL DEFAULT '', key TEXT NOT NULL DEFAULT '', lastModified INTEGER NOT NULL DEFAULT 0, hash TEXT NOT NULL DEFAULT '')")
+      try self.db!.execute("CREATE TABLE IF NOT EXISTS decrypted_file_metadata (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '', size INTEGER NOT NULL DEFAULT 0, mime TEXT NOT NULL DEFAULT '', key TEXT NOT NULL DEFAULT '', lastModified INTEGER NOT NULL DEFAULT 0, hash TEXT NOT NULL DEFAULT '', used_metadata TEXT NOT NULL DEFAULT '')")
       try self.db!.execute("CREATE INDEX IF NOT EXISTS uuid_index ON decrypted_file_metadata (uuid)")
+      try self.db!.execute("CREATE INDEX IF NOT EXISTS used_metadata_index ON decrypted_file_metadata (used_metadata)")
       try self.db!.execute("CREATE UNIQUE INDEX IF NOT EXISTS uuid_unique ON decrypted_file_metadata (uuid)")
       
-      try self.db!.execute("CREATE TABLE IF NOT EXISTS decrypted_folder_metadata (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '')")
+      try self.db!.execute("CREATE TABLE IF NOT EXISTS decrypted_folder_metadata (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '', used_metadata TEXT NOT NULL DEFAULT '')")
       try self.db!.execute("CREATE INDEX IF NOT EXISTS uuid_index ON decrypted_folder_metadata (uuid)")
+      try self.db!.execute("CREATE INDEX IF NOT EXISTS used_metadata_index ON decrypted_folder_metadata (used_metadata)")
       try self.db!.execute("CREATE UNIQUE INDEX IF NOT EXISTS uuid_unique ON decrypted_folder_metadata (uuid)")
       
-      try self.db!.execute("CREATE TABLE IF NOT EXISTS metadata (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, key TEXT NOT NULL DEFAULT '', data BLOB)")
+      try self.db!.execute("CREATE TABLE IF NOT EXISTS metadata (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, key TEXT NOT NULL DEFAULT '', data TEXT NOT NULL DEFAULT '')")
       try self.db!.execute("CREATE INDEX IF NOT EXISTS key_index ON metadata (key)")
       try self.db!.execute("CREATE UNIQUE INDEX IF NOT EXISTS key_unique ON metadata (key)")
       
       self.dbInitialized = true
       
       return self.db!
-    }
-  }
-  
-  func getMetadataPath () throws -> URL {
-    try autoreleasepool {
-      if self.metadataPathCreated {
-        return self.metadataPath
-      }
-      
-      if !FileManager.default.fileExists(atPath: self.metadataPath.path) {
-        try FileManager.default.createDirectory(at: self.metadataPath, withIntermediateDirectories: true, attributes: nil)
-      }
-      
-      self.metadataPathCreated = true
-      
-      return self.metadataPath
     }
   }
   
@@ -151,10 +135,7 @@ class FileProviderUtils {
   func storeMetadata (key: String, data: Data) -> Void {
     autoreleasepool {
       do {
-        let keyHash = try FilenCrypto.shared.hash(message: key, hash: .md5)
-        let fileURL = try self.getMetadataPath().appendingPathComponent(keyHash, isDirectory: false)
-        
-        try data.write(to: fileURL)
+        try self.openDb().run("INSERT OR IGNORE INTOACE INTO metadata (key, data) VALUES (?, ?)", [key, data.base64EncodedString()])
       } catch {
         print("[storeMetadata] error: \(error)")
       }
@@ -164,14 +145,13 @@ class FileProviderUtils {
   func getMetadata (key: String) -> Data? {
     autoreleasepool {
       do {
-        let keyHash = try FilenCrypto.shared.hash(message: key, hash: .md5)
-        let fileURL = try self.getMetadataPath().appendingPathComponent(keyHash, isDirectory: false)
-        
-        if !FileManager.default.fileExists(atPath: fileURL.path) {
-          return nil
+        if let row = try FileProviderUtils.shared.openDb().run("SELECT data FROM metadata WHERE key = ?", [key]).makeIterator().next() {
+          if let data = row[0] as? String {
+            return Data(base64Encoded: data)
+          }
         }
         
-        return try Data(contentsOf: fileURL, options: .alwaysMapped)
+        return nil
       } catch {
         print("[getMetadata] error: \(error)")
         
@@ -183,29 +163,9 @@ class FileProviderUtils {
   func removeMetadata (key: String) -> Void {
     autoreleasepool {
       do {
-        let keyHash = try FilenCrypto.shared.hash(message: key, hash: .md5)
-        let fileURL = try self.getMetadataPath().appendingPathComponent(keyHash, isDirectory: false)
-        
-        if FileManager.default.fileExists(atPath: fileURL.path) {
-          try FileManager.default.removeItem(atPath: fileURL.path)
-        }
+        try self.openDb().run("DELETE FROM metadata WHERE key = ?", [key])
       } catch {
         print("[removeMetadata] error: \(error)")
-      }
-    }
-  }
-  
-  func metadataExists (key: String) -> Bool {
-    autoreleasepool {
-      do {
-        let keyHash = try FilenCrypto.shared.hash(message: key, hash: .md5)
-        let fileURL = try self.getMetadataPath().appendingPathComponent(keyHash, isDirectory: false)
-        
-        return FileManager.default.fileExists(atPath: fileURL.path)
-      } catch {
-        print("[removeMetadata] error: \(error)")
-        
-        return false
       }
     }
   }
