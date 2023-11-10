@@ -1,21 +1,46 @@
 package io.filen.app;
 
+import android.content.Context;
 import android.database.Cursor;
+import android.os.CancellationSignal;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import org.json.*;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
 public class FilenDocumentsProviderUtils {
+    private static final ExecutorService downloadThreadPool = Executors.newFixedThreadPool(20);
+    private static final ExecutorService uploadThreadPool = Executors.newFixedThreadPool(10);
+    private static final Map<String, Semaphore> downloadFileSemaphore = new HashMap<>();
+    private static final Map<String, Semaphore> uploadFileSemaphore = new HashMap<>();
+
     public static boolean isLoggedIn() {
         return MMKVHelper.getInstance().decodeBool("isLoggedIn", false);
     }
@@ -102,7 +127,7 @@ public class FilenDocumentsProviderUtils {
 
         FilenAPI.trashItem(FilenDocumentsProviderUtils.getAPIKey(), documentId, item.type, new APIRequest.APICallback() {
             @Override
-            public void onSuccess(JSONObject result) {
+            public void onSuccess (JSONObject result) {
                 try {
                     if (!result.getBoolean("status")) {
                         callback.onResult(new Exception(result.getString("code")));
@@ -125,12 +150,140 @@ public class FilenDocumentsProviderUtils {
         });
     }
 
-    public static void updateFolderContent(String parentUUID, ErrorCallback callback) {
+    public static void createFile (Context context, String parentUUID, String uuid, String name, ErrorCallback callback) {
+        RandomAccessFile tempFileHandle = null;
+
+        try {
+            final File tempFileDir = new File(context.getFilesDir(), "documentsProvider/temp/" + UUID.randomUUID().toString());
+
+            if (!tempFileDir.exists()) {
+                if (!tempFileDir.mkdirs()) {
+                    throw new Exception("Could not create parent dirs.");
+                }
+            }
+
+            final File tempFile = new File(tempFileDir, name);
+
+            if (!tempFile.createNewFile()) {
+                throw new Exception("Could not create temporary file.");
+            }
+
+            tempFileHandle = new RandomAccessFile(tempFile, "rw");
+
+            tempFileHandle.write(FilenCrypto.generateSecureRandomString(1).getBytes());
+
+            final Object[] uploadResult = uploadFile(tempFile, parentUUID, uuid);
+            final String region = (String) uploadResult[0];
+            final String bucket = (String) uploadResult[1];
+            final String key = (String) uploadResult[2];
+            final long size = (long) uploadResult[3];
+            final long chunks = (long) uploadResult[4];
+            final int version = (int) uploadResult[5];
+
+            SQLiteHelper.getInstance().execSQL(
+                    "INSERT OR REPLACE INTO `items` (`uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    new Object[] {
+                            uuid,
+                            parentUUID,
+                            name,
+                            "file",
+                            getMimeTypeFromName(name),
+                            size,
+                            System.currentTimeMillis(),
+                            System.currentTimeMillis(),
+                            key,
+                            chunks,
+                            region,
+                            bucket,
+                            version
+                    }
+            );
+
+            Log.d("FilenDocumentsProvider", "Added file to SQLite: " + name);
+
+            callback.onResult(null);
+        } catch (Exception e) {
+            callback.onResult(e);
+        } finally {
+            if (tempFileHandle != null) {
+                try {
+                    tempFileHandle.close();
+                } catch (Exception e) {
+                    callback.onResult(e);
+                }
+            }
+        }
+    }
+
+    public static void createFolder (String parentUUID, String uuid, String name, ErrorCallback callback) {
+        Log.d("FilenDocumentsProvider", "createFolder: " + parentUUID + ", name: " + name);
+
+        try {
+            final JSONObject nameJSONObject = new JSONObject();
+
+            nameJSONObject.put("name", name);
+
+            final String nameJSON = nameJSONObject.toString();
+            final String[] masterKeys = getMasterKeys();
+            final String lastMasterKey = masterKeys[masterKeys.length - 1];
+            final String nameEncrypted = FilenCrypto.encryptMetadata(nameJSON, lastMasterKey);
+            final String nameHashed = FilenCrypto.hashFn(name);
+
+            FilenAPI.createFolder(getAPIKey(), uuid, nameEncrypted, nameHashed, parentUUID, new APIRequest.APICallback() {
+                @Override
+                public void onSuccess (JSONObject result) {
+                    try {
+                        if (!result.getBoolean("status")) {
+                            callback.onResult(new Exception(result.getString("code")));
+
+                            return;
+                        }
+
+                        SQLiteHelper.getInstance().execSQL(
+                                "INSERT OR REPLACE INTO `items` (`uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                new Object[]{
+                                        uuid,
+                                        parentUUID,
+                                        name,
+                                        "folder",
+                                        "",
+                                        0,
+                                        System.currentTimeMillis(),
+                                        System.currentTimeMillis(),
+                                        "",
+                                        0,
+                                        "",
+                                        "",
+                                        0
+                                }
+                        );
+
+                        Log.d("FilenDocumentsProvider", "Added folder to SQLite: " + name);
+
+                        // @TODO checkIfItemParentIsShared
+
+                        callback.onResult(null);
+                    } catch (Exception e) {
+                        callback.onResult(e);
+                    }
+                }
+
+                @Override
+                public void onError (Throwable throwable) {
+                    callback.onResult(throwable);
+                }
+            });
+        } catch (Exception e) {
+            callback.onResult(e);
+        }
+    }
+
+    public static void updateFolderContent (String parentUUID, ErrorCallback callback) {
         Log.d("FilenDocumentsProvider", "updateFolderContent: " + parentUUID);
 
-        FilenAPI.fetchFolderContent(FilenDocumentsProviderUtils.getAPIKey(), parentUUID, new APIRequest.APICallback() {
+        FilenAPI.fetchFolderContent(getAPIKey(), parentUUID, new APIRequest.APICallback() {
             @Override
-            public void onSuccess(JSONObject result) {
+            public void onSuccess (JSONObject result) {
                 Cursor dbCursor = null;
 
                 try {
@@ -268,7 +421,7 @@ public class FilenDocumentsProviderUtils {
             }
 
             @Override
-            public void onError(Throwable throwable) {
+            public void onError (Throwable throwable) {
                 callback.onResult(throwable);
             }
         });
@@ -276,33 +429,465 @@ public class FilenDocumentsProviderUtils {
 
     @Nullable
     public static Item getItemFromDocumentId (String documentId) {
-        Cursor dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version` FROM `items` WHERE `uuid` = ?", new String[]{ documentId });
+        Cursor dbCursor = null;
 
-        if (!dbCursor.moveToNext()) {
+        try {
+            dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version` FROM `items` WHERE `uuid` = ?", new String[]{ documentId });
+
+            if (!dbCursor.moveToNext()) {
+                return null;
+            }
+
+            Item item = new Item();
+
+            item.uuid = dbCursor.getString(0);
+            item.parent = dbCursor.getString(1);
+            item.name = dbCursor.getString(2);
+            item.type = dbCursor.getString(3);
+            item.mime = dbCursor.getString(4);
+            item.size = dbCursor.getInt(5);
+            item.timestamp = dbCursor.getInt(6);
+            item.lastModified = dbCursor.getInt(7);
+            item.key = dbCursor.getString(8);
+            item.chunks = dbCursor.getInt(9);
+            item.region = dbCursor.getString(10);
+            item.bucket = dbCursor.getString(11);
+            item.version = dbCursor.getInt(12);
+
             dbCursor.close();
 
-            return null;
+            return item;
+        } catch (Exception e) {
+            Log.d("FilenDocumentsProvider", "getItemFromDocumentId error: " + e.getMessage());
+
+            throw e;
+        } finally {
+            if (dbCursor != null) {
+                dbCursor.close();
+            }
+        }
+    }
+
+    public static String getItemLocalPath (Context context, Item item) throws Exception {
+        final File outputFileDir = new File(context.getFilesDir(), "documentsProvider/files/" + item.uuid);
+
+        if (!outputFileDir.exists()) {
+            if (!outputFileDir.mkdirs()) {
+                throw new Exception("Could not create parent dirs.");
+            }
         }
 
-        Item item = new Item();
+        final File outputFile = new File(outputFileDir, item.name);
 
-        item.uuid = dbCursor.getString(0);
-        item.parent = dbCursor.getString(1);
-        item.name = dbCursor.getString(2);
-        item.type = dbCursor.getString(3);
-        item.mime = dbCursor.getString(4);
-        item.size = dbCursor.getInt(5);
-        item.timestamp = dbCursor.getInt(6);
-        item.lastModified = dbCursor.getInt(7);
-        item.key = dbCursor.getString(8);
-        item.chunks = dbCursor.getInt(9);
-        item.region = dbCursor.getString(10);
-        item.bucket = dbCursor.getString(11);
-        item.version = dbCursor.getInt(12);
+        return outputFile.getAbsolutePath();
+    }
 
-        dbCursor.close();
+    public static void appendFileToFile (File source, File destination) throws IOException {
+        Log.d("FilenDocumentsProvider", "appendFileToFile: " + source + ", " + destination);
 
-        return item;
+        try (FileOutputStream out = new FileOutputStream(destination, true); FileInputStream in = new FileInputStream(source)) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+
+            while ((bytesRead = in.read(buffer)) != -1) {
+                if (bytesRead > 0) {
+                    out.write(buffer);
+                }
+            }
+        }
+    }
+
+    public static File downloadChunk (Context context, Item item, int index) throws Exception {
+        Log.d("FilenDocumentsProvider", "downloadChunk: " + item + ", " + index);
+
+        final File outputFileDir = new File(context.getFilesDir(), "documentsProvider/download/" + item.uuid);
+
+        if (!outputFileDir.exists()) {
+            if (!outputFileDir.mkdirs()) {
+                throw new Exception("Could not create parent dirs.");
+            }
+        }
+
+        final File outputFile = new File(outputFileDir, UUID.randomUUID().toString() + "." + index);
+        final URL url = new URL("https://egest.filen.io/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index);
+        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        connection.setReadTimeout(3600000);
+        connection.setConnectTimeout(60000);
+        connection.setRequestMethod("GET");
+
+        try {
+            final int responseCode = connection.getResponseCode();
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                try (InputStream in = new BufferedInputStream(connection.getInputStream()); FileOutputStream out = new FileOutputStream(outputFile)) {
+                    byte[] data = new byte[1024];
+                    int count;
+
+                    while ((count = in.read(data)) != -1) {
+                        out.write(data, 0, count);
+                    }
+                }
+
+                return outputFile;
+            } else {
+                throw new IOException("Egest returned HTTP response code: " + responseCode + " for URL: " + url);
+            }
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    public static File downloadFile (Context context, Item item, boolean returnEarly, int maxChunks, @Nullable CancellationSignal signal) throws Exception {
+        Log.d("FilenDocumentsProvider", "downloadFile: " + item + ", " + returnEarly + ", " + maxChunks);
+
+        if (downloadFileSemaphore.get(item.uuid) == null) {
+            downloadFileSemaphore.put(item.uuid, new Semaphore(1));
+        }
+
+        Objects.requireNonNull(downloadFileSemaphore.get(item.uuid)).acquire();
+
+        try {
+            final File outputFile = new File(getItemLocalPath(context, item));
+
+            if (outputFile.exists() || returnEarly) {
+                Objects.requireNonNull(downloadFileSemaphore.get(item.uuid)).release();
+
+                return outputFile;
+            }
+
+            if (!outputFile.createNewFile()) {
+                throw new Exception("Could not create file for documentId " + item.uuid);
+            }
+
+            final int chunksToDownload = maxChunks >= item.chunks ? item.chunks : maxChunks;
+            final AtomicInteger currentWriteIndex = new AtomicInteger(0);
+            final Object writeLock = new Object();
+            final Object lock = new Object();
+            final AtomicInteger chunksDownloaded = new AtomicInteger(0);
+
+            final Thread thread = new Thread(() -> {
+                try {
+                    for (int i = 0; i < chunksToDownload; i++) {
+                        int index = i;
+
+                        downloadThreadPool.submit(() -> {
+                            if (signal != null) {
+                                if (signal.isCanceled()) {
+                                    Thread.currentThread().interrupt();
+
+                                    return;
+                                }
+                            }
+
+                            try {
+                                File downloadedChunkFile = downloadChunk(context, item, index);
+                                File decryptedChunkFile = FilenCrypto.streamDecryptData(downloadedChunkFile, item.key, item.version);
+
+                                synchronized (writeLock) {
+                                    while (currentWriteIndex.get() != index) {
+                                        writeLock.wait();
+                                    }
+                                }
+
+                                if (index == 0) {
+                                    if (outputFile.exists()) {
+                                        if (!outputFile.delete()) {
+                                            throw new Exception("Could not delete file.");
+                                        }
+                                    }
+
+                                    if (!decryptedChunkFile.renameTo(outputFile)) {
+                                        throw new Exception("Could not move decrypted chunk file to output file.");
+                                    }
+                                } else {
+                                    if (!outputFile.exists()) {
+                                        throw new Exception("Output file does not exist.");
+                                    }
+
+                                    appendFileToFile(decryptedChunkFile, outputFile);
+                                }
+
+                                currentWriteIndex.set(index + 1);
+
+                                synchronized (writeLock) {
+                                    writeLock.notifyAll();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+
+                                Log.d("FilenDocumentsProvider", "downloadFile error: " + e.getMessage());
+                            } finally {
+                                chunksDownloaded.set(chunksDownloaded.get() + 1);
+
+                                synchronized (lock) {
+                                    lock.notifyAll();
+                                }
+                            }
+                        });
+                    }
+
+                    synchronized (lock) {
+                        while (chunksDownloaded.get() < chunksToDownload) {
+                            lock.wait();
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    Log.d("FilenDocumentsProvider", "downloadFile error: " + e.getMessage());
+                }
+            });
+
+            thread.start();
+            thread.join();
+
+            Objects.requireNonNull(downloadFileSemaphore.get(item.uuid)).release();
+
+            return outputFile;
+        } catch (Exception e) {
+            Objects.requireNonNull(downloadFileSemaphore.get(item.uuid)).release();
+
+            throw e;
+        }
+    }
+
+    public static void encryptAndUploadChunk (File inputFile, long chunkSize, String uuid, int index, String uploadKey, String parent, String key, APIRequest.UploadCallback callback) throws Exception {
+        final Object[] encryptedDataResult = FilenCrypto.streamEncryptData(inputFile, chunkSize, key, index);
+        final File outputFile = (File) encryptedDataResult[0];
+        final String outputFileChecksum = (String) encryptedDataResult[1];
+
+        Log.d("FilenDocumentsProvider", "encryptAndUploadChunk: " + inputFile.getAbsolutePath() + ", " + chunkSize + ", " + uuid + ", " + index + ", " + uploadKey + ", " + parent + ", " + outputFileChecksum + ", " + inputFile.length() + ", " + outputFile.length());
+
+        FilenAPI.uploadFileChunk(getAPIKey(), outputFile, uuid, index, uploadKey, parent, outputFileChecksum, new APIRequest.UploadCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                callback.onSuccess(result);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                callback.onError(throwable);
+            }
+        });
+    }
+
+    public static Object[] uploadFile (File inputFile, String parent, String uuid) throws Exception {
+        Log.d("FilenDocumentsProvider", "uploadFile: " + inputFile.getAbsolutePath() + ", " + parent + ", " + uuid);
+
+        if (!inputFile.exists()) {
+            throw new Exception("Input file does not exist.");
+        }
+
+        final String[] masterKeys = getMasterKeys();
+        final String lastMasterKey = masterKeys[masterKeys.length - 1];
+        final long inputFileSize = inputFile.length();
+        final long inputFileLastModified = inputFile.lastModified();
+        final String key = FilenCrypto.generateSecureRandomString(32);
+        final int encryptionVersion = 2;
+
+        if (inputFileSize <= 0) {
+            throw new Exception("0 byte files not supported yet.");
+        }
+
+        final String inputFileName = inputFile.getName();
+        long dummyOffset = 0;
+        long fileChunks = 0;
+        final long chunkSize = 1024 * 1024;
+        final String mimeType = getMimeTypeFromName(inputFileName);
+
+        while (dummyOffset < inputFileSize) {
+            fileChunks += 1;
+            dummyOffset += chunkSize;
+        }
+
+        final JSONObject metadataJSONObject = new JSONObject();
+
+        metadataJSONObject.put("name", inputFileName);
+        metadataJSONObject.put("size", inputFileSize);
+        metadataJSONObject.put("mime", mimeType);
+        metadataJSONObject.put("key", key);
+        metadataJSONObject.put("lastModified", inputFileLastModified);
+
+        final String metadataJSON = metadataJSONObject.toString();
+
+        final String rm = FilenCrypto.generateSecureRandomString(32);
+        final String uploadKey = FilenCrypto.generateSecureRandomString(32);
+        final String nameEncrypted = FilenCrypto.encryptMetadata(inputFileName, key);
+        final String mimeEncrypted = FilenCrypto.encryptMetadata(mimeType, key);
+        final String nameHashed = FilenCrypto.hashFn(inputFileName);
+        final String sizeEncrypted = FilenCrypto.encryptMetadata(String.valueOf(inputFileSize), key);
+        final String metadata = FilenCrypto.encryptMetadata(metadataJSON, lastMasterKey);
+
+        final AtomicReference<String> region = new AtomicReference("");
+        final AtomicReference<String> bucket = new AtomicReference("");
+        final Object lock = new Object();
+        final AtomicInteger uploadedChunks = new AtomicInteger(0);
+        long finalFileChunks = fileChunks;
+        final AtomicBoolean didError = new AtomicBoolean(false);
+
+        Log.d("FilenDocumentsProvider", "uploadFile: " + inputFile.getAbsolutePath() + ", " + parent + ", " + uuid + ", " + finalFileChunks + ", " + inputFileName + ", " + inputFileSize);
+
+        final Thread uploadThread = new Thread(() -> {
+            try {
+                for (int i = 0; i < finalFileChunks; i++) {
+                    final int index = i;
+
+                    uploadThreadPool.submit(() -> {
+                        try {
+                            encryptAndUploadChunk(inputFile, chunkSize, uuid, index, uploadKey, parent, key, new APIRequest.UploadCallback() {
+                                @Override
+                                public void onSuccess (JSONObject result) {
+                                    try {
+                                        if (!result.getBoolean("status")) {
+                                            throw new Exception("Invalid upload status code: " + result.getString("code"));
+                                        }
+
+                                        final JSONObject data = result.getJSONObject("data");
+
+                                        region.set(data.getString("region"));
+                                        bucket.set(data.getString("bucket"));
+
+                                        Log.d("FilenDocumentsProvider", "encryptAndUploadChunk result: " + uuid + ", " + index + ", " + data.getString("region") + ", " + data.getString("bucket"));
+                                    } catch (Exception e) {
+                                        didError.set(true);
+
+                                        e.printStackTrace();
+
+                                        Log.d("FilenDocumentsProvider", "uploadFile error: " + e.getMessage());
+                                    } finally {
+                                        uploadedChunks.set(uploadedChunks.get() + 1);
+
+                                        synchronized (lock) {
+                                            lock.notifyAll();
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onError (Throwable throwable) {
+                                    didError.set(true);
+
+                                    throwable.printStackTrace();
+
+                                    Log.d("FilenDocumentsProvider", "uploadFile error: " + throwable.getMessage());
+
+                                    uploadedChunks.set(uploadedChunks.get() + 1);
+
+                                    synchronized (lock) {
+                                        lock.notifyAll();
+                                    }
+                                }
+                            });
+                        } catch (Exception e) {
+                            didError.set(true);
+
+                            e.printStackTrace();
+
+                            Log.d("FilenDocumentsProvider", "uploadFile error: " + e.getMessage());
+
+                            uploadedChunks.set(uploadedChunks.get() + 1);
+
+                            synchronized (lock) {
+                                lock.notifyAll();
+                            }
+                        }
+                    });
+                }
+
+                synchronized (lock) {
+                    while (uploadedChunks.get() < finalFileChunks) {
+                        lock.wait();
+                    }
+                }
+            } catch (Exception e) {
+                didError.set(true);
+
+                e.printStackTrace();
+
+                Log.d("FilenDocumentsProvider", "uploadFile error: " + e.getMessage());
+            }
+        });
+
+        uploadThread.start();
+        uploadThread.join();
+
+        if (didError.get() || region.get().length() == 0 || bucket.get().length() == 0) {
+            throw new Exception("Could not upload chunk.");
+        }
+
+        final AtomicBoolean didMarkAsDone = new AtomicBoolean(false);
+        final Object didMarkAsDoneLock = new Object();
+        final AtomicBoolean didMarkAsDoneError = new AtomicBoolean(false);
+
+        final Thread markAsDoneThread = new Thread(() -> {
+            try {
+                FilenAPI.markUploadAsDone(getAPIKey(), uuid, nameEncrypted, nameHashed, sizeEncrypted, finalFileChunks, mimeEncrypted, rm, metadata, encryptionVersion, uploadKey, new APIRequest.APICallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        try {
+                            if (!result.getBoolean("status")) {
+                                throw new Exception("Invalid markUploadAsDone status code: " + result.getString("code"));
+                            }
+                        } catch (Exception e) {
+                            didMarkAsDoneError.set(true);
+
+                            e.printStackTrace();
+
+                            Log.d("FilenDocumentsProvider", "uploadFile markUploadAsDone error: " + e.getMessage());
+                        } finally {
+                            didMarkAsDone.set(true);
+
+                            synchronized (didMarkAsDoneLock) {
+                                didMarkAsDoneLock.notifyAll();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        didMarkAsDoneError.set(true);
+                        didMarkAsDone.set(true);
+
+                        throwable.printStackTrace();
+
+                        Log.d("FilenDocumentsProvider", "uploadFile markUploadAsDone error: " + throwable.getMessage());
+
+                        synchronized (didMarkAsDoneLock) {
+                            didMarkAsDoneLock.notifyAll();
+                        }
+                    }
+                });
+
+                synchronized (didMarkAsDoneLock) {
+                    while (!didMarkAsDone.get()) {
+                        didMarkAsDoneLock.wait();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Log.d("FilenDocumentsProvider", "uploadFile markUploadAsDone error: " + e.getMessage());
+            }
+        });
+
+        markAsDoneThread.start();
+        markAsDoneThread.join();
+
+        if (!didMarkAsDone.get() || didMarkAsDoneError.get()) {
+            throw new Exception("Could not upload file.");
+        }
+
+        // @TODO checkIfItemParentIsShared
+
+        return new Object[] {
+                region.get(),
+                bucket.get(),
+                key,
+                inputFileSize,
+                finalFileChunks,
+                encryptionVersion
+        };
     }
 
     public static long convertTimestampToMs (long timestamp) {

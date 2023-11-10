@@ -10,7 +10,7 @@ public class SQLiteHelper {
 
     public static void initialize(Context context) {
         File filesDir = context.getFilesDir();
-        File dbPath = new File(filesDir, "sqlite/filenDocumentsProvider_v1.db");
+        File dbPath = new File(filesDir, "sqlite/filenDocumentsProvider_v2.db");
 
         dbPath.getParentFile().mkdirs();
 
@@ -22,7 +22,7 @@ public class SQLiteHelper {
         database.rawQuery("PRAGMA synchronous = normal", null).close();
         database.rawQuery("PRAGMA foreign_keys = off", null).close();
 
-        database.execSQL("CREATE TABLE IF NOT EXISTS `items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL DEFAULT '', `parent` TEXT NOT NULL DEFAULT '', `name` TEXT NOT NULL DEFAULT '', `type` TEXT NOT NULL DEFAULT '', `mime` TEXT NOT NULL DEFAULT '', `size` INTEGER NOT NULL DEFAULT 0, `timestamp` INTEGER NOT NULL DEFAULT 0, `lastModified` INTEGER NOT NULL DEFAULT 0, `key` TEXT NOT NULL DEFAULT '', `chunks` INTEGER NOT NULL DEFAULT 0, `region` TEXT NOT NULL DEFAULT '', `bucket` TEXT NOT NULL DEFAULT '', `version` INTEGER NOT NULL DEFAULT '')");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL DEFAULT '', `parent` TEXT NOT NULL DEFAULT '', `name` TEXT NOT NULL DEFAULT '', `type` TEXT NOT NULL DEFAULT '', `mime` TEXT NOT NULL DEFAULT '', `size` INTEGER NOT NULL DEFAULT 0, `timestamp` INTEGER NOT NULL DEFAULT 0, `lastModified` INTEGER NOT NULL DEFAULT 0, `key` TEXT NOT NULL DEFAULT '', `chunks` INTEGER NOT NULL DEFAULT 0, `region` TEXT NOT NULL DEFAULT '', `bucket` TEXT NOT NULL DEFAULT '', `version` INTEGER NOT NULL DEFAULT '', `toBeCreated` INTEGER NOT NULL DEFAULT 0)");
         database.execSQL("CREATE INDEX IF NOT EXISTS `uuid_index` ON `items` (`uuid`)");
         database.execSQL("CREATE INDEX IF NOT EXISTS `parent_index` ON `items` (`parent`)");
         database.execSQL("CREATE INDEX IF NOT EXISTS `lastModified_index` ON `items` (`lastModified`)");

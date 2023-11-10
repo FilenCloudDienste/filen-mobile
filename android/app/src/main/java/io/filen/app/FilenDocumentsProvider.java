@@ -6,20 +6,28 @@ import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract.Document;
 import android.provider.DocumentsContract.Root;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsProvider;
+import android.util.AtomicFile;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FilenDocumentsProvider extends DocumentsProvider {
     private final String AUTHORITY = "io.filen.app.documents";
@@ -28,8 +36,8 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     private String queryChildDocumentsCurrentParent = "";
 
     @Override
-    public boolean onCreate() {
-        Context context = getContext();
+    public boolean onCreate () {
+        final Context context = getContext();
 
         MMKVHelper.initialize(context);
         SQLiteHelper.initialize(context);
@@ -38,9 +46,9 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public Cursor queryRoots(String[] projection) throws FileNotFoundException {
+    public Cursor queryRoots (String[] projection) throws FileNotFoundException {
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultRootProjection());
-        String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
+        final String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
 
         Log.d("FilenDocumentsProvider", "defaultDriveUUID: " + defaultDriveUUID);
         Log.d("FilenDocumentsProvider", "userId: " + FilenDocumentsProviderUtils.getUserId());
@@ -66,9 +74,9 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public Cursor queryDocument(String documentId, String[] projection) throws FileNotFoundException {
-        MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
-        String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
+    public Cursor queryDocument (String documentId, String[] projection) throws FileNotFoundException {
+        final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
+        final String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
 
         if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn() || defaultDriveUUID.length() == 0) {
             return result;
@@ -110,11 +118,11 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public boolean refresh(Uri uri, @Nullable Bundle extras, @Nullable CancellationSignal cancellationSignal) {
-        String parentDocumentId = uri.getLastPathSegment();
-        String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
+    public boolean refresh (Uri uri, @Nullable Bundle extras, @Nullable CancellationSignal cancellationSignal) {
+        final String parentDocumentId = uri.getLastPathSegment();
+        final String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
         boolean canRefresh = false;
-        Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(parentDocumentId);
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(parentDocumentId);
 
         if (item != null) {
             if (item.type.equals("folder")) {
@@ -142,10 +150,10 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public Cursor queryChildDocuments(String parentDocumentId, String[] projection, String sortOrder) throws FileNotFoundException {
+    public Cursor queryChildDocuments (String parentDocumentId, String[] projection, String sortOrder) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "queryChildDocuments: " + parentDocumentId);
 
-        Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(parentDocumentId);
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(parentDocumentId);
 
         if (item == null && !FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(parentDocumentId)) {
             throw new FileNotFoundException("Document " + parentDocumentId + " not found.");
@@ -153,7 +161,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
         queryChildDocumentsCurrentParent = parentDocumentId;
 
-        MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
+        final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
 
         if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn()) {
             return result;
@@ -210,27 +218,90 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public ParcelFileDescriptor openDocument(String documentId, String mode, @Nullable CancellationSignal signal) throws FileNotFoundException {
-        Log.d("FilenDocumentsProvider", "openDocument: " + documentId + ", mode: " + mode);
-
-        if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn()) {
-            throw new FileNotFoundException("Not authenticated.");
-        }
-
-        Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
-
-        if (item == null) {
-            throw new FileNotFoundException("Document " + documentId + " not found.");
-        }
-
-        throw new FileNotFoundException("Document " + documentId + " not found.");
-    }
-
-    @Override
     public String createDocument (String parentDocumentId, String mimeType, String displayName) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "createDocument: " + parentDocumentId + ", mimeType: " + mimeType + ", displayName: " + displayName);
 
-        throw new FileNotFoundException("Document " + parentDocumentId + " not found.");
+        try {
+            final String uuid = UUID.randomUUID().toString();
+            final Object lock = new Object();
+            final AtomicBoolean created = new AtomicBoolean(false);
+            final AtomicBoolean didError = new AtomicBoolean(false);
+
+            final Thread thread = new Thread(() -> {
+                try {
+                    if (Document.MIME_TYPE_DIR.equalsIgnoreCase(mimeType)) {
+                        FilenDocumentsProviderUtils.createFolder(parentDocumentId, uuid, displayName, err -> {
+                            if (err == null) {
+                                if (FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(parentDocumentId)) {
+                                    notifyRootsChanged();
+                                } else {
+                                    notifyChange(parentDocumentId);
+                                }
+                            } else {
+                                err.printStackTrace();
+
+                                Log.d("FilenDocumentsProvider", "createDocument createFolder error: " + err.getMessage());
+
+                                didError.set(true);
+                            }
+
+                            created.set(true);
+
+                            synchronized (lock) {
+                                lock.notifyAll();
+                            }
+                        });
+                    } else {
+                        FilenDocumentsProviderUtils.createFile(getContext(), parentDocumentId, uuid, displayName, err -> {
+                            if (err == null) {
+                                if (FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(parentDocumentId)) {
+                                    notifyRootsChanged();
+                                } else {
+                                    notifyChange(parentDocumentId);
+                                }
+                            } else {
+                                err.printStackTrace();
+
+                                Log.d("FilenDocumentsProvider", "createDocument createFile error: " + err.getMessage());
+
+                                didError.set(true);
+                            }
+
+                            created.set(true);
+
+                            synchronized (lock) {
+                                lock.notifyAll();
+                            }
+                        });
+                    }
+
+                    synchronized (lock) {
+                        while (!created.get()) {
+                            lock.wait();
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    Log.d("FilenDocumentsProvider", "createDocument error: " + e.getMessage());
+                }
+            });
+
+            thread.start();
+            thread.join();
+
+            if (!created.get() || didError.get()) {
+                throw new Exception("Could not create document.");
+            }
+
+            return uuid;
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Log.d("FilenDocumentsProvider", "createDocument error: " + e.getMessage());
+
+            throw new FileNotFoundException("Could not create document.");
+        }
     }
 
     @Override
@@ -249,7 +320,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     public void deleteDocument(String documentId) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "deleteDocument: " + documentId);
 
-        Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
 
         if (item == null) {
             throw new FileNotFoundException("Document " + documentId + " not found.");
@@ -272,13 +343,13 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     public Cursor querySearchDocuments (String rootId, String query, String[] projection) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "querySearchDocuments: " + rootId + ", query: " + query);
 
-        Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(rootId);
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(rootId);
 
         if (item == null && !FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(rootId)) {
             throw new FileNotFoundException("Document " + rootId + " not found.");
         }
 
-        MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
+        final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
 
         if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn()) {
             return result;
@@ -326,13 +397,13 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     public Cursor queryRecentDocuments (String rootId, String[] projection, Bundle queryArgs, CancellationSignal signal) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "queryRecentDocuments: " + rootId);
 
-        Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(rootId);
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(rootId);
 
         if (item == null && !FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(rootId)) {
             throw new FileNotFoundException("Document " + rootId + " not found.");
         }
 
-        MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
+        final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
 
         if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn()) {
             return result;
@@ -376,13 +447,13 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     public boolean isChildDocument (String parentDocumentId, String documentId) {
         Log.d("FilenDocumentsProvider", "isChildDocument: " + parentDocumentId + ", documentId: " + documentId);
 
-        Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
 
         if (item == null) {
             return false;
         }
 
-        String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
+        final String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
 
         if (item.parent.equals(parentDocumentId) || defaultDriveUUID.equals(parentDocumentId)) {
             return true;
@@ -390,12 +461,12 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
         boolean found = false;
         String currentParent = item.parent;
-        int maxIterations = 100000;
+        final int maxIterations = 100000;
         int currentIterations = 0;
 
         try {
             while (!found && currentIterations < maxIterations) {
-                Item parent = FilenDocumentsProviderUtils.getItemFromDocumentId(currentParent);
+                final Item parent = FilenDocumentsProviderUtils.getItemFromDocumentId(currentParent);
 
                 if (parent == null) {
                     break;
@@ -419,13 +490,124 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
     @Override
     public String getDocumentType (String documentId) throws FileNotFoundException {
-        Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
+        final String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
+
+        if (documentId.equals(defaultDriveUUID)) {
+            return Document.MIME_TYPE_DIR;
+        }
+
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
 
         if (item == null) {
             throw new FileNotFoundException("Document " + documentId + " not found.");
         }
 
+        if (item.type.equals("folder")) {
+            return Document.MIME_TYPE_DIR;
+        }
+
         return FilenDocumentsProviderUtils.getMimeTypeFromName(item.name);
+    }
+
+    @Override
+    public ParcelFileDescriptor openDocument (String documentId, String mode, @Nullable CancellationSignal signal) throws FileNotFoundException {
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
+
+        if (item == null) {
+            throw new FileNotFoundException("Document " + documentId + " not found.");
+        }
+
+        final int accessMode = ParcelFileDescriptor.parseMode(mode);
+        final AtomicBoolean didDownload = new AtomicBoolean(false);
+
+        final Thread downloadThread = new Thread(() -> {
+            try {
+                File downloadedFile = FilenDocumentsProviderUtils.downloadFile(Objects.requireNonNull(getContext()), item, false, item.chunks, signal);
+
+                if (!downloadedFile.exists()) {
+                    didDownload.set(false);
+
+                    return;
+                }
+
+                didDownload.set(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Log.d("FilenDocumentsProvider", "openDocument download error: " + e.getMessage());
+
+                didDownload.set(false);
+            }
+        });
+
+        try {
+            downloadThread.start();
+            downloadThread.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Log.d("FilenDocumentsProvider", "openDocument downloadThread error: " + e.getMessage());
+
+            throw new FileNotFoundException("Document " + documentId + " download error.");
+        }
+
+        if (!didDownload.get()) {
+            throw new FileNotFoundException("Document " + documentId + " download error.");
+        }
+
+        try {
+            final Context context = Objects.requireNonNull(getContext());
+            final File downloadedFile = FilenDocumentsProviderUtils.downloadFile(context, item, true, item.chunks, signal);
+            final String originalFileHash = FilenCrypto.hashFile(downloadedFile, "MD5");
+
+            if (!downloadedFile.exists()) {
+                throw new FileNotFoundException("Document " + documentId + " download error.");
+            }
+
+            if (signal != null) {
+                if (signal.isCanceled()) {
+                    throw new FileNotFoundException("Request cancelled.");
+                }
+            }
+
+            if (accessMode != ParcelFileDescriptor.MODE_READ_ONLY) {
+                final Handler handler = new Handler(context.getMainLooper());
+
+                return ParcelFileDescriptor.open(downloadedFile, accessMode, handler, err -> {
+                    if (err == null) {
+                        new Thread(() -> {
+                            try {
+                                final String newFileHash = FilenCrypto.hashFile(downloadedFile, "MD5");
+
+                                Log.d("FilenDocumentsProvider", "openDocument uploading changes: " + documentId + ", " + originalFileHash + ", " + newFileHash);
+
+                                if (!newFileHash.equals(originalFileHash)) {
+                                    final String uuid = UUID.randomUUID().toString();
+
+                                    FilenDocumentsProviderUtils.uploadFile(downloadedFile, item.parent, uuid);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+
+                                Log.d("FilenDocumentsProvider", "openDocument file upload error: " + e.getMessage());
+                            }
+                        }).start();
+                    } else {
+                        err.printStackTrace();
+
+                        Log.d("FilenDocumentsProvider", "openDocument file closed with error: " + err.getMessage());
+                    }
+                });
+            }
+
+            return ParcelFileDescriptor.open(downloadedFile, accessMode);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Log.d("FilenDocumentsProvider", "openDocument download error: " + e.getMessage());
+
+            throw new FileNotFoundException("Document " + documentId + " download error.");
+        }
     }
 
     private void recursiveRevokePermission (String documentId) {

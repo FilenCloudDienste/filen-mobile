@@ -773,7 +773,7 @@ class FilenCrypto {
           var digestCtx = SHA512_CTX()
           
           guard SHA512_Init(&digestCtx) == 1 else {
-            throw NSError(domain: "decryptMetadata", code: 51, userInfo: nil)
+            throw NSError(domain: "streamEncryptData", code: 51, userInfo: nil)
           }
           
           let iv = try self.generateRandomString(length: 12)
@@ -797,7 +797,7 @@ class FilenCrypto {
           }
           
           guard let ctx = EVP_CIPHER_CTX_new() else {
-            throw NSError(domain: "decryptMetadata", code: 6, userInfo: nil)
+            throw NSError(domain: "streamEncryptData", code: 6, userInfo: nil)
           }
           
           defer {

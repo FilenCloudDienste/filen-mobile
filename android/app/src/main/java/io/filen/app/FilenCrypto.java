@@ -4,25 +4,28 @@ import android.util.Log;
 
 import javax.annotation.Nullable;
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEParameterSpec;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.io.UnsupportedEncodingException;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
-import javax.crypto.Cipher;
+
 import javax.crypto.spec.IvParameterSpec;
 import java.security.SecureRandom;
-import java.security.AlgorithmParameters;
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidKeyException;
-import java.util.List;
+import java.util.UUID;
 
 import org.json.*;
 
@@ -67,7 +70,7 @@ public class FilenCrypto {
                     return fileMetadata;
                 }
             } catch (Exception e) {
-                continue;
+                // Noop
             }
         }
 
@@ -85,7 +88,7 @@ public class FilenCrypto {
                     return name;
                 }
             } catch (Exception e) {
-                continue;
+                // Noop
             }
         }
 
@@ -101,7 +104,7 @@ public class FilenCrypto {
             byte[] keyBytes = keyAndIV[0];
             byte[] ivBytes = keyAndIV[1];
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(keyBytes, "AES"), new IvParameterSpec(ivBytes));
 
             return new String(cipher.doFinal(cipherText));
@@ -126,6 +129,416 @@ public class FilenCrypto {
         }
     }
 
+    public static File streamDecodeBase64 (File inputFile) throws Exception {
+        File outputBaseDir = new File(inputFile.getPath()).getParentFile();
+
+        assert outputBaseDir != null;
+
+        if (!outputBaseDir.exists()) {
+            if (!outputBaseDir.mkdirs()) {
+                throw new Exception("Could not create parent directories locally.");
+            }
+        }
+
+        File outputFile = new File(outputBaseDir, UUID.randomUUID().toString());
+
+        try (InputStream inputStream = Files.newInputStream(Paths.get(inputFile.getPath())); OutputStream outputStream = Files.newOutputStream(Paths.get(outputFile.getPath()))) {
+            int bufferSize = 3 * 1024;
+            byte[] buffer = new byte[bufferSize];
+
+            int bytesRead;
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                if (bytesRead > 0) {
+                    byte[] decodedChunk = Base64.getDecoder().decode(buffer);
+
+                    outputStream.write(decodedChunk);
+                }
+            }
+        }
+
+        return outputFile;
+    }
+
+    public static File streamDecryptData (File inputFile, String key, int version) throws Exception {
+        if (!inputFile.exists()) {
+            throw new Exception("Input file does not exist.");
+        }
+
+        File outputBaseDir = new File(inputFile.getPath()).getParentFile();
+
+        assert outputBaseDir != null;
+
+        if (!outputBaseDir.exists()) {
+            if (!outputBaseDir.mkdirs()) {
+                throw new Exception("Could not create parent directories locally.");
+            }
+        }
+
+        File outputFile = new File(outputBaseDir, UUID.randomUUID().toString());
+        long inputFileSize = inputFile.length();
+
+        if (inputFileSize < (version == 1 ? 16 : 12)) {
+            throw new Exception("Input file size too small: " + inputFileSize + ".");
+        }
+
+        RandomAccessFile inputFileHandle = null;
+        RandomAccessFile newInputFileHandle = null;
+        FileInputStream fileInputStream = null;
+        FileOutputStream fileOutputStream = null;
+
+        try {
+            inputFileHandle = new RandomAccessFile(inputFile, "r");
+            fileOutputStream = new FileOutputStream(outputFile);
+
+            int bufferSize = 1024;
+            byte[] buffer = new byte[bufferSize];
+
+            if (version == 1) { // Old & deprecated, not in use anymore, just here for backwards compatibility
+                byte[] firstBytes = new byte[16];
+
+                inputFileHandle.read(firstBytes);
+
+                String asciiString = new String(firstBytes, StandardCharsets.US_ASCII);
+                String base64String = Base64.getEncoder().encodeToString(firstBytes);
+                String utf8String = new String(firstBytes, StandardCharsets.UTF_8);
+                File newInputFile = inputFile;
+                boolean needsConvert = true;
+                boolean isCBC = true;
+
+                if (asciiString.startsWith("Salted_")) {
+                    needsConvert = false;
+                }
+
+                if (asciiString.startsWith("Salted_") || base64String.startsWith("Salted_") || utf8String.startsWith("U2FsdGVk") || asciiString.startsWith("U2FsdGVk") || utf8String.startsWith("Salted_")) {
+                    isCBC = false;
+                }
+
+                if (needsConvert && !isCBC) {
+                    newInputFile = streamDecodeBase64(inputFile);
+                }
+
+                newInputFileHandle = new RandomAccessFile(newInputFile, "r");
+
+                if (!isCBC) {
+                    inputFileHandle.seek(0);
+
+                    byte[] saltBytes = new byte[8];
+
+                    newInputFileHandle.read(saltBytes);
+
+                    byte[][] keyAndIV = EVP_BytesToKey(32, 16, MessageDigest.getInstance("MD5"), saltBytes, key.getBytes(), 1);
+                    byte[] keyBytes = keyAndIV[0];
+                    byte[] ivBytes = keyAndIV[1];
+
+                    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+                    cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(keyBytes, "AES"), new IvParameterSpec(ivBytes));
+
+                    fileInputStream = new FileInputSkipStream(newInputFile, 16, 0);
+
+                    int bytesRead;
+
+                    while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                        if (bytesRead > 0) {
+                            byte[] decryptedChunk = cipher.update(buffer);
+
+                            if (decryptedChunk != null) {
+                                if (decryptedChunk.length > 0) {
+                                    fileOutputStream.write(decryptedChunk);
+                                }
+                            }
+                        }
+                    }
+
+                    byte[] finalDecryptedChunk = cipher.doFinal();
+
+                    if (finalDecryptedChunk != null) {
+                        if (finalDecryptedChunk.length > 0) {
+                            fileOutputStream.write(finalDecryptedChunk);
+                        }
+                    }
+                } else {
+                    byte[] keyBytes = key.getBytes();
+                    byte[] ivBytes = Arrays.copyOfRange(keyBytes, 0, 16);
+
+                    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+                    cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(keyBytes, "AES"), new IvParameterSpec(ivBytes));
+
+                    fileInputStream = new FileInputStream(newInputFile);
+
+                    int bytesRead;
+
+                    while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                        if (bytesRead > 0) {
+                            byte[] decryptedChunk = cipher.update(buffer);
+
+                            if (decryptedChunk != null) {
+                                if (decryptedChunk.length > 0) {
+                                    fileOutputStream.write(decryptedChunk);
+                                }
+                            }
+                        }
+                    }
+
+                    byte[] finalDecryptedChunk = cipher.doFinal();
+
+                    if (finalDecryptedChunk != null) {
+                        if (finalDecryptedChunk.length > 0) {
+                            fileOutputStream.write(finalDecryptedChunk);
+                        }
+                    }
+                }
+
+                return outputFile;
+            } else if (version == 2) {
+                inputFileHandle.seek(0);
+
+                byte[] ivBytes = new byte[12];
+                byte[] keyBytes = key.getBytes();
+
+                inputFileHandle.read(ivBytes);
+
+                Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+                GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(128, ivBytes);
+                SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+                cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmParameterSpec);
+
+                fileInputStream = new FileInputSkipStream(inputFile, 12, 0);
+                int bytesRead;
+
+                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                    if (bytesRead > 0) {
+                        byte[] decryptedChunk = cipher.update(buffer, 0, bytesRead);
+
+                        if (decryptedChunk != null) {
+                            if (decryptedChunk.length > 0) {
+                                fileOutputStream.write(decryptedChunk);
+                            }
+                        }
+                    }
+                }
+
+                byte[] finalDecryptedChunk = cipher.doFinal();
+
+                if (finalDecryptedChunk != null) {
+                    if (finalDecryptedChunk.length > 0) {
+                        fileOutputStream.write(finalDecryptedChunk);
+                    }
+                }
+
+                return outputFile;
+            } else {
+                throw new Exception("Invalid decryption version: " + version + ".");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Log.d("FilenDocumentsProvider", "streamDecryptData error: " + e.getMessage());
+
+            throw e;
+        } finally {
+            if (inputFileHandle != null) {
+                inputFileHandle.close();
+            }
+
+            if (newInputFileHandle != null) {
+                newInputFileHandle.close();
+            }
+
+            if (fileInputStream != null) {
+                fileInputStream.close();
+            }
+
+            if (fileOutputStream != null) {
+                fileOutputStream.close();
+            }
+        }
+    }
+
+    public static String generateSecureRandomString (int length) {
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(length);
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for (int i = 0; i < length; i++) {
+            int randomIndex = random.nextInt(characters.length());
+
+            sb.append(characters.charAt(randomIndex));
+        }
+
+        return sb.toString();
+    }
+
+    public static Object[] streamEncryptData (File inputFile, long chunkSize, String key, int index) throws Exception {
+        if (!inputFile.exists()) {
+            throw new Exception("Input file does not exist.");
+        }
+
+        final long offset = index * chunkSize;
+        final byte[] keyBytes = key.getBytes();
+        final String iv = generateSecureRandomString(12);
+        final byte[] ivBytes = iv.getBytes();
+        final File outputBaseDir = new File(inputFile.getPath()).getParentFile();
+
+        assert outputBaseDir != null;
+
+        if (!outputBaseDir.exists()) {
+            if (!outputBaseDir.mkdirs()) {
+                throw new Exception("Could not create parent directories locally.");
+            }
+        }
+
+        final File outputFile = new File(outputBaseDir, UUID.randomUUID().toString());
+        final long inputFileSize = inputFile.length();
+
+        if (inputFileSize < offset) {
+            throw new Exception("Input file size too small or offset to big.");
+        }
+
+        try (FileInputStream fileInputStream = new FileInputSkipStream(inputFile, offset, 0); FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+            final MessageDigest digest = MessageDigest.getInstance("SHA-512");
+            final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            final SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+            final GCMParameterSpec gcmSpec = new GCMParameterSpec(128, ivBytes);
+
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmSpec);
+
+            final int bufferSize = 1024;
+            final byte[] buffer = new byte[bufferSize];
+            int bytesRead;
+
+            fileOutputStream.write(ivBytes);
+            digest.update(ivBytes);
+
+            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                if (bytesRead > 0) {
+                    byte[] encryptedChunk = cipher.update(buffer, 0, bytesRead);
+
+                    if (encryptedChunk != null) {
+                        if (encryptedChunk.length > 0) {
+                            fileOutputStream.write(encryptedChunk);
+                            digest.update(encryptedChunk);
+                        }
+                    }
+                }
+            }
+
+            final byte[] finalEncryptedChunk = cipher.doFinal();
+
+            if (finalEncryptedChunk != null) {
+                if (finalEncryptedChunk.length > 0) {
+                    fileOutputStream.write(finalEncryptedChunk);
+                    digest.update(finalEncryptedChunk);
+                }
+            }
+
+            return new Object[]{
+                    outputFile,
+                    bytesToHex(digest.digest())
+            };
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Log.d("FilenDocumentsProvider", "streamDecryptData error: " + e.getMessage());
+
+            throw e;
+        }
+    }
+
+    public static String encryptMetadata (String metadata, String key) throws Exception {
+        final String iv = generateSecureRandomString(12);
+        final byte[] transformedKey = hexToBytes(transformKey(key));
+        final byte[] ivBytes = iv.getBytes();
+        final byte[] metadataBytes = metadata.getBytes();
+
+        final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        final SecretKeySpec keySpec = new SecretKeySpec(transformedKey, "AES");
+        final GCMParameterSpec gcmSpec = new GCMParameterSpec(128, ivBytes);
+
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmSpec);
+
+        final byte[] encryptedBytes = cipher.doFinal(metadataBytes);
+
+        return "002" + iv + Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    public static String hashFile (File inputFile, String hash) throws Exception {
+        final MessageDigest digest = MessageDigest.getInstance(hash);
+        FileInputStream fileInputStream = null;
+
+        try {
+            fileInputStream = new FileInputStream(inputFile);
+
+            final int bufferSize = 1024;
+            final byte[] buffer = new byte[bufferSize];
+            int bytesRead;
+
+            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                if (bytesRead > 0) {
+                    digest.update(buffer);
+                }
+            }
+
+            return bytesToHex(digest.digest());
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Log.d("FilenDocumentsProvider", "streamDecryptData error: " + e.getMessage());
+
+            throw e;
+        } finally {
+            if (fileInputStream != null) {
+                fileInputStream.close();
+            }
+        }
+    }
+
+    public static String hashFn (String message) throws Exception {
+        MessageDigest digestSHA512 = MessageDigest.getInstance("SHA-512");
+        MessageDigest digestSHA1 = MessageDigest.getInstance("SHA-1");
+
+        return bytesToHex(digestSHA1.digest(digestSHA512.digest(message.getBytes())));
+    }
+
+    public static String checksumData (byte[] data) throws Exception {
+        MessageDigest digestSHA512 = MessageDigest.getInstance("SHA-512");
+
+        return bytesToHex(digestSHA512.digest(data));
+    }
+
+    public static String hash (String message, String hash) throws Exception {
+        switch (hash) {
+            case "SHA-384":
+                MessageDigest digestSHA384 = MessageDigest.getInstance("SHA-384");
+
+                return bytesToHex(digestSHA384.digest(message.getBytes()));
+            case "SHA-256":
+                MessageDigest digestSHA256 = MessageDigest.getInstance("SHA-256");
+
+                return bytesToHex(digestSHA256.digest(message.getBytes()));
+            case "SHA-1":
+                MessageDigest digestSHA1 = MessageDigest.getInstance("SHA-1");
+
+                return bytesToHex(digestSHA1.digest(message.getBytes()));
+            case "MD5":
+                MessageDigest digestMD5 = MessageDigest.getInstance("MD5");
+
+                return bytesToHex(digestMD5.digest(message.getBytes()));
+            case "MD2":
+                MessageDigest digestMD2 = MessageDigest.getInstance("MD2");
+
+                return bytesToHex(digestMD2.digest(message.getBytes()));
+            case "MD4":
+                MessageDigest digestMD4 = MessageDigest.getInstance("MD4");
+
+                return bytesToHex(digestMD4.digest(message.getBytes()));
+            default:
+                MessageDigest digestSHA512 = MessageDigest.getInstance("SHA-512");
+
+                return bytesToHex(digestSHA512.digest(message.getBytes()));
+        }
+    }
+
     public static String[] reverseStringArray (String[] array) {
         int n = array.length;
         String[] reversedArray = new String[n];
@@ -140,18 +553,18 @@ public class FilenCrypto {
     public static byte[] concatByteArrays (byte[]...arrays) {
         int totalLength = 0;
 
-        for (int i = 0; i < arrays.length; i++){
-            totalLength += arrays[i].length;
+        for (byte[] array: arrays) {
+            totalLength += array.length;
         }
 
         byte[] result = new byte[totalLength];
 
         int currentIndex = 0;
 
-        for (int i = 0; i < arrays.length; i++){
-            System.arraycopy(arrays[i], 0, result, currentIndex, arrays[i].length);
+        for (byte[] array: arrays) {
+            System.arraycopy(array, 0, result, currentIndex, array.length);
 
-            currentIndex += arrays[i].length;
+            currentIndex += array.length;
         }
 
         return result;
@@ -179,7 +592,7 @@ public class FilenCrypto {
 
         int addmd = 0;
 
-        for (; ; ) {
+        do {
             md.reset();
 
             if (addmd++ > 0) {
@@ -226,10 +639,7 @@ public class FilenCrypto {
                 }
             }
 
-            if (nkey == 0 && niv == 0) {
-                break;
-            }
-        }
+        } while (nkey != 0 || niv != 0);
 
         for (i = 0; i < md_buf.length; i++) {
             md_buf[i] = 0;
@@ -277,7 +687,7 @@ public class FilenCrypto {
         return (byte) ((firstDigit << 4) + secondDigit);
     }
 
-    public static String byteToHex(byte num) {
+    public static String byteToHex (byte num) {
         char[] hexDigits = new char[2];
 
         hexDigits[0] = Character.forDigit((num >> 4) & 0xF, 16);
@@ -287,10 +697,10 @@ public class FilenCrypto {
     }
 
     public static String bytesToHex (byte[] bytes) {
-        StringBuffer hexStringBuffer = new StringBuffer();
+        StringBuilder hexStringBuffer = new StringBuilder();
 
-        for (int i = 0; i < bytes.length; i++) {
-            hexStringBuffer.append(byteToHex(bytes[i]));
+        for (byte aByte: bytes) {
+            hexStringBuffer.append(byteToHex(aByte));
         }
 
         return hexStringBuffer.toString();
