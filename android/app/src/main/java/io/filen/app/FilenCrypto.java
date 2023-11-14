@@ -1,14 +1,12 @@
 package io.filen.app;
 
 import android.util.Log;
-
 import javax.annotation.Nullable;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.SecretKeyFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -22,11 +20,9 @@ import java.security.MessageDigest;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
-
 import javax.crypto.spec.IvParameterSpec;
 import java.security.SecureRandom;
 import java.util.UUID;
-
 import org.json.*;
 
 public class FilenCrypto {
@@ -464,11 +460,8 @@ public class FilenCrypto {
 
     public static String hashFile (File inputFile, String hash) throws Exception {
         final MessageDigest digest = MessageDigest.getInstance(hash);
-        FileInputStream fileInputStream = null;
 
-        try {
-            fileInputStream = new FileInputStream(inputFile);
-
+        try (FileInputStream fileInputStream = new FileInputStream(inputFile)) {
             final int bufferSize = 1024;
             final byte[] buffer = new byte[bufferSize];
             int bytesRead;
@@ -486,10 +479,6 @@ public class FilenCrypto {
             Log.d("FilenDocumentsProvider", "streamDecryptData error: " + e.getMessage());
 
             throw e;
-        } finally {
-            if (fileInputStream != null) {
-                fileInputStream.close();
-            }
         }
     }
 
@@ -498,12 +487,6 @@ public class FilenCrypto {
         MessageDigest digestSHA1 = MessageDigest.getInstance("SHA-1");
 
         return bytesToHex(digestSHA1.digest(digestSHA512.digest(message.getBytes())));
-    }
-
-    public static String checksumData (byte[] data) throws Exception {
-        MessageDigest digestSHA512 = MessageDigest.getInstance("SHA-512");
-
-        return bytesToHex(digestSHA512.digest(data));
     }
 
     public static String hash (String message, String hash) throws Exception {
@@ -548,26 +531,6 @@ public class FilenCrypto {
         }
 
         return reversedArray;
-    }
-
-    public static byte[] concatByteArrays (byte[]...arrays) {
-        int totalLength = 0;
-
-        for (byte[] array: arrays) {
-            totalLength += array.length;
-        }
-
-        byte[] result = new byte[totalLength];
-
-        int currentIndex = 0;
-
-        for (byte[] array: arrays) {
-            System.arraycopy(array, 0, result, currentIndex, array.length);
-
-            currentIndex += array.length;
-        }
-
-        return result;
     }
 
     public static byte[][] EVP_BytesToKey (int keyLen, int ivLen, MessageDigest md, byte[] salt, byte[] data, int count) {

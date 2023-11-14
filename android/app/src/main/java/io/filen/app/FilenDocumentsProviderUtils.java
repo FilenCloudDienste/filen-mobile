@@ -2,37 +2,29 @@ package io.filen.app;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.graphics.BitmapFactory;
 import android.os.CancellationSignal;
+import android.provider.DocumentsContract;
 import android.util.Log;
-import android.webkit.MimeTypeMap;
-
 import org.json.*;
-
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.annotation.Nullable;
 
 public class FilenDocumentsProviderUtils {
@@ -429,11 +421,8 @@ public class FilenDocumentsProviderUtils {
 
     @Nullable
     public static Item getItemFromDocumentId (String documentId) {
-        Cursor dbCursor = null;
 
-        try {
-            dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version` FROM `items` WHERE `uuid` = ?", new String[]{ documentId });
-
+        try (Cursor dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version` FROM `items` WHERE `uuid` = ?", new String[] { documentId })) {
             if (!dbCursor.moveToNext()) {
                 return null;
             }
@@ -461,11 +450,21 @@ public class FilenDocumentsProviderUtils {
             Log.d("FilenDocumentsProvider", "getItemFromDocumentId error: " + e.getMessage());
 
             throw e;
-        } finally {
-            if (dbCursor != null) {
-                dbCursor.close();
+        }
+    }
+
+    public static String getItemThumbnailLocalPath (Context context, Item item) throws Exception {
+        final File outputFileDir = new File(context.getFilesDir(), "documentsProvider/thumbnails/v1/" + item.uuid);
+
+        if (!outputFileDir.exists()) {
+            if (!outputFileDir.mkdirs()) {
+                throw new Exception("Could not create parent dirs.");
             }
         }
+
+        final File outputFile = new File(outputFileDir, item.name);
+
+        return outputFile.getAbsolutePath();
     }
 
     public static String getItemLocalPath (Context context, Item item) throws Exception {
@@ -494,47 +493,6 @@ public class FilenDocumentsProviderUtils {
                     out.write(buffer);
                 }
             }
-        }
-    }
-
-    public static File downloadChunk (Context context, Item item, int index) throws Exception {
-        Log.d("FilenDocumentsProvider", "downloadChunk: " + item + ", " + index);
-
-        final File outputFileDir = new File(context.getFilesDir(), "documentsProvider/download/" + item.uuid);
-
-        if (!outputFileDir.exists()) {
-            if (!outputFileDir.mkdirs()) {
-                throw new Exception("Could not create parent dirs.");
-            }
-        }
-
-        final File outputFile = new File(outputFileDir, UUID.randomUUID().toString() + "." + index);
-        final URL url = new URL("https://egest.filen.io/" + item.region + "/" + item.bucket + "/" + item.uuid + "/" + index);
-        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setReadTimeout(3600000);
-        connection.setConnectTimeout(60000);
-        connection.setRequestMethod("GET");
-
-        try {
-            final int responseCode = connection.getResponseCode();
-
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                try (InputStream in = new BufferedInputStream(connection.getInputStream()); FileOutputStream out = new FileOutputStream(outputFile)) {
-                    byte[] data = new byte[1024];
-                    int count;
-
-                    while ((count = in.read(data)) != -1) {
-                        out.write(data, 0, count);
-                    }
-                }
-
-                return outputFile;
-            } else {
-                throw new IOException("Egest returned HTTP response code: " + responseCode + " for URL: " + url);
-            }
-        } finally {
-            connection.disconnect();
         }
     }
 
@@ -581,7 +539,7 @@ public class FilenDocumentsProviderUtils {
                             }
 
                             try {
-                                File downloadedChunkFile = downloadChunk(context, item, index);
+                                File downloadedChunkFile = FilenAPI.downloadFileChunk(context, item, index);
                                 File decryptedChunkFile = FilenCrypto.streamDecryptData(downloadedChunkFile, item.key, item.version);
 
                                 synchronized (writeLock) {
@@ -719,8 +677,8 @@ public class FilenDocumentsProviderUtils {
         final String sizeEncrypted = FilenCrypto.encryptMetadata(String.valueOf(inputFileSize), key);
         final String metadata = FilenCrypto.encryptMetadata(metadataJSON, lastMasterKey);
 
-        final AtomicReference<String> region = new AtomicReference("");
-        final AtomicReference<String> bucket = new AtomicReference("");
+        final AtomicReference<String> region = new AtomicReference<>("");
+        final AtomicReference<String> bucket = new AtomicReference<>("");
         final Object lock = new Object();
         final AtomicInteger uploadedChunks = new AtomicInteger(0);
         long finalFileChunks = fileChunks;
@@ -888,6 +846,277 @@ public class FilenDocumentsProviderUtils {
                 finalFileChunks,
                 encryptionVersion
         };
+    }
+
+    public static void renameFolder (String uuid, String newName) throws Exception {
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final Object lock = new Object();
+        final AtomicBoolean didError = new AtomicBoolean(false);
+
+        final JSONObject folderNameJSONObject = new JSONObject();
+
+        folderNameJSONObject.put("name", newName);
+
+        final String folderNameJSON = folderNameJSONObject.toString();
+
+        final String[] masterKeys = getMasterKeys();
+        final String lastMasterKey = masterKeys[masterKeys.length - 1];
+        final String nameEncrypted = FilenCrypto.encryptMetadata(folderNameJSON, lastMasterKey);
+        final String nameHashed = FilenCrypto.hashFn(newName);
+
+        final Thread thread = new Thread(() -> {
+            try {
+                FilenAPI.renameFolder(getAPIKey(), uuid, nameEncrypted, nameHashed, new APIRequest.APICallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        try {
+                            if (!result.getBoolean("status")) {
+                                throw new Exception("Invalid renameFolder status code: " + result.getString("code"));
+                            }
+                        } catch (Exception e) {
+                            didError.set(true);
+
+                            e.printStackTrace();
+
+                            Log.d("FilenDocumentsProvider", "renameFolder error: " + e.getMessage());
+                        } finally {
+                            done.set(true);
+
+                            synchronized (lock) {
+                                lock.notifyAll();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        didError.set(true);
+                        done.set(true);
+
+                        throwable.printStackTrace();
+
+                        Log.d("FilenDocumentsProvider", "renameFolder error: " + throwable.getMessage());
+
+                        synchronized (lock) {
+                            lock.notifyAll();
+                        }
+                    }
+                });
+
+                synchronized (lock) {
+                    while (!done.get()) {
+                        lock.wait();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Log.d("FilenDocumentsProvider", "renameFolder error: " + e.getMessage());
+            }
+        });
+
+        thread.start();
+        thread.join();
+
+        if (!done.get() || didError.get()) {
+            throw new Exception("Could not rename folder.");
+        }
+
+        // @TODO checkIfItemIsSharedForRename
+    }
+
+    public static void renameFile (String uuid, String newName) throws Exception {
+        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(uuid);
+
+        if (item == null) {
+            throw new Exception("Document " + uuid + " not found.");
+        }
+
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final Object lock = new Object();
+        final AtomicBoolean didError = new AtomicBoolean(false);
+
+        final JSONObject metadataJSONObject = new JSONObject();
+
+        metadataJSONObject.put("name", newName);
+        metadataJSONObject.put("size", item.size);
+        metadataJSONObject.put("mime", item.mime);
+        metadataJSONObject.put("key", item.key);
+        metadataJSONObject.put("lastModified", item.lastModified);
+
+        final String metadataJSON = metadataJSONObject.toString();
+
+        final String[] masterKeys = getMasterKeys();
+        final String lastMasterKey = masterKeys[masterKeys.length - 1];
+        final String encryptMetadata = FilenCrypto.encryptMetadata(metadataJSON, lastMasterKey);
+        final String nameEncrypted = FilenCrypto.encryptMetadata(newName, item.key);
+        final String nameHashed = FilenCrypto.hashFn(newName);
+
+        final Thread thread = new Thread(() -> {
+            try {
+                FilenAPI.renameFile(getAPIKey(), uuid, nameEncrypted, nameHashed, encryptMetadata, new APIRequest.APICallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        try {
+                            if (!result.getBoolean("status")) {
+                                throw new Exception("Invalid renameFile status code: " + result.getString("code"));
+                            }
+                        } catch (Exception e) {
+                            didError.set(true);
+
+                            e.printStackTrace();
+
+                            Log.d("FilenDocumentsProvider", "renameFile error: " + e.getMessage());
+                        } finally {
+                            done.set(true);
+
+                            synchronized (lock) {
+                                lock.notifyAll();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        didError.set(true);
+                        done.set(true);
+
+                        throwable.printStackTrace();
+
+                        Log.d("FilenDocumentsProvider", "renameFile error: " + throwable.getMessage());
+
+                        synchronized (lock) {
+                            lock.notifyAll();
+                        }
+                    }
+                });
+
+                synchronized (lock) {
+                    while (!done.get()) {
+                        lock.wait();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Log.d("FilenDocumentsProvider", "renameFile error: " + e.getMessage());
+            }
+        });
+
+        thread.start();
+        thread.join();
+
+        if (!done.get() || didError.get()) {
+            throw new Exception("Could not rename file.");
+        }
+
+        // @TODO checkIfItemIsSharedForRename
+    }
+
+    public static void moveItem (Item item, String parent) throws Exception {
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final Object lock = new Object();
+        final AtomicBoolean didError = new AtomicBoolean(false);
+
+        final Thread thread = new Thread(() -> {
+            try {
+                FilenAPI.moveItem(getAPIKey(), item.type, item.uuid, parent, new APIRequest.APICallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        try {
+                            if (!result.getBoolean("status")) {
+                                throw new Exception("Invalid moveItem status code: " + result.getString("code"));
+                            }
+                        } catch (Exception e) {
+                            didError.set(true);
+
+                            e.printStackTrace();
+
+                            Log.d("FilenDocumentsProvider", "moveItem error: " + e.getMessage());
+                        } finally {
+                            done.set(true);
+
+                            synchronized (lock) {
+                                lock.notifyAll();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        didError.set(true);
+                        done.set(true);
+
+                        throwable.printStackTrace();
+
+                        Log.d("FilenDocumentsProvider", "moveItem error: " + throwable.getMessage());
+
+                        synchronized (lock) {
+                            lock.notifyAll();
+                        }
+                    }
+                });
+
+                synchronized (lock) {
+                    while (!done.get()) {
+                        lock.wait();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Log.d("FilenDocumentsProvider", "moveItem error: " + e.getMessage());
+            }
+        });
+
+        thread.start();
+        thread.join();
+
+        if (!done.get() || didError.get()) {
+            throw new Exception("Could not move document.");
+        }
+
+        // @TODO checkIfItemParentIsShared
+    }
+
+    public static MatrixCursor promptAuthenticationCursor (MatrixCursor result) {
+        final MatrixCursor.RowBuilder row = result.newRow();
+
+        row.add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, "promptAuthenticationCursor");
+        row.add(DocumentsContract.Document.COLUMN_DISPLAY_NAME, "Please authenticate");
+        row.add(DocumentsContract.Document.COLUMN_SIZE, 0);
+        row.add(DocumentsContract.Document.COLUMN_MIME_TYPE, "application/octet-stream");
+        row.add(DocumentsContract.Document.COLUMN_LAST_MODIFIED, System.currentTimeMillis());
+        row.add(DocumentsContract.Document.COLUMN_FLAGS, FilenDocumentsProvider.getDefaultFileFlags());
+
+        return result;
+    }
+
+    public static void cleanupDirectories () {
+        new Thread(() -> {
+            try {
+                // @TODO
+            } catch (Exception e) {
+
+            }
+        }).start();
+    }
+
+    public static int calculateInSampleSize (BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 
     public static long convertTimestampToMs (long timestamp) {

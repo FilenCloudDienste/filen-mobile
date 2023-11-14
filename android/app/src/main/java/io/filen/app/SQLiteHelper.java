@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import java.io.File;
+import java.util.Objects;
 
 public class SQLiteHelper {
     private static SQLiteDatabase database;
@@ -12,7 +13,7 @@ public class SQLiteHelper {
         File filesDir = context.getFilesDir();
         File dbPath = new File(filesDir, "sqlite/filenDocumentsProvider_v2.db");
 
-        dbPath.getParentFile().mkdirs();
+        Objects.requireNonNull(dbPath.getParentFile()).mkdirs();
 
         Log.d("FilenDocumentsProvider", "DB dir: " + dbPath);
 
