@@ -11,7 +11,7 @@ public class SQLiteHelper {
 
     public static void initialize(Context context) {
         File filesDir = context.getFilesDir();
-        File dbPath = new File(filesDir, "sqlite/filenDocumentsProvider_v2.db");
+        File dbPath = new File(filesDir, "sqlite/filenDocumentsProvider_v3.db");
 
         Objects.requireNonNull(dbPath.getParentFile()).mkdirs();
 

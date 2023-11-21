@@ -232,12 +232,12 @@ class FilenCrypto {
           throw NSError(domain: "streamDecryptData", code: 9993, userInfo: nil)
         }
         
-        if asciiString.starts(with: "Salted_") {
+        if asciiString.starts(with: "Salted_") || base64String.starts(with: "Salted_") || binaryString.starts(with: "Salted_") {
           newInput = input
           needsConvert = false
         }
         
-        if asciiString.starts(with: "Salted_") || base64String.starts(with: "U2FsdGVk") || binaryString.starts(with: "Salted_") || binaryString.starts(with: "U2FsdGVk") || asciiString.starts(with: "U2FsdGVk") || binaryString.starts(with: "Salted_") {
+        if asciiString.starts(with: "Salted_") || base64String.starts(with: "U2FsdGVk") || binaryString.starts(with: "U2FsdGVk") || asciiString.starts(with: "U2FsdGVk") || binaryString.starts(with: "Salted_") || base64String.starts(with: "Salted_") {
           isCBC = false
         }
         

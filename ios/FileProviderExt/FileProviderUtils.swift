@@ -965,10 +965,10 @@ class FileProviderUtils {
       return
     }
     
+    var filesToShare: [ItemToShareFile] = []
+    var foldersToShare: [ItemToShareFolder] = []
+    
     if isSharingParent.data!.sharing {
-      var filesToShare: [ItemToShareFile] = []
-      var foldersToShare: [ItemToShareFolder] = []
-      
       if type == "file" {
         filesToShare.append(
           ItemToShareFile(
@@ -992,7 +992,7 @@ class FileProviderUtils {
           )
         )
         
-        let contents = try await self.getFolderContents(uuid: itemMetadata.uuid, type: type, linkUUID: nil, linkHasPassword: nil, linkPassword: nil, linkSalt: nil)
+        let contents = try await self.getFolderContents(uuid: itemMetadata.uuid, type: "normal", linkUUID: nil, linkHasPassword: nil, linkPassword: nil, linkSalt: nil)
         
         for file in contents.data!.files {
           if let decryptedMetadata = FilenCrypto.shared.decryptFileMetadata(metadata: file.metadata, masterKeys: masterKeys) {
@@ -1009,8 +1009,8 @@ class FileProviderUtils {
         for i in 0..<contents.data!.folders.count {
           let folder = contents.data!.folders[i]
           
-          if let decryptedName = FilenCrypto.shared.decryptFolderName(metadata: folder.name, masterKeys: masterKeys) {
-            if folder.uuid != itemMetadata.uuid && folder.parent != "base" {
+          if folder.uuid != itemMetadata.uuid && folder.parent != "base" {
+            if let decryptedName = FilenCrypto.shared.decryptFolderName(metadata: folder.name, masterKeys: masterKeys) {
               foldersToShare.append(
                 ItemToShareFolder(
                   uuid: folder.uuid,
@@ -1057,9 +1057,6 @@ class FileProviderUtils {
     }
     
     if isLinkingParent.data!.link {
-      var filesToShare: [ItemToShareFile] = []
-      var foldersToShare: [ItemToShareFolder] = []
-      
       if type == "file" {
         filesToShare.append(
           ItemToShareFile(
@@ -1083,7 +1080,7 @@ class FileProviderUtils {
           )
         )
         
-        let contents = try await self.getFolderContents(uuid: itemMetadata.uuid, type: type, linkUUID: nil, linkHasPassword: nil, linkPassword: nil, linkSalt: nil)
+        let contents = try await self.getFolderContents(uuid: itemMetadata.uuid, type: "normal", linkUUID: nil, linkHasPassword: nil, linkPassword: nil, linkSalt: nil)
         
         for file in contents.data!.files {
           if let decryptedMetadata = FilenCrypto.shared.decryptFileMetadata(metadata: file.metadata, masterKeys: masterKeys) {

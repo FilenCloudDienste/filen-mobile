@@ -117,7 +117,7 @@ class FileProviderExtension: NSFileProviderExtension {
     FileProviderUtils.currentDownloads[itemJSON.uuid] = true
     
     defer {
-      FileProviderUtils.currentDownloads[itemJSON.uuid] = false
+      FileProviderUtils.currentDownloads.removeValue(forKey: itemJSON.uuid)
       
       FileProviderUtils.shared.signalEnumeratorForIdentifier(for: identifier)
       
@@ -153,7 +153,7 @@ class FileProviderExtension: NSFileProviderExtension {
       var newUUID = ""
       
       defer {
-        FileProviderUtils.currentUploads[itemJSON.uuid] = false
+        FileProviderUtils.currentUploads.removeValue(forKey: itemJSON.uuid)
         
         FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: parentJSON.uuid))
       }

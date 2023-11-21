@@ -1,5 +1,7 @@
 package io.filen.app;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
@@ -18,10 +20,13 @@ import android.provider.DocumentsContract;
 import android.provider.DocumentsProvider;
 import android.util.Log;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +38,9 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private String queryChildDocumentsLastParent = "";
     private String queryChildDocumentsCurrentParent = "";
+    private int nextNotificationId = 0;
+    private boolean didCreateNotificationManager = false;
+    private NotificationManager notificationManager;
 
     @Override
     public boolean onCreate () {
@@ -45,7 +53,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public Cursor queryRoots (String[] projection) throws FileNotFoundException {
+    public Cursor queryRoots (String[] projection) {
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultRootProjection());
         final String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
 
@@ -67,7 +75,16 @@ public class FilenDocumentsProvider extends DocumentsProvider {
         row.add(Root.COLUMN_ICON, R.mipmap.ic_launcher);
         row.add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE);
 
+        // @TODO update root with capacity/available data
+
         Log.d("FilenDocumentsProvider", "Root folder created, UUID: " + defaultDriveUUID);
+
+        final Bundle extra = new Bundle();
+
+        extra.putBoolean(DocumentsContract.EXTRA_LOADING, true);
+
+        result.setExtras(extra);
+        result.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), getNotifyURI(defaultDriveUUID));
 
         return result;
     }
@@ -81,7 +98,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             throw new FileNotFoundException("Document " + documentId + " not found.");
         }
 
-        MatrixCursor.RowBuilder row = result.newRow();
+        final MatrixCursor.RowBuilder row = result.newRow();
 
         if (documentId.equals(defaultDriveUUID)) {
             row.add(Document.COLUMN_DOCUMENT_ID, defaultDriveUUID);
@@ -91,7 +108,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             row.add(Document.COLUMN_LAST_MODIFIED, System.currentTimeMillis());
             row.add(Document.COLUMN_FLAGS, getDefaultRootFlags());
         } else {
-            Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
+            final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(documentId);
 
             if (item == null) {
                 throw new FileNotFoundException("Document " + documentId + " not found.");
@@ -137,11 +154,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             if (canRefresh) {
                 executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(parentDocumentId, err -> {
                     if (err == null) {
-                        if (defaultDriveUUID.equals(parentDocumentId)) {
-                            notifyRootsChanged();
-                        } else {
-                            notifyChange(parentDocumentId);
-                        }
+                        notifyChange(parentDocumentId);
                     }
                 }));
             }
@@ -151,8 +164,8 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public Cursor queryChildDocuments (String parentDocumentId, String[] projection, String sortOrder) throws FileNotFoundException {
-        Log.d("FilenDocumentsProvider", "queryChildDocuments: " + parentDocumentId);
+    public Cursor queryChildDocuments (String parentDocumentId, String[] projection, String sortOrder) {
+        Log.d("FilenDocumentsProvider", "queryChildDocuments: " + parentDocumentId + ", " + Arrays.toString(projection) + ", " + sortOrder);
 
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
 
@@ -160,26 +173,14 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             return FilenDocumentsProviderUtils.promptAuthenticationCursor(result);
         }
 
-        final Item item = FilenDocumentsProviderUtils.getItemFromDocumentId(parentDocumentId);
-
-        if (item == null && !FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(parentDocumentId)) {
-            throw new FileNotFoundException("Document " + parentDocumentId + " not found.");
-        }
-
         queryChildDocumentsCurrentParent = parentDocumentId;
-
-        result.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), getNotifyURI(parentDocumentId));
 
         if (!queryChildDocumentsLastParent.equals(parentDocumentId) && queryChildDocumentsCurrentParent.equals(parentDocumentId)) {
             queryChildDocumentsLastParent = parentDocumentId;
 
             executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(parentDocumentId, err -> {
                 if (err == null) {
-                    if (FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(parentDocumentId)) {
-                        notifyRootsChanged();
-                    } else {
-                        notifyChange(parentDocumentId);
-                    }
+                    notifyChange(parentDocumentId);
                 }
             }));
         }
@@ -215,6 +216,21 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             }
         }
 
+        final Bundle extra = new Bundle();
+
+        extra.putBoolean(DocumentsContract.EXTRA_LOADING, true);
+
+        result.setExtras(extra);
+        result.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), getNotifyURI(parentDocumentId));
+
+        new Thread(() -> {
+            try {
+                FilenDocumentsProviderUtils.cleanupDirectories(getContext());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
         return result;
     }
 
@@ -236,13 +252,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                 try {
                     if (Document.MIME_TYPE_DIR.equalsIgnoreCase(mimeType)) {
                         FilenDocumentsProviderUtils.createFolder(parentDocumentId, uuid, displayName, err -> {
-                            if (err == null) {
-                                if (FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(parentDocumentId)) {
-                                    notifyRootsChanged();
-                                } else {
-                                    notifyChange(parentDocumentId);
-                                }
-                            } else {
+                            if (err != null) {
                                 err.printStackTrace();
 
                                 Log.d("FilenDocumentsProvider", "createDocument createFolder error: " + err.getMessage());
@@ -258,13 +268,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                         });
                     } else {
                         FilenDocumentsProviderUtils.createFile(getContext(), parentDocumentId, uuid, displayName, err -> {
-                            if (err == null) {
-                                if (FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(parentDocumentId)) {
-                                    notifyRootsChanged();
-                                } else {
-                                    notifyChange(parentDocumentId);
-                                }
-                            } else {
+                            if (err != null) {
                                 err.printStackTrace();
 
                                 Log.d("FilenDocumentsProvider", "createDocument createFile error: " + err.getMessage());
@@ -286,6 +290,8 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                         }
                     }
                 } catch (Exception e) {
+                    didError.set(true);
+
                     e.printStackTrace();
 
                     Log.d("FilenDocumentsProvider", "createDocument error: " + e.getMessage());
@@ -299,6 +305,12 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                 throw new Exception("Could not create document.");
             }
 
+            executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(parentDocumentId, err -> {
+                if (err == null) {
+                    notifyChange(parentDocumentId);
+                }
+            }));
+
             return uuid;
         } catch (Exception e) {
             e.printStackTrace();
@@ -307,13 +319,6 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
             throw new FileNotFoundException("Could not create document.");
         }
-
-        // @TODO checkIfItemParentIsShared
-    }
-
-    @Override
-    public String copyDocument (String sourceDocumentId, String targetParentDocumentId) throws FileNotFoundException {
-        throw new FileNotFoundException("Operation not supported.");
     }
 
     @Override
@@ -328,7 +333,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public void deleteDocument(String documentId) throws FileNotFoundException {
+    public void deleteDocument (String documentId) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "deleteDocument: " + documentId);
 
         if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn() || FilenDocumentsProviderUtils.getDefaultDriveUUID().length() == 0) {
@@ -343,15 +348,62 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
         recursiveRevokePermission(documentId);
 
-        executor.submit(() -> FilenDocumentsProviderUtils.trashDocument(item.uuid, err -> {
-            if (err == null) {
-                if (FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(item.parent)) {
-                    notifyRootsChanged();
-                } else {
-                    notifyChange(item.parent);
+        final Object lock = new Object();
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean didError = new AtomicBoolean(false);
+
+        final Thread thread = new Thread(() -> {
+            try {
+                FilenDocumentsProviderUtils.trashDocument(item.uuid, err -> {
+                    if (err != null) {
+                        err.printStackTrace();
+
+                        Log.d("FilenDocumentsProvider", "deleteDocument error: " + err.getMessage());
+
+                        didError.set(true);
+                    } else {
+                        executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(item.parent, e -> {
+                            if (e == null) {
+                                notifyChange(item.parent);
+                            }
+                        }));
+                    }
+
+                    done.set(true);
+
+                    synchronized (lock) {
+                        lock.notifyAll();
+                    }
+                });
+
+                synchronized (lock) {
+                    while (!done.get()) {
+                        lock.wait();
+                    }
                 }
+            } catch (Exception e) {
+                didError.set(true);
+
+                e.printStackTrace();
+
+                Log.d("FilenDocumentsProvider", "deleteDocument error: " + e.getMessage());
             }
-        }));
+        });
+
+        try {
+            thread.start();
+            thread.join();
+
+            if (!done.get() || didError.get()) {
+                throw new FileNotFoundException("Could not delete " + documentId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Log.d("FilenDocumentsProvider", "deleteDocument error: " + e.getMessage());
+
+            throw new FileNotFoundException("Could not delete " + documentId);
+        }
     }
 
     @Override
@@ -538,10 +590,24 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
         final int accessMode = ParcelFileDescriptor.parseMode(mode);
         final AtomicBoolean didDownload = new AtomicBoolean(false);
+        final Context context = Objects.requireNonNull(getContext());
+        final NotificationManager notifyManager = getNotificationManager(context);
+        final int downloadNotificationId = nextNotificationId++;
+
+        final NotificationCompat.Builder downloadNotificationBuilder = new NotificationCompat.Builder(context, "transfers_channel")
+                .setContentTitle("File transfer")
+                .setContentText("Downloading " + item.name)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setProgress(100, 0, true);
+
+        notifyManager.notify(downloadNotificationId, downloadNotificationBuilder.build());
 
         final Thread downloadThread = new Thread(() -> {
             try {
-                File downloadedFile = FilenDocumentsProviderUtils.downloadFile(Objects.requireNonNull(getContext()), item, false, item.chunks, signal);
+                final File downloadedFile = FilenDocumentsProviderUtils.downloadFile(context, item, false, item.chunks, signal);
 
                 if (!downloadedFile.exists()) {
                     didDownload.set(false);
@@ -567,15 +633,20 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
             Log.d("FilenDocumentsProvider", "openDocument downloadThread error: " + e.getMessage());
 
+            notifyManager.cancel(downloadNotificationId);
+
             throw new FileNotFoundException("Document " + documentId + " download error.");
         }
 
         if (!didDownload.get()) {
+            notifyManager.cancel(downloadNotificationId);
+
             throw new FileNotFoundException("Document " + documentId + " download error.");
         }
 
+        notifyManager.cancel(downloadNotificationId);
+
         try {
-            final Context context = Objects.requireNonNull(getContext());
             final File downloadedFile = FilenDocumentsProviderUtils.downloadFile(context, item, true, item.chunks, signal);
             final String originalFileHash = FilenCrypto.hashFile(downloadedFile, "MD5");
 
@@ -602,8 +673,34 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
                                 if (!newFileHash.equals(originalFileHash)) {
                                     final String uuid = UUID.randomUUID().toString();
+                                    final int uploadNotificationId = nextNotificationId++;
 
-                                    FilenDocumentsProviderUtils.uploadFile(downloadedFile, item.parent, uuid);
+                                    final NotificationCompat.Builder uploadNotificationBuilder = new NotificationCompat.Builder(context, "transfers_channel")
+                                            .setContentTitle("File transfer")
+                                            .setContentText("Uploading " + item.name)
+                                            .setSmallIcon(R.mipmap.ic_launcher)
+                                            .setPriority(NotificationCompat.PRIORITY_LOW)
+                                            .setOngoing(true)
+                                            .setOnlyAlertOnce(true)
+                                            .setProgress(100, 0, true);
+
+                                    notifyManager.notify(uploadNotificationId, uploadNotificationBuilder.build());
+
+                                    try {
+                                        FilenDocumentsProviderUtils.uploadFile(downloadedFile, item.parent, uuid);
+                                    } catch (Exception e) {
+                                        notificationManager.cancel(uploadNotificationId);
+
+                                        throw e;
+                                    }
+
+                                    notificationManager.cancel(uploadNotificationId);
+
+                                    executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(item.parent, e -> {
+                                        if (e == null) {
+                                            notifyChange(item.parent);
+                                        }
+                                    }));
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -643,7 +740,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             throw new FileNotFoundException("Document " + documentId + " not found.");
         }
 
-        if (item.size <= 2) {
+        if (item.size <= 3) {
             throw new FileNotFoundException("Document " + documentId + " too small.");
         }
 
@@ -665,6 +762,10 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                 if (!downloadedFile.exists()) {
                     throw new Exception("Could not download file for thumbnail creation.");
                 }
+
+                if (downloadedFile.length() <= 3) {
+                    throw new FileNotFoundException("Document " + documentId + " too small.");
+                }
             }
 
             if (signal != null) {
@@ -675,40 +776,44 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
             outputStream = new FileOutputStream(thumbnailFile);
 
-            final BitmapFactory.Options options = new BitmapFactory.Options();
+            if (item.name.toLowerCase().endsWith(".png") || item.name.toLowerCase().endsWith(".jpg") || item.name.toLowerCase().endsWith(".jpeg") || item.name.toLowerCase().endsWith(".gif") || item.name.toLowerCase().endsWith(".webp")) {
+                final BitmapFactory.Options options = new BitmapFactory.Options();
 
-            options.inJustDecodeBounds = true;
+                options.inJustDecodeBounds = true;
 
-            BitmapFactory.decodeFile(downloadedFile.getAbsolutePath(), options);
+                BitmapFactory.decodeFile(downloadedFile.getAbsolutePath(), options);
 
-            options.inSampleSize = FilenDocumentsProviderUtils.calculateInSampleSize(options, sizeHint.x, sizeHint.y);
-            options.inJustDecodeBounds = false;
+                options.inSampleSize = FilenDocumentsProviderUtils.calculateInSampleSize(options, sizeHint.x, sizeHint.y);
+                options.inJustDecodeBounds = false;
 
-            final Bitmap scaledBitmap = BitmapFactory.decodeFile(downloadedFile.getAbsolutePath(), options);
+                final Bitmap scaledBitmap = BitmapFactory.decodeFile(downloadedFile.getAbsolutePath(), options);
 
-            if (scaledBitmap == null) {
-                throw new FileNotFoundException("Could not decode file into a bitmap.");
-            }
-
-            float ratio = Math.min((float) sizeHint.x / scaledBitmap.getWidth(), (float) sizeHint.y / scaledBitmap.getHeight());
-            final int width = Math.round(ratio * scaledBitmap.getWidth());
-            final int height = Math.round(ratio * scaledBitmap.getHeight());
-            final Bitmap thumbnail = Bitmap.createScaledBitmap(scaledBitmap, width, height, false);
-            scaledBitmap.recycle();
-
-            thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
-
-            if (!thumbnailFile.exists()) {
-                throw new Exception("Could not write thumbnail file for thumbnail creation.");
-            }
-
-            if (signal != null) {
-                if (signal.isCanceled()) {
-                    throw new Exception("Cancelled.");
+                if (scaledBitmap == null) {
+                    throw new FileNotFoundException("Could not decode file into a bitmap.");
                 }
-            }
 
-            return new AssetFileDescriptor(ParcelFileDescriptor.open(thumbnailFile, ParcelFileDescriptor.MODE_READ_ONLY), 0, thumbnailFile.length());
+                float ratio = Math.min((float) sizeHint.x / scaledBitmap.getWidth(), (float) sizeHint.y / scaledBitmap.getHeight());
+                final int width = Math.round(ratio * scaledBitmap.getWidth());
+                final int height = Math.round(ratio * scaledBitmap.getHeight());
+                final Bitmap thumbnail = Bitmap.createScaledBitmap(scaledBitmap, width, height, false);
+                scaledBitmap.recycle();
+
+                thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+
+                if (!thumbnailFile.exists()) {
+                    throw new Exception("Could not write thumbnail file for thumbnail creation.");
+                }
+
+                if (signal != null) {
+                    if (signal.isCanceled()) {
+                        throw new Exception("Cancelled.");
+                    }
+                }
+
+                return new AssetFileDescriptor(ParcelFileDescriptor.open(thumbnailFile, ParcelFileDescriptor.MODE_READ_ONLY), 0, thumbnailFile.length());
+            } else {
+                throw new Exception("File extension not supported.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -747,11 +852,11 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                 FilenDocumentsProviderUtils.renameFile(item.uuid, displayName);
             }
 
-            if (FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(item.parent)) {
-                notifyRootsChanged();
-            }
-
-            notifyChange(item.parent);
+            executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(item.parent, err -> {
+                if (err == null) {
+                    notifyChange(item.parent);
+                }
+            }));
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -784,12 +889,17 @@ public class FilenDocumentsProvider extends DocumentsProvider {
         try {
             FilenDocumentsProviderUtils.moveItem(item, targetParentDocumentId);
 
-            if (FilenDocumentsProviderUtils.getDefaultDriveUUID().equals(item.parent)) {
-                notifyRootsChanged();
-            }
+            executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(item.parent, err -> {
+                if (err == null) {
+                    notifyChange(item.parent);
+                }
+            }));
 
-            notifyChange(item.parent);
-            notifyChange(targetParentDocumentId);
+            executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(targetParentDocumentId, err -> {
+                if (err == null) {
+                    notifyChange(targetParentDocumentId);
+                }
+            }));
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -831,6 +941,21 @@ public class FilenDocumentsProvider extends DocumentsProvider {
         revokeDocumentPermission(documentId);
     }
 
+    private NotificationManager getNotificationManager (Context context) {
+        if (!didCreateNotificationManager) {
+            didCreateNotificationManager = true;
+
+            final NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            final NotificationChannel channel = new NotificationChannel("transfers_channel", "Transfers", NotificationManager.IMPORTANCE_LOW);
+
+            manager.createNotificationChannel(channel);
+
+            notificationManager = manager;
+        }
+
+        return notificationManager;
+    }
+
     private void notifyRootsChanged () {
         try {
             Uri rootsURI = DocumentsContract.buildRootsUri(AUTHORITY);
@@ -866,11 +991,11 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     public static Integer getDefaultFileFlags () {
-        return Document.FLAG_SUPPORTS_RENAME | Document.FLAG_SUPPORTS_DELETE | Document.FLAG_SUPPORTS_MOVE | Document.FLAG_SUPPORTS_WRITE | Document.FLAG_SUPPORTS_REMOVE | Document.FLAG_SUPPORTS_COPY;
+        return Document.FLAG_SUPPORTS_RENAME | Document.FLAG_SUPPORTS_DELETE | Document.FLAG_SUPPORTS_MOVE | Document.FLAG_SUPPORTS_WRITE | Document.FLAG_SUPPORTS_REMOVE;
     }
 
     public static Integer getFileFlags (String name) {
-        if (name.toLowerCase().endsWith(".png") || name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".jpeg")) {
+        if (name.toLowerCase().endsWith(".png") || name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".jpeg") || name.toLowerCase().endsWith(".gif") || name.toLowerCase().endsWith(".webp")) {
             return getDefaultFileFlags() | Document.FLAG_SUPPORTS_THUMBNAIL;
         }
 

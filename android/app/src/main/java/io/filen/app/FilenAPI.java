@@ -3,6 +3,8 @@ package io.filen.app;
 import android.content.Context;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -81,6 +83,8 @@ class APIRequest {
                 } else {
                     callback.onError(new IOException("Unexpected code " + response));
                 }
+
+                response.close();
             }
         });
     }
@@ -109,6 +113,8 @@ class APIRequest {
                 } else {
                     callback.onError(new IOException("Unexpected code " + response));
                 }
+
+                response.close();
             }
         });
     }
@@ -329,6 +335,197 @@ public class FilenAPI {
             callback.onError(e);
 
             Log.d("FilenDocumentsProvider", "moveItem error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void isSharingFolder (String apiKey, String uuid, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            final String json = "{\"uuid\":\"" + uuid + "\"}";
+
+            final Request request = buildPostRequest(apiKey, "/v3/dir/shared", json);
+
+            Log.d("FilenDocumentsProvider", "isSharingFolder: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "isSharingFolder error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void isLinkingFolder (String apiKey, String uuid, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            final String json = "{\"uuid\":\"" + uuid + "\"}";
+
+            final Request request = buildPostRequest(apiKey, "/v3/dir/linked", json);
+
+            Log.d("FilenDocumentsProvider", "isLinkingFolder: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "isLinkingFolder error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void shareItem (String apiKey, String uuid, String parent, String email, String type, String metadata, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            final String json = "{\"uuid\":\"" + uuid + "\",\"parent\":\"" + parent + "\",\"email\":\"" + email + "\",\"type\":\"" + type + "\",\"metadata\":\"" + metadata + "\"}";
+
+            final Request request = buildPostRequest(apiKey, "/v3/item/share", json);
+
+            Log.d("FilenDocumentsProvider", "shareItem: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "shareItem error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void addItemToPublicLink (String apiKey, String uuid, String parent, String linkUUID, String type, String metadata, String key, String expiration, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            final String json = "{\"uuid\":\"" + uuid + "\",\"parent\":\"" + parent + "\",\"linkUUID\":\"" + linkUUID + "\",\"type\":\"" + type + "\",\"metadata\":\"" + metadata + "\",\"key\":\"" + key + "\",\"expiration\":\"" + expiration + "\"}";
+
+            final Request request = buildPostRequest(apiKey, "/v3/dir/link/add", json);
+
+            Log.d("FilenDocumentsProvider", "addItemToPublicLink: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "addItemToPublicLink error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void renameSharedItem (String apiKey, String uuid, long receiverId, String metadata, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            final String json = "{\"uuid\":\"" + uuid + "\",\"receiverId\":" + receiverId + ",\"metadata\":\"" + metadata + "\"}";
+
+            final Request request = buildPostRequest(apiKey, "/v3/item/shared/rename", json);
+
+            Log.d("FilenDocumentsProvider", "renameSharedItem: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "renameSharedItem error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void renameItemInPublicLink (String apiKey, String uuid, String linkUUID, String metadata, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            final String json = "{\"uuid\":\"" + uuid + "\",\"linkUUID\":\"" + linkUUID + "\",\"metadata\":\"" + metadata + "\"}";
+
+            final Request request = buildPostRequest(apiKey, "/v3/item/linked/rename", json);
+
+            Log.d("FilenDocumentsProvider", "renameItemInPublicLink: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "renameItemInPublicLink error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void isSharingItem (String apiKey, String uuid, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            final String json = "{\"uuid\":\"" + uuid + "\"}";
+
+            final Request request = buildPostRequest(apiKey, "/v3/item/shared", json);
+
+            Log.d("FilenDocumentsProvider", "isSharingItem: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "isSharingItem error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void isLinkingItem (String apiKey, String uuid, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            final String json = "{\"uuid\":\"" + uuid + "\"}";
+
+            final Request request = buildPostRequest(apiKey, "/v3/item/linked", json);
+
+            Log.d("FilenDocumentsProvider", "isLinkingItem: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "isLinkingItem error: " + e.getMessage());
+
+            e.printStackTrace();
+        }
+    }
+
+    public static void getFolderContents (String apiKey, String uuid, String type, String linkUUID, boolean linkHasPassword, String linkPassword, String linkSalt, APIRequest.APICallback callback) {
+        try {
+            // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
+            String json = "";
+
+            if (type.equals("shared")) {
+                json = "{\"uuid\":\"" + uuid + "\"}";
+            } else if (type.equals("linked") && linkUUID.length() > 0) {
+                String password = "";
+
+                if (linkHasPassword && linkSalt.length() > 0 && linkPassword.length() > 0) {
+                    if (linkSalt.length() == 32) {
+                        password = FilenCrypto.deriveKeyFromPassword(linkPassword, linkSalt, 512, 200000, "SHA-512");
+                    } else {
+                        password = FilenCrypto.hashFn(linkPassword.length() == 0 ? "empty" : linkPassword);
+                    }
+                } else {
+                    password = FilenCrypto.hashFn("empty");
+                }
+
+                json = "{\"uuid\":\"" + linkUUID + "\",\"parent\":\"" + uuid + "\",\"password\":\"" + password + "\"}";
+            } else {
+                json = "{\"uuid\":\"" + uuid + "\"}";
+            }
+
+            final Request request = buildPostRequest(apiKey, "/v3/item/linked", json);
+
+            Log.d("FilenDocumentsProvider", "getFolderContents: " + request);
+
+            apiRequest.request(request, callback);
+        } catch (Exception e) {
+            callback.onError(e);
+
+            Log.d("FilenDocumentsProvider", "getFolderContents error: " + e.getMessage());
 
             e.printStackTrace();
         }
