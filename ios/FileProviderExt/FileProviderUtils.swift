@@ -219,15 +219,20 @@ class FileProviderUtils {
       throw NSFileProviderError(.serverUnreachable)
     }
     
+    guard let jsonString = FilenUtils.shared.orderedJSONString(from: body ?? []) else {
+      throw NSFileProviderError(.serverUnreachable)
+    }
+    
+    let checksum = try FilenCrypto.shared.hash(message: jsonString, hash: .sha512)
+    
     let headers: HTTPHeaders = [
       "Authorization": "Bearer \(apiKey)",
       "Accept": "application/json",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Checksum": checksum
     ]
     
-    // @TODO Add POST body checksum (ordered)
-    
-    return try await AF.request(url, method: .post, parameters: body, encoding: JSONEncoding.default, headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDecodable(T.self).value
+    return try await AF.request(url, method: .post, parameters: nil, encoding: BodyStringEncoding(body: jsonString), headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDecodable(T.self).value
   }
   
   func fetchFolderContents (uuid: String) async throws -> FetchFolderContents {
@@ -1324,20 +1329,40 @@ class FileProviderUtils {
   }
 }
 
-actor DownloadFileCurrentWriteIndex {
-  var index = 0
-  
-  func increase() -> Void {
-    index += 1
+struct BodyStringEncoding: ParameterEncoding {
+  private let body: String
+
+  init (body: String) {
+    self.body = body
+  }
+
+  func encode (_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
+    guard var urlRequest = urlRequest.urlRequest else {
+      throw Errors.emptyURLRequest
+    }
+    
+    guard let data = body.data(using: .utf8) else {
+      throw Errors.encodingProblem
+    }
+    
+    urlRequest.httpBody = data
+    
+    return urlRequest
   }
 }
 
-actor UploadFileResult {
-  var bucket = ""
-  var region = ""
-  
-  func set(bucket b: String, region r: String) -> Void {
-    bucket = b
-    region = r
+extension BodyStringEncoding {
+  enum Errors: Error {
+    case emptyURLRequest
+    case encodingProblem
+  }
+}
+
+extension BodyStringEncoding.Errors: LocalizedError {
+  var errorDescription: String? {
+    switch self {
+      case .emptyURLRequest: return "Empty url request"
+      case .encodingProblem: return "Encoding problem"
+    }
   }
 }

@@ -51,7 +51,7 @@ class FileProviderExtension: NSFileProviderExtension {
           uuid: itemJSON.uuid,
           parent: itemJSON.parent,
           name: itemJSON.name,
-          type: itemJSON.type == "folder" ? .folder : .file,
+          type: .folder,
           mime: itemJSON.mime,
           size: itemJSON.size,
           timestamp: itemJSON.timestamp,
@@ -110,7 +110,7 @@ class FileProviderExtension: NSFileProviderExtension {
     let pathComponents = url.pathComponents
     let identifier = NSFileProviderItemIdentifier(pathComponents[pathComponents.count - 2])
     
-    guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue), let rootFolderUUID = FileProviderUtils.shared.rootFolderUUID() else {
+    guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
     
@@ -119,11 +119,7 @@ class FileProviderExtension: NSFileProviderExtension {
     defer {
       FileProviderUtils.currentDownloads.removeValue(forKey: itemJSON.uuid)
       
-      FileProviderUtils.shared.signalEnumeratorForIdentifier(for: identifier)
-      
-      if itemJSON.parent == rootFolderUUID {
-        FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: NSFileProviderItemIdentifier.rootContainer.rawValue))
-      }
+      //FileProviderUtils.shared.signalEnumeratorForIdentifier(for: identifier)
     }
     
     do {
@@ -163,6 +159,8 @@ class FileProviderExtension: NSFileProviderExtension {
         
         newUUID = result.uuid
         
+        try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
+        try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [newUUID])
         try FileProviderUtils.shared.openDb().run(
           "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           [
@@ -181,8 +179,6 @@ class FileProviderExtension: NSFileProviderExtension {
             result.version
           ]
         )
-        
-        try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [identifier.rawValue])
         
         self.stopProvidingItem(at: url)
       } catch {
@@ -212,6 +208,7 @@ class FileProviderExtension: NSFileProviderExtension {
       
       let uuid = try await FileProviderUtils.shared.createFolder(name: directoryName, parent: parentJSON.uuid)
       
+      try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [uuid])
       try FileProviderUtils.shared.openDb().run(
         "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
@@ -263,6 +260,8 @@ class FileProviderExtension: NSFileProviderExtension {
     }
     
     if (itemJSON.type == "folder") {
+      try await FileProviderUtils.shared.renameFolder(uuid: itemJSON.uuid, toName: itemName)
+      
       return FileProviderItem(
         identifier: NSFileProviderItemIdentifier(rawValue: itemJSON.uuid),
         parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
@@ -323,6 +322,8 @@ class FileProviderExtension: NSFileProviderExtension {
     
     try await FileProviderUtils.shared.trashItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
     
+    try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
+    
     return FileProviderItem(
       identifier: itemIdentifier,
       parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
@@ -350,6 +351,26 @@ class FileProviderExtension: NSFileProviderExtension {
     }
     
     try await FileProviderUtils.shared.restoreItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
+    
+    try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
+    try FileProviderUtils.shared.openDb().run(
+      "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        itemJSON.uuid,
+        itemJSON.parent,
+        itemJSON.name,
+        itemJSON.type,
+        itemJSON.mime,
+        itemJSON.size,
+        itemJSON.timestamp,
+        itemJSON.lastModified,
+        itemJSON.key,
+        itemJSON.chunks,
+        itemJSON.region,
+        itemJSON.bucket,
+        itemJSON.version
+      ]
+    )
     
     return FileProviderItem(
       identifier: itemIdentifier,
@@ -389,6 +410,7 @@ class FileProviderExtension: NSFileProviderExtension {
     
     try await FileProviderUtils.shared.moveItem(parent: parentJSON.uuid, item: itemJSON)
     
+    try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
     try FileProviderUtils.shared.openDb().run(
       "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
@@ -437,6 +459,7 @@ class FileProviderExtension: NSFileProviderExtension {
     do {
       let result = try await FileProviderUtils.shared.uploadFile(url: fileURL.path, parent: parentJSON.uuid)
       
+      try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [result.uuid])
       try FileProviderUtils.shared.openDb().run(
         "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [

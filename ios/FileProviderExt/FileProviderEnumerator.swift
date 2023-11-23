@@ -350,6 +350,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                           
                           if (processed.item.name.count > 0) {
                             observer.didEnumerate([processed])
+                            
                             didEnumerate = true
                           }
                         } else {
@@ -360,6 +361,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                             
                             if (processed.item.name.count > 0) {
                               observer.didEnumerate([processed])
+                              
                               didEnumerate = true
                             }
                           }

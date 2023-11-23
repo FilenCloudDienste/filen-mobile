@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 public class FilenDocumentsProviderUtils {
-    private static final ExecutorService downloadThreadPool = Executors.newFixedThreadPool(20);
+    private static final ExecutorService downloadThreadPool = Executors.newFixedThreadPool(10);
     private static final ExecutorService uploadThreadPool = Executors.newFixedThreadPool(10);
     private static final Map<String, Semaphore> downloadFileSemaphore = new HashMap<>();
     private static final Map<String, Semaphore> uploadFileSemaphore = new HashMap<>();

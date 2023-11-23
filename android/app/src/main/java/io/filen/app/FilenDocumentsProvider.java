@@ -19,11 +19,9 @@ import android.provider.DocumentsContract.Root;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsProvider;
 import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
