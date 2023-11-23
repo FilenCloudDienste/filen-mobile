@@ -354,10 +354,10 @@ public class FilenDocumentsProviderUtils {
 
                         if (dbCursor.moveToFirst()) {
                             decryptedFileMetadata.name = dbCursor.getString(0);
-                            decryptedFileMetadata.size = dbCursor.getInt(1);
+                            decryptedFileMetadata.size = dbCursor.getLong(1);
                             decryptedFileMetadata.mime = dbCursor.getString(2);
                             decryptedFileMetadata.key = dbCursor.getString(3);
-                            decryptedFileMetadata.lastModified = convertTimestampToMs(dbCursor.getInt(4));
+                            decryptedFileMetadata.lastModified = convertTimestampToMs(dbCursor.getLong(4));
                             decryptedFileMetadata.hash = "";
                         } else {
                             decryptedFileMetadata = FilenCrypto.decryptFileMetadata(file.getString("metadata"), masterKeys);
@@ -393,10 +393,10 @@ public class FilenDocumentsProviderUtils {
                                         "file",
                                         decryptedFileMetadata.mime,
                                         decryptedFileMetadata.size,
-                                        convertTimestampToMs(file.getInt("timestamp")),
+                                        convertTimestampToMs(file.getLong("timestamp")),
                                         convertTimestampToMs(decryptedFileMetadata.lastModified),
                                         decryptedFileMetadata.key,
-                                        file.getInt("chunks"),
+                                        file.getLong("chunks"),
                                         file.getString("region"),
                                         file.getString("bucket"),
                                         file.getInt("version")
@@ -442,8 +442,8 @@ public class FilenDocumentsProviderUtils {
                                         "folder",
                                         "",
                                         0,
-                                        convertTimestampToMs(folder.getInt("timestamp")),
-                                        convertTimestampToMs(folder.getInt("timestamp")),
+                                        convertTimestampToMs(folder.getLong("timestamp")),
+                                        convertTimestampToMs(folder.getLong("timestamp")),
                                         "",
                                         0,
                                         "",
@@ -483,11 +483,11 @@ public class FilenDocumentsProviderUtils {
                     dbCursor.getString(2),
                     dbCursor.getString(3),
                     dbCursor.getString(4),
-                    dbCursor.getInt(5),
-                    dbCursor.getInt(6),
-                    dbCursor.getInt(7),
+                    dbCursor.getLong(5),
+                    dbCursor.getLong(6),
+                    dbCursor.getLong(7),
                     dbCursor.getString(8),
-                    dbCursor.getInt(9),
+                    dbCursor.getLong(9),
                     dbCursor.getString(10),
                     dbCursor.getString(11),
                     dbCursor.getInt(12)
@@ -503,7 +503,7 @@ public class FilenDocumentsProviderUtils {
         }
     }
 
-    public static String getItemThumbnailLocalPath (Context context, Item item) throws Exception {
+    public static String getItemThumbnailLocalPath (Context context, Item item) {
         final File outputFileDir = new File(context.getFilesDir(), "documentsProvider/thumbnailImages/" + item.uuid);
 
         if (!outputFileDir.exists()) {
@@ -515,7 +515,7 @@ public class FilenDocumentsProviderUtils {
         return outputFile.getAbsolutePath();
     }
 
-    public static String getItemDownloadLocalPath (Context context, Item item) throws Exception {
+    public static String getItemDownloadLocalPath (Context context, Item item) {
         final File outputFileDir = new File(context.getFilesDir(), "documentsProvider/temp/" + item.uuid);
 
         if (!outputFileDir.exists()) {
@@ -527,7 +527,7 @@ public class FilenDocumentsProviderUtils {
         return outputFile.getAbsolutePath();
     }
 
-    public static String getItemLocalPath (Context context, Item item) throws Exception {
+    public static String getItemLocalPath (Context context, Item item) {
         final File outputFileDir = new File(context.getFilesDir(), "documentsProvider/downloadedFiles/" + item.uuid);
 
         if (!outputFileDir.exists()) {
@@ -571,7 +571,7 @@ public class FilenDocumentsProviderUtils {
         Objects.requireNonNull(downloadFileSemaphore.get(item.uuid)).acquire();
 
         try {
-            final long chunksToDownload = maxChunks >= item.chunks ? item.chunks : maxChunks;
+            final long chunksToDownload = Math.min(maxChunks, item.chunks);
             final AtomicInteger currentWriteIndex = new AtomicInteger(0);
             final Object writeLock = new Object();
             final Object lock = new Object();
@@ -637,7 +637,9 @@ public class FilenDocumentsProviderUtils {
                                 chunksDownloaded.set(chunksDownloaded.get() + 1);
 
                                 synchronized (lock) {
-                                    lock.notifyAll();
+                                    if (chunksDownloaded.get() >= chunksToDownload) {
+                                        lock.notifyAll();
+                                    }
                                 }
                             }
                         });
@@ -696,6 +698,76 @@ public class FilenDocumentsProviderUtils {
                 callback.onError(throwable);
             }
         });
+    }
+
+    public static void markUploadAsDone (String uuid, String nameEncrypted, String nameHashed, String sizeEncrypted, long chunks, String mimeEncrypted, String rm, String encryptedMetadata, int version, String uploadKey) throws Exception {
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean didError = new AtomicBoolean(false);
+        final Object lock = new Object();
+
+        final Thread thread = new Thread(() -> {
+            try {
+                FilenAPI.markUploadAsDone(getAPIKey(), uuid, nameEncrypted, nameHashed, sizeEncrypted, chunks, mimeEncrypted, rm, encryptedMetadata, version, uploadKey, new APIRequest.APICallback() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        try {
+                            if (!result.getBoolean("status")) {
+                                throw new Exception("Invalid markUploadAsDone status code: " + result.getString("code"));
+                            }
+                        } catch (Exception e) {
+                            didError.set(true);
+
+                            e.printStackTrace();
+
+                            Log.d("FilenDocumentsProvider", "markUploadAsDone error: " + e.getMessage());
+                        } finally {
+                            done.set(true);
+
+                            synchronized (lock) {
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        didError.set(true);
+                        done.set(true);
+
+                        throwable.printStackTrace();
+
+                        Log.d("FilenDocumentsProvider", "markUploadAsDone error: " + throwable.getMessage());
+
+                        synchronized (lock) {
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
+                        }
+                    }
+                });
+
+                synchronized (lock) {
+                    while (!done.get()) {
+                        lock.wait();
+                    }
+                }
+            } catch (Exception e) {
+                didError.set(true);
+
+                e.printStackTrace();
+
+                Log.d("FilenDocumentsProvider", "markUploadAsDone error: " + e.getMessage());
+            }
+        });
+
+        thread.start();
+        thread.join();
+
+        if (!done.get() || didError.get()) {
+            throw new Exception("Could not mark upload as done " + uuid);
+        }
     }
 
     public static Object[] uploadFile (File inputFile, String parent, String uuid) throws Exception {
@@ -795,7 +867,9 @@ public class FilenDocumentsProviderUtils {
                                             uploadedChunks.set(uploadedChunks.get() + 1);
 
                                             synchronized (lock) {
-                                                lock.notifyAll();
+                                                if (uploadedChunks.get() >= finalFileChunks) {
+                                                    lock.notifyAll();
+                                                }
                                             }
                                         }
                                     }
@@ -811,7 +885,9 @@ public class FilenDocumentsProviderUtils {
                                         uploadedChunks.set(uploadedChunks.get() + 1);
 
                                         synchronized (lock) {
-                                            lock.notifyAll();
+                                            if (uploadedChunks.get() >= finalFileChunks) {
+                                                lock.notifyAll();
+                                            }
                                         }
                                     }
                                 });
@@ -825,7 +901,9 @@ public class FilenDocumentsProviderUtils {
                                 uploadedChunks.set(uploadedChunks.get() + 1);
 
                                 synchronized (lock) {
-                                    lock.notifyAll();
+                                    if (uploadedChunks.get() >= finalFileChunks) {
+                                        lock.notifyAll();
+                                    }
                                 }
                             }
                         });
@@ -852,69 +930,7 @@ public class FilenDocumentsProviderUtils {
                 throw new Exception("Could not upload chunk.");
             }
 
-            final AtomicBoolean didMarkAsDone = new AtomicBoolean(false);
-            final Object didMarkAsDoneLock = new Object();
-            final AtomicBoolean didMarkAsDoneError = new AtomicBoolean(false);
-
-            final Thread markAsDoneThread = new Thread(() -> {
-                try {
-                    FilenAPI.markUploadAsDone(getAPIKey(), uuid, nameEncrypted, nameHashed, sizeEncrypted, finalFileChunks, mimeEncrypted, rm, metadata, encryptionVersion, uploadKey, new APIRequest.APICallback() {
-                        @Override
-                        public void onSuccess(JSONObject result) {
-                            try {
-                                if (!result.getBoolean("status")) {
-                                    throw new Exception("Invalid markUploadAsDone status code: " + result.getString("code"));
-                                }
-                            } catch (Exception e) {
-                                didMarkAsDoneError.set(true);
-
-                                e.printStackTrace();
-
-                                Log.d("FilenDocumentsProvider", "uploadFile markUploadAsDone error: " + e.getMessage());
-                            } finally {
-                                didMarkAsDone.set(true);
-
-                                synchronized (didMarkAsDoneLock) {
-                                    didMarkAsDoneLock.notifyAll();
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onError(Throwable throwable) {
-                            didMarkAsDoneError.set(true);
-                            didMarkAsDone.set(true);
-
-                            throwable.printStackTrace();
-
-                            Log.d("FilenDocumentsProvider", "uploadFile markUploadAsDone error: " + throwable.getMessage());
-
-                            synchronized (didMarkAsDoneLock) {
-                                didMarkAsDoneLock.notifyAll();
-                            }
-                        }
-                    });
-
-                    synchronized (didMarkAsDoneLock) {
-                        while (!didMarkAsDone.get()) {
-                            didMarkAsDoneLock.wait();
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    Log.d("FilenDocumentsProvider", "uploadFile markUploadAsDone error: " + e.getMessage());
-
-                    didMarkAsDoneError.set(true);
-                }
-            });
-
-            markAsDoneThread.start();
-            markAsDoneThread.join();
-
-            if (!didMarkAsDone.get() || didMarkAsDoneError.get()) {
-                throw new Exception("Could not upload file.");
-            }
+            markUploadAsDone(uuid, nameEncrypted, nameHashed, sizeEncrypted, finalFileChunks, mimeEncrypted, rm, metadata, encryptionVersion, uploadKey);
 
             checkIfItemParentIsShared("file", parent, new CheckIfItemParentIsSharedMetadata(uuid, inputFileName, inputFileSize, mimeType, inputFileLastModified, ""));
 
@@ -976,7 +992,9 @@ public class FilenDocumentsProviderUtils {
                             done.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -991,7 +1009,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "renameFolder error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1066,7 +1086,9 @@ public class FilenDocumentsProviderUtils {
                             done.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1081,7 +1103,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "renameFile error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1138,7 +1162,9 @@ public class FilenDocumentsProviderUtils {
                             done.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1153,7 +1179,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "moveItem error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1209,7 +1237,9 @@ public class FilenDocumentsProviderUtils {
                             done.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1224,7 +1254,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "getFolderContents error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1277,7 +1309,9 @@ public class FilenDocumentsProviderUtils {
                             done.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1292,7 +1326,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "shareItem error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1343,7 +1379,9 @@ public class FilenDocumentsProviderUtils {
                             done.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1358,7 +1396,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "addItemToPublicLink error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1417,7 +1457,9 @@ public class FilenDocumentsProviderUtils {
                             isSharingFolderCheckDone.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (isLinkingFolderCheckDone.get() && isSharingFolderCheckDone.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1432,7 +1474,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "isSharingFolder error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (isLinkingFolderCheckDone.get() && isSharingFolderCheckDone.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1458,7 +1502,9 @@ public class FilenDocumentsProviderUtils {
                             isLinkingFolderCheckDone.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (isLinkingFolderCheckDone.get() && isSharingFolderCheckDone.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1473,7 +1519,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "isLinkingFolder error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (isLinkingFolderCheckDone.get() && isSharingFolderCheckDone.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1495,7 +1543,7 @@ public class FilenDocumentsProviderUtils {
         isSharingItemCheckThread.start();
         isSharingItemCheckThread.join();
 
-        if (!isSharingFolderCheckDone.get() || didError.get() || !isLinkingFolderCheckDone.get()) {
+        if (!isSharingFolderCheckDone.get() || didError.get() || !isLinkingFolderCheckDone.get() || isSharingFolder.get() == null || isLinkingFolder.get() == null) {
             throw new Exception("Could not check if folder is shared or linked.");
         }
 
@@ -1537,7 +1585,9 @@ public class FilenDocumentsProviderUtils {
                             isSharingItemCheckDone.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (isSharingItemCheckDone.get() && isLinkingItemCheckDone.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1552,7 +1602,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "isSharingItem error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (isSharingItemCheckDone.get() && isLinkingItemCheckDone.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1578,7 +1630,9 @@ public class FilenDocumentsProviderUtils {
                             isLinkingItemCheckDone.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (isSharingItemCheckDone.get() && isLinkingItemCheckDone.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1593,7 +1647,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "isLinkingItem error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (isSharingItemCheckDone.get() && isLinkingItemCheckDone.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1615,7 +1671,7 @@ public class FilenDocumentsProviderUtils {
         isSharingItemCheckThread.start();
         isSharingItemCheckThread.join();
 
-        if (!isSharingItemCheckDone.get() || didError.get() || !isLinkingItemCheckDone.get()) {
+        if (!isSharingItemCheckDone.get() || didError.get() || !isLinkingItemCheckDone.get() || isSharingItem.get() == null || isLinkingItem.get() == null) {
             throw new Exception("Could not check if item is shared or linked.");
         }
 
@@ -1649,7 +1705,9 @@ public class FilenDocumentsProviderUtils {
                             done.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1664,7 +1722,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "renameSharedItem error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1715,7 +1775,9 @@ public class FilenDocumentsProviderUtils {
                             done.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (done.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }
@@ -1730,7 +1792,9 @@ public class FilenDocumentsProviderUtils {
                         Log.d("FilenDocumentsProvider", "renameItemInPublicLink error: " + throwable.getMessage());
 
                         synchronized (lock) {
-                            lock.notifyAll();
+                            if (done.get()) {
+                                lock.notifyAll();
+                            }
                         }
                     }
                 });
@@ -1790,7 +1854,7 @@ public class FilenDocumentsProviderUtils {
                 final JSONObject user = isSharingItemUsers.getJSONObject(i);
                 final String encryptedMetadata = FilenCrypto.encryptMetadataPublicKey(metadata, user.getString("publicKey"));
 
-                renameSharedItem(uuid, user.getInt("id"), encryptedMetadata);
+                renameSharedItem(uuid, user.getLong("id"), encryptedMetadata);
             }
         }
 

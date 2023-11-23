@@ -19,6 +19,8 @@ import android.provider.DocumentsContract.Root;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsProvider;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
@@ -120,12 +122,12 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             if (item.type.equals("file")) {
                 row.add(Document.COLUMN_SIZE, item.size);
                 row.add(Document.COLUMN_MIME_TYPE, item.mime.length() > 0 ? item.mime : "application/octet-stream");
-                row.add(Document.COLUMN_LAST_MODIFIED, item.lastModified > 0 ? item.lastModified : item.timestamp);
+                row.add(Document.COLUMN_LAST_MODIFIED, FilenDocumentsProviderUtils.convertTimestampToMs(item.lastModified > 0 ? item.lastModified : item.timestamp));
                 row.add(Document.COLUMN_FLAGS, getFileFlags(item.name));
             } else {
                 row.add(Document.COLUMN_SIZE, 0);
                 row.add(Document.COLUMN_MIME_TYPE, Document.MIME_TYPE_DIR);
-                row.add(Document.COLUMN_LAST_MODIFIED, item.timestamp);
+                row.add(Document.COLUMN_LAST_MODIFIED, FilenDocumentsProviderUtils.convertTimestampToMs(item.timestamp));
                 row.add(Document.COLUMN_FLAGS, getDefaultFolderFlags());
             }
         }
@@ -164,7 +166,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public Cursor queryChildDocuments (String parentDocumentId, String[] projection, String sortOrder) {
+    public Cursor queryChildDocuments (String parentDocumentId, @Nullable String[] projection, @Nullable String sortOrder) {
         Log.d("FilenDocumentsProvider", "queryChildDocuments: " + parentDocumentId + ", " + Arrays.toString(projection) + ", " + sortOrder);
 
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
@@ -175,7 +177,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
         queryChildDocumentsCurrentParent = parentDocumentId;
 
-        if (!queryChildDocumentsLastParent.equals(parentDocumentId) && queryChildDocumentsCurrentParent.equals(parentDocumentId)) {
+        if (!queryChildDocumentsLastParent.equals(parentDocumentId)) {
             queryChildDocumentsLastParent = parentDocumentId;
 
             executor.submit(() -> FilenDocumentsProviderUtils.updateFolderContent(parentDocumentId, err -> {
@@ -188,7 +190,32 @@ public class FilenDocumentsProvider extends DocumentsProvider {
         Cursor dbCursor = null;
 
         try {
-            dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version` FROM `items` WHERE `parent` = ?", new String[]{ parentDocumentId });
+            // SortOrders
+            // _display_name ASC DESC
+            // last_modified ASC DESC
+            // _size ASC DESC
+
+            String sortBy = "";
+
+            if (sortOrder != null && sortOrder.length() > 0) {
+                final String requestedOrder = sortOrder.toLowerCase();
+
+                if (requestedOrder.contains("display_name") && requestedOrder.contains("asc")) {
+                    sortBy = " ORDER BY name ASC";
+                } else if (requestedOrder.contains("display_name") && requestedOrder.contains("desc")) {
+                    sortBy = " ORDER BY name DESC";
+                } else if (requestedOrder.contains("last_modified") && requestedOrder.contains("asc")) {
+                    sortBy = " ORDER BY last_modified + 0 ASC";
+                } else if (requestedOrder.contains("last_modified") && requestedOrder.contains("desc")) {
+                    sortBy = " ORDER BY last_modified + 0 DESC";
+                } else if (requestedOrder.contains("size") && requestedOrder.contains("asc")) {
+                    sortBy = " ORDER BY size + 0 ASC";
+                } else if (requestedOrder.contains("size") && requestedOrder.contains("desc")) {
+                    sortBy = " ORDER BY size + 0 DESC";
+                }
+            }
+
+            dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version` FROM `items` WHERE `parent` = ?" + sortBy, new String[]{ parentDocumentId });
 
             while (dbCursor.moveToNext()) {
                 MatrixCursor.RowBuilder row = result.newRow();
@@ -197,14 +224,14 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                 row.add(Document.COLUMN_DISPLAY_NAME, dbCursor.getString(2));
 
                 if (dbCursor.getString(3).equals("file")) {
-                    row.add(Document.COLUMN_SIZE, dbCursor.getInt(5));
+                    row.add(Document.COLUMN_SIZE, dbCursor.getLong(5));
                     row.add(Document.COLUMN_MIME_TYPE, FilenDocumentsProviderUtils.getMimeTypeFromName(dbCursor.getString(2)));
-                    row.add(Document.COLUMN_LAST_MODIFIED, dbCursor.getInt(7) > 0 ? dbCursor.getInt(7) : dbCursor.getInt(6));
+                    row.add(Document.COLUMN_LAST_MODIFIED, FilenDocumentsProviderUtils.convertTimestampToMs(dbCursor.getLong(7) > 0 ? dbCursor.getLong(7) : dbCursor.getLong(6)));
                     row.add(Document.COLUMN_FLAGS, getFileFlags(dbCursor.getString(2)));
                 } else {
                     row.add(Document.COLUMN_SIZE, 0);
                     row.add(Document.COLUMN_MIME_TYPE, Document.MIME_TYPE_DIR);
-                    row.add(Document.COLUMN_LAST_MODIFIED, dbCursor.getInt(6));
+                    row.add(Document.COLUMN_LAST_MODIFIED, FilenDocumentsProviderUtils.convertTimestampToMs(dbCursor.getLong(6)));
                     row.add(Document.COLUMN_FLAGS, getDefaultFolderFlags());
                 }
             }
@@ -263,7 +290,9 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                             created.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (created.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         });
                     } else {
@@ -279,7 +308,9 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                             created.set(true);
 
                             synchronized (lock) {
-                                lock.notifyAll();
+                                if (created.get()) {
+                                    lock.notifyAll();
+                                }
                             }
                         });
                     }
@@ -322,7 +353,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public void removeDocument(String documentId, String parentDocumentId) throws FileNotFoundException {
+    public void removeDocument (String documentId, String parentDocumentId) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "removeDocument: " + documentId + ", parent: " + parentDocumentId);
 
         if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn() || FilenDocumentsProviderUtils.getDefaultDriveUUID().length() == 0) {
@@ -372,7 +403,9 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                     done.set(true);
 
                     synchronized (lock) {
-                        lock.notifyAll();
+                        if (done.get()) {
+                            lock.notifyAll();
+                        }
                     }
                 });
 
@@ -407,7 +440,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public Cursor querySearchDocuments (String rootId, String query, String[] projection) throws FileNotFoundException {
+    public Cursor querySearchDocuments (String rootId, String query, @Nullable String[] projection) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "querySearchDocuments: " + rootId + ", query: " + query);
 
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
@@ -428,7 +461,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `uuid`, `parent`, `name`, `type`, `mime`, `size`, `timestamp`, `lastModified`, `key`, `chunks`, `region`, `bucket`, `version` FROM `items` WHERE `parent` = ?", new String[]{ rootId });
 
             while (dbCursor.moveToNext()) {
-                String mimeType = FilenDocumentsProviderUtils.getMimeTypeFromName(dbCursor.getString(2));
+                final String mimeType = FilenDocumentsProviderUtils.getMimeTypeFromName(dbCursor.getString(2));
 
                 if (dbCursor.getString(2).toLowerCase().contains(query.toLowerCase()) || mimeType.toLowerCase().contains(query.toLowerCase())) {
                     MatrixCursor.RowBuilder row = result.newRow();
@@ -437,14 +470,14 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                     row.add(Document.COLUMN_DISPLAY_NAME, dbCursor.getString(2));
 
                     if (dbCursor.getString(3).equals("file")) {
-                        row.add(Document.COLUMN_SIZE, dbCursor.getInt(5));
+                        row.add(Document.COLUMN_SIZE, dbCursor.getLong(5));
                         row.add(Document.COLUMN_MIME_TYPE, mimeType);
-                        row.add(Document.COLUMN_LAST_MODIFIED, dbCursor.getInt(7) > 0 ? dbCursor.getInt(7) : dbCursor.getInt(6));
+                        row.add(Document.COLUMN_LAST_MODIFIED, FilenDocumentsProviderUtils.convertTimestampToMs(dbCursor.getLong(7) > 0 ? dbCursor.getLong(7) : dbCursor.getLong(6)));
                         row.add(Document.COLUMN_FLAGS, getFileFlags(dbCursor.getString(2)));
                     } else {
                         row.add(Document.COLUMN_SIZE, 0);
                         row.add(Document.COLUMN_MIME_TYPE, Document.MIME_TYPE_DIR);
-                        row.add(Document.COLUMN_LAST_MODIFIED, dbCursor.getInt(6));
+                        row.add(Document.COLUMN_LAST_MODIFIED, FilenDocumentsProviderUtils.convertTimestampToMs(dbCursor.getLong(6)));
                         row.add(Document.COLUMN_FLAGS, getDefaultFolderFlags());
                     }
                 }
@@ -461,7 +494,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
-    public Cursor queryRecentDocuments (String rootId, String[] projection, Bundle queryArgs, CancellationSignal signal) throws FileNotFoundException {
+    public Cursor queryRecentDocuments (@NonNull String rootId, @Nullable String[] projection, Bundle queryArgs, @Nullable CancellationSignal signal) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "queryRecentDocuments: " + rootId);
 
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
@@ -488,14 +521,14 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                 row.add(Document.COLUMN_DISPLAY_NAME, dbCursor.getString(2));
 
                 if (dbCursor.getString(3).equals("file")) {
-                    row.add(Document.COLUMN_SIZE, dbCursor.getInt(5));
+                    row.add(Document.COLUMN_SIZE, dbCursor.getLong(5));
                     row.add(Document.COLUMN_MIME_TYPE, FilenDocumentsProviderUtils.getMimeTypeFromName(dbCursor.getString(2)));
-                    row.add(Document.COLUMN_LAST_MODIFIED, dbCursor.getInt(7) > 0 ? dbCursor.getInt(7) : dbCursor.getInt(6));
+                    row.add(Document.COLUMN_LAST_MODIFIED, FilenDocumentsProviderUtils.convertTimestampToMs(dbCursor.getLong(7) > 0 ? dbCursor.getLong(7) : dbCursor.getLong(6)));
                     row.add(Document.COLUMN_FLAGS, getFileFlags(dbCursor.getString(2)));
                 } else {
                     row.add(Document.COLUMN_SIZE, 0);
                     row.add(Document.COLUMN_MIME_TYPE, Document.MIME_TYPE_DIR);
-                    row.add(Document.COLUMN_LAST_MODIFIED, dbCursor.getInt(6));
+                    row.add(Document.COLUMN_LAST_MODIFIED, FilenDocumentsProviderUtils.convertTimestampToMs(dbCursor.getLong(6)));
                     row.add(Document.COLUMN_FLAGS, getDefaultFolderFlags());
                 }
             }

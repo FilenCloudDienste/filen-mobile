@@ -43,7 +43,7 @@ public class FilenCrypto {
                     fileMetadata.key = json.getString("key");
 
                     try {
-                        fileMetadata.size = json.getInt("size");
+                        fileMetadata.size = json.getLong("size");
                     } catch (Exception e) {
                         fileMetadata.size = 1;
                     }
@@ -55,7 +55,7 @@ public class FilenCrypto {
                     }
 
                     try {
-                        fileMetadata.lastModified = json.getInt("lastModified");
+                        fileMetadata.lastModified = json.getLong("lastModified");
                     } catch (Exception e) {
                         fileMetadata.lastModified = System.currentTimeMillis();
                     }

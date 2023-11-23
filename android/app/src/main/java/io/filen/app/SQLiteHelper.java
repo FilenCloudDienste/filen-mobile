@@ -9,9 +9,9 @@ import java.util.Objects;
 public class SQLiteHelper {
     private static SQLiteDatabase database;
 
-    public static void initialize(Context context) {
+    public static void initialize (Context context) {
         File filesDir = context.getFilesDir();
-        File dbPath = new File(filesDir, "sqlite/filenDocumentsProvider_v3.db");
+        File dbPath = new File(filesDir, "sqlite/filenDocumentsProvider_v4.db");
 
         Objects.requireNonNull(dbPath.getParentFile()).mkdirs();
 
@@ -47,7 +47,7 @@ public class SQLiteHelper {
         Log.d("FilenDocumentsProvider", "DB initialized");
     }
 
-    public static SQLiteDatabase getInstance() {
+    public static SQLiteDatabase getInstance () {
         if (database == null) {
             throw new IllegalStateException("SQLite is not yet initialized.");
         }
