@@ -79,6 +79,96 @@ public class FilenDocumentsProviderUtils {
         return false; // @TODO
     }
 
+    public static Object[] getRootsInfo () {
+        Cursor dbCursor = null;
+        long storageUsed = 0;
+        long maxStorage = 0;
+
+        try {
+            dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `data` FROM `metadata` WHERE `key` = ?", new String[] { "storageUsed" });
+
+            if (dbCursor.moveToNext()) {
+                storageUsed = Long.parseLong(dbCursor.getString(0));
+            }
+
+            dbCursor = SQLiteHelper.getInstance().rawQuery("SELECT `data` FROM `metadata` WHERE `key` = ?", new String[] { "maxStorage" });
+
+            if (dbCursor.moveToNext()) {
+                maxStorage = Long.parseLong(dbCursor.getString(0));
+            }
+
+            dbCursor.close();
+
+            return new Object[] {
+                    storageUsed,
+                    maxStorage
+            };
+        } catch (Exception e) {
+            Log.d("FilenDocumentsProvider", "getItemFromDocumentId error: " + e.getMessage());
+
+            return new Object[] {
+                    storageUsed,
+                    maxStorage
+            };
+        } finally {
+            if (dbCursor != null) {
+                dbCursor.close();
+            }
+        }
+    }
+
+    public static void updateRootsInfo (ErrorCallback callback) {
+        Log.d("FilenDocumentsProvider", "updateRootsInfo");
+
+        new Thread(() -> {
+            FilenAPI.userInfo(getAPIKey(), new APIRequest.APICallback() {
+                @Override
+                public void onSuccess(JSONObject result) {
+                    try {
+                        if (!result.getBoolean("status")) {
+                            throw new Exception("updateRootsInfo invalid status code: " + result.getString("code"));
+                        }
+
+                        final JSONObject data = result.getJSONObject("data");
+
+                        SQLiteHelper.getInstance().execSQL(
+                                "INSERT OR REPLACE INTO `metadata` (`key`, `data`) VALUES (?, ?)",
+                                new Object[] {
+                                        "storageUsed",
+                                        data.getLong("storageUsed")
+                                }
+                        );
+
+                        SQLiteHelper.getInstance().execSQL(
+                                "INSERT OR REPLACE INTO `metadata` (`key`, `data`) VALUES (?, ?)",
+                                new Object[] {
+                                        "maxStorage",
+                                        data.getLong("maxStorage")
+                                }
+                        );
+
+                        callback.onResult(null);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+
+                        Log.d("FilenDocumentsProvider", "updateRootsInfo error: " + e.getMessage());
+
+                        callback.onResult(e);
+                    }
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    throwable.printStackTrace();
+
+                    Log.d("FilenDocumentsProvider", "updateRootsInfo error: " + throwable.getMessage());
+
+                    callback.onResult(throwable);
+                }
+            });
+        }).start();
+    }
+
     public static void deleteItemFromSQLiteRecursive (String uuid) {
         final Item item = getItemFromDocumentId(uuid);
 
@@ -2174,7 +2264,7 @@ public class FilenDocumentsProviderUtils {
                 return;
             }
 
-            final List<String> dirsToSkip = Arrays.asList(new String[] { "thumbnailImages", "downloadedFiles" });
+            final List<String> dirsToSkip = Arrays.asList("thumbnailImages", "downloadedFiles");
 
             for (final String baseDir: baseDirs) {
                 if (!dirsToSkip.contains(baseDir)) {

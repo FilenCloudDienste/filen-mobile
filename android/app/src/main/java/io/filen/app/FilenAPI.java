@@ -139,6 +139,15 @@ public class FilenAPI {
                 .build();
     }
 
+    private static Request buildGetRequest (String apiKey, String endpoint) {
+        return new Request.Builder()
+                .url(API_URL + endpoint)
+                .method("GET", null)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Accept", "application/json")
+                .build();
+    }
+
     public static void fetchFolderContent (String apiKey, String uuid, APIRequest.APICallback callback) {
         try {
             // We unfortunately have to manually serialize the JSON for the checksum validation to work. org.json.toString() does not work here.
@@ -248,9 +257,7 @@ public class FilenAPI {
         final File outputFileDir = new File(context.getFilesDir(), "documentsProvider/downloadedChunks/" + item.uuid);
 
         if (!outputFileDir.exists()) {
-            if (!outputFileDir.mkdirs()) {
-                throw new Exception("Could not create parent dirs.");
-            }
+            outputFileDir.mkdirs();
         }
 
         final File outputFile = new File(outputFileDir, UUID.randomUUID().toString() + "." + index);
@@ -529,5 +536,13 @@ public class FilenAPI {
 
             e.printStackTrace();
         }
+    }
+
+    public static void userInfo (String apiKey, APIRequest.APICallback callback) {
+        final Request request = buildGetRequest(apiKey, "/v3/user/info");
+
+        Log.d("FilenDocumentsProvider", "isLinkingItem: " + request);
+
+        apiRequest.request(request, callback);
     }
 }

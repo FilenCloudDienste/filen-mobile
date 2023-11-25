@@ -37,16 +37,19 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     private final String AUTHORITY = "io.filen.app.documents";
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private String queryChildDocumentsLastParent = "";
-    private String queryChildDocumentsCurrentParent = "";
     private int nextNotificationId = 0;
     private boolean didCreateNotificationManager = false;
     private NotificationManager notificationManager;
+    private long nextRootsInfoUpdate = 0;
 
     @Override
     public boolean onCreate () {
         final Context context = getContext();
 
         MMKVHelper.initialize(context);
+
+        assert context != null;
+
         SQLiteHelper.initialize(context);
 
         return true;
@@ -65,17 +68,16 @@ public class FilenDocumentsProvider extends DocumentsProvider {
         }
 
         final MatrixCursor.RowBuilder row = result.newRow();
+        final Object[] rootsInfo = FilenDocumentsProviderUtils.getRootsInfo();
 
         row.add(Root.COLUMN_ROOT_ID, defaultDriveUUID);
         row.add(Root.COLUMN_DOCUMENT_ID, defaultDriveUUID);
-        row.add(Root.COLUMN_CAPACITY_BYTES, 0);
-        row.add(Root.COLUMN_AVAILABLE_BYTES, 0);
+        row.add(Root.COLUMN_CAPACITY_BYTES, (long) rootsInfo[0]);
+        row.add(Root.COLUMN_AVAILABLE_BYTES, (long) rootsInfo[1] - (long) rootsInfo[0]);
         row.add(Root.COLUMN_MIME_TYPES, "*/*");
         row.add(Root.COLUMN_TITLE, "Filen");
         row.add(Root.COLUMN_ICON, R.mipmap.ic_launcher);
         row.add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE);
-
-        // @TODO update root with capacity/available data
 
         Log.d("FilenDocumentsProvider", "Root folder created, UUID: " + defaultDriveUUID);
 
@@ -85,6 +87,18 @@ public class FilenDocumentsProvider extends DocumentsProvider {
 
         result.setExtras(extra);
         result.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), getNotifyURI(defaultDriveUUID));
+
+        final long now = System.currentTimeMillis();
+
+        if (now > nextRootsInfoUpdate) {
+            nextRootsInfoUpdate = now + 60000;
+
+            executor.submit(() -> FilenDocumentsProviderUtils.updateRootsInfo(err -> {
+                if (err == null) {
+                    notifyRootsChanged();
+                }
+            }));
+        }
 
         return result;
     }
@@ -173,8 +187,6 @@ public class FilenDocumentsProvider extends DocumentsProvider {
             return FilenDocumentsProviderUtils.promptAuthenticationCursor(result);
         }
 
-        queryChildDocumentsCurrentParent = parentDocumentId;
-
         if (!queryChildDocumentsLastParent.equals(parentDocumentId)) {
             queryChildDocumentsLastParent = parentDocumentId;
 
@@ -188,11 +200,6 @@ public class FilenDocumentsProvider extends DocumentsProvider {
         Cursor dbCursor = null;
 
         try {
-            // SortOrders
-            // _display_name ASC DESC
-            // last_modified ASC DESC
-            // _size ASC DESC
-
             String sortBy = "";
 
             if (sortOrder != null && sortOrder.length() > 0) {
@@ -824,9 +831,10 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                 }
 
                 float ratio = Math.min((float) sizeHint.x / scaledBitmap.getWidth(), (float) sizeHint.y / scaledBitmap.getHeight());
-                final int width = Math.round(ratio * scaledBitmap.getWidth());
-                final int height = Math.round(ratio * scaledBitmap.getHeight());
+                final int width = Math.round(ratio * scaledBitmap.getWidth() * 2);
+                final int height = Math.round(ratio * scaledBitmap.getHeight() * 2);
                 final Bitmap thumbnail = Bitmap.createScaledBitmap(scaledBitmap, width, height, false);
+
                 scaledBitmap.recycle();
 
                 thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
@@ -856,7 +864,7 @@ public class FilenDocumentsProvider extends DocumentsProvider {
                 try {
                     outputStream.close();
                 } catch (IOException e) {
-                    throw new FileNotFoundException("Could not open thumbnail for document " + documentId);
+                    e.printStackTrace();
                 }
             }
         }
