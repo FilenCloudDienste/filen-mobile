@@ -13,32 +13,34 @@ import IkigaJSON
 import SQLite
 
 class FileProviderUtils {
-  static let shared: FileProviderUtils = {
+  public static let shared: FileProviderUtils = {
     let instance = FileProviderUtils()
     
     return instance
   }()
   
-  static var currentDownloads = {
+  public static var currentDownloads = {
     let currentDownloads = [String: Bool]()
     
     return currentDownloads
   }()
   
-  static var currentUploads = {
+  public static var currentUploads = {
     let currentUploads = [String: Bool]()
     
     return currentUploads
   }()
   
   public let jsonDecoder = IkigaJSONDecoder()
-  public let jsonEncoder = IkigaJSONEncoder()
+  private let jsonEncoder = IkigaJSONEncoder()
   private let tempPath = NSFileProviderManager.default.documentStorageURL.appendingPathComponent("temp", isDirectory: true)
   private let dbPath = NSFileProviderManager.default.documentStorageURL.appendingPathComponent("db", isDirectory: true)
   private var tempPathCreated = false
   private var dbPathCreated = false
   private var db: Connection?
   private var dbInitialized = false
+  private let downloadSemaphore = Semaphore(max: 1)
+  private let uploadSemaphore = Semaphore(max: 1)
   
   func openDb () throws -> Connection {
     try autoreleasepool {
@@ -135,7 +137,7 @@ class FileProviderUtils {
   func storeMetadata (key: String, data: Data) -> Void {
     autoreleasepool {
       do {
-        try self.openDb().run("INSERT OR IGNORE INTOACE INTO metadata (key, data) VALUES (?, ?)", [key, data.base64EncodedString()])
+        try self.openDb().run("INSERT OR REPLACE INTO metadata (key, data) VALUES (?, ?)", [key, data.base64EncodedString()])
       } catch {
         print("[storeMetadata] error: \(error)")
       }
@@ -601,6 +603,12 @@ class FileProviderUtils {
     
     guard let masterKeys = self.masterKeys(), let lastMasterKey = masterKeys.last else {
       throw NSFileProviderError(.notAuthenticated)
+    }
+    
+    try await self.uploadSemaphore.acquire()
+    
+    defer {
+      self.uploadSemaphore.release()
     }
     
     let stat = try FileManager.default.attributesOfItem(atPath: url)
@@ -1222,18 +1230,27 @@ class FileProviderUtils {
     }
     
     if FileManager.default.fileExists(atPath: url) {
-      let stat = try FileManager.default.attributesOfItem(atPath: url)
-      
-      if let fileSize = stat[.size] as? Int {
-        if (fileSize - 32 < itemJSON.size) {
-          return (didDownload: false, url: url)
+      return (didDownload: false, url: url)
+    }
+    
+    let tempFileURL = try self.getTempPath().appendingPathComponent(UUID().uuidString.lowercased(), isDirectory: false)
+    
+    try await self.downloadSemaphore.acquire()
+    
+    defer {
+      do {
+        self.downloadSemaphore.release()
+        
+        if FileManager.default.fileExists(atPath: tempFileURL.path) {
+          try FileManager.default.removeItem(at: tempFileURL)
         }
+      } catch {
+        print(error)
       }
-      
-      try FileManager.default.removeItem(atPath: url)
     }
     
     let chunksToDownload = maxChunks >= itemJSON.chunks ? itemJSON.chunks : maxChunks
+    
     /*let currentWriteIndex = DownloadFileCurrentWriteIndex()
     
     @Sendable
@@ -1294,7 +1311,7 @@ class FileProviderUtils {
     
     for index in 0..<chunksToDownload  {
       try await self.downloadAndDecryptChunk(
-        destinationURL: destinationURL,
+        destinationURL: tempFileURL,
         uuid: uuid,
         region: itemJSON.region,
         bucket: itemJSON.bucket,
@@ -1304,11 +1321,17 @@ class FileProviderUtils {
       )
     }
     
+    if !FileManager.default.fileExists(atPath: tempFileURL.path) {
+      throw NSFileProviderError(.serverUnreachable)
+    }
+    
+    try FileManager.default.moveItem(atPath: tempFileURL.path, toPath: destinationURL.path)
+    
     return (didDownload: true, url: url)
   }
   
   func cleanupTempDir () -> Void {
-    let interval: TimeInterval = 72 * 60 * 60
+    let interval: TimeInterval = 3600 * 72
     
     do {
       let tempDir = try self.getTempPath()

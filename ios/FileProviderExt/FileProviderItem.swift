@@ -95,26 +95,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
         return true
       }
       
-      let url = NSFileProviderManager.default.documentStorageURL.appendingPathComponent(identifier.rawValue, isDirectory: true).appendingPathComponent(self.item.name, isDirectory: false)
-      let exists = FileManager.default.fileExists(atPath: url.path)
-      
-      if (!exists){
-        return false
-      }
-      
-      do {
-        let stat = try FileManager.default.attributesOfItem(atPath: url.path)
-        
-        if let fileSize = stat[.size] as? Int {
-          return fileSize - 32 < self.item.size
-        }
-        
-        return false
-      } catch {
-        print("[isDownloaded] error: \(error)")
-        
-        return false
-      }
+      return FileManager.default.fileExists(atPath: NSFileProviderManager.default.documentStorageURL.appendingPathComponent(identifier.rawValue, isDirectory: true).appendingPathComponent(self.item.name, isDirectory: false).path)
     }
   }
   

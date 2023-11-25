@@ -12,14 +12,14 @@ import OpenSSL
 import IkigaJSON
 
 class FilenCrypto {
-  static let shared: FilenCrypto = {
+  public static let shared: FilenCrypto = {
     let instance = FilenCrypto()
     
     return instance
   }()
   
-  public let jsonDecoder = IkigaJSONDecoder()
-  public let jsonEncoder = IkigaJSONEncoder()
+  private let jsonDecoder = IkigaJSONDecoder()
+  private let jsonEncoder = IkigaJSONEncoder()
   
   init () {
     SSL_library_init()
