@@ -40,6 +40,29 @@ class FileProviderUtils {
   private var db: Connection?
   private var dbInitialized = false
   
+  internal lazy var sessionConfiguration: URLSessionConfiguration = {
+    let configuration = URLSessionConfiguration.af.default
+    configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+    configuration.urlCache = nil;
+    configuration.urlCredentialStorage = nil;
+    configuration.urlCache = URLCache(memoryCapacity: 0, diskCapacity: 0, diskPath: nil)
+    return configuration
+  }()
+  
+  internal lazy var internalSessionManager: Alamofire.Session = {
+    return Alamofire.Session(configuration: sessionConfiguration,
+                             rootQueue: DispatchQueue(label: "org.alamofire.sessionManager.rootQueue"),
+                             startRequestsImmediately: true,
+                             interceptor: nil,
+                             serverTrustManager: nil,
+                             redirectHandler: nil,
+                             cachedResponseHandler: nil)
+  }()
+  
+  public var sessionManager: Alamofire.Session {
+    return internalSessionManager
+  }
+  
   func openDb () throws -> Connection {
     try autoreleasepool {
       if self.dbInitialized {
@@ -232,7 +255,7 @@ class FileProviderUtils {
       "Checksum": checksum
     ]
     
-    return try await AF.request(url, method: .post, parameters: nil, encoding: BodyStringEncoding(body: jsonString), headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDecodable(T.self).value
+    return try await sessionManager.request(url, method: .post, parameters: nil, encoding: BodyStringEncoding(body: jsonString), headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDecodable(T.self).value
   }
   
   func fetchFolderContents (uuid: String) async throws -> FetchFolderContents {
@@ -558,7 +581,7 @@ class FileProviderUtils {
       "Checksum": checksum
     ]
     
-    let response = try await AF.upload(fileURL, to: url, headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDecodable(UploadChunk.self).value
+    let response = try await sessionManager.upload(fileURL, to: url, headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDecodable(UploadChunk.self).value
     
     if (!response.status) {
       throw NSFileProviderError(.serverUnreachable)
@@ -1175,7 +1198,7 @@ class FileProviderUtils {
       }
     }
     
-    let downloadedFileURL = try await AF.download(downloadURL){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
+    let downloadedFileURL = try await sessionManager.download(downloadURL){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
     
     defer {
       do {
