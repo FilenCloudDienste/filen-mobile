@@ -2248,7 +2248,7 @@ public class FilenDocumentsProviderUtils {
             return;
         }
 
-        nextDirectoryCleanup = System.currentTimeMillis() + 300000;
+        nextDirectoryCleanup = System.currentTimeMillis() + 3600000 * 72;
 
         try {
             final File filesDir = context.getFilesDir();

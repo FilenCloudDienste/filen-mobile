@@ -11,22 +11,22 @@ import UIKit
 import AVFoundation
 
 class FileProviderExtension: NSFileProviderExtension {
-  private let thumbnailSemaphore = DispatchSemaphore(value: 1)
+  private let thumbnailSemaphore = Semaphore(max: 1)
   
-  override init() {
+  override init () {
     FileProviderUtils.shared.cleanupTempDir()
     
     super.init()
   }
   
-  override func persistentIdentifierForItem(at url: URL) -> NSFileProviderItemIdentifier? {
+  override func persistentIdentifierForItem (at url: URL) -> NSFileProviderItemIdentifier? {
     let pathComponents = url.pathComponents
     let itemIdentifier = NSFileProviderItemIdentifier(pathComponents[pathComponents.count - 2])
     
     return itemIdentifier
   }
       
-  override func urlForItem(withPersistentIdentifier identifier: NSFileProviderItemIdentifier) -> URL? {
+  override func urlForItem (withPersistentIdentifier identifier: NSFileProviderItemIdentifier) -> URL? {
     guard let item = try? item(for: identifier) else {
         return nil
     }
@@ -34,33 +34,29 @@ class FileProviderExtension: NSFileProviderExtension {
     return NSFileProviderManager.default.documentStorageURL.appendingPathComponent(identifier.rawValue, isDirectory: true).appendingPathComponent(item.filename, isDirectory: false)
   }
 
-  override func item(for identifier: NSFileProviderItemIdentifier) throws -> NSFileProviderItem {
+  override func item (for identifier: NSFileProviderItemIdentifier) throws -> NSFileProviderItem {
     guard let rootFolderUUID = FileProviderUtils.shared.rootFolderUUID() else {
       throw NSFileProviderError(.noSuchItem)
     }
     
     if (identifier.rawValue == "root" || identifier == NSFileProviderItemIdentifier.rootContainer || identifier.rawValue == rootFolderUUID || identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue) {
-      guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: rootFolderUUID) else {
-        throw NSFileProviderError(.noSuchItem)
-      }
-      
       return FileProviderItem(
         identifier: NSFileProviderItemIdentifier.rootContainer,
         parentIdentifier: NSFileProviderItemIdentifier.rootContainer,
         item: Item(
-          uuid: itemJSON.uuid,
-          parent: itemJSON.parent,
-          name: itemJSON.name,
+          uuid: rootFolderUUID,
+          parent: "root",
+          name: "Cloud Drive",
           type: .folder,
-          mime: itemJSON.mime,
-          size: itemJSON.size,
-          timestamp: itemJSON.timestamp,
-          lastModified: itemJSON.lastModified,
-          key: itemJSON.key,
-          chunks: itemJSON.chunks,
-          region: itemJSON.region,
-          bucket: itemJSON.bucket,
-          version: itemJSON.version
+          mime: "",
+          size: 0,
+          timestamp: 0,
+          lastModified: 0,
+          key: "",
+          chunks: 0,
+          region: "",
+          bucket: "",
+          version: 0
         )
       )
     }
@@ -90,7 +86,7 @@ class FileProviderExtension: NSFileProviderExtension {
     )
   }
 
-  override func providePlaceholder(at url: URL) async throws {
+  override func providePlaceholder (at url: URL) async throws {
     guard let identifier = persistentIdentifierForItem(at: url) else {
       throw NSFileProviderError(.noSuchItem)
     }
@@ -106,7 +102,7 @@ class FileProviderExtension: NSFileProviderExtension {
     try NSFileProviderManager.writePlaceholder(at: placeholderURL, withMetadata: fileProviderItem)
   }
 
-  override func startProvidingItem(at url: URL) async throws {
+  override func startProvidingItem (at url: URL) async throws {
     let pathComponents = url.pathComponents
     let identifier = NSFileProviderItemIdentifier(pathComponents[pathComponents.count - 2])
     
@@ -118,12 +114,12 @@ class FileProviderExtension: NSFileProviderExtension {
     
     defer {
       FileProviderUtils.currentDownloads.removeValue(forKey: itemJSON.uuid)
-      
-      //FileProviderUtils.shared.signalEnumeratorForIdentifier(for: identifier)
     }
     
     do {
       _ = try await FileProviderUtils.shared.downloadFile(uuid: itemJSON.uuid, url: url.path, maxChunks: itemJSON.chunks)
+      
+      FileProviderUtils.shared.signalEnumeratorForIdentifier(for: identifier)
     } catch {
       print("[startProvidingItem] error:", error)
       
@@ -131,15 +127,11 @@ class FileProviderExtension: NSFileProviderExtension {
     }
   }
 
-  override func itemChanged(at url: URL) {
+  override func itemChanged (at url: URL) {
     let pathComponents = url.pathComponents
     let identifier = NSFileProviderItemIdentifier(pathComponents[pathComponents.count - 2])
     
-    guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue), FileManager.default.fileExists(atPath: url.path) else {
-      return
-    }
-    
-    guard let parentJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemJSON.parent) else {
+    guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue), FileManager.default.fileExists(atPath: url.path), let parentJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemJSON.parent) else {
       return
     }
     
@@ -159,10 +151,8 @@ class FileProviderExtension: NSFileProviderExtension {
         
         newUUID = result.uuid
         
-        try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
-        try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [newUUID])
         try FileProviderUtils.shared.openDb().run(
-          "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           [
             newUUID,
             parentJSON.uuid,
@@ -187,20 +177,19 @@ class FileProviderExtension: NSFileProviderExtension {
     }
   }
 
-  override func stopProvidingItem(at url: URL) {
-    let pathComponents = url.pathComponents
-    let uuid = pathComponents[pathComponents.count - 2]
-    
+  override func stopProvidingItem (at url: URL) {
     do {
       try FileManager().removeItem(at: url)
       
-      try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [uuid])
+      self.providePlaceholder(at: url, completionHandler: { _ in
+          // Noop
+      })
     } catch let error {
         print("[stopProvidingItem] error: \(error)")
     }
   }
 
-  override func createDirectory(withName directoryName: String, inParentItemIdentifier parentItemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
+  override func createDirectory (withName directoryName: String, inParentItemIdentifier parentItemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
     do {
       guard let parentJSON = FileProviderUtils.shared.getItemFromUUID(uuid: parentItemIdentifier.rawValue) else {
         throw NSFileProviderError(.noSuchItem)
@@ -208,9 +197,8 @@ class FileProviderExtension: NSFileProviderExtension {
       
       let uuid = try await FileProviderUtils.shared.createFolder(name: directoryName, parent: parentJSON.uuid)
       
-      try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [uuid])
       try FileProviderUtils.shared.openDb().run(
-        "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
           uuid,
           parentJSON.uuid,
@@ -254,7 +242,7 @@ class FileProviderExtension: NSFileProviderExtension {
     }
   }
 
-  override func renameItem(withIdentifier itemIdentifier: NSFileProviderItemIdentifier, toName itemName: String) async throws -> NSFileProviderItem {
+  override func renameItem (withIdentifier itemIdentifier: NSFileProviderItemIdentifier, toName itemName: String) async throws -> NSFileProviderItem {
     guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
@@ -315,14 +303,12 @@ class FileProviderExtension: NSFileProviderExtension {
     }
   }
 
-  override func trashItem(withIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
+  override func trashItem (withIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
     guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
     
     try await FileProviderUtils.shared.trashItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
-    
-    try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
     
     return FileProviderItem(
       identifier: itemIdentifier,
@@ -345,16 +331,15 @@ class FileProviderExtension: NSFileProviderExtension {
     )
   }
 
-  override func untrashItem(withIdentifier itemIdentifier: NSFileProviderItemIdentifier, toParentItemIdentifier parentItemIdentifier: NSFileProviderItemIdentifier?) async throws -> NSFileProviderItem {
+  override func untrashItem (withIdentifier itemIdentifier: NSFileProviderItemIdentifier, toParentItemIdentifier parentItemIdentifier: NSFileProviderItemIdentifier?) async throws -> NSFileProviderItem {
     guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
     
     try await FileProviderUtils.shared.restoreItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
     
-    try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
     try FileProviderUtils.shared.openDb().run(
-      "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         itemJSON.uuid,
         itemJSON.parent,
@@ -393,7 +378,7 @@ class FileProviderExtension: NSFileProviderExtension {
     )
   }
 
-  override func deleteItem(withIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws {
+  override func deleteItem (withIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws {
     guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
@@ -403,16 +388,15 @@ class FileProviderExtension: NSFileProviderExtension {
     try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
   }
 
-  override func reparentItem(withIdentifier itemIdentifier: NSFileProviderItemIdentifier, toParentItemWithIdentifier parentItemIdentifier: NSFileProviderItemIdentifier, newName: String?) async throws -> NSFileProviderItem {
+  override func reparentItem (withIdentifier itemIdentifier: NSFileProviderItemIdentifier, toParentItemWithIdentifier parentItemIdentifier: NSFileProviderItemIdentifier, newName: String?) async throws -> NSFileProviderItem {
     guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemIdentifier.rawValue), let parentJSON = FileProviderUtils.shared.getItemFromUUID(uuid: parentItemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
     
     try await FileProviderUtils.shared.moveItem(parent: parentJSON.uuid, item: itemJSON)
     
-    try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
     try FileProviderUtils.shared.openDb().run(
-      "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         itemJSON.uuid,
         parentJSON.uuid,
@@ -451,7 +435,7 @@ class FileProviderExtension: NSFileProviderExtension {
     )
   }
 
-  override func importDocument(at fileURL: URL, toParentItemIdentifier parentItemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
+  override func importDocument (at fileURL: URL, toParentItemIdentifier parentItemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
     guard let parentJSON = FileProviderUtils.shared.getItemFromUUID(uuid: parentItemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
@@ -459,9 +443,8 @@ class FileProviderExtension: NSFileProviderExtension {
     do {
       let result = try await FileProviderUtils.shared.uploadFile(url: fileURL.path, parent: parentJSON.uuid)
       
-      try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [result.uuid])
       try FileProviderUtils.shared.openDb().run(
-        "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
           result.uuid,
           parentJSON.uuid,
@@ -505,7 +488,7 @@ class FileProviderExtension: NSFileProviderExtension {
     }
   }
 
-  override func setFavoriteRank(_ favoriteRank: NSNumber?, forItemIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
+  override func setFavoriteRank (_ favoriteRank: NSNumber?, forItemIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
     guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
@@ -535,7 +518,7 @@ class FileProviderExtension: NSFileProviderExtension {
     return item
   }
 
-  override func setTagData(_ tagData: Data?, forItemIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
+  override func setTagData (_ tagData: Data?, forItemIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
     guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
     }
@@ -565,12 +548,9 @@ class FileProviderExtension: NSFileProviderExtension {
     return item
   }
 
-  override func fetchThumbnails(for itemIdentifiers: [NSFileProviderItemIdentifier], requestedSize size: CGSize, perThumbnailCompletionHandler: @escaping (NSFileProviderItemIdentifier, Data?, Error?) -> Void, completionHandler: @escaping (Error?) -> Void) -> Progress {
+  override func fetchThumbnails (for itemIdentifiers: [NSFileProviderItemIdentifier], requestedSize size: CGSize, perThumbnailCompletionHandler: @escaping (NSFileProviderItemIdentifier, Data?, Error?) -> Void, completionHandler: @escaping (Error?) -> Void) -> Progress {
     autoreleasepool {
       let progress = Progress(totalUnitCount: Int64(itemIdentifiers.count))
-      
-      return progress
-      
       let supportedImageFormats = ["jpg", "jpeg", "png", "gif", "heic", "heif", "webp"]
       let supportedVideoFormats = ["mp4", "mov"]
       let tempURL = NSFileProviderManager.default.documentStorageURL.appendingPathComponent("temp", isDirectory: true)
@@ -587,50 +567,56 @@ class FileProviderExtension: NSFileProviderExtension {
         return progress
       }
       
-      for identifier in itemIdentifiers {
-        guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue), var ext = FileProviderUtils.shared.fileExtension(from: itemJSON.name) else {
-          perThumbnailCompletionHandler(identifier, nil, nil)
-          
-          continue
-        }
-        
-        ext = ext.lowercased()
-        
-        if (!supportedImageFormats.contains(ext) && !supportedVideoFormats.contains(ext)) {
-          perThumbnailCompletionHandler(identifier, nil, nil)
-          
-          continue
-        }
-        
-        let pathForItem = self.urlForItem(withPersistentIdentifier: identifier)
-        
-        do {
-          if let pathForItem = pathForItem {
-            if FileManager.default.fileExists(atPath: pathForItem.path) {
-              progress.completedUnitCount += 1
-              
-              perThumbnailCompletionHandler(identifier, try Data(contentsOf: pathForItem, options: [.alwaysMapped]), nil)
-              
-              if (progress.isFinished) {
-                completionHandler(nil)
-              }
-              
-              continue
-            }
+      Task {
+        for identifier in itemIdentifiers {
+          do {
+            try await self.thumbnailSemaphore.acquire()
+          } catch {
+            print("[fetchThumbnails] error: \(error)")
           }
-        } catch {
-          print("[fetchThumbnails] error: \(error)")
-        }
-        
-        let isImage = supportedImageFormats.contains(ext)
-        let tempFileURL = tempURL.appendingPathComponent("thumbnail_" + UUID().uuidString.lowercased() + "." + itemJSON.uuid + "." + ext, isDirectory: false)
-        
-        Task {
-          self.thumbnailSemaphore.wait()
           
           defer {
-            self.thumbnailSemaphore.signal()
+            self.thumbnailSemaphore.release()
+          }
+          
+          guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue), var ext = FileProviderUtils.shared.fileExtension(from: itemJSON.name) else {
+            perThumbnailCompletionHandler(identifier, nil, nil)
             
+            return
+          }
+          
+          ext = ext.lowercased()
+          
+          if (!supportedImageFormats.contains(ext) && !supportedVideoFormats.contains(ext)) {
+            perThumbnailCompletionHandler(identifier, nil, nil)
+            
+            return
+          }
+          
+          let pathForItem = self.urlForItem(withPersistentIdentifier: identifier)
+          
+          do {
+            if let pathForItem = pathForItem {
+              if FileManager.default.fileExists(atPath: pathForItem.path) {
+                progress.completedUnitCount += 1
+                
+                perThumbnailCompletionHandler(identifier, try Data(contentsOf: pathForItem, options: [.alwaysMapped]), nil)
+                
+                if (progress.isFinished) {
+                  completionHandler(nil)
+                }
+                
+                return
+              }
+            }
+          } catch {
+            print("[fetchThumbnails] error: \(error)")
+          }
+          
+          let isImage = supportedImageFormats.contains(ext)
+          let tempFileURL = tempURL.appendingPathComponent("thumbnail_" + UUID().uuidString.lowercased() + "." + itemJSON.uuid + "." + ext, isDirectory: false)
+          
+          defer {
             do {
               if FileManager.default.fileExists(atPath: tempFileURL.path) {
                 try FileManager.default.removeItem(atPath: tempFileURL.path)
@@ -685,7 +671,7 @@ class FileProviderExtension: NSFileProviderExtension {
     }
   }
   
-  override func enumerator(for containerItemIdentifier: NSFileProviderItemIdentifier) throws -> NSFileProviderEnumerator {
+  override func enumerator (for containerItemIdentifier: NSFileProviderItemIdentifier) throws -> NSFileProviderEnumerator {
     if (!FileProviderUtils.shared.isLoggedIn() || FileProviderUtils.shared.needsFaceID()) {
       throw NSFileProviderError(.notAuthenticated)
     }

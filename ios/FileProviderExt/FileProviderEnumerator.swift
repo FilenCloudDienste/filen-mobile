@@ -54,7 +54,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       
       if let decryptedName = decryptedName {
         try FileProviderUtils.shared.openDb().run(
-          "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           [
             folder.uuid,
             folder.parent,
@@ -158,7 +158,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       
       if let decryptedMetadata = decryptedMetadata {
         try FileProviderUtils.shared.openDb().run(
-          "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           [
             file.uuid,
             file.parent,
@@ -242,7 +242,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         
         if (self.identifier == NSFileProviderItemIdentifier.rootContainer || self.identifier.rawValue == rootFolderUUID || self.identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue) {
           try FileProviderUtils.shared.openDb().run(
-            "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
               rootFolderUUID,
               rootFolderUUID,
@@ -261,7 +261,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           )
           
           try FileProviderUtils.shared.openDb().run(
-            "INSERT OR IGNORE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
               NSFileProviderItemIdentifier.rootContainer.rawValue,
               rootFolderUUID,
