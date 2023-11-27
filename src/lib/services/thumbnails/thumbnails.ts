@@ -1,7 +1,7 @@
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { MAX_THUMBNAIL_ERROR_COUNT } from "../../constants"
 import ImageResizer from "react-native-image-resizer"
-import { downloadFile, getDownloadPath } from "../download"
+import { downloadFile } from "../download"
 import { DeviceEventEmitter } from "react-native"
 import storage from "../../storage"
 import { Item } from "../../../types"
@@ -23,7 +23,7 @@ export const getThumbnailCacheKey = ({
 	const width = 512,
 		height = 512,
 		quality = 80,
-		thumbnailVersion = "2.0.7"
+		thumbnailVersion = "2.0.8"
 	const cacheKey = "thumbnailCache:" + uuid + ":" + width + ":" + height + ":" + quality + ":" + thumbnailVersion
 
 	return {
@@ -60,7 +60,7 @@ export const checkItemThumbnail = ({ item }: { item: Item }): void => {
 		return
 	}
 
-	getDownloadPath({ type: "thumbnail" })
+	fs.getDownloadPath({ type: "thumbnail" })
 		.then(path => {
 			const remove = async () => {
 				delete isCheckingThumbnailForItemUUID[item.uuid]
@@ -322,7 +322,7 @@ export const generateItemThumbnail = async ({
 
 			return false
 		} else {
-			getDownloadPath({ type: "thumbnail" })
+			fs.getDownloadPath({ type: "thumbnail" })
 				.then(async dest => {
 					dest = dest + item.uuid + ".jpg"
 

@@ -44,21 +44,25 @@ class FileProviderUtils {
   
   internal lazy var sessionConfiguration: URLSessionConfiguration = {
     let configuration = URLSessionConfiguration.af.default
+    
     configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
-    configuration.urlCache = nil;
-    configuration.urlCredentialStorage = nil;
+    configuration.urlCache = nil
+    configuration.urlCredentialStorage = nil
     configuration.urlCache = URLCache(memoryCapacity: 0, diskCapacity: 0, diskPath: nil)
+    
     return configuration
   }()
   
   internal lazy var internalSessionManager: Alamofire.Session = {
-    return Alamofire.Session(configuration: sessionConfiguration,
-                             rootQueue: DispatchQueue(label: "org.alamofire.sessionManager.rootQueue"),
-                             startRequestsImmediately: true,
-                             interceptor: nil,
-                             serverTrustManager: nil,
-                             redirectHandler: nil,
-                             cachedResponseHandler: nil)
+    return Alamofire.Session(
+      configuration: sessionConfiguration,
+      rootQueue: DispatchQueue(label: "org.alamofire.sessionManager.rootQueue"),
+      startRequestsImmediately: true,
+      interceptor: nil,
+      serverTrustManager: nil,
+      redirectHandler: nil,
+      cachedResponseHandler: nil
+    )
   }()
   
   public var sessionManager: Alamofire.Session {

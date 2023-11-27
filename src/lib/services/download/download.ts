@@ -21,104 +21,6 @@ const downloadWriteThreadsSemaphore = new Semaphore(256)
 const currentDownloads: Record<string, boolean> = {}
 const addDownloadMutex = new Semaphore(1)
 
-export const getDownloadPath = async ({ type = "temp" }: { type: string }): Promise<string> => {
-	if (Platform.OS == "android") {
-		if (type == "temp") {
-			return fs.cacheDirectory.endsWith("/") ? fs.cacheDirectory : fs.cacheDirectory + "/"
-		} else if (type == "thumbnail") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "thumbnailCache"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "offline") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "offlineFiles"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "misc") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "misc"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "cachedDownloads") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "cachedDownloads"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "download") {
-			return ReactNativeBlobUtil.fs.dirs.DownloadDir + "/"
-		} else if (type == "node") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "node"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "db") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "db"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		}
-	} else {
-		if (type == "temp") {
-			return fs.cacheDirectory.endsWith("/") ? fs.cacheDirectory : fs.cacheDirectory + "/"
-		} else if (type == "thumbnail") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "thumbnailCache"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "offline") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "offlineFiles"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "misc") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "misc"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "cachedDownloads") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "cachedDownloads"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "download") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "Downloads"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		} else if (type == "db") {
-			const root = fs.documentDirectory.endsWith("/") ? fs.documentDirectory : fs.documentDirectory + "/"
-			const path = root + "db"
-
-			await fs.mkdir(path, true)
-
-			return path + "/"
-		}
-	}
-}
-
 export interface QueueFileDownload {
 	file: Item
 	storeOffline?: boolean
@@ -154,7 +56,7 @@ export const queueFileDownload = async ({
 
 	if (typeof saveToGalleryCallback == "function") {
 		try {
-			const offlinePath = await getDownloadPath({ type: "offline" })
+			const offlinePath = await fs.getDownloadPath({ type: "offline" })
 
 			if ((await fs.stat(getItemOfflinePath(offlinePath, file))).exists) {
 				callOptionalCallback(null, getItemOfflinePath(offlinePath, file))
@@ -196,7 +98,7 @@ export const queueFileDownload = async ({
 	}
 
 	try {
-		var downloadPath = await getDownloadPath({ type: storeOffline ? "offline" : "download" })
+		var downloadPath = await fs.getDownloadPath({ type: storeOffline ? "offline" : "download" })
 	} catch (e) {
 		console.error(e)
 
@@ -382,7 +284,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks
 	memoryCache.set("showDownloadProgress:" + file.uuid, showProgress)
 
 	return new Promise((resolve, reject) => {
-		getDownloadPath({ type: "cachedDownloads" })
+		fs.getDownloadPath({ type: "cachedDownloads" })
 			.then(async cachedDownloadsPath => {
 				try {
 					if ((await DeviceInfo.getFreeDiskStorage()) < MB * 256 + file.size) {
@@ -407,7 +309,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks
 					})
 				}
 
-				const tmpPath = fs.cacheDirectory.split("file://").join("") + randomIdUnsafe() + file.uuid + "." + getFileExt(file.name)
+				const tmpPath = fs.cacheDirectory().split("file://").join("") + randomIdUnsafe() + file.uuid + "." + getFileExt(file.name)
 				let currentWriteIndex = 0
 				let didStop = false
 				let paused = false
@@ -466,7 +368,7 @@ export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks
 						}
 
 						const destPath =
-							fs.cacheDirectory.split("file://").join("") + randomIdUnsafe() + "." + file.uuid + ".chunk." + index
+							fs.cacheDirectory().split("file://").join("") + randomIdUnsafe() + "." + file.uuid + ".chunk." + index
 
 						global.nodeThread
 							.downloadDecryptAndWriteFileChunk({

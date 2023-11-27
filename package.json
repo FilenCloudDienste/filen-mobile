@@ -55,7 +55,7 @@
 		"react-dom": "^18.2.0",
 		"react-native": "^0.71.13",
 		"react-native-actions-sheet": "^0.8.29",
-		"react-native-blob-util": "^0.19.1",
+		"react-native-blob-util": "^0.19.4",
 		"react-native-cn-quill": "^0.7.18",
 		"react-native-device-info": "8.4.8",
 		"react-native-dialog": "^9.3.0",

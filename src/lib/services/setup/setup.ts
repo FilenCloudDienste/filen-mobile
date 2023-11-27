@@ -2,7 +2,6 @@ import { updateKeys } from "../user/keys"
 import { apiRequest } from "../../api"
 import { promiseAllSettled, toExpoFsPath } from "../../helpers"
 import storage from "../../storage"
-import { getDownloadPath } from "../download/download"
 import { showToast } from "../../../components/Toasts"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { getOfflineList, removeItemFromOfflineList } from "../offline"
@@ -38,7 +37,7 @@ export const canDelete = (name: string): boolean => {
 export const checkOfflineItems = async (): Promise<void> => {
 	const deletePromises = []
 
-	let [list, offlinePath] = await Promise.all([getOfflineList(), getDownloadPath({ type: "offline" })])
+	let [list, offlinePath] = await Promise.all([getOfflineList(), fs.getDownloadPath({ type: "offline" })])
 
 	offlinePath = offlinePath.slice(0, -1)
 
@@ -125,7 +124,7 @@ export const clearCacheDirectories = async (): Promise<void> => {
 	preloadAvatar().catch(console.error)
 
 	const deletePromises = []
-	const cachedDownloadsPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
+	const cachedDownloadsPath = (await fs.getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
 	const cacheDownloadsItems = await fs.readDirectory(cachedDownloadsPath)
 
 	for (let i = 0; i < cacheDownloadsItems.length; i++) {
@@ -139,7 +138,7 @@ export const clearCacheDirectories = async (): Promise<void> => {
 	}
 
 	if (fs.cacheDirectory) {
-		const cachePath = fs.cacheDirectory.indexOf("file://") == -1 ? "file://" + fs.cacheDirectory : fs.cacheDirectory
+		const cachePath = fs.cacheDirectory().indexOf("file://") == -1 ? "file://" + fs.cacheDirectory() : fs.cacheDirectory()
 		const cacheItems = await fs.readDirectory(cachePath)
 
 		for (let i = 0; i < cacheItems.length; i++) {
@@ -153,7 +152,7 @@ export const clearCacheDirectories = async (): Promise<void> => {
 		}
 	}
 
-	const tmpPath = (await getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
+	const tmpPath = (await fs.getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
 	const tmpItems = await fs.readDirectory(tmpPath)
 
 	for (let i = 0; i < tmpItems.length; i++) {
@@ -166,7 +165,7 @@ export const clearCacheDirectories = async (): Promise<void> => {
 		}
 	}
 
-	const tempPath = (await getDownloadPath({ type: "temp" })).slice(0, -1)
+	const tempPath = (await fs.getDownloadPath({ type: "temp" })).slice(0, -1)
 	const tempItems = await fs.readDirectory(tempPath)
 
 	for (let i = 0; i < tempItems.length; i++) {
@@ -195,7 +194,7 @@ export const preloadAvatar = async (): Promise<void> => {
 		return
 	}
 
-	const miscPath = await getDownloadPath({ type: "misc" })
+	const miscPath = await fs.getDownloadPath({ type: "misc" })
 	const avatarPath = miscPath + userAvatarCached
 	const stat = await fs.stat(avatarPath)
 

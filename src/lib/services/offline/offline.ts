@@ -1,5 +1,5 @@
 import storage from "../../storage"
-import { getDownloadPath, queueFileDownload } from "../download/download"
+import { queueFileDownload } from "../download/download"
 import { getFileExt, getMasterKeys, simpleDate } from "../../helpers"
 import { DeviceEventEmitter } from "react-native"
 import { Item } from "../../../types"
@@ -120,7 +120,7 @@ export const getItemOfflinePath = (offlinePath: string, item: Item): string => {
 }
 
 export const removeFromOfflineStorage = async ({ item }: { item: Item }): Promise<boolean> => {
-	const path = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
+	const path = getItemOfflinePath(await fs.getDownloadPath({ type: "offline" }), item)
 
 	try {
 		if ((await fs.stat(path)).exists) {

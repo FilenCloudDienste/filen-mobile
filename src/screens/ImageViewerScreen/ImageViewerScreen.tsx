@@ -13,12 +13,11 @@ import {
 } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
-import { downloadFile, getDownloadPath } from "../../lib/services/download/download"
+import { downloadFile } from "../../lib/services/download/download"
 import { navigationAnimation } from "../../lib/state"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useMountedState } from "react-use"
 import { generateItemThumbnail } from "../../lib/services/thumbnails"
-import { convertHeic } from "../../lib/services/items"
 import { getImageForItem } from "../../assets/thumbnails"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
@@ -163,7 +162,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 		}
 
 		try {
-			const offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), image.file)
+			const offlinePath = getItemOfflinePath(await fs.getDownloadPath({ type: "offline" }), image.file)
 
 			if ((await fs.stat(offlinePath)).exists) {
 				if (!isMounted()) {

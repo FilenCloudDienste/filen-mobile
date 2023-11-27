@@ -5,7 +5,6 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
 import { showToast } from "../../components/Toasts"
 import * as fs from "../../lib/fs"
-import { getDownloadPath } from "../../lib/services/download/download"
 import { queueFileUpload } from "../../lib/services/upload/upload"
 import { useStore } from "../../lib/state"
 import { getColor } from "../../style/colors"
@@ -314,7 +313,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 
 		navigation.goBack()
 
-		getDownloadPath({ type: "temp" }).then(async path => {
+		fs.getDownloadPath({ type: "temp" }).then(async path => {
 			path = path + fileName
 
 			try {

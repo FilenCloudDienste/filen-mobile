@@ -12,7 +12,6 @@ import { showToast } from "../../../components/Toasts"
 import storage from "../../storage"
 import { i18n } from "../../../i18n"
 import { DeviceEventEmitter } from "react-native"
-import { getDownloadPath } from "../download/download"
 import { buildFile } from "../items"
 import ImageResizer from "react-native-image-resizer"
 import memoryCache from "../../memoryCache"
@@ -277,7 +276,7 @@ export const queueFileUpload = ({
 				if (canCompressThumbnailLocally(getFileExt(name))) {
 					try {
 						await new Promise<void>(resolve => {
-							getDownloadPath({ type: "thumbnail" })
+							fs.getDownloadPath({ type: "thumbnail" })
 								.then(async dest => {
 									dest = dest + uuid + ".jpg"
 

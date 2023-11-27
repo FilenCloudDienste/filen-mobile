@@ -2,16 +2,8 @@ import React, { useState, useEffect, memo, useCallback } from "react"
 import { View, Text, Platform, TouchableOpacity } from "react-native"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
-import {
-	getParent,
-	getFilenameFromPath,
-	getRouteURL,
-	promiseAllSettled,
-	randomIdUnsafe,
-	safeAwait
-} from "../../../lib/helpers"
+import { getParent, getFilenameFromPath, getRouteURL, promiseAllSettled, randomIdUnsafe, safeAwait } from "../../../lib/helpers"
 import { i18n } from "../../../i18n"
-import { getDownloadPath } from "../../../lib/services/download/download"
 import { queueFileUpload } from "../../../lib/services/upload/upload"
 import mime from "mime-types"
 import { hasStoragePermissions } from "../../../lib/permissions"
@@ -67,11 +59,9 @@ const UploadToast = memo(() => {
 			return
 		}
 
-		const copyFile = (
-			item: string
-		): Promise<{ path: string; ext: string; type: string; size: number; name: string }> => {
+		const copyFile = (item: string): Promise<{ path: string; ext: string; type: string; size: number; name: string }> => {
 			return new Promise((resolve, reject) => {
-				getDownloadPath({ type: "temp" })
+				fs.getDownloadPath({ type: "temp" })
 					.then(path => {
 						path = path + randomIdUnsafe()
 

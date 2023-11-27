@@ -6,7 +6,6 @@ import { i18n } from "../../i18n"
 import { SettingsGroup, SettingsButtonLinkHighlight } from "../SettingsScreen/SettingsScreen"
 import { useStore } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
-import { getDownloadPath } from "../../lib/services/download/download"
 import DeviceInfo from "react-native-device-info"
 import { formatBytes } from "../../lib/helpers"
 import memoryCache from "../../lib/memoryCache"
@@ -62,11 +61,11 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
 		setIsCalculatingFolderSizes(true)
 
 		try {
-			const thumbnailCachePath = await getDownloadPath({ type: "thumbnail" })
+			const thumbnailCachePath = await fs.getDownloadPath({ type: "thumbnail" })
 
 			const [thumbnailCacheSize, cachesSize] = await Promise.all([
 				calculateFolderSize(thumbnailCachePath),
-				calculateFolderSize(fs.cacheDirectory as string)
+				calculateFolderSize(fs.cacheDirectory())
 			])
 
 			setThumbnailCacheLocalFolderSize(thumbnailCacheSize)
@@ -102,9 +101,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
 				<SettingsGroup marginTop={5}>
 					<SettingsButtonLinkHighlight
 						title={i18n(lang, "clearThumbnailCache")}
-						rightText={
-							isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(thumbnailCacheLocalFolderSize)
-						}
+						rightText={isCalculatingFolderSizes ? "ActivityIndicator" : formatBytes(thumbnailCacheLocalFolderSize)}
 						borderTopRadius={10}
 						withBottomBorder={true}
 						onPress={() => {
@@ -156,9 +153,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
 															})
 
 															try {
-																const tempPath = await getDownloadPath({
-																	type: "thumbnail"
-																})
+																const tempPath = await fs.getDownloadPath({ type: "thumbnail" })
 																var dirList = await fs.readDirectory(tempPath)
 
 																for (let i = 0; i < dirList.length; i++) {

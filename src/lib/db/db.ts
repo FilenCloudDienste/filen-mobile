@@ -5,7 +5,6 @@ import { Semaphore } from "../helpers"
 import storage from "../storage"
 import { memoize } from "lodash"
 import * as fs from "../fs"
-import { getDownloadPath } from "../services/download"
 import memoryCache from "../memoryCache"
 
 SQLite.enablePromise(true)
@@ -115,7 +114,7 @@ export const dbFs = {
 		}
 
 		const keyHashed = await hashDbFsKey(key)
-		const path = (await getDownloadPath({ type: "db" })) + keyHashed
+		const path = (await fs.getDownloadPath({ type: "db" })) + keyHashed
 		const stat = await fs.stat(path)
 
 		if (!stat.exists) {
@@ -138,7 +137,7 @@ export const dbFs = {
 	},
 	set: async (key: string, value: any) => {
 		const keyHashed = await hashDbFsKey(key)
-		const path = (await getDownloadPath({ type: "db" })) + keyHashed
+		const path = (await fs.getDownloadPath({ type: "db" })) + keyHashed
 
 		await fs.writeAsString(
 			path,
@@ -159,7 +158,7 @@ export const dbFs = {
 		}
 
 		const keyHashed = await hashDbFsKey(key)
-		const path = (await getDownloadPath({ type: "db" })) + keyHashed
+		const path = (await fs.getDownloadPath({ type: "db" })) + keyHashed
 		const stat = await fs.stat(path)
 
 		if (!stat.exists) {
@@ -170,7 +169,7 @@ export const dbFs = {
 	},
 	remove: async (key: string) => {
 		const keyHashed = await hashDbFsKey(key)
-		const path = (await getDownloadPath({ type: "db" })) + keyHashed
+		const path = (await fs.getDownloadPath({ type: "db" })) + keyHashed
 		const stat = await fs.stat(path)
 
 		if (!stat.exists) {
@@ -184,7 +183,7 @@ export const dbFs = {
 		}
 	},
 	warmUp: async () => {
-		const path = await getDownloadPath({ type: "db" })
+		const path = await fs.getDownloadPath({ type: "db" })
 		const dir = await fs.readDirectory(path)
 		const keyHashed = await hashDbFsKey("warmUp")
 

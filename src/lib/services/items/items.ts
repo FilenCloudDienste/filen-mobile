@@ -12,7 +12,7 @@ import {
 	getParent,
 	Semaphore
 } from "../../helpers"
-import { getDownloadPath, queueFileDownload } from "../download/download"
+import { queueFileDownload } from "../download/download"
 import * as fs from "../../fs"
 import { DeviceEventEmitter } from "react-native"
 import { useStore } from "../../state"
@@ -465,7 +465,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 				)
 			}
 		} else if (url.indexOf("offline") !== -1) {
-			const [list, offlinePath] = await Promise.all([getOfflineList(), getDownloadPath({ type: "offline" })])
+			const [list, offlinePath] = await Promise.all([getOfflineList(), fs.getDownloadPath({ type: "offline" })])
 
 			for (let file of list) {
 				file.offline = true
@@ -676,7 +676,7 @@ export const previewItem = async ({
 	let offlinePath = ""
 
 	try {
-		offlinePath = getItemOfflinePath(await getDownloadPath({ type: "offline" }), item)
+		offlinePath = getItemOfflinePath(await fs.getDownloadPath({ type: "offline" }), item)
 
 		if ((await fs.stat(offlinePath)).exists) {
 			existsOffline = true
@@ -849,7 +849,7 @@ export const previewItem = async ({
 }
 
 export const convertHeic = async (item: Item, path: string): Promise<string> => {
-	const tmpPath = await getDownloadPath({ type: "temp" })
+	const tmpPath = await fs.getDownloadPath({ type: "temp" })
 	const outputPath: string = tmpPath + item.uuid + "_convertHeic.jpg"
 
 	try {

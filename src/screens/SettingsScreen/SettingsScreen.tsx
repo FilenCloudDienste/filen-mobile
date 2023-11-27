@@ -23,7 +23,6 @@ import { showToast } from "../../components/Toasts"
 import { getColor } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
 import * as fs from "../../lib/fs"
-import { getDownloadPath } from "../../lib/services/download/download"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../lib/permissions"
 import { SheetManager } from "react-native-actions-sheet"
 import { setStatusBarStyle } from "../../lib/statusbar"
@@ -319,7 +318,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 								return
 							}
 
-							getDownloadPath({ type: "misc" })
+							fs.getDownloadPath({ type: "misc" })
 								.then(async path => {
 									const avatarPath = path + avatarName
 
@@ -355,7 +354,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 				} else {
 					if (typeof userAvatarCached == "string") {
 						if (userAvatarCached.length > 4) {
-							getDownloadPath({ type: "misc" })
+							fs.getDownloadPath({ type: "misc" })
 								.then(path => {
 									const avatarPath = path + userAvatarCached
 

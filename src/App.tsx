@@ -63,7 +63,6 @@ import { Asset } from "./screens/SelectMediaScreen/SelectMediaScreen"
 import { getAssetURI, getLastModified, convertHeicToJPGIOS, compressImage, compressableImageExts } from "./lib/services/cameraUpload"
 import { queueFileUpload } from "./lib/services/upload"
 import * as fs from "./lib/fs"
-import { getDownloadPath } from "./lib/services/download"
 import mimeTypes from "mime-types"
 import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "./components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import { getCfg } from "./lib/api"
@@ -407,7 +406,7 @@ export const App = Sentry.wrap(
 
 						for (let i = 0; i < assets.length; i++) {
 							const assetURI = await getAssetURI(assets[i].asset)
-							const tmp = (await getDownloadPath({ type: "temp" })).slice(0, -1)
+							const tmp = (await fs.getDownloadPath({ type: "temp" })).slice(0, -1)
 							const tmpPath = tmp + "/" + (await generateRandomString(16)) + assets[i].asset.filename
 
 							await fs.copy(assetURI, tmpPath)

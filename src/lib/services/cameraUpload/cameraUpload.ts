@@ -15,13 +15,7 @@ import { folderPresent, apiRequest } from "../../api"
 import * as MediaLibrary from "expo-media-library"
 import mimeTypes from "mime-types"
 import RNHeicConverter from "react-native-heic-converter"
-import {
-	hasPhotoLibraryPermissions,
-	hasReadPermissions,
-	hasWritePermissions,
-	hasStoragePermissions,
-	hasNotificationPermissions
-} from "../../permissions"
+import { hasPhotoLibraryPermissions, hasReadPermissions, hasWritePermissions, hasStoragePermissions } from "../../permissions"
 import { isOnline, isWifi } from "../isOnline"
 import { MAX_CAMERA_UPLOAD_QUEUE } from "../../constants"
 import pathModule from "path"
@@ -32,8 +26,6 @@ import { decryptFileMetadata } from "../../crypto"
 import * as fs from "../../fs"
 import * as db from "../../db"
 import ImageResizer from "react-native-image-resizer"
-import notifee, { AndroidImportance } from "@notifee/react-native"
-import { i18n } from "../../../i18n"
 import eventListener from "../../../lib/eventListener"
 
 const CryptoJS = require("crypto-js")
@@ -464,7 +456,7 @@ export const convertHeicToJPGIOS = async (inputPath: string) => {
 		throw new Error("Could not convert " + inputPath + " from HEIC to JPG")
 	}
 
-	if (inputPath.includes(fs.documentDirectory) || inputPath.includes(fs.cacheDirectory)) {
+	if (inputPath.includes(fs.documentDirectory()) || inputPath.includes(fs.cacheDirectory())) {
 		try {
 			if ((await fs.stat(inputPath)).exists) {
 				await fs.unlink(inputPath)
@@ -510,7 +502,7 @@ export const compressImage = async (inputPath: string) => {
 			return inputPath
 		}
 
-		if (inputPath.includes(fs.documentDirectory) || inputPath.includes(fs.cacheDirectory)) {
+		if (inputPath.includes(fs.documentDirectory()) || inputPath.includes(fs.cacheDirectory())) {
 			await fs.unlink(inputPath)
 		}
 
@@ -534,7 +526,7 @@ export const copyFile = async (asset: MediaLibrary.Asset, assetURI: string, tmp:
 		name = getFileExt(assetURI) !== getFileExt(assetURIBefore) ? parsedName.name + ".JPG" : name
 	}
 
-	if (tmp.includes(fs.documentDirectory) || tmp.includes(fs.cacheDirectory)) {
+	if (tmp.includes(fs.documentDirectory()) || tmp.includes(fs.cacheDirectory())) {
 		try {
 			if ((await fs.stat(tmp)).exists) {
 				await fs.unlink(tmp)
@@ -595,7 +587,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 		}
 
 		if (Platform.OS == "ios" && !originalKept) {
-			const exportedAssets = await exportPhotoAssets([asset.id], fs.cacheDirectory!.substring(8), tmpPrefix, true, false)
+			const exportedAssets = await exportPhotoAssets([asset.id], fs.cacheDirectory().substring(8), tmpPrefix, true, false)
 
 			if (exportedAssets.error && exportedAssets.error.length > 0) {
 				getFilesMutex.release()
@@ -612,7 +604,8 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 					cameraUploadConvertLiveAndBurst &&
 					isConvertedLivePhoto &&
 					!resource.localFileLocations.toLowerCase().endsWith(".mov") &&
-					(resource.localFileLocations.includes(fs.documentDirectory) || resource.localFileLocations.includes(fs.cacheDirectory))
+					(resource.localFileLocations.includes(fs.documentDirectory()) ||
+						resource.localFileLocations.includes(fs.cacheDirectory()))
 				) {
 					// Don't upload the original of a live photo if we do not want to keep it aswell
 					await fs.unlink(resource.localFileLocations).catch(console.error)
@@ -622,7 +615,8 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 
 				if (
 					resource.localFileLocations.toLowerCase().indexOf("penultimate") !== -1 &&
-					(resource.localFileLocations.includes(fs.documentDirectory) || resource.localFileLocations.includes(fs.cacheDirectory))
+					(resource.localFileLocations.includes(fs.documentDirectory()) ||
+						resource.localFileLocations.includes(fs.cacheDirectory()))
 				) {
 					await fs.unlink(resource.localFileLocations).catch(console.error)
 
@@ -639,8 +633,8 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 					const convertedPath = await convertHeicToJPGIOS(resource.localFileLocations)
 
 					if (
-						resource.localFileLocations.includes(fs.documentDirectory) ||
-						resource.localFileLocations.includes(fs.cacheDirectory)
+						resource.localFileLocations.includes(fs.documentDirectory()) ||
+						resource.localFileLocations.includes(fs.cacheDirectory())
 					) {
 						await fs.unlink(resource.localFileLocations).catch(console.error)
 					}
@@ -978,7 +972,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 					isCameraUpload: true
 				}).catch(console.error)
 
-				if (file.path.includes(fs.documentDirectory) || file.path.includes(fs.cacheDirectory)) {
+				if (file.path.includes(fs.documentDirectory()) || file.path.includes(fs.cacheDirectory())) {
 					await fs.unlink(file.path).catch(console.error)
 				}
 			}
