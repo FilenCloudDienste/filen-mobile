@@ -440,5 +440,9 @@ export const en: {
 	permissionsNotificationsMessage: "Filen requires notification permissions to operate properly.",
 	cameraUploadNotificationTitle: "Camera upload running",
 	uploadNotificationTitle: "Uploading files",
-	downloadNotificationTitle: "Downloading files"
+	downloadNotificationTitle: "Downloading files",
+	chats: "Chats",
+	notes: "Notes",
+	contacts: "Contacts",
+	search: "Search.."
 }

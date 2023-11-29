@@ -1020,14 +1020,14 @@ const convertHeic = (input, output, format) => {
 }
 
 /*rn_bridge.app.on("pause", (pauseLock) => {
-    new Promise((resolve, _) => {
+    new Promise((resolve) => {
         const wait = setInterval(() => {
             if(tasksRunning <= 0){
                 clearInterval(wait)
     
-                return resolve()
+                resolve()
             }
-        }, 100)
+        }, 1)
     }).then(() => {
         pauseLock.release()
     })

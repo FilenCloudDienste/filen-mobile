@@ -70,6 +70,10 @@ import { ICFG } from "./types"
 import Announcements from "./components/Announcements"
 import { SheetProvider } from "react-native-actions-sheet"
 import notifee, { EventType, InitialNotification } from "@notifee/react-native"
+import ContactsScreen from "./screens/ContactsScreen"
+import NotesScreen from "./screens/NotesScreen"
+import ChatsScreen from "./screens/ChatsScreen"
+import NoteScreen from "./screens/NotesScreen/NoteScreen"
 
 enableScreens(true)
 
@@ -328,6 +332,8 @@ export const App = Sentry.wrap(
 		useEffect(() => {
 			const appStateListener = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
 				setAppState(nextAppState)
+
+				console.log("appstate", nextAppState)
 
 				await isNavReady(navigationRef)
 
@@ -717,6 +723,38 @@ export const App = Sentry.wrap(
 													presentation: Platform.OS == "ios" ? "modal" : undefined
 												}}
 											/>
+											<Stack.Screen
+												name="ContactsScreen"
+												component={ContactsScreen}
+												options={{
+													title: "ContactsScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="NotesScreen"
+												component={NotesScreen}
+												options={{
+													title: "NotesScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="ChatsScreen"
+												component={ChatsScreen}
+												options={{
+													title: "ChatsScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="NoteScreen"
+												component={NoteScreen}
+												options={{
+													title: "NoteScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
 										</Stack.Navigator>
 										{typeof cfg !== "undefined" &&
 											setupDone &&
@@ -741,6 +779,10 @@ export const App = Sentry.wrap(
 												"InviteScreen",
 												"TwoFactorScreen",
 												"ChangeEmailPasswordScreen",
+												"ChatsScreen",
+												"NotesScreen",
+												"ContactsScreen",
+												"NoteScreen",
 												...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
 											].includes(currentScreenName) && (
 												<View

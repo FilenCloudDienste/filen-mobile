@@ -316,7 +316,7 @@ class FileProviderUtils {
     }
     
     let encryptedName = try FilenCrypto.shared.encryptFolderName(name: FolderMetadata(name: name), masterKeys: masterKeys)
-    let nameHashed = try FilenCrypto.shared.hashFn(message: name)
+    let nameHashed = try FilenCrypto.shared.hashFn(message: name.lowercased())
     
     let uuid = UUID().uuidString.lowercased()
     
@@ -361,7 +361,7 @@ class FileProviderUtils {
     }
     
     let encryptedName = try FilenCrypto.shared.encryptFolderName(name: FolderMetadata(name: toName), masterKeys: masterKeys)
-    let nameHashed = try FilenCrypto.shared.hashFn(message: toName)
+    let nameHashed = try FilenCrypto.shared.hashFn(message: toName.lowercased())
     
     let response: BaseAPIResponse = try await self.apiRequest(
       endpoint: "/v3/dir/rename",
@@ -404,7 +404,7 @@ class FileProviderUtils {
     )
     
     let encryptedName = try FilenCrypto.shared.encryptFileName(name: metadata.name, fileKey: metadata.key)
-    let nameHashed = try FilenCrypto.shared.hashFn(message: metadata.name)
+    let nameHashed = try FilenCrypto.shared.hashFn(message: metadata.name.lowercased())
     
     let response: BaseAPIResponse = try await self.apiRequest(
       endpoint: "/v3/file/rename",
@@ -682,7 +682,7 @@ class FileProviderUtils {
     let uploadKey = try FilenCrypto.shared.generateRandomString(length: 32)
     let nameEnc = try FilenCrypto.shared.encryptMetadata(metadata: fileName, key: key)
     let mimeEnc = try FilenCrypto.shared.encryptMetadata(metadata: mimeType, key: key)
-    let nameHashed = try FilenCrypto.shared.hashFn(message: fileName)
+    let nameHashed = try FilenCrypto.shared.hashFn(message: fileName.lowercased())
     let sizeEnc = try FilenCrypto.shared.encryptMetadata(metadata: String(fileSize), key: key)
     let metadata = try FilenCrypto.shared.encryptMetadata(metadata: metadataJSONString, key: lastMasterKey)
     

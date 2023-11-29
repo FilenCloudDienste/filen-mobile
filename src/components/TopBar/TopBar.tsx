@@ -1,14 +1,5 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
-import {
-	Text,
-	View,
-	TextInput,
-	TouchableOpacity,
-	DeviceEventEmitter,
-	Keyboard,
-	Platform,
-	useWindowDimensions
-} from "react-native"
+import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform, useWindowDimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVString, useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
@@ -34,22 +25,25 @@ export interface TopBarProps {
 export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSearchTerm }: TopBarProps) => {
 	const getTopBarTitle = useCallback(
 		({ route, lang = "en" }: { route: any; lang: string | undefined }): string => {
-			let title: string = "Cloud"
-			const parent: string = getParent(route)
-			const routeURL: string = getRouteURL(route)
+			let title = "Cloud"
+			const parent = getParent(route)
+			const routeURL = getRouteURL(route)
 
-			const isMainScreen: boolean = route.name == "MainScreen"
-			const isTransfersScreen: boolean = route.name == "TransfersScreen"
-			const isSettingsScreen: boolean = route.name == "SettingsScreen"
-			const isBaseScreen: boolean = parent.indexOf("base") !== -1
-			const isRecentsScreen: boolean = parent.indexOf("recents") !== -1
-			const isTrashScreen: boolean = parent.indexOf("trash") !== -1
-			const isSharedInScreen: boolean = parent.indexOf("shared-in") !== -1
-			const isSharedOutScreen: boolean = parent.indexOf("shared-out") !== -1
-			const isPublicLinksScreen: boolean = parent.indexOf("links") !== -1
-			const isOfflineScreen: boolean = parent.indexOf("offline") !== -1
-			const isFavoritesScreen: boolean = parent.indexOf("favorites") !== -1
-			const isPhotosScreen: boolean = parent.indexOf("photos") !== -1
+			const isMainScreen = route.name && route.name === "MainScreen"
+			const isTransfersScreen = route.name && route.name === "TransfersScreen"
+			const isSettingsScreen = route.name && route.name === "SettingsScreen"
+			const isBaseScreen = parent.indexOf("base") !== -1
+			const isRecentsScreen = parent.indexOf("recents") !== -1
+			const isTrashScreen = parent.indexOf("trash") !== -1
+			const isSharedInScreen = parent.indexOf("shared-in") !== -1
+			const isSharedOutScreen = parent.indexOf("shared-out") !== -1
+			const isPublicLinksScreen = parent.indexOf("links") !== -1
+			const isOfflineScreen = parent.indexOf("offline") !== -1
+			const isFavoritesScreen = parent.indexOf("favorites") !== -1
+			const isPhotosScreen = parent.indexOf("photos") !== -1
+			const isChatsScreen = route.name && route.name.indexOf("Chat") !== -1
+			const isNotesScreen = route.name && route.name.indexOf("Note") !== -1
+			const isContactsScreen = route.name && route.name.indexOf("Contact") !== -1
 
 			if (isTransfersScreen) {
 				title = i18n(lang, "transfers")
@@ -71,8 +65,14 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 				title = i18n(lang, "home")
 			} else if (isPhotosScreen) {
 				title = i18n(lang, "photos")
+			} else if (isChatsScreen) {
+				title = i18n(lang, "chats")
+			} else if (isNotesScreen) {
+				title = i18n(lang, "notes")
+			} else if (isContactsScreen) {
+				title = i18n(lang, "contacts")
 			} else {
-				if (parent == "base") {
+				if (parent === "base") {
 					title = i18n(lang, "cloud")
 				} else {
 					if (routeURL.split("/").length - 1 > 0) {
@@ -105,14 +105,14 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 	const [hideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 
 	const [parent, routeURL] = useMemo(() => {
-		const parent: string = getParent(route)
-		const routeURL: string = getRouteURL(route)
+		const parent = getParent(route)
+		const routeURL = getRouteURL(route)
 
 		return [parent, routeURL]
 	}, [route])
 
-	const homeTabBarTextMaxWidth: number = useMemo(() => {
-		let tabs: number = 5
+	const homeTabBarTextMaxWidth = useMemo(() => {
+		let tabs = 5
 
 		if (hideRecents) {
 			tabs -= 1
@@ -121,12 +121,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 		if (typeof privateKey !== "string" && typeof publicKey !== "string") {
 			tabs -= 2
 		} else {
-			if (
-				typeof privateKey == "string" &&
-				typeof publicKey == "string" &&
-				privateKey.length < 16 &&
-				publicKey.length < 16
-			) {
+			if (typeof privateKey === "string" && typeof publicKey === "string" && privateKey.length < 16 && publicKey.length < 16) {
 				tabs -= 2
 			}
 		}
@@ -148,29 +143,30 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 		isFavoritesScreen,
 		isPhotosScreen,
 		showHomeTabBar,
-		showBackButton
+		showBackButton,
+		isChatsScreen,
+		isNotesScreen,
+		isContactsScreen
 	] = useMemo(() => {
-		const isMainScreen: boolean = route.name == "MainScreen"
-		const isTransfersScreen: boolean = route.name == "TransfersScreen"
-		const isSettingsScreen: boolean = route.name == "SettingsScreen"
-		const isBaseScreen: boolean = parent.indexOf("base") !== -1
-		const isRecentsScreen: boolean = parent.indexOf("recents") !== -1
-		const isTrashScreen: boolean = parent.indexOf("trash") !== -1
-		const isSharedInScreen: boolean = parent.indexOf("shared-in") !== -1
-		const isSharedOutScreen: boolean = parent.indexOf("shared-out") !== -1
-		const isPublicLinksScreen: boolean = parent.indexOf("links") !== -1
-		const isOfflineScreen: boolean = parent.indexOf("offline") !== -1
-		const isFavoritesScreen: boolean = parent.indexOf("favorites") !== -1
-		const isPhotosScreen: boolean = parent.indexOf("photos") !== -1
-		const showHomeTabBar: boolean = [
-			"shared-in",
-			"shared-out",
-			"links",
-			"recents",
-			"offline",
-			"favorites"
-		].includes(parent)
-		let showBackButton: boolean =
+		const isMainScreen = route.name && route.name === "MainScreen"
+		const isTransfersScreen = route.name && route.name === "TransfersScreen"
+		const isSettingsScreen = route.name && route.name === "SettingsScreen"
+		const isBaseScreen = parent.indexOf("base") !== -1
+		const isRecentsScreen = parent.indexOf("recents") !== -1
+		const isTrashScreen = parent.indexOf("trash") !== -1
+		const isSharedInScreen = parent.indexOf("shared-in") !== -1
+		const isSharedOutScreen = parent.indexOf("shared-out") !== -1
+		const isPublicLinksScreen = parent.indexOf("links") !== -1
+		const isOfflineScreen = parent.indexOf("offline") !== -1
+		const isFavoritesScreen = parent.indexOf("favorites") !== -1
+		const isPhotosScreen = parent.indexOf("photos") !== -1
+		const isChatsScreen = route.name && route.name.indexOf("Chat") !== -1
+		const isNotesScreen = route.name && route.name.indexOf("Note") !== -1
+		const isContactsScreen = route.name && route.name.indexOf("Contact") !== -1
+
+		const showHomeTabBar = ["shared-in", "shared-out", "links", "recents", "offline", "favorites"].includes(parent)
+
+		let showBackButton =
 			typeof route.params !== "undefined" &&
 			!isBaseScreen &&
 			!isRecentsScreen &&
@@ -179,13 +175,16 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 			!isPublicLinksScreen &&
 			!isFavoritesScreen &&
 			!isOfflineScreen &&
-			!isPhotosScreen
+			!isPhotosScreen &&
+			!isChatsScreen &&
+			!isNotesScreen &&
+			!isContactsScreen
 
 		if (isTransfersScreen && !showBackButton) {
 			showBackButton = true
 		}
 
-		if (isMainScreen && routeURL.split("/").length - 1 == 0) {
+		if (isMainScreen && routeURL.split("/").length - 1 === 0) {
 			showBackButton = false
 		}
 
@@ -207,7 +206,10 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 			isFavoritesScreen,
 			isPhotosScreen,
 			showHomeTabBar,
-			showBackButton
+			showBackButton,
+			isChatsScreen,
+			isNotesScreen,
+			isContactsScreen
 		]
 	}, [route, parent])
 
@@ -361,7 +363,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 						)}
 					</TouchableOpacity>
 				</View>
-				{isMainScreen && !isPhotosScreen && (
+				{(isMainScreen || isNotesScreen || isContactsScreen || isChatsScreen) && !isPhotosScreen && (
 					<View
 						style={{
 							paddingLeft: 15,
@@ -421,7 +423,9 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 								setSearchTerm(val)
 							}}
 							value={searchTerm}
-							placeholder={i18n(lang, "searchInThisFolder")}
+							placeholder={
+								isChatsScreen || isContactsScreen || isNotesScreen ? i18n(lang, "search") : i18n(lang, "searchInThisFolder")
+							}
 							placeholderTextColor="gray"
 							autoCapitalize="none"
 							style={{
@@ -456,7 +460,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 					{!hideRecents && (
 						<TouchableOpacity
 							style={{
-								borderBottomWidth: isRecentsScreen ? (Platform.OS == "ios" ? 2 : 2) : 0,
+								borderBottomWidth: isRecentsScreen ? (Platform.OS === "ios" ? 2 : 2) : 0,
 								borderBottomColor: isRecentsScreen ? "#0A84FF" : "#171717",
 								height: 27
 							}}
@@ -492,90 +496,87 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 							</Text>
 						</TouchableOpacity>
 					)}
-					{typeof privateKey == "string" &&
-						typeof publicKey == "string" &&
-						privateKey.length > 16 &&
-						publicKey.length > 16 && (
-							<>
-								<TouchableOpacity
-									style={{
-										borderBottomWidth: isSharedInScreen ? (Platform.OS == "ios" ? 1.5 : 2) : 0,
-										borderBottomColor: isSharedInScreen ? "#0A84FF" : "#171717",
-										height: 27
-									}}
-									onPress={() => {
-										navigationAnimation({ enable: false }).then(() => {
-											navigation.dispatch(
-												CommonActions.reset({
-													index: 0,
-													routes: [
-														{
-															name: "MainScreen",
-															params: {
-																parent: "shared-in"
-															}
+					{typeof privateKey === "string" && typeof publicKey === "string" && privateKey.length > 16 && publicKey.length > 16 && (
+						<>
+							<TouchableOpacity
+								style={{
+									borderBottomWidth: isSharedInScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
+									borderBottomColor: isSharedInScreen ? "#0A84FF" : "#171717",
+									height: 27
+								}}
+								onPress={() => {
+									navigationAnimation({ enable: false }).then(() => {
+										navigation.dispatch(
+											CommonActions.reset({
+												index: 0,
+												routes: [
+													{
+														name: "MainScreen",
+														params: {
+															parent: "shared-in"
 														}
-													]
-												})
-											)
-										})
-									}}
-								>
-									<Text
-										style={{
-											color: isSharedInScreen ? "#0A84FF" : "gray",
-											fontWeight: "bold",
-											fontSize: 14,
-											paddingTop: 2,
-											maxWidth: homeTabBarTextMaxWidth
-										}}
-										numberOfLines={1}
-									>
-										{i18n(lang, "sharedIn")}
-									</Text>
-								</TouchableOpacity>
-								<TouchableOpacity
+													}
+												]
+											})
+										)
+									})
+								}}
+							>
+								<Text
 									style={{
-										borderBottomWidth: isSharedOutScreen ? (Platform.OS == "ios" ? 1.5 : 2) : 0,
-										borderBottomColor: isSharedOutScreen ? "#0A84FF" : "#171717",
-										height: 27
+										color: isSharedInScreen ? "#0A84FF" : "gray",
+										fontWeight: "bold",
+										fontSize: 14,
+										paddingTop: 2,
+										maxWidth: homeTabBarTextMaxWidth
 									}}
-									onPress={() => {
-										navigationAnimation({ enable: false }).then(() => {
-											navigation.dispatch(
-												CommonActions.reset({
-													index: 0,
-													routes: [
-														{
-															name: "MainScreen",
-															params: {
-																parent: "shared-out"
-															}
-														}
-													]
-												})
-											)
-										})
-									}}
+									numberOfLines={1}
 								>
-									<Text
-										style={{
-											color: isSharedOutScreen ? "#0A84FF" : "gray",
-											fontWeight: "bold",
-											fontSize: 14,
-											paddingTop: 2,
-											maxWidth: homeTabBarTextMaxWidth
-										}}
-										numberOfLines={1}
-									>
-										{i18n(lang, "sharedOut")}
-									</Text>
-								</TouchableOpacity>
-							</>
-						)}
+									{i18n(lang, "sharedIn")}
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={{
+									borderBottomWidth: isSharedOutScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
+									borderBottomColor: isSharedOutScreen ? "#0A84FF" : "#171717",
+									height: 27
+								}}
+								onPress={() => {
+									navigationAnimation({ enable: false }).then(() => {
+										navigation.dispatch(
+											CommonActions.reset({
+												index: 0,
+												routes: [
+													{
+														name: "MainScreen",
+														params: {
+															parent: "shared-out"
+														}
+													}
+												]
+											})
+										)
+									})
+								}}
+							>
+								<Text
+									style={{
+										color: isSharedOutScreen ? "#0A84FF" : "gray",
+										fontWeight: "bold",
+										fontSize: 14,
+										paddingTop: 2,
+										maxWidth: homeTabBarTextMaxWidth
+									}}
+									numberOfLines={1}
+								>
+									{i18n(lang, "sharedOut")}
+								</Text>
+							</TouchableOpacity>
+						</>
+					)}
 					<TouchableOpacity
 						style={{
-							borderBottomWidth: isPublicLinksScreen ? (Platform.OS == "ios" ? 1.5 : 2) : 0,
+							borderBottomWidth: isPublicLinksScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
 							borderBottomColor: isPublicLinksScreen ? "#0A84FF" : "#171717",
 							height: 27
 						}}
@@ -612,7 +613,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 					</TouchableOpacity>
 					<TouchableOpacity
 						style={{
-							borderBottomWidth: isFavoritesScreen ? (Platform.OS == "ios" ? 1.5 : 2) : 0,
+							borderBottomWidth: isFavoritesScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
 							borderBottomColor: isFavoritesScreen ? "#0A84FF" : "#171717",
 							height: 27
 						}}
@@ -649,7 +650,7 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 					</TouchableOpacity>
 					<TouchableOpacity
 						style={{
-							borderBottomWidth: isOfflineScreen ? (Platform.OS == "ios" ? 1.5 : 2) : 0,
+							borderBottomWidth: isOfflineScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
 							borderBottomColor: isOfflineScreen ? "#0A84FF" : "#171717",
 							height: 27
 						}}

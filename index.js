@@ -12,9 +12,9 @@ import { Notifications, NotificationBackgroundFetchResult } from "react-native-n
 import { hasNotificationPermissions } from "./src/lib/permissions"
 
 if (!__DEV__) {
-	console.log = () => {}
-	console.error = () => {}
-	console.warn = () => {}
+	//console.log = () => {}
+	//console.error = () => {}
+	//console.warn = () => {}
 } else {
 	LogBox.ignoreLogs(["new NativeEventEmitter", "Module AssetExporter", "DEPRECATED", "messaging()"])
 }
@@ -152,7 +152,11 @@ if (Platform.OS === "android") {
 					notifee
 						.stopForegroundService()
 						.then(() => resolve())
-						.catch(console.error)
+						.catch(err => {
+							console.error(err)
+
+							resolve()
+						})
 				}
 			}, 1000)
 		})
@@ -202,13 +206,13 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(event => {
 })
 
 Notifications.events().registerNotificationReceivedForeground(async (notification, completion) => {
+	console.log(Platform.OS, "Notification Received - Foreground", notification.payload)
+
 	if (Platform.OS === "ios") {
 		completion({ alert: true, sound: false, badge: false })
 
 		return
 	}
-
-	console.log(Platform.OS, "Notification Received - Foreground", notification.payload)
 
 	const channelId = await notifee.createChannel({
 		id: "chat",
@@ -216,12 +220,12 @@ Notifications.events().registerNotificationReceivedForeground(async (notificatio
 	})
 
 	const res = await nodeThread.encryptMetadata({
-		data: "lol",
-		key: "xddd"
+		data: "foo",
+		key: "bar"
 	})
 
 	await notifee.displayNotification({
-		title: "filen cock dienste",
+		title: "filen",
 		body: "Foreground: " + res,
 		android: {
 			channelId,
@@ -248,11 +252,11 @@ Notifications.events().registerNotificationOpened((notification, completion, act
 })
 
 Notifications.events().registerNotificationReceivedBackground(async (notification, completion) => {
+	console.log(Platform.OS, "Notification Received - Background", notification.payload)
+
 	if (Platform.OS === "ios") {
 		return
 	}
-
-	console.log(Platform.OS, "Notification Received - Background", notification.payload)
 
 	const channelId = await notifee.createChannel({
 		id: "chat",
@@ -260,12 +264,12 @@ Notifications.events().registerNotificationReceivedBackground(async (notificatio
 	})
 
 	const res = await nodeThread.encryptMetadata({
-		data: "lol",
-		key: "xddd"
+		data: "foo",
+		key: "bar"
 	})
 
 	await notifee.displayNotification({
-		title: "filen cock dienste",
+		title: "filen",
 		body: "Background: " + res,
 		android: {
 			channelId,
@@ -299,8 +303,10 @@ initPushNotifications().catch(console.error)
 
 setTimeout(() => {
 	runCameraUpload()
-
-	Notifications.getInitialNotification().then(console.log).catch(console.error)
 }, 5000)
+
+setInterval(() => {
+	console.log(Date.now(), "alive")
+}, 1000)
 
 AppRegistry.registerComponent(appName, () => App)

@@ -36,7 +36,6 @@ const MAX_FAILED: number = 1
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout: number = 0
 const getFilesMutex = new Semaphore(1)
-const runCameraUploadAndroidMutex = new Semaphore(1)
 
 export const runMutex = new Semaphore(1)
 export const getLocalAssetsMutex = new Semaphore(1)
@@ -572,7 +571,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 		)
 		const cameraUploadCompressImages = storage.getBoolean("cameraUploadCompressImages:" + userId)
 		const tmpPrefix = randomIdUnsafe() + "_"
-		const tmp = fs.cacheDirectory + tmpPrefix + asset.filename
+		const tmp = fs.cacheDirectory() + tmpPrefix + asset.filename
 		const files: UploadFile[] = []
 		let originalKept = false
 
@@ -770,29 +769,18 @@ export const hasPermissions = async (requestPermissions: boolean) => {
 	return true
 }
 
-export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = false): Promise<void> => {
+export const runCameraUpload = async (maxQueue: number = 30, runOnce: boolean = false): Promise<void> => {
 	await runMutex.acquire()
 
-	if (runTimeout > Date.now()) {
-		runMutex.release()
-
-		return
-	}
-
 	try {
+		if (runTimeout > Date.now()) {
+			return
+		}
+
 		const isLoggedIn = storage.getBoolean("isLoggedIn")
 		const userId = storage.getNumber("userId")
 
 		if (!isLoggedIn || userId == 0) {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
-			if (!runOnce) {
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-			}
-
 			return
 		}
 
@@ -800,80 +788,26 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
 
 		if (!cameraUploadEnabled) {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
-			if (!runOnce) {
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-			}
-
 			return
 		}
 
 		if (typeof cameraUploadFolderUUID !== "string") {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
-			if (!runOnce) {
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-			}
-
 			return
 		}
 
 		if (cameraUploadFolderUUID.length < 32 || !validate(cameraUploadFolderUUID)) {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
-			if (!runOnce) {
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-			}
-
 			return
 		}
 
 		if (!(await isOnline())) {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
-			if (!runOnce) {
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-			}
-
 			return
 		}
 
 		if (storage.getBoolean("onlyWifiUploads") && !(await isWifi())) {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
-			if (!runOnce) {
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-			}
-
 			return
 		}
 
 		if (!(await hasPermissions(true))) {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
-			if (!runOnce) {
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-			}
-
 			return
 		}
 
@@ -887,16 +821,7 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		}
 
 		if (!folderExists) {
-			runTimeout = Date.now() + (TIMEOUT - 1000)
-			runMutex.release()
-
 			disableCameraUpload(true)
-
-			if (!runOnce) {
-				setTimeout(() => {
-					runCameraUpload(maxQueue)
-				}, TIMEOUT)
-			}
 
 			return
 		}
@@ -1015,15 +940,6 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 			storage.set("cameraUploadUploaded", Object.keys(local).length)
 		}
 
-		runTimeout = Date.now() + (TIMEOUT - 1000)
-		runMutex.release()
-
-		if (!runOnce) {
-			setTimeout(() => {
-				runCameraUpload(maxQueue)
-			}, TIMEOUT)
-		}
-
 		eventListener.emit(
 			deltas.length <= 0
 				? "stopForegroundService"
@@ -1034,8 +950,9 @@ export const runCameraUpload = async (maxQueue: number = 16, runOnce: boolean = 
 		)
 	} catch (e) {
 		console.error(e)
-
+	} finally {
 		runTimeout = Date.now() + (TIMEOUT - 1000)
+
 		runMutex.release()
 
 		if (!runOnce) {

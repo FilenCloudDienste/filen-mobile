@@ -9,8 +9,6 @@ import memoryCache from "../memoryCache"
 
 SQLite.enablePromise(true)
 
-const readSemaphore = new Semaphore(256)
-const writeSemaphore = new Semaphore(128)
 const PREFIX = "kv:"
 
 const keyValueTableSQL = `CREATE TABLE IF NOT EXISTS key_value (\
@@ -40,25 +38,13 @@ const cameraUploadLastSizeIndexesSQL = `CREATE INDEX IF NOT EXISTS asset_id_inde
 export let db: SQLite.SQLiteDatabase | null = null
 
 export const query = async (stmt: string, params: any[] | undefined = undefined) => {
-	const semaphore = stmt.toLowerCase().indexOf("select ") !== -1 ? readSemaphore : writeSemaphore
-
-	try {
-		await semaphore.acquire()
-
-		if (!db) {
-			throw new Error("DB not initialized")
-		}
-
-		const res = await db.executeSql(stmt, params)
-
-		semaphore.release()
-
-		return res
-	} catch (e) {
-		semaphore.release()
-
-		throw e
+	if (!db) {
+		throw new Error("DB not initialized")
 	}
+
+	const res = await db.executeSql(stmt, params)
+
+	return res
 }
 
 export const get = async <T>(key: string): Promise<any> => {

@@ -11,6 +11,7 @@ import * as fs from "../../fs"
 import { init as initDb, dbFs } from "../../db"
 import FastImage from "react-native-fast-image"
 import { sharedStorage } from "../../storage/storage"
+import { Platform } from "react-native"
 
 const CACHE_CLEARING_ENABLED: boolean = true
 
@@ -213,7 +214,15 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 	dbFs.warmUp()
 		.then(() =>
 			checkOfflineItems()
-				.then(() => clearCacheDirectories().catch(console.error))
+				.then(() =>
+					clearCacheDirectories()
+						.then(() => {
+							if (Platform.OS === "ios") {
+								fs.deleteOldIOSDocumentDirs().catch(console.error)
+							}
+						})
+						.catch(console.error)
+				)
 				.catch(console.error)
 		)
 		.catch(console.error)

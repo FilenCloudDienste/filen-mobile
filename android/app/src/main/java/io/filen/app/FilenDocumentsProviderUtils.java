@@ -342,7 +342,7 @@ public class FilenDocumentsProviderUtils {
             final String[] masterKeys = getMasterKeys();
             final String lastMasterKey = masterKeys[masterKeys.length - 1];
             final String nameEncrypted = FilenCrypto.encryptMetadata(nameJSON, lastMasterKey);
-            final String nameHashed = FilenCrypto.hashFn(name);
+            final String nameHashed = FilenCrypto.hashFn(name.toLowerCase());
 
             FilenAPI.createFolder(getAPIKey(), uuid, nameEncrypted, nameHashed, parentUUID, new APIRequest.APICallback() {
                 @Override
@@ -913,7 +913,7 @@ public class FilenDocumentsProviderUtils {
             final String uploadKey = FilenCrypto.generateSecureRandomString(32);
             final String nameEncrypted = FilenCrypto.encryptMetadata(inputFileName, key);
             final String mimeEncrypted = FilenCrypto.encryptMetadata(mimeType, key);
-            final String nameHashed = FilenCrypto.hashFn(inputFileName);
+            final String nameHashed = FilenCrypto.hashFn(inputFileName.toLowerCase());
             final String sizeEncrypted = FilenCrypto.encryptMetadata(String.valueOf(inputFileSize), key);
             final String metadata = FilenCrypto.encryptMetadata(metadataJSON, lastMasterKey);
 
@@ -1059,7 +1059,7 @@ public class FilenDocumentsProviderUtils {
         final String[] masterKeys = getMasterKeys();
         final String lastMasterKey = masterKeys[masterKeys.length - 1];
         final String nameEncrypted = FilenCrypto.encryptMetadata(folderNameJSON, lastMasterKey);
-        final String nameHashed = FilenCrypto.hashFn(newName);
+        final String nameHashed = FilenCrypto.hashFn(newName.toLowerCase());
 
         final Thread thread = new Thread(() -> {
             try {
@@ -1153,7 +1153,7 @@ public class FilenDocumentsProviderUtils {
         final String lastMasterKey = masterKeys[masterKeys.length - 1];
         final String encryptMetadata = FilenCrypto.encryptMetadata(metadataJSON, lastMasterKey);
         final String nameEncrypted = FilenCrypto.encryptMetadata(newName, item.key);
-        final String nameHashed = FilenCrypto.hashFn(newName);
+        final String nameHashed = FilenCrypto.hashFn(newName.toLowerCase());
 
         final Thread thread = new Thread(() -> {
             try {

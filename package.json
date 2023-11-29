@@ -78,6 +78,7 @@
 		"react-native-sqlite-storage": "^6.0.1",
 		"react-native-svg": "13.4.0",
 		"react-native-toast-notifications": "^3.3.1",
+		"react-native-webview": "^13.6.3",
 		"react-native-windows": "^0.71.0",
 		"react-use": "^17.4.0",
 		"striptags": "3.2.0",
