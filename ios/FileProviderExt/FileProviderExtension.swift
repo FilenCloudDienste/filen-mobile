@@ -41,8 +41,8 @@ class FileProviderExtension: NSFileProviderExtension {
     
     if (identifier.rawValue == "root" || identifier == NSFileProviderItemIdentifier.rootContainer || identifier.rawValue == rootFolderUUID || identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue) {
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier.rootContainer,
-        parentIdentifier: NSFileProviderItemIdentifier.rootContainer,
+        identifier: NSFileProviderItemIdentifier(rootFolderUUID),
+        parentIdentifier: NSFileProviderItemIdentifier(rootFolderUUID),
         item: Item(
           uuid: rootFolderUUID,
           parent: "root",
@@ -119,7 +119,7 @@ class FileProviderExtension: NSFileProviderExtension {
     do {
       _ = try await FileProviderUtils.shared.downloadFile(uuid: itemJSON.uuid, url: url.path, maxChunks: itemJSON.chunks)
       
-      FileProviderUtils.shared.signalEnumeratorForIdentifier(for: identifier)
+      FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: itemJSON.parent))
     } catch {
       print("[startProvidingItem] error:", error)
       
