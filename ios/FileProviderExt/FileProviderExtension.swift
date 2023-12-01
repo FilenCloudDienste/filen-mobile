@@ -10,7 +10,33 @@ import FileProvider
 import UIKit
 import AVFoundation
 
-class FileProviderExtension: NSFileProviderExtension {
+class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction {
+  func performAction(identifier actionIdentifier: NSFileProviderExtensionActionIdentifier, onItemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier], completionHandler: @escaping (Error?) -> Void) -> Progress {
+    print("called action \(actionIdentifier.rawValue)")
+    if (actionIdentifier.rawValue == "io.filen.FileProviderExt.evict") {
+      let progress = Progress(totalUnitCount: Int64(itemIdentifiers.count))
+      for identifier in itemIdentifiers {
+        Task {
+//          if let url = urlForItem(withPersistentIdentifier: identifier) {
+//            stopProvidingItem(at: url)
+//          }
+          do {
+            try await NSFileProviderManager.default.evictItem(identifier: identifier)
+//            FileProviderUtils.shared.signalEnumeratorForIdentifier(for: identifier)
+            if let item = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue) {
+              FileProviderUtils.shared.signalEnumerator(for: item.parent)
+            }
+          } catch {
+            print (error)
+          }
+          progress.completedUnitCount += 1
+        }
+      }
+      return progress
+    }
+    return Progress()
+  }
+  
   private let thumbnailSemaphore = Semaphore(max: 1)
   
   override init () {
@@ -41,11 +67,11 @@ class FileProviderExtension: NSFileProviderExtension {
     
     if (identifier.rawValue == "root" || identifier == NSFileProviderItemIdentifier.rootContainer || identifier.rawValue == rootFolderUUID || identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue) {
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(rootFolderUUID),
-        parentIdentifier: NSFileProviderItemIdentifier(rootFolderUUID),
+        identifier: identifier,
+        parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: rootFolderUUID),
         item: Item(
           uuid: rootFolderUUID,
-          parent: "root",
+          parent: rootFolderUUID,
           name: "Cloud Drive",
           type: .folder,
           mime: "",
@@ -67,7 +93,7 @@ class FileProviderExtension: NSFileProviderExtension {
     
     return FileProviderItem(
       identifier: identifier,
-      parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
+      parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
       item: Item(
         uuid: itemJSON.uuid,
         parent: itemJSON.parent,
@@ -217,7 +243,7 @@ class FileProviderExtension: NSFileProviderExtension {
       )
       
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(rawValue: uuid),
+        identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: uuid),
         parentIdentifier: parentItemIdentifier,
         item: Item(
           uuid: uuid,
@@ -251,8 +277,8 @@ class FileProviderExtension: NSFileProviderExtension {
       try await FileProviderUtils.shared.renameFolder(uuid: itemJSON.uuid, toName: itemName)
       
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(rawValue: itemJSON.uuid),
-        parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
+        identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.uuid),
+        parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
         item: Item(
           uuid: itemJSON.uuid,
           parent: itemJSON.parent,
@@ -282,8 +308,8 @@ class FileProviderExtension: NSFileProviderExtension {
       )
       
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(rawValue: itemJSON.uuid),
-        parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
+        identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.uuid),
+        parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
         item: Item(
           uuid: itemJSON.uuid,
           parent: itemJSON.parent,
@@ -310,9 +336,10 @@ class FileProviderExtension: NSFileProviderExtension {
     
     try await FileProviderUtils.shared.trashItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
     
+    // Trash container technically doesn't exist so this is like sending it into the void, I recommend this be fixed later
     return FileProviderItem(
       identifier: itemIdentifier,
-      parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
+      parentIdentifier: NSFileProviderItemIdentifier.trashContainer,
       item: Item(
         uuid: itemJSON.uuid,
         parent: itemJSON.parent,
@@ -359,7 +386,7 @@ class FileProviderExtension: NSFileProviderExtension {
     
     return FileProviderItem(
       identifier: itemIdentifier,
-      parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
+      parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
       item: Item(
         uuid: itemJSON.uuid,
         parent: itemJSON.parent,
@@ -386,6 +413,7 @@ class FileProviderExtension: NSFileProviderExtension {
     try await FileProviderUtils.shared.deleteItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
     
     try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
+    FileProviderUtils.shared.signalEnumerator(for: itemJSON.parent)
   }
 
   override func reparentItem (withIdentifier itemIdentifier: NSFileProviderItemIdentifier, toParentItemWithIdentifier parentItemIdentifier: NSFileProviderItemIdentifier, newName: String?) async throws -> NSFileProviderItem {
@@ -463,7 +491,7 @@ class FileProviderExtension: NSFileProviderExtension {
       )
       
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(rawValue: result.uuid),
+        identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: result.uuid),
         parentIdentifier: parentItemIdentifier,
         item: Item(
           uuid: result.uuid,
@@ -495,7 +523,7 @@ class FileProviderExtension: NSFileProviderExtension {
     
     let item = FileProviderItem(
       identifier: itemIdentifier,
-      parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
+      parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
       item: Item(
         uuid: itemJSON.uuid,
         parent: itemJSON.parent,
@@ -525,7 +553,7 @@ class FileProviderExtension: NSFileProviderExtension {
     
     let item = FileProviderItem(
       identifier: itemIdentifier,
-      parentIdentifier: NSFileProviderItemIdentifier(rawValue: itemJSON.parent),
+      parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
       item: Item(
         uuid: itemJSON.uuid,
         parent: itemJSON.parent,

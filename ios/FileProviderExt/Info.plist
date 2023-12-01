@@ -6,6 +6,17 @@
 	<string>group.io.filen.app</string>
 	<key>NSExtension</key>
 	<dict>
+		<key>NSExtensionFileProviderActions</key>
+		<array>
+			<dict>
+				<key>NSExtensionFileProviderActionActivationRule</key>
+				<string>TRUEPREDICATE</string>
+				<key>NSExtensionFileProviderActionIdentifier</key>
+				<string>io.filen.FileProviderExt.evict</string>
+				<key>NSExtensionFileProviderActionName</key>
+				<string>Remove Download</string>
+			</dict>
+		</array>
 		<key>NSExtensionFileProviderDocumentGroup</key>
 		<string>group.io.filen.app</string>
 		<key>NSExtensionFileProviderSupportsEnumeration</key>

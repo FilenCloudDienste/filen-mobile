@@ -199,6 +199,19 @@ class FileProviderUtils {
     }
   }
   
+  func getIdentifierFromUUID(id: String) -> NSFileProviderItemIdentifier {
+    if let root = rootFolderUUID() {
+      if root == id || id == NSFileProviderItemIdentifier.rootContainer.rawValue {
+        return NSFileProviderItemIdentifier.rootContainer
+      } else {
+        return NSFileProviderItemIdentifier(id)
+      }
+    } else {
+      print ("Couldn't get root identifier, returning id")
+      return NSFileProviderItemIdentifier(id)
+    }
+  }
+  
   func fileExtension(from name: String) -> String? {
     autoreleasepool {
       let components = name.components(separatedBy: ".")
@@ -278,8 +291,13 @@ class FileProviderUtils {
     return response
   }
   
-  func getItemFromUUID (uuid: String) -> ItemJSON? {
+  func getItemFromUUID (uuid id: String) -> ItemJSON? {
     guard let rootFolderUUID = self.rootFolderUUID() else { return nil }
+    var uuid = id
+    
+    if (id == NSFileProviderItemIdentifier.rootContainer.rawValue) {
+      uuid = rootFolderUUID
+    }
     
     do {
       if let row = try self.openDb().run("SELECT uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version FROM items WHERE uuid = ?", [uuid == NSFileProviderItemIdentifier.rootContainer.rawValue ? rootFolderUUID : uuid]).makeIterator().next() {
@@ -479,7 +497,7 @@ class FileProviderUtils {
   
   func moveItem (parent: String, item: ItemJSON) async throws -> Void {
     let response: BaseAPIResponse = try await self.apiRequest(
-      endpoint: "/v3/" + item.type + "/move",
+      endpoint: "/v3/" + (item.type == "folder" ? "dir" : "file")  + "/move",
       method: "POST",
       body: [
         "uuid": item.uuid,

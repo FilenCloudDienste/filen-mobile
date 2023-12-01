@@ -30,7 +30,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   }
   
   var capabilities: NSFileProviderItemCapabilities {
-    [.allowsReading, .allowsWriting, .allowsRenaming, .allowsReparenting, .allowsTrashing, .allowsDeleting]
+    [.allowsReading, .allowsWriting, .allowsRenaming, .allowsReparenting, .allowsTrashing, .allowsDeleting, .allowsEvicting]
   }
   
   var filename: String {
