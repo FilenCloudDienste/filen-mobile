@@ -73,8 +73,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         )
         
         return FileProviderItem(
-          identifier: NSFileProviderItemIdentifier(folder.uuid),
-          parentIdentifier: self.identifier,
+          identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: folder.uuid),
+          parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: self.identifier.rawValue),
           item: Item(
             uuid: folder.uuid,
             parent: folder.parent,
@@ -94,8 +94,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       }
       
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(folder.uuid),
-        parentIdentifier: self.identifier,
+        identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: folder.uuid),
+        parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: self.identifier.rawValue),
         item: Item(
           uuid: folder.uuid,
           parent: folder.parent,
@@ -177,8 +177,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         )
         
         return FileProviderItem(
-          identifier: NSFileProviderItemIdentifier(file.uuid),
-          parentIdentifier: self.identifier,
+          identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: file.uuid),
+          parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: self.identifier.rawValue),
           item: Item(
             uuid: file.uuid,
             parent: file.parent,
@@ -198,8 +198,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       }
       
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(file.uuid),
-        parentIdentifier: self.identifier,
+        identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: file.uuid),
+        parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: self.identifier.rawValue),
         item: Item(
           uuid: file.uuid,
           parent: file.parent,
@@ -263,7 +263,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           try FileProviderUtils.shared.openDb().run(
             "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
-              NSFileProviderItemIdentifier.rootContainer.rawValue,
+              rootFolderUUID,
               rootFolderUUID,
               "Cloud Drive",
               "folder",
