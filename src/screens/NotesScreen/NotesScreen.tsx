@@ -36,6 +36,8 @@ const Item = memo(
 		navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 		userId: number
 	}) => {
+		const [height, setHeight] = useState<number>(0)
+
 		const participantsFilteredWithoutMe = useMemo(() => {
 			return note.participants
 				.filter(p => p.userId !== userId)
@@ -48,6 +50,7 @@ const Item = memo(
 					paddingLeft: 0,
 					paddingRight: 15
 				}}
+				onLayout={e => setHeight(e.nativeEvent.layout.height)}
 			>
 				<TouchableOpacity
 					activeOpacity={0.6}
@@ -229,16 +232,53 @@ const Item = memo(
 								</Text>
 							)}
 							{note.tags.length > 0 && (
-								<Text
+								<View
 									style={{
-										color: getColor(darkMode, "textSecondary"),
-										marginTop: 7,
+										flexDirection: "row",
+										flexWrap: "wrap",
+										marginTop: 3,
 										paddingRight: participantsFilteredWithoutMe.length > 0 ? 55 : 15
 									}}
-									numberOfLines={1}
 								>
-									# {note.tags.map(tag => tag.name).join(" ")}
-								</Text>
+									{note.tags.map(tag => {
+										return (
+											<View
+												key={tag.uuid}
+												style={{
+													backgroundColor: getColor(darkMode, "backgroundSecondary"),
+													paddingLeft: 6,
+													paddingRight: 6,
+													paddingTop: 3,
+													paddingBottom: 3,
+													justifyContent: "center",
+													alignItems: "center",
+													flexDirection: "row",
+													borderRadius: 5,
+													marginRight: 5,
+													marginTop: 5
+												}}
+											>
+												<Text
+													style={{
+														color: getColor(darkMode, "purple"),
+														fontSize: 13
+													}}
+												>
+													#
+												</Text>
+												<Text
+													style={{
+														color: getColor(darkMode, "textSecondary"),
+														marginLeft: 5,
+														fontSize: 13
+													}}
+												>
+													{tag.name}
+												</Text>
+											</View>
+										)
+									})}
+								</View>
 							)}
 							{index < notesSorted.length - 1 && (
 								<View
@@ -258,7 +298,7 @@ const Item = memo(
 									justifyContent: "center",
 									position: "absolute",
 									right: participantsFilteredWithoutMe.length > 1 ? 35 : 25,
-									top: 15
+									top: height === 0 ? 15 : Math.floor(height / 2) - 28
 								}}
 							>
 								{participantsFilteredWithoutMe.map((participant, index) => {
@@ -269,6 +309,7 @@ const Item = memo(
 									if (participant.avatar.indexOf("https://") !== -1) {
 										return (
 											<FastImage
+												key={participant.userId}
 												source={{
 													uri: participantsFilteredWithoutMe[0].avatar
 												}}
