@@ -38,8 +38,8 @@ export const i18n = (
 	lang: string = "en",
 	text: string,
 	firstUpperCase: boolean = true,
-	replaceFrom: any[] = [],
-	replaceTo: any[] = []
+	replaceFrom: (string | number)[] = [],
+	replaceTo: (string | number)[] = []
 ): string => {
 	if (typeof lang !== "string") {
 		lang = "en"
@@ -55,7 +55,7 @@ export const i18n = (
 		if (translations["en"][text]) {
 			gotText = translations["en"][text]
 		} else {
-			return "NO_TRANSLATION_FOUND_" + text
+			return "NO_I18N_" + text
 		}
 	}
 
@@ -69,7 +69,7 @@ export const i18n = (
 
 	if (replaceFrom.length > 0 && replaceTo.length > 0) {
 		for (let i = 0; i < replaceFrom.length; i++) {
-			gotText = gotText.split(replaceFrom[i]).join(replaceTo[i])
+			gotText = gotText.split(replaceFrom[i] as string).join(replaceTo[i] as string)
 		}
 	}
 

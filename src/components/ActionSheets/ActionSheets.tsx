@@ -15,15 +15,16 @@ import useLang from "../../lib/hooks/useLang"
 import * as db from "../../lib/db"
 
 export interface ActionButtonProps {
-	onPress: any
-	icon?: any
+	onPress: () => void
+	icon?: string | React.ReactNode
 	text: string
 	color?: string
 	key?: string | number
-	rightComponent?: any
+	rightComponent?: React.ReactNode
+	textColor?: string
 }
 
-export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }: ActionButtonProps) => {
+export const ActionButton = memo(({ onPress, icon, text, color, rightComponent, textColor }: ActionButtonProps) => {
 	const darkMode = useDarkMode()
 
 	return (
@@ -61,11 +62,15 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 							paddingTop: 11
 						}}
 					>
-						<Ionicon
-							name={icon}
-							size={22}
-							color={getColor(darkMode, "textSecondary")}
-						/>
+						{typeof icon === "string" ? (
+							<Ionicon
+								name={icon as any}
+								size={22}
+								color={getColor(darkMode, "textSecondary")}
+							/>
+						) : (
+							icon
+						)}
 					</View>
 				)}
 				{typeof rightComponent !== "undefined" ? (
@@ -73,9 +78,7 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 						style={{
 							paddingTop: 5,
 							marginLeft: 15,
-							borderBottomColor: darkMode
-								? getColor(darkMode, "actionSheetBorder")
-								: getColor(darkMode, "primaryBorder"),
+							borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
 							borderBottomWidth: darkMode ? 1 : 0.5,
 							width: "100%",
 							justifyContent: "space-between",
@@ -86,7 +89,7 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 					>
 						<Text
 							style={{
-								color: getColor(darkMode, "textPrimary"),
+								color: typeof textColor === "string" ? textColor : getColor(darkMode, "textPrimary"),
 								fontSize: 15,
 								fontWeight: "400"
 							}}
@@ -100,16 +103,14 @@ export const ActionButton = memo(({ onPress, icon, text, color, rightComponent }
 						style={{
 							paddingTop: 14,
 							marginLeft: 15,
-							borderBottomColor: darkMode
-								? getColor(darkMode, "actionSheetBorder")
-								: getColor(darkMode, "primaryBorder"),
+							borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
 							borderBottomWidth: darkMode ? 1 : 0.5,
 							width: "100%"
 						}}
 					>
 						<Text
 							style={{
-								color: getColor(darkMode, "textPrimary"),
+								color: typeof textColor === "string" ? textColor : getColor(darkMode, "textPrimary"),
 								fontSize: 15,
 								fontWeight: "400"
 							}}
@@ -210,9 +211,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 					}}
 					numberOfLines={1}
 				>
-					{hideFileNames
-						? i18n(lang, currentActionSheetItem.type == "folder" ? "folder" : "file")
-						: currentActionSheetItem.name}
+					{hideFileNames ? i18n(lang, currentActionSheetItem.type == "folder" ? "folder" : "file") : currentActionSheetItem.name}
 				</Text>
 				<Text
 					style={{
@@ -244,9 +243,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 					)}
 					{hideSizes
 						? formatBytes(0)
-						: formatBytes(
-								currentActionSheetItem.type == "file" ? currentActionSheetItem.size : folderSizeCache
-						  )}
+						: formatBytes(currentActionSheetItem.type == "file" ? currentActionSheetItem.size : folderSizeCache)}
 					{typeof currentActionSheetItem.sharerEmail == "string" &&
 						currentActionSheetItem.sharerEmail.length > 0 &&
 						getParent().length < 32 && (
@@ -288,7 +285,9 @@ export const hideAllActionSheets = async () => {
 		SheetManager.hide("PublicLinkActionSheet"),
 		SheetManager.hide("ShareActionSheet"),
 		SheetManager.hide("SortByActionSheet"),
-		SheetManager.hide("TopBarActionSheet")
+		SheetManager.hide("TopBarActionSheet"),
+		SheetManager.hide("CreateNoteActionSheet"),
+		SheetManager.hide("NoteActionSheet")
 	])
 }
 

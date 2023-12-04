@@ -12,28 +12,20 @@ import AVFoundation
 
 class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction {
   func performAction(identifier actionIdentifier: NSFileProviderExtensionActionIdentifier, onItemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier], completionHandler: @escaping (Error?) -> Void) -> Progress {
-    print("called action \(actionIdentifier.rawValue)")
     if (actionIdentifier.rawValue == "io.filen.FileProviderExt.evict") {
       let progress = Progress(totalUnitCount: Int64(itemIdentifiers.count))
+      
       for identifier in itemIdentifiers {
-        Task {
-//          if let url = urlForItem(withPersistentIdentifier: identifier) {
-//            stopProvidingItem(at: url)
-//          }
-          do {
-            try await NSFileProviderManager.default.evictItem(identifier: identifier)
-//            FileProviderUtils.shared.signalEnumeratorForIdentifier(for: identifier)
-            if let item = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue) {
-              FileProviderUtils.shared.signalEnumerator(for: item.parent)
-            }
-          } catch {
-            print (error)
-          }
-          progress.completedUnitCount += 1
+        if let url = urlForItem(withPersistentIdentifier: identifier) {
+          stopProvidingItem(at: url)
         }
+         
+        progress.completedUnitCount += 1
       }
+      
       return progress
     }
+    
     return Progress()
   }
   
@@ -328,7 +320,7 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
       )
     }
   }
-
+  
   override func trashItem (withIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
     guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: itemIdentifier.rawValue) else {
       throw NSFileProviderError(.noSuchItem)
@@ -336,10 +328,9 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
     
     try await FileProviderUtils.shared.trashItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
     
-    // Trash container technically doesn't exist so this is like sending it into the void, I recommend this be fixed later
     return FileProviderItem(
       identifier: itemIdentifier,
-      parentIdentifier: NSFileProviderItemIdentifier.trashContainer,
+      parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
       item: Item(
         uuid: itemJSON.uuid,
         parent: itemJSON.parent,
@@ -413,6 +404,7 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
     try await FileProviderUtils.shared.deleteItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
     
     try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
+    
     FileProviderUtils.shared.signalEnumerator(for: itemJSON.parent)
   }
 
@@ -521,7 +513,9 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
       throw NSFileProviderError(.noSuchItem)
     }
     
-    let item = FileProviderItem(
+    FileProviderUtils.shared.setFavoriteRank(uuid: itemJSON.uuid, rank: favoriteRank)
+    
+    return FileProviderItem(
       identifier: itemIdentifier,
       parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
       item: Item(
@@ -540,10 +534,6 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
         version: itemJSON.version
       )
     )
-    
-    item.favoriteRank = favoriteRank
-    
-    return item
   }
 
   override func setTagData (_ tagData: Data?, forItemIdentifier itemIdentifier: NSFileProviderItemIdentifier) async throws -> NSFileProviderItem {
@@ -551,7 +541,9 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
       throw NSFileProviderError(.noSuchItem)
     }
     
-    let item = FileProviderItem(
+    FileProviderUtils.shared.setTagData(uuid: itemJSON.uuid, data: tagData)
+    
+    return FileProviderItem(
       identifier: itemIdentifier,
       parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
       item: Item(
@@ -570,10 +562,6 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
         version: itemJSON.version
       )
     )
-    
-    item.tagData = tagData
-    
-    return item
   }
 
   override func fetchThumbnails (for itemIdentifiers: [NSFileProviderItemIdentifier], requestedSize size: CGSize, perThumbnailCompletionHandler: @escaping (NSFileProviderItemIdentifier, Data?, Error?) -> Void, completionHandler: @escaping (Error?) -> Void) -> Progress {
@@ -636,6 +624,20 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
                 
                 return
               }
+            }
+            
+            let appCacheURL = NSFileProviderManager.default.documentStorageURL.appendingPathComponent("thumbnailCache/" + itemJSON.uuid, isDirectory: false)
+            
+            if FileManager.default.fileExists(atPath: appCacheURL.path) {
+              progress.completedUnitCount += 1
+              
+              perThumbnailCompletionHandler(identifier, try Data(contentsOf: appCacheURL, options: [.alwaysMapped]), nil)
+              
+              if (progress.isFinished) {
+                completionHandler(nil)
+              }
+              
+              return
             }
           } catch {
             print("[fetchThumbnails] error: \(error)")

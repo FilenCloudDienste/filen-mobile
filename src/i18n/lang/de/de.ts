@@ -442,5 +442,15 @@ export const de: {
 	chats: "Chats",
 	notes: "Notizen",
 	contacts: "Kontakte",
-	search: "Suchen.."
+	search: "Suchen..",
+	noteTypeText: "Text",
+	noteTypeRichText: "Rich Text",
+	noteTypeChecklist: "Check Liste",
+	noteTypeMarkdown: "Markdown",
+	noteTypeCode: "Code",
+	pin: "Anpinnen",
+	unpin: "Entpinnen",
+	archive: "Archivieren",
+	archiveRestore: "Aus dem Archiv wiederherstellen",
+	duplicate: "Duplizieren"
 }

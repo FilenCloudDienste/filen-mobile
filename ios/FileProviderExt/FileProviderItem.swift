@@ -59,21 +59,21 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   
   var favoriteRank: NSNumber? {
     get {
-      nil //FileProviderUtils.shared.getFavoriteRank(uuid: itemIdentifier.rawValue)
+      FileProviderUtils.shared.getFavoriteRank(uuid: itemIdentifier.rawValue)
     }
 
     set {
-      //FileProviderUtils.shared.setFavoriteRank(uuid: itemIdentifier.rawValue, rank: newValue)
+      FileProviderUtils.shared.setFavoriteRank(uuid: itemIdentifier.rawValue, rank: newValue)
     }
   }
 
   var tagData: Data? {
     get {
-      nil //FileProviderUtils.shared.getTagData(uuid: itemIdentifier.rawValue)
+      FileProviderUtils.shared.getTagData(uuid: itemIdentifier.rawValue)
     }
     
     set {
-      //FileProviderUtils.shared.setTagData(uuid: itemIdentifier.rawValue, data: newValue)
+      FileProviderUtils.shared.setTagData(uuid: itemIdentifier.rawValue, data: newValue)
     }
   }
   

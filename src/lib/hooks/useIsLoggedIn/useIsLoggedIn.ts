@@ -3,12 +3,7 @@ import storage from "../../storage"
 import { useMMKVBoolean } from "react-native-mmkv"
 
 const useIsLoggedIn = () => {
-	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(storage.getBoolean("isLoggedIn"))
-	const [isLoggedInDb, _] = useMMKVBoolean("isLoggedIn", storage)
-
-	useEffect(() => {
-		setIsLoggedIn(isLoggedInDb)
-	}, [isLoggedInDb])
+	const [isLoggedIn] = useMMKVBoolean("isLoggedIn", storage)
 
 	return isLoggedIn
 }

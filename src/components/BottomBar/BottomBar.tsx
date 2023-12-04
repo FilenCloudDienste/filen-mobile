@@ -14,11 +14,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
 
-export interface BottomBarProps {
-	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
-}
-
-export const BottomBar = memo(({ navigation }: BottomBarProps) => {
+export const BottomBar = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
 	const currentRoutes = useStore(state => state.currentRoutes)
 	const lang = useLang()
@@ -33,107 +29,117 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
 		return dimensions.width / 5 - 25
 	}, [dimensions])
 
-	const [showHome, showCloud, canOpenBottomAddActionSheet, isPhotosScreen, showSettings, isNotesScreen, isChatsScreen, isContactsScreen] =
-		useMemo(() => {
-			const parent = getParent()
-			const routeURL = getRouteURL()
-			const baseName = defaultDriveOnly && defaultDriveUUID ? defaultDriveUUID : "base"
+	const [
+		showHome,
+		showCloud,
+		canOpenBottomAddActionSheet,
+		isPhotosScreen,
+		showSettings,
+		isNotesScreen,
+		isChatsScreen,
+		isContactsScreen,
+		currentScreenName
+	] = useMemo(() => {
+		const parent = getParent()
+		const routeURL = getRouteURL()
+		const baseName = defaultDriveOnly && defaultDriveUUID ? defaultDriveUUID : "base"
 
-			let currentScreenName = "MainScreen"
-			let isRecentsScreen = false
-			let isTrashScreen = false
-			let isSharedScreen = false
-			let isPhotosScreen = false
-			let isFavoritesScreen = false
-			let isBaseScreen = false
-			let isOfflineScreen = false
-			let isNotesScreen = false
-			let isChatsScreen = false
-			let isContactsScreen = false
+		let currentScreenName = "MainScreen"
+		let isRecentsScreen = false
+		let isTrashScreen = false
+		let isSharedScreen = false
+		let isPhotosScreen = false
+		let isFavoritesScreen = false
+		let isBaseScreen = false
+		let isOfflineScreen = false
+		let isNotesScreen = false
+		let isChatsScreen = false
+		let isContactsScreen = false
 
-			if (typeof currentRoutes === "object") {
-				if (currentRoutes.length > 0) {
-					const currentRoute = currentRoutes[currentRoutes.length - 1]
+		if (typeof currentRoutes === "object") {
+			if (currentRoutes.length > 0) {
+				const currentRoute = currentRoutes[currentRoutes.length - 1]
 
-					currentScreenName = currentRoute.name
+				currentScreenName = currentRoute.name
 
-					isRecentsScreen = routeURL.indexOf("recents") !== -1
-					isTrashScreen = routeURL.indexOf("trash") !== -1
-					isPhotosScreen = routeURL.indexOf("photos") !== -1
-					isFavoritesScreen = routeURL.indexOf("favorites") !== -1
-					isSharedScreen =
-						routeURL.indexOf("shared-in") !== -1 || routeURL.indexOf("shared-out") !== -1 || routeURL.indexOf("links") !== -1
-					isBaseScreen = routeURL.indexOf(baseName) !== -1
-					isOfflineScreen = routeURL.indexOf("offline") !== -1
-					isNotesScreen = currentScreenName.indexOf("Note") !== -1
-					isChatsScreen = currentScreenName.indexOf("Chat") !== -1
-					isContactsScreen = currentScreenName.indexOf("Contact") !== -1
-				}
+				isRecentsScreen = routeURL.indexOf("recents") !== -1
+				isTrashScreen = routeURL.indexOf("trash") !== -1
+				isPhotosScreen = routeURL.indexOf("photos") !== -1
+				isFavoritesScreen = routeURL.indexOf("favorites") !== -1
+				isSharedScreen =
+					routeURL.indexOf("shared-in") !== -1 || routeURL.indexOf("shared-out") !== -1 || routeURL.indexOf("links") !== -1
+				isBaseScreen = routeURL.indexOf(baseName) !== -1
+				isOfflineScreen = routeURL.indexOf("offline") !== -1
+				isNotesScreen = currentScreenName.indexOf("Note") !== -1
+				isChatsScreen = currentScreenName.indexOf("Chat") !== -1
+				isContactsScreen = currentScreenName.indexOf("Contact") !== -1
 			}
+		}
 
-			const canOpenBottomAddActionSheet =
-				currentScreenName === "MainScreen" &&
-				!isOfflineScreen &&
-				!isTrashScreen &&
-				!isFavoritesScreen &&
-				!isPhotosScreen &&
-				!isRecentsScreen &&
-				!isNotesScreen &&
-				!isChatsScreen &&
-				!isContactsScreen &&
-				routeURL.indexOf("shared-in") === -1 &&
-				parent !== "shared-out" &&
-				parent !== "links"
+		const canOpenBottomAddActionSheet =
+			currentScreenName === "MainScreen" &&
+			!isOfflineScreen &&
+			!isTrashScreen &&
+			!isFavoritesScreen &&
+			!isPhotosScreen &&
+			!isRecentsScreen &&
+			!isNotesScreen &&
+			!isChatsScreen &&
+			!isContactsScreen &&
+			routeURL.indexOf("shared-in") === -1 &&
+			parent !== "shared-out" &&
+			parent !== "links"
 
-			const showCloud =
-				isBaseScreen &&
-				!isRecentsScreen &&
-				!isTrashScreen &&
-				!isSharedScreen &&
-				!isNotesScreen &&
-				!isChatsScreen &&
-				currentScreenName !== "SettingsAccountScreen" &&
-				currentScreenName !== "LanguageScreen" &&
-				currentScreenName !== "SettingsAdvancedScreen" &&
-				currentScreenName !== "CameraUploadScreen" &&
-				currentScreenName !== "CameraUploadAlbumsScreen" &&
-				currentScreenName !== "SettingsScreen" &&
-				currentScreenName !== "TransfersScreen" &&
-				currentScreenName !== "EventsScreen" &&
-				currentScreenName !== "EventsInfoScreen" &&
-				currentScreenName !== "GDPRScreen" &&
-				currentScreenName !== "InviteScreen" &&
-				currentScreenName !== "TwoFactorScreen" &&
-				currentScreenName !== "ChangeEmailPasswordScreen"
+		const showCloud =
+			isBaseScreen &&
+			!isRecentsScreen &&
+			!isTrashScreen &&
+			!isSharedScreen &&
+			!isNotesScreen &&
+			!isChatsScreen &&
+			currentScreenName !== "SettingsAccountScreen" &&
+			currentScreenName !== "LanguageScreen" &&
+			currentScreenName !== "SettingsAdvancedScreen" &&
+			currentScreenName !== "CameraUploadScreen" &&
+			currentScreenName !== "CameraUploadAlbumsScreen" &&
+			currentScreenName !== "SettingsScreen" &&
+			currentScreenName !== "TransfersScreen" &&
+			currentScreenName !== "EventsScreen" &&
+			currentScreenName !== "EventsInfoScreen" &&
+			currentScreenName !== "GDPRScreen" &&
+			currentScreenName !== "InviteScreen" &&
+			currentScreenName !== "TwoFactorScreen" &&
+			currentScreenName !== "ChangeEmailPasswordScreen"
 
-			const showSettings =
-				currentScreenName === "SettingsScreen" ||
-				currentScreenName === "LanguageScreen" ||
-				currentScreenName === "SettingsAccountScreen" ||
-				currentScreenName === "SettingsAdvancedScreen" ||
-				currentScreenName === "CameraUploadScreen" ||
-				currentScreenName === "CameraUploadAlbumsScreen" ||
-				currentScreenName === "EventsScreen" ||
-				currentScreenName === "EventsInfoScreen" ||
-				isTrashScreen ||
-				currentScreenName === "GDPRScreen" ||
-				currentScreenName === "InviteScreen" ||
-				currentScreenName === "TwoFactorScreen" ||
-				currentScreenName === "ChangeEmailPasswordScreen"
+		const showSettings =
+			currentScreenName === "SettingsScreen" ||
+			currentScreenName === "LanguageScreen" ||
+			currentScreenName === "SettingsAccountScreen" ||
+			currentScreenName === "SettingsAdvancedScreen" ||
+			currentScreenName === "CameraUploadScreen" ||
+			currentScreenName === "CameraUploadAlbumsScreen" ||
+			currentScreenName === "EventsScreen" ||
+			currentScreenName === "EventsInfoScreen" ||
+			isTrashScreen ||
+			currentScreenName === "GDPRScreen" ||
+			currentScreenName === "InviteScreen" ||
+			currentScreenName === "TwoFactorScreen" ||
+			currentScreenName === "ChangeEmailPasswordScreen"
 
-			const showHome = isSharedScreen || isRecentsScreen || isFavoritesScreen || isOfflineScreen
+		const showHome = isSharedScreen || isRecentsScreen || isFavoritesScreen || isOfflineScreen
 
-			return [
-				showHome,
-				showCloud,
-				canOpenBottomAddActionSheet,
-				isPhotosScreen,
-				showSettings,
-				isNotesScreen,
-				isChatsScreen,
-				isContactsScreen
-			]
-		}, [getParent(), getRouteURL()])
+		return [
+			showHome,
+			showCloud,
+			canOpenBottomAddActionSheet,
+			isPhotosScreen,
+			showSettings,
+			isNotesScreen,
+			isChatsScreen,
+			isContactsScreen,
+			currentScreenName
+		]
+	}, [getParent(), getRouteURL()])
 
 	const navTo = useCallback(
 		async (to: "recents" | "cloud" | "photos" | "settings" | "notes" | "chats" | "contacts") => {
@@ -167,18 +173,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
 						]
 					})
 				)
-			} else if (to === "contacts") {
-				navigation.dispatch(
-					CommonActions.reset({
-						index: 0,
-						routes: [
-							{
-								name: "ContactsScreen"
-							}
-						]
-					})
-				)
-			} else if (to === "notes") {
+			} else if (to === "notes" && currentScreenName !== "NotesScreen") {
 				navigation.dispatch(
 					CommonActions.reset({
 						index: 0,
@@ -189,7 +184,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
 						]
 					})
 				)
-			} else if (to === "chats") {
+			} else if (to === "chats" && currentScreenName !== "ChatsScreen") {
 				navigation.dispatch(
 					CommonActions.reset({
 						index: 0,
@@ -200,7 +195,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
 						]
 					})
 				)
-			} else if (to === "settings") {
+			} else if (to === "settings" && currentScreenName !== "SettingsScreen") {
 				navigation.dispatch(
 					CommonActions.reset({
 						index: 0,
@@ -211,7 +206,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
 						]
 					})
 				)
-			} else {
+			} else if (to === "cloud") {
 				navigation.dispatch(
 					CommonActions.reset({
 						index: 0,
@@ -227,7 +222,7 @@ export const BottomBar = memo(({ navigation }: BottomBarProps) => {
 				)
 			}
 		},
-		[defaultDriveOnly, defaultDriveUUID, userId]
+		[defaultDriveOnly, defaultDriveUUID, userId, currentScreenName]
 	)
 
 	const openAddSheet = useCallback(() => {

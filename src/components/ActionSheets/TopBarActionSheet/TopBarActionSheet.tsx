@@ -1020,6 +1020,16 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 								text={i18n(lang, "emptyTrash")}
 							/>
 						)}
+						<ActionButton
+							onPress={async () => {
+								await SheetManager.hide("TopBarActionSheet")
+								await navigationAnimation({ enable: true })
+
+								navigation.dispatch(StackActions.push("SettingsScreen"))
+							}}
+							icon="cog-outline"
+							text={i18n(lang, "settings")}
+						/>
 					</>
 				)}
 			</View>

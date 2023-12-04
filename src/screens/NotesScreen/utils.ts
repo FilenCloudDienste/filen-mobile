@@ -3,8 +3,11 @@ import { NoteType, notes as getNotes, notesTags as getTags, Note as INote, NoteT
 import { dbFs } from "../../lib/db"
 import { decryptNoteKeyParticipant, decryptNoteTitle, decryptNoteTagName, decryptNotePreview, decryptNoteContent } from "../../lib/crypto"
 import storage from "../../lib/storage"
-import { getMasterKeys } from "../../lib/helpers"
+import { getMasterKeys, randomIdUnsafe } from "../../lib/helpers"
 import { getColor } from "../../style"
+import { DOMParser } from "react-native-html-parser"
+
+const domParser = new DOMParser()
 
 export const createNotePreviewFromContentText = (content: string, type: NoteType) => {
 	if (content.length === 0) {
@@ -297,6 +300,8 @@ export const quillStyle = (darkMode: boolean) => {
         .ql-container {
             font-size: 16px;
             white-space: pre-wrap !important;
+            padding-left: 5px !important;
+            padding-right: 5px !important;
         }
 
         .ql-editor {
@@ -306,6 +311,7 @@ export const quillStyle = (darkMode: boolean) => {
 
         .ql-toolbar.ql-snow {
             border: none;
+            border-top: 1px solid ${getColor(darkMode, "primaryBorder")};
             border-bottom: 1px solid ${getColor(darkMode, "primaryBorder")};
             font-size: 16px;
         }
@@ -480,43 +486,39 @@ export const quillStyle = (darkMode: boolean) => {
             content: '\\2713';
             color: transparent;
             display: inline-block;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border: 1px solid ${getColor(darkMode, "textPrimary")};
             border-radius: 50%;
             text-align: center;
-            line-height: 17px;
+            line-height: 20px;
+            padding-left: 1px;
             background-color: transparent;
             margin-right: 10px;
-            z-index: -1;
         }
 
         .ql-editor ul[data-checked=true] > li::before {
-            content: '\\2714';
-            color: white;
+            content: '\\2713';
+            color: ${getColor(darkMode, "backgroundPrimary")};
             display: inline-block;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
+            font-weight: bold;
             border: 1px solid ${getColor(darkMode, "purple")};
             border-radius: 50%;
             text-align: center;
-            line-height: 17px;
+            line-height: 20px;
+            padding-left: 1px;
             background-color: ${getColor(darkMode, "purple")};
             margin-right: 10px;
-            z-index: -1;
-        }
-
-        .ql-editor ul[data-checked=true] > li {
-            text-decoration: line-through !important;
-            color: ${getColor(darkMode, "textSecondary")} !important;
         }
 
         .ql-editor ul[data-checked=false] > li {
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .ql-editor ul[data-checked=true] > li {
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .ql-snow .ql-editor pre.ql-syntax {
@@ -531,4 +533,75 @@ export const quillStyle = (darkMode: boolean) => {
             width: 28px;
         }
     `
+}
+
+export type ChecklistItem = {
+	text: string
+	checked: boolean
+	id: string
+}
+
+export const parseQuillChecklistHtml = (html: string): ChecklistItem[] => {
+	try {
+		const doc = domParser.parseFromString(html, "text/html")
+		const checklist: ChecklistItem[] = []
+
+		const ulElements = doc.getElementsByTagName("ul")
+		let index = 0
+
+		for (let i = 0; i < ulElements.length; i++) {
+			const ul = ulElements.item(i)
+			const isChecked = ul.getAttribute("data-checked") === "true"
+			const liElements = ul.getElementsByTagName("li")
+
+			for (let j = 0; j < liElements.length; j++) {
+				const li = liElements.item(j)
+
+				checklist.push({
+					id: randomIdUnsafe(),
+					text: li.textContent || "",
+					checked: isChecked
+				})
+
+				index += 1
+			}
+		}
+
+		return checklist
+	} catch (e) {
+		console.error(e)
+
+		return []
+	}
+}
+
+export const convertChecklistItemsToHtml = (items: ChecklistItem[]): string => {
+	try {
+		let html = ""
+		let currentCheckedStatus: boolean | null = null
+
+		items.forEach(item => {
+			if (currentCheckedStatus !== item.checked) {
+				if (currentCheckedStatus !== null) {
+					html += "</ul>"
+				}
+
+				html += `<ul data-checked="${item.checked}">`
+
+				currentCheckedStatus = item.checked
+			}
+
+			html += `<li>${item.text}</li>`
+		})
+
+		if (items.length > 0) {
+			html += "</ul>"
+		}
+
+		return html
+	} catch (e) {
+		console.error(e)
+
+		return '<ul data-checked="false"><li><br></li></ul>'
+	}
 }

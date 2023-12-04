@@ -403,8 +403,6 @@ export const decryptData = async (encrypted: ArrayBuffer, key: string, version: 
 }
 
 export const decryptChatMessageKey = async (metadata: string, privateKey: string): Promise<string> => {
-	const cacheKey = "decryptChatMessageKey:" + metadata
-
 	try {
 		const key = await global.nodeThread.decryptMetadataPrivateKey({
 			data: metadata,
@@ -642,4 +640,11 @@ export const decryptChatConversationName = async (name: string, metadata: string
 
 export const encryptChatConversationName = async (name: string, key: string): Promise<string> => {
 	return await encryptMetadata(JSON.stringify({ name }), key)
+}
+
+export const encryptMetadataPublicKey = async (data: string, publicKey: string): Promise<string> => {
+	return await global.nodeThread.encryptMetadataPublicKey({
+		data,
+		publicKey
+	})
 }

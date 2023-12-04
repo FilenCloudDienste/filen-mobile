@@ -535,7 +535,7 @@ class FileProviderUtils {
   }
   
   func setFavoriteRank (uuid: String, rank: NSNumber?) -> Void {
-    Task {
+    autoreleasepool {
       if let rankNS = rank {
         let int = rankNS.intValue
         

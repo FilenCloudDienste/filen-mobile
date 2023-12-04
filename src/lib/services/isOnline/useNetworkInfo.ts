@@ -10,19 +10,22 @@ export interface NetworkInfo {
 export const useNetworkInfo = () => {
 	const [state, setState] = useState<NetworkInfo>({ online: true, wifi: true })
 
-	const update = useCallback(() => {
-		;(async () => {
-			try {
-				const info = await networkState()
+	const update = useCallback(async () => {
+		try {
+			const state = await networkState()
 
-				setState({
-					online: info.isConnected && info.isInternetReachable,
-					wifi: info.type === Network.NetworkStateType.WIFI
-				})
-			} catch (e) {
-				console.error(e)
-			}
-		})()
+			setState({
+				online: state.isConnected && state.isInternetReachable,
+				wifi:
+					state.type === Network.NetworkStateType.WIFI ||
+					state.type === Network.NetworkStateType.VPN ||
+					state.type === Network.NetworkStateType.ETHERNET ||
+					state.type === Network.NetworkStateType.BLUETOOTH ||
+					state.type === Network.NetworkStateType.WIMAX
+			})
+		} catch (e) {
+			console.error(e)
+		}
 	}, [])
 
 	useEffect(() => {

@@ -10,6 +10,7 @@ const AuthContainer = memo(({ children }: { children: React.ReactNode[] }) => {
 	return (
 		<KeyboardAvoidingView
 			behavior="padding"
+			keyboardVerticalOffset={65}
 			style={{
 				flex: 1,
 				width: "100%",
@@ -20,11 +21,7 @@ const AuthContainer = memo(({ children }: { children: React.ReactNode[] }) => {
 		>
 			<TouchableOpacity onPress={() => storage.set("darkMode", !darkMode)}>
 				<Image
-					source={
-						darkMode
-							? require("../../assets/images/light_logo.png")
-							: require("../../assets/images/dark_logo.png")
-					}
+					source={darkMode ? require("../../assets/images/light_logo.png") : require("../../assets/images/dark_logo.png")}
 					style={{
 						width: 100,
 						height: 100,

@@ -1,37 +1,17 @@
-const EVENT_LISTENERS: any = []
+import { DeviceEventEmitter } from "react-native"
 
 const eventListener = {
-	on: (name: string, listener: Function) => {
-		if (!EVENT_LISTENERS[name]) {
-			EVENT_LISTENERS[name] = []
-		}
-
-		EVENT_LISTENERS[name].push(listener)
+	on: (name: string, listener: (data?: unknown) => void) => {
+		const subscription = DeviceEventEmitter.addListener(name, listener)
 
 		return {
 			remove: () => {
-				if (!EVENT_LISTENERS[name]) {
-					return true
-				}
-
-				EVENT_LISTENERS[name] = EVENT_LISTENERS[name].filter(
-					(filteredListener: Function) => filteredListener !== listener
-				)
-
-				return true
+				subscription.remove()
 			}
 		}
 	},
-	emit: (name: string, data?: any) => {
-		if (!EVENT_LISTENERS[name]) {
-			return false
-		}
-
-		EVENT_LISTENERS[name].forEach((listener: Function) => {
-			listener(data)
-		})
-
-		return true
+	emit: (name: string, data?: unknown) => {
+		DeviceEventEmitter.emit(name, data)
 	}
 }
 

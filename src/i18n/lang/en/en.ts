@@ -444,5 +444,15 @@ export const en: {
 	chats: "Chats",
 	notes: "Notes",
 	contacts: "Contacts",
-	search: "Search.."
+	search: "Search..",
+	noteTypeText: "Text",
+	noteTypeRichText: "Rich text",
+	noteTypeChecklist: "Checklist",
+	noteTypeMarkdown: "Markdown",
+	noteTypeCode: "Code",
+	pin: "Pin",
+	unpin: "Unpin",
+	archive: "Archive",
+	archiveRestore: "Restore from archive",
+	duplicate: "Duplicate"
 }

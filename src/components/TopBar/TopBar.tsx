@@ -13,6 +13,7 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import memoryCache from "../../lib/memoryCache"
+import { Feather } from "@expo/vector-icons"
 
 export interface TopBarProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -350,16 +351,34 @@ export const TopBar = memo(({ navigation, route, setLoadDone, searchTerm, setSea
 							paddingLeft: 0,
 							justifyContent: "flex-end"
 						}}
-						onPress={() => SheetManager.show("TopBarActionSheet")}
+						onPress={() => {
+							if (isNotesScreen) {
+								SheetManager.show("CreateNoteActionSheet")
+
+								return
+							}
+
+							SheetManager.show("TopBarActionSheet")
+						}}
 					>
-						{!isSettingsScreen && (
+						{isNotesScreen ? (
 							<View>
-								<Ionicon
-									name="ellipsis-horizontal-circle-outline"
-									size={23}
+								<Feather
+									name="edit"
+									size={18}
 									color="#0A84FF"
 								/>
 							</View>
+						) : (
+							!isSettingsScreen && (
+								<View>
+									<Ionicon
+										name="ellipsis-horizontal-circle-outline"
+										size={23}
+										color="#0A84FF"
+									/>
+								</View>
+							)
 						)}
 					</TouchableOpacity>
 				</View>

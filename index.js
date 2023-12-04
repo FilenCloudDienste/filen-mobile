@@ -12,9 +12,9 @@ import { Notifications, NotificationBackgroundFetchResult } from "react-native-n
 import { hasNotificationPermissions } from "./src/lib/permissions"
 
 if (!__DEV__) {
-	//console.log = () => {}
-	//console.error = () => {}
-	//console.warn = () => {}
+	console.log = () => {}
+	console.error = () => {}
+	console.warn = () => {}
 } else {
 	LogBox.ignoreLogs(["new NativeEventEmitter", "Module AssetExporter", "DEPRECATED", "messaging()"])
 }
@@ -304,9 +304,5 @@ initPushNotifications().catch(console.error)
 setTimeout(() => {
 	runCameraUpload()
 }, 5000)
-
-setInterval(() => {
-	console.log(Date.now(), "alive")
-}, 1000)
 
 AppRegistry.registerComponent(appName, () => App)

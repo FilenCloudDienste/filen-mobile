@@ -74,6 +74,8 @@ import ContactsScreen from "./screens/ContactsScreen"
 import NotesScreen from "./screens/NotesScreen"
 import ChatsScreen from "./screens/ChatsScreen"
 import NoteScreen from "./screens/NotesScreen/NoteScreen"
+import CreateNoteActionSheet from "./components/ActionSheets/CreateNoteActionSheet"
+import NoteActionSheet from "./components/ActionSheets/NoteActionSheet"
 
 enableScreens(true)
 
@@ -110,7 +112,7 @@ export const App = Sentry.wrap(
 		const lang = useLang()
 		const setContentHeight = useStore(state => state.setContentHeight)
 		const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
-		const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
+		const [userSelectedTheme] = useMMKVString("userSelectedTheme", storage)
 		const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
 		const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 		const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
@@ -122,60 +124,52 @@ export const App = Sentry.wrap(
 				return false
 			}
 
-			if (typeof items !== "undefined") {
-				if (typeof items.data !== "undefined") {
-					if (items.data !== null) {
-						if (items.data.length > 0) {
-							await new Promise(resolve => {
-								const wait = setInterval(() => {
-									if (
-										!isRouteInStack(navigationRef, [
-											"SetupScreen",
-											"BiometricAuthScreen",
-											"LoginScreen",
-											"SelectMediaScreen"
-										]) &&
-										storage.getBoolean("isLoggedIn")
-									) {
-										clearInterval(wait)
+			if (items && items.data && Array.isArray(items.data) && items.data.length > 0) {
+				await new Promise(resolve => {
+					const wait = setInterval(() => {
+						if (
+							!isRouteInStack(navigationRef, [
+								"SetupScreen",
+								"BiometricAuthScreen",
+								"LoginScreen",
+								"SelectMediaScreen",
+								"RegisterScreen",
+								"ResendConfirmationScreen"
+							]) &&
+							storage.getBoolean("isLoggedIn")
+						) {
+							clearInterval(wait)
 
-										return resolve(true)
-									}
-								}, 250)
-							})
+							return resolve(true)
+						}
+					}, 100)
+				})
 
-							let containsValidItems = true
+				let containsValidItems = true
 
-							if (Platform.OS == "android") {
-								if (Array.isArray(items.data)) {
-									for (let i = 0; i < items.data.length; i++) {
-										if (items.data[i].indexOf("file://") == -1 && items.data[i].indexOf("content://") == -1) {
-											containsValidItems = false
-										}
-									}
-								} else {
-									if (items.data.indexOf("file://") == -1 && items.data.indexOf("content://") == -1) {
-										containsValidItems = false
-									}
-								}
-							} else {
-								for (let i = 0; i < items.data.length; i++) {
-									if (items.data[i].data.indexOf("file://") == -1 && items.data[i].data.indexOf("content://") == -1) {
-										containsValidItems = false
-									}
-								}
-							}
-
-							if (containsValidItems) {
-								setCurrentShareItems(items)
-
-								showToast({ type: "upload" })
-							} else {
-								showToast({ message: i18n(lang, "shareMenuInvalidType") })
-							}
+				if (Platform.OS === "android") {
+					for (let i = 0; i < items.data.length; i++) {
+						if (items.data[i].indexOf("file://") == -1 && items.data[i].indexOf("content://") == -1) {
+							containsValidItems = false
+						}
+					}
+				} else {
+					for (let i = 0; i < items.data.length; i++) {
+						if (items.data[i].data.indexOf("file://") == -1 && items.data[i].data.indexOf("content://") == -1) {
+							containsValidItems = false
 						}
 					}
 				}
+
+				if (!containsValidItems) {
+					showToast({ message: i18n(lang, "shareMenuInvalidType") })
+
+					return
+				}
+
+				setCurrentShareItems(items)
+
+				showToast({ type: "upload" })
 			}
 		}, [])
 
@@ -185,24 +179,20 @@ export const App = Sentry.wrap(
 					if (userSelectedTheme === "dark") {
 						storage.set("darkMode", true)
 
-						setUserSelectedTheme("dark")
 						setStatusBarStyle(true)
 					} else {
 						storage.set("darkMode", false)
 
-						setUserSelectedTheme("light")
 						setStatusBarStyle(false)
 					}
 				} else {
 					if (Appearance.getColorScheme() === "dark") {
 						storage.set("darkMode", true)
 
-						setUserSelectedTheme("dark")
 						setStatusBarStyle(true)
 					} else {
 						storage.set("darkMode", false)
 
-						setUserSelectedTheme("light")
 						setStatusBarStyle(false)
 					}
 				}
@@ -332,8 +322,6 @@ export const App = Sentry.wrap(
 		useEffect(() => {
 			const appStateListener = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
 				setAppState(nextAppState)
-
-				console.log("appstate", nextAppState)
 
 				await isNavReady(navigationRef)
 
@@ -807,6 +795,8 @@ export const App = Sentry.wrap(
 										<ProfilePictureActionSheet />
 										<SortByActionSheet />
 										<LockAppAfterActionSheet />
+										<CreateNoteActionSheet navigation={navigationRef} />
+										<NoteActionSheet navigation={navigationRef} />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>
