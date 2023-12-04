@@ -305,7 +305,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         }
     }
     
-    func enumerateWorkingSet(for observer: NSFileProviderEnumerationObserver) {
+    func enumerateWorkingSet(for observer: NSFileProviderEnumerationObserver, startingAt page: NSFileProviderPage) {
         if (self.identifier != .workingSet) {
             observer.finishEnumerating(upTo: nil)
         }
@@ -320,7 +320,20 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                 binding.first as? String ?? ""
             })
             
-            for parent in parents {
+            if parents.isEmpty {
+                observer.finishEnumerating(upTo: nil)
+                return
+            }
+            
+            var parent = parents.first!
+            
+            if let prevParent = String(data: page.rawValue, encoding: .utf8) {
+                if (parents.firstIndex(of: prevParent) ?? 0) + 1 >= parents.count {
+                    observer.finishEnumerating(upTo: nil)
+                    return
+                }
+                parent = parents[(parents.firstIndex(of: prevParent) ?? 0) + 1]
+            }
                 var kids = try FileProviderUtils.shared.getListOfItemsWithParent(uuid: parent)
                 kids.removeAll(where: { $0.uuid == rootFolderUUID })
                 
@@ -344,9 +357,9 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                             version: itemJSON.version
                         ))
                 }))
-            }
+                observer.finishEnumerating(upTo: NSFileProviderPage(parent.data(using: .utf8)!))
             
-            observer.finishEnumerating(upTo: nil)
+            //observer.finishEnumerating(upTo: nil)
         } catch {
             print("[enumerateItems] error:", error)
             
@@ -371,7 +384,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                 }
                 
                 if identifier == .workingSet {
-                    enumerateWorkingSet(for: observer)
+                    enumerateWorkingSet(for: observer, startingAt: page)
                     return
                 }
                 
