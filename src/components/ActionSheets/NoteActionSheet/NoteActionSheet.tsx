@@ -385,9 +385,13 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 						)}
 						{userHasWritePermissions && (
 							<ActionButton
-								onPress={() => favorite(false)}
+								onPress={async () => {
+									await hideAllActionSheets()
+
+									eventListener.emit("openNoteChangeTypeActionSheet", selectedNote)
+								}}
 								icon="build-outline"
-								text={i18n(lang, "notesType")}
+								text={i18n(lang, "changeType")}
 							/>
 						)}
 						{selectedNote.pinned ? (

@@ -287,8 +287,9 @@ export const hideAllActionSheets = async () => {
 		SheetManager.hide("SortByActionSheet"),
 		SheetManager.hide("TopBarActionSheet"),
 		SheetManager.hide("CreateNoteActionSheet"),
-		SheetManager.hide("NoteActionSheet")
-	])
+		SheetManager.hide("NoteActionSheet"),
+		SheetManager.hide("NoteChangeTypeActionSheet")
+	]).catch(console.error)
 }
 
 export const ActionSheetIndicator = memo(() => {

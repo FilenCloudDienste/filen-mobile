@@ -76,6 +76,7 @@ import ChatsScreen from "./screens/ChatsScreen"
 import NoteScreen from "./screens/NotesScreen/NoteScreen"
 import CreateNoteActionSheet from "./components/ActionSheets/CreateNoteActionSheet"
 import NoteActionSheet from "./components/ActionSheets/NoteActionSheet"
+import NoteChangeTypeActionSheet from "./components/ActionSheets/NoteChangeTypeActionSheet"
 
 enableScreens(true)
 
@@ -797,6 +798,7 @@ export const App = Sentry.wrap(
 										<LockAppAfterActionSheet />
 										<CreateNoteActionSheet navigation={navigationRef} />
 										<NoteActionSheet navigation={navigationRef} />
+										<NoteChangeTypeActionSheet />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>

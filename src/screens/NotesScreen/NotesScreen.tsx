@@ -40,7 +40,7 @@ const Item = memo(
 				}}
 			>
 				<TouchableOpacity
-					activeOpacity={0.4}
+					activeOpacity={0.6}
 					style={{
 						flexDirection: "column",
 						borderTopLeftRadius: index === 0 ? 10 : 0,

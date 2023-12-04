@@ -452,5 +452,8 @@ export const de: {
 	unpin: "Entpinnen",
 	archive: "Archivieren",
 	archiveRestore: "Aus dem Archiv wiederherstellen",
-	duplicate: "Duplizieren"
+	duplicate: "Duplizieren",
+	history: "Verlauf",
+	participants: "Mitglieder",
+	changeType: "Typ ändern"
 }

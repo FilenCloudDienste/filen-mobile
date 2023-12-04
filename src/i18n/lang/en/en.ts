@@ -454,5 +454,8 @@ export const en: {
 	unpin: "Unpin",
 	archive: "Archive",
 	archiveRestore: "Restore from archive",
-	duplicate: "Duplicate"
+	duplicate: "Duplicate",
+	history: "History",
+	participants: "Participants",
+	changeType: "Change type"
 }
