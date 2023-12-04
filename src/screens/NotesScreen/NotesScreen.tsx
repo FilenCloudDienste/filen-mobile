@@ -5,10 +5,10 @@ import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { Note, NoteTag } from "../../lib/api"
-import { fetchNotesAndTags, sortAndFilterNotes, sortAndFilterTags } from "./utils"
+import { fetchNotesAndTags, sortAndFilterNotes, sortAndFilterTags, getUserNameFromNoteParticipant } from "./utils"
 import { dbFs } from "../../lib/db"
 import { showToast } from "../../components/Toasts"
-import { useMMKVString } from "react-native-mmkv"
+import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import storage from "../../lib/storage"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
@@ -17,6 +17,8 @@ import { FlashList } from "@shopify/flash-list"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import eventListener from "../../lib/eventListener"
+import FastImage from "react-native-fast-image"
+import { generateAvatarColorCode } from "../../lib/helpers"
 
 const Item = memo(
 	({
@@ -24,14 +26,22 @@ const Item = memo(
 		note,
 		index,
 		notesSorted,
-		navigation
+		navigation,
+		userId
 	}: {
 		darkMode: boolean
 		note: Note
 		index: number
 		notesSorted: Note[]
 		navigation: NavigationContainerRef<ReactNavigation.RootParamList>
+		userId: number
 	}) => {
+		const participantsFilteredWithoutMe = useMemo(() => {
+			return note.participants
+				.filter(p => p.userId !== userId)
+				.sort((a, b) => getUserNameFromNoteParticipant(a).localeCompare(getUserNameFromNoteParticipant(b)))
+		}, [userId, note.participants])
+
 		return (
 			<View
 				style={{
@@ -74,7 +84,8 @@ const Item = memo(
 						<View
 							style={{
 								width: 30,
-								flexDirection: "column"
+								flexDirection: "column",
+								alignSelf: "flex-start"
 							}}
 						>
 							{note.trash ? (
@@ -173,7 +184,7 @@ const Item = memo(
 									style={{
 										color: getColor(darkMode, "textPrimary"),
 										fontSize: 15,
-										paddingRight: 15
+										paddingRight: participantsFilteredWithoutMe.length > 0 ? 55 : 15
 									}}
 									numberOfLines={1}
 								>
@@ -186,7 +197,7 @@ const Item = memo(
 										style={{
 											color: getColor(darkMode, "textSecondary"),
 											marginTop: 5,
-											paddingRight: 15,
+											paddingRight: participantsFilteredWithoutMe.length > 0 ? 55 : 15,
 											fontSize: 12
 										}}
 										numberOfLines={1}
@@ -209,7 +220,7 @@ const Item = memo(
 									style={{
 										color: getColor(darkMode, "textSecondary"),
 										marginTop: 5,
-										paddingRight: 15,
+										paddingRight: participantsFilteredWithoutMe.length > 0 ? 55 : 15,
 										fontSize: 12
 									}}
 									numberOfLines={1}
@@ -222,7 +233,7 @@ const Item = memo(
 									style={{
 										color: getColor(darkMode, "textSecondary"),
 										marginTop: 7,
-										paddingRight: 15
+										paddingRight: participantsFilteredWithoutMe.length > 0 ? 55 : 15
 									}}
 									numberOfLines={1}
 								>
@@ -232,15 +243,75 @@ const Item = memo(
 							{index < notesSorted.length - 1 && (
 								<View
 									style={{
-										//backgroundColor: darkMode ? "rgba(84, 84, 88, 0.3)" : "rgba(84, 84, 88, 0.15)",
 										backgroundColor: getColor(darkMode, "primaryBorder"),
 										height: 0.5,
-										width: "100%",
+										width: "200%",
 										marginTop: 15
 									}}
 								/>
 							)}
 						</View>
+						{participantsFilteredWithoutMe.length > 0 && (
+							<View
+								style={{
+									flexDirection: "row",
+									justifyContent: "center",
+									position: "absolute",
+									right: participantsFilteredWithoutMe.length > 1 ? 35 : 25,
+									top: 15
+								}}
+							>
+								{participantsFilteredWithoutMe.map((participant, index) => {
+									if (index >= 2) {
+										return null
+									}
+
+									if (participant.avatar.indexOf("https://") !== -1) {
+										return (
+											<FastImage
+												source={{
+													uri: participantsFilteredWithoutMe[0].avatar
+												}}
+												style={{
+													width: 24,
+													height: 24,
+													borderRadius: 24,
+													left: index > 0 ? 10 : 0,
+													position: "absolute"
+												}}
+											/>
+										)
+									}
+
+									return (
+										<View
+											key={participant.userId}
+											style={{
+												width: 24,
+												height: 24,
+												borderRadius: 24,
+												backgroundColor: generateAvatarColorCode(participant.email, darkMode),
+												flexDirection: "column",
+												alignItems: "center",
+												justifyContent: "center",
+												left: index > 0 ? 10 : 0,
+												position: "absolute"
+											}}
+										>
+											<Text
+												style={{
+													color: "white",
+													fontWeight: "bold",
+													fontSize: 16
+												}}
+											>
+												{getUserNameFromNoteParticipant(participant).slice(0, 1).toUpperCase()}
+											</Text>
+										</View>
+									)
+								})}
+							</View>
+						)}
 					</View>
 				</TouchableOpacity>
 			</View>
@@ -258,6 +329,7 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const [activeTag, setActiveTag] = useMMKVString("notesActiveTag", storage)
 	const dimensions = useWindowDimensions()
 	const networkInfo = useNetworkInfo()
+	const [userId] = useMMKVNumber("userId", storage)
 
 	const notesSorted = useMemo(() => {
 		return sortAndFilterNotes(notes, searchTerm, activeTag ? activeTag : "")
@@ -311,10 +383,11 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 					notesSorted={notesSorted}
 					index={index}
 					navigation={navigation}
+					userId={userId}
 				/>
 			)
 		},
-		[darkMode, notesSorted, navigation]
+		[darkMode, notesSorted, navigation, userId]
 	)
 
 	useEffect(() => {

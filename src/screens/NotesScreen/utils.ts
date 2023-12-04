@@ -1,5 +1,5 @@
 import striptags from "striptags"
-import { NoteType, notes as getNotes, notesTags as getTags, Note as INote, NoteTag, noteContent } from "../../lib/api"
+import { NoteType, notes as getNotes, notesTags as getTags, Note as INote, NoteTag, noteContent, NoteParticipant } from "../../lib/api"
 import { dbFs } from "../../lib/db"
 import { decryptNoteKeyParticipant, decryptNoteTitle, decryptNoteTagName, decryptNotePreview, decryptNoteContent } from "../../lib/crypto"
 import storage from "../../lib/storage"
@@ -604,4 +604,8 @@ export const convertChecklistItemsToHtml = (items: ChecklistItem[]): string => {
 
 		return '<ul data-checked="false"><li><br></li></ul>'
 	}
+}
+
+export const getUserNameFromNoteParticipant = (participant: NoteParticipant): string => {
+	return participant.nickName.length > 0 ? participant.nickName : participant.email
 }

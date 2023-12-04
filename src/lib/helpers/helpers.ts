@@ -5,6 +5,7 @@ import { i18n } from "../../i18n"
 import { NavigationContainerRefWithCurrent } from "@react-navigation/native"
 import * as MediaLibrary from "expo-media-library"
 import { Item } from "../../types"
+import { getColor } from "../../style"
 
 export const getAPIServer = (): string => {
 	const servers = [
@@ -1193,4 +1194,99 @@ export const normalizeProgress = (progress: number) => {
 	}
 
 	return calced
+}
+
+export const generateAvatarColorCode = (input: string, darkMode: boolean, avatarURL?: string | null): string => {
+	if (typeof avatarURL === "string" && avatarURL.length >= 1 && avatarURL.indexOf("https://") !== -1) {
+		return "transparent"
+	}
+
+	if (typeof input !== "string") {
+		input = "default"
+	}
+
+	const colorCodes: string[] = [
+		getColor(darkMode, "pink"),
+		getColor(darkMode, "green"),
+		getColor(darkMode, "red"),
+		getColor(darkMode, "indigo"),
+		getColor(darkMode, "purple"),
+		getColor(darkMode, "cyan"),
+		getColor(darkMode, "blue"),
+		getColor(darkMode, "brown"),
+		getColor(darkMode, "mint"),
+		getColor(darkMode, "orange"),
+		getColor(darkMode, "teal"),
+		getColor(darkMode, "yellow")
+	]
+
+	const index = Math.abs(hashCode(input)) % colorCodes.length
+
+	if (index < colorCodes.length) {
+		return colorCodes[index]
+	}
+
+	const hash = hashCode(input)
+	const color = intToRGB(hash)
+
+	return color
+}
+
+export function hashCode(input: string): number {
+	let hash = 0
+
+	if (input.length === 0) {
+		return hash
+	}
+
+	for (let i = 0; i < input.length; i++) {
+		const char = input.charCodeAt(i)
+		hash = (hash << 5) - hash + char
+		hash = hash & hash
+	}
+
+	return hash
+}
+
+export function intToRGB(value: number): string {
+	const r = (value & 0xff0000) >> 16
+	const g = (value & 0x00ff00) >> 8
+	const b = value & 0x0000ff
+
+	return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`
+}
+
+export function componentToHex(value: number): string {
+	const hex = value.toString(16)
+
+	return hex.length === 1 ? "0" + hex : hex
+}
+
+export const findClosestIndex = (sourceString: string, targetString: string, givenIndex: number): number => {
+	const extractedSubstring = sourceString.slice(0, givenIndex + 1)
+	const lastIndexWithinExtracted = extractedSubstring.lastIndexOf(targetString)
+
+	if (lastIndexWithinExtracted !== -1) {
+		return lastIndexWithinExtracted
+	}
+
+	for (let offset = 1; offset <= givenIndex; offset++) {
+		const substringBefore = sourceString.slice(givenIndex - offset, givenIndex + 1)
+		const lastIndexBefore = substringBefore.lastIndexOf(targetString)
+
+		if (lastIndexBefore !== -1) {
+			return givenIndex - offset + lastIndexBefore
+		}
+	}
+
+	return -1
+}
+
+export const hexToRgb = (hex: string) => {
+	const bigint = parseInt(hex, 16)
+	const r = (bigint >> 16) & 255
+	const g = (bigint >> 8) & 255
+	const b = bigint & 255
+
+	return r + "," + g + "," + b
 }
