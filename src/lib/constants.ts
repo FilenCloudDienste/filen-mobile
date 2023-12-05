@@ -7,3 +7,5 @@ export const MB = 1024 * 1024
 export const GB = MB * 1024
 export const MAX_CAMERA_UPLOAD_QUEUE = 8
 export const MAX_THUMBNAIL_ERROR_COUNT = 5
+export const ONLINE_TIMEOUT = 900000
+export const MAX_NOTE_SIZE = 1024 * 1024 - 1

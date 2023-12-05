@@ -295,7 +295,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				//downloadObjectAsTextWithoutExt(content, selectedNote.title.slice(0, 64))
 			}
 
-			// show file share prompt
+			// @TODO show file share prompt
 		} catch (e) {
 			console.error(e)
 
@@ -378,7 +378,11 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 						)}
 						{selectedNote.ownerId === userId && (
 							<ActionButton
-								onPress={() => favorite(false)}
+								onPress={async () => {
+									await hideAllActionSheets()
+
+									eventListener.emit("openNoteParticipantsActionSheet", selectedNote)
+								}}
 								icon="people-outline"
 								text={i18n(lang, "participants")}
 							/>

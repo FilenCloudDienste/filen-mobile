@@ -166,7 +166,6 @@ const Item = memo(
 const Checklist = memo(({ darkMode, content, onChange }: { darkMode: boolean; content: string; onChange: (html: string) => void }) => {
 	const initialItems = useRef<ChecklistItem[]>(parseQuillChecklistHtml(content)).current
 	const [items, setItems] = useState<ChecklistItem[]>(initialItems)
-	const initialContent = useRef<string>(content).current
 	const [idToFocus, setIdToFocus] = useState<string>("")
 	const [inputRefs, setInputRefs] = useState<Record<string, TextInput>>({})
 	const dimensions = useWindowDimensions()
@@ -178,10 +177,6 @@ const Checklist = memo(({ darkMode, content, onChange }: { darkMode: boolean; co
 		}
 
 		const built = convertChecklistItemsToHtml(items)
-
-		if (built === initialContent) {
-			return
-		}
 
 		onChange(built)
 	}, [items])

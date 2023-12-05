@@ -14,115 +14,122 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import * as db from "../../lib/db"
 
-export interface ActionButtonProps {
-	onPress: () => void
-	icon?: string | React.ReactNode
-	text: string
-	color?: string
-	key?: string | number
-	rightComponent?: React.ReactNode
-	textColor?: string
-}
+export const ActionButton = memo(
+	({
+		onPress,
+		icon,
+		text,
+		color,
+		rightComponent,
+		textColor
+	}: {
+		onPress: () => void
+		icon?: string | React.ReactNode
+		text: string
+		color?: string
+		key?: string | number
+		rightComponent?: React.ReactNode
+		textColor?: string
+	}) => {
+		const darkMode = useDarkMode()
 
-export const ActionButton = memo(({ onPress, icon, text, color, rightComponent, textColor }: ActionButtonProps) => {
-	const darkMode = useDarkMode()
-
-	return (
-		<TouchableHighlight
-			underlayColor={getColor(darkMode, "underlayActionSheet")}
-			style={{
-				width: "100%",
-				height: 45
-			}}
-			onPress={onPress}
-		>
-			<View
+		return (
+			<TouchableHighlight
+				underlayColor={getColor(darkMode, "underlayActionSheet")}
 				style={{
 					width: "100%",
-					height: 45,
-					flexDirection: "row",
-					alignContent: "flex-start",
-					paddingLeft: 20,
-					paddingRight: 20
+					height: 45
 				}}
+				onPress={onPress}
 			>
-				{typeof color !== "undefined" ? (
-					<View
-						style={{
-							backgroundColor: color,
-							height: 22,
-							width: 22,
-							borderRadius: 22,
-							marginTop: 12
-						}}
-					/>
-				) : (
-					<View
-						style={{
-							paddingTop: 11
-						}}
-					>
-						{typeof icon === "string" ? (
-							<Ionicon
-								name={icon as any}
-								size={22}
-								color={getColor(darkMode, "textSecondary")}
-							/>
-						) : (
-							icon
-						)}
-					</View>
-				)}
-				{typeof rightComponent !== "undefined" ? (
-					<View
-						style={{
-							paddingTop: 5,
-							marginLeft: 15,
-							borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
-							borderBottomWidth: darkMode ? 1 : 0.5,
-							width: "100%",
-							justifyContent: "space-between",
-							alignItems: "center",
-							flexDirection: "row",
-							paddingRight: 20
-						}}
-					>
-						<Text
+				<View
+					style={{
+						width: "100%",
+						height: 45,
+						flexDirection: "row",
+						alignContent: "flex-start",
+						paddingLeft: 20,
+						paddingRight: 20
+					}}
+				>
+					{typeof color !== "undefined" ? (
+						<View
 							style={{
-								color: typeof textColor === "string" ? textColor : getColor(darkMode, "textPrimary"),
-								fontSize: 15,
-								fontWeight: "400"
+								backgroundColor: color,
+								height: 22,
+								width: 22,
+								borderRadius: 22,
+								marginTop: 12
+							}}
+						/>
+					) : (
+						<View
+							style={{
+								paddingTop: 11
 							}}
 						>
-							{text}
-						</Text>
-						{rightComponent}
-					</View>
-				) : (
-					<View
-						style={{
-							paddingTop: 14,
-							marginLeft: 15,
-							borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
-							borderBottomWidth: darkMode ? 1 : 0.5,
-							width: "100%"
-						}}
-					>
-						<Text
+							{typeof icon === "string" ? (
+								<Ionicon
+									name={icon as any}
+									size={22}
+									color={getColor(darkMode, "textSecondary")}
+								/>
+							) : (
+								icon
+							)}
+						</View>
+					)}
+					{typeof rightComponent !== "undefined" ? (
+						<View
 							style={{
-								color: typeof textColor === "string" ? textColor : getColor(darkMode, "textPrimary"),
-								fontSize: 15,
-								fontWeight: "400"
+								paddingTop: 5,
+								marginLeft: 15,
+								borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
+								borderBottomWidth: darkMode ? 1 : 0.5,
+								width: "100%",
+								justifyContent: "space-between",
+								alignItems: "center",
+								flexDirection: "row",
+								paddingRight: 20
 							}}
 						>
-							{text}
-						</Text>
-					</View>
-				)}
-			</View>
-		</TouchableHighlight>
-	)
-})
+							<Text
+								style={{
+									color: typeof textColor === "string" ? textColor : getColor(darkMode, "textPrimary"),
+									fontSize: 15,
+									fontWeight: "400"
+								}}
+							>
+								{text}
+							</Text>
+							{rightComponent}
+						</View>
+					) : (
+						<View
+							style={{
+								paddingTop: 14,
+								marginLeft: 15,
+								borderBottomColor: darkMode ? getColor(darkMode, "actionSheetBorder") : getColor(darkMode, "primaryBorder"),
+								borderBottomWidth: darkMode ? 1 : 0.5,
+								width: "100%"
+							}}
+						>
+							<Text
+								style={{
+									color: typeof textColor === "string" ? textColor : getColor(darkMode, "textPrimary"),
+									fontSize: 15,
+									fontWeight: "400"
+								}}
+							>
+								{text}
+							</Text>
+						</View>
+					)}
+				</View>
+			</TouchableHighlight>
+		)
+	}
+)
 
 export const ItemActionSheetItemHeader = memo(() => {
 	const darkMode = useDarkMode()
@@ -141,11 +148,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 
 		db.get("folderSizeCache:" + currentActionSheetItem.uuid)
 			.then(cachedSize => {
-				if (!cachedSize) {
-					return
-				}
-
-				if (cachedSize <= 0) {
+				if (!cachedSize || cachedSize <= 0) {
 					return
 				}
 
@@ -154,7 +157,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 			.catch(console.error)
 	}, [])
 
-	if (typeof currentActionSheetItem == "undefined") {
+	if (!currentActionSheetItem) {
 		return null
 	}
 
@@ -211,7 +214,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 					}}
 					numberOfLines={1}
 				>
-					{hideFileNames ? i18n(lang, currentActionSheetItem.type == "folder" ? "folder" : "file") : currentActionSheetItem.name}
+					{hideFileNames ? i18n(lang, currentActionSheetItem.type === "folder" ? "folder" : "file") : currentActionSheetItem.name}
 				</Text>
 				<Text
 					style={{
@@ -221,7 +224,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 					}}
 					numberOfLines={1}
 				>
-					{typeof currentActionSheetItem.offline == "boolean" && currentActionSheetItem.offline && (
+					{typeof currentActionSheetItem.offline === "boolean" && currentActionSheetItem.offline && (
 						<>
 							<Ionicon
 								name="arrow-down-circle"
@@ -231,7 +234,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 							<Text>&nbsp;&nbsp;&#8226;&nbsp;&nbsp;</Text>
 						</>
 					)}
-					{typeof currentActionSheetItem.favorited == "boolean" && currentActionSheetItem.favorited && (
+					{typeof currentActionSheetItem.favorited === "boolean" && currentActionSheetItem.favorited && (
 						<>
 							<Ionicon
 								name="heart"
@@ -243,8 +246,8 @@ export const ItemActionSheetItemHeader = memo(() => {
 					)}
 					{hideSizes
 						? formatBytes(0)
-						: formatBytes(currentActionSheetItem.type == "file" ? currentActionSheetItem.size : folderSizeCache)}
-					{typeof currentActionSheetItem.sharerEmail == "string" &&
+						: formatBytes(currentActionSheetItem.type === "file" ? currentActionSheetItem.size : folderSizeCache)}
+					{typeof currentActionSheetItem.sharerEmail === "string" &&
 						currentActionSheetItem.sharerEmail.length > 0 &&
 						getParent().length < 32 && (
 							<>
@@ -288,7 +291,8 @@ export const hideAllActionSheets = async () => {
 		SheetManager.hide("TopBarActionSheet"),
 		SheetManager.hide("CreateNoteActionSheet"),
 		SheetManager.hide("NoteActionSheet"),
-		SheetManager.hide("NoteChangeTypeActionSheet")
+		SheetManager.hide("NoteChangeTypeActionSheet"),
+		SheetManager.hideAll()
 	]).catch(console.error)
 }
 

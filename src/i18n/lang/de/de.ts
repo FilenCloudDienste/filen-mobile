@@ -455,5 +455,9 @@ export const de: {
 	duplicate: "Duplizieren",
 	history: "Verlauf",
 	participants: "Mitglieder",
-	changeType: "Typ ändern"
+	changeType: "Typ ändern",
+	permissionsRead: "Lesen",
+	permissionsWrite: "Schreiben",
+	permissionsReadWrite: "Lesen/Schreiben",
+	noteTooBig: "Maximale Notizgröße ist __MAXSIZE__"
 }

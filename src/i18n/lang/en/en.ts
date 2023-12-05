@@ -457,5 +457,9 @@ export const en: {
 	duplicate: "Duplicate",
 	history: "History",
 	participants: "Participants",
-	changeType: "Change type"
+	changeType: "Change type",
+	permissionsRead: "Read",
+	permissionsWrite: "Write",
+	permissionsReadWrite: "Read/Write",
+	noteTooBig: "Maximum note size is __MAXSIZE__"
 }

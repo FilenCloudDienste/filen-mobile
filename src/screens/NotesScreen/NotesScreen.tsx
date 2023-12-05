@@ -311,7 +311,7 @@ const Item = memo(
 											<FastImage
 												key={participant.userId}
 												source={{
-													uri: participantsFilteredWithoutMe[0].avatar
+													uri: participant.avatar
 												}}
 												style={{
 													width: 24,
@@ -430,6 +430,13 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 		},
 		[darkMode, notesSorted, navigation, userId]
 	)
+
+	useEffect(() => {
+		dbFs.set("notesAndTags", {
+			notes: sortAndFilterNotes(notesSorted, "", ""),
+			tags: sortAndFilterTags(tagsSorted)
+		}).catch(console.error)
+	}, [notesSorted, tagsSorted])
 
 	useEffect(() => {
 		loadNotesAndTags()
