@@ -60,6 +60,12 @@ const Item = memo(
 								prev.map(prevItem => (prevItem.id === item.id ? { ...prevItem, checked: !prevItem.checked } : prevItem))
 							)
 						}
+						hitSlop={{
+							top: 15,
+							bottom: 15,
+							left: 15,
+							right: 15
+						}}
 					>
 						<Ionicon
 							name="checkmark"
@@ -86,6 +92,12 @@ const Item = memo(
 								prev.map(prevItem => (prevItem.id === item.id ? { ...prevItem, checked: !prevItem.checked } : prevItem))
 							)
 						}
+						hitSlop={{
+							top: 15,
+							bottom: 15,
+							left: 15,
+							right: 15
+						}}
 					/>
 				)}
 				<TextInput

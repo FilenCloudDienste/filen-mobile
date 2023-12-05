@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from "react"
-import { View, useWindowDimensions, KeyboardAvoidingView } from "react-native"
+import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { NoteType, Note, editNoteContent } from "../../lib/api"
-import { fetchNoteContent, quillStyle, createNotePreviewFromContentText, convertHTMLToRawText } from "./utils"
+import { fetchNoteContent, quillStyle, createNotePreviewFromContentText } from "./utils"
 import { dbFs } from "../../lib/db"
 import { showToast } from "../../components/Toasts"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
 import QuillEditor from "react-native-cn-quill"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import Checklist from "./Checklist"
 import { useMMKVNumber } from "react-native-mmkv"
 import storage from "../../lib/storage"
@@ -22,24 +21,26 @@ import { MAX_NOTE_SIZE } from "../../lib/constants"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import Spinner from "../../components/Spinner"
+import TextEditor from "../../components/TextEditor"
+import Markdown from "react-native-marked"
 
 const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [loadDone, setLoadDone] = useState<boolean>(false)
-	const dimensions = useWindowDimensions()
 	const [contentType, setContentType] = useState<NoteType>("text")
 	const [content, setContent] = useState<string>("")
 	const [editedContent, setEditedContent] = useState<string>("")
 	const [synced, setSynced] = useState<{ content: boolean; title: boolean }>({ content: true, title: true })
 	const prevContent = useRef<string>("")
 	const quillRef = useRef<QuillEditor>(null)
-	const insets = useSafeAreaInsets()
 	const [userId] = useMMKVNumber("userId", storage)
 	const saveMutex = useRef<SemaphoreInterface>(new Semaphore(1)).current
 	const contentRef = useRef<string>("")
 	const currentNoteRef = useRef<Note>(route.params.note)
 	const [contentKey, setContentKey] = useState<string>("content-key-" + Date.now())
+	const [showPreview, setShowPreview] = useState<boolean>(false)
+	const [keyboardShowing, setKeyboardShowing] = useState<boolean>(false)
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!currentNoteRef.current) {
@@ -78,8 +79,8 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				setContentKey("content-key-" + Date.now())
 			}
 
-			prevContent.current = noteContent.content
 			contentRef.current = noteContent.content
+			prevContent.current = noteContent.content
 
 			if (noteContent.cache) {
 				loadNote(true)
@@ -159,13 +160,23 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	useEffect(() => {
 		contentRef.current = editedContent
 
+		setSynced(prev => ({ ...prev, content: false }))
+
 		debouncedSave()
 	}, [editedContent])
 
 	useEffect(() => {
 		loadNote()
 
+		const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => setKeyboardShowing(true))
+		const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardShowing(false))
+		const keyboardWillHideListener = Keyboard.addListener("keyboardWillHide", () => setKeyboardShowing(false))
+
 		return () => {
+			keyboardDidShowListener.remove()
+			keyboardDidHideListener.remove()
+			keyboardWillHideListener.remove()
+
 			save()
 		}
 	}, [])
@@ -194,21 +205,71 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							paddingRight: 15
 						}}
 					>
-						{synced.content && synced.title ? (
-							<Ionicon
-								name="checkmark-circle-outline"
-								size={23}
-								color={getColor(darkMode, "green")}
-							/>
-						) : (
-							<Spinner>
+						<View
+							style={{
+								flexDirection: "row",
+								alignItems: "center"
+							}}
+						>
+							{currentNoteRef.current.type === "md" ? (
+								<TouchableOpacity
+									style={{
+										marginRight: 10
+									}}
+									onPress={() => setShowPreview(prev => !prev)}
+								>
+									<Ionicon
+										name={showPreview ? "eye-off-outline" : "eye-outline"}
+										style={{
+											flexShrink: 0
+										}}
+										color={getColor(darkMode, "linkPrimary")}
+										size={24}
+									/>
+								</TouchableOpacity>
+							) : (
+								<>
+									{keyboardShowing && (
+										<TouchableOpacity
+											style={{
+												marginRight: 10
+											}}
+											onPress={() => {
+												try {
+													Keyboard.dismiss()
+												} catch (e) {
+													console.error(e)
+												}
+											}}
+										>
+											<Ionicon
+												name="chevron-down-circle-outline"
+												style={{
+													flexShrink: 0
+												}}
+												color={getColor(darkMode, "linkPrimary")}
+												size={24}
+											/>
+										</TouchableOpacity>
+									)}
+								</>
+							)}
+							{synced.content && synced.title ? (
 								<Ionicon
-									name="sync-outline"
+									name="checkmark-circle-outline"
 									size={23}
-									color={getColor(darkMode, "textPrimary")}
+									color={getColor(darkMode, "green")}
 								/>
-							</Spinner>
-						)}
+							) : (
+								<Spinner>
+									<Ionicon
+										name="sync-outline"
+										size={23}
+										color={getColor(darkMode, "textPrimary")}
+									/>
+								</Spinner>
+							)}
+						</View>
 					</View>
 				}
 			/>
@@ -270,13 +331,10 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
                                     `
 								]}
 								onHtmlChange={data => {
-									if (!data || !data.html || data.html.length === 0) {
+									if (!data || !data.html) {
 										return
 									}
 
-									contentRef.current = data.html
-
-									setSynced(prev => ({ ...prev, content: false }))
 									setEditedContent(data.html)
 								}}
 							/>
@@ -302,99 +360,133 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 										value = value.replace(/<p>.*?<\/p>/g, "")
 									}
 
-									contentRef.current = value
-
-									setSynced(prev => ({ ...prev, content: false }))
 									setEditedContent(value)
 								}}
 							/>
 						</View>
 					)}
 					{(contentType === "code" || contentType === "text" || contentType === "md") && (
-						<KeyboardAvoidingView
-							style={{
-								height: "100%",
-								width: "100%",
-								backgroundColor: "transparent",
-								paddingTop: 10
-							}}
-							behavior="padding"
-							keyboardVerticalOffset={65}
-						>
-							<QuillEditor
-								key={contentKey}
-								style={{
-									backgroundColor: "transparent"
-								}}
-								ref={quillRef}
-								initialHtml={content}
-								webview={{
-									style: {
-										backgroundColor: "transparent"
-									}
-								}}
-								quill={{
-									placeholder: "Note content..",
-									theme: "snow",
-									modules: {
-										toolbar: false
-									}
-								}}
-								import3rdParties="local"
-								theme={{
-									background: "transparent",
-									color: getColor(darkMode, "textPrimary"),
-									placeholder: getColor(darkMode, "textSecondary")
-								}}
-								loading={
-									<View
-										style={{
-											width: dimensions.width,
-											height: dimensions.height,
-											backgroundColor: "transparent"
+						<>
+							{contentType === "md" && showPreview ? (
+								<View
+									style={{
+										width: "100%",
+										height: "auto",
+										marginTop: 10
+									}}
+								>
+									<Markdown
+										value={editedContent}
+										flatListProps={{
+											contentContainerStyle: {
+												paddingLeft: 15,
+												paddingRight: 15,
+												paddingBottom: 100,
+												paddingTop: 0,
+												backgroundColor: getColor(darkMode, "backgroundPrimary")
+											},
+											style: {
+												backgroundColor: getColor(darkMode, "backgroundPrimary")
+											}
+										}}
+										styles={{
+											strong: {
+												color: getColor(darkMode, "textPrimary")
+											},
+											h1: {
+												color: getColor(darkMode, "textPrimary"),
+												borderBottomColor: getColor(darkMode, "primaryBorder")
+											},
+											h2: {
+												color: getColor(darkMode, "textPrimary"),
+												borderBottomColor: getColor(darkMode, "primaryBorder")
+											},
+											h3: {
+												color: getColor(darkMode, "textPrimary"),
+												borderBottomColor: getColor(darkMode, "primaryBorder")
+											},
+											h4: {
+												color: getColor(darkMode, "textPrimary"),
+												borderBottomColor: getColor(darkMode, "primaryBorder")
+											},
+											h5: {
+												color: getColor(darkMode, "textPrimary"),
+												borderBottomColor: getColor(darkMode, "primaryBorder")
+											},
+											h6: {
+												color: getColor(darkMode, "textPrimary"),
+												borderBottomColor: getColor(darkMode, "primaryBorder")
+											},
+											hr: {
+												borderBottomColor: getColor(darkMode, "primaryBorder")
+											},
+											code: {
+												backgroundColor: getColor(darkMode, "backgroundSecondary"),
+												borderRadius: 10
+											},
+											link: {
+												color: getColor(darkMode, "linkPrimary"),
+												fontStyle: "normal"
+											},
+											codespan: {
+												backgroundColor: getColor(darkMode, "backgroundSecondary"),
+												borderRadius: 5,
+												color: getColor(darkMode, "textPrimary"),
+												paddingLeft: 5,
+												paddingRight: 5
+											},
+											table: {
+												borderColor: getColor(darkMode, "primaryBorder"),
+												borderWidth: 1,
+												borderRadius: 5
+											},
+											tableCell: {
+												backgroundColor: getColor(darkMode, "backgroundSecondary")
+											},
+											tableRow: { backgroundColor: getColor(darkMode, "backgroundTertiary") },
+											text: {
+												color: getColor(darkMode, "textPrimary")
+											},
+											image: {
+												borderRadius: 10
+											},
+											li: {
+												color: getColor(darkMode, "textPrimary"),
+												fontWeight: "bold"
+											},
+											strikethrough: {
+												color: getColor(darkMode, "textPrimary")
+											},
+											em: {
+												color: getColor(darkMode, "textPrimary")
+											},
+											blockquote: {
+												borderLeftColor: getColor(darkMode, "primaryBorder")
+											}
 										}}
 									/>
-								}
-								customJS="setTimeout(() => { try { quill.root.setAttribute('spellcheck', false) } catch {} }, 1000);"
-								customStyles={[
-									quillStyle(darkMode),
-									`
-                                    html, head, body {
-                                        background-color: ` +
-										"transparent" +
-										` !important;
-                                    }
-
-                                    .ql-container {
-                                        padding-top: 0px !important;
-                                        margin-top: 0px !important;
-                                    }
-
-                                    .ql-editor {
-                                        padding-top: 0px !important;
-                                        padding-bottom: 150px !important;
-                                        margin-top: 0px !important;
-                                    }
-                                    `
-								]}
-								onHtmlChange={data => {
-									if (!data || !data.html) {
-										return
-									}
-
-									const text = convertHTMLToRawText(data.html)
-
-									if (text.length === 0) {
-										return
-									}
-
-									contentRef.current = text
-
-									setSynced(prev => ({ ...prev, content: false }))
-									setEditedContent(text)
-								}}
-							/>
-						</KeyboardAvoidingView>
+								</View>
+							) : (
+								<KeyboardAvoidingView
+									style={{
+										height: "100%",
+										width: "100%",
+										backgroundColor: "transparent",
+										paddingTop: 10
+									}}
+									behavior="padding"
+									keyboardVerticalOffset={65}
+								>
+									<TextEditor
+										darkMode={darkMode}
+										value={content}
+										onChange={value => {
+											setEditedContent(value)
+										}}
+									/>
+								</KeyboardAvoidingView>
+							)}
+						</>
 					)}
 				</>
 			)}

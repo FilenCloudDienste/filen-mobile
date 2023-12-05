@@ -610,12 +610,11 @@ export const getUserNameFromNoteParticipant = (participant: NoteParticipant): st
 	return participant.nickName.length > 0 ? participant.nickName : participant.email
 }
 
-export const convertHTMLToRawText = (html: string): string => {
+export const convertQuillHTMLToRawText = (html: string): string => {
 	try {
 		let text = html.replace(/<br\s*\/?>/gi, "\n")
 
 		text = text.replace(/<\/(p|div|h[1-99]|ul|ol|li|blockquote|header|footer|section|article)\s*>/gi, "\n")
-		text = text.replace(/<[^>]+>/g, "")
 		text = text.replace(/&nbsp;/gi, " ")
 		text = text.replace(/&amp;/gi, "&")
 		text = text.replace(/&lt;/gi, "<")
