@@ -380,8 +380,13 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 							<ActionButton
 								onPress={async () => {
 									await hideAllActionSheets()
+									await navigationAnimation({ enable: true })
 
-									eventListener.emit("openNoteParticipantsActionSheet", selectedNote)
+									navigation.dispatch(
+										StackActions.push("NoteParticipantsScreen", {
+											note: selectedNote
+										})
+									)
 								}}
 								icon="people-outline"
 								text={i18n(lang, "participants")}

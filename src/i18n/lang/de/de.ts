@@ -459,5 +459,9 @@ export const de: {
 	permissionsRead: "Lesen",
 	permissionsWrite: "Schreiben",
 	permissionsReadWrite: "Lesen/Schreiben",
-	noteTooBig: "Maximale Notizgröße ist __MAXSIZE__"
+	noteTooBig: "Maximale Notizgröße ist __MAXSIZE__",
+	toggleReadAccess: "Lesezugriff umschalten",
+	toggleWriteAccess: "Schreibzugriff umschalten",
+	noParticipantsYet: "Noch keine Mitglieder",
+	noContactsYet: "Noch keine Kontakte"
 }

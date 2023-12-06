@@ -461,5 +461,9 @@ export const en: {
 	permissionsRead: "Read",
 	permissionsWrite: "Write",
 	permissionsReadWrite: "Read/Write",
-	noteTooBig: "Maximum note size is __MAXSIZE__"
+	noteTooBig: "Maximum note size is __MAXSIZE__",
+	toggleReadAccess: "Toggle read access",
+	toggleWriteAccess: "Toggle write access",
+	noParticipantsYet: "No participants yet",
+	noContactsYet: "No contacts yet"
 }

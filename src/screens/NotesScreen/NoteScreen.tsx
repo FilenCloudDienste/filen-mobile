@@ -243,7 +243,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 											}}
 										>
 											<Ionicon
-												name="chevron-down-circle-outline"
+												name="chevron-down-outline"
 												style={{
 													flexShrink: 0
 												}}
@@ -343,9 +343,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					{contentType === "checklist" && (
 						<View
 							style={{
-								marginTop: 15,
-								paddingLeft: 25,
-								paddingRight: 25
+								marginTop: 15
 							}}
 						>
 							<Checklist

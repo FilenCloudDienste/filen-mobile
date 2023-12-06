@@ -1,7 +1,6 @@
 import SQLite from "react-native-sqlite-storage"
 import { Asset } from "expo-media-library"
-import { getAssetId } from "../helpers"
-import { Semaphore } from "../helpers"
+import { getAssetId, formatBytes } from "../helpers"
 import storage from "../storage"
 import { memoize } from "lodash"
 import * as fs from "../fs"
@@ -10,6 +9,7 @@ import memoryCache from "../memoryCache"
 SQLite.enablePromise(true)
 
 const PREFIX = "kv:"
+let DBFS_PATH = ""
 
 const keyValueTableSQL = `CREATE TABLE IF NOT EXISTS key_value (\
     key TEXT, \
@@ -93,6 +93,18 @@ export const hashDbFsKey = memoize(async (key: string): Promise<string> => {
 	return await nodeThread.hashFn({ string: key })
 })
 
+export const getDbFsPath = async () => {
+	if (DBFS_PATH.length > 0) {
+		return DBFS_PATH
+	}
+
+	const path = await fs.getDownloadPath({ type: "db" })
+
+	DBFS_PATH = path
+
+	return DBFS_PATH
+}
+
 export const dbFs = {
 	get: async <T>(key: string) => {
 		if (memoryCache.has(PREFIX + key)) {
@@ -100,7 +112,7 @@ export const dbFs = {
 		}
 
 		const keyHashed = await hashDbFsKey(key)
-		const path = (await fs.getDownloadPath({ type: "db" })) + keyHashed
+		const path = (await getDbFsPath()) + keyHashed
 		const stat = await fs.stat(path)
 
 		if (!stat.exists) {
@@ -123,7 +135,7 @@ export const dbFs = {
 	},
 	set: async (key: string, value: any) => {
 		const keyHashed = await hashDbFsKey(key)
-		const path = (await fs.getDownloadPath({ type: "db" })) + keyHashed
+		const path = (await getDbFsPath()) + keyHashed
 
 		await fs.writeAsString(
 			path,
@@ -144,7 +156,7 @@ export const dbFs = {
 		}
 
 		const keyHashed = await hashDbFsKey(key)
-		const path = (await fs.getDownloadPath({ type: "db" })) + keyHashed
+		const path = (await getDbFsPath()) + keyHashed
 		const stat = await fs.stat(path)
 
 		if (!stat.exists) {
@@ -155,7 +167,7 @@ export const dbFs = {
 	},
 	remove: async (key: string) => {
 		const keyHashed = await hashDbFsKey(key)
-		const path = (await fs.getDownloadPath({ type: "db" })) + keyHashed
+		const path = (await getDbFsPath()) + keyHashed
 		const stat = await fs.stat(path)
 
 		if (!stat.exists) {
@@ -169,34 +181,45 @@ export const dbFs = {
 		}
 	},
 	warmUp: async () => {
-		const path = await fs.getDownloadPath({ type: "db" })
-		const dir = await fs.readDirectory(path)
-		const keyHashed = await hashDbFsKey("warmUp")
+		try {
+			const path = await getDbFsPath()
+			const dir = await fs.readDirectory(path)
+			const keyHashed = await hashDbFsKey("warmUp")
+			let keys = 0
+			let size = 0
 
-		for (const file of dir) {
-			if (file.length === keyHashed.length) {
-				const read = await fs.readAsString(path + file, "utf8")
+			for (const file of dir) {
+				if (file.length === keyHashed.length) {
+					const read = await fs.readAsString(path + file, "utf8")
+					const readSliced = read.slice(0, 32).toLowerCase()
+					const prefix = '{"key":"'
 
-				if (read.slice(0, 64).indexOf("loadItems:") === -1) {
-					continue
+					if (
+						readSliced.indexOf(prefix + "loadItems:") !== -1 ||
+						readSliced.indexOf(prefix + "note") !== -1 ||
+						readSliced.indexOf(prefix + "contact") !== -1 ||
+						readSliced.indexOf(prefix + "chat") !== -1
+					) {
+						const value = JSON.parse(read)
+
+						if (!value) {
+							continue
+						}
+
+						if (!value.value || !value.key) {
+							continue
+						}
+
+						keys += 1
+						size += read.length
+						memoryCache.set(PREFIX + value.key, value.value)
+					}
 				}
-
-				const value = JSON.parse(read)
-
-				if (!value) {
-					continue
-				}
-
-				if (!value.value || !value.key) {
-					continue
-				}
-
-				if (value.key.indexOf("loadItems:") === -1) {
-					continue
-				}
-
-				memoryCache.set(PREFIX + value.key, value.value)
 			}
+
+			console.log("Warmed up " + keys + " DBFS keys (" + formatBytes(size) + ")")
+		} catch (e) {
+			console.error(e)
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
-import { View, Text, useWindowDimensions, TouchableOpacity, RefreshControl } from "react-native"
+import { View, Text, TouchableOpacity, RefreshControl } from "react-native"
 import { TopBar } from "../../components/TopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -368,7 +368,6 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const [notes, setNotes] = useState<Note[]>([])
 	const [tags, setTags] = useState<NoteTag[]>([])
 	const [activeTag, setActiveTag] = useMMKVString("notesActiveTag", storage)
-	const dimensions = useWindowDimensions()
 	const networkInfo = useNetworkInfo()
 	const [userId] = useMMKVNumber("userId", storage)
 
@@ -493,8 +492,7 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 								setRefreshing(true)
 
 								await new Promise(resolve => setTimeout(resolve, 500))
-
-								loadNotesAndTags(true).catch(console.error)
+								await loadNotesAndTags(true).catch(console.error)
 
 								setRefreshing(false)
 							}}

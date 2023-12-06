@@ -66,6 +66,13 @@ export const fetchNotesAndTags = async (skipCache: boolean = false): Promise<{ c
 							note.participants.filter(participant => participant.userId === userId)[0].metadata,
 							privateKey
 						)
+
+						if (noteKey.length === 0) {
+							resolve()
+
+							return
+						}
+
 						const title = await decryptNoteTitle(note.title, noteKey)
 						const preview = note.preview.length === 0 ? title : await decryptNotePreview(note.preview, noteKey)
 						const tags: NoteTag[] = []

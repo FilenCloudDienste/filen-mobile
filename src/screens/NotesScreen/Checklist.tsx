@@ -34,7 +34,9 @@ const Item = memo(
 					width: "100%",
 					flexDirection: "row",
 					alignItems: "center",
-					marginBottom: index + 1 >= items.length ? 200 : 12
+					marginBottom: index + 1 >= items.length ? 200 : 12,
+					paddingLeft: 25,
+					paddingRight: 25
 				}}
 			>
 				{item.checked ? (

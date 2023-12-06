@@ -77,6 +77,9 @@ import NoteScreen from "./screens/NotesScreen/NoteScreen"
 import CreateNoteActionSheet from "./components/ActionSheets/CreateNoteActionSheet"
 import NoteActionSheet from "./components/ActionSheets/NoteActionSheet"
 import NoteChangeTypeActionSheet from "./components/ActionSheets/NoteChangeTypeActionSheet"
+import NoteParticipantsScreen from "./screens/NotesScreen/ParticipantsScreen"
+import NoteParticipantsActionSheet from "./components/ActionSheets/NoteParticipantsActionSheet"
+import SelectContactScreen from "./screens/ContactsScreen/SelectContactScreen"
 
 enableScreens(true)
 
@@ -744,6 +747,22 @@ export const App = Sentry.wrap(
 													animation: showNavigationAnimation ? "default" : "none"
 												}}
 											/>
+											<Stack.Screen
+												name="NoteParticipantsScreen"
+												component={NoteParticipantsScreen}
+												options={{
+													title: "NoteParticipantsScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="SelectContactScreen"
+												component={SelectContactScreen}
+												options={{
+													title: "SelectContactScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
 										</Stack.Navigator>
 										{typeof cfg !== "undefined" &&
 											setupDone &&
@@ -772,6 +791,8 @@ export const App = Sentry.wrap(
 												"NotesScreen",
 												"ContactsScreen",
 												"NoteScreen",
+												"NoteParticipantsScreen",
+												"SelectContactScreen",
 												...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
 											].includes(currentScreenName) && (
 												<View
@@ -799,6 +820,7 @@ export const App = Sentry.wrap(
 										<CreateNoteActionSheet navigation={navigationRef} />
 										<NoteActionSheet navigation={navigationRef} />
 										<NoteChangeTypeActionSheet />
+										<NoteParticipantsActionSheet />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>

@@ -41,6 +41,11 @@ const NoteChangeTypeActionSheet = memo(() => {
 					selectedNote.participants.filter(participant => participant.userId === userId)[0].metadata,
 					privateKey
 				)
+
+				if (noteKey.length === 0) {
+					return
+				}
+
 				const contentRes = await fetchNoteContent(selectedNote, true)
 				const preview = createNotePreviewFromContentText(contentRes.content, selectedNote.type)
 				const contentEncrypted = await encryptNoteContent(contentRes.content, noteKey)
