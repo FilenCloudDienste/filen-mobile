@@ -194,7 +194,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			setSynced(prev => ({ ...prev, content: true }))
 
 			await Promise.all([
-				newContent.length < 128 * 1024 ? dbFs.set("noteContent:" + currentNoteRef.current.uuid, newContent) : Promise.resolve(),
+				dbFs.set("noteContent:" + currentNoteRef.current.uuid, newContent),
 				dbFs.set("noteType:" + currentNoteRef.current.uuid, currentNoteRef.current.type)
 			]).catch(console.error)
 
@@ -424,17 +424,19 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 								ref={quillRef}
 								initialHtml={content}
 								quill={{
-									placeholder: "Note content..",
+									placeholder: i18n(lang, "noteContentPlaceholder"),
 									theme: "snow",
 									modules: {
-										toolbar: [
-											[{ header: [1, 2, 3, 4, 5, 6, false] }],
-											["bold", "italic", "underline"],
-											["code-block", "link", "blockquote"],
-											[{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
-											[{ indent: "-1" }, { indent: "+1" }],
-											[{ script: "sub" }, { script: "super" }]
-										]
+										toolbar: readOnly
+											? false
+											: [
+													[{ header: [1, 2, 3, 4, 5, 6, false] }],
+													["bold", "italic", "underline"],
+													["code-block", "link", "blockquote"],
+													[{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
+													[{ indent: "-1" }, { indent: "+1" }],
+													[{ script: "sub" }, { script: "super" }]
+											  ]
 									}
 								}}
 								import3rdParties="local"
@@ -614,6 +616,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 										darkMode={darkMode}
 										value={content}
 										readOnly={readOnly}
+										placeholder={i18n(lang, "noteContentPlaceholder")}
 										onChange={value => {
 											if (readOnly) {
 												return

@@ -7,21 +7,24 @@ const TextEditor = memo(
 		value,
 		darkMode,
 		onChange,
-		readOnly
+		readOnly,
+		placeholder
 	}: {
 		value: string
 		darkMode: boolean
 		onChange?: (value: string) => void
 		readOnly: boolean
+		placeholder: string
 	}) => {
 		const [text, setText] = useState<string>(value)
 		const [scrolling, setScrolling] = useState<boolean>(false)
 		const scrollingTimeout = useRef<ReturnType<typeof setTimeout>>()
 		const ref = useRef<TextInput>()
 		const [keyboardWillShow, setKeyboardWillShow] = useState<boolean>(false)
+		const intitialValue = useRef<string>(value).current
 
 		const onScroll = useCallback(() => {
-			if (keyboardWillShow) {
+			if (keyboardWillShow || readOnly) {
 				return
 			}
 
@@ -31,7 +34,7 @@ const TextEditor = memo(
 
 			scrollingTimeout.current = setTimeout(() => {
 				setScrolling(false)
-			}, 250)
+			}, 500)
 
 			if (ref.current) {
 				ref.current.blur()
@@ -40,23 +43,27 @@ const TextEditor = memo(
 			if (Keyboard.isVisible) {
 				Keyboard.dismiss()
 			}
-		}, [keyboardWillShow])
+		}, [keyboardWillShow, readOnly])
 
 		const onScrollEnd = useCallback(() => {
+			if (readOnly) {
+				return
+			}
+
 			setScrolling(false)
 
 			clearTimeout(scrollingTimeout.current)
 
 			scrollingTimeout.current = setTimeout(() => {
 				setScrolling(false)
-			}, 250)
-		}, [])
+			}, 500)
+		}, [readOnly])
 
 		useEffect(() => {
-			if (typeof onChange === "function") {
+			if (typeof onChange === "function" && !readOnly) {
 				onChange(text)
 			}
-		}, [text])
+		}, [text, readOnly])
 
 		useEffect(() => {
 			const keyboardWillShowListener = Keyboard.addListener("keyboardWillShow", () => setKeyboardWillShow(true))
@@ -77,6 +84,8 @@ const TextEditor = memo(
 				onMomentumScrollEnd={onScrollEnd}
 				onScrollBeginDrag={onScroll}
 				onScrollEndDrag={onScrollEnd}
+				onPointerDown={onScrollEnd}
+				onPointerUp={onScrollEnd}
 			>
 				<TextInput
 					ref={ref}
@@ -86,13 +95,15 @@ const TextEditor = memo(
 					autoCapitalize="none"
 					autoComplete="off"
 					autoCorrect={false}
-					autoFocus={false}
+					autoFocus={intitialValue.length === 0}
 					scrollEnabled={false}
 					inputMode="text"
 					maxFontSizeMultiplier={0}
 					allowFontScaling={false}
-					onPressIn={() => setScrolling(false)}
+					onPressIn={onScrollEnd}
+					onPressOut={onScrollEnd}
 					editable={readOnly ? false : !scrolling}
+					placeholder={placeholder}
 					style={{
 						height: "auto",
 						width: "100%",

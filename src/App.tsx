@@ -85,6 +85,7 @@ import NoteTagsActionSheet from "./components/ActionSheets/NoteTagsActionSheet"
 import NotesCreateTagDialog from "./components/Dialogs/NotesCreateTagDialog"
 import NoteTagDialog from "./components/Dialogs/NoteTagDialog"
 import NoteHistoryScreen from "./screens/NotesScreen/NoteHistoryScreen"
+import "./lib/services/socket/socket"
 
 enableScreens(true)
 
@@ -137,6 +138,7 @@ export const App = Sentry.wrap(
 				await new Promise(resolve => {
 					const wait = setInterval(() => {
 						if (
+							isNavReady(navigationRef) &&
 							!isRouteInStack(navigationRef, [
 								"SetupScreen",
 								"BiometricAuthScreen",
@@ -241,6 +243,7 @@ export const App = Sentry.wrap(
 				if (
 					storage.getBoolean("biometricPinAuth:" + userId) &&
 					Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
+					isNavReady(navigationRef) &&
 					!isRouteInStack(navigationRef, ["BiometricAuthScreen"])
 				) {
 					setBiometricAuthScreenState("auth")
@@ -335,7 +338,7 @@ export const App = Sentry.wrap(
 				await isNavReady(navigationRef)
 
 				if (nextAppState === "background") {
-					if (!isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
+					if (isNavReady(navigationRef) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
 						let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
 
 						if (lockAppAfter == 0) {

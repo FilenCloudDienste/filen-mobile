@@ -1050,21 +1050,49 @@ export const isBetween = (num: number, start: number, end: number) => {
 
 export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>): Promise<boolean> => {
 	return new Promise(resolve => {
-		if (typeof navigationRef !== "undefined" && typeof navigationRef.isReady == "function") {
-			if (navigationRef.isReady()) {
-				return resolve(true)
-			}
-		}
+		try {
+			if (
+				navigationRef &&
+				typeof navigationRef.isReady === "function" &&
+				navigationRef.current &&
+				typeof navigationRef.current.isReady === "function" &&
+				navigationRef.isReady() &&
+				navigationRef.current.isReady()
+			) {
+				resolve(true)
 
-		const wait = setInterval(() => {
-			if (typeof navigationRef !== "undefined" && typeof navigationRef.isReady == "function") {
-				if (navigationRef.isReady()) {
+				return
+			}
+
+			const wait = setInterval(() => {
+				try {
+					if (
+						navigationRef &&
+						typeof navigationRef.isReady === "function" &&
+						navigationRef.current &&
+						typeof navigationRef.current.isReady === "function" &&
+						navigationRef.isReady() &&
+						navigationRef.current.isReady()
+					) {
+						clearInterval(wait)
+
+						resolve(true)
+
+						return
+					}
+				} catch (e) {
 					clearInterval(wait)
 
-					return resolve(true)
+					console.error(e)
+
+					resolve(false)
 				}
-			}
-		}, 100)
+			}, 100)
+		} catch (e) {
+			console.error(e)
+
+			resolve(false)
+		}
 	})
 }
 

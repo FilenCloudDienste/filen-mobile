@@ -84,6 +84,7 @@
 		"react-native-webview": "^13.6.3",
 		"react-native-windows": "^0.71.0",
 		"react-use": "^17.4.0",
+		"socket.io-client": "^2.5.0",
 		"striptags": "3.2.0",
 		"uuid": "9.0.0",
 		"zustand": "^4.0.0"

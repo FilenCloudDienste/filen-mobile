@@ -291,10 +291,9 @@ export const fetchNoteContent = async (
 			content = contentDecrypted
 		}
 
-		await Promise.all([
-			content.length < 128 * 1024 ? dbFs.set("noteContent:" + note.uuid, content) : Promise.resolve(),
-			dbFs.set("noteType:" + note.uuid, result.type)
-		]).catch(console.error)
+		await Promise.all([dbFs.set("noteContent:" + note.uuid, content), dbFs.set("noteType:" + note.uuid, result.type)]).catch(
+			console.error
+		)
 
 		return {
 			cache: false,

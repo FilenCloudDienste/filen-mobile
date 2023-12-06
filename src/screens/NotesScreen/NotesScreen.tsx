@@ -210,6 +210,17 @@ const Item = memo(
 										}}
 									/>
 								)}
+								{!writeAccess && (
+									<Ionicon
+										name="eye-outline"
+										size={15}
+										color={getColor(darkMode, "textPrimary")}
+										style={{
+											marginRight: 7,
+											flexShrink: 0
+										}}
+									/>
+								)}
 								<Text
 									style={{
 										color: getColor(darkMode, "textPrimary"),
@@ -463,13 +474,6 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 		},
 		[darkMode, notesSorted, navigation, userId, tags]
 	)
-
-	useEffect(() => {
-		dbFs.set("notesAndTags", {
-			notes: notesSorted.length === notes.length ? notesSorted : notes,
-			tags
-		}).catch(console.error)
-	}, [notes, tags, notesSorted])
 
 	useEffect(() => {
 		loadNotesAndTags()

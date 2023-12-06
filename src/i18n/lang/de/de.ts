@@ -474,5 +474,6 @@ export const de: {
 	editTag: "Tag editieren",
 	noNoteHistory: "Keine Notizhistorie gefunden",
 	export: "Exportieren",
-	leave: "Verlassen"
+	leave: "Verlassen",
+	noteContentPlaceholder: "Notiz Inhalt.."
 }

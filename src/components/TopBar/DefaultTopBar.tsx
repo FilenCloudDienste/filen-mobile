@@ -32,7 +32,8 @@ const DefaultTopBar = memo(
 					flexDirection: "row",
 					justifyContent: "space-between",
 					alignItems: "center",
-					height: typeof height !== "undefined" ? height : undefined
+					height: typeof height !== "undefined" ? height : undefined,
+					marginTop: 10
 				}}
 			>
 				<TouchableOpacity

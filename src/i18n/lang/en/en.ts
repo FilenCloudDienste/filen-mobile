@@ -476,5 +476,6 @@ export const en: {
 	editTag: "Edit tag",
 	noNoteHistory: "No note history found",
 	export: "Export",
-	leave: "Leave"
+	leave: "Leave",
+	noteContentPlaceholder: "Note content.."
 }
