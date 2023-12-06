@@ -14,7 +14,8 @@ const Item = memo(
 		index,
 		setItems,
 		setIdToFocus,
-		setInputRefs
+		setInputRefs,
+		readOnly
 	}: {
 		darkMode: boolean
 		item: ChecklistItem
@@ -23,6 +24,7 @@ const Item = memo(
 		setItems: React.Dispatch<React.SetStateAction<ChecklistItem[]>>
 		setIdToFocus: React.Dispatch<React.SetStateAction<string>>
 		setInputRefs: React.Dispatch<React.SetStateAction<Record<string, TextInput>>>
+		readOnly: boolean
 	}) => {
 		const itemIndex = useMemo(() => {
 			return items.findIndex(i => i.id === item.id)
@@ -39,68 +41,128 @@ const Item = memo(
 					paddingRight: 25
 				}}
 			>
-				{item.checked ? (
-					<Pressable
-						style={{
-							width: 22,
-							height: 22,
-							borderRadius: 22,
-							borderColor: getColor(darkMode, "purple"),
-							borderBottomWidth: 1,
-							borderTopWidth: 1,
-							borderLeftWidth: 1,
-							borderRightWidth: 1,
-							backgroundColor: getColor(darkMode, "purple"),
-							flexDirection: "row",
-							alignItems: "center",
-							justifyContent: "center",
-							alignSelf: "flex-start",
-							marginTop: 4
-						}}
-						onPress={() =>
-							setItems(prev =>
-								prev.map(prevItem => (prevItem.id === item.id ? { ...prevItem, checked: !prevItem.checked } : prevItem))
-							)
-						}
-						hitSlop={{
-							top: 15,
-							bottom: 15,
-							left: 15,
-							right: 15
-						}}
-					>
-						<Ionicon
-							name="checkmark"
-							size={18}
-							color={getColor(darkMode, "backgroundPrimary")}
-						/>
-					</Pressable>
+				{readOnly ? (
+					<>
+						{item.checked ? (
+							<View
+								style={{
+									width: 22,
+									height: 22,
+									borderRadius: 22,
+									borderColor: getColor(darkMode, "purple"),
+									borderBottomWidth: 1,
+									borderTopWidth: 1,
+									borderLeftWidth: 1,
+									borderRightWidth: 1,
+									backgroundColor: getColor(darkMode, "purple"),
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									alignSelf: "flex-start",
+									marginTop: 4
+								}}
+							>
+								<Ionicon
+									name="checkmark"
+									size={18}
+									color={getColor(darkMode, "backgroundPrimary")}
+								/>
+							</View>
+						) : (
+							<View
+								style={{
+									width: 22,
+									height: 22,
+									borderRadius: 22,
+									borderColor: getColor(darkMode, "textPrimary"),
+									borderBottomWidth: 1,
+									borderTopWidth: 1,
+									borderLeftWidth: 1,
+									borderRightWidth: 1,
+									alignSelf: "flex-start",
+									marginTop: 4
+								}}
+							/>
+						)}
+					</>
 				) : (
-					<Pressable
-						style={{
-							width: 22,
-							height: 22,
-							borderRadius: 22,
-							borderColor: getColor(darkMode, "textPrimary"),
-							borderBottomWidth: 1,
-							borderTopWidth: 1,
-							borderLeftWidth: 1,
-							borderRightWidth: 1,
-							alignSelf: "flex-start",
-							marginTop: 4
-						}}
-						onPress={() =>
-							setItems(prev =>
-								prev.map(prevItem => (prevItem.id === item.id ? { ...prevItem, checked: !prevItem.checked } : prevItem))
-							)
-						}
-						hitSlop={{
-							top: 15,
-							bottom: 15,
-							left: 15,
-							right: 15
-						}}
-					/>
+					<>
+						{item.checked ? (
+							<Pressable
+								style={{
+									width: 22,
+									height: 22,
+									borderRadius: 22,
+									borderColor: getColor(darkMode, "purple"),
+									borderBottomWidth: 1,
+									borderTopWidth: 1,
+									borderLeftWidth: 1,
+									borderRightWidth: 1,
+									backgroundColor: getColor(darkMode, "purple"),
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center",
+									alignSelf: "flex-start",
+									marginTop: 4
+								}}
+								onPress={() => {
+									if (readOnly) {
+										return
+									}
+
+									setItems(prev =>
+										prev.map(prevItem =>
+											prevItem.id === item.id ? { ...prevItem, checked: !prevItem.checked } : prevItem
+										)
+									)
+								}}
+								hitSlop={{
+									top: 15,
+									bottom: 15,
+									left: 15,
+									right: 15
+								}}
+							>
+								<Ionicon
+									name="checkmark"
+									size={18}
+									color={getColor(darkMode, "backgroundPrimary")}
+								/>
+							</Pressable>
+						) : (
+							<Pressable
+								style={{
+									width: 22,
+									height: 22,
+									borderRadius: 22,
+									borderColor: getColor(darkMode, "textPrimary"),
+									borderBottomWidth: 1,
+									borderTopWidth: 1,
+									borderLeftWidth: 1,
+									borderRightWidth: 1,
+									alignSelf: "flex-start",
+									marginTop: 4
+								}}
+								onPress={() => {
+									if (readOnly) {
+										return
+									}
+
+									setItems(prev =>
+										prev.map(prevItem =>
+											prevItem.id === item.id ? { ...prevItem, checked: !prevItem.checked } : prevItem
+										)
+									)
+								}}
+								hitSlop={{
+									top: 15,
+									bottom: 15,
+									left: 15,
+									right: 15
+								}}
+							/>
+						)}
+					</>
 				)}
 				<TextInput
 					ref={ref => setInputRefs(prev => ({ ...prev, [item.id]: ref }))}
@@ -110,6 +172,7 @@ const Item = memo(
 					autoCapitalize="none"
 					autoComplete="off"
 					autoCorrect={false}
+					editable={!readOnly}
 					style={{
 						color: getColor(darkMode, "textPrimary"),
 						marginLeft: 15,
@@ -119,6 +182,10 @@ const Item = memo(
 						width: "100%"
 					}}
 					onChangeText={text => {
+						if (readOnly) {
+							return
+						}
+
 						setItems(prev =>
 							prev.map(prevItem =>
 								prevItem.id === item.id ? { ...prevItem, text: text.split("\n").join("").split("\r").join("") } : prevItem
@@ -126,6 +193,10 @@ const Item = memo(
 						)
 					}}
 					onKeyPress={e => {
+						if (readOnly) {
+							return
+						}
+
 						if (e.nativeEvent.key === "Backspace" && item.text.length <= 0 && items.length - 1 > 0) {
 							const indexToRemove = items.findIndex(i => i.id === item.id)
 							const newId = items[indexToRemove - 1].id || ""
@@ -144,6 +215,10 @@ const Item = memo(
 					blurOnSubmit={true}
 					returnKeyType="next"
 					onSubmitEditing={e => {
+						if (readOnly) {
+							return
+						}
+
 						if (item.text.length > 0) {
 							e.preventDefault()
 							e.stopPropagation()
@@ -177,103 +252,124 @@ const Item = memo(
 	}
 )
 
-const Checklist = memo(({ darkMode, content, onChange }: { darkMode: boolean; content: string; onChange: (html: string) => void }) => {
-	const initialItems = useRef<ChecklistItem[]>(parseQuillChecklistHtml(content)).current
-	const [items, setItems] = useState<ChecklistItem[]>(initialItems)
-	const [idToFocus, setIdToFocus] = useState<string>("")
-	const [inputRefs, setInputRefs] = useState<Record<string, TextInput>>({})
-	const dimensions = useWindowDimensions()
-	const lastFocusedId = useRef<string>("")
+const Checklist = memo(
+	({
+		darkMode,
+		content,
+		onChange,
+		readOnly
+	}: {
+		darkMode: boolean
+		content: string
+		onChange: (html: string) => void
+		readOnly: boolean
+	}) => {
+		const initialItems = useRef<ChecklistItem[]>(parseQuillChecklistHtml(content)).current
+		const [items, setItems] = useState<ChecklistItem[]>(initialItems)
+		const [idToFocus, setIdToFocus] = useState<string>("")
+		const [inputRefs, setInputRefs] = useState<Record<string, TextInput>>({})
+		const dimensions = useWindowDimensions()
+		const lastFocusedId = useRef<string>("")
 
-	const build = useCallback(() => {
-		if (items.length <= 0) {
-			return
+		const build = useCallback(() => {
+			if (items.length <= 0 || readOnly) {
+				return
+			}
+
+			const built = convertChecklistItemsToHtml(items)
+
+			onChange(built)
+		}, [items, readOnly])
+
+		const keyExtractor = useCallback((item: ChecklistItem) => item.id, [])
+
+		const renderItem = useCallback(
+			({ item, index }: { item: ChecklistItem; index: number }) => {
+				return (
+					<Item
+						darkMode={darkMode}
+						item={item}
+						items={items}
+						index={index}
+						setInputRefs={setInputRefs}
+						setItems={setItems}
+						setIdToFocus={setIdToFocus}
+						readOnly={readOnly}
+					/>
+				)
+			},
+			[darkMode, items, setInputRefs, setItems, setIdToFocus]
+		)
+
+		const focusItem = useCallback(
+			(id: string) => {
+				if (readOnly) {
+					return
+				}
+
+				if (inputRefs[id] && typeof inputRefs[id].focus === "function" && id !== lastFocusedId.current) {
+					lastFocusedId.current = id
+
+					inputRefs[id].focus()
+				}
+			},
+			[inputRefs, items, readOnly]
+		)
+
+		useEffect(() => {
+			focusItem(idToFocus)
+		}, [idToFocus, inputRefs, items])
+
+		useEffect(() => {
+			if (!readOnly) {
+				setTimeout(() => {
+					if (items.length === 1 && items[0].text.length === 0) {
+						focusItem(items[0].id)
+					}
+				}, 500)
+			}
+		}, [idToFocus, inputRefs, items, readOnly])
+
+		useEffect(() => {
+			if (content.length === 0) {
+				return
+			}
+
+			setItems(parseQuillChecklistHtml(content))
+		}, [content])
+
+		useEffect(() => {
+			if (!readOnly) {
+				build()
+			}
+		}, [items, readOnly])
+
+		if (content.length <= 0 || items.length <= 0) {
+			return null
 		}
 
-		const built = convertChecklistItemsToHtml(items)
-
-		onChange(built)
-	}, [items])
-
-	const keyExtractor = useCallback((item: ChecklistItem) => item.id, [])
-
-	const renderItem = useCallback(
-		({ item, index }: { item: ChecklistItem; index: number }) => {
-			return (
-				<Item
-					darkMode={darkMode}
-					item={item}
-					items={items}
-					index={index}
-					setInputRefs={setInputRefs}
-					setItems={setItems}
-					setIdToFocus={setIdToFocus}
-				/>
-			)
-		},
-		[darkMode, items, setInputRefs, setItems, setIdToFocus]
-	)
-
-	const focusItem = useCallback(
-		(id: string) => {
-			if (inputRefs[id] && typeof inputRefs[id].focus === "function" && id !== lastFocusedId.current) {
-				lastFocusedId.current = id
-
-				inputRefs[id].focus()
-			}
-		},
-		[inputRefs, items]
-	)
-
-	useEffect(() => {
-		focusItem(idToFocus)
-	}, [idToFocus, inputRefs, items])
-
-	useEffect(() => {
-		setTimeout(() => {
-			if (items.length === 1 && items[0].text.length === 0) {
-				focusItem(items[0].id)
-			}
-		}, 500)
-	}, [idToFocus, inputRefs, items])
-
-	useEffect(() => {
-		if (content.length === 0) {
-			return
-		}
-
-		setItems(parseQuillChecklistHtml(content))
-	}, [content])
-
-	useEffect(() => {
-		build()
-	}, [items])
-
-	if (content.length <= 0 || items.length <= 0) {
-		return null
-	}
-
-	return (
-		<KeyboardAvoidingView
-			behavior="padding"
-			keyboardVerticalOffset={110}
-			style={{
-				width: "100%",
-				height: "100%"
-			}}
-		>
-			<FlashList
-				data={items}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				estimatedItemSize={50}
-				estimatedListSize={{
-					height: dimensions.height,
-					width: dimensions.width
+		return (
+			<KeyboardAvoidingView
+				behavior="padding"
+				keyboardVerticalOffset={110}
+				style={{
+					width: "100%",
+					height: "100%"
 				}}
-			/>
-		</KeyboardAvoidingView>
-	)
-})
+			>
+				<FlashList
+					data={items}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					estimatedItemSize={50}
+					estimatedListSize={{
+						height: dimensions.height,
+						width: dimensions.width
+					}}
+				/>
+			</KeyboardAvoidingView>
+		)
+	}
+)
 
 export default Checklist

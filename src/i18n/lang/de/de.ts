@@ -471,5 +471,8 @@ export const de: {
 	tagName: "Tag Name",
 	nothingFoundFor: 'Nichts gefunden unter "__TERM__"',
 	noNotesYet: "Noch keine Notizen",
-	editTag: "Tag editieren"
+	editTag: "Tag editieren",
+	noNoteHistory: "Keine Notizhistorie gefunden",
+	export: "Exportieren",
+	leave: "Verlassen"
 }

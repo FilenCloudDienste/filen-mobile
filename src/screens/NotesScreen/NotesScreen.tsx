@@ -50,6 +50,28 @@ const Item = memo(
 				.sort((a, b) => getUserNameFromNoteParticipant(a).localeCompare(getUserNameFromNoteParticipant(b)))
 		}, [userId, note.participants])
 
+		const me = useMemo(() => {
+			const filtered = note.participants.filter(p => p.userId === userId)
+
+			if (filtered.length === 0) {
+				return null
+			}
+
+			return filtered[0]
+		}, [userId, note.participants])
+
+		const writeAccess = useMemo(() => {
+			if (userId === note.ownerId) {
+				return true
+			}
+
+			if (!me) {
+				return false
+			}
+
+			return me.permissionsWrite
+		}, [me, note, userId])
+
 		return (
 			<View
 				style={{
@@ -76,7 +98,10 @@ const Item = memo(
 						navigation.dispatch(
 							StackActions.push("NoteScreen", {
 								note,
-								tags
+								tags,
+								readOnly: !writeAccess,
+								historyMode: false,
+								historyId: ""
 							})
 						)
 					}}

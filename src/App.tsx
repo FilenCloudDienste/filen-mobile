@@ -84,6 +84,7 @@ import NoteTitleDialog from "./components/Dialogs/NoteTitleDialog"
 import NoteTagsActionSheet from "./components/ActionSheets/NoteTagsActionSheet"
 import NotesCreateTagDialog from "./components/Dialogs/NotesCreateTagDialog"
 import NoteTagDialog from "./components/Dialogs/NoteTagDialog"
+import NoteHistoryScreen from "./screens/NotesScreen/NoteHistoryScreen"
 
 enableScreens(true)
 
@@ -767,6 +768,14 @@ export const App = Sentry.wrap(
 													animation: showNavigationAnimation ? "default" : "none"
 												}}
 											/>
+											<Stack.Screen
+												name="NoteHistoryScreen"
+												component={NoteHistoryScreen}
+												options={{
+													title: "NoteHistoryScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
 										</Stack.Navigator>
 										{typeof cfg !== "undefined" &&
 											setupDone &&
@@ -797,6 +806,7 @@ export const App = Sentry.wrap(
 												"NoteScreen",
 												"NoteParticipantsScreen",
 												"SelectContactScreen",
+												"NoteHistoryScreen",
 												...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
 											].includes(currentScreenName) && (
 												<View

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { NavigationContainerRef, StackActions, NavigationContainerRefWithCurrent } from "@react-navigation/native"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
-import { ActionButton, ActionSheetIndicator, hideAllActionSheets } from "../ActionSheets"
+import { ActionButton, hideAllActionSheets } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
@@ -22,7 +22,8 @@ import {
 	archiveNote,
 	notePinned,
 	editNoteContent,
-	NoteTag
+	NoteTag,
+	noteParticipantsRemove
 } from "../../../lib/api"
 import { generateRandomString, getMasterKeys, getFileExt, isRouteInStack, isNavReady } from "../../../lib/helpers"
 import storage from "../../../lib/storage"
@@ -38,6 +39,8 @@ import { navigationAnimation } from "../../../lib/state"
 import striptags from "striptags"
 import { useMMKVNumber } from "react-native-mmkv"
 import useNetworkInfo from "../../../lib/services/isOnline/useNetworkInfo"
+import * as fs from "../../../lib/fs"
+import Share from "react-native-share"
 
 const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
@@ -205,6 +208,28 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 		[selectedNote]
 	)
 
+	const leave = useCallback(async () => {
+		if (!selectedNote) {
+			return
+		}
+
+		hideAllActionSheets()
+		showFullScreenLoadingModal()
+
+		try {
+			const userId = storage.getNumber("userId")
+
+			await noteParticipantsRemove({ uuid: selectedNote.uuid, userId })
+			await refresh()
+		} catch (e) {
+			console.error(e)
+
+			showToast({ message: e.toString() })
+		} finally {
+			hideFullScreenLoadingModal()
+		}
+	}, [selectedNote])
+
 	const duplicate = useCallback(async () => {
 		if (!selectedNote) {
 			return
@@ -251,7 +276,10 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				navigation.dispatch(
 					StackActions.push("NoteScreen", {
 						note: note[0],
-						tags
+						tags,
+						readOnly: false,
+						historyMode: false,
+						historyId: ""
 					})
 				)
 			}
@@ -269,7 +297,8 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			return
 		}
 
-		hideAllActionSheets()
+		await hideAllActionSheets()
+
 		showFullScreenLoadingModal()
 
 		try {
@@ -308,13 +337,32 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				content = list.join("\n")
 			}
 
-			if (ext.length === 0) {
-				//downloadObjectAsTextWithExt(content, selectedNote.title.slice(0, 64), ext.length === 0 ? ".txt" : ext)
-			} else {
-				//downloadObjectAsTextWithoutExt(content, selectedNote.title.slice(0, 64))
+			const fileName = selectedNote.title.slice(0, 64) + (ext.length === 0 ? ".txt" : ext)
+			const path = (await fs.getDownloadPath({ type: "temp" })) + fileName
+			const stat = await fs.stat(path)
+
+			if (stat.exists) {
+				await fs.unlink(path)
 			}
 
-			// @TODO show file share prompt
+			await fs.writeAsString(path, content, {
+				encoding: "utf8"
+			})
+
+			Share.open({
+				title: i18n(lang, "export"),
+				url: path,
+				failOnCancel: false,
+				filename: fileName
+			})
+				.then(() => {
+					fs.unlink(path).catch(console.error)
+				})
+				.catch(err => {
+					console.error(err)
+
+					fs.unlink(path).catch(console.error)
+				})
 		} catch (e) {
 			console.error(e)
 
@@ -322,7 +370,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 		} finally {
 			hideFullScreenLoadingModal()
 		}
-	}, [selectedNote])
+	}, [selectedNote, lang])
 
 	useEffect(() => {
 		const openNoteActionSheetListener = eventListener.on("openNoteActionSheet", ({ note, tags }: { note: Note; tags: NoteTag[] }) => {
@@ -366,7 +414,16 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 							<>
 								{userHasWritePermissions && (
 									<ActionButton
-										onPress={() => favorite(false)}
+										onPress={async () => {
+											await hideAllActionSheets()
+											await navigationAnimation({ enable: true })
+
+											navigation.dispatch(
+												StackActions.push("NoteHistoryScreen", {
+													note: selectedNote
+												})
+											)
+										}}
 										icon="time-outline"
 										text={i18n(lang, "history")}
 									/>
@@ -398,20 +455,18 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 										text={i18n(lang, "changeType")}
 									/>
 								)}
-								{userId === selectedNote.ownerId && (
-									<ActionButton
-										onPress={async () => {
-											await hideAllActionSheets()
+								<ActionButton
+									onPress={async () => {
+										await hideAllActionSheets()
 
-											eventListener.emit("openNoteTagsActionSheet", {
-												note: selectedNote,
-												tags
-											})
-										}}
-										icon="pricetags-outline"
-										text={i18n(lang, "noteTags")}
-									/>
-								)}
+										eventListener.emit("openNoteTagsActionSheet", {
+											note: selectedNote,
+											tags
+										})
+									}}
+									icon="pricetags-outline"
+									text={i18n(lang, "noteTags")}
+								/>
 								{selectedNote.pinned ? (
 									<ActionButton
 										onPress={() => pin(false)}
@@ -455,7 +510,12 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 									icon="copy-outline"
 									text={i18n(lang, "duplicate")}
 								/>
-								{userId === selectedNote.ownerId && (
+								<ActionButton
+									onPress={exportNote}
+									icon="arrow-down-circle-outline"
+									text={i18n(lang, "export")}
+								/>
+								{userId === selectedNote.ownerId ? (
 									<>
 										{!selectedNote.archive && !selectedNote.trash && (
 											<ActionButton
@@ -502,6 +562,22 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 											</>
 										)}
 									</>
+								) : (
+									<ActionButton
+										onPress={leave}
+										icon={
+											<Ionicon
+												name="exit-outline"
+												size={22}
+												color={getColor(darkMode, "red")}
+												style={{
+													marginLeft: 1
+												}}
+											/>
+										}
+										text={i18n(lang, "leave")}
+										textColor={getColor(darkMode, "red")}
+									/>
 								)}
 							</>
 						) : (

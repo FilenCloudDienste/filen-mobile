@@ -473,5 +473,8 @@ export const en: {
 	tagName: "Tag name",
 	nothingFoundFor: 'Nothing found for "__TERM__"',
 	noNotesYet: "No notes yet",
-	editTag: "Edit tag"
+	editTag: "Edit tag",
+	noNoteHistory: "No note history found",
+	export: "Export",
+	leave: "Leave"
 }

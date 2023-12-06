@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from "
 import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity, ActivityIndicator } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef } from "@react-navigation/native"
-import { NoteType, Note, editNoteContent } from "../../lib/api"
-import { fetchNoteContent, quillStyle, createNotePreviewFromContentText } from "./utils"
+import { NavigationContainerRef, CommonActions } from "@react-navigation/native"
+import { NoteType, Note, editNoteContent, noteHistoryRestore } from "../../lib/api"
+import { fetchNoteContent, quillStyle, createNotePreviewFromContentText, fetchNotesAndTags } from "./utils"
 import { dbFs } from "../../lib/db"
 import { showToast } from "../../components/Toasts"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
@@ -24,6 +24,10 @@ import Spinner from "../../components/Spinner"
 import TextEditor from "../../components/TextEditor"
 import Markdown from "react-native-marked"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
+import {
+	showFullScreenLoadingModal,
+	hideFullScreenLoadingModal
+} from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 
 const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -44,6 +48,9 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const [keyboardShowing, setKeyboardShowing] = useState<boolean>(false)
 	const [title, setTitle] = useState<string>(currentNoteRef.current.title)
 	const networkInfo = useNetworkInfo()
+	const readOnly = useRef<boolean>(route.params.readOnly).current
+	const historyMode = useRef<boolean>(route.params.historyMode).current
+	const historyId = useRef<number>(route.params.historyId).current
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!currentNoteRef.current) {
@@ -103,6 +110,40 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		},
 		[networkInfo]
 	)
+
+	const restore = useCallback(async () => {
+		if (!currentNoteRef.current) {
+			return
+		}
+
+		showFullScreenLoadingModal()
+
+		try {
+			await noteHistoryRestore(currentNoteRef.current.uuid, historyId)
+
+			const notesAndTags = await fetchNotesAndTags(true)
+
+			eventListener.emit("notesUpdate", notesAndTags.notes)
+			eventListener.emit("refreshNotes")
+
+			navigation.dispatch(
+				CommonActions.reset({
+					index: 0,
+					routes: [
+						{
+							name: "NotesScreen"
+						}
+					]
+				})
+			)
+		} catch (e) {
+			console.error(e)
+
+			showToast({ message: e.toString() })
+		} finally {
+			hideFullScreenLoadingModal()
+		}
+	}, [currentNoteRef.current, historyId, navigation])
 
 	const save = useCallback(async () => {
 		if (!networkInfo.online) {
@@ -245,39 +286,17 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 								alignItems: "center"
 							}}
 						>
-							{currentNoteRef.current.type === "md" ? (
-								<TouchableOpacity
-									style={{
-										marginRight: 10
-									}}
-									onPress={() => setShowPreview(prev => !prev)}
-								>
-									<Ionicon
-										name={showPreview ? "eye-off-outline" : "eye-outline"}
-										style={{
-											flexShrink: 0
-										}}
-										color={getColor(darkMode, "linkPrimary")}
-										size={24}
-									/>
-								</TouchableOpacity>
-							) : (
+							{readOnly ? (
 								<>
-									{keyboardShowing && (
+									{currentNoteRef.current.type === "md" && (
 										<TouchableOpacity
 											style={{
 												marginRight: 10
 											}}
-											onPress={() => {
-												try {
-													Keyboard.dismiss()
-												} catch (e) {
-													console.error(e)
-												}
-											}}
+											onPress={() => setShowPreview(prev => !prev)}
 										>
 											<Ionicon
-												name="chevron-down-outline"
+												name={showPreview ? "eye-off-outline" : "eye-outline"}
 												style={{
 													flexShrink: 0
 												}}
@@ -286,28 +305,99 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 											/>
 										</TouchableOpacity>
 									)}
-								</>
-							)}
-							{!networkInfo.online ? (
-								<Ionicon
-									name="cloud-offline-outline"
-									size={22}
-									color={getColor(darkMode, "textSecondary")}
-								/>
-							) : synced.content && synced.title ? (
-								<Ionicon
-									name="checkmark-circle-outline"
-									size={23}
-									color={getColor(darkMode, "green")}
-								/>
-							) : (
-								<Spinner>
 									<Ionicon
-										name="sync-outline"
-										size={23}
-										color={getColor(darkMode, "textPrimary")}
+										name="eye-outline"
+										style={{
+											flexShrink: 0
+										}}
+										color={getColor(darkMode, "textSecondary")}
+										size={24}
 									/>
-								</Spinner>
+									{historyMode && (
+										<TouchableOpacity
+											style={{
+												marginLeft: 10
+											}}
+											onPress={restore}
+										>
+											<Ionicon
+												name="refresh-outline"
+												style={{
+													flexShrink: 0
+												}}
+												color={getColor(darkMode, "linkPrimary")}
+												size={22}
+											/>
+										</TouchableOpacity>
+									)}
+								</>
+							) : (
+								<>
+									{currentNoteRef.current.type === "md" ? (
+										<TouchableOpacity
+											style={{
+												marginRight: 10
+											}}
+											onPress={() => setShowPreview(prev => !prev)}
+										>
+											<Ionicon
+												name={showPreview ? "eye-off-outline" : "eye-outline"}
+												style={{
+													flexShrink: 0
+												}}
+												color={getColor(darkMode, "linkPrimary")}
+												size={24}
+											/>
+										</TouchableOpacity>
+									) : (
+										<>
+											{keyboardShowing && (
+												<TouchableOpacity
+													style={{
+														marginRight: 10
+													}}
+													onPress={() => {
+														try {
+															Keyboard.dismiss()
+														} catch (e) {
+															console.error(e)
+														}
+													}}
+												>
+													<Ionicon
+														name="chevron-down-outline"
+														style={{
+															flexShrink: 0
+														}}
+														color={getColor(darkMode, "linkPrimary")}
+														size={24}
+													/>
+												</TouchableOpacity>
+											)}
+										</>
+									)}
+									{!networkInfo.online ? (
+										<Ionicon
+											name="cloud-offline-outline"
+											size={22}
+											color={getColor(darkMode, "textSecondary")}
+										/>
+									) : synced.content && synced.title ? (
+										<Ionicon
+											name="checkmark-circle-outline"
+											size={23}
+											color={getColor(darkMode, "green")}
+										/>
+									) : (
+										<Spinner>
+											<Ionicon
+												name="sync-outline"
+												size={23}
+												color={getColor(darkMode, "textPrimary")}
+											/>
+										</Spinner>
+									)}
+								</>
 							)}
 						</View>
 					</View>
@@ -371,7 +461,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
                                     `
 								]}
 								onHtmlChange={data => {
-									if (!data || !data.html) {
+									if (!data || !data.html || readOnly) {
 										return
 									}
 
@@ -389,7 +479,12 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							<Checklist
 								darkMode={darkMode}
 								content={content}
+								readOnly={readOnly}
 								onChange={value => {
+									if (readOnly) {
+										return
+									}
+
 									if (value === "" || value.indexOf("<ul data-checked") === -1 || value === "<p><br></p>") {
 										value = '<ul data-checked="false"><li><br></li></ul>'
 									}
@@ -518,7 +613,12 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 									<TextEditor
 										darkMode={darkMode}
 										value={content}
+										readOnly={readOnly}
 										onChange={value => {
+											if (readOnly) {
+												return
+											}
+
 											setEditedContent(value)
 										}}
 									/>

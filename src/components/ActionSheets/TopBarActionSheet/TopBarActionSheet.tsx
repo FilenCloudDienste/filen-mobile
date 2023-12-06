@@ -9,7 +9,7 @@ import { queueFileDownload } from "../../../lib/services/download/download"
 import { getFileExt, getRouteURL, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
-import { StackActions } from "@react-navigation/native"
+import { StackActions, CommonActions } from "@react-navigation/native"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../../lib/permissions"
 import {
 	bulkFavorite,
@@ -25,7 +25,7 @@ import { removeFromOfflineStorage } from "../../../lib/services/offline"
 import { getColor } from "../../../style/colors"
 import { navigationAnimation } from "../../../lib/state"
 import * as MediaLibrary from "expo-media-library"
-import { ActionButton, ActionSheetIndicator } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
@@ -1024,7 +1024,16 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 								await SheetManager.hide("TopBarActionSheet")
 								await navigationAnimation({ enable: true })
 
-								navigation.dispatch(StackActions.push("SettingsScreen"))
+								navigation.dispatch(
+									CommonActions.reset({
+										index: 0,
+										routes: [
+											{
+												name: "SettingsScreen"
+											}
+										]
+									})
+								)
 							}}
 							icon="cog-outline"
 							text={i18n(lang, "settings")}

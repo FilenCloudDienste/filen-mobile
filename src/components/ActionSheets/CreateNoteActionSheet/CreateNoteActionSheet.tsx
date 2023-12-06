@@ -82,7 +82,10 @@ const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationCont
 				navigation.dispatch(
 					StackActions.push("NoteScreen", {
 						note: note[0],
-						tags: notesAndTags.tags
+						tags: notesAndTags.tags,
+						readOnly: false,
+						historyMode: false,
+						historyId: ""
 					})
 				)
 			}
