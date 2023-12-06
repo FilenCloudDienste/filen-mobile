@@ -1000,6 +1000,10 @@ export const isRouteInStack = (
 	routeNames: string[]
 ): boolean => {
 	try {
+		if (!isNavReady(navigationRef)) {
+			return false
+		}
+
 		if (typeof navigationRef == "undefined") {
 			return false
 		}

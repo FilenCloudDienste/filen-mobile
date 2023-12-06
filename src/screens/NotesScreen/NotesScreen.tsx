@@ -1,11 +1,11 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
-import { View, Text, TouchableOpacity, RefreshControl, ActivityIndicator, useWindowDimensions } from "react-native"
+import { View, Text, TouchableOpacity, RefreshControl, TouchableHighlight, useWindowDimensions } from "react-native"
 import { TopBar } from "../../components/TopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { Note, NoteTag } from "../../lib/api"
-import { fetchNotesAndTags, sortAndFilterNotes, sortAndFilterTags, getUserNameFromNoteParticipant } from "./utils"
+import { fetchNotesAndTags, sortAndFilterNotes, getUserNameFromNoteParticipant } from "./utils"
 import { dbFs } from "../../lib/db"
 import { showToast } from "../../components/Toasts"
 import { useMMKVNumber } from "react-native-mmkv"
@@ -73,24 +73,15 @@ const Item = memo(
 		}, [me, note, userId])
 
 		return (
-			<View
-				style={{
-					paddingLeft: 0,
-					paddingRight: 15
-				}}
-				onLayout={e => setHeight(e.nativeEvent.layout.height)}
-			>
-				<TouchableOpacity
-					activeOpacity={0.6}
+			<View onLayout={e => setHeight(e.nativeEvent.layout.height)}>
+				<TouchableHighlight
+					underlayColor={getColor(darkMode, "backgroundTertiary")}
 					style={{
 						flexDirection: "column",
-						borderTopLeftRadius: index === 0 ? 10 : 0,
-						borderTopRightRadius: index === 0 ? 10 : 0,
-						borderBottomLeftRadius: index >= notesSorted.length - 1 ? 10 : 0,
-						borderBottomRightRadius: index >= notesSorted.length - 1 ? 10 : 0,
 						marginBottom: index >= notesSorted.length - 1 ? 130 : 0,
 						paddingBottom: index >= notesSorted.length - 1 ? 15 : 0,
-						paddingTop: 15
+						width: "100%",
+						height: "100%"
 					}}
 					onPress={async () => {
 						await navigationAnimation({ enable: true })
@@ -111,9 +102,13 @@ const Item = memo(
 				>
 					<View
 						style={{
+							backgroundColor: getColor(darkMode, "backgroundPrimary"),
 							flexDirection: "row",
 							paddingLeft: 15,
-							paddingRight: 30
+							paddingRight: 45,
+							width: "100%",
+							height: "100%",
+							paddingTop: 15
 						}}
 					>
 						<View
@@ -243,7 +238,7 @@ const Item = memo(
 										style={{
 											color: getColor(darkMode, "textSecondary"),
 											marginTop: 7,
-											paddingRight: 15
+											paddingRight: participantsFilteredWithoutMe.length > 0 ? 55 : 15
 										}}
 										numberOfLines={1}
 									>
@@ -269,47 +264,49 @@ const Item = memo(
 										flexDirection: "row",
 										flexWrap: "wrap",
 										marginTop: 3,
-										paddingRight: participantsFilteredWithoutMe.length > 0 ? 55 : 15
+										paddingRight: participantsFilteredWithoutMe.length > 0 ? 65 : 15
 									}}
 								>
-									{note.tags.map(tag => {
-										return (
-											<View
-												key={tag.uuid}
-												style={{
-													backgroundColor: getColor(darkMode, "backgroundSecondary"),
-													paddingLeft: 6,
-													paddingRight: 6,
-													paddingTop: 3,
-													paddingBottom: 3,
-													justifyContent: "center",
-													alignItems: "center",
-													flexDirection: "row",
-													borderRadius: 5,
-													marginRight: 5,
-													marginTop: 5
-												}}
-											>
-												<Text
+									{note.tags
+										.sort((a, b) => a.name.localeCompare(b.name))
+										.map(tag => {
+											return (
+												<View
+													key={tag.uuid}
 													style={{
-														color: getColor(darkMode, "purple"),
-														fontSize: 13
+														backgroundColor: getColor(darkMode, "backgroundSecondary"),
+														paddingLeft: 6,
+														paddingRight: 6,
+														paddingTop: 3,
+														paddingBottom: 3,
+														justifyContent: "center",
+														alignItems: "center",
+														flexDirection: "row",
+														borderRadius: 5,
+														marginRight: 5,
+														marginTop: 5
 													}}
 												>
-													#
-												</Text>
-												<Text
-													style={{
-														color: getColor(darkMode, "textSecondary"),
-														marginLeft: 5,
-														fontSize: 13
-													}}
-												>
-													{tag.name}
-												</Text>
-											</View>
-										)
-									})}
+													<Text
+														style={{
+															color: getColor(darkMode, "purple"),
+															fontSize: 13
+														}}
+													>
+														#
+													</Text>
+													<Text
+														style={{
+															color: getColor(darkMode, "textSecondary"),
+															marginLeft: 5,
+															fontSize: 13
+														}}
+													>
+														{tag.name}
+													</Text>
+												</View>
+											)
+										})}
 								</View>
 							)}
 							{index < notesSorted.length - 1 && (
@@ -329,8 +326,8 @@ const Item = memo(
 									flexDirection: "row",
 									justifyContent: "center",
 									position: "absolute",
-									right: participantsFilteredWithoutMe.length > 1 ? 35 : 25,
-									top: height === 0 ? 15 : Math.floor(height / 2) - 28
+									right: participantsFilteredWithoutMe.length > 1 ? 50 : 40,
+									top: height === 0 ? 15 : Math.floor(height / 2) - 12
 								}}
 							>
 								{participantsFilteredWithoutMe.map((participant, index) => {
@@ -386,7 +383,7 @@ const Item = memo(
 							</View>
 						)}
 					</View>
-				</TouchableOpacity>
+				</TouchableHighlight>
 			</View>
 		)
 	}

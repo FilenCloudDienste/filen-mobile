@@ -1,5 +1,5 @@
 import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "react"
-import { View, Text, TouchableOpacity, useWindowDimensions, RefreshControl } from "react-native"
+import { View, Text, TouchableHighlight, TouchableOpacity, useWindowDimensions, RefreshControl } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, StackActions } from "@react-navigation/native"
@@ -101,11 +101,12 @@ const Item = memo(
 		}, [setContacts])
 
 		return (
-			<TouchableOpacity
-				activeOpacity={0.6}
+			<TouchableHighlight
+				underlayColor={getColor(darkMode, "backgroundTertiary")}
 				style={{
 					flexDirection: "row",
-					height: 55
+					height: 55,
+					width: "100%"
 				}}
 				onPress={toggle}
 				onLongPress={toggle}
@@ -117,9 +118,10 @@ const Item = memo(
 						paddingLeft: 15,
 						paddingRight: 15,
 						height: 55,
+						width: "100%",
 						marginBottom: index >= contacts.length - 1 ? 55 : 0,
 						backgroundColor: contact.selected
-							? getColor(darkMode, "backgroundSecondary")
+							? getColor(darkMode, "backgroundTertiary")
 							: getColor(darkMode, "backgroundPrimary")
 					}}
 				>
@@ -192,7 +194,7 @@ const Item = memo(
 						</Text>
 					</View>
 				</View>
-			</TouchableOpacity>
+			</TouchableHighlight>
 		)
 	}
 )

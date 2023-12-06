@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState, useRef } from "react"
+import React, { memo, useEffect, useMemo, useRef } from "react"
 import {
 	Text,
 	View,
@@ -105,7 +105,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 						width: 40
 					}}
 				>
-					{item.type == "folder" ? (
+					{item.type === "folder" ? (
 						<Ionicon
 							name="ios-folder"
 							size={40}
