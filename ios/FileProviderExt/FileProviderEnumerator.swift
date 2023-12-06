@@ -11,23 +11,22 @@ import Alamofire
 class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
     private let identifier: NSFileProviderItemIdentifier
     private let shouldUseWorkingSet: Bool
-    private let failedStatus = "{\"status\":false,".data(using: .utf8)!
-    private let uploadsRangeData = "\"data\":{\"uploads\":[".data(using: .utf8)!
-    private let foldersRangeData = "],\"folders\":[".data(using: .utf8)!
-    private let closingRangeData = "}".data(using: .utf8)!
-    private let openingRangeData = "{".data(using: .utf8)!
-    private let commaData = ",".data(using: .utf8)!
-    private let endData = "]}}".data(using: .utf8)!
     
     init (identifier: NSFileProviderItemIdentifier, isReplicatedStorage: Bool = false) {
         self.identifier = identifier
         self.shouldUseWorkingSet = isReplicatedStorage
+        print("\(self.identifier.rawValue) initialized")
+        FileProviderUtils.folderUpdateQueue.append(identifier)
+        if isReplicatedStorage && !(self.identifier == .workingSet){
+            FileProviderUtils.shared.signalEnumerator()
+        }
         
         super.init()
     }
     
     func invalidate() {
-        // Noop
+        print("\(self.identifier.rawValue) invalidated")
+        FileProviderUtils.folderUpdateQueue.removeAll(where: { $0.rawValue == identifier.rawValue })
     }
     
     func processFolder (folder: FetchFolderContentsFolder, masterKeys: [String]) throws -> FileProviderItem {
@@ -219,16 +218,16 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                     return
                 }
                 
-                
-                let parents = self.identifier == .workingSet ?
-                try FileProviderUtils.shared.openDb().run("SELECT DISTINCT parent FROM items;").map({ binding in
-                    binding.first as? String ?? ""
-                }) :
-                [self.identifier.rawValue]
+//                let parents = self.identifier == .workingSet ?
+//                try FileProviderUtils.shared.openDb().run("SELECT DISTINCT parent FROM items;").map({ binding in
+//                    binding.first as? String ?? ""
+//                }) :
+//                [self.identifier.rawValue]
                 
                 
                 var didEnumerate = false
-                for parent in parents {
+                for parentIdentifier in FileProviderUtils.folderUpdateQueue + [NSFileProviderItemIdentifier(rootFolderUUID)]{
+                    let parent = parentIdentifier.rawValue
                     var kids = try FileProviderUtils.shared.getListOfItemsWithParent(uuid: parent)
                     kids.removeAll(where: { $0.uuid == rootFolderUUID })
                     
@@ -245,7 +244,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                         }
                     }
                     
-                    if parseTempJSON(tempJSONFileURL: tempJSONFileURL, errorHandler: {
+                    if await FileProviderEnumerator.parseTempJSON(tempJSONFileURL: tempJSONFileURL, errorHandler: {
                         // do something
                     }, handleFile: { file in
                         if let child = kids.first(where: { $0.uuid == file.uuid }) {
@@ -256,7 +255,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                             }
                         }
                         let processed = try self.processFile(file: file, masterKeys: masterKeys)
-                        
+                        print("processing \(processed.filename)")
                         if (processed.item.name.count > 0) {
                             observer.didUpdate([processed])
                             
@@ -267,11 +266,12 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                         if let child = kids.first(where: { $0.uuid == folder.uuid }) {
                             kids.removeAll(where: { $0.uuid == folder.uuid })
                             
-                            if (child.timestamp != folder.timestamp) {
+                            if (child.timestamp == folder.timestamp) {
                                 return false
                             }
                         }
                         let processed = try self.processFolder(folder: folder, masterKeys: masterKeys)
+                        print("processing \(processed.filename)")
                         
                         if (processed.item.name.count > 0) {
                             observer.didUpdate([processed])
@@ -434,7 +434,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                     }
                 }
                 
-                let didEnumerate = parseTempJSON(tempJSONFileURL: tempJSONFileURL, errorHandler: {
+                let didEnumerate = await FileProviderEnumerator.parseTempJSON(tempJSONFileURL: tempJSONFileURL, errorHandler: {
                     observer.finishEnumeratingWithError(NSError(domain: "enumerateItems", code: 1, userInfo: nil))
                 }, handleFile: { file in
                     let processed = try self.processFile(file: file, masterKeys: masterKeys)
@@ -473,7 +473,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
     
     // returns didEnumerate
     // all handlers should return didEnumerate
-    func parseTempJSON (tempJSONFileURL: URL, errorHandler: () -> Void, handleFile: (FetchFolderContentsFile) throws -> Bool, handleFolder: (FetchFolderContentsFolder) throws -> Bool) -> Bool {
+    static func parseTempJSON (tempJSONFileURL: URL, errorHandler: () -> Void, handleFile: (FetchFolderContentsFile) async throws -> Bool, handleFolder: (FetchFolderContentsFolder) async throws -> Bool) async -> Bool {
         guard let inputStream = InputStream(url: tempJSONFileURL) else {
             //throw NSError(domain: "enumerateItems", code: 1, userInfo: nil)
             errorHandler()
@@ -482,6 +482,13 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         
         inputStream.open()
         
+        let failedStatus = "{\"status\":false,".data(using: .utf8)!
+        let uploadsRangeData = "\"data\":{\"uploads\":[".data(using: .utf8)!
+        let foldersRangeData = "],\"folders\":[".data(using: .utf8)!
+        let closingRangeData = "}".data(using: .utf8)!
+        let openingRangeData = "{".data(using: .utf8)!
+        let commaData = ",".data(using: .utf8)!
+        let endData = "]}}".data(using: .utf8)!
         let bufferSize = 1024
         var buffer = [UInt8](repeating: 0, count: bufferSize)
         var accumulatedData = Data()
@@ -499,43 +506,43 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                 
                 switch currentState {
                 case .lookingForData:
-                    if let _ = accumulatedData.range(of: self.failedStatus) {
+                    if let _ = accumulatedData.range(of: failedStatus) {
                         didFail = true
                     }
-                    if let dataRange = accumulatedData.range(of: self.uploadsRangeData) {
+                    if let dataRange = accumulatedData.range(of: uploadsRangeData) {
                         accumulatedData.removeSubrange(0..<dataRange.endIndex)
                         currentState = .parsingData
                     }
                     
                 case .parsingData:
-                    if let foldersRange = accumulatedData.range(of: self.foldersRangeData) {
+                    if let foldersRange = accumulatedData.range(of: foldersRangeData) {
                         accumulatedData.removeSubrange(foldersRange.startIndex..<foldersRange.endIndex)
                     }
                     
-                    if let endRange = accumulatedData.range(of: self.endData) {
+                    if let endRange = accumulatedData.range(of: endData) {
                         accumulatedData.removeSubrange(endRange.startIndex..<endRange.endIndex)
                     }
                     
-                    while let endIndex = accumulatedData.range(of: self.closingRangeData) {
+                    while let endIndex = accumulatedData.range(of: closingRangeData) {
                         var data = accumulatedData[0..<endIndex.endIndex]
                         
-                        if data.prefix(1) == self.commaData {
+                        if data.prefix(1) == commaData {
                             data.remove(at: 0)
                         }
                         
-                        if data.prefix(1) != self.openingRangeData && data.suffix(1) != self.closingRangeData {
+                        if data.prefix(1) != openingRangeData && data.suffix(1) != closingRangeData {
                             accumulatedData.removeSubrange(0..<endIndex.endIndex)
                         } else {
                             do {
                                 if !didParseFiles, let file = try? FileProviderUtils.shared.jsonDecoder.decode(FetchFolderContentsFile.self, from: data) {
-                                    if try handleFile(file) {
+                                    if try await handleFile(file) {
                                         didEnumerate = true
                                     }
                                 } else {
                                     if let folder = try? FileProviderUtils.shared.jsonDecoder.decode(FetchFolderContentsFolder.self, from: data) {
                                         didParseFiles = true
                                         
-                                        if try handleFolder(folder) {
+                                        if try await handleFolder(folder) {
                                             didEnumerate = true
                                         }
                                     }
@@ -562,4 +569,8 @@ enum FetchFolderContentJSONParseState {
     case parsingData
 }
 
-
+extension URL {
+    var isDirectory: Bool {
+       (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+    }
+}
