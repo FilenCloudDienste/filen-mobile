@@ -454,5 +454,21 @@ export const ru: {
 	permissionsRead: "Чтение",
 	permissionsWrite: "Запись",
 	permissionsReadWrite: "Чтение/Запись",
-	noteTooBig: "Максимальный размер заметки составляет __MAXSIZE__"
+	noteTooBig: "Максимальный размер заметки составляет __MAXSIZE__",
+	toggleReadAccess: "Переключить разрешение на чтение",
+	toggleWriteAccess: "Переключить разрешение на запись",
+	noParticipantsYet: "Участников пока нет",
+	noContactsYet: "Контактов пока нет",
+	noteTitle: "Заголовок заметки",
+	title: "Заголовок",
+	noteTags: "Теги",
+	createTag: "Создать тег",
+	tagName: "Название тега",
+	nothingFoundFor: 'Ничего не найдено для "__TERM__"',
+	noNotesYet: "Заметок пока нет",
+	editTag: "Редактировать тег",
+	noNoteHistory: "История заметки не найдена",
+	export: "Экспортировать",
+	leave: "Покинуть",
+	noteContentPlaceholder: "Содержание заметки.."
 }
