@@ -575,7 +575,11 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 			>
 				{typeof currentActionSheetItem !== "undefined" && (
 					<>
-						<ActionSheetIndicator />
+						<View
+							style={{
+								marginTop: 5
+							}}
+						/>
 						<ItemActionSheetItemHeader />
 						<View
 							style={{

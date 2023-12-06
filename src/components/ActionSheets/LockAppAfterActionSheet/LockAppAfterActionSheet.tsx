@@ -46,10 +46,9 @@ const LockAppAfterActionSheet = memo(() => {
 			<View
 				style={{
 					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5),
-					paddingTop: 50
+					paddingTop: 10
 				}}
 			>
-				<ActionSheetIndicator />
 				<ActionButton
 					onPress={() => setLock(1)}
 					text={i18n(lang, "immediately")}

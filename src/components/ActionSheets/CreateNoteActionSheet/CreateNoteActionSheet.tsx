@@ -114,10 +114,9 @@ const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationCont
 					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
-				<ActionSheetIndicator />
 				<View
 					style={{
-						height: 15
+						height: 5
 					}}
 				/>
 				<ActionButton

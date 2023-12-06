@@ -105,7 +105,6 @@ const FolderColorActionSheet = memo(() => {
 					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
-				<ActionSheetIndicator />
 				<ItemActionSheetItemHeader />
 				{Object.keys(availableFolderColors).map(prop => {
 					if (prop == "default_ios") {

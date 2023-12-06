@@ -150,7 +150,11 @@ const FileVersionsActionSheet = memo(() => {
 					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
-				<ActionSheetIndicator />
+				<View
+					style={{
+						height: 5
+					}}
+				/>
 				<ItemActionSheetItemHeader />
 				{isLoading ? (
 					<View

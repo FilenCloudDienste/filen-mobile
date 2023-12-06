@@ -146,7 +146,6 @@ const ShareActionSheet = memo(() => {
 					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
-				<ActionSheetIndicator />
 				<ItemActionSheetItemHeader />
 				{isLoading ? (
 					<View

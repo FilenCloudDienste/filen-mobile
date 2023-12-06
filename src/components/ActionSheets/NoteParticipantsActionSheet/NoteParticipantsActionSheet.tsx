@@ -108,10 +108,9 @@ const NoteParticipantsActionSheet = memo(() => {
 					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
 				}}
 			>
-				<ActionSheetIndicator />
 				<View
 					style={{
-						height: 15
+						height: 5
 					}}
 				/>
 				{selectedNote && selectedParticipant && (
