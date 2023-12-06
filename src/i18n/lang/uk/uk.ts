@@ -454,5 +454,21 @@ export const uk: {
 	permissionsRead: "Читання",
 	permissionsWrite: "Запис",
 	permissionsReadWrite: "Читання/Запис",
-	noteTooBig: "Максимальний розмір нотатки становить __MAXSIZE__"
+	noteTooBig: "Максимальний розмір нотатки становить __MAXSIZE__",
+	toggleReadAccess: "Переключити дозвіл на читання",
+	toggleWriteAccess: "Переключити дозвіл на запис",
+	noParticipantsYet: "Ще немає учасників",
+	noContactsYet: "Ще немає контактів",
+	noteTitle: "Заголовок нотатки",
+	title: "Заголовок",
+	noteTags: "Теги",
+	createTag: "Створити тег",
+	tagName: "Назва тегу",
+	nothingFoundFor: 'Нічого не знайдено для "__TERM__"',
+	noNotesYet: "Ще немає нотаток",
+	editTag: "Редагувати тег",
+	noNoteHistory: "Історію нотаток не знайдено",
+	export: "Експортувати",
+	leave: "Покинути",
+	noteContentPlaceholder: "Зміст нотатки.."
 }
