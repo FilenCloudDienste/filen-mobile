@@ -194,6 +194,10 @@ export const dbFs = {
 					const readSliced = read.slice(0, 32).toLowerCase()
 					const prefix = '{"key":"'
 
+					if (readSliced.indexOf(prefix + "notecontent:") !== -1) {
+						continue
+					}
+
 					if (
 						readSliced.indexOf(prefix + "loadItems:") !== -1 ||
 						readSliced.indexOf(prefix + "note") !== -1 ||

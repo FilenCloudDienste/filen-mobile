@@ -28,6 +28,24 @@ const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationCont
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
 
+	const openTags = useCallback(async () => {
+		showFullScreenLoadingModal()
+
+		try {
+			const notesAndTags = await fetchNotesAndTags()
+
+			await hideAllActionSheets()
+
+			eventListener.emit("openNoteTagsActionSheet", { note: undefined, tags: notesAndTags.tags })
+		} catch (e) {
+			console.error(e)
+
+			showToast({ message: e.toString() })
+		} finally {
+			hideFullScreenLoadingModal()
+		}
+	}, [])
+
 	const create = useCallback(async (type: NoteType) => {
 		showFullScreenLoadingModal()
 
@@ -63,7 +81,8 @@ const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationCont
 
 				navigation.dispatch(
 					StackActions.push("NoteScreen", {
-						note: note[0]
+						note: note[0],
+						tags: notesAndTags.tags
 					})
 				)
 			}
@@ -161,6 +180,44 @@ const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationCont
 						</View>
 					}
 					text={i18n(lang, "noteTypeCode")}
+				/>
+				<ActionButton
+					onPress={openTags}
+					icon={
+						<View
+							style={{
+								paddingLeft: 6
+							}}
+						>
+							<Ionicon
+								name="pricetags-outline"
+								size={21}
+								color={getColor(darkMode, "textSecondary")}
+							/>
+						</View>
+					}
+					text={i18n(lang, "noteTags")}
+				/>
+				<ActionButton
+					onPress={async () => {
+						await hideAllActionSheets()
+
+						eventListener.emit("openNotesCreateTagDialog")
+					}}
+					icon={
+						<View
+							style={{
+								paddingLeft: 6
+							}}
+						>
+							<Ionicon
+								name="pricetag-outline"
+								size={21}
+								color={getColor(darkMode, "textSecondary")}
+							/>
+						</View>
+					}
+					text={i18n(lang, "createTag")}
 				/>
 			</View>
 		</ActionSheet>

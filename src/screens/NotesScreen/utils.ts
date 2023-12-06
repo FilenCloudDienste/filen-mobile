@@ -75,16 +75,32 @@ export const fetchNotesAndTags = async (skipCache: boolean = false): Promise<{ c
 
 						const title = await decryptNoteTitle(note.title, noteKey)
 						const preview = note.preview.length === 0 ? title : await decryptNotePreview(note.preview, noteKey)
+
 						const tags: NoteTag[] = []
+						const tagsPromises: Promise<void>[] = []
 
 						for (const tag of note.tags) {
-							const tagName = await decryptNoteTagName(tag.name, masterKeys)
+							tagsPromises.push(
+								new Promise(async (resolve, reject) => {
+									try {
+										const tagName = await decryptNoteTagName(tag.name, masterKeys)
 
-							tags.push({
-								...tag,
-								name: tagName
-							})
+										tags.push({
+											...tag,
+											name: tagName
+										})
+									} catch (e) {
+										reject(e)
+
+										return
+									}
+
+									resolve()
+								})
+							)
 						}
+
+						await Promise.all(tagsPromises)
 
 						notes.push({
 							...note,
@@ -171,7 +187,9 @@ export const sortAndFilterTags = (tags: NoteTag[]) => {
 	})
 }
 
-export const sortAndFilterNotes = (notes: INote[], search: string, activeTag: string) => {
+export const sortAndFilterNotes = (notes: INote[], search: string = "", activeTag: string = "", tags: NoteTag[] = []) => {
+	const tagsJoined = tags.map(t => t.name.trim().toLowerCase() + " ")
+
 	const filtered = notes
 		.sort((a, b) => {
 			if (a.pinned !== b.pinned) {
@@ -202,6 +220,10 @@ export const sortAndFilterNotes = (notes: INote[], search: string, activeTag: st
 			}
 
 			if (note.preview.toLowerCase().trim().indexOf(search.toLowerCase().trim()) !== -1) {
+				return true
+			}
+
+			if (tagsJoined.indexOf(search.toLowerCase().trim()) !== -1) {
 				return true
 			}
 

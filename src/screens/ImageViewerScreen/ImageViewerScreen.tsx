@@ -23,7 +23,7 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
 import { getFileExt, toExpoFsPath, isBetween, getFilePreviewType, canCompressThumbnail } from "../../lib/helpers"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
-import useIsOnline from "../../lib/hooks/useIsOnline"
+import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { getItemOfflinePath } from "../../lib/services/offline"
 import * as fs from "../../lib/fs"
 import { Item } from "../../types"
@@ -64,7 +64,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 	const setListScrollAgain = useRef<boolean>(false)
 	const dimensions = useWindowDimensions()
 	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
-	const isOnline = useIsOnline()
+	const networkInfo = useNetworkInfo()
 
 	const [items, startIndex] = useRef<[PreviewItem[], number]>(
 		(() => {
@@ -656,7 +656,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 				horizontal={true}
 				bounces={true}
 				getItemLayout={(_, index) => ({ length: dimensions.width, offset: dimensions.width * index, index })}
-				scrollEnabled={!isZooming && isOnline}
+				scrollEnabled={!isZooming && networkInfo.online}
 				pagingEnabled={true}
 				onViewableItemsChanged={onViewableItemsChangedRef?.current}
 				viewabilityConfig={viewabilityConfigRef?.current}

@@ -12,7 +12,8 @@ const DefaultTopBar = memo(
 		rightComponent,
 		height,
 		hideLeftComponent,
-		onPressMiddleText
+		onPressMiddleText,
+		onLongPressMiddleText
 	}: {
 		onPressBack: () => void
 		leftText: string
@@ -21,6 +22,7 @@ const DefaultTopBar = memo(
 		height?: number
 		hideLeftComponent?: boolean
 		onPressMiddleText?: () => void
+		onLongPressMiddleText?: () => void
 	}) => {
 		const darkMode = useDarkMode()
 
@@ -77,6 +79,7 @@ const DefaultTopBar = memo(
 							alignItems: "center"
 						}}
 						onPress={onPressMiddleText}
+						onLongPress={onLongPressMiddleText}
 					>
 						<Text
 							style={{

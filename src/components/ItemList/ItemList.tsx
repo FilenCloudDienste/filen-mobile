@@ -651,8 +651,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 										setRefreshing(true)
 
 										await new Promise(resolve => setTimeout(resolve, 500))
-
-										populateList(true).catch(console.error)
+										await populateList(true).catch(console.error)
 
 										setRefreshing(false)
 									}}

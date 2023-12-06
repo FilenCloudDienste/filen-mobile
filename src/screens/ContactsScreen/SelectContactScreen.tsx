@@ -3,11 +3,9 @@ import { View, Text, TouchableOpacity, useWindowDimensions, RefreshControl } fro
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, StackActions } from "@react-navigation/native"
-import { Note, NoteParticipant, Contact } from "../../lib/api"
+import { Contact } from "../../lib/api"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
-import { useMMKVNumber } from "react-native-mmkv"
-import storage from "../../lib/storage"
 import { randomIdUnsafe, generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -221,40 +219,47 @@ const SelectContactScreen = memo(
 			return contactsSorted.filter(c => c.selected)
 		}, [contactsSorted])
 
-		const loadContacts = useCallback(async (refresh: boolean = false) => {
-			try {
-				const cache = await dbFs.get<FetchContactsResult>("contacts")
-				const hasCache =
-					cache &&
-					cache.contacts &&
-					Array.isArray(cache.contacts) &&
-					cache.requestsOut &&
-					Array.isArray(cache.requestsOut) &&
-					cache.requestsOut &&
-					Array.isArray(cache.requestsOut) &&
-					cache.blocked &&
-					Array.isArray(cache.blocked)
-
-				if (!hasCache) {
-					setLoadDone(false)
-					setContacts([])
+		const loadContacts = useCallback(
+			async (refresh: boolean = false) => {
+				if (refresh && !networkInfo.online) {
+					return
 				}
 
-				const res = await fetchContacts(refresh)
+				try {
+					const cache = await dbFs.get<FetchContactsResult>("contacts")
+					const hasCache =
+						cache &&
+						cache.contacts &&
+						Array.isArray(cache.contacts) &&
+						cache.requestsOut &&
+						Array.isArray(cache.requestsOut) &&
+						cache.requestsIn &&
+						Array.isArray(cache.requestsIn) &&
+						cache.blocked &&
+						Array.isArray(cache.blocked)
 
-				setContacts(res.contacts.map(c => ({ ...c, selected: false })))
+					if (!hasCache) {
+						setLoadDone(false)
+						setContacts([])
+					}
 
-				if (res.cache) {
-					loadContacts(true)
+					const res = await fetchContacts(refresh)
+
+					setContacts(res.contacts.map(c => ({ ...c, selected: false })))
+
+					if (res.cache && networkInfo.online) {
+						loadContacts(true)
+					}
+				} catch (e) {
+					console.error(e)
+
+					showToast({ message: e.toString() })
+				} finally {
+					setLoadDone(true)
 				}
-			} catch (e) {
-				console.error(e)
-
-				showToast({ message: e.toString() })
-			} finally {
-				setLoadDone(true)
-			}
-		}, [])
+			},
+			[networkInfo]
+		)
 
 		const keyExtractor = useCallback((item: SelectedContact) => item.uuid, [])
 
@@ -320,7 +325,7 @@ const SelectContactScreen = memo(
 								justifyContent: "flex-end"
 							}}
 							onPress={() => {
-								if (selectedContacts.length === 0 || didSendResponse.current) {
+								if (selectedContacts.length === 0 || didSendResponse.current || !networkInfo.online) {
 									return
 								}
 

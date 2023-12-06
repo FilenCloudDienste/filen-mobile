@@ -463,5 +463,13 @@ export const de: {
 	toggleReadAccess: "Lesezugriff umschalten",
 	toggleWriteAccess: "Schreibzugriff umschalten",
 	noParticipantsYet: "Noch keine Mitglieder",
-	noContactsYet: "Noch keine Kontakte"
+	noContactsYet: "Noch keine Kontakte",
+	noteTitle: "Notiz Titel",
+	title: "Titel",
+	noteTags: "Tags",
+	createTag: "Tag erstellen",
+	tagName: "Tag Name",
+	nothingFoundFor: 'Nichts gefunden unter "__TERM__"',
+	noNotesYet: "Noch keine Notizen",
+	editTag: "Tag editieren"
 }

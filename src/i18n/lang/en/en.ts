@@ -465,5 +465,13 @@ export const en: {
 	toggleReadAccess: "Toggle read access",
 	toggleWriteAccess: "Toggle write access",
 	noParticipantsYet: "No participants yet",
-	noContactsYet: "No contacts yet"
+	noContactsYet: "No contacts yet",
+	noteTitle: "Note title",
+	title: "Title",
+	noteTags: "Tags",
+	createTag: "Create tag",
+	tagName: "Tag name",
+	nothingFoundFor: 'Nothing found for "__TERM__"',
+	noNotesYet: "No notes yet",
+	editTag: "Edit tag"
 }

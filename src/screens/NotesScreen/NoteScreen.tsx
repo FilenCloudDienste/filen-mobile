@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from "react"
-import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity } from "react-native"
+import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity, ActivityIndicator } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef } from "@react-navigation/native"
@@ -23,6 +23,7 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 import Spinner from "../../components/Spinner"
 import TextEditor from "../../components/TextEditor"
 import Markdown from "react-native-marked"
+import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 
 const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -41,6 +42,8 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const [contentKey, setContentKey] = useState<string>("content-key-" + Date.now())
 	const [showPreview, setShowPreview] = useState<boolean>(false)
 	const [keyboardShowing, setKeyboardShowing] = useState<boolean>(false)
+	const [title, setTitle] = useState<string>(currentNoteRef.current.title)
+	const networkInfo = useNetworkInfo()
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!currentNoteRef.current) {
@@ -53,48 +56,59 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		)
 	}, [currentNoteRef.current, userId])
 
-	const loadNote = useCallback(async (skipCache: boolean = false) => {
-		try {
-			const [cache, type] = await Promise.all([
-				dbFs.get<string | undefined>("noteContent:" + currentNoteRef.current.uuid),
-				dbFs.get<NoteType | undefined>("noteType:" + currentNoteRef.current.uuid)
-			])
-			const hasCache = cache && type && typeof cache === "string" && typeof type === "string"
-
-			if (!hasCache) {
-				setLoadDone(false)
-				setContent("")
-				setEditedContent("")
-				setContentType("text")
+	const loadNote = useCallback(
+		async (skipCache: boolean = false) => {
+			if (skipCache && !networkInfo.online) {
+				return
 			}
 
-			const noteContent = await fetchNoteContent(currentNoteRef.current, skipCache)
+			try {
+				const [cache, type] = await Promise.all([
+					dbFs.get<string | undefined>("noteContent:" + currentNoteRef.current.uuid),
+					dbFs.get<NoteType | undefined>("noteType:" + currentNoteRef.current.uuid)
+				])
+				const hasCache = cache && type && typeof cache === "string" && typeof type === "string"
 
-			setContentType(noteContent.type)
-			setContent(noteContent.content)
-			setEditedContent(noteContent.content)
-			setSynced(prev => ({ ...prev, content: true, title: true }))
+				if (!hasCache) {
+					setLoadDone(false)
+					setContent("")
+					setEditedContent("")
+					setContentType("text")
+				}
 
-			if (skipCache && JSON.stringify(noteContent.content) !== prevContent.current) {
-				setContentKey("content-key-" + Date.now())
+				const noteContent = await fetchNoteContent(currentNoteRef.current, skipCache)
+
+				setContentType(noteContent.type)
+				setContent(noteContent.content)
+				setEditedContent(noteContent.content)
+				setSynced(prev => ({ ...prev, content: true, title: true }))
+
+				if (skipCache && JSON.stringify(noteContent.content) !== prevContent.current) {
+					setContentKey("content-key-" + Date.now())
+				}
+
+				contentRef.current = noteContent.content
+				prevContent.current = noteContent.content
+
+				if (noteContent.cache && networkInfo.online) {
+					loadNote(true)
+				}
+			} catch (e) {
+				console.error(e)
+
+				showToast({ message: e.toString() })
+			} finally {
+				setLoadDone(true)
 			}
-
-			contentRef.current = noteContent.content
-			prevContent.current = noteContent.content
-
-			if (noteContent.cache) {
-				loadNote(true)
-			}
-		} catch (e) {
-			console.error(e)
-
-			showToast({ message: e.toString() })
-		} finally {
-			setLoadDone(true)
-		}
-	}, [])
+		},
+		[networkInfo]
+	)
 
 	const save = useCallback(async () => {
+		if (!networkInfo.online) {
+			return
+		}
+
 		await saveMutex.acquire()
 
 		try {
@@ -153,7 +167,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		} finally {
 			saveMutex.release()
 		}
-	}, [lang, userId, userHasWritePermissions, currentNoteRef.current])
+	}, [lang, userId, userHasWritePermissions, currentNoteRef.current, networkInfo])
 
 	const debouncedSave = useCallback(debounce(save, 2000), [])
 
@@ -172,10 +186,17 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardShowing(false))
 		const keyboardWillHideListener = Keyboard.addListener("keyboardWillHide", () => setKeyboardShowing(false))
 
+		const noteTitleEditedListener = eventListener.on("noteTitleEdited", ({ uuid, title }: { uuid: string; title: string }) => {
+			if (uuid === currentNoteRef.current.uuid) {
+				setTitle(title)
+			}
+		})
+
 		return () => {
 			keyboardDidShowListener.remove()
 			keyboardDidHideListener.remove()
 			keyboardWillHideListener.remove()
+			noteTitleEditedListener.remove()
 
 			save()
 		}
@@ -194,8 +215,21 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					navigation.goBack()
 				}}
 				leftText={i18n(lang, "notes")}
-				middleText={route.params.note.title}
-				onPressMiddleText={userHasWritePermissions ? () => console.log("edit title") : undefined}
+				middleText={title}
+				onPressMiddleText={
+					userHasWritePermissions
+						? () => {
+								if (!networkInfo.online) {
+									return
+								}
+
+								eventListener.emit("openNoteTitleDialog", currentNoteRef.current)
+						  }
+						: undefined
+				}
+				onLongPressMiddleText={() => {
+					eventListener.emit("openNoteActionSheet", currentNoteRef.current)
+				}}
 				rightComponent={
 					<View
 						style={{
@@ -254,7 +288,13 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 									)}
 								</>
 							)}
-							{synced.content && synced.title ? (
+							{!networkInfo.online ? (
+								<Ionicon
+									name="cloud-offline-outline"
+									size={22}
+									color={getColor(darkMode, "textSecondary")}
+								/>
+							) : synced.content && synced.title ? (
 								<Ionicon
 									name="checkmark-circle-outline"
 									size={23}
@@ -273,7 +313,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					</View>
 				}
 			/>
-			{loadDone && (
+			{loadDone ? (
 				<>
 					{contentType === "rich" && (
 						<KeyboardAvoidingView
@@ -487,6 +527,24 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 						</>
 					)}
 				</>
+			) : (
+				<View
+					style={{
+						flexDirection: "column",
+						alignItems: "center",
+						justifyContent: "center",
+						width: "100%",
+						height: "100%"
+					}}
+				>
+					<ActivityIndicator
+						size="small"
+						color={getColor(darkMode, "textPrimary")}
+						style={{
+							marginTop: -50
+						}}
+					/>
+				</View>
 			)}
 		</View>
 	)

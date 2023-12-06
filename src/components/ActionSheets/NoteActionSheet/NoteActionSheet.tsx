@@ -3,7 +3,7 @@ import { View, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { NavigationContainerRef, StackActions } from "@react-navigation/native"
+import { NavigationContainerRef, StackActions, NavigationContainerRefWithCurrent } from "@react-navigation/native"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
 import { ActionButton, ActionSheetIndicator, hideAllActionSheets } from "../ActionSheets"
@@ -22,11 +22,9 @@ import {
 	archiveNote,
 	notePinned,
 	editNoteContent,
-	NoteTag,
-	notesTag,
-	notesUntag
+	NoteTag
 } from "../../../lib/api"
-import { generateRandomString, getMasterKeys, getFileExt } from "../../../lib/helpers"
+import { generateRandomString, getMasterKeys, getFileExt, isRouteInStack, isNavReady } from "../../../lib/helpers"
 import storage from "../../../lib/storage"
 import { encryptMetadata, encryptMetadataPublicKey, encryptNoteTitle, encryptNoteContent, encryptNotePreview } from "../../../lib/crypto"
 import { showToast } from "../../../components/Toasts"
@@ -39,13 +37,24 @@ import eventListener from "../../../lib/eventListener"
 import { navigationAnimation } from "../../../lib/state"
 import striptags from "striptags"
 import { useMMKVNumber } from "react-native-mmkv"
+import useNetworkInfo from "../../../lib/services/isOnline/useNetworkInfo"
 
 const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
 	const [selectedNote, setSelectedNote] = useState<Note | undefined>(undefined)
+	const [tags, setTags] = useState<NoteTag[]>([])
 	const [userId] = useMMKVNumber("userId", storage)
+	const networkInfo = useNetworkInfo()
+
+	const isInsideNote = useMemo(() => {
+		return (
+			selectedNote &&
+			isNavReady(navigation as NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>) &&
+			isRouteInStack(navigation as NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>, ["NoteScreen"])
+		)
+	}, [navigation, selectedNote])
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!selectedNote) {
@@ -67,26 +76,31 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			return
 		}
 
+		hideAllActionSheets()
 		showFullScreenLoadingModal()
 
 		try {
 			await trashNote(selectedNote.uuid)
 			await refresh()
+
+			if (isInsideNote && navigation.canGoBack()) {
+				navigation.goBack()
+			}
 		} catch (e) {
 			console.error(e)
 
 			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
-			hideAllActionSheets()
 		}
-	}, [selectedNote])
+	}, [selectedNote, isInsideNote, navigation])
 
 	const restore = useCallback(async () => {
 		if (!selectedNote) {
 			return
 		}
 
+		hideAllActionSheets()
 		showFullScreenLoadingModal()
 
 		try {
@@ -98,7 +112,6 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
-			hideAllActionSheets()
 		}
 	}, [selectedNote])
 
@@ -107,26 +120,31 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			return
 		}
 
+		hideAllActionSheets()
 		showFullScreenLoadingModal()
 
 		try {
 			await deleteNote(selectedNote.uuid)
 			await refresh()
+
+			if (isInsideNote && navigation.canGoBack()) {
+				navigation.goBack()
+			}
 		} catch (e) {
 			console.error(e)
 
 			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
-			hideAllActionSheets()
 		}
-	}, [selectedNote])
+	}, [selectedNote, isInsideNote, navigation])
 
 	const archive = useCallback(async () => {
 		if (!selectedNote) {
 			return
 		}
 
+		hideAllActionSheets()
 		showFullScreenLoadingModal()
 
 		try {
@@ -138,7 +156,6 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
-			hideAllActionSheets()
 		}
 	}, [selectedNote])
 
@@ -148,6 +165,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				return
 			}
 
+			hideAllActionSheets()
 			showFullScreenLoadingModal()
 
 			try {
@@ -159,7 +177,6 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				showToast({ message: e.toString() })
 			} finally {
 				hideFullScreenLoadingModal()
-				hideAllActionSheets()
 			}
 		},
 		[selectedNote]
@@ -171,6 +188,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				return
 			}
 
+			hideAllActionSheets()
 			showFullScreenLoadingModal()
 
 			try {
@@ -182,7 +200,6 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				showToast({ message: e.toString() })
 			} finally {
 				hideFullScreenLoadingModal()
-				hideAllActionSheets()
 			}
 		},
 		[selectedNote]
@@ -193,6 +210,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			return
 		}
 
+		hideAllActionSheets()
 		showFullScreenLoadingModal()
 
 		try {
@@ -232,7 +250,8 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 
 				navigation.dispatch(
 					StackActions.push("NoteScreen", {
-						note: note[0]
+						note: note[0],
+						tags
 					})
 				)
 			}
@@ -242,7 +261,6 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
-			hideAllActionSheets()
 		}
 	}, [selectedNote])
 
@@ -251,6 +269,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			return
 		}
 
+		hideAllActionSheets()
 		showFullScreenLoadingModal()
 
 		try {
@@ -302,38 +321,13 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
-			hideAllActionSheets()
 		}
 	}, [selectedNote])
 
-	const tagNote = useCallback(
-		async (tag: NoteTag) => {
-			if (!selectedNote) {
-				return
-			}
-
-			showFullScreenLoadingModal()
-
-			try {
-				const included = selectedNote.tags.map(t => t.uuid).includes(tag.uuid)
-
-				await (included ? notesUntag(selectedNote.uuid, tag.uuid) : notesTag(selectedNote.uuid, tag.uuid))
-				await refresh()
-			} catch (e) {
-				console.error(e)
-
-				showToast({ message: e.toString() })
-			} finally {
-				hideFullScreenLoadingModal()
-				hideAllActionSheets()
-			}
-		},
-		[selectedNote]
-	)
-
 	useEffect(() => {
-		const openNoteActionSheetListener = eventListener.on("openNoteActionSheet", (note: Note) => {
+		const openNoteActionSheetListener = eventListener.on("openNoteActionSheet", ({ note, tags }: { note: Note; tags: NoteTag[] }) => {
 			setSelectedNote(note)
+			setTags(tags)
 
 			SheetManager.show("NoteActionSheet")
 		})
@@ -369,130 +363,154 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				/>
 				{selectedNote && (
 					<>
-						{userHasWritePermissions && (
-							<ActionButton
-								onPress={() => favorite(false)}
-								icon="time-outline"
-								text={i18n(lang, "history")}
-							/>
-						)}
-						{selectedNote.ownerId === userId && (
-							<ActionButton
-								onPress={async () => {
-									await hideAllActionSheets()
-									await navigationAnimation({ enable: true })
-
-									navigation.dispatch(
-										StackActions.push("NoteParticipantsScreen", {
-											note: selectedNote
-										})
-									)
-								}}
-								icon="people-outline"
-								text={i18n(lang, "participants")}
-							/>
-						)}
-						{userHasWritePermissions && (
-							<ActionButton
-								onPress={async () => {
-									await hideAllActionSheets()
-
-									eventListener.emit("openNoteChangeTypeActionSheet", selectedNote)
-								}}
-								icon="build-outline"
-								text={i18n(lang, "changeType")}
-							/>
-						)}
-						{selectedNote.pinned ? (
-							<ActionButton
-								onPress={() => pin(false)}
-								icon={
-									<MaterialCommunityIcons
-										name="pin-outline"
-										size={24}
-										color={getColor(darkMode, "textSecondary")}
-									/>
-								}
-								text={i18n(lang, "unpin")}
-							/>
-						) : (
-							<ActionButton
-								onPress={() => pin(true)}
-								icon={
-									<MaterialCommunityIcons
-										name="pin-outline"
-										size={24}
-										color={getColor(darkMode, "textSecondary")}
-									/>
-								}
-								text={i18n(lang, "pin")}
-							/>
-						)}
-						{selectedNote.favorite ? (
-							<ActionButton
-								onPress={() => favorite(false)}
-								icon="heart-outline"
-								text={i18n(lang, "unfavorite")}
-							/>
-						) : (
-							<ActionButton
-								onPress={() => favorite(true)}
-								icon="heart-outline"
-								text={i18n(lang, "favorite")}
-							/>
-						)}
-						<ActionButton
-							onPress={duplicate}
-							icon="copy-outline"
-							text={i18n(lang, "duplicate")}
-						/>
-						{userId === selectedNote.ownerId && (
+						{networkInfo.online ? (
 							<>
-								{!selectedNote.archive && !selectedNote.trash && (
+								{userHasWritePermissions && (
 									<ActionButton
-										onPress={archive}
-										icon="archive-outline"
-										text={i18n(lang, "archive")}
+										onPress={() => favorite(false)}
+										icon="time-outline"
+										text={i18n(lang, "history")}
 									/>
 								)}
-								{(selectedNote.trash || selectedNote.archive) && (
+								{selectedNote.ownerId === userId && (
 									<ActionButton
-										onPress={restore}
-										icon="refresh-outline"
-										text={selectedNote.trash ? i18n(lang, "restore") : i18n(lang, "archiveRestore")}
+										onPress={async () => {
+											await hideAllActionSheets()
+											await navigationAnimation({ enable: true })
+
+											navigation.dispatch(
+												StackActions.push("NoteParticipantsScreen", {
+													note: selectedNote
+												})
+											)
+										}}
+										icon="people-outline"
+										text={i18n(lang, "participants")}
 									/>
 								)}
-								{!selectedNote.trash && (
+								{userHasWritePermissions && (
 									<ActionButton
-										onPress={trash}
+										onPress={async () => {
+											await hideAllActionSheets()
+
+											eventListener.emit("openNoteChangeTypeActionSheet", selectedNote)
+										}}
+										icon="build-outline"
+										text={i18n(lang, "changeType")}
+									/>
+								)}
+								{userId === selectedNote.ownerId && (
+									<ActionButton
+										onPress={async () => {
+											await hideAllActionSheets()
+
+											eventListener.emit("openNoteTagsActionSheet", {
+												note: selectedNote,
+												tags
+											})
+										}}
+										icon="pricetags-outline"
+										text={i18n(lang, "noteTags")}
+									/>
+								)}
+								{selectedNote.pinned ? (
+									<ActionButton
+										onPress={() => pin(false)}
 										icon={
-											<Ionicon
-												name="trash-outline"
-												size={22}
-												color={getColor(darkMode, "red")}
+											<MaterialCommunityIcons
+												name="pin-outline"
+												size={24}
+												color={getColor(darkMode, "textSecondary")}
 											/>
 										}
-										text={i18n(lang, "trash")}
-										textColor={getColor(darkMode, "red")}
+										text={i18n(lang, "unpin")}
+									/>
+								) : (
+									<ActionButton
+										onPress={() => pin(true)}
+										icon={
+											<MaterialCommunityIcons
+												name="pin-outline"
+												size={24}
+												color={getColor(darkMode, "textSecondary")}
+											/>
+										}
+										text={i18n(lang, "pin")}
 									/>
 								)}
-								{selectedNote.trash && (
+								{selectedNote.favorite ? (
+									<ActionButton
+										onPress={() => favorite(false)}
+										icon="heart-outline"
+										text={i18n(lang, "unfavorite")}
+									/>
+								) : (
+									<ActionButton
+										onPress={() => favorite(true)}
+										icon="heart-outline"
+										text={i18n(lang, "favorite")}
+									/>
+								)}
+								<ActionButton
+									onPress={duplicate}
+									icon="copy-outline"
+									text={i18n(lang, "duplicate")}
+								/>
+								{userId === selectedNote.ownerId && (
 									<>
-										<ActionButton
-											onPress={deletePermanently}
-											icon={
-												<Ionicon
-													name="trash-outline"
-													size={22}
-													color={getColor(darkMode, "red")}
+										{!selectedNote.archive && !selectedNote.trash && (
+											<ActionButton
+												onPress={archive}
+												icon="archive-outline"
+												text={i18n(lang, "archive")}
+											/>
+										)}
+										{(selectedNote.trash || selectedNote.archive) && (
+											<ActionButton
+												onPress={restore}
+												icon="refresh-outline"
+												text={selectedNote.trash ? i18n(lang, "restore") : i18n(lang, "archiveRestore")}
+											/>
+										)}
+										{!selectedNote.trash && (
+											<ActionButton
+												onPress={trash}
+												icon={
+													<Ionicon
+														name="trash-outline"
+														size={22}
+														color={getColor(darkMode, "red")}
+													/>
+												}
+												text={i18n(lang, "trash")}
+												textColor={getColor(darkMode, "red")}
+											/>
+										)}
+										{selectedNote.trash && (
+											<>
+												<ActionButton
+													onPress={deletePermanently}
+													icon={
+														<Ionicon
+															name="trash-outline"
+															size={22}
+															color={getColor(darkMode, "red")}
+														/>
+													}
+													text={i18n(lang, "deletePermanently")}
+													textColor={getColor(darkMode, "red")}
 												/>
-											}
-											text={i18n(lang, "deletePermanently")}
-											textColor={getColor(darkMode, "red")}
-										/>
+											</>
+										)}
 									</>
 								)}
 							</>
+						) : (
+							<ActionButton
+								onPress={() => hideAllActionSheets()}
+								icon="cloud-offline-outline"
+								text={i18n(lang, "deviceOffline")}
+							/>
 						)}
 					</>
 				)}

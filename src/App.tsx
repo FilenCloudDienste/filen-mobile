@@ -80,6 +80,10 @@ import NoteChangeTypeActionSheet from "./components/ActionSheets/NoteChangeTypeA
 import NoteParticipantsScreen from "./screens/NotesScreen/ParticipantsScreen"
 import NoteParticipantsActionSheet from "./components/ActionSheets/NoteParticipantsActionSheet"
 import SelectContactScreen from "./screens/ContactsScreen/SelectContactScreen"
+import NoteTitleDialog from "./components/Dialogs/NoteTitleDialog"
+import NoteTagsActionSheet from "./components/ActionSheets/NoteTagsActionSheet"
+import NotesCreateTagDialog from "./components/Dialogs/NotesCreateTagDialog"
+import NoteTagDialog from "./components/Dialogs/NoteTagDialog"
 
 enableScreens(true)
 
@@ -821,6 +825,7 @@ export const App = Sentry.wrap(
 										<NoteActionSheet navigation={navigationRef} />
 										<NoteChangeTypeActionSheet />
 										<NoteParticipantsActionSheet />
+										<NoteTagsActionSheet />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>
@@ -833,6 +838,9 @@ export const App = Sentry.wrap(
 						<CreateFolderDialog />
 						<CreateTextFileDialog navigation={navigationRef} />
 						<FullscreenLoadingModal />
+						<NoteTitleDialog />
+						<NotesCreateTagDialog />
+						<NoteTagDialog />
 					</Fragment>
 				</NavigationContainer>
 				<Toast

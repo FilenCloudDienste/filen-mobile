@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
-import { View, Text, TouchableOpacity, RefreshControl } from "react-native"
+import { View, Text, TouchableOpacity, RefreshControl, ActivityIndicator, useWindowDimensions } from "react-native"
 import { TopBar } from "../../components/TopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -8,7 +8,7 @@ import { Note, NoteTag } from "../../lib/api"
 import { fetchNotesAndTags, sortAndFilterNotes, sortAndFilterTags, getUserNameFromNoteParticipant } from "./utils"
 import { dbFs } from "../../lib/db"
 import { showToast } from "../../components/Toasts"
-import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
+import { useMMKVNumber } from "react-native-mmkv"
 import storage from "../../lib/storage"
 import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
@@ -19,6 +19,10 @@ import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import eventListener from "../../lib/eventListener"
 import FastImage from "react-native-fast-image"
 import { generateAvatarColorCode } from "../../lib/helpers"
+import { Feather } from "@expo/vector-icons"
+import { SheetManager } from "react-native-actions-sheet"
+import useLang from "../../lib/hooks/useLang"
+import { i18n } from "../../i18n"
 
 const Item = memo(
 	({
@@ -27,7 +31,8 @@ const Item = memo(
 		index,
 		notesSorted,
 		navigation,
-		userId
+		userId,
+		tags
 	}: {
 		darkMode: boolean
 		note: Note
@@ -35,6 +40,7 @@ const Item = memo(
 		notesSorted: Note[]
 		navigation: NavigationContainerRef<ReactNavigation.RootParamList>
 		userId: number
+		tags: NoteTag[]
 	}) => {
 		const [height, setHeight] = useState<number>(0)
 
@@ -69,12 +75,13 @@ const Item = memo(
 
 						navigation.dispatch(
 							StackActions.push("NoteScreen", {
-								note
+								note,
+								tags
 							})
 						)
 					}}
 					onLongPress={() => {
-						eventListener.emit("openNoteActionSheet", note)
+						eventListener.emit("openNoteActionSheet", { note, tags })
 					}}
 				>
 					<View
@@ -367,50 +374,54 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [notes, setNotes] = useState<Note[]>([])
 	const [tags, setTags] = useState<NoteTag[]>([])
-	const [activeTag, setActiveTag] = useMMKVString("notesActiveTag", storage)
 	const networkInfo = useNetworkInfo()
 	const [userId] = useMMKVNumber("userId", storage)
+	const dimensions = useWindowDimensions()
+	const lang = useLang()
 
 	const notesSorted = useMemo(() => {
-		return sortAndFilterNotes(notes, searchTerm, activeTag ? activeTag : "")
-	}, [notes, searchTerm, activeTag])
+		return sortAndFilterNotes(notes, searchTerm, "", tags)
+	}, [notes, searchTerm, tags])
 
-	const tagsSorted = useMemo(() => {
-		return sortAndFilterTags(tags)
-	}, [tags])
-
-	const loadNotesAndTags = useCallback(async (skipCache: boolean = false) => {
-		try {
-			const getItemsInDb = await dbFs.get<ReturnType<typeof fetchNotesAndTags> | undefined>("notesAndTags")
-			const hasItemsInDb =
-				getItemsInDb &&
-				getItemsInDb.notes &&
-				getItemsInDb.tags &&
-				Array.isArray(getItemsInDb.notes) &&
-				Array.isArray(getItemsInDb.tags)
-
-			if (!hasItemsInDb) {
-				setLoadDone(false)
-				setNotes([])
-				setTags([])
+	const loadNotesAndTags = useCallback(
+		async (skipCache: boolean = false) => {
+			if (skipCache && !networkInfo.online) {
+				return
 			}
 
-			const notesAndTags = await fetchNotesAndTags(skipCache)
+			try {
+				const getItemsInDb = await dbFs.get<ReturnType<typeof fetchNotesAndTags> | undefined>("notesAndTags")
+				const hasItemsInDb =
+					getItemsInDb &&
+					getItemsInDb.notes &&
+					getItemsInDb.tags &&
+					Array.isArray(getItemsInDb.notes) &&
+					Array.isArray(getItemsInDb.tags)
 
-			setNotes(notesAndTags.notes)
-			setTags(notesAndTags.tags)
+				if (!hasItemsInDb) {
+					setLoadDone(false)
+					setNotes([])
+					setTags([])
+				}
 
-			if (notesAndTags.cache) {
-				loadNotesAndTags(true)
+				const notesAndTags = await fetchNotesAndTags(skipCache)
+
+				setNotes(notesAndTags.notes)
+				setTags(notesAndTags.tags)
+
+				if (notesAndTags.cache && networkInfo.online) {
+					loadNotesAndTags(true)
+				}
+			} catch (e) {
+				console.error(e)
+
+				showToast({ message: e.toString() })
+			} finally {
+				setLoadDone(true)
 			}
-		} catch (e) {
-			console.error(e)
-
-			showToast({ message: e.toString() })
-		} finally {
-			setLoadDone(true)
-		}
-	}, [])
+		},
+		[networkInfo]
+	)
 
 	const keyExtractor = useCallback((item: Note) => item.uuid, [])
 
@@ -424,18 +435,19 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 					index={index}
 					navigation={navigation}
 					userId={userId}
+					tags={tags}
 				/>
 			)
 		},
-		[darkMode, notesSorted, navigation, userId]
+		[darkMode, notesSorted, navigation, userId, tags]
 	)
 
 	useEffect(() => {
 		dbFs.set("notesAndTags", {
-			notes: sortAndFilterNotes(notesSorted, "", ""),
-			tags: sortAndFilterTags(tagsSorted)
+			notes: notesSorted.length === notes.length ? notesSorted : notes,
+			tags
 		}).catch(console.error)
-	}, [notesSorted, tagsSorted])
+	}, [notes, tags, notesSorted])
 
 	useEffect(() => {
 		loadNotesAndTags()
@@ -448,9 +460,14 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			loadNotesAndTags(true)
 		})
 
+		const notesTagsUpdateListener = eventListener.on("notesTagsUpdate", (t: NoteTag[]) => {
+			setTags(t)
+		})
+
 		return () => {
 			notesUpdateListener.remove()
 			refreshNotesListener.remove()
+			notesTagsUpdateListener.remove()
 		}
 	}, [])
 
@@ -468,6 +485,35 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 				setLoadDone={setLoadDone}
 				searchTerm={searchTerm}
 				setSearchTerm={setSearchTerm}
+				rightComponent={
+					<TouchableOpacity
+						hitSlop={{
+							top: 15,
+							bottom: 15,
+							right: 15,
+							left: 15
+						}}
+						style={{
+							alignItems: "flex-end",
+							flexDirection: "row",
+							backgroundColor: "transparent",
+							width: "33%",
+							paddingLeft: 0,
+							justifyContent: "flex-end"
+						}}
+						onPress={() => {
+							SheetManager.show("CreateNoteActionSheet")
+						}}
+					>
+						{networkInfo.online && (
+							<Feather
+								name="edit"
+								size={18}
+								color={getColor(darkMode, "linkPrimary")}
+							/>
+						)}
+					</TouchableOpacity>
+				}
 			/>
 			<View
 				style={{
@@ -498,6 +544,63 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 							}}
 							tintColor={getColor(darkMode, "textPrimary")}
 						/>
+					}
+					ListEmptyComponent={
+						<>
+							{!loadDone || refreshing ? (
+								<></>
+							) : searchTerm.length > 0 ? (
+								<View
+									style={{
+										flexDirection: "column",
+										justifyContent: "center",
+										alignItems: "center",
+										width: "100%",
+										marginTop: Math.floor(dimensions.height / 2) - 200
+									}}
+								>
+									<Ionicon
+										name="search-outline"
+										size={40}
+										color={getColor(darkMode, "textSecondary")}
+									/>
+									<Text
+										style={{
+											color: getColor(darkMode, "textSecondary"),
+											fontSize: 16,
+											marginTop: 5
+										}}
+									>
+										{i18n(lang, "nothingFoundFor", true, ["__TERM__"], [searchTerm])}
+									</Text>
+								</View>
+							) : (
+								<View
+									style={{
+										flexDirection: "column",
+										justifyContent: "center",
+										alignItems: "center",
+										width: "100%",
+										marginTop: Math.floor(dimensions.height / 2) - 200
+									}}
+								>
+									<Ionicon
+										name="book-outline"
+										size={40}
+										color={getColor(darkMode, "textSecondary")}
+									/>
+									<Text
+										style={{
+											color: getColor(darkMode, "textSecondary"),
+											fontSize: 16,
+											marginTop: 5
+										}}
+									>
+										{i18n(lang, "noNotesYet")}
+									</Text>
+								</View>
+							)}
+						</>
 					}
 				/>
 			</View>
