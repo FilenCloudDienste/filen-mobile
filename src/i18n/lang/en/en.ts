@@ -477,5 +477,6 @@ export const en: {
 	noNoteHistory: "No note history found",
 	export: "Export",
 	leave: "Leave",
-	noteContentPlaceholder: "Note content.."
+	noteContentPlaceholder: "Note content..",
+	chatYou: "You"
 }

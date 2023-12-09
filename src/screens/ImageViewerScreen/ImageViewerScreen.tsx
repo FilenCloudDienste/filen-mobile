@@ -16,7 +16,6 @@ import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/R
 import { downloadFile } from "../../lib/services/download/download"
 import { navigationAnimation } from "../../lib/state"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { useMountedState } from "react-use"
 import { generateItemThumbnail } from "../../lib/services/thumbnails"
 import { getImageForItem } from "../../assets/thumbnails"
 import { NavigationContainerRef } from "@react-navigation/native"
@@ -56,7 +55,6 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 	const [showControls, setShowControls] = useState<boolean>(false)
 	const insets = useSafeAreaInsets()
 	const viewRefs = useRef<any>({}).current
-	const isMounted = useMountedState()
 	const tapCount = useRef<number>(0)
 	const tapTimer = useRef<any>(undefined)
 	const didNavBack = useRef<boolean>(false)
@@ -126,10 +124,6 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 	}, [portrait, insets.bottom, Platform.OS])
 
 	const loadImage = async (image: PreviewItem, index: number) => {
-		if (!isMounted()) {
-			return
-		}
-
 		if (typeof images[image.uuid] == "string") {
 			return
 		}
@@ -165,10 +159,6 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 			const offlinePath = getItemOfflinePath(await fs.getDownloadPath({ type: "offline" }), image.file)
 
 			if ((await fs.stat(offlinePath)).exists) {
-				if (!isMounted()) {
-					return
-				}
-
 				setImages(prev => ({
 					...prev,
 					[image.uuid]: toExpoFsPath(offlinePath)
@@ -184,28 +174,18 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 			.then(path => {
 				delete currentImagePreviewDownloads[image.uuid]
 
-				if (!isMounted()) {
-					return
-				}
-
 				generateItemThumbnail({
 					item: image.file,
 					skipInViewCheck: true,
 					callback: (err: Error, thumbPath: string) => {
-						if (!isMounted()) {
-							return
-						}
-
 						if (!err && typeof thumbPath == "string") {
 							updateItemThumbnail(image, toExpoFsPath(thumbPath))
 						}
 
-						if (isMounted()) {
-							setImages(prev => ({
-								...prev,
-								[image.uuid]: toExpoFsPath(path)
-							}))
-						}
+						setImages(prev => ({
+							...prev,
+							[image.uuid]: toExpoFsPath(path)
+						}))
 					}
 				})
 			})
@@ -232,10 +212,6 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 
 	const updateItemThumbnail = useCallback((item: PreviewItem, path: string) => {
 		if (path.length < 4) {
-			return
-		}
-
-		if (!isMounted()) {
 			return
 		}
 
@@ -537,15 +513,11 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 	const keyExtractor = useCallback(item => item.uuid, [])
 
 	useEffect(() => {
-		if (isMounted()) {
-			setPortrait(dimensions.height >= dimensions.width)
-		}
+		setPortrait(dimensions.height >= dimensions.width)
 	}, [dimensions])
 
 	useEffect(() => {
-		if (isMounted()) {
-			setShowControls(isZooming)
-		}
+		setShowControls(isZooming)
 	}, [isZooming])
 
 	useEffect(() => {

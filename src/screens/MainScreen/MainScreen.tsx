@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from "react"
-import { View, DeviceEventEmitter, Platform, useWindowDimensions } from "react-native"
+import { View, DeviceEventEmitter, Platform, useWindowDimensions, AppState } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "../../components/TopBar"
@@ -7,7 +7,6 @@ import { ItemList } from "../../components/ItemList"
 import { loadItems, sortItems } from "../../lib/services/items"
 import { getParent, getRouteURL, calcPhotosGridSize } from "../../lib/helpers"
 import { useStore } from "../../lib/state"
-import { useMountedState } from "react-use"
 import { SheetManager } from "react-native-actions-sheet"
 import { previewItem } from "../../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -19,7 +18,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef } from "@react-navigation/native"
 import * as db from "../../lib/db"
 import memoryCache from "../../lib/memoryCache"
-import { isOnline } from "../../lib/services/isOnline"
+import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 
 export interface MainScreenProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -30,14 +29,11 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 	const darkMode = useDarkMode()
 	const [userId] = useMMKVNumber("userId", storage)
 	const routeURL = useRef<string>(getRouteURL(route)).current
-	const [items, setItems] = useState<Item[]>(
-		memoryCache.has("loadItems:" + routeURL) ? memoryCache.get("loadItems:" + routeURL) : []
-	)
+	const [items, setItems] = useState<Item[]>(memoryCache.has("loadItems:" + routeURL) ? memoryCache.get("loadItems:" + routeURL) : [])
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const [loadDone, setLoadDone] = useState<boolean>(items.length > 0)
 	const setNavigation = useStore(state => state.setNavigation)
 	const setRoute = useStore(state => state.setRoute)
-	const isMounted = useMountedState()
 	const setCurrentActionSheetItem = useStore(state => state.setCurrentActionSheetItem)
 	const setCurrentItems = useStore(state => state.setCurrentItems)
 	const itemsRef = useRef<any>([])
@@ -56,6 +52,8 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 	const [sortByDb] = useMMKVString("sortBy", storage)
 	const dimensions = useWindowDimensions()
 	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
+	const populateListTimeout = useRef<number>(0)
+	const networkInfo = useNetworkInfo()
 
 	const sortBy: string | undefined = useMemo(() => {
 		const parsed = JSON.parse(sortByDb || "{}")
@@ -72,15 +70,13 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 			return
 		}
 
-		if (isMounted()) {
-			setItems(items =>
-				items.map(mapItem =>
-					mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined"
-						? { ...mapItem, thumbnail: item.uuid + ".jpg" }
-						: mapItem
-				)
+		setItems(items =>
+			items.map(mapItem =>
+				mapItem.uuid == item.uuid && typeof mapItem.thumbnail == "undefined"
+					? { ...mapItem, thumbnail: item.uuid + ".jpg" }
+					: mapItem
 			)
-		}
+		)
 	}, [])
 
 	const selectItem = useCallback(
@@ -91,28 +87,22 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 				}
 			}
 
-			if (isMounted() && isFocused) {
-				setItems(items =>
-					items.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : mapItem))
-				)
-			}
+			setItems(items => items.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: true } : mapItem)))
 		},
-		[photosGridSize, route, isFocused]
+		[photosGridSize, route]
 	)
 
 	const unselectItem = useCallback(
 		(item: Item) => {
-			if (isMounted() && isFocused) {
-				setItems(items =>
-					items.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: false } : mapItem))
-				)
+			if (isFocused) {
+				setItems(items => items.map(mapItem => (mapItem.uuid == item.uuid ? { ...mapItem, selected: false } : mapItem)))
 			}
 		},
 		[isFocused]
 	)
 
 	const unselectAllItems = useCallback(() => {
-		if (isMounted() && isFocused) {
+		if (isFocused) {
 			setItems(items => items.map(mapItem => (mapItem.selected ? { ...mapItem, selected: false } : mapItem)))
 		}
 	}, [isFocused])
@@ -124,14 +114,14 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 			}
 		}
 
-		if (isMounted() && isFocused) {
+		if (isFocused) {
 			setItems(items => items.map(mapItem => (!mapItem.selected ? { ...mapItem, selected: true } : mapItem)))
 		}
 	}, [photosGridSize, route, isFocused])
 
 	const removeItem = useCallback(
 		(uuid: string) => {
-			if (isMounted() && isFocused) {
+			if (isFocused) {
 				setItems(items => items.filter(mapItem => mapItem.uuid !== uuid && mapItem))
 			}
 		},
@@ -139,45 +129,31 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 	)
 
 	const markOffline = useCallback((uuid: string, value: boolean) => {
-		if (isMounted()) {
-			setItems(items => items.map(mapItem => (mapItem.uuid == uuid ? { ...mapItem, offline: value } : mapItem)))
-		}
+		setItems(items => items.map(mapItem => (mapItem.uuid == uuid ? { ...mapItem, offline: value } : mapItem)))
 	}, [])
 
 	const markFavorite = useCallback((uuid: string, value: boolean) => {
-		if (isMounted()) {
-			setItems(items => items.map(mapItem => (mapItem.uuid == uuid ? { ...mapItem, favorited: value } : mapItem)))
-		}
+		setItems(items => items.map(mapItem => (mapItem.uuid == uuid ? { ...mapItem, favorited: value } : mapItem)))
 	}, [])
 
 	const changeFolderColor = useCallback((uuid: string, color: string | null) => {
-		if (isMounted()) {
-			setItems(items =>
-				items.map(mapItem =>
-					mapItem.uuid == uuid && mapItem.type == "folder" ? { ...mapItem, color } : mapItem
-				)
-			)
-		}
+		setItems(items => items.map(mapItem => (mapItem.uuid == uuid && mapItem.type == "folder" ? { ...mapItem, color } : mapItem)))
 	}, [])
 
 	const changeItemName = useCallback((uuid: string, name: string) => {
-		if (isMounted()) {
-			setItems(items => items.map(mapItem => (mapItem.uuid == uuid ? { ...mapItem, name } : mapItem)))
-		}
+		setItems(items => items.map(mapItem => (mapItem.uuid == uuid ? { ...mapItem, name } : mapItem)))
 	}, [])
 
 	const addItem = useCallback(
 		(item: Item, parent: string) => {
 			const currentParent: string = getParent(route)
 
-			if (isMounted() && (currentParent == parent || (item.offline && parent == "offline"))) {
+			if (currentParent === parent || (item.offline && parent === "offline")) {
 				setItems(items =>
 					sortItems({
 						items: [
 							...items.filter(
-								filterItem =>
-									filterItem.name.toLowerCase() !== item.name.toLowerCase() &&
-									filterItem.uuid !== item.uuid
+								filterItem => filterItem.name.toLowerCase() !== item.name.toLowerCase() && filterItem.uuid !== item.uuid
 							),
 							item
 						],
@@ -190,16 +166,14 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 	)
 
 	const changeWholeItem = useCallback((item: Item, uuid: string) => {
-		if (isMounted()) {
-			setItems(items => items.map(mapItem => (mapItem.uuid == uuid ? item : mapItem)))
-		}
+		setItems(items => items.map(mapItem => (mapItem.uuid == uuid ? item : mapItem)))
 	}, [])
 
 	const reloadList = useCallback(
 		(parent: string) => {
 			const currentParent: string = getParent(route)
 
-			if (isMounted() && currentParent == parent) {
+			if (currentParent === parent) {
 				populateList(true).catch(console.error)
 			}
 		},
@@ -207,17 +181,23 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 	)
 
 	const updateFolderSize = useCallback((uuid: string, size: number) => {
-		if (isMounted()) {
-			setItems(items =>
-				items.map(mapItem =>
-					mapItem.uuid == uuid && mapItem.type == "folder" ? { ...mapItem, size } : mapItem
-				)
-			)
-		}
+		setItems(items => items.map(mapItem => (mapItem.uuid == uuid && mapItem.type == "folder" ? { ...mapItem, size } : mapItem)))
 	}, [])
 
 	const populateList = useCallback(
 		async (skipCache: boolean = false, passedURL: string | null = null) => {
+			if (skipCache && !networkInfo.online) {
+				return
+			}
+
+			if (skipCache) {
+				if (populateListTimeout.current > Date.now()) {
+					return
+				}
+
+				populateListTimeout.current = Date.now() + 1000
+			}
+
 			try {
 				const startingURL = passedURL ? passedURL : getRouteURL(route)
 				const hasItemsInDb = await db.dbFs.has("loadItems:" + startingURL)
@@ -233,20 +213,20 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 					return
 				}
 
-				if (isMounted()) {
-					setItems(items)
-					setLoadDone(true)
-				}
+				setItems(items)
 
-				if (cached && (await isOnline())) {
+				if (cached) {
 					populateList(true, startingURL).catch(console.error)
 				}
 			} catch (e) {
+				console.error(e)
+
 				setItems([])
+			} finally {
 				setLoadDone(true)
 			}
 		},
-		[route]
+		[route, networkInfo]
 	)
 
 	const listDimensions = useMemo(() => {
@@ -272,21 +252,21 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 	}, [dimensions])
 
 	useEffect(() => {
-		if (isMounted() && initialized) {
+		if (initialized) {
 			const sorted = sortItems({ items, passedRoute: route })
 
 			setItems(sorted)
 		}
-	}, [sortBy])
+	}, [initialized])
 
 	useEffect(() => {
 		if (isFocused) {
-			populateList().catch(console.error)
+			populateList(true).catch(console.error)
 		}
 	}, [isFocused])
 
 	useEffect(() => {
-		if (isFocused && isMounted()) {
+		if (isFocused) {
 			if (Array.isArray(items) && items.length > 0) {
 				setCurrentItems(items)
 
@@ -315,23 +295,13 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 		const deviceListener = DeviceEventEmitter.addListener("event", data => {
 			const navState = navigation.getState()
 
-			if (!navState) {
-				return
-			}
-
-			if (typeof navState.routes == "undefined") {
-				return
-			}
-
-			if (!Array.isArray(navState.routes)) {
+			if (!navState && !navState.routes && !!Array.isArray(navState.routes)) {
 				return
 			}
 
 			const navigationRoutes = navState.routes
 			const isListenerActive =
-				typeof navigationRoutes == "object"
-					? navigationRoutes[navigationRoutes.length - 1].key == route.key
-					: false
+				typeof navigationRoutes == "object" ? navigationRoutes[navigationRoutes.length - 1].key == route.key : false
 
 			if (data.type == "thumbnail-generated") {
 				updateItemThumbnail(data.data, data.data.path)
@@ -412,9 +382,13 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 			} else if (data.type == "folder-size") {
 				updateFolderSize(data.data.uuid, data.data.size)
 			} else if (data.type == "clear-list") {
-				if (isMounted()) {
-					setItems([])
-				}
+				setItems([])
+			}
+		})
+
+		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
+			if (nextAppState === "active") {
+				populateList(true).catch(console.error)
 			}
 		})
 
@@ -423,6 +397,7 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 
 		return () => {
 			deviceListener.remove()
+			appStateChangeListener.remove()
 
 			setPhotosRange("all")
 		}
@@ -449,7 +424,6 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 				items={searchFilteredItems}
 				loadDone={loadDone}
 				searchTerm={searchTerm}
-				isMounted={isMounted}
 				populateList={populateList}
 				listDimensions={listDimensions}
 			/>

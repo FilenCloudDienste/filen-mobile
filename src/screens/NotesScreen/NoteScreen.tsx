@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from "react"
-import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity, ActivityIndicator } from "react-native"
+import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity, ActivityIndicator, AppState } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, CommonActions } from "@react-navigation/native"
+import { NavigationContainerRef, CommonActions, useIsFocused } from "@react-navigation/native"
 import { NoteType, Note, editNoteContent, noteHistoryRestore } from "../../lib/api"
 import { fetchNoteContent, quillStyle, createNotePreviewFromContentText, fetchNotesAndTags } from "./utils"
 import { dbFs } from "../../lib/db"
@@ -51,6 +51,8 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const readOnly = useRef<boolean>(route.params.readOnly).current
 	const historyMode = useRef<boolean>(route.params.historyMode).current
 	const historyId = useRef<number>(route.params.historyId).current
+	const loadNoteTimeout = useRef<number>(0)
+	const isFocused = useIsFocused()
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!currentNoteRef.current) {
@@ -67,6 +69,14 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		async (skipCache: boolean = false) => {
 			if (skipCache && !networkInfo.online) {
 				return
+			}
+
+			if (skipCache) {
+				if (loadNoteTimeout.current > Date.now()) {
+					return
+				}
+
+				loadNoteTimeout.current = Date.now() + 1000
 			}
 
 			try {
@@ -221,6 +231,12 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	}, [editedContent])
 
 	useEffect(() => {
+		if (isFocused) {
+			loadNote(true)
+		}
+	}, [isFocused])
+
+	useEffect(() => {
 		loadNote()
 
 		const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => setKeyboardShowing(true))
@@ -233,11 +249,18 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			}
 		})
 
+		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
+			if (nextAppState === "active") {
+				loadNote(true)
+			}
+		})
+
 		return () => {
 			keyboardDidShowListener.remove()
 			keyboardDidHideListener.remove()
 			keyboardWillHideListener.remove()
 			noteTitleEditedListener.remove()
+			appStateChangeListener.remove()
 
 			save()
 		}

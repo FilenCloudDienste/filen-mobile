@@ -187,9 +187,7 @@ export const sortAndFilterTags = (tags: NoteTag[]) => {
 	})
 }
 
-export const sortAndFilterNotes = (notes: INote[], search: string = "", activeTag: string = "", tags: NoteTag[] = []) => {
-	const tagsJoined = tags.map(t => t.name.trim().toLowerCase() + " ")
-
+export const sortAndFilterNotes = (notes: INote[], search: string = "", activeTag: string = "") => {
 	const filtered = notes
 		.sort((a, b) => {
 			if (a.pinned !== b.pinned) {
@@ -222,6 +220,8 @@ export const sortAndFilterNotes = (notes: INote[], search: string = "", activeTa
 			if (note.preview.toLowerCase().trim().indexOf(search.toLowerCase().trim()) !== -1) {
 				return true
 			}
+
+			const tagsJoined = note.tags.map(t => t.name.trim().toLowerCase()).join(" ")
 
 			if (tagsJoined.indexOf(search.toLowerCase().trim()) !== -1) {
 				return true

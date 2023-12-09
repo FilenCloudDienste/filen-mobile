@@ -10,7 +10,6 @@ import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
 import { getMasterKeys, convertTimestampToMs, simpleDate, safeAwait } from "../../lib/helpers"
 import { ListEmpty } from "../../components/ListEmpty"
-import { useMountedState } from "react-use"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -29,25 +28,25 @@ export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenPro
 	const [eventInfo, setEventInfo] = useState<any>(undefined)
 	const [isLoading, setIsLoading] = useState<boolean>(true)
 	const [eventText, setEventText] = useState<string>("")
-	const isMounted = useMountedState()
-
-	const uuid: string = route?.params?.uuid
+	const uuid = useRef<string>(route?.params?.uuid).current
 
 	useEffect(() => {
 		setIsLoading(true)
 
 		fetchEventInfo(uuid)
 			.then(info => {
-				if (isMounted()) {
-					setEventInfo(info)
+				setEventInfo(info)
 
-					getEventText({ item: info, masterKeys: getMasterKeys(), lang }).then(text => {
-						if (isMounted()) {
-							setEventText(text)
-							setIsLoading(false)
-						}
+				getEventText({ item: info, masterKeys: getMasterKeys(), lang })
+					.then(text => {
+						setEventText(text)
+						setIsLoading(false)
 					})
-				}
+					.catch(err => {
+						console.log(err)
+
+						showToast({ message: err.toString() })
+					})
 			})
 			.catch(err => {
 				console.log(err)
@@ -337,7 +336,6 @@ export const EventRow = memo(({ item, masterKeys, navigation }: EventRowProps) =
 	const lang = useLang()
 	const darkMode = useDarkMode()
 	const [eventText, setEventText] = useState<string>("")
-	const isMounted = useMountedState()
 
 	useEffect(() => {
 		getEventText({
@@ -346,9 +344,7 @@ export const EventRow = memo(({ item, masterKeys, navigation }: EventRowProps) =
 			lang
 		})
 			.then(text => {
-				if (isMounted()) {
-					setEventText(text)
-				}
+				setEventText(text)
 			})
 			.catch(console.error)
 	}, [])
@@ -454,7 +450,6 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const dimensions = useWindowDimensions()
 	const masterKeys = useRef<string[]>(getMasterKeys()).current
-	const isMounted = useMountedState()
 	const bottomBarHeight = useStore(state => state.bottomBarHeight)
 	const contentHeight = useStore(state => state.contentHeight)
 	const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
@@ -479,9 +474,7 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 			}
 
 			if (data.events.length > 0) {
-				if (isMounted()) {
-					setEvents((prev: any) => (refresh ? data.events : [...prev, ...data.events]))
-				}
+				setEvents((prev: any) => (refresh ? data.events : [...prev, ...data.events]))
 			}
 		},
 		[isLoading, filter]

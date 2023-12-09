@@ -1,5 +1,5 @@
 import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "react"
-import { View, Text, TouchableHighlight, TouchableOpacity, useWindowDimensions, RefreshControl } from "react-native"
+import { View, Text, TouchableHighlight, TouchableOpacity, useWindowDimensions, RefreshControl, ActivityIndicator } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, StackActions } from "@react-navigation/native"
@@ -13,7 +13,7 @@ import { FlashList } from "@shopify/flash-list"
 import FastImage from "react-native-fast-image"
 import { navigationAnimation } from "../../lib/state"
 import { dbFs } from "../../lib/db"
-import { FetchContactsResult, fetchContacts, sortContacts, sortOnlineContacts } from "./utils"
+import { FetchContactsResult, fetchContacts, sortContacts } from "./utils"
 import { showToast } from "../../components/Toasts"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { TopBar } from "../../components/TopBar"
@@ -214,7 +214,7 @@ const SelectContactScreen = memo(
 		const hiddenUserIds = useRef<number[]>(route.params.hiddenUserIds).current
 
 		const contactsSorted = useMemo(() => {
-			return sortContacts(sortOnlineContacts(contacts), searchTerm).filter(c => !hiddenUserIds.includes(c.userId))
+			return sortContacts(contacts, searchTerm).filter(c => !hiddenUserIds.includes(c.userId))
 		}, [contacts, searchTerm, hiddenUserIds]) as SelectedContact[]
 
 		const selectedContacts = useMemo(() => {
@@ -222,8 +222,8 @@ const SelectContactScreen = memo(
 		}, [contactsSorted])
 
 		const loadContacts = useCallback(
-			async (refresh: boolean = false) => {
-				if (refresh && !networkInfo.online) {
+			async (skipCache: boolean = false) => {
+				if (skipCache && !networkInfo.online) {
 					return
 				}
 
@@ -245,7 +245,7 @@ const SelectContactScreen = memo(
 						setContacts([])
 					}
 
-					const res = await fetchContacts(refresh)
+					const res = await fetchContacts(skipCache)
 
 					setContacts(res.contacts.map(c => ({ ...c, selected: false })))
 
@@ -283,7 +283,13 @@ const SelectContactScreen = memo(
 		useEffect(() => {
 			loadContacts()
 
+			const refreshInterval = setInterval(() => {
+				loadContacts(true)
+			}, 5000)
+
 			return () => {
+				clearInterval(refreshInterval)
+
 				if (!didSendResponse.current) {
 					didSendResponse.current = true
 
@@ -385,30 +391,78 @@ const SelectContactScreen = memo(
 							/>
 						}
 						ListEmptyComponent={
-							<View
-								style={{
-									flexDirection: "column",
-									justifyContent: "center",
-									alignItems: "center",
-									width: "100%",
-									marginTop: Math.floor(dimensions.height / 2) - 200
-								}}
-							>
-								<Ionicon
-									name="people-outline"
-									size={40}
-									color={getColor(darkMode, "textSecondary")}
-								/>
-								<Text
-									style={{
-										color: getColor(darkMode, "textSecondary"),
-										fontSize: 16,
-										marginTop: 5
-									}}
-								>
-									{i18n(lang, "noContactsYet")}
-								</Text>
-							</View>
+							<>
+								{!loadDone || refreshing ? (
+									<>
+										{!loadDone && (
+											<View
+												style={{
+													flexDirection: "column",
+													justifyContent: "center",
+													alignItems: "center",
+													width: "100%",
+													marginTop: Math.floor(dimensions.height / 2) - 200
+												}}
+											>
+												<ActivityIndicator
+													size="small"
+													color={getColor(darkMode, "textPrimary")}
+												/>
+											</View>
+										)}
+									</>
+								) : searchTerm.length > 0 ? (
+									<View
+										style={{
+											flexDirection: "column",
+											justifyContent: "center",
+											alignItems: "center",
+											width: "100%",
+											marginTop: Math.floor(dimensions.height / 2) - 200
+										}}
+									>
+										<Ionicon
+											name="search-outline"
+											size={40}
+											color={getColor(darkMode, "textSecondary")}
+										/>
+										<Text
+											style={{
+												color: getColor(darkMode, "textSecondary"),
+												fontSize: 16,
+												marginTop: 5
+											}}
+										>
+											{i18n(lang, "nothingFoundFor", true, ["__TERM__"], [searchTerm])}
+										</Text>
+									</View>
+								) : (
+									<View
+										style={{
+											flexDirection: "column",
+											justifyContent: "center",
+											alignItems: "center",
+											width: "100%",
+											marginTop: Math.floor(dimensions.height / 2) - 200
+										}}
+									>
+										<Ionicon
+											name="people-outline"
+											size={40}
+											color={getColor(darkMode, "textSecondary")}
+										/>
+										<Text
+											style={{
+												color: getColor(darkMode, "textSecondary"),
+												fontSize: 16,
+												marginTop: 5
+											}}
+										>
+											{i18n(lang, "noContactsYet")}
+										</Text>
+									</View>
+								)}
+							</>
 						}
 					/>
 				</View>

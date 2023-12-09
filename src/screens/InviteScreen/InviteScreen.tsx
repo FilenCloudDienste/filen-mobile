@@ -6,7 +6,6 @@ import { showToast } from "../../components/Toasts"
 import { getAccount } from "../../lib/api"
 import { SettingsGroup } from "../SettingsScreen/SettingsScreen"
 import * as Clipboard from "expo-clipboard"
-import { useMountedState } from "react-use"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -21,15 +20,12 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
 	const lang = useLang()
 	const [isLoading, setIsLoading] = useState<boolean>(true)
 	const [accountData, setAccountData] = useState<any>({})
-	const isMounted = useMountedState()
 
 	useEffect(() => {
 		getAccount()
 			.then(data => {
-				if (isMounted()) {
-					setAccountData(data)
-					setIsLoading(false)
-				}
+				setAccountData(data)
+				setIsLoading(false)
 			})
 			.catch(err => {
 				console.log(err)
@@ -133,10 +129,8 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
 											fontSize: 17
 										}}
 									>
-										{accountData.referCount > accountData.refLimit
-											? accountData.refLimit
-											: accountData.referCount}
-										/{accountData.refLimit}
+										{accountData.referCount > accountData.refLimit ? accountData.refLimit : accountData.referCount}/
+										{accountData.refLimit}
 									</Text>
 								</View>
 							</View>

@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback } from "react"
+import React, { memo, useMemo, useCallback, useEffect, useState } from "react"
 import { Text, View, Pressable, useWindowDimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -13,6 +13,7 @@ import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
+import { chatUnread as getChatUnread } from "../../lib/api"
 
 export const BottomBar = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
@@ -24,6 +25,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 	const [defaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
 	const dimensions = useWindowDimensions()
 	const networkInfo = useNetworkInfo()
+	const [chatUnread, setChatUnread] = useState<number>(0)
 
 	const iconTextMaxWidth: number = useMemo(() => {
 		return dimensions.width / 5 - 25
@@ -60,19 +62,21 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 			if (currentRoutes.length > 0) {
 				const currentRoute = currentRoutes[currentRoutes.length - 1]
 
-				currentScreenName = currentRoute.name
+				if (currentRoute.name) {
+					currentScreenName = currentRoute.name
 
-				isRecentsScreen = routeURL.indexOf("recents") !== -1
-				isTrashScreen = routeURL.indexOf("trash") !== -1
-				isPhotosScreen = routeURL.indexOf("photos") !== -1
-				isFavoritesScreen = routeURL.indexOf("favorites") !== -1
-				isSharedScreen =
-					routeURL.indexOf("shared-in") !== -1 || routeURL.indexOf("shared-out") !== -1 || routeURL.indexOf("links") !== -1
-				isBaseScreen = routeURL.indexOf(baseName) !== -1
-				isOfflineScreen = routeURL.indexOf("offline") !== -1
-				isNotesScreen = currentScreenName.indexOf("Note") !== -1
-				isChatsScreen = currentScreenName.indexOf("Chat") !== -1
-				isContactsScreen = currentScreenName.indexOf("Contact") !== -1
+					isRecentsScreen = routeURL.indexOf("recents") !== -1
+					isTrashScreen = routeURL.indexOf("trash") !== -1
+					isPhotosScreen = routeURL.indexOf("photos") !== -1
+					isFavoritesScreen = routeURL.indexOf("favorites") !== -1
+					isSharedScreen =
+						routeURL.indexOf("shared-in") !== -1 || routeURL.indexOf("shared-out") !== -1 || routeURL.indexOf("links") !== -1
+					isBaseScreen = routeURL.indexOf(baseName) !== -1
+					isOfflineScreen = routeURL.indexOf("offline") !== -1
+					isNotesScreen = currentScreenName.indexOf("Note") !== -1
+					isChatsScreen = currentScreenName.indexOf("Chat") !== -1
+					isContactsScreen = currentScreenName.indexOf("Contact") !== -1
+				}
 			}
 		}
 
@@ -231,10 +235,30 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 		}
 	}, [canOpenBottomAddActionSheet, networkInfo.online])
 
+	const updateChatUnread = useCallback(async () => {
+		try {
+			const unread = await getChatUnread()
+
+			setChatUnread(unread)
+		} catch (e) {
+			console.error(e)
+		}
+	}, [])
+
+	useEffect(() => {
+		updateChatUnread()
+
+		const updateChatUnreadInterval = setInterval(updateChatUnread, 5000)
+
+		return () => {
+			clearInterval(updateChatUnreadInterval)
+		}
+	}, [])
+
 	return (
 		<View
 			style={{
-				paddingTop: 6,
+				paddingTop: 7,
 				height: 80,
 				flexDirection: "row",
 				justifyContent: "space-between",
@@ -258,7 +282,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: showHome ? "#0A84FF" : "gray",
-						fontSize: 10,
+						fontSize: 12,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -282,7 +306,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: showCloud ? "#0A84FF" : "gray",
-						fontSize: 10,
+						fontSize: 12,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -320,6 +344,32 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				}}
 				onPress={() => navTo("chats")}
 			>
+				{chatUnread > 0 && (
+					<View
+						style={{
+							backgroundColor: getColor(darkMode, "red"),
+							width: 18,
+							height: 18,
+							borderRadius: 18,
+							flexDirection: "row",
+							alignItems: "center",
+							justifyContent: "center",
+							position: "absolute",
+							zIndex: 10001,
+							right: 23
+						}}
+					>
+						<Text
+							style={{
+								color: "white",
+								fontWeight: "bold",
+								fontSize: 12
+							}}
+						>
+							{chatUnread >= 9 ? 9 : chatUnread}
+						</Text>
+					</View>
+				)}
 				<Ionicon
 					name={isChatsScreen ? "chatbubble" : "chatbubble-outline"}
 					size={22}
@@ -328,7 +378,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: isChatsScreen ? "#0A84FF" : "gray",
-						fontSize: 10,
+						fontSize: 12,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -352,7 +402,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: isPhotosScreen ? "#0A84FF" : "gray",
-						fontSize: 10,
+						fontSize: 12,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -376,7 +426,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: isNotesScreen ? "#0A84FF" : "gray",
-						fontSize: 10,
+						fontSize: 12,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -400,7 +450,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: showSettings ? "#0A84FF" : "gray",
-						fontSize: 10,
+						fontSize: 12,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}

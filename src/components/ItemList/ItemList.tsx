@@ -33,7 +33,6 @@ import { useStore } from "../../lib/state"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
-import { useMountedState } from "react-use"
 import { FlashList } from "@shopify/flash-list"
 import { generateItemThumbnail } from "../../lib/services/thumbnails"
 import ItemListPhotos from "./ItemListPhotos"
@@ -43,7 +42,6 @@ export interface ItemListProps {
 	route: any
 	items: Item[]
 	searchTerm: string
-	isMounted: () => boolean
 	populateList: Function
 	loadDone: boolean
 	listDimensions: {
@@ -75,7 +73,6 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 	const networkInfo = useNetworkInfo()
 	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
 	const setScrolledToBottom = useStore(state => state.setScrolledToBottom)
-	const isMounted = useMountedState()
 
 	const viewModeParsed = useMemo(() => {
 		if (!viewMode) {
@@ -236,7 +233,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 	)
 
 	const getThumbnail = useCallback((item: Item) => {
-		if (item.type == "file" && canCompressThumbnail(getFileExt(item.name)) && typeof item.thumbnail !== "string" && isMounted()) {
+		if (item.type === "file" && canCompressThumbnail(getFileExt(item.name)) && typeof item.thumbnail !== "string") {
 			generateItemThumbnail({ item })
 		}
 	}, [])
@@ -263,8 +260,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 			Array.isArray(viewableItems) &&
 			typeof viewableItems[0] == "object" &&
 			typeof viewableItems[viewableItems.length - 1] == "object" &&
-			routeURL.indexOf("photos") !== -1 &&
-			isMounted()
+			routeURL.indexOf("photos") !== -1
 		) {
 			setScrollDate(
 				calcCameraUploadCurrentDate(
@@ -320,10 +316,6 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 
 			const index = scrollToIndex >= 0 && scrollToIndex <= itemsForIndexLoop.length ? scrollToIndex : 0
 
-			if (!isMounted()) {
-				return
-			}
-
 			setPhotosRange(nextRangeSelection)
 			setScrollIndex(index)
 		},
@@ -338,10 +330,6 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 
 	const getInitialScrollIndex = useCallback(() => {
 		const itemsLength = generatedItemList.length
-
-		if (!isMounted()) {
-			return 0
-		}
 
 		return isBetween(scrollIndex, 0, itemsLength) ? scrollIndex : 0
 	}, [generatedItemList.length, scrollIndex])
@@ -538,7 +526,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 	)
 
 	const startupLoadThumbnails = useCallback(() => {
-		if (items.length > 0 && isMounted()) {
+		if (items.length > 0) {
 			const max =
 				viewModeParsed[routeURL] == "grid"
 					? itemsPerRow / (Math.floor(dimensions.height / itemsPerRow) + 55) + itemsPerRow
@@ -562,7 +550,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 	}, [items, viewModeParsed, dimensions, routeURL, itemsPerRow])
 
 	useEffect(() => {
-		if (calcedPhotosGridSize >= 6 && isMounted()) {
+		if (calcedPhotosGridSize >= 6) {
 			DeviceEventEmitter.emit("event", {
 				type: "unselect-all-items"
 			})
@@ -570,16 +558,12 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 	}, [calcedPhotosGridSize])
 
 	useEffect(() => {
-		if (isMounted()) {
-			setScrolledToBottom(false)
-		}
+		setScrolledToBottom(false)
 	}, [])
 
 	useEffect(() => {
-		if (isMounted()) {
-			setPortrait(dimensions.height >= dimensions.width)
-			setScrolledToBottom(false)
-		}
+		setPortrait(dimensions.height >= dimensions.width)
+		setScrolledToBottom(false)
 	}, [dimensions])
 
 	return (

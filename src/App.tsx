@@ -85,7 +85,7 @@ import NoteTagsActionSheet from "./components/ActionSheets/NoteTagsActionSheet"
 import NotesCreateTagDialog from "./components/Dialogs/NotesCreateTagDialog"
 import NoteTagDialog from "./components/Dialogs/NoteTagDialog"
 import NoteHistoryScreen from "./screens/NotesScreen/NoteHistoryScreen"
-import "./lib/services/socket/socket"
+import ChatScreen from "./screens/ChatsScreen/ChatScreen"
 
 enableScreens(true)
 
@@ -277,11 +277,11 @@ export const App = Sentry.wrap(
 			const offlineSetup = () => {
 				try {
 					if (
-						typeof storage.getString("masterKeys") == "string" &&
-						typeof storage.getString("apiKey") == "string" &&
-						typeof storage.getString("privateKey") == "string" &&
-						typeof storage.getString("publicKey") == "string" &&
-						typeof storage.getNumber("userId") == "number"
+						typeof storage.getString("masterKeys") === "string" &&
+						typeof storage.getString("apiKey") === "string" &&
+						typeof storage.getString("privateKey") === "string" &&
+						typeof storage.getString("publicKey") === "string" &&
+						typeof storage.getNumber("userId") === "number"
 					) {
 						if (
 							storage.getString("masterKeys").length > 16 &&
@@ -776,6 +776,14 @@ export const App = Sentry.wrap(
 												component={NoteHistoryScreen}
 												options={{
 													title: "NoteHistoryScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="ChatScreen"
+												component={ChatScreen}
+												options={{
+													title: "ChatScreen",
 													animation: showNavigationAnimation ? "default" : "none"
 												}}
 											/>

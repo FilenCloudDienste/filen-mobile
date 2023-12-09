@@ -22,7 +22,6 @@ import { navigationAnimation } from "../../lib/state"
 import { getFileExt, getFilePreviewType, Semaphore, msToMinutesAndSeconds, getParent, toExpoFsPath } from "../../lib/helpers"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import * as VideoThumbnails from "expo-video-thumbnails"
-import { useMountedState } from "react-use"
 import { StackActions } from "@react-navigation/native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useIsFocused } from "@react-navigation/native"
@@ -32,7 +31,7 @@ import * as fs from "../../lib/fs"
 import { FlashList } from "@shopify/flash-list"
 import storage from "../../lib/storage"
 
-const videoThumbnailSemaphore = new Semaphore(5)
+const videoThumbnailSemaphore = new Semaphore(8)
 const ALBUM_ROW_HEIGHT = 70
 const FETCH_ASSETS_LIMIT = 256
 
@@ -166,7 +165,6 @@ export const AssetItem = memo(
 	}) => {
 		const darkMode = useDarkMode()
 		const [image, setImage] = useState<string | undefined>(item.type == "image" ? item.asset.uri : undefined)
-		const isMounted = useMountedState()
 		const insets = useSafeAreaInsets()
 		const init = useRef<boolean>(false)
 
@@ -182,9 +180,7 @@ export const AssetItem = memo(
 					.then(uri => {
 						videoThumbnailSemaphore.release()
 
-						if (isMounted()) {
-							setImage(uri)
-						}
+						setImage(uri)
 					})
 					.catch(err => {
 						videoThumbnailSemaphore.release()
@@ -307,7 +303,6 @@ export interface AlbumItemProps {
 
 export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItemProps) => {
 	const [image, setImage] = useState<string>("")
-	const isMounted = useMountedState()
 	const init = useRef<boolean>(false)
 
 	useEffect(() => {
@@ -316,7 +311,7 @@ export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItem
 
 			getLastImageOfAlbum(item.album)
 				.then(uri => {
-					if (uri.length > 0 && isMounted()) {
+					if (uri.length > 0) {
 						setImage(uri)
 					}
 				})
@@ -457,7 +452,6 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 	const params = useRef<SelectMediaScreenParams>(route?.params || undefined).current
 	const [assets, setAssets] = useState<Asset[]>([])
 	const [albums, setAlbums] = useState<Album[]>([])
-	const isMounted = useMountedState()
 	const insets = useSafeAreaInsets()
 	const isFocused = useIsFocused()
 	const currentAssetsAfter = useRef<MediaLibrary.AssetRef | undefined>(undefined)
@@ -496,9 +490,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 			if (typeof params.album == "undefined") {
 				fetchAlbums()
 					.then(fetched => {
-						if (isMounted()) {
-							setAlbums(fetched)
-						}
+						setAlbums(fetched)
 					})
 					.catch(err => {
 						console.error(err)
@@ -511,13 +503,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 						if (fetched.assets.length > 0) {
 							currentAssetsAfter.current = fetched.assets[fetched.assets.length - 1].asset
 
-							if (isMounted()) {
-								setAssets(
-									fetched.assets.filter(
-										asset => typeof asset.asset.filename === "string" && asset.asset.filename.length > 0
-									)
-								)
-							}
+							setAssets(
+								fetched.assets.filter(asset => typeof asset.asset.filename === "string" && asset.asset.filename.length > 0)
+							)
 						}
 
 						assetsHasNextPage.current = fetched.hasNextPage
@@ -775,25 +763,23 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 											if (fetched.assets.length > 0) {
 												currentAssetsAfter.current = fetched.assets[fetched.assets.length - 1].asset
 
-												if (isMounted()) {
-													setAssets(prev => {
-														const existingIds: Record<string, boolean> = {}
+												setAssets(prev => {
+													const existingIds: Record<string, boolean> = {}
 
-														for (let i = 0; i < prev.length; i++) {
-															existingIds[prev[i].asset.id] = true
-														}
+													for (let i = 0; i < prev.length; i++) {
+														existingIds[prev[i].asset.id] = true
+													}
 
-														return [
-															...prev,
-															...fetched.assets.filter(
-																asset =>
-																	!existingIds[asset.asset.id] &&
-																	typeof asset.asset.filename === "string" &&
-																	asset.asset.filename.length > 0
-															)
-														]
-													})
-												}
+													return [
+														...prev,
+														...fetched.assets.filter(
+															asset =>
+																!existingIds[asset.asset.id] &&
+																typeof asset.asset.filename === "string" &&
+																asset.asset.filename.length > 0
+														)
+													]
+												})
 											}
 
 											assetsHasNextPage.current = fetched.hasNextPage

@@ -4,7 +4,6 @@ import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { showToast } from "../../components/Toasts"
 import { fetchGDPRInfo } from "../../lib/api"
-import { useMountedState } from "react-use"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -14,15 +13,12 @@ export const GDPRScreen = memo(({ navigation }: { navigation: any }) => {
 	const lang = useLang()
 	const [gdpr, setGdpr] = useState<string>("")
 	const [isLoading, setIsLoading] = useState<boolean>(true)
-	const isMounted = useMountedState()
 
 	useEffect(() => {
 		fetchGDPRInfo()
 			.then(info => {
-				if (isMounted()) {
-					setGdpr(JSON.stringify(info, null, 2))
-					setIsLoading(false)
-				}
+				setGdpr(JSON.stringify(info, null, 2))
+				setIsLoading(false)
 			})
 			.catch(err => {
 				console.log(err)

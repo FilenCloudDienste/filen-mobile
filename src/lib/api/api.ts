@@ -2339,6 +2339,86 @@ export const fetchGDPRInfo = async (): Promise<any> => {
 	return response.data
 }
 
+export interface UserGetSettings {
+	email: string
+	storageUsed: number
+	twoFactorEnabled: 0 | 1
+	twoFactorKey: string
+	unfinishedFiles: number
+	unfinishedStorage: number
+	versionedFiles: number
+	versionedStorage: number
+	versioningEnabled: boolean
+	loginAlertsEnabled: boolean
+}
+
+export interface UserGetAccountPlan {
+	cost: number
+	endTimestamp: number
+	id: number
+	lengthType: string
+	name: string
+	storage: number
+}
+
+export interface UserGetSubsInvoices {
+	gateway: string
+	id: string
+	planCost: number
+	planName: string
+	subId: string
+	timestamp: number
+}
+
+export interface UserGetAccountSubs {
+	id: string
+	planId: number
+	planName: string
+	planCost: number
+	gateway: string
+	storage: number
+	activated: number
+	cancelled: number
+	startTimestamp: number
+	cancelTimestamp: number
+}
+
+export interface UserGetAccount {
+	affBalance: number
+	affCount: number
+	affEarnings: number
+	affId: string
+	affRate: number
+	avatarURL: string
+	email: string
+	invoices: any
+	isPremium: 0 | 1
+	maxStorage: number
+	personal: {
+		city: string | null
+		companyName: string | null
+		country: string | null
+		firstName: string | null
+		lastName: string | null
+		postalCode: string | null
+		street: string | null
+		streetNumber: string | null
+		vatId: string | null
+	}
+	plans: UserGetAccountPlan[]
+	refId: string
+	refLimit: number
+	refStorage: number
+	referCount: number
+	referStorage: number
+	storage: number
+	nickName: string
+	displayName: string
+	appearOffline: boolean
+	subs: UserGetAccountSubs[]
+	subsInvoices: UserGetSubsInvoices[]
+}
+
 export const getAccount = async (): Promise<any> => {
 	const response = await apiRequest({
 		method: "GET",

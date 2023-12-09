@@ -1395,6 +1395,16 @@ class FileProviderUtils {
         print("[cleanupTempDir] error:", error)
     }
   }
+
+  func convertTimestampToMs (_ timestamp: Int) -> Int {
+      let now = Int(Date().timeIntervalSince1970 * 1000)
+
+      if abs(now - timestamp) < abs(now - timestamp * 1000) {
+          return timestamp
+      }
+
+      return timestamp * 1000
+  }
 }
 
 struct BodyStringEncoding: ParameterEncoding {

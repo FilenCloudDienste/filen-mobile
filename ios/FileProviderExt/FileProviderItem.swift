@@ -46,11 +46,11 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   }
   
   var creationDate: Date? {
-    Date(timeIntervalSince1970: TimeInterval(self.item.timestamp))
+    Date(timeIntervalSince1970: TimeInterval(FileProviderUtils.shared.convertTimestampToMs(self.item.timestamp) / 1000))
   }
   
   var contentModificationDate: Date? {
-    self.item.type == .folder ? nil : Date(timeIntervalSince1970: TimeInterval(self.item.lastModified / 1000))
+    self.item.type == .folder ? nil : Date(timeIntervalSince1970: TimeInterval(FileProviderUtils.shared.convertTimestampToMs(self.item.lastModified) / 1000))
   }
   
   var contentType: UTType {

@@ -589,6 +589,14 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
             try await self.thumbnailSemaphore.acquire()
           } catch {
             print("[fetchThumbnails] error: \(error)")
+            
+            progress.completedUnitCount += 1
+            
+            perThumbnailCompletionHandler(identifier, nil, nil)
+            
+            if (progress.isFinished) {
+              completionHandler(nil)
+            }
           }
           
           defer {
@@ -596,7 +604,13 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
           }
           
           guard let itemJSON = FileProviderUtils.shared.getItemFromUUID(uuid: identifier.rawValue), var ext = FileProviderUtils.shared.fileExtension(from: itemJSON.name) else {
+            progress.completedUnitCount += 1
+            
             perThumbnailCompletionHandler(identifier, nil, nil)
+            
+            if (progress.isFinished) {
+              completionHandler(nil)
+            }
             
             return
           }
@@ -604,7 +618,13 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
           ext = ext.lowercased()
           
           if (!supportedImageFormats.contains(ext) && !supportedVideoFormats.contains(ext)) {
+            progress.completedUnitCount += 1
+            
             perThumbnailCompletionHandler(identifier, nil, nil)
+            
+            if (progress.isFinished) {
+              completionHandler(nil)
+            }
             
             return
           }
@@ -675,8 +695,6 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
                     }
                   }
                 }
-                
-                guard progress.isCancelled != true else { return }
                 
                 data = try Data(contentsOf: tempFileURL, options: [.alwaysMapped])
               }

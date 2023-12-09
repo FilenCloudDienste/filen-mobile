@@ -15,7 +15,6 @@ import CodeEditor, { CodeEditorSyntaxStyles } from "@rivascva/react-native-code-
 import { NavigationContainerRef } from "@react-navigation/native"
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useKeyboard } from "@react-native-community/hooks"
-import { useMountedState } from "react-use"
 import { useMMKVNumber, useMMKVBoolean } from "react-native-mmkv"
 import storage from "../../lib/storage"
 
@@ -285,7 +284,6 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 	const insets = useSafeAreaInsets()
 	const dimensions = useWindowDimensions()
 	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
-	const isMounted = useMountedState()
 	const [isScrolling, setIsScrolling] = useState<boolean>(false)
 	const [userId] = useMMKVNumber("userId", storage)
 	const [hideEditorLineNumbers] = useMMKVBoolean("hideEditorLineNumbers:" + userId, storage)
@@ -410,9 +408,7 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 	}, [textEditorText, value])
 
 	useEffect(() => {
-		if (isMounted()) {
-			setPortrait(dimensions.height >= dimensions.width)
-		}
+		setPortrait(dimensions.height >= dimensions.width)
 	}, [dimensions])
 
 	useEffect(() => {

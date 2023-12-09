@@ -14,7 +14,6 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
-import { useMountedState } from "react-use"
 
 const fetchAssetsSemaphore = new Semaphore(3)
 
@@ -38,12 +37,11 @@ export interface AlbumItemProps {
 
 export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, excludedAlbums, userId }: AlbumItemProps) => {
 	const [image, setImage] = useState<string>("")
-	const isMounted = useMountedState()
 
 	useEffect(() => {
 		getLastImageOfAlbum(album.album)
 			.then(uri => {
-				if (typeof uri === "string" && uri.length > 0 && isMounted()) {
+				if (typeof uri === "string" && uri.length > 0) {
 					setImage(uri)
 				}
 			})
@@ -148,7 +146,6 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 	const [fetchedAlbums, setFetchedAlbums] = useState<Album[]>([])
 	const [hasPermissions, setHasPermissions] = useState<boolean>(false)
 	const [loading, setLoading] = useState<boolean>(true)
-	const isMounted = useMountedState()
 
 	const fetchAlbums = useCallback(() => {
 		return new Promise<Album[]>((resolve, reject) => {
@@ -253,10 +250,8 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 
 				fetchAlbums()
 					.then(fetched => {
-						if (isMounted()) {
-							setFetchedAlbums(fetched)
-							setLoading(false)
-						}
+						setFetchedAlbums(fetched)
+						setLoading(false)
 					})
 					.catch(err => {
 						showToast({ message: err.toString() })

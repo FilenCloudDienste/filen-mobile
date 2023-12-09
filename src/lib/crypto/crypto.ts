@@ -1,5 +1,6 @@
 import { convertTimestampToMs, unixTimestamp, arrayBufferToBase64 } from "../helpers"
 import * as db from "../db"
+import memoryCache from "../memoryCache"
 
 export interface FileMetadata {
 	name: string
@@ -18,7 +19,14 @@ export const deriveKeyFromPassword = async (
 	bitLength: number = 512,
 	returnHex: boolean = true
 ): Promise<any> => {
-	return global.nodeThread.deriveKeyFromPassword({
+	const cacheKey = "deriveKeyFromPassword:" + password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex
+	const cacheResult = memoryCache.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	const result = await global.nodeThread.deriveKeyFromPassword({
 		password,
 		salt,
 		iterations,
@@ -26,6 +34,10 @@ export const deriveKeyFromPassword = async (
 		bitLength,
 		returnHex
 	})
+
+	memoryCache.set(cacheKey, result)
+
+	return result
 }
 
 export const decryptMetadata = async (data: string, key: string): Promise<any> => {
@@ -403,6 +415,13 @@ export const decryptData = async (encrypted: ArrayBuffer, key: string, version: 
 }
 
 export const decryptChatMessageKey = async (metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptChatMessageKey:" + metadata
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
 	try {
 		const key = await global.nodeThread.decryptMetadataPrivateKey({
 			data: metadata,
@@ -418,6 +437,8 @@ export const decryptChatMessageKey = async (metadata: string, privateKey: string
 		if (typeof parsed.key !== "string") {
 			return ""
 		}
+
+		db.set(cacheKey, parsed.key).catch(console.error)
 
 		return parsed.key
 	} catch (e) {
@@ -460,6 +481,13 @@ export const encryptChatMessage = async (message: string, key: string): Promise<
 }
 
 export const decryptNoteKeyOwner = async (metadata: string, masterKeys: string[]): Promise<string> => {
+	const cacheKey = "decryptNoteKeyOwner:" + metadata
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
 	let key = ""
 
 	for (let i = 0; i < masterKeys.length; i++) {
@@ -478,10 +506,19 @@ export const decryptNoteKeyOwner = async (metadata: string, masterKeys: string[]
 		}
 	}
 
+	db.set(cacheKey, key).catch(console.error)
+
 	return key
 }
 
 export const decryptNoteKeyParticipant = async (metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptNoteKeyParticipant:" + metadata
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
 	try {
 		const key = await global.nodeThread.decryptMetadataPrivateKey({
 			data: metadata,
@@ -497,6 +534,8 @@ export const decryptNoteKeyParticipant = async (metadata: string, privateKey: st
 		if (typeof parsed.key !== "string") {
 			return ""
 		}
+
+		db.set(cacheKey, parsed.key).catch(console.error)
 
 		return parsed.key
 	} catch (e) {
@@ -529,6 +568,13 @@ export const decryptNoteContent = async (content: string, key: string): Promise<
 }
 
 export const decryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	const cacheKey = "decryptNoteTitle:" + title
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
 	try {
 		const decrypted = await decryptMetadata(title, key)
 
@@ -542,6 +588,8 @@ export const decryptNoteTitle = async (title: string, key: string): Promise<stri
 			return ""
 		}
 
+		db.set(cacheKey, parsed.title).catch(console.error)
+
 		return parsed.title
 	} catch (e) {
 		console.error(e)
@@ -551,6 +599,13 @@ export const decryptNoteTitle = async (title: string, key: string): Promise<stri
 }
 
 export const decryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	const cacheKey = "decryptNotePreview:" + preview
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
 	try {
 		const decrypted = await decryptMetadata(preview, key)
 
@@ -563,6 +618,8 @@ export const decryptNotePreview = async (preview: string, key: string): Promise<
 		if (typeof parsed.preview !== "string") {
 			return ""
 		}
+
+		db.set(cacheKey, parsed.preview).catch(console.error)
 
 		return parsed.preview
 	} catch (e) {
@@ -589,6 +646,13 @@ export const encryptNoteTagName = async (name: string, key: string): Promise<str
 }
 
 export const decryptNoteTagName = async (name: string, masterKeys: string[]): Promise<string> => {
+	const cacheKey = "decryptNoteTagName:" + name
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
 	let decryptedName = ""
 
 	for (let i = 0; i < masterKeys.length; i++) {
@@ -607,10 +671,19 @@ export const decryptNoteTagName = async (name: string, masterKeys: string[]): Pr
 		}
 	}
 
+	db.set(cacheKey, decryptedName).catch(console.error)
+
 	return decryptedName
 }
 
 export const decryptChatConversationName = async (name: string, metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptChatConversationName:" + name + ":" + metadata
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
 	try {
 		const keyDecrypted = await decryptChatMessageKey(metadata, privateKey)
 
@@ -629,6 +702,8 @@ export const decryptChatConversationName = async (name: string, metadata: string
 		if (typeof parsedMessage.name !== "string") {
 			return ""
 		}
+
+		db.set(cacheKey, parsedMessage.name).catch(console.error)
 
 		return parsedMessage.name
 	} catch (e) {

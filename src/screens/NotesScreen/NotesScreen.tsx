@@ -1,9 +1,18 @@
-import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
-import { View, Text, TouchableOpacity, RefreshControl, TouchableHighlight, useWindowDimensions } from "react-native"
+import React, { useState, useEffect, memo, useMemo, useCallback, useRef } from "react"
+import {
+	View,
+	Text,
+	TouchableOpacity,
+	RefreshControl,
+	TouchableHighlight,
+	useWindowDimensions,
+	AppState,
+	ActivityIndicator
+} from "react-native"
 import { TopBar } from "../../components/TopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef } from "@react-navigation/native"
+import { NavigationContainerRef, useIsFocused } from "@react-navigation/native"
 import { Note, NoteTag } from "../../lib/api"
 import { fetchNotesAndTags, sortAndFilterNotes, getUserNameFromNoteParticipant } from "./utils"
 import { dbFs } from "../../lib/db"
@@ -411,15 +420,25 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const [userId] = useMMKVNumber("userId", storage)
 	const dimensions = useWindowDimensions()
 	const lang = useLang()
+	const isFocused = useIsFocused()
+	const loadNotesAndTagsTimeout = useRef<number>(0)
 
 	const notesSorted = useMemo(() => {
-		return sortAndFilterNotes(notes, searchTerm, "", tags)
+		return sortAndFilterNotes(notes, searchTerm, "")
 	}, [notes, searchTerm, tags])
 
 	const loadNotesAndTags = useCallback(
 		async (skipCache: boolean = false) => {
 			if (skipCache && !networkInfo.online) {
 				return
+			}
+
+			if (skipCache) {
+				if (loadNotesAndTagsTimeout.current > Date.now()) {
+					return
+				}
+
+				loadNotesAndTagsTimeout.current = Date.now() + 1000
 			}
 
 			try {
@@ -476,6 +495,12 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	)
 
 	useEffect(() => {
+		if (isFocused) {
+			loadNotesAndTags(true)
+		}
+	}, [isFocused])
+
+	useEffect(() => {
 		loadNotesAndTags()
 
 		const notesUpdateListener = eventListener.on("notesUpdate", (notes: Note[]) => {
@@ -490,10 +515,17 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			setTags(t)
 		})
 
+		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
+			if (nextAppState === "active") {
+				loadNotesAndTags(true)
+			}
+		})
+
 		return () => {
 			notesUpdateListener.remove()
 			refreshNotesListener.remove()
 			notesTagsUpdateListener.remove()
+			appStateChangeListener.remove()
 		}
 	}, [])
 
@@ -574,7 +606,24 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 					ListEmptyComponent={
 						<>
 							{!loadDone || refreshing ? (
-								<></>
+								<>
+									{!loadDone && (
+										<View
+											style={{
+												flexDirection: "column",
+												justifyContent: "center",
+												alignItems: "center",
+												width: "100%",
+												marginTop: Math.floor(dimensions.height / 2) - 200
+											}}
+										>
+											<ActivityIndicator
+												size="small"
+												color={getColor(darkMode, "textPrimary")}
+											/>
+										</View>
+									)}
+								</>
 							) : searchTerm.length > 0 ? (
 								<View
 									style={{
