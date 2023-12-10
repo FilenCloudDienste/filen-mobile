@@ -470,5 +470,6 @@ export const uk: {
 	noNoteHistory: "Історію нотаток не знайдено",
 	export: "Експортувати",
 	leave: "Покинути",
-	noteContentPlaceholder: "Зміст нотатки.."
+	noteContentPlaceholder: "Зміст нотатки..",
+	chatYou: "Ви"
 }
