@@ -470,5 +470,6 @@ export const ru: {
 	noNoteHistory: "История заметки не найдена",
 	export: "Экспортировать",
 	leave: "Покинуть",
-	noteContentPlaceholder: "Содержание заметки.."
+	noteContentPlaceholder: "Содержание заметки..",
+	chatYou: "Вы"
 }
