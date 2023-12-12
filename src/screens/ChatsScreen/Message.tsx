@@ -84,11 +84,11 @@ const Message = memo(
 					marginBottom: index === 0 ? 20 : 0,
 					marginTop: index >= messages.length - 1 ? 70 : 20
 				}}
-				onPress={() => {}}
-				onLongPress={() => {}}
+				onPress={() => { }}
+				onLongPress={() => { }}
 			>
 				<View>
-					{message.senderAvatar.indexOf("https://") !== -1 ? (
+					{(message.senderAvatar && message.senderAvatar.indexOf("https://") !== -1) ? (
 						<FastImage
 							source={{
 								uri: message.senderAvatar
