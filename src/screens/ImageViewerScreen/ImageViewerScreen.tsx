@@ -8,8 +8,7 @@ import {
 	FlatList,
 	ImageBackground,
 	Pressable,
-	useWindowDimensions,
-	Image
+	useWindowDimensions
 } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView"
@@ -27,6 +26,7 @@ import { getItemOfflinePath } from "../../lib/services/offline"
 import * as fs from "../../lib/fs"
 import { Item } from "../../types"
 import { useStore } from "../../lib/state"
+import { Image } from "expo-image"
 
 export interface PreviewItem {
 	uri: string | undefined
@@ -396,6 +396,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 													: "file://" + images[image.uuid]
 											)
 										}}
+										cachePolicy="none"
 										resizeMode="contain"
 										style={{
 											width: dimensions.width,
@@ -476,6 +477,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 							<Image
 								source={getImageForItem(image.file)}
 								resizeMode="cover"
+								cachePolicy="none"
 								style={{
 									width: 25,
 									height: 35,
@@ -489,6 +491,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 									uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
 								}}
 								resizeMode="cover"
+								cachePolicy="none"
 								style={{
 									width: 30,
 									height: 40

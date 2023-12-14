@@ -48,13 +48,10 @@ import {
 	formatDate,
 	formatMessageDate,
 	formatTime,
-	ReplaceMessageWithComponents
+	ReplaceMessageWithComponents,
+	extractLinksFromString
 } from "./utils"
-import { dbFs } from "../../lib/db"
-import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
-import { TopBar } from "../../components/TopBar"
-import striptags from "striptags"
-import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
+import Embed from "./Embeds/Embed"
 
 const Message = memo(
 	({
@@ -96,7 +93,7 @@ const Message = memo(
 					paddingLeft: 15,
 					paddingRight: 15,
 					height: "auto",
-					marginBottom: index === 0 ? 20 : 0,
+					marginBottom: index === 0 ? 35 : 0,
 					marginTop: index >= messages.length - 1 ? 70 : 20
 				}}
 				onPress={() => {}}
@@ -108,6 +105,7 @@ const Message = memo(
 							source={{
 								uri: message.senderAvatar
 							}}
+							cachePolicy="memory-disk"
 							style={{
 								width: 34,
 								height: 34,
@@ -179,12 +177,56 @@ const Message = memo(
 							flexWrap: "wrap"
 						}}
 					>
-						<ReplaceMessageWithComponents
-							content={message.message}
-							darkMode={darkMode}
-							failed={false}
-							participants={conversation.participants}
-						/>
+						{extractLinksFromString(message.message).length > 0 && !message.embedDisabled ? (
+							<View
+								style={{
+									width: "100%",
+									flexDirection: "column"
+								}}
+							>
+								<Embed
+									darkMode={darkMode}
+									conversation={conversation}
+									message={message}
+									failedMessages={[]}
+									userId={userId}
+									isScrolling={false}
+									lang={lang}
+								/>
+								{message.edited && (
+									<Text
+										style={{
+											fontSize: 12,
+											color: getColor(darkMode, "textSecondary"),
+											paddingTop: 5
+										}}
+									>
+										{i18n(lang, "chatEdited").toLowerCase()}
+									</Text>
+								)}
+							</View>
+						) : (
+							<>
+								<ReplaceMessageWithComponents
+									content={message.message}
+									darkMode={darkMode}
+									failed={false}
+									participants={conversation.participants}
+								/>
+								{message.edited && (
+									<Text
+										style={{
+											fontSize: 12,
+											paddingLeft: 4,
+											color: getColor(darkMode, "textSecondary"),
+											paddingTop: 2.5
+										}}
+									>
+										{i18n(lang, "chatEdited").toLowerCase()}
+									</Text>
+								)}
+							</>
+						)}
 					</View>
 				</View>
 			</TouchableOpacity>

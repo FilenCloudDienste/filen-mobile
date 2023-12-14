@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useCallback } from "react"
-import { View, Text, Switch, Platform, ScrollView, ActivityIndicator, Image } from "react-native"
+import { View, Text, Switch, Platform, ScrollView, ActivityIndicator } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
@@ -14,6 +14,7 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
+import { Image } from "expo-image"
 
 const fetchAssetsSemaphore = new Semaphore(3)
 
@@ -69,6 +70,7 @@ export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, exclude
 								source={{
 									uri: image
 								}}
+								cachePolicy="memory-disk"
 								style={{
 									width: 30,
 									height: 30,

@@ -137,6 +137,7 @@ export const SettingsButtonLinkHighlight = memo(
 										source={{
 											uri: imageSrc
 										}}
+										cachePolicy="memory-disk"
 										style={{
 											width: 30,
 											height: 30,
@@ -443,6 +444,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 							? { uri: userInfo.avatarURL }
 							: require("../../assets/images/appstore.png")
 					}
+					cachePolicy="memory-disk"
 					style={{
 						width: 60,
 						height: 60,

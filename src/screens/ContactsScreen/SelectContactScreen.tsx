@@ -131,6 +131,7 @@ const Item = memo(
 								source={{
 									uri: contact.avatar
 								}}
+								cachePolicy="memory-disk"
 								style={{
 									width: 34,
 									height: 34,

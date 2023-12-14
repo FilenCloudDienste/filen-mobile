@@ -9,7 +9,6 @@ import {
 	TouchableHighlight,
 	TouchableOpacity,
 	Pressable,
-	Image,
 	DeviceEventEmitter,
 	ScrollView
 } from "react-native"
@@ -30,6 +29,7 @@ import { getAssetURI } from "../../lib/services/cameraUpload"
 import * as fs from "../../lib/fs"
 import { FlashList } from "@shopify/flash-list"
 import storage from "../../lib/storage"
+import { Image } from "expo-image"
 
 const videoThumbnailSemaphore = new Semaphore(8)
 const ALBUM_ROW_HEIGHT = 70
@@ -230,6 +230,7 @@ export const AssetItem = memo(
 						source={{
 							uri: encodeURI(item.asset.uri)
 						}}
+						cachePolicy="none"
 						style={{
 							width: size,
 							height: size
@@ -361,6 +362,7 @@ export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItem
 							source={{
 								uri: encodeURI(image)
 							}}
+							cachePolicy="none"
 							style={{
 								width: 50,
 								height: 50,

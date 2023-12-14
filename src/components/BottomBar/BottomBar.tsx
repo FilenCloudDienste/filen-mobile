@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useCallback, useEffect, useState } from "react"
-import { Text, View, Pressable, useWindowDimensions } from "react-native"
+import { Text, View, Pressable, useWindowDimensions, AppState } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
@@ -14,6 +14,8 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { chatUnread as getChatUnread } from "../../lib/api"
+import eventListener from "../../lib/eventListener"
+import { SocketEvent } from "../../lib/services/socket"
 
 export const BottomBar = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
@@ -239,8 +241,35 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 
 		const updateChatUnreadInterval = setInterval(updateChatUnread, 5000)
 
+		const chatConversationReadListener = eventListener.on("chatConversationRead", ({ count }: { count: number }) => {
+			setChatUnread(prev => (prev - count >= 0 ? prev - count : 0))
+
+			updateChatUnread()
+		})
+
+		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+			if (event.type === "chatMessageNew") {
+				setChatUnread(prev => prev + 1)
+			}
+		})
+
+		const socketAuthedListener = eventListener.on("socketAuthed", () => {
+			updateChatUnread()
+		})
+
+		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
+			if (nextAppState === "active") {
+				updateChatUnread()
+			}
+		})
+
 		return () => {
 			clearInterval(updateChatUnreadInterval)
+
+			chatConversationReadListener.remove()
+			socketEventListener.remove()
+			socketAuthedListener.remove()
+			appStateChangeListener.remove()
 		}
 	}, [])
 
@@ -333,40 +362,40 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				}}
 				onPress={() => navTo("chats")}
 			>
-				{chatUnread > 0 && (
-					<View
-						style={{
-							backgroundColor: getColor(darkMode, "red"),
-							width: 18,
-							height: 18,
-							borderRadius: 18,
-							flexDirection: "row",
-							alignItems: "center",
-							justifyContent: "center",
-							position: "absolute",
-							zIndex: 10001,
-							right: 23
-						}}
-					>
-						<Text
-							style={{
-								color: "white",
-								fontWeight: "bold",
-								fontSize: 12
-							}}
-						>
-							{chatUnread >= 9 ? 9 : chatUnread}
-						</Text>
-					</View>
-				)}
 				<Ionicon
 					name={isChatsScreen ? "chatbubble" : "chatbubble-outline"}
 					size={22}
-					color={isChatsScreen ? "#0A84FF" : "gray"}
-				/>
+					color={isChatsScreen ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary")}
+				>
+					{chatUnread > 0 && (
+						<View
+							style={{
+								backgroundColor: getColor(darkMode, "red"),
+								width: 18,
+								height: 18,
+								borderRadius: 18,
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								position: "absolute",
+								zIndex: 10001
+							}}
+						>
+							<Text
+								style={{
+									color: "white",
+									fontWeight: "bold",
+									fontSize: 12
+								}}
+							>
+								{chatUnread >= 9 ? 9 : chatUnread}
+							</Text>
+						</View>
+					)}
+				</Ionicon>
 				<Text
 					style={{
-						color: isChatsScreen ? "#0A84FF" : "gray",
+						color: isChatsScreen ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary"),
 						fontSize: 12,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth

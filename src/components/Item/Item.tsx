@@ -120,6 +120,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 									? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
 									: getImageForItem(item)
 							}
+							cachePolicy="memory-disk"
 							style={{
 								width: 40,
 								height: 40,
@@ -339,6 +340,7 @@ export const GridItem = memo(
 											? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
 											: getImageForItem(item)
 									}
+									cachePolicy="memory-disk"
 									style={{
 										width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
 										height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
@@ -479,6 +481,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
 						: getImageForItem(item)
 				}
+				cachePolicy="memory-disk"
 				style={{
 					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
 					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
@@ -630,6 +633,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
 						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
 						: getImageForItem(item)
 				}
+				cachePolicy="memory-disk"
 				style={{
 					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
 					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,

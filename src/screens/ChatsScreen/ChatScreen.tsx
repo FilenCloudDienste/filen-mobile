@@ -85,11 +85,13 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const [failedMessages, setFailedMessages] = useState<string[]>([])
 	const [displayMessageAs, setDisplayMessageAs] = useState<DisplayMessageAs>({})
 	const [replyMessageUUID, setReplyMessageUUID] = useState<string>("")
-	const [lastFocusTimestamp, setLastFocusTimestamp] = useMMKVObject<Record<string, number>>("chatsLastFocusTimestamp")
+	const [lastFocusTimestamp, setLastFocusTimestamp] = useState<Record<string, number>>({})
 	const [conversationTitle, setConversationTitle] = useState<string>("ye")
 	const [loadingPreviousMessages, setLoadingPreviousMessages] = useState<boolean>(false)
 	const lastLoadPreviousMessagesTimestamp = useRef<number>(0)
 	const isPortrait = useIsPortrait()
+	const atBottomRef = useRef<boolean>(atBottom)
+	const isFocusedRef = useRef<boolean>(isFocused)
 
 	const sortedMessages = useMemo(() => {
 		const exists: Record<string, boolean> = {}
@@ -242,6 +244,11 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	}, [JSON.stringify(sortedMessages), failedMessages])
 
 	useEffect(() => {
+		atBottomRef.current = atBottom
+		isFocusedRef.current = isFocused
+	}, [atBottom, isFocused])
+
+	useEffect(() => {
 		loadMessages()
 		initLastFocus()
 
@@ -255,11 +262,106 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			loadMessages(true)
 		})
 
+		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+			if (event.type === "chatMessageNew" && event.data.senderId === userId && event.data.conversation === conversation.uuid) {
+				setLastFocusTimestamp(prev => ({
+					...prev,
+					[event.data.conversation]: event.data.sentTimestamp
+				}))
+			}
+
+			if (
+				event.type === "chatMessageNew" &&
+				event.data.senderId !== userId &&
+				isFocusedRef.current &&
+				atBottomRef.current &&
+				event.data.conversation === conversation.uuid
+			) {
+				setLastFocusTimestamp(prev => ({
+					...prev,
+					[event.data.conversation]: event.data.sentTimestamp
+				}))
+			}
+
+			if (event.type === "chatMessageNew" && event.data.senderId !== userId) {
+				if (conversation.uuid !== event.data.conversation || !isFocusedRef.current || atBottomRef.current) {
+					setUnreadConversationsMessages(prev => ({
+						...prev,
+						[event.data.conversation]: typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
+					}))
+				}
+			}
+
+			if (event.type === "chatMessageNew") {
+				if (!conversationMe || event.data.conversation !== conversation.uuid) {
+					return
+				}
+
+				const privateKey = storage.getString("privateKey")
+				const message = await decryptChatMessage(event.data.message, conversationMe.metadata, privateKey)
+				const replyToMessageDecrypted =
+					event.data.replyTo.uuid.length > 0 && event.data.replyTo.message.length > 0
+						? await decryptChatMessage(event.data.replyTo.message, conversationMe.metadata, privateKey)
+						: ""
+
+				if (message.length > 0) {
+					setMessages(prev => [
+						{
+							conversation: event.data.conversation,
+							uuid: event.data.uuid,
+							senderId: event.data.senderId,
+							senderEmail: event.data.senderEmail,
+							senderAvatar: event.data.senderAvatar,
+							senderNickName: event.data.senderNickName,
+							message,
+							replyTo: {
+								...event.data.replyTo,
+								message: replyToMessageDecrypted
+							},
+							embedDisabled: event.data.embedDisabled,
+							edited: false,
+							editedTimestamp: 0,
+							sentTimestamp: event.data.sentTimestamp
+						},
+						...prev.filter(message => message.uuid !== event.data.uuid)
+					])
+				}
+			} else if (event.type === "chatMessageDelete") {
+				setMessages(prev => prev.filter(message => message.uuid !== event.data.uuid))
+			} else if (event.type === "chatMessageEmbedDisabled") {
+				setMessages(prev => prev.map(message => (message.uuid === event.data.uuid ? { ...message, embedDisabled: true } : message)))
+			} else if (event.type === "chatMessageEdited") {
+				if (!conversationMe || event.data.conversation !== conversation.uuid) {
+					return
+				}
+
+				const privateKey = storage.getString("privateKey")
+				const message = await decryptChatMessage(event.data.message, conversationMe.metadata, privateKey)
+
+				setMessages(prev =>
+					prev.map(m =>
+						m.uuid === event.data.uuid ? { ...m, message, edited: true, editedTimestamp: event.data.editedTimestamp } : m
+					)
+				)
+			}
+		})
+
+		const chatMessageDeleteListener = eventListener.on("chatMessageDelete", (uuid: string) => {
+			setMessages(prev => prev.filter(message => message.uuid !== uuid))
+		})
+
+		const chatMessageEmbedDisabledListener = eventListener.on("chatMessageEmbedDisabled", (uuid: string) => {
+			setMessages(prev => prev.map(message => (message.uuid === uuid ? { ...message, embedDisabled: true } : message)))
+		})
+
 		return () => {
 			appStateChangeListener.remove()
 			socketAuthedListener.remove()
+			chatMessageDeleteListener.remove()
+			chatMessageEmbedDisabledListener.remove()
+			socketEventListener.remove()
 		}
-	}, [userId])
+	}, [userId, conversation, conversationMe])
 
 	return (
 		<KeyboardAvoidingView
@@ -316,6 +418,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							source={{
 								uri: conversation.participants[0].avatar
 							}}
+							cachePolicy="memory-disk"
 							style={{
 								width: 30,
 								height: 30,

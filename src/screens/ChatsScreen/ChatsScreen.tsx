@@ -10,15 +10,12 @@ import {
 	noteParticipantsAdd,
 	ChatConversation,
 	chatConversationsUnread,
-	ChatConversationParticipant,
-	ChatConversationsOnline,
-	ChatMessage,
-	chatConversations
+	chatConversationsRead
 } from "../../lib/api"
 import { SocketEvent } from "../../lib/services/socket"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
-import { useMMKVNumber } from "react-native-mmkv"
+import { useMMKVNumber, useMMKVObject } from "react-native-mmkv"
 import storage from "../../lib/storage"
 import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
@@ -95,6 +92,22 @@ const Item = memo(
 			}
 		}, [lang, conversationParticipantsFilteredWithoutMe, conversation, userId])
 
+		const markAsRead = useCallback(async () => {
+			try {
+				await chatConversationsRead(conversation.uuid)
+
+				eventListener.emit("chatConversationRead", {
+					uuid: conversation.uuid,
+					count:
+						typeof unreadConversationsMessages[conversation.uuid] === "number"
+							? unreadConversationsMessages[conversation.uuid]
+							: 0
+				})
+			} catch (e) {
+				console.error(e)
+			}
+		}, [conversation])
+
 		if (conversationParticipantsFilteredWithoutMe.length === 0) {
 			return null
 		}
@@ -110,6 +123,8 @@ const Item = memo(
 					marginBottom: index >= conversations.length - 1 ? ITEM_HEIGHT : 0
 				}}
 				onPress={async () => {
+					markAsRead()
+
 					await navigationAnimation({ enable: true })
 
 					navigation.dispatch(
@@ -189,6 +204,7 @@ const Item = memo(
 							source={{
 								uri: conversationParticipantsFilteredWithoutMe[0].avatar
 							}}
+							cachePolicy="memory-disk"
 							style={{
 								width: 34,
 								height: 34,
@@ -349,7 +365,8 @@ const Item = memo(
 								<View
 									style={{
 										flexDirection: "row",
-										alignItems: "center"
+										alignItems: "center",
+										height: 16
 									}}
 								>
 									<ReplaceInlineMessageWithComponents
@@ -358,6 +375,7 @@ const Item = memo(
 										emojiSize={15}
 										hideLinks={true}
 										hideMentions={true}
+										fontSize={14}
 										participants={conversation.participants}
 										color={getColor(darkMode, "textSecondary")}
 									/>
@@ -418,7 +436,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 
 				for (const conversation of result.conversations) {
 					promises.push(
-						new Promise<void>(async (resolve, reject) => {
+						new Promise<void>(async resolve => {
 							await semaphore.acquire()
 
 							try {
@@ -428,20 +446,18 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 									...prev,
 									[conversation.uuid]: unreadResult
 								}))
-
-								resolve()
 							} catch (e) {
 								console.error(e)
-
-								reject(e)
 							} finally {
 								semaphore.release()
+
+								resolve()
 							}
 						})
 					)
 				}
 
-				await Promise.all(promises)
+				Promise.allSettled(promises).catch(console.error)
 			} catch (e) {
 				console.error(e)
 			} finally {
@@ -623,11 +639,19 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			loadConversations(true)
 		})
 
+		const chatConversationReadListener = eventListener.on("chatConversationRead", ({ uuid }: { uuid: string }) => {
+			setUnreadConversationsMessages(prev => ({
+				...prev,
+				[uuid]: 0
+			}))
+		})
+
 		return () => {
 			appStateChangeListener.remove()
 			socketEventListener.remove()
 			updateChatConversationsListener.remove()
 			socketAuthedListener.remove()
+			chatConversationReadListener.remove()
 		}
 	}, [userId])
 

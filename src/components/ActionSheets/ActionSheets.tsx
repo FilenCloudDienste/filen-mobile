@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState } from "react"
-import { View, Text, TouchableHighlight, TouchableOpacity, Image } from "react-native"
+import { View, Text, TouchableHighlight, TouchableOpacity } from "react-native"
 import { SheetManager } from "react-native-actions-sheet"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
@@ -13,6 +13,7 @@ import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import * as db from "../../lib/db"
+import { Image } from "expo-image"
 
 export const ActionButton = memo(
 	({
@@ -193,6 +194,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 							? { uri: "file://" + THUMBNAIL_BASE_PATH + currentActionSheetItem.uuid + ".jpg" }
 							: getImageForItem(currentActionSheetItem)
 					}
+					cachePolicy="memory-disk"
 					style={{
 						width: 40,
 						height: 40,

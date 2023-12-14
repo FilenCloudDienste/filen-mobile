@@ -9,8 +9,7 @@ import {
 	DeviceEventEmitter,
 	useWindowDimensions,
 	ScaledSize,
-	LayoutChangeEvent,
-	Image
+	LayoutChangeEvent
 } from "react-native"
 import useLang from "../../lib/hooks/useLang"
 import { useStore } from "../../lib/state"
@@ -25,6 +24,7 @@ import { getImageForItem } from "../../assets/thumbnails"
 import { Item } from "../../types"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { normalizeProgress } from "../../lib/helpers"
+import { Image } from "expo-image"
 
 const TRANSFER_ITEM_HEIGHT: number = 60
 
@@ -59,6 +59,7 @@ export const FinishedTransferItem = memo(({ index, item, containerWidth, darkMod
 			>
 				<Image
 					source={getImageForItem({ name: item.name, type: "file" } as Item)}
+					cachePolicy="memory-disk"
 					style={{
 						width: 28,
 						height: 28,
@@ -135,10 +136,7 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
 		[containerWidth, portrait, darkMode]
 	)
 
-	const getItemLayout = useCallback(
-		(_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }),
-		[]
-	)
+	const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
 	const keyExtractor = useCallback((_, index) => index.toString(), [])
 	const onLayout = useCallback((e: LayoutChangeEvent) => {
 		setContainerWidth(e.nativeEvent.layout.width - insets.left - insets.right)
@@ -171,8 +169,7 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
 							marginTop: containerHeight / 2 - 60,
 							justifyContent: "center",
 							alignItems: "center",
-							marginLeft:
-								!portrait && insets.left > 0 && insets.right > 0 ? -(insets.left + insets.right) : 0
+							marginLeft: !portrait && insets.left > 0 && insets.right > 0 ? -(insets.left + insets.right) : 0
 						}}
 					>
 						<Ionicon
@@ -210,15 +207,7 @@ export interface OngoingTransferItemProps {
 }
 
 export const OngoingTransferItem = memo(
-	({
-		index,
-		item,
-		containerWidth,
-		darkMode,
-		lang,
-		pausedTransfers,
-		setPausedTransfers
-	}: OngoingTransferItemProps) => {
+	({ index, item, containerWidth, darkMode, lang, pausedTransfers, setPausedTransfers }: OngoingTransferItemProps) => {
 		const progress = useMemo(() => {
 			return normalizeProgress(item.percent)
 		}, [item.percent])
@@ -246,6 +235,7 @@ export const OngoingTransferItem = memo(
 				>
 					<Image
 						source={getImageForItem({ name: item.name, type: "file" } as Item)}
+						cachePolicy="memory-disk"
 						style={{
 							width: 28,
 							height: 28,
@@ -370,10 +360,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
 		[containerWidth, portrait, pausedTransfers, darkMode, lang]
 	)
 
-	const getItemLayout = useCallback(
-		(_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }),
-		[]
-	)
+	const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
 	const keyExtractor = useCallback((_, index) => index.toString(), [])
 	const onLayout = useCallback((e: LayoutChangeEvent) => {
 		setContainerWidth(e.nativeEvent.layout.width - insets.left - insets.right)
@@ -412,8 +399,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
 							marginTop: containerHeight / 2 - 60,
 							justifyContent: "center",
 							alignItems: "center",
-							marginLeft:
-								!portrait && insets.left > 0 && insets.right > 0 ? -(insets.left + insets.right) : 0
+							marginLeft: !portrait && insets.left > 0 && insets.right > 0 ? -(insets.left + insets.right) : 0
 						}}
 					>
 						<Ionicon
@@ -445,13 +431,7 @@ export interface TransfersScreenBodyProps {
 }
 
 export const TransfersScreenBody = memo(
-	({
-		currentTransfers,
-		currentUploads,
-		currentDownloads,
-		finishedTransfers,
-		navigation
-	}: TransfersScreenBodyProps) => {
+	({ currentTransfers, currentUploads, currentDownloads, finishedTransfers, navigation }: TransfersScreenBodyProps) => {
 		const bottomBarHeight = useStore(state => state.bottomBarHeight)
 		const contentHeight = useStore(state => state.contentHeight)
 		const dimensions: ScaledSize = useWindowDimensions()
@@ -502,10 +482,7 @@ export const TransfersScreenBody = memo(
 									paddingLeft: 0,
 									paddingRight: 15,
 									width: "33%",
-									opacity:
-										Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0
-											? 1
-											: 0
+									opacity: Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0 ? 1 : 0
 								}}
 								onPress={() => SheetManager.show("TopBarActionSheet")}
 							>
@@ -530,9 +507,7 @@ export const TransfersScreenBody = memo(
 							style={{
 								borderBottomWidth: currentView == "ongoing" ? (Platform.OS == "ios" ? 1.5 : 2) : 1,
 								borderBottomColor:
-									currentView == "ongoing"
-										? getColor(darkMode, "linkPrimary")
-										: getColor(darkMode, "primaryBorder"),
+									currentView == "ongoing" ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "primaryBorder"),
 								height: 27,
 								paddingLeft: 15,
 								paddingRight: 15,
@@ -562,9 +537,7 @@ export const TransfersScreenBody = memo(
 							style={{
 								borderBottomWidth: currentView == "finished" ? (Platform.OS == "ios" ? 1.5 : 2) : 1,
 								borderBottomColor:
-									currentView == "finished"
-										? getColor(darkMode, "linkPrimary")
-										: getColor(darkMode, "primaryBorder"),
+									currentView == "finished" ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "primaryBorder"),
 								height: 27,
 								paddingLeft: 15,
 								paddingRight: 15,
@@ -603,9 +576,7 @@ export const TransfersScreenBody = memo(
 					disableIntervalMomentum={true}
 					snapToAlignment="center"
 					key={"transfers-list-" + (portrait ? "portrait" : "landscape")}
-					onMomentumScrollEnd={e =>
-						setCurrentView(e.nativeEvent.contentOffset.x == 0 ? "ongoing" : "finished")
-					}
+					onMomentumScrollEnd={e => setCurrentView(e.nativeEvent.contentOffset.x == 0 ? "ongoing" : "finished")}
 					ref={scrollViewRef}
 				>
 					<View

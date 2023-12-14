@@ -12,6 +12,7 @@ import { getColor } from "../../style"
 import { customEmojis } from "./customEmojis"
 import { Image } from "expo-image"
 import EmojiConvertor from "emoji-js"
+import axios, { AxiosResponse } from "axios"
 
 export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed" | "async" | "none" | "invalid"
 export type DisplayMessageAs = Record<string, MessageDisplayType>
@@ -559,6 +560,7 @@ export const ReplaceMessageWithComponents = memo(
 							source={{
 								uri: customEmojisListRecord[customEmoji]
 							}}
+							cachePolicy="memory-disk"
 							style={{
 								width: size,
 								height: size,
@@ -609,7 +611,8 @@ export const ReplaceMessageWithComponents = memo(
 									width: "auto",
 									flexDirection: "row",
 									flexShrink: 0,
-									alignItems: "center"
+									alignItems: "center",
+									lineHeight: 24
 								}}
 							>
 								{r.trim()}
@@ -644,7 +647,8 @@ export const ReplaceInlineMessageWithComponents = memo(
 		hideLinks,
 		hideMentions,
 		participants,
-		color
+		color,
+		fontSize
 	}: {
 		content: string
 		darkMode: boolean
@@ -653,6 +657,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 		hideMentions?: boolean
 		participants: ChatConversationParticipant[]
 		color?: string
+		fontSize?: number
 	}) => {
 		const codeRegex = /```([\s\S]*?)```/
 		const linkRegex = /(https?:\/\/\S+)/
@@ -661,8 +666,6 @@ export const ReplaceInlineMessageWithComponents = memo(
 		const regex = new RegExp(
 			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${linkRegex.source}|${mentions.source}`
 		)
-		const emojiRegex = new RegExp(`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}`)
-		const emojiCount = content.match(emojiRegex)
 		const defaultSize = emojiSize ? emojiSize : 16
 		let size: number | undefined = defaultSize
 
@@ -677,7 +680,8 @@ export const ReplaceInlineMessageWithComponents = memo(
 							<Fragment key={match + ":" + index}>
 								<Text
 									style={{
-										color: color ? color : getColor(darkMode, "textSecondary")
+										color: color ? color : getColor(darkMode, "textSecondary"),
+										fontSize: fontSize ? fontSize : 15
 									}}
 								>
 									@everyone
@@ -693,7 +697,8 @@ export const ReplaceInlineMessageWithComponents = memo(
 							<Fragment key={match + ":" + index}>
 								<Text
 									style={{
-										color: color ? color : getColor(darkMode, "textSecondary")
+										color: color ? color : getColor(darkMode, "textSecondary"),
+										fontSize: fontSize ? fontSize : 15
 									}}
 								>
 									@UnknownUser
@@ -707,7 +712,8 @@ export const ReplaceInlineMessageWithComponents = memo(
 							<Fragment key={match + ":" + index}>
 								<Text
 									style={{
-										color: color ? color : getColor(darkMode, "textSecondary")
+										color: color ? color : getColor(darkMode, "textSecondary"),
+										fontSize: fontSize ? fontSize : 15
 									}}
 								>
 									@{getUserNameFromParticipant(foundParticipant[0])}
@@ -720,7 +726,8 @@ export const ReplaceInlineMessageWithComponents = memo(
 						<Fragment key={match + ":" + index}>
 							<Text
 								style={{
-									color: color ? color : getColor(darkMode, "textPrimary")
+									color: color ? color : getColor(darkMode, "textPrimary"),
+									fontSize: fontSize ? fontSize : 15
 								}}
 							>
 								@{getUserNameFromParticipant(foundParticipant[0])}
@@ -735,7 +742,8 @@ export const ReplaceInlineMessageWithComponents = memo(
 							<Text
 								key={match + ":" + index}
 								style={{
-									color: color ? color : getColor(darkMode, "textPrimary")
+									color: color ? color : getColor(darkMode, "textPrimary"),
+									fontSize: fontSize ? fontSize : 15
 								}}
 							>
 								{match}
@@ -747,7 +755,8 @@ export const ReplaceInlineMessageWithComponents = memo(
 						<Text
 							key={match + ":" + index}
 							style={{
-								color: color ? color : getColor(darkMode, "linkPrimary")
+								color: color ? color : getColor(darkMode, "linkPrimary"),
+								fontSize: fontSize ? fontSize : 15
 							}}
 						>
 							{match}
@@ -764,6 +773,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 							source={{
 								uri: customEmojisListRecord[customEmoji]
 							}}
+							cachePolicy="memory-disk"
 							style={{
 								width: size,
 								height: size,
@@ -810,7 +820,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 								key={index}
 								style={{
 									color: color ? color : getColor(darkMode, "textPrimary"),
-									fontSize: 15,
+									fontSize: fontSize ? fontSize : 15,
 									width: "auto",
 									flexDirection: "row",
 									flexShrink: 0,
@@ -840,3 +850,103 @@ export const ReplaceInlineMessageWithComponents = memo(
 		)
 	}
 )
+
+export const headURL = async (url: string): Promise<Record<string, string>> => {
+	const response = await axios.head(url, {
+		timeout: 15000
+	})
+
+	if (typeof response.headers["content-type"] !== "string") {
+		throw new Error("Response type is not string: " + url)
+	}
+
+	return response.headers
+}
+
+export const getURL = async (url: string): Promise<AxiosResponse> => {
+	const response = await axios.get(url, {
+		timeout: 15000
+	})
+
+	if (!response.data) {
+		throw new Error("Could not get response body for " + url)
+	}
+
+	return response
+}
+
+export const parseOGFromURL = async (url: string): Promise<Record<string, string>> => {
+	const response = await axios.get(url, {
+		timeout: 15000
+	})
+
+	if (typeof response.headers["content-type"] !== "string" || response.headers["content-type"].split(";")[0].trim() !== "text/html") {
+		throw new Error("Response type is not text/html: " + url)
+	}
+
+	const metadata: Record<string, string> = {}
+	const ogTags = response.data.match(/<meta\s+property="og:([^"]+)"\s+content="([^"]+)"\s*\/?>/g)
+	const ogTags2 = response.data.match(/<meta\s+property='og:([^']+)'\s+content='([^']+)'\s*\/?>/g)
+
+	if (ogTags) {
+		ogTags.forEach((tag: any) => {
+			const [, property, content] = tag.match(/<meta\s+property="og:([^"]+)"\s+content="([^"]+)"\s*\/?>/)
+
+			if (typeof property === "string" && typeof content === "string") {
+				metadata["og:" + property] = content
+			}
+		})
+	}
+
+	if (ogTags2) {
+		ogTags2.forEach((tag: any) => {
+			const [, property, content] = tag.match(/<meta\s+property='og:([^']+)'\s+content='([^']+)'\s*\/?>/)
+
+			if (typeof property === "string" && typeof content === "string") {
+				metadata["og:" + property] = content
+			}
+		})
+	}
+
+	const otherTags = response.data.match(/<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/g)
+	const otherTags2 = response.data.match(/<meta\s+name='([^']+)'\s+content='([^']+)'\s*\/?>/g)
+
+	if (otherTags) {
+		otherTags.forEach((tag: any) => {
+			const [, name, content] = tag.match(/<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/)
+
+			if (typeof name === "string" && typeof content === "string") {
+				metadata["meta:" + name] = content
+			}
+		})
+	}
+
+	if (otherTags2) {
+		otherTags2.forEach((tag: any) => {
+			const [, name, content] = tag.match(/<meta\s+name='([^']+)'\s+content='([^']+)'\s*\/?>/)
+
+			if (typeof name === "string" && typeof content === "string") {
+				metadata["meta:" + name] = content
+			}
+		})
+	}
+
+	const titleMatch = response.data.match(/<title>([^<]+)<\/title>/)
+
+	if (titleMatch && titleMatch[1] && typeof titleMatch[1] === "string") {
+		metadata["title"] = titleMatch[1]
+	}
+
+	const faviconMatch = response.data.match(/<link\s+rel="icon"\s+href="([^"]+)"\s*\/?>/)
+	const faviconMatch2 = response.data.match(/<link\s+rel='icon'\s+href='([^"]+)'\s*\/?>/)
+
+	if (faviconMatch && faviconMatch[1] && typeof faviconMatch[1] === "string") {
+		metadata["favicon"] = faviconMatch[1]
+	}
+
+	if (faviconMatch2 && faviconMatch2[1] && typeof faviconMatch2[1] === "string") {
+		metadata["favicon"] = faviconMatch2[1]
+	}
+
+	return metadata
+}

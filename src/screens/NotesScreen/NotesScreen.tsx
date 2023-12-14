@@ -362,6 +362,7 @@ const Item = memo(
 												source={{
 													uri: participant.avatar
 												}}
+												cachePolicy="memory-disk"
 												style={{
 													width: 24,
 													height: 24,
