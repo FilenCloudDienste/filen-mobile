@@ -6,66 +6,30 @@ import {
 	useWindowDimensions,
 	AppState,
 	ActivityIndicator,
-	RefreshControl,
 	TextInput,
 	KeyboardAvoidingView
 } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, useIsFocused } from "@react-navigation/native"
-import {
-	Note,
-	NoteParticipant,
-	Contact,
-	noteParticipantsAdd,
-	ChatConversation,
-	chatConversationsUnread,
-	ChatConversationParticipant,
-	ChatConversationsOnline,
-	ChatMessage,
-	chatConversations,
-	getChatLastFocus,
-	updateChatLastFocus
-} from "../../lib/api"
+import { ChatConversation, ChatConversationParticipant, ChatMessage, getChatLastFocus } from "../../lib/api"
 import { SocketEvent } from "../../lib/services/socket"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
-import { useMMKVNumber, useMMKVObject } from "react-native-mmkv"
+import { useMMKVNumber } from "react-native-mmkv"
 import storage from "../../lib/storage"
-import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
+import { generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
 import { Image } from "expo-image"
-import { selectContact } from "../ContactsScreen/SelectContactScreen"
-import { showToast } from "../../components/Toasts"
-import {
-	showFullScreenLoadingModal,
-	hideFullScreenLoadingModal
-} from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
-import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
-import {
-	sortAndFilterConversations,
-	fetchChatConversations,
-	getUserNameFromAccount,
-	getMessageDisplayType,
-	getUserNameFromMessage,
-	getUserNameFromParticipant,
-	getUserNameFromReplyTo,
-	DisplayMessageAs,
-	MessageDisplayType,
-	fetchChatMessages,
-	formatDate,
-	formatMessageDate,
-	formatTime
-} from "./utils"
+import { decryptChatMessage } from "../../lib/crypto"
+import { getUserNameFromParticipant, DisplayMessageAs, fetchChatMessages } from "./utils"
 import { dbFs } from "../../lib/db"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
-import { TopBar } from "../../components/TopBar"
-import striptags from "striptags"
-import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import Message from "./Message"
 import useIsPortrait from "../../lib/hooks/useIsPortrait"
+import Typing from "./Typing"
 
 const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -550,6 +514,11 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					paddingBottom: 5
 				}}
 			>
+				<Typing
+					darkMode={darkMode}
+					conversation={conversation}
+					lang={lang}
+				/>
 				<TouchableOpacity
 					style={{
 						width: 35,

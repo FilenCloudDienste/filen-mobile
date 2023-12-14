@@ -300,7 +300,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: showHome ? "#0A84FF" : "gray",
-						fontSize: 12,
+						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -324,7 +324,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: showCloud ? "#0A84FF" : "gray",
-						fontSize: 12,
+						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -385,7 +385,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 								style={{
 									color: "white",
 									fontWeight: "bold",
-									fontSize: 12
+									fontSize: 11
 								}}
 							>
 								{chatUnread >= 9 ? 9 : chatUnread}
@@ -396,7 +396,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: isChatsScreen ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary"),
-						fontSize: 12,
+						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -420,7 +420,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: isPhotosScreen ? "#0A84FF" : "gray",
-						fontSize: 12,
+						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -444,7 +444,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: isNotesScreen ? "#0A84FF" : "gray",
-						fontSize: 12,
+						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
@@ -468,7 +468,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Text
 					style={{
 						color: showSettings ? "#0A84FF" : "gray",
-						fontSize: 12,
+						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}

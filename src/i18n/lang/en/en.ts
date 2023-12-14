@@ -478,5 +478,9 @@ export const en: {
 	export: "Export",
 	leave: "Leave",
 	noteContentPlaceholder: "Note content..",
-	chatYou: "You"
+	chatYou: "You",
+	chatOGNoTitle: "No title available",
+	chatOGNoDescription: "No description available",
+	chatEdited: "(edited)",
+	chatIsTyping: "is typing"
 }

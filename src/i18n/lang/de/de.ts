@@ -476,5 +476,9 @@ export const de: {
 	export: "Exportieren",
 	leave: "Verlassen",
 	noteContentPlaceholder: "Notiz Inhalt..",
-	chatYou: "Du"
+	chatYou: "Du",
+	chatOGNoTitle: "Kein Titel verfügbar",
+	chatOGNoDescription: "Keine Beschreibung verfügbar",
+	chatEdited: "(bearbeitet)",
+	chatIsTyping: "schreibt"
 }

@@ -93,7 +93,7 @@ const Message = memo(
 					paddingLeft: 15,
 					paddingRight: 15,
 					height: "auto",
-					marginBottom: index === 0 ? 35 : 0,
+					marginBottom: index === 0 ? 25 : 0,
 					marginTop: index >= messages.length - 1 ? 70 : 20
 				}}
 				onPress={() => {}}
