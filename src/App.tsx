@@ -2,7 +2,7 @@ import React, { useState, useEffect, Fragment, memo, useCallback } from "react"
 import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus } from "react-native"
 import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
-import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { NavigationContainer, createNavigationContainerRef, StackActions, CommonActions, DarkTheme } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { MainScreen } from "./screens/MainScreen"
@@ -122,7 +122,6 @@ export const App = Sentry.wrap(
 		const lang = useLang()
 		const setContentHeight = useStore(state => state.setContentHeight)
 		const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
-		const [userSelectedTheme] = useMMKVString("userSelectedTheme", storage)
 		const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
 		const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 		const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
@@ -186,29 +185,13 @@ export const App = Sentry.wrap(
 
 		const setAppearance = useCallback(() => {
 			setTimeout(() => {
-				if (typeof userSelectedTheme === "string" && userSelectedTheme.length > 1 && storage.getBoolean("dontFollowSystemTheme")) {
-					if (userSelectedTheme === "dark") {
-						storage.set("darkMode", true)
+				if (typeof storage.getString("userSelectedTheme") !== "string" && storage.getBoolean("dontFollowSystemTheme")) {
+					storage.set("darkMode", Appearance.getColorScheme() === "dark")
 
-						setStatusBarStyle(true)
-					} else {
-						storage.set("darkMode", false)
-
-						setStatusBarStyle(false)
-					}
-				} else {
-					if (Appearance.getColorScheme() === "dark") {
-						storage.set("darkMode", true)
-
-						setStatusBarStyle(true)
-					} else {
-						storage.set("darkMode", false)
-
-						setStatusBarStyle(false)
-					}
+					setStatusBarStyle(Appearance.getColorScheme() === "dark")
 				}
 			}, 1000) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
-		}, [userSelectedTheme])
+		}, [])
 
 		useEffect(() => {
 			if (keepAppAwake) {
@@ -323,7 +306,7 @@ export const App = Sentry.wrap(
 					setup({ navigation: navigationRef })
 						.then(() => nav())
 						.catch(err => {
-							console.log(err)
+							console.error(err)
 
 							offlineSetup()
 						})
@@ -335,13 +318,11 @@ export const App = Sentry.wrap(
 			const appStateListener = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
 				setAppState(nextAppState)
 
-				await isNavReady(navigationRef)
-
 				if (nextAppState === "background") {
 					if (isNavReady(navigationRef) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
-						let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+						let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
 
-						if (lockAppAfter == 0) {
+						if (lockAppAfter === 0) {
 							lockAppAfter = 300
 						}
 
@@ -353,29 +334,24 @@ export const App = Sentry.wrap(
 						) {
 							setBiometricAuthScreenState("auth")
 
-							if (navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function") {
-								navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
-							}
+							navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
 						}
 					}
 				}
 			})
 
-			const navigationRefListener = (event: any) => {
+			const navigationRefListener = navigationRef.addListener("state", event => {
 				if (event.data && event.data.state && Array.isArray(event.data.state.routes)) {
 					setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
 					setCurrentRoutes(event.data.state.routes)
 					setScrolledToBottom(false)
 				}
-			}
-
-			navigationRef.addListener("state", navigationRefListener)
+			})
 
 			ShareMenu.getInitialShare(handleShare)
 
 			const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
 
-			setAppearance()
 			getCfg().then(setCFG).catch(console.error)
 
 			const appearanceListener = Appearance.addChangeListener(setAppearance)
@@ -493,13 +469,13 @@ export const App = Sentry.wrap(
 
 			return () => {
 				shareMenuListener.remove()
-				navigationRef.removeListener("state", navigationRefListener)
 				appStateListener.remove()
 				appearanceListener.remove()
 				openSelectMediaScreenListener.remove()
 				selectMediaScreenUploadListener.remove()
 
 				notifeeOnForegroundListener()
+				navigationRefListener()
 			}
 		}, [])
 

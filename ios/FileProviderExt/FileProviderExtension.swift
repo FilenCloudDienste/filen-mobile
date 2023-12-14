@@ -189,6 +189,8 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
         )
         
         self.stopProvidingItem(at: url)
+        
+        FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: parentJSON.uuid))
       } catch {
         print("[itemChanged] error: \(error)")
       }
@@ -234,6 +236,8 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
         ]
       )
       
+      FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: parentJSON.uuid))
+      
       return FileProviderItem(
         identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: uuid),
         parentIdentifier: parentItemIdentifier,
@@ -268,6 +272,8 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
     if (itemJSON.type == "folder") {
       try await FileProviderUtils.shared.renameFolder(uuid: itemJSON.uuid, toName: itemName)
       
+      FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: itemJSON.parent))
+      
       return FileProviderItem(
         identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.uuid),
         parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
@@ -299,6 +305,8 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
         )
       )
       
+      FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: itemJSON.parent))
+      
       return FileProviderItem(
         identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.uuid),
         parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
@@ -328,6 +336,8 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
     
     try await FileProviderUtils.shared.trashItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
     
+    FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: itemJSON.parent))
+    
     return FileProviderItem(
       identifier: itemIdentifier,
       parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
@@ -356,24 +366,7 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
     
     try await FileProviderUtils.shared.restoreItem(uuid: itemJSON.uuid, type: itemJSON.type == "folder" ? .folder : .file)
     
-    try FileProviderUtils.shared.openDb().run(
-      "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        itemJSON.uuid,
-        itemJSON.parent,
-        itemJSON.name,
-        itemJSON.type,
-        itemJSON.mime,
-        itemJSON.size,
-        itemJSON.timestamp,
-        itemJSON.lastModified,
-        itemJSON.key,
-        itemJSON.chunks,
-        itemJSON.region,
-        itemJSON.bucket,
-        itemJSON.version
-      ]
-    )
+    FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: itemJSON.parent))
     
     return FileProviderItem(
       identifier: itemIdentifier,
@@ -405,7 +398,7 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
     
     try FileProviderUtils.shared.openDb().run("DELETE FROM items WHERE uuid = ?", [itemJSON.uuid])
     
-    FileProviderUtils.shared.signalEnumerator(for: itemJSON.parent)
+    FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: itemJSON.parent))
   }
 
   override func reparentItem (withIdentifier itemIdentifier: NSFileProviderItemIdentifier, toParentItemWithIdentifier parentItemIdentifier: NSFileProviderItemIdentifier, newName: String?) async throws -> NSFileProviderItem {
@@ -433,6 +426,9 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
         itemJSON.version
       ]
     )
+    
+    FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: itemJSON.parent))
+    FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: parentJSON.uuid))
     
     return FileProviderItem(
       identifier: itemIdentifier,
@@ -481,6 +477,8 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
           result.version
         ]
       )
+      
+      FileProviderUtils.shared.signalEnumeratorForIdentifier(for: NSFileProviderItemIdentifier(rawValue: parentJSON.uuid))
       
       return FileProviderItem(
         identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: result.uuid),

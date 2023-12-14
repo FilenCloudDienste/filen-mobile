@@ -30,7 +30,7 @@ import { isOnline } from "../../lib/services/isOnline"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { MISC_BASE_PATH } from "../../lib/constants"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 
 export interface SettingsButtonLinkHighlightProps {
 	onPress?: () => any
@@ -133,7 +133,7 @@ export const SettingsButtonLinkHighlight = memo(
 								}}
 							>
 								{imageSrc.length > 0 ? (
-									<FastImage
+									<Image
 										source={{
 											uri: imageSrc
 										}}
@@ -430,7 +430,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 					SheetManager.show("ProfilePictureActionSheet")
 				}}
 			>
-				<FastImage
+				<Image
 					source={
 						typeof userAvatarCached == "string" &&
 						userAvatarCached.length > 4 &&

@@ -9,11 +9,11 @@ import { validate } from "uuid"
 import { Item } from "../../../types"
 import * as fs from "../../fs"
 import { init as initDb, dbFs } from "../../db"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import { sharedStorage } from "../../storage/storage"
 import { Platform } from "react-native"
 
-const CACHE_CLEARING_ENABLED: boolean = true
+const CACHE_CLEARING_ENABLED = true
 
 const DONT_DELETE: string[] = [
 	"sentry",
@@ -120,7 +120,8 @@ export const checkOfflineItems = async (): Promise<void> => {
 }
 
 export const clearCacheDirectories = async (): Promise<void> => {
-	await FastImage.clearDiskCache().catch(console.error)
+	Image.clearDiskCache().catch(console.error)
+	Image.clearMemoryCache().catch(console.error)
 
 	preloadAvatar().catch(console.error)
 
@@ -203,11 +204,7 @@ export const preloadAvatar = async (): Promise<void> => {
 		return
 	}
 
-	FastImage.preload([
-		{
-			uri: toExpoFsPath(avatarPath)
-		}
-	])
+	Image.prefetch([toExpoFsPath(avatarPath)])
 }
 
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<void> => {

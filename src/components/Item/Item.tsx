@@ -19,7 +19,7 @@ import { Item } from "../../types"
 import { fetchFolderSize } from "../../lib/api"
 import memoryCache from "../../lib/memoryCache"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import * as db from "../../lib/db"
 import { checkItemThumbnail } from "../../lib/services/thumbnails"
 
@@ -112,7 +112,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 							color={getFolderColor(item.color)}
 						/>
 					) : (
-						<FastImage
+						<Image
 							source={
 								hideThumbnails
 									? getImageForItem(item)
@@ -331,7 +331,7 @@ export const GridItem = memo(
 							</>
 						) : (
 							<>
-								<FastImage
+								<Image
 									source={
 										hideThumbnails
 											? getImageForItem(item)
@@ -471,7 +471,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 				})
 			}}
 		>
-			<FastImage
+			<Image
 				source={
 					hideThumbnails
 						? getImageForItem(item)
@@ -622,7 +622,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
 			}}
 			onPress={() => photosRangeItemClick(item)}
 		>
-			<FastImage
+			<Image
 				source={
 					hideThumbnails
 						? getImageForItem(item)

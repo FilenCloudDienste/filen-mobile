@@ -335,10 +335,10 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 	}, [generatedItemList.length, scrollIndex])
 
 	const estimatedItemSize = useMemo(() => {
-		const listItemHeight: number = 60
-		const gridLengthDefault: number = Math.floor((dimensions.width - (insets.left + insets.right)) / itemsPerRow) + 55
-		const photosAllLength: number = Math.floor(dimensions.width / calcedPhotosGridSize)
-		const photosLength: number = Math.floor(dimensions.width - (insets.left + insets.right) - 1.5)
+		const listItemHeight = 60
+		const gridLengthDefault = Math.floor((dimensions.width - (insets.left + insets.right)) / itemsPerRow) + 55
+		const photosAllLength = Math.floor(dimensions.width / calcedPhotosGridSize)
+		const photosLength = Math.floor(dimensions.width - (insets.left + insets.right) - 1.5)
 
 		if (routeURL.indexOf("photos") !== -1) {
 			if (photosRange == "all") {

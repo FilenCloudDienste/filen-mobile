@@ -24,7 +24,7 @@ import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import { selectContact } from "../ContactsScreen/SelectContactScreen"
 import { showToast } from "../../components/Toasts"
 import {
@@ -39,13 +39,14 @@ import {
 	getMessageDisplayType,
 	getUserNameFromMessage,
 	getUserNameFromParticipant,
-	getUserNameFromReplyTo
+	ReplaceInlineMessageWithComponents
 } from "./utils"
 import { dbFs } from "../../lib/db"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { TopBar } from "../../components/TopBar"
 import striptags from "striptags"
 import { navigationAnimation } from "../../lib/state"
+import useIsPortrait from "../../lib/hooks/useIsPortrait"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -94,6 +95,10 @@ const Item = memo(
 			}
 		}, [lang, conversationParticipantsFilteredWithoutMe, conversation, userId])
 
+		if (conversationParticipantsFilteredWithoutMe.length === 0) {
+			return null
+		}
+
 		return (
 			<TouchableOpacity
 				activeOpacity={0.5}
@@ -124,56 +129,166 @@ const Item = memo(
 						flexDirection: "row"
 					}}
 				>
-					<View
-						style={{
-							width: AVATAR_HEIGHT,
-							height: AVATAR_HEIGHT,
-							borderRadius: AVATAR_HEIGHT,
-							backgroundColor: generateAvatarColorCode(conversation.uuid, darkMode),
-							flexDirection: "column",
-							alignItems: "center",
-							justifyContent: "center"
-						}}
-					>
-						{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
-							unreadConversationsMessages[conversation.uuid] > 0 && (
-								<View
-									style={{
-										backgroundColor: getColor(darkMode, "red"),
-										width: 18,
-										height: 18,
-										borderRadius: 18,
-										flexDirection: "row",
-										alignItems: "center",
-										justifyContent: "center",
-										position: "absolute",
-										left: AVATAR_HEIGHT / 2 + 3,
-										top: AVATAR_HEIGHT / 2 + 3
-									}}
-								>
-									<Text
-										style={{
-											color: "white",
-											fontWeight: "bold",
-											fontSize: 12
-										}}
-									>
-										{unreadConversationsMessages[conversation.uuid] >= 9
-											? 9
-											: unreadConversationsMessages[conversation.uuid]}
-									</Text>
-								</View>
-							)}
-						<Text
+					{conversationParticipantsFilteredWithoutMe.length > 1 ? (
+						<View
 							style={{
-								color: "white",
-								fontWeight: "bold",
-								fontSize: 20
+								width: AVATAR_HEIGHT,
+								height: AVATAR_HEIGHT,
+								borderRadius: AVATAR_HEIGHT,
+								backgroundColor: generateAvatarColorCode(
+									conversation.participants.length + "@" + conversation.uuid,
+									darkMode
+								),
+								flexDirection: "column",
+								alignItems: "center",
+								justifyContent: "center"
 							}}
 						>
-							{conversation.uuid.slice(0, 1).toUpperCase()}
-						</Text>
-					</View>
+							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
+								unreadConversationsMessages[conversation.uuid] > 0 && (
+									<View
+										style={{
+											backgroundColor: getColor(darkMode, "red"),
+											width: 18,
+											height: 18,
+											borderRadius: 18,
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "center",
+											position: "absolute",
+											left: AVATAR_HEIGHT / 2 + 3,
+											top: AVATAR_HEIGHT / 2 + 3
+										}}
+									>
+										<Text
+											style={{
+												color: "white",
+												fontWeight: "bold",
+												fontSize: 12
+											}}
+										>
+											{unreadConversationsMessages[conversation.uuid] >= 9
+												? 9
+												: unreadConversationsMessages[conversation.uuid]}
+										</Text>
+									</View>
+								)}
+							<Text
+								style={{
+									color: "white",
+									fontWeight: "bold",
+									fontSize: 20
+								}}
+							>
+								{conversation.participants.length.toString()}
+							</Text>
+						</View>
+					) : typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
+					  conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1 ? (
+						<Image
+							source={{
+								uri: conversationParticipantsFilteredWithoutMe[0].avatar
+							}}
+							style={{
+								width: 34,
+								height: 34,
+								borderRadius: 34
+							}}
+						>
+							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
+								unreadConversationsMessages[conversation.uuid] > 0 && (
+									<View
+										style={{
+											backgroundColor: getColor(darkMode, "red"),
+											width: 18,
+											height: 18,
+											borderRadius: 18,
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "center",
+											position: "absolute",
+											left: AVATAR_HEIGHT / 2 + 3,
+											top: AVATAR_HEIGHT / 2 + 3
+										}}
+									>
+										<Text
+											style={{
+												color: "white",
+												fontWeight: "bold",
+												fontSize: 12
+											}}
+										>
+											{unreadConversationsMessages[conversation.uuid] >= 9
+												? 9
+												: unreadConversationsMessages[conversation.uuid]}
+										</Text>
+									</View>
+								)}
+							<Text
+								style={{
+									color: "white",
+									fontWeight: "bold",
+									fontSize: 20
+								}}
+							>
+								{conversation.uuid.slice(0, 1).toUpperCase()}
+							</Text>
+						</Image>
+					) : (
+						<View
+							style={{
+								width: AVATAR_HEIGHT,
+								height: AVATAR_HEIGHT,
+								borderRadius: AVATAR_HEIGHT,
+								backgroundColor: generateAvatarColorCode(
+									getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]),
+									darkMode
+								),
+								flexDirection: "column",
+								alignItems: "center",
+								justifyContent: "center"
+							}}
+						>
+							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
+								unreadConversationsMessages[conversation.uuid] > 0 && (
+									<View
+										style={{
+											backgroundColor: getColor(darkMode, "red"),
+											width: 18,
+											height: 18,
+											borderRadius: 18,
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "center",
+											position: "absolute",
+											left: AVATAR_HEIGHT / 2 + 3,
+											top: AVATAR_HEIGHT / 2 + 3
+										}}
+									>
+										<Text
+											style={{
+												color: "white",
+												fontWeight: "bold",
+												fontSize: 12
+											}}
+										>
+											{unreadConversationsMessages[conversation.uuid] >= 9
+												? 9
+												: unreadConversationsMessages[conversation.uuid]}
+										</Text>
+									</View>
+								)}
+							<Text
+								style={{
+									color: "white",
+									fontWeight: "bold",
+									fontSize: 20
+								}}
+							>
+								{getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]).slice(0, 1).toUpperCase()}
+							</Text>
+						</View>
+					)}
 				</View>
 				<View
 					style={{
@@ -209,24 +324,45 @@ const Item = memo(
 										.join(", ")}
 						</Text>
 						{typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0 && (
-							<Text
+							<View
 								style={{
-									color: getColor(darkMode, "textSecondary"),
-									fontSize: 13,
-									maxWidth: "100%",
-									marginTop: 4
+									width: "100%",
+									flexDirection: "row",
+									alignItems: "center",
+									paddingRight: 15,
+									overflow: "hidden",
+									marginTop: 3
 								}}
-								numberOfLines={1}
 							>
-								<Text>
+								<Text
+									style={{
+										color: getColor(darkMode, "textSecondary"),
+										fontSize: 14
+									}}
+								>
 									{typeof conversation.lastMessage !== "string" || conversation.lastMessage.length === 0 ? (
 										<>&nbsp;</>
 									) : (
 										youOrElse
 									)}
 								</Text>
-								<Text>{conversation.lastMessage}</Text>
-							</Text>
+								<View
+									style={{
+										flexDirection: "row",
+										alignItems: "center"
+									}}
+								>
+									<ReplaceInlineMessageWithComponents
+										darkMode={darkMode}
+										content={conversation.lastMessage}
+										emojiSize={15}
+										hideLinks={true}
+										hideMentions={true}
+										participants={conversation.participants}
+										color={getColor(darkMode, "textSecondary")}
+									/>
+								</View>
+							</View>
 						)}
 					</View>
 				</View>
@@ -248,6 +384,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
 	const isFocused = useIsFocused()
 	const conversationsRef = useRef<ChatConversation[]>(conversations)
+	const isPortrait = useIsPortrait()
 
 	const conversationsSorted = useMemo(() => {
 		return sortAndFilterConversations(conversations, searchTerm, userId)
@@ -277,11 +414,11 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 				}
 
 				const promises: Promise<void>[] = []
-				const semaphore = new Semaphore(32)
+				const semaphore = new Semaphore(128)
 
 				for (const conversation of result.conversations) {
 					promises.push(
-						new Promise<void>(async resolve => {
+						new Promise<void>(async (resolve, reject) => {
 							await semaphore.acquire()
 
 							try {
@@ -291,18 +428,20 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 									...prev,
 									[conversation.uuid]: unreadResult
 								}))
-							} catch (e) {
-								console.error(e)
-							} finally {
-								semaphore.release()
 
 								resolve()
+							} catch (e) {
+								console.error(e)
+
+								reject(e)
+							} finally {
+								semaphore.release()
 							}
 						})
 					)
 				}
 
-				Promise.all(promises).catch(console.error)
+				await Promise.all(promises)
 			} catch (e) {
 				console.error(e)
 			} finally {
@@ -540,6 +679,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 				}}
 			>
 				<FlashList
+					key={"chats-" + isPortrait}
 					data={conversationsSorted}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}

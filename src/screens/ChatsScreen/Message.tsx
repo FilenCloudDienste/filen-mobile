@@ -26,7 +26,7 @@ import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import { selectContact } from "../ContactsScreen/SelectContactScreen"
 import { showToast } from "../../components/Toasts"
 import {
@@ -47,7 +47,8 @@ import {
 	fetchChatMessages,
 	formatDate,
 	formatMessageDate,
-	formatTime
+	formatTime,
+	ReplaceMessageWithComponents
 } from "./utils"
 import { dbFs } from "../../lib/db"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
@@ -73,6 +74,20 @@ const Message = memo(
 		userId: number
 		lang: string
 	}) => {
+		const [date, setDate] = useState<string>(formatMessageDate(message.sentTimestamp, lang))
+
+		const updateDate = useCallback(() => {
+			setDate(formatMessageDate(message.sentTimestamp, lang))
+		}, [message.sentTimestamp, lang, setDate])
+
+		useEffect(() => {
+			const dateInterval = setInterval(updateDate, 15000)
+
+			return () => {
+				clearInterval(dateInterval)
+			}
+		}, [])
+
 		return (
 			<TouchableOpacity
 				activeOpacity={0.5}
@@ -84,12 +99,12 @@ const Message = memo(
 					marginBottom: index === 0 ? 20 : 0,
 					marginTop: index >= messages.length - 1 ? 70 : 20
 				}}
-				onPress={() => { }}
-				onLongPress={() => { }}
+				onPress={() => {}}
+				onLongPress={() => {}}
 			>
 				<View>
-					{(message.senderAvatar && message.senderAvatar.indexOf("https://") !== -1) ? (
-						<FastImage
+					{message.senderAvatar && message.senderAvatar.indexOf("https://") !== -1 ? (
+						<Image
 							source={{
 								uri: message.senderAvatar
 							}}
@@ -153,20 +168,24 @@ const Message = memo(
 							}}
 							numberOfLines={1}
 						>
-							&nbsp;&nbsp;{formatMessageDate(message.sentTimestamp, lang)}
+							&nbsp;&nbsp;{date}
 						</Text>
 					</Text>
-					<Text
+					<View
 						style={{
-							width: "80%",
-							height: "auto",
-							color: getColor(darkMode, "textPrimary"),
-							fontSize: 15,
-							marginTop: 5
+							width: "85%",
+							marginTop: 5,
+							flexDirection: "row",
+							flexWrap: "wrap"
 						}}
 					>
-						{message.message}
-					</Text>
+						<ReplaceMessageWithComponents
+							content={message.message}
+							darkMode={darkMode}
+							failed={false}
+							participants={conversation.participants}
+						/>
+					</View>
 				</View>
 			</TouchableOpacity>
 		)

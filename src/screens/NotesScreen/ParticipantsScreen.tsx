@@ -14,7 +14,7 @@ import { generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import { selectContact } from "../ContactsScreen/SelectContactScreen"
 import { showToast } from "../../components/Toasts"
 import {
@@ -63,7 +63,7 @@ const Item = memo(
 			>
 				<View>
 					{participant.avatar.indexOf("https://") !== -1 ? (
-						<FastImage
+						<Image
 							source={{
 								uri: participant.avatar
 							}}

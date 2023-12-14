@@ -36,7 +36,7 @@ import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import { selectContact } from "../ContactsScreen/SelectContactScreen"
 import { showToast } from "../../components/Toasts"
 import {
@@ -65,6 +65,7 @@ import { TopBar } from "../../components/TopBar"
 import striptags from "striptags"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import Message from "./Message"
+import useIsPortrait from "../../lib/hooks/useIsPortrait"
 
 const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -88,6 +89,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const [conversationTitle, setConversationTitle] = useState<string>("ye")
 	const [loadingPreviousMessages, setLoadingPreviousMessages] = useState<boolean>(false)
 	const lastLoadPreviousMessagesTimestamp = useRef<number>(0)
+	const isPortrait = useIsPortrait()
 
 	const sortedMessages = useMemo(() => {
 		const exists: Record<string, boolean> = {}
@@ -310,7 +312,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 						/>
 					</TouchableOpacity>
 					{conversation.participants[0].avatar.indexOf("https://") !== -1 ? (
-						<FastImage
+						<Image
 							source={{
 								uri: conversation.participants[0].avatar
 							}}
@@ -380,10 +382,11 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				</View>
 			</View>
 			<FlashList
+				key={"messages-" + isPortrait}
 				data={sortedMessages}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
-				estimatedItemSize={100}
+				estimatedItemSize={60}
 				inverted={true}
 				onEndReached={onEndReached}
 				ListEmptyComponent={

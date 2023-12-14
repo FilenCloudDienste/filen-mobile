@@ -26,7 +26,7 @@ import { FlashList } from "@shopify/flash-list"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import eventListener from "../../lib/eventListener"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import { generateAvatarColorCode } from "../../lib/helpers"
 import { Feather } from "@expo/vector-icons"
 import { SheetManager } from "react-native-actions-sheet"
@@ -357,7 +357,7 @@ const Item = memo(
 
 									if (participant.avatar.indexOf("https://") !== -1) {
 										return (
-											<FastImage
+											<Image
 												key={participant.userId}
 												source={{
 													uri: participant.avatar

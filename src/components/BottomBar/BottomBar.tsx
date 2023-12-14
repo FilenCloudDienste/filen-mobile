@@ -143,10 +143,10 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 			isContactsScreen,
 			currentScreenName
 		]
-	}, [getParent(), getRouteURL()])
+	}, [currentRoutes])
 
 	const navTo = useCallback(
-		async (to: "recents" | "cloud" | "photos" | "settings" | "notes" | "chats" | "contacts") => {
+		async (to: "recents" | "cloud" | "photos" | "notes" | "chats") => {
 			await navigationAnimation({ enable: false })
 
 			if (to === "recents") {
@@ -195,17 +195,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 						routes: [
 							{
 								name: "ChatsScreen"
-							}
-						]
-					})
-				)
-			} else if (to === "settings" && currentScreenName !== "SettingsScreen") {
-				navigation.dispatch(
-					CommonActions.reset({
-						index: 0,
-						routes: [
-							{
-								name: "SettingsScreen"
 							}
 						]
 					})

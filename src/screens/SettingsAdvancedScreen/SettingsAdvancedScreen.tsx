@@ -12,7 +12,7 @@ import memoryCache from "../../lib/memoryCache"
 import * as fs from "../../lib/fs"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import { clearCacheDirectories } from "../../lib/services/setup"
 import { getColor } from "../../style"
 
@@ -160,7 +160,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
 																	await fs.unlink(tempPath + dirList[i])
 																}
 
-																await FastImage.clearDiskCache()
+																await Promise.all([Image.clearDiskCache(), Image.clearMemoryCache()])
 															} catch (e) {
 																console.log(e)
 															}
