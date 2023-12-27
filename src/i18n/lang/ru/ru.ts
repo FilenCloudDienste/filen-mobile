@@ -471,5 +471,9 @@ export const ru: {
 	export: "Экспортировать",
 	leave: "Покинуть",
 	noteContentPlaceholder: "Содержание заметки..",
-	chatYou: "Вы"
+	chatYou: "Вы",
+	chatOGNoTitle: "Название отсутствует",
+	chatOGNoDescription: "Описание отсутствует",
+	chatEdited: "(отредактировано)",
+	chatIsTyping: "печатает"
 }

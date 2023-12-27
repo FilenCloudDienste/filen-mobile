@@ -471,5 +471,9 @@ export const uk: {
 	export: "Експортувати",
 	leave: "Покинути",
 	noteContentPlaceholder: "Зміст нотатки..",
-	chatYou: "Ви"
+	chatYou: "Ви",
+	chatOGNoTitle: "Назва відсутня",
+	chatOGNoDescription: "Опис відсутній",
+	chatEdited: "(редаговано)",
+	chatIsTyping: "друкує"
 }
