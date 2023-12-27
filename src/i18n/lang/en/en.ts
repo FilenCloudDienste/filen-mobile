@@ -482,5 +482,17 @@ export const en: {
 	chatOGNoTitle: "No title available",
 	chatOGNoDescription: "No description available",
 	chatEdited: "(edited)",
-	chatIsTyping: "is typing"
+	chatIsTyping: "is typing",
+	new: "New",
+	chatInfoTitle: "End-to-end encrypted chat",
+	chatInfoSubtitle1: "Filen secures every chat with zero-knowledge end-to-end encryption by default.",
+	chatInfoSubtitle2: "Only the members of the chat can decrypt and read the content.",
+	chatInfoSubtitle3:
+		"The system ensures that the data received actually comes from the displayed user and has not been changed in the meantime.",
+	chatUnreadMessagesSince: "unread messages since __DATE__",
+	chatMarkAsRead: "Mark as read",
+	reply: "Reply",
+	copyText: "Copy text",
+	copyId: "Copy ID",
+	replyingTo: "Replying to"
 }

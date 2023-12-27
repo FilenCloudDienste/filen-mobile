@@ -395,7 +395,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View

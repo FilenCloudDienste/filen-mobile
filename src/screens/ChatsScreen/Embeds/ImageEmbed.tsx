@@ -11,7 +11,7 @@ const ImageEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string }
 		return (
 			<Text
 				style={{
-					fontSize: 15,
+					fontSize: 14,
 					color: getColor(darkMode, "linkPrimary")
 				}}
 				numberOfLines={1}
@@ -34,7 +34,7 @@ const ImageEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string }
 		>
 			<Text
 				style={{
-					fontSize: 15,
+					fontSize: 14,
 					color: getColor(darkMode, "linkPrimary")
 				}}
 				numberOfLines={1}
@@ -57,7 +57,8 @@ const ImageEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string }
 				<Image
 					style={{
 						width: "100%",
-						height: "100%"
+						height: "100%",
+						borderRadius: 5
 					}}
 					contentFit="contain"
 					source={{

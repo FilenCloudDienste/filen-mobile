@@ -748,6 +748,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 							onMomentumScrollBegin={() => (onEndReachedCalledDuringMomentum.current = false)}
 							onEndReachedThreshold={0.1}
 							estimatedItemSize={estimatedItemSize}
+							extraData={{
+								containerWidth
+							}}
 							onEndReached={() => {
 								if (
 									assets.length > 0 &&

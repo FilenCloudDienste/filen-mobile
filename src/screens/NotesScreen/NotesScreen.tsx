@@ -83,8 +83,7 @@ const Item = memo(
 
 		return (
 			<View onLayout={e => setHeight(e.nativeEvent.layout.height)}>
-				<TouchableHighlight
-					underlayColor={getColor(darkMode, "backgroundTertiary")}
+				<TouchableOpacity
 					style={{
 						flexDirection: "column",
 						marginBottom: index >= notesSorted.length - 1 ? 130 : 0,
@@ -404,7 +403,7 @@ const Item = memo(
 							</View>
 						)}
 					</View>
-				</TouchableHighlight>
+				</TouchableOpacity>
 			</View>
 		)
 	}
@@ -586,6 +585,13 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					estimatedItemSize={100}
+					extraData={{
+						darkMode,
+						notesSorted,
+						navigation,
+						userId,
+						tags
+					}}
 					refreshControl={
 						<RefreshControl
 							refreshing={refreshing}

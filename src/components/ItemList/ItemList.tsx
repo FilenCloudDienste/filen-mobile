@@ -597,6 +597,21 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 							windowSize={3}
 							numColumns={numColumns}
 							onScroll={onListScroll}
+							extraData={{
+								photosRange,
+								darkMode,
+								hideFileNames,
+								hideThumbnails,
+								lang,
+								dimensions,
+								hideSizes,
+								insets,
+								photosGridSize,
+								photosRangeItemClick,
+								itemsPerRow,
+								route,
+								normalizedPhotoRange
+							}}
 							ListEmptyComponent={() => {
 								return (
 									<View
@@ -656,6 +671,21 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 							onScroll={onListScroll}
 							estimatedItemSize={estimatedItemSize}
 							estimatedListSize={listDimensions}
+							extraData={{
+								photosRange,
+								darkMode,
+								hideFileNames,
+								hideThumbnails,
+								lang,
+								dimensions,
+								hideSizes,
+								insets,
+								photosGridSize,
+								photosRangeItemClick,
+								itemsPerRow,
+								route,
+								normalizedPhotoRange
+							}}
 							ListEmptyComponent={() => {
 								return (
 									<View

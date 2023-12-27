@@ -352,7 +352,7 @@ export type SocketEvent =
 			data: SocketChatConversationNameEdited
 	  }
 
-const waitForLogin = () => {
+export const waitForLogin = () => {
 	return new Promise<void>(resolve => {
 		const wait = setInterval(() => {
 			const loggedIn = storage.getBoolean("isLoggedIn")

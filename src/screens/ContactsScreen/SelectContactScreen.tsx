@@ -248,7 +248,11 @@ const SelectContactScreen = memo(
 
 					const res = await fetchContacts(skipCache)
 
-					setContacts(res.contacts.map(c => ({ ...c, selected: false })))
+					setContacts(prev => {
+						const prevSelected = prev.filter(c => c.selected).map(c => c.userId)
+
+						return res.contacts.map(c => ({ ...c, selected: prevSelected.includes(c.userId) }))
+					})
 
 					if (res.cache && networkInfo.online) {
 						loadContacts(true)
@@ -373,6 +377,11 @@ const SelectContactScreen = memo(
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
 						estimatedItemSize={55}
+						extraData={{
+							darkMode,
+							contactsSorted,
+							setContacts
+						}}
 						refreshControl={
 							<RefreshControl
 								refreshing={refreshing}

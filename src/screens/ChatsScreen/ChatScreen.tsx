@@ -6,30 +6,44 @@ import {
 	useWindowDimensions,
 	AppState,
 	ActivityIndicator,
-	TextInput,
-	KeyboardAvoidingView
+	KeyboardAvoidingView,
+	NativeSyntheticEvent,
+	NativeScrollEvent,
+	Platform,
+	Keyboard
 } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, useIsFocused } from "@react-navigation/native"
-import { ChatConversation, ChatConversationParticipant, ChatMessage, getChatLastFocus } from "../../lib/api"
+import {
+	ChatConversation,
+	ChatConversationParticipant,
+	ChatMessage,
+	getChatLastFocus,
+	BlockedContact,
+	contactsBlocked,
+	chatConversationsRead,
+	updateChatLastFocus
+} from "../../lib/api"
 import { SocketEvent } from "../../lib/services/socket"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
-import { useMMKVNumber } from "react-native-mmkv"
+import { useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import storage from "../../lib/storage"
-import { generateAvatarColorCode } from "../../lib/helpers"
+import { generateAvatarColorCode, Semaphore, SemaphoreInterface } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
 import { Image } from "expo-image"
 import { decryptChatMessage } from "../../lib/crypto"
-import { getUserNameFromParticipant, DisplayMessageAs, fetchChatMessages } from "./utils"
+import { getUserNameFromParticipant, fetchChatMessages } from "./utils"
 import { dbFs } from "../../lib/db"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import Message from "./Message"
 import useIsPortrait from "../../lib/hooks/useIsPortrait"
-import Typing from "./Typing"
+import TopbarUnread from "./TopbarUnread"
+import striptags from "striptags"
+import Input from "./Input"
 
 const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -38,24 +52,31 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const [loading, setLoading] = useState<boolean>(true)
 	const dimensions = useWindowDimensions()
 	const networkInfo = useNetworkInfo()
-	const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
 	const isFocused = useIsFocused()
 	const [messages, setMessages] = useState<ChatMessage[]>([])
 	const [atBottom, setAtBottom] = useState<boolean>(true)
 	const conversation = useRef<ChatConversation>(route.params.conversation).current
 	const conversationMe = useRef<ChatConversationParticipant>(conversation.participants.filter(p => p.userId === userId)[0]).current
 	const lastFocusTimestampRef = useRef<string>("")
-	const [lastFocusInitDone, setLastFocusInitDone] = useState<boolean>(false)
 	const [failedMessages, setFailedMessages] = useState<string[]>([])
-	const [displayMessageAs, setDisplayMessageAs] = useState<DisplayMessageAs>({})
 	const [replyMessageUUID, setReplyMessageUUID] = useState<string>("")
+	const [editingMessageUUID, setEditingMessageUUID] = useState<string>("")
 	const [lastFocusTimestamp, setLastFocusTimestamp] = useState<Record<string, number>>({})
-	const [conversationTitle, setConversationTitle] = useState<string>("ye")
-	const [loadingPreviousMessages, setLoadingPreviousMessages] = useState<boolean>(false)
+	const [conversationTitle, setConversationTitle] = useState<string>("")
 	const lastLoadPreviousMessagesTimestamp = useRef<number>(0)
 	const isPortrait = useIsPortrait()
 	const atBottomRef = useRef<boolean>(atBottom)
 	const isFocusedRef = useRef<boolean>(isFocused)
+	const [blockedContacts, setBlockedContacts] = useState<BlockedContact[]>([])
+	const [isScrolling, setIsScrolling] = useState<boolean>(false)
+	const markNotificationsAsReadMutex = useRef<SemaphoreInterface>(new Semaphore(1)).current
+	const markNotificationsAsReadLastMessageRef = useRef<string>("")
+	const updateLastFocusMutex = useRef<SemaphoreInterface>(new Semaphore(1)).current
+	const didInitialLoad = useRef<boolean>(false)
+
+	const conversationParticipantsFilteredWithoutMe = useMemo(() => {
+		return conversation.participants.filter(participant => participant.userId !== userId).sort((a, b) => a.email.localeCompare(b.email))
+	}, [conversation, userId])
 
 	const sortedMessages = useMemo(() => {
 		const exists: Record<string, boolean> = {}
@@ -87,6 +108,20 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		loadPreviousMessages(firstMessage.sentTimestamp)
 	}, [sortedMessages])
 
+	const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+		setAtBottom(event.nativeEvent.contentOffset.y <= 100)
+	}, [])
+
+	const fetchBlockedContacts = useCallback(async () => {
+		try {
+			const res = await contactsBlocked()
+
+			setBlockedContacts(res)
+		} catch (e) {
+			console.error(e)
+		}
+	}, [])
+
 	const loadPreviousMessages = useCallback(
 		async (lastTimestamp: number) => {
 			if (lastLoadPreviousMessagesTimestamp.current === lastTimestamp) {
@@ -94,8 +129,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			}
 
 			lastLoadPreviousMessagesTimestamp.current = lastTimestamp
-
-			setLoadingPreviousMessages(true)
 
 			try {
 				const result = await fetchChatMessages(conversation.uuid, conversationMe.metadata, lastTimestamp, true, false)
@@ -105,8 +138,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				console.error(e)
 
 				lastLoadPreviousMessagesTimestamp.current = 0
-			} finally {
-				setLoadingPreviousMessages(false)
 			}
 		},
 		[conversation, conversationMe]
@@ -143,21 +174,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		[networkInfo, conversation, conversationMe]
 	)
 
-	const fetchLastFocus = useCallback(async () => {
-		try {
-			const res = await getChatLastFocus()
-
-			if (res.length > 0) {
-				setLastFocusTimestamp(res.reduce((prev, current) => ({ ...prev, [current.uuid]: current.lastFocus }), {}))
-			}
-		} catch (e) {
-			console.error(e)
-		}
-	}, [])
-
 	const initLastFocus = useCallback(async () => {
-		setLastFocusInitDone(false)
-
 		try {
 			const res = await getChatLastFocus()
 
@@ -166,8 +183,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			}
 		} catch (e) {
 			console.error(e)
-		} finally {
-			setLastFocusInitDone(true)
 		}
 	}, [])
 
@@ -184,25 +199,110 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					lang={lang}
 					index={index}
 					conversation={conversation}
+					blockedContacts={blockedContacts}
+					failedMessages={failedMessages}
+					prevMessage={messages[index + 1]}
+					nextMessage={messages[index - 1]}
+					lastFocusTimestamp={lastFocusTimestamp}
+					setLastFocusTimestamp={setLastFocusTimestamp}
+					editingMessageUUID={editingMessageUUID}
+					replyMessageUUID={replyMessageUUID}
+					isScrolling={isScrolling}
 				/>
 			)
 		},
-		[darkMode, userId, sortedMessages, lang, conversation]
+		[
+			darkMode,
+			userId,
+			sortedMessages,
+			lang,
+			conversation,
+			blockedContacts,
+			failedMessages,
+			lastFocusTimestamp,
+			setLastFocusTimestamp,
+			editingMessageUUID,
+			replyMessageUUID,
+			isScrolling
+		]
 	)
+
+	const markNotificationsAsRead = useCallback(async (convo: string) => {
+		try {
+			await chatConversationsRead(convo)
+
+			eventListener.emit("chatConversationRead", { uuid: convo, count: 0 })
+		} catch (e) {
+			console.error(e)
+		}
+	}, [])
+
+	useEffect(() => {
+		;(async () => {
+			await markNotificationsAsReadMutex.acquire()
+
+			if (
+				messages.length > 0 &&
+				markNotificationsAsReadLastMessageRef.current !== messages[messages.length - 1].uuid &&
+				isFocused &&
+				atBottom
+			) {
+				try {
+					await markNotificationsAsRead(conversation.uuid)
+
+					markNotificationsAsReadLastMessageRef.current = messages[messages.length - 1].uuid
+				} catch (e) {
+					console.error(e)
+				}
+			}
+
+			markNotificationsAsReadMutex.release()
+		})()
+	}, [messages, atBottom, isFocused, conversation, userId])
+
+	useEffect(() => {
+		if (typeof lastFocusTimestamp !== "undefined") {
+			const convoUUID = conversation.uuid
+			const currentLastFocus = lastFocusTimestamp[convoUUID]
+
+			if (typeof currentLastFocus === "number") {
+				const current = JSON.stringify(currentLastFocus)
+
+				if (current !== lastFocusTimestampRef.current) {
+					lastFocusTimestampRef.current = current
+					;(async () => {
+						await updateLastFocusMutex.acquire()
+
+						try {
+							await updateChatLastFocus([
+								{
+									uuid: convoUUID,
+									lastFocus: currentLastFocus
+								}
+							])
+						} catch (e) {
+							console.error(e)
+						}
+
+						updateLastFocusMutex.release()
+					})()
+				}
+			}
+		}
+	}, [JSON.stringify(lastFocusTimestamp)])
 
 	useEffect(() => {
 		if (isFocused) {
 			loadMessages(true)
+			fetchBlockedContacts()
 		}
 	}, [isFocused])
 
 	useEffect(() => {
 		if (sortedMessages.length > 0) {
-			const failed: Record<string, boolean> = failedMessages.reduce((prev, current) => ({ ...prev, [current]: true }), {})
-
 			dbFs.set(
 				"chatMessages:" + sortedMessages[0].conversation,
-				sortedMessages.filter(message => !failed[message.uuid])
+				sortedMessages.filter(message => !failedMessages.includes(message.uuid))
 			).catch(console.error)
 		}
 	}, [JSON.stringify(sortedMessages), failedMessages])
@@ -213,17 +313,24 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	}, [atBottom, isFocused])
 
 	useEffect(() => {
-		loadMessages()
-		initLastFocus()
+		if (!didInitialLoad.current) {
+			didInitialLoad.current = true
+
+			loadMessages()
+			initLastFocus()
+			fetchBlockedContacts()
+		}
 
 		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
 			if (nextAppState === "active") {
 				loadMessages(true)
+				fetchBlockedContacts()
 			}
 		})
 
 		const socketAuthedListener = eventListener.on("socketAuthed", () => {
 			loadMessages(true)
+			fetchBlockedContacts()
 		})
 
 		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
@@ -245,15 +352,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					...prev,
 					[event.data.conversation]: event.data.sentTimestamp
 				}))
-			}
-
-			if (event.type === "chatMessageNew" && event.data.senderId !== userId) {
-				if (conversation.uuid !== event.data.conversation || !isFocusedRef.current || atBottomRef.current) {
-					setUnreadConversationsMessages(prev => ({
-						...prev,
-						[event.data.conversation]: typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
-					}))
-				}
 			}
 
 			if (event.type === "chatMessageNew") {
@@ -329,8 +427,8 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 
 	return (
 		<KeyboardAvoidingView
-			behavior="padding"
-			keyboardVerticalOffset={65}
+			behavior={Platform.OS === "ios" ? "padding" : undefined}
+			keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
 			style={{
 				height: "100%",
 				width: "100%",
@@ -348,7 +446,9 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					borderBottomWidth: 0.5,
 					backgroundColor: getColor(darkMode, "backgroundPrimary"),
 					zIndex: 1001,
-					justifyContent: "space-between"
+					justifyContent: "space-between",
+					paddingLeft: 10,
+					paddingRight: 10
 				}}
 			>
 				<View
@@ -377,25 +477,16 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							}}
 						/>
 					</TouchableOpacity>
-					{conversation.participants[0].avatar.indexOf("https://") !== -1 ? (
-						<Image
-							source={{
-								uri: conversation.participants[0].avatar
-							}}
-							cachePolicy="memory-disk"
-							style={{
-								width: 30,
-								height: 30,
-								borderRadius: 30
-							}}
-						/>
-					) : (
+					{conversationParticipantsFilteredWithoutMe.length > 1 ? (
 						<View
 							style={{
-								width: 30,
-								height: 30,
-								borderRadius: 30,
-								backgroundColor: generateAvatarColorCode(conversation.participants[0].email, darkMode),
+								width: 32,
+								height: 32,
+								borderRadius: 32,
+								backgroundColor: generateAvatarColorCode(
+									conversation.participants.length + "@" + conversation.uuid,
+									darkMode
+								),
 								flexDirection: "column",
 								alignItems: "center",
 								justifyContent: "center"
@@ -408,7 +499,45 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 									fontSize: 20
 								}}
 							>
-								{getUserNameFromParticipant(conversation.participants[0]).slice(0, 1).toUpperCase()}
+								{getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]).slice(0, 1).toUpperCase()}
+							</Text>
+						</View>
+					) : typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
+					  conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1 ? (
+						<Image
+							source={{
+								uri: conversationParticipantsFilteredWithoutMe[0].avatar
+							}}
+							cachePolicy="memory-disk"
+							style={{
+								width: 32,
+								height: 32,
+								borderRadius: 32
+							}}
+						/>
+					) : (
+						<View
+							style={{
+								width: 32,
+								height: 32,
+								borderRadius: 32,
+								backgroundColor: generateAvatarColorCode(
+									getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]),
+									darkMode
+								),
+								flexDirection: "column",
+								alignItems: "center",
+								justifyContent: "center"
+							}}
+						>
+							<Text
+								style={{
+									color: "white",
+									fontWeight: "bold",
+									fontSize: 20
+								}}
+							>
+								{getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]).slice(0, 1).toUpperCase()}
 							</Text>
 						</View>
 					)}
@@ -417,11 +546,17 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 						style={{
 							color: getColor(darkMode, "textPrimary"),
 							fontWeight: "500",
-							fontSize: 17,
+							fontSize: 18,
 							marginLeft: 10
 						}}
 					>
-						{getUserNameFromParticipant(conversation.participants[0])}
+						{conversationTitle.length > 0
+							? conversationTitle
+							: typeof conversation.name === "string" && conversation.name.length > 0
+							? conversation.name
+							: conversationParticipantsFilteredWithoutMe.length > 0
+							? conversationParticipantsFilteredWithoutMe.map(user => striptags(getUserNameFromParticipant(user))).join(", ")
+							: conversation.participants.map(user => striptags(getUserNameFromParticipant(user))).join(", ")}
 					</Text>
 				</View>
 				<View
@@ -441,13 +576,22 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 						}}
 					>
 						<Ionicon
-							name="ellipsis-horizontal-circle-outline"
-							size={23}
+							name="people-outline"
+							size={22}
 							color={getColor(darkMode, "linkPrimary")}
 						/>
 					</TouchableOpacity>
 				</View>
 			</View>
+			<TopbarUnread
+				darkMode={darkMode}
+				conversation={conversation}
+				messages={messages}
+				lastFocusTimestamp={lastFocusTimestamp}
+				setLastFocusTimestamp={setLastFocusTimestamp}
+				userId={userId}
+				lang={lang}
+			/>
 			<FlashList
 				key={"messages-" + isPortrait}
 				data={sortedMessages}
@@ -456,6 +600,24 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				estimatedItemSize={60}
 				inverted={true}
 				onEndReached={onEndReached}
+				onEndReachedThreshold={300}
+				onMomentumScrollEnd={() => setIsScrolling(false)}
+				onMomentumScrollBegin={() => setIsScrolling(true)}
+				extraData={{
+					darkMode,
+					userId,
+					sortedMessages,
+					lang,
+					conversation,
+					blockedContacts,
+					failedMessages,
+					lastFocusTimestamp,
+					setLastFocusTimestamp,
+					editingMessageUUID,
+					replyMessageUUID,
+					isScrolling
+				}}
+				onScroll={onScroll}
 				ListEmptyComponent={
 					<>
 						{loading ? (
@@ -502,63 +664,16 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					</>
 				}
 			/>
-			<View
-				style={{
-					width: "100%",
-					minHeight: 50,
-					flexDirection: "row",
-					alignItems: "center",
-					borderTopColor: getColor(darkMode, "primaryBorder"),
-					borderTopWidth: 0.5,
-					paddingTop: 5,
-					paddingBottom: 5
-				}}
-			>
-				<Typing
-					darkMode={darkMode}
-					conversation={conversation}
-					lang={lang}
-				/>
-				<TouchableOpacity
-					style={{
-						width: 35,
-						height: 35,
-						backgroundColor: getColor(darkMode, "backgroundSecondary"),
-						borderRadius: 35,
-						flexDirection: "row",
-						alignItems: "center",
-						justifyContent: "center"
-					}}
-				>
-					<Ionicon
-						name="add-sharp"
-						color={getColor(darkMode, "textPrimary")}
-						size={24}
-					/>
-				</TouchableOpacity>
-				<TextInput
-					multiline={true}
-					autoFocus={false}
-					keyboardType="default"
-					returnKeyType="send"
-					scrollEnabled={true}
-					cursorColor={getColor(darkMode, "linkPrimary")}
-					style={{
-						backgroundColor: getColor(darkMode, "backgroundSecondary"),
-						minHeight: 35,
-						maxHeight: 35 * 3,
-						borderRadius: 15,
-						width: "89%",
-						marginLeft: 5,
-						paddingLeft: 10,
-						paddingRight: 10,
-						paddingTop: 5,
-						paddingBottom: 5,
-						color: getColor(darkMode, "textPrimary"),
-						fontSize: 16
-					}}
-				/>
-			</View>
+			<Input
+				darkMode={darkMode}
+				lang={lang}
+				conversation={conversation}
+				setFailedMessages={setFailedMessages}
+				setMessages={setMessages}
+				conversationMe={conversationMe}
+				setEditingMessageUUID={setEditingMessageUUID}
+				setReplyMessageUUID={setReplyMessageUUID}
+			/>
 		</KeyboardAvoidingView>
 	)
 })

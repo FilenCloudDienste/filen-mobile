@@ -3,47 +3,26 @@ import { View, Text, TouchableOpacity, useWindowDimensions, AppState, ActivityIn
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, useIsFocused, StackActions } from "@react-navigation/native"
-import {
-	Note,
-	NoteParticipant,
-	Contact,
-	noteParticipantsAdd,
-	ChatConversation,
-	chatConversationsUnread,
-	chatConversationsRead
-} from "../../lib/api"
+import { ChatConversation, chatConversationsUnread, chatConversationsRead } from "../../lib/api"
 import { SocketEvent } from "../../lib/services/socket"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
-import { useMMKVNumber, useMMKVObject } from "react-native-mmkv"
+import { useMMKVNumber } from "react-native-mmkv"
 import storage from "../../lib/storage"
 import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
 import { Image } from "expo-image"
-import { selectContact } from "../ContactsScreen/SelectContactScreen"
-import { showToast } from "../../components/Toasts"
-import {
-	showFullScreenLoadingModal,
-	hideFullScreenLoadingModal
-} from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
-import {
-	sortAndFilterConversations,
-	fetchChatConversations,
-	getUserNameFromAccount,
-	getMessageDisplayType,
-	getUserNameFromMessage,
-	getUserNameFromParticipant,
-	ReplaceInlineMessageWithComponents
-} from "./utils"
+import { sortAndFilterConversations, fetchChatConversations, getUserNameFromParticipant, ReplaceInlineMessageWithComponents } from "./utils"
 import { dbFs } from "../../lib/db"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { TopBar } from "../../components/TopBar"
 import striptags from "striptags"
 import { navigationAnimation } from "../../lib/state"
 import useIsPortrait from "../../lib/hooks/useIsPortrait"
+import { BottomBar } from "../../components/BottomBar"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -240,15 +219,6 @@ const Item = memo(
 										</Text>
 									</View>
 								)}
-							<Text
-								style={{
-									color: "white",
-									fontWeight: "bold",
-									fontSize: 20
-								}}
-							>
-								{conversation.uuid.slice(0, 1).toUpperCase()}
-							</Text>
 						</Image>
 					) : (
 						<View
@@ -347,7 +317,7 @@ const Item = memo(
 									alignItems: "center",
 									paddingRight: 15,
 									overflow: "hidden",
-									marginTop: 3
+									marginTop: 1
 								}}
 							>
 								<Text
@@ -366,7 +336,8 @@ const Item = memo(
 									style={{
 										flexDirection: "row",
 										alignItems: "center",
-										height: 16
+										flexWrap: "nowrap",
+										height: 20
 									}}
 								>
 									<ReplaceInlineMessageWithComponents
@@ -708,6 +679,14 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					estimatedItemSize={ITEM_HEIGHT}
+					extraData={{
+						darkMode,
+						conversations,
+						lang,
+						userId,
+						unreadConversationsMessages,
+						navigation
+					}}
 					refreshControl={
 						<RefreshControl
 							refreshing={refreshing}
@@ -801,6 +780,16 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 						</>
 					}
 				/>
+			</View>
+			<View
+				style={{
+					position: "absolute",
+					width: "100%",
+					bottom: 0,
+					height: 50
+				}}
+			>
+				<BottomBar navigation={navigation} />
 			</View>
 		</View>
 	)

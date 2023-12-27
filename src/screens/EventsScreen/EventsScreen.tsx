@@ -480,6 +480,21 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 		[isLoading, filter]
 	)
 
+	const renderItem = useCallback(
+		({ item }) => {
+			return (
+				<EventRow
+					item={item}
+					darkMode={darkMode}
+					lang={lang}
+					navigation={navigation}
+					masterKeys={masterKeys}
+				/>
+			)
+		},
+		[lang, darkMode, navigation, masterKeys]
+	)
+
 	useEffect(() => {
 		if (!init.current) {
 			init.current = true
@@ -509,19 +524,15 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 					keyExtractor={(item: any) => item.uuid}
 					numColumns={1}
 					initialNumToRender={Math.floor(dimensions.height / 30) + 10}
-					renderItem={({ item }) => {
-						return (
-							<EventRow
-								item={item}
-								darkMode={darkMode}
-								lang={lang}
-								navigation={navigation}
-								masterKeys={masterKeys}
-							/>
-						)
-					}}
+					renderItem={renderItem}
 					onMomentumScrollBegin={() => (onEndReachedCalledDuringMomentum.current = false)}
 					onEndReachedThreshold={0.1}
+					extraData={{
+						lang,
+						darkMode,
+						navigation,
+						masterKeys
+					}}
 					onEndReached={() => {
 						if (events.length > 0 && !onEndReachedCalledDuringMomentum.current && canPaginate.current) {
 							onEndReachedCalledDuringMomentum.current = true

@@ -68,21 +68,23 @@ const Typing = memo(({ darkMode, lang, conversation }: { darkMode: boolean; lang
 				flexDirection: "row",
 				overflow: "hidden",
 				height: 20,
-				width: "100%",
+				width: "200%",
 				alignItems: "center",
 				position: "absolute",
 				top: 0,
 				marginTop: -20,
 				paddingLeft: 15,
-				paddingRight: 15,
+				paddingRight: 30,
 				opacity: usersTyping.length === 0 ? 0 : 1,
-				backgroundColor: usersTyping.length === 0 ? "transparent" : getColor(darkMode, "backgroundSecondary")
+				backgroundColor: usersTyping.length === 0 ? "transparent" : getColor(darkMode, "backgroundSecondary"),
+				borderBottomColor: getColor(darkMode, "primaryBorder"),
+				borderBottomWidth: usersTyping.length === 0 ? 0 : 0.5
 			}}
 		>
 			{usersTyping.length === 0 ? (
 				<Text
 					style={{
-						fontSize: 12,
+						fontSize: 11,
 						color: "transparent"
 					}}
 				>
@@ -99,11 +101,12 @@ const Typing = memo(({ darkMode, lang, conversation }: { darkMode: boolean; lang
 						style={{
 							marginLeft: 5
 						}}
+						numberOfLines={1}
 					>
 						<Text
 							style={{
 								color: getColor(darkMode, "textPrimary"),
-								fontSize: 12
+								fontSize: 11
 							}}
 						>
 							{usersTyping.map(user => getUserNameFromParticipant(user)).join(", ")}
@@ -111,7 +114,7 @@ const Typing = memo(({ darkMode, lang, conversation }: { darkMode: boolean; lang
 						<Text
 							style={{
 								color: getColor(darkMode, "textSecondary"),
-								fontSize: 12,
+								fontSize: 11,
 								marginLeft: 3
 							}}
 						>

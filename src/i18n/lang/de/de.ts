@@ -480,5 +480,17 @@ export const de: {
 	chatOGNoTitle: "Kein Titel verfügbar",
 	chatOGNoDescription: "Keine Beschreibung verfügbar",
 	chatEdited: "(bearbeitet)",
-	chatIsTyping: "schreibt"
+	chatIsTyping: "schreibt",
+	new: "Neu",
+	chatInfoTitle: "Ende-zu-Ende verschlüsselter Chat",
+	chatInfoSubtitle1: "Filen sichert jeden Chat standardmäßig mit zero-knowledge Ende-zu-Ende-Verschlüsselung.",
+	chatInfoSubtitle2: "Nur die Mitglieder des Chats können den Inhalt entschlüsseln und lesen.",
+	chatInfoSubtitle3:
+		"Das System stellt sicher, dass die empfangenen Daten tatsächlich vom angezeigten Benutzer stammen und zwischenzeitlich nicht verändert wurden.",
+	chatUnreadMessagesSince: "ungelesene Nachrichten seit __DATE__",
+	chatMarkAsRead: "Als gelesen markieren",
+	reply: "Antworten",
+	copyText: "Text kopieren",
+	copyId: "ID kopieren",
+	replyingTo: "Antworten auf"
 }

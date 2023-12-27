@@ -86,6 +86,7 @@ import NotesCreateTagDialog from "./components/Dialogs/NotesCreateTagDialog"
 import NoteTagDialog from "./components/Dialogs/NoteTagDialog"
 import NoteHistoryScreen from "./screens/NotesScreen/NoteHistoryScreen"
 import ChatScreen from "./screens/ChatsScreen/ChatScreen"
+import ChatMessageActionSheet from "./components/ActionSheets/ChatMessageActionSheet"
 
 enableScreens(true)
 
@@ -798,10 +799,11 @@ export const App = Sentry.wrap(
 											].includes(currentScreenName) && (
 												<View
 													style={{
-														position: "relative",
+														position: currentScreenName === "ChatsScreen" ? "absolute" : "relative",
 														width: "100%",
 														bottom: 0,
-														height: 50
+														height: 50,
+														backgroundColor: getColor(darkMode, "backgroundPrimary")
 													}}
 												>
 													<BottomBar navigation={navigationRef} />
@@ -823,6 +825,7 @@ export const App = Sentry.wrap(
 										<NoteChangeTypeActionSheet />
 										<NoteParticipantsActionSheet />
 										<NoteTagsActionSheet />
+										<ChatMessageActionSheet />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>

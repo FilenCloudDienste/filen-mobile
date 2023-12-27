@@ -408,6 +408,11 @@ const ParticipantsScreen = memo(
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
 						estimatedItemSize={55}
+						extraData={{
+							darkMode,
+							selectedNote,
+							participantsFilteredWithoutMe
+						}}
 						ListEmptyComponent={
 							<View
 								style={{

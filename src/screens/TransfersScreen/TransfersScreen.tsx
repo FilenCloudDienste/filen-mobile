@@ -158,6 +158,11 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
 			renderItem={renderItem}
 			getItemLayout={getItemLayout}
 			onLayout={onLayout}
+			extraData={{
+				containerWidth,
+				portrait,
+				darkMode
+			}}
 			style={{
 				height: "100%",
 				width: "100%"
@@ -343,22 +348,19 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
 	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
 	const insets = useSafeAreaInsets()
 
-	const renderItem = useCallback(
-		({ item, index }) => {
-			return (
-				<OngoingTransferItem
-					darkMode={darkMode}
-					lang={lang}
-					pausedTransfers={pausedTransfers}
-					setPausedTransfers={setPausedTransfers}
-					item={item}
-					containerWidth={containerWidth}
-					index={index}
-				/>
-			)
-		},
-		[containerWidth, portrait, pausedTransfers, darkMode, lang]
-	)
+	const renderItem = useCallback(({ item, index }) => {
+		return (
+			<OngoingTransferItem
+				darkMode={darkMode}
+				lang={lang}
+				pausedTransfers={pausedTransfers}
+				setPausedTransfers={setPausedTransfers}
+				item={item}
+				containerWidth={containerWidth}
+				index={index}
+			/>
+		)
+	}, [])
 
 	const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
 	const keyExtractor = useCallback((_, index) => index.toString(), [])
@@ -388,6 +390,13 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
 			renderItem={renderItem}
 			getItemLayout={getItemLayout}
 			onLayout={onLayout}
+			extraData={{
+				containerWidth,
+				portrait,
+				pausedTransfers,
+				darkMode,
+				lang
+			}}
 			style={{
 				height: "100%",
 				width: "100%"

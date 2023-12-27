@@ -49,7 +49,7 @@ const YouTubeEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string
 		return (
 			<Text
 				style={{
-					fontSize: 15,
+					fontSize: 14,
 					color: getColor(darkMode, "linkPrimary")
 				}}
 				numberOfLines={1}
@@ -72,7 +72,7 @@ const YouTubeEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string
 		>
 			<Text
 				style={{
-					fontSize: 15,
+					fontSize: 14,
 					color: getColor(darkMode, "linkPrimary")
 				}}
 				numberOfLines={1}
@@ -81,7 +81,7 @@ const YouTubeEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string
 			</Text>
 			<Text
 				style={{
-					fontSize: 15,
+					fontSize: 14,
 					color: getColor(darkMode, "textPrimary"),
 					marginTop: 10
 				}}

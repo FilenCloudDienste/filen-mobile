@@ -1,5 +1,5 @@
 import { updateKeys } from "../user/keys"
-import { apiRequest } from "../../api"
+import { apiRequest, registerPushToken } from "../../api"
 import { promiseAllSettled, toExpoFsPath } from "../../helpers"
 import storage from "../../storage"
 import { showToast } from "../../../components/Toasts"
@@ -186,7 +186,7 @@ export const clearCacheDirectories = async (): Promise<void> => {
 export const preloadAvatar = async (): Promise<void> => {
 	const userId = storage.getNumber("userId")
 
-	if (userId == 0) {
+	if (userId === 0) {
 		return
 	}
 
@@ -251,4 +251,10 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 	sharedStorage.set("isLoggedIn", storage.getBoolean("isLoggedIn"))
 	sharedStorage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
 	sharedStorage.set("userId", storage.getNumber("userId") || 0)
+
+	const pushToken = storage.getString("pushToken")
+
+	if (typeof pushToken === "string" && pushToken.length > 0) {
+		registerPushToken(pushToken).catch(console.error)
+	}
 }

@@ -240,7 +240,6 @@ const ProfilePictureActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="ProfilePictureActionSheet"
 			gestureEnabled={true}
@@ -251,7 +250,7 @@ const ProfilePictureActionSheet = memo(() => {
 				paddingBottom: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View

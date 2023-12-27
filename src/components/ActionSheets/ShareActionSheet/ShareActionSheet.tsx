@@ -125,7 +125,6 @@ const ShareActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="ShareActionSheet"
 			gestureEnabled={buttonsDisabled ? false : true}
@@ -138,7 +137,7 @@ const ShareActionSheet = memo(() => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View

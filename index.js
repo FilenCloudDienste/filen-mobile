@@ -164,12 +164,6 @@ if (Platform.OS === "android") {
 	})
 }
 
-const registerPushToken = async token => {
-	console.log("Push token:", token)
-
-	storage.set("pushToken", token)
-}
-
 const onPushNotification = async message => {
 	console.log(message)
 
@@ -199,7 +193,7 @@ const onPushNotification = async message => {
 }
 
 Notifications.events().registerRemoteNotificationsRegistered(event => {
-	console.log(Platform.OS, "Device Token Received", event.deviceToken)
+	storage.set("pushToken", event.deviceToken)
 })
 
 Notifications.events().registerRemoteNotificationsRegistrationFailed(event => {

@@ -250,6 +250,12 @@ const NoteHistoryScreen = memo(
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
 						estimatedItemSize={55}
+						extraData={{
+							darkMode,
+							history,
+							selectedNote,
+							navigation
+						}}
 						refreshControl={
 							<RefreshControl
 								refreshing={refreshing}

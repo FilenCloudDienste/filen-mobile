@@ -295,11 +295,11 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Ionicon
 					name={showHome ? "home" : "home-outline"}
 					size={22}
-					color={showHome ? "#0A84FF" : "gray"}
+					color={showHome ? getColor(darkMode, "linkPrimary") : "gray"}
 				/>
 				<Text
 					style={{
-						color: showHome ? "#0A84FF" : "gray",
+						color: showHome ? getColor(darkMode, "linkPrimary") : "gray",
 						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
@@ -319,11 +319,11 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Ionicon
 					name={showCloud ? "cloud" : "cloud-outline"}
 					size={22}
-					color={showCloud ? "#0A84FF" : "gray"}
+					color={showCloud ? getColor(darkMode, "linkPrimary") : "gray"}
 				/>
 				<Text
 					style={{
-						color: showCloud ? "#0A84FF" : "gray",
+						color: showCloud ? getColor(darkMode, "linkPrimary") : "gray",
 						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth
@@ -355,6 +355,54 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 					}
 				/>
 				</Pressable>*/}
+			<Pressable
+				style={{
+					alignItems: "center",
+					width: "20%"
+				}}
+				onPress={() => navTo("photos")}
+			>
+				<Ionicon
+					name={isPhotosScreen ? "image" : "image-outline"}
+					size={22}
+					color={isPhotosScreen ? getColor(darkMode, "linkPrimary") : "gray"}
+				/>
+				<Text
+					style={{
+						color: isPhotosScreen ? getColor(darkMode, "linkPrimary") : "gray",
+						fontSize: 11,
+						marginTop: 3,
+						maxWidth: iconTextMaxWidth
+					}}
+					numberOfLines={1}
+				>
+					{i18n(lang, "photos")}
+				</Text>
+			</Pressable>
+			<Pressable
+				style={{
+					alignItems: "center",
+					width: "20%"
+				}}
+				onPress={() => navTo("notes")}
+			>
+				<Ionicon
+					name={isNotesScreen ? "book" : "book-outline"}
+					size={22}
+					color={isNotesScreen ? getColor(darkMode, "linkPrimary") : "gray"}
+				/>
+				<Text
+					style={{
+						color: isNotesScreen ? getColor(darkMode, "linkPrimary") : "gray",
+						fontSize: 11,
+						marginTop: 3,
+						maxWidth: iconTextMaxWidth
+					}}
+					numberOfLines={1}
+				>
+					{i18n(lang, "notes")}
+				</Text>
+			</Pressable>
 			<Pressable
 				style={{
 					alignItems: "center",
@@ -405,54 +453,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 					{i18n(lang, "chats")}
 				</Text>
 			</Pressable>
-			<Pressable
-				style={{
-					alignItems: "center",
-					width: "20%"
-				}}
-				onPress={() => navTo("photos")}
-			>
-				<Ionicon
-					name={isPhotosScreen ? "image" : "image-outline"}
-					size={22}
-					color={isPhotosScreen ? "#0A84FF" : "gray"}
-				/>
-				<Text
-					style={{
-						color: isPhotosScreen ? "#0A84FF" : "gray",
-						fontSize: 11,
-						marginTop: 3,
-						maxWidth: iconTextMaxWidth
-					}}
-					numberOfLines={1}
-				>
-					{i18n(lang, "photos")}
-				</Text>
-			</Pressable>
-			<Pressable
-				style={{
-					alignItems: "center",
-					width: "20%"
-				}}
-				onPress={() => navTo("notes")}
-			>
-				<Ionicon
-					name={isNotesScreen ? "book" : "book-outline"}
-					size={22}
-					color={isNotesScreen ? "#0A84FF" : "gray"}
-				/>
-				<Text
-					style={{
-						color: isNotesScreen ? "#0A84FF" : "gray",
-						fontSize: 11,
-						marginTop: 3,
-						maxWidth: iconTextMaxWidth
-					}}
-					numberOfLines={1}
-				>
-					{i18n(lang, "notes")}
-				</Text>
-			</Pressable>
 			{/*<Pressable
 				style={{
 					alignItems: "center",
@@ -463,11 +463,11 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				<Ionicon
 					name={showSettings ? "settings" : "settings-outline"}
 					size={22}
-					color={showSettings ? "#0A84FF" : "gray"}
+					color={showSettings ? getColor(darkMode, "linkPrimary") : "gray"}
 				/>
 				<Text
 					style={{
-						color: showSettings ? "#0A84FF" : "gray",
+						color: showSettings ? getColor(darkMode, "linkPrimary") : "gray",
 						fontSize: 11,
 						marginTop: 3,
 						maxWidth: iconTextMaxWidth

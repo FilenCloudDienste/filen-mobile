@@ -109,7 +109,7 @@ const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationCont
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View

@@ -10,6 +10,7 @@ SQLite.enablePromise(true)
 
 const PREFIX = "kv:"
 let DBFS_PATH = ""
+const MEMORY_CACHE_MAX_OBJECT_SIZE = 1024 * 16
 
 const keyValueTableSQL = `CREATE TABLE IF NOT EXISTS key_value (\
     key TEXT, \
@@ -119,7 +120,8 @@ export const dbFs = {
 			return null
 		}
 
-		const value = JSON.parse(await fs.readAsString(path, "utf8"))
+		const string = await fs.readAsString(path, "utf8")
+		const value = JSON.parse(string)
 
 		if (!value) {
 			return null
@@ -129,26 +131,27 @@ export const dbFs = {
 			return null
 		}
 
-		memoryCache.set(PREFIX + key, value.value)
+		if (string.length < MEMORY_CACHE_MAX_OBJECT_SIZE) {
+			memoryCache.set(PREFIX + key, value.value)
+		}
 
 		return value.value as any as T
 	},
 	set: async (key: string, value: any) => {
 		const keyHashed = await hashDbFsKey(key)
 		const path = (await getDbFsPath()) + keyHashed
+		const json = JSON.stringify({
+			key,
+			value
+		})
 
-		await fs.writeAsString(
-			path,
-			JSON.stringify({
-				key,
-				value
-			}),
-			{
-				encoding: "utf8"
-			}
-		)
+		await fs.writeAsString(path, json, {
+			encoding: "utf8"
+		})
 
-		memoryCache.set(PREFIX + key, value)
+		if (json.length < MEMORY_CACHE_MAX_OBJECT_SIZE) {
+			memoryCache.set(PREFIX + key, value)
+		}
 	},
 	has: async (key: string) => {
 		if (memoryCache.has(PREFIX + key)) {
@@ -194,12 +197,12 @@ export const dbFs = {
 					const readSliced = read.slice(0, 32).toLowerCase()
 					const prefix = '{"key":"'
 
-					if (readSliced.indexOf(prefix + "notecontent:") !== -1) {
+					if (readSliced.indexOf(prefix + "notecontent") !== -1 || readSliced.indexOf(prefix + "chatmessages") !== -1) {
 						continue
 					}
 
 					if (
-						readSliced.indexOf(prefix + "loadItems:") !== -1 ||
+						readSliced.indexOf(prefix + "loaditems") !== -1 ||
 						readSliced.indexOf(prefix + "note") !== -1 ||
 						readSliced.indexOf(prefix + "contact") !== -1 ||
 						readSliced.indexOf(prefix + "chat") !== -1
@@ -216,6 +219,7 @@ export const dbFs = {
 
 						keys += 1
 						size += read.length
+
 						memoryCache.set(PREFIX + value.key, value.value)
 					}
 				}

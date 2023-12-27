@@ -191,7 +191,6 @@ const PublicLinkActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="PublicLinkActionSheet"
 			gestureEnabled={!fetchingInfo}
@@ -205,7 +204,7 @@ const PublicLinkActionSheet = memo(() => {
 				minHeight: 350
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View

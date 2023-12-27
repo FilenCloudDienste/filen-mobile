@@ -11,7 +11,7 @@ import {
 } from "../crypto"
 import storage from "../storage"
 import { i18n } from "../../i18n"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Platform } from "react-native"
 import { logout } from "../services/auth/logout"
 import { useStore } from "../state"
 import { isOnline } from "../services/isOnline"
@@ -3901,4 +3901,19 @@ export const getUserProfile = async (id: number): Promise<UserProfile> => {
 	}
 
 	return response.data
+}
+
+export const registerPushToken = async (token: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/pushToken",
+		data: {
+			token,
+			platform: Platform.OS
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
 }

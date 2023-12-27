@@ -296,6 +296,7 @@ export const hideAllActionSheets = async () => {
 		SheetManager.hide("NoteChangeTypeActionSheet"),
 		SheetManager.hide("NoteParticipantsActionSheet"),
 		SheetManager.hide("NoteTagsActionSheet"),
+		SheetManager.hide("ChatMessageActionSheet"),
 		SheetManager.hideAll()
 	]).catch(console.error)
 }

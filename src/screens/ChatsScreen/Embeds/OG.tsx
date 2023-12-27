@@ -3,11 +3,26 @@ import { getColor } from "../../../style"
 import { Text, Linking, Pressable, View } from "react-native"
 import { i18n } from "../../../i18n"
 import { Image } from "expo-image"
+import { MessageDisplayType } from "../utils"
 
 const OGEmbed = memo(
-	({ darkMode, lang, link, ogData }: { darkMode: boolean; lang: string; link: string; ogData: Record<string, string> }) => {
+	({
+		darkMode,
+		lang,
+		link,
+		ogData,
+		displayAs
+	}: {
+		darkMode: boolean
+		lang: string
+		link: string
+		ogData: Record<string, string>
+		displayAs: MessageDisplayType
+	}) => {
 		const image = useRef<string | null>(
-			typeof ogData["og:image"] === "string"
+			displayAs === "invalid" || displayAs === "async"
+				? null
+				: typeof ogData["og:image"] === "string"
 				? ogData["og:image"]
 				: typeof ogData["twitter:image"] === "string"
 				? ogData["twitter:image"]
@@ -15,7 +30,9 @@ const OGEmbed = memo(
 		).current
 
 		const description = useRef<string | null>(
-			typeof ogData["og:description"] === "string"
+			displayAs === "invalid" || displayAs === "async"
+				? null
+				: typeof ogData["og:description"] === "string"
 				? ogData["og:description"]
 				: typeof ogData["meta:description"] === "string"
 				? ogData["meta:description"]
@@ -25,7 +42,9 @@ const OGEmbed = memo(
 		).current
 
 		const title = useRef<string | null>(
-			typeof ogData["og:title"] === "string"
+			displayAs === "invalid" || displayAs === "async"
+				? null
+				: typeof ogData["og:title"] === "string"
 				? ogData["og:title"]
 				: typeof ogData["meta:title"] === "string"
 				? ogData["meta:title"]
@@ -47,7 +66,7 @@ const OGEmbed = memo(
 			>
 				<Text
 					style={{
-						fontSize: 15,
+						fontSize: 14,
 						color: getColor(darkMode, "linkPrimary")
 					}}
 					numberOfLines={1}
@@ -56,7 +75,7 @@ const OGEmbed = memo(
 				</Text>
 				<Text
 					style={{
-						fontSize: 15,
+						fontSize: 14,
 						color: getColor(darkMode, "textPrimary"),
 						marginTop: 10
 					}}
@@ -66,7 +85,7 @@ const OGEmbed = memo(
 				</Text>
 				<Text
 					style={{
-						fontSize: 15,
+						fontSize: 14,
 						color: getColor(darkMode, "textSecondary"),
 						marginTop: 5
 					}}

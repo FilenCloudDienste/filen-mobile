@@ -231,7 +231,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 	})
 
 	const renderImage = useCallback(
-		(item: PreviewItem, index: number) => {
+		({ item, index }: { item: PreviewItem; index: number }) => {
 			const image = item
 
 			if (typeof image.thumbnail !== "string") {
@@ -428,7 +428,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 	)
 
 	const renderThumb = useCallback(
-		(item: PreviewItem, index: number) => {
+		({ item, index }: { item: PreviewItem; index: number }) => {
 			const image = item
 
 			return (
@@ -616,15 +616,22 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 					bottom: 0,
 					left: 0,
 					right: 0,
-					marginTop: Platform.OS == "ios" ? -insets.top : 0,
+					marginTop: Platform.OS === "ios" ? -insets.top : 0,
 					marginLeft: portrait ? 0 : -insets.left
+				}}
+				extraData={{
+					portrait: portrait ? "portrait" : "landscape",
+					dimensions,
+					images,
+					imagePreviewModalItems,
+					viewRefs,
+					imagePreviewModalIndex
 				}}
 				ref={listRef}
 				data={imagePreviewModalItems}
 				initialScrollIndex={imagePreviewModalIndex}
-				renderItem={({ item, index }) => renderImage(item, index)}
+				renderItem={renderImage}
 				key={portrait ? "portrait" : "landscape"}
-				extraData={portrait ? "portrait" : "landscape"}
 				keyExtractor={keyExtractor}
 				windowSize={2}
 				initialNumToRender={1}
@@ -662,11 +669,16 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 					backgroundColor: "rgba(0, 0, 0, 1)"
 				}}
 				key={portrait ? "thumbs-portrait" : "thumbs-landscape"}
-				extraData={portrait ? "thumbs-portrait" : "thumbs-landscape"}
+				extraData={{
+					portrait: portrait ? "thumbs-portrait" : "thumbs-landscape",
+					imagePreviewModalItems,
+					viewRefs,
+					imagePreviewModalIndex
+				}}
 				ref={thumbnailListRef}
 				data={imagePreviewModalItems}
 				initialScrollIndex={imagePreviewModalIndex}
-				renderItem={({ item, index }) => renderThumb(item, index)}
+				renderItem={renderThumb}
 				getItemLayout={(_, index) => ({ length: 30, offset: 30 * index, index })}
 				keyExtractor={keyExtractor}
 				horizontal={true}

@@ -91,7 +91,7 @@ const NoteChangeTypeActionSheet = memo(() => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View

@@ -42,7 +42,7 @@ const SortByActionSheet = memo(() => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 			onBeforeShow={() => {
 				setShowASCDESC(false)

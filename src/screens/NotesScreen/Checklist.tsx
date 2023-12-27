@@ -366,6 +366,13 @@ const Checklist = memo(
 						height: dimensions.height,
 						width: dimensions.width
 					}}
+					extraData={{
+						darkMode,
+						items,
+						setInputRefs,
+						setItems,
+						setIdToFocus
+					}}
 				/>
 			</KeyboardAvoidingView>
 		)

@@ -1,4 +1,4 @@
-import { useEffect, createElement, memo, useRef, Fragment } from "react"
+import { memo, Fragment } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages, UserGetAccount } from "../../lib/api"
 import { dbFs } from "../../lib/db"
 import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
@@ -7,12 +7,13 @@ import eventListener from "../../lib/eventListener"
 import storage from "../../lib/storage"
 import regexifyString from "regexify-string"
 import EMOJI_REGEX from "emojibase-regex"
-import { View, Text, Linking, TextInput } from "react-native"
+import { View, Text, Linking, TextInput, TouchableHighlight } from "react-native"
 import { getColor } from "../../style"
 import { customEmojis } from "./customEmojis"
 import { Image } from "expo-image"
 import EmojiConvertor from "emoji-js"
 import axios, { AxiosResponse } from "axios"
+import { memoize } from "lodash"
 
 export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed" | "async" | "none" | "invalid"
 export type DisplayMessageAs = Record<string, MessageDisplayType>
@@ -366,6 +367,8 @@ export const getMessageDisplayType = (message: string): MessageDisplayType => {
 		message.indexOf("/status/") !== -1
 	) {
 		return "twitterEmbed"
+	} else if ((message.indexOf("/www.x.com/") !== -1 || message.indexOf("/x.com/") !== -1) && message.indexOf("/status/") !== -1) {
+		return "twitterEmbed"
 	}
 
 	return "async"
@@ -458,17 +461,53 @@ export const ReplaceMessageWithComponents = memo(
 
 					if (email === "everyone") {
 						return (
-							<Fragment key={match + ":" + index}>
-								<Text>@everyone</Text>
-							</Fragment>
+							<View
+								key={match + ":" + index}
+								style={{
+									backgroundColor: getColor(darkMode, "indigo"),
+									borderRadius: 5,
+									padding: 1,
+									paddingLeft: 3,
+									paddingRight: 3,
+									width: "auto",
+									height: "auto"
+								}}
+							>
+								<Text
+									style={{
+										color: failed ? getColor(darkMode, "red") : "white",
+										fontSize: 14
+									}}
+								>
+									@everyone
+								</Text>
+							</View>
 						)
 					}
 
 					if (email.indexOf("@") === -1) {
 						return (
-							<Fragment key={match + ":" + index}>
-								<Text>@UnknownUser</Text>
-							</Fragment>
+							<View
+								key={match + ":" + index}
+								style={{
+									backgroundColor: getColor(darkMode, "backgroundSecondary"),
+									borderRadius: 5,
+									padding: 1,
+									paddingLeft: 3,
+									paddingRight: 3,
+									width: "auto",
+									height: "auto"
+								}}
+							>
+								<Text
+									style={{
+										color: failed ? getColor(darkMode, "red") : getColor(darkMode, "textPrimary"),
+										fontSize: 14
+									}}
+								>
+									@UnknownUser
+								</Text>
+							</View>
 						)
 					}
 
@@ -476,65 +515,122 @@ export const ReplaceMessageWithComponents = memo(
 
 					if (foundParticipant.length === 0) {
 						return (
-							<Fragment key={match + ":" + index}>
-								<Text>@UnknownUser</Text>
-							</Fragment>
+							<View
+								key={match + ":" + index}
+								style={{
+									backgroundColor: getColor(darkMode, "backgroundSecondary"),
+									borderRadius: 5,
+									padding: 1,
+									paddingLeft: 3,
+									paddingRight: 3,
+									width: "auto",
+									height: "auto"
+								}}
+							>
+								<Text
+									style={{
+										color: failed ? getColor(darkMode, "red") : getColor(darkMode, "textPrimary"),
+										fontSize: 14
+									}}
+								>
+									@UnknownUser
+								</Text>
+							</View>
 						)
 					}
 
 					return (
-						<Fragment key={match + ":" + index}>
+						<TouchableHighlight
+							key={match + ":" + index}
+							style={{
+								backgroundColor: getColor(darkMode, "indigo"),
+								borderRadius: 5,
+								padding: 1,
+								paddingLeft: 3,
+								paddingRight: 3,
+								width: "auto",
+								height: "auto"
+							}}
+							onPress={() => eventListener.emit("openUserProfileModal", foundParticipant[0].userId)}
+						>
 							<Text
 								style={{
-									color: failed ? getColor(darkMode, "red") : getColor(darkMode, "textPrimary")
+									color: failed ? getColor(darkMode, "red") : "white",
+									fontSize: 14
 								}}
-								onPress={() => eventListener.emit("openUserProfileModal", foundParticipant[0].userId)}
 							>
 								@{getUserNameFromParticipant(foundParticipant[0])}
 							</Text>
-						</Fragment>
+						</TouchableHighlight>
 					)
 				}
 
 				if (match.split("```").length >= 3) {
-					const code = match.split("```").join("")
+					let code = match.split("```").join("")
+
+					if (code.startsWith("\n")) {
+						code = code.slice(1, code.length)
+					}
+
+					if (code.endsWith("\n")) {
+						code = code.slice(0, code.length - 1)
+					}
 
 					return (
-						<TextInput
+						<View
 							key={match + ":" + index}
 							style={{
+								flexDirection: "column",
 								maxWidth: "100%",
-								backgroundColor: getColor(darkMode, "backgroundSecondary"),
-								borderRadius: 5,
-								flexDirection: "row",
-								marginTop: 5,
-								color: getColor(darkMode, "textPrimary"),
-								padding: 10
+								paddingTop: 5,
+								paddingBottom: 5
 							}}
-							value={code}
-							selectTextOnFocus={false}
-							autoCorrect={false}
-							autoFocus={false}
-							autoCapitalize="none"
-							autoComplete="off"
-							scrollEnabled={false}
-							editable={false}
-							multiline={true}
-						/>
+						>
+							<TextInput
+								style={{
+									maxWidth: "100%",
+									backgroundColor: getColor(darkMode, "backgroundSecondary"),
+									borderRadius: 5,
+									flexDirection: "row",
+									color: getColor(darkMode, "textPrimary"),
+									padding: 10
+								}}
+								value={code}
+								selectTextOnFocus={false}
+								autoCorrect={false}
+								autoFocus={false}
+								autoCapitalize="none"
+								autoComplete="off"
+								scrollEnabled={false}
+								editable={false}
+								multiline={true}
+							/>
+						</View>
 					)
 				}
 
 				if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
 					return (
-						<Text
+						<View
 							key={match + ":" + index}
 							style={{
-								color: failed ? getColor(darkMode, "red") : getColor(darkMode, "linkPrimary")
+								flexDirection: "row",
+								alignItems: "center",
+								flexWrap: "wrap",
+								flexShrink: 0
 							}}
-							onPress={() => Linking.openURL(match).catch(console.error)}
 						>
-							{match}
-						</Text>
+							<Text
+								style={{
+									color: failed ? getColor(darkMode, "red") : getColor(darkMode, "linkPrimary")
+								}}
+								onPress={() => Linking.openURL(match).catch(console.error)}
+								onLongPress={() => Linking.openURL(match).catch(console.error)}
+								numberOfLines={1}
+							>
+								{match}
+							</Text>
+						</View>
 					)
 				}
 
@@ -543,7 +639,7 @@ export const ReplaceMessageWithComponents = memo(
 						<View
 							key={match + ":" + index}
 							style={{
-								height: 5,
+								height: 0.5,
 								width: "100%",
 								flexBasis: "100%"
 							}}
@@ -555,21 +651,26 @@ export const ReplaceMessageWithComponents = memo(
 
 				if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
 					return (
-						<Image
+						<View
 							key={match + ":" + index}
-							source={{
-								uri: customEmojisListRecord[customEmoji]
-							}}
-							cachePolicy="memory-disk"
 							style={{
 								width: size,
 								height: size,
-								borderRadius: 3,
-								flexShrink: 0,
-								marginLeft: size === defaultSize ? 0 : 5,
-								marginRight: size === defaultSize ? 0 : 5
+								marginTop: 3
 							}}
-						/>
+						>
+							<Image
+								source={{
+									uri: customEmojisListRecord[customEmoji]
+								}}
+								cachePolicy="memory-disk"
+								style={{
+									width: size,
+									height: size,
+									flexShrink: 0
+								}}
+							/>
+						</View>
 					)
 				}
 
@@ -577,17 +678,20 @@ export const ReplaceMessageWithComponents = memo(
 					<View
 						key={match + ":" + index}
 						style={{
-							width: size === defaultSize ? "auto" : size + 8,
 							flexDirection: "row",
 							alignItems: "center",
-							justifyContent: "center"
+							justifyContent: "center",
+							marginTop: 2,
+							padding: 0,
+							flexShrink: 0
 						}}
 					>
 						<Text
 							style={{
 								color: getColor(darkMode, "textPrimary"),
 								fontSize: size,
-								lineHeight: size + 3
+								lineHeight: size + 2,
+								padding: 0
 							}}
 						>
 							{emojiConvertor.replace_colons(match)}
@@ -599,24 +703,44 @@ export const ReplaceMessageWithComponents = memo(
 		})
 
 		return (
-			<>
+			<View
+				style={{
+					flexDirection: "row",
+					flexWrap: "wrap",
+					flex: 1,
+					gap: 5
+				}}
+			>
 				{replaced.map((r, index) => {
 					if (typeof r === "string") {
+						if (r.length <= 0) {
+							return null
+						}
+
 						return (
-							<Text
+							<View
 								key={index}
 								style={{
-									color: getColor(darkMode, "textPrimary"),
-									fontSize: 15,
-									width: "auto",
 									flexDirection: "row",
-									flexShrink: 0,
 									alignItems: "center",
-									lineHeight: 24
+									flexWrap: "wrap",
+									flexShrink: 0
 								}}
 							>
-								{r.trim()}
-							</Text>
+								<Text
+									style={{
+										color: getColor(darkMode, "textPrimary"),
+										fontSize: 14,
+										width: "auto",
+										flexDirection: "row",
+										flexShrink: 0,
+										alignItems: "center",
+										lineHeight: 26
+									}}
+								>
+									{r.trim()}
+								</Text>
+							</View>
 						)
 					}
 
@@ -634,7 +758,7 @@ export const ReplaceMessageWithComponents = memo(
 						</View>
 					)
 				})}
-			</>
+			</View>
 		)
 	}
 )
@@ -666,7 +790,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 		const regex = new RegExp(
 			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${linkRegex.source}|${mentions.source}`
 		)
-		const defaultSize = emojiSize ? emojiSize : 16
+		const defaultSize = emojiSize ? emojiSize : 11
 		let size: number | undefined = defaultSize
 
 		const replaced = regexifyString({
@@ -677,7 +801,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 
 					if (email === "everyone") {
 						return (
-							<Fragment key={match + ":" + index}>
+							<View key={match + ":" + index}>
 								<Text
 									style={{
 										color: color ? color : getColor(darkMode, "textSecondary"),
@@ -686,7 +810,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 								>
 									@everyone
 								</Text>
-							</Fragment>
+							</View>
 						)
 					}
 
@@ -694,7 +818,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 
 					if (foundParticipant.length === 0) {
 						return (
-							<Fragment key={match + ":" + index}>
+							<View key={match + ":" + index}>
 								<Text
 									style={{
 										color: color ? color : getColor(darkMode, "textSecondary"),
@@ -703,13 +827,13 @@ export const ReplaceInlineMessageWithComponents = memo(
 								>
 									@UnknownUser
 								</Text>
-							</Fragment>
+							</View>
 						)
 					}
 
 					if (hideMentions) {
 						return (
-							<Fragment key={match + ":" + index}>
+							<View key={match + ":" + index}>
 								<Text
 									style={{
 										color: color ? color : getColor(darkMode, "textSecondary"),
@@ -718,12 +842,12 @@ export const ReplaceInlineMessageWithComponents = memo(
 								>
 									@{getUserNameFromParticipant(foundParticipant[0])}
 								</Text>
-							</Fragment>
+							</View>
 						)
 					}
 
 					return (
-						<Fragment key={match + ":" + index}>
+						<View key={match + ":" + index}>
 							<Text
 								style={{
 									color: color ? color : getColor(darkMode, "textPrimary"),
@@ -732,35 +856,37 @@ export const ReplaceInlineMessageWithComponents = memo(
 							>
 								@{getUserNameFromParticipant(foundParticipant[0])}
 							</Text>
-						</Fragment>
+						</View>
 					)
 				}
 
 				if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
 					if (hideLinks) {
 						return (
+							<View key={match + ":" + index}>
+								<Text
+									style={{
+										color: color ? color : getColor(darkMode, "textPrimary"),
+										fontSize: fontSize ? fontSize : 15
+									}}
+								>
+									{match}
+								</Text>
+							</View>
+						)
+					}
+
+					return (
+						<View key={match + ":" + index}>
 							<Text
-								key={match + ":" + index}
 								style={{
-									color: color ? color : getColor(darkMode, "textPrimary"),
+									color: color ? color : getColor(darkMode, "linkPrimary"),
 									fontSize: fontSize ? fontSize : 15
 								}}
 							>
 								{match}
 							</Text>
-						)
-					}
-
-					return (
-						<Text
-							key={match + ":" + index}
-							style={{
-								color: color ? color : getColor(darkMode, "linkPrimary"),
-								fontSize: fontSize ? fontSize : 15
-							}}
-						>
-							{match}
-						</Text>
+						</View>
 					)
 				}
 
@@ -777,10 +903,8 @@ export const ReplaceInlineMessageWithComponents = memo(
 							style={{
 								width: size,
 								height: size,
-								borderRadius: 3,
 								flexShrink: 0,
-								marginLeft: size === defaultSize ? 0 : 5,
-								marginRight: size === defaultSize ? 0 : 5
+								marginTop: 3
 							}}
 						/>
 					)
@@ -790,17 +914,20 @@ export const ReplaceInlineMessageWithComponents = memo(
 					<View
 						key={match + ":" + index}
 						style={{
-							width: size === defaultSize ? "auto" : size + 8,
 							flexDirection: "row",
 							alignItems: "center",
-							justifyContent: "center"
+							justifyContent: "center",
+							marginTop: 2,
+							padding: 0,
+							flexShrink: 0
 						}}
 					>
 						<Text
 							style={{
-								color: color ? color : getColor(darkMode, "textPrimary"),
+								color: getColor(darkMode, "textPrimary"),
 								fontSize: size,
-								lineHeight: size + 3
+								lineHeight: size + 2,
+								padding: 0
 							}}
 						>
 							{emojiConvertor.replace_colons(match)}
@@ -812,23 +939,42 @@ export const ReplaceInlineMessageWithComponents = memo(
 		})
 
 		return (
-			<>
+			<View
+				style={{
+					flexDirection: "row",
+					flexWrap: "nowrap",
+					gap: 3
+				}}
+			>
 				{replaced.map((r, index) => {
 					if (typeof r === "string") {
+						if (r.length <= 0) {
+							return null
+						}
+
 						return (
-							<Text
+							<View
 								key={index}
 								style={{
-									color: color ? color : getColor(darkMode, "textPrimary"),
-									fontSize: fontSize ? fontSize : 15,
-									width: "auto",
 									flexDirection: "row",
-									flexShrink: 0,
-									alignItems: "center"
+									alignItems: "center",
+									flexWrap: "nowrap",
+									flexShrink: 0
 								}}
 							>
-								{r.trim()}
-							</Text>
+								<Text
+									style={{
+										color: color ? color : getColor(darkMode, "textPrimary"),
+										fontSize: fontSize ? fontSize : 15,
+										width: "auto",
+										flexDirection: "row",
+										flexShrink: 0,
+										alignItems: "center"
+									}}
+								>
+									{r.trim()}
+								</Text>
+							</View>
 						)
 					}
 
@@ -846,7 +992,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 						</View>
 					)
 				})}
-			</>
+			</View>
 		)
 	}
 )
@@ -950,3 +1096,22 @@ export const parseOGFromURL = async (url: string): Promise<Record<string, string
 
 	return metadata
 }
+
+export const filterEmojisByShortcode = memoize(
+	(shortcode: string, maxResults: number = 5) => {
+		const found: { id: string; src: string }[] = []
+		const term = shortcode.trim().toLowerCase().split(":").join("")
+
+		for (const emoji of customEmojisList) {
+			if (emoji.includes(term)) {
+				found.push({
+					id: emoji,
+					src: customEmojisListRecord[emoji]
+				})
+			}
+		}
+
+		return found.slice(0, maxResults)
+	},
+	(shortcode: string, maxResults: number) => shortcode + ":" + maxResults
+)

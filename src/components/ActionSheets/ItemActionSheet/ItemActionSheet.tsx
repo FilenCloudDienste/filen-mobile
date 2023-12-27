@@ -565,7 +565,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<ScrollView
