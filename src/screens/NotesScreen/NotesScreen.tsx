@@ -1,14 +1,5 @@
 import React, { useState, useEffect, memo, useMemo, useCallback, useRef } from "react"
-import {
-	View,
-	Text,
-	TouchableOpacity,
-	RefreshControl,
-	TouchableHighlight,
-	useWindowDimensions,
-	AppState,
-	ActivityIndicator
-} from "react-native"
+import { View, Text, TouchableOpacity, RefreshControl, useWindowDimensions, AppState, ActivityIndicator } from "react-native"
 import { TopBar } from "../../components/TopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
