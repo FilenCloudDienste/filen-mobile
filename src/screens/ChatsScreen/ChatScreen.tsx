@@ -9,8 +9,7 @@ import {
 	KeyboardAvoidingView,
 	NativeSyntheticEvent,
 	NativeScrollEvent,
-	Platform,
-	Keyboard
+	Platform
 } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -28,7 +27,7 @@ import {
 import { SocketEvent } from "../../lib/services/socket"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
-import { useMMKVNumber, useMMKVString } from "react-native-mmkv"
+import { useMMKVNumber } from "react-native-mmkv"
 import storage from "../../lib/storage"
 import { generateAvatarColorCode, Semaphore, SemaphoreInterface } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
@@ -44,6 +43,7 @@ import useIsPortrait from "../../lib/hooks/useIsPortrait"
 import TopbarUnread from "./TopbarUnread"
 import striptags from "striptags"
 import Input from "./Input"
+import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 
 const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -73,6 +73,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const markNotificationsAsReadLastMessageRef = useRef<string>("")
 	const updateLastFocusMutex = useRef<SemaphoreInterface>(new Semaphore(1)).current
 	const didInitialLoad = useRef<boolean>(false)
+	const keyboardOffset = useKeyboardOffset()
 
 	const conversationParticipantsFilteredWithoutMe = useMemo(() => {
 		return conversation.participants.filter(participant => participant.userId !== userId).sort((a, b) => a.email.localeCompare(b.email))
@@ -425,10 +426,12 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		}
 	}, [userId, conversation, conversationMe])
 
+	const RootView = Platform.OS === "android" ? View : KeyboardAvoidingView
+
 	return (
-		<KeyboardAvoidingView
-			behavior={Platform.OS === "ios" ? "padding" : undefined}
-			keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+		<RootView
+			behavior={Platform.OS === "android" ? undefined : "padding"}
+			keyboardVerticalOffset={keyboardOffset}
 			style={{
 				height: "100%",
 				width: "100%",
@@ -674,7 +677,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				setEditingMessageUUID={setEditingMessageUUID}
 				setReplyMessageUUID={setReplyMessageUUID}
 			/>
-		</KeyboardAvoidingView>
+		</RootView>
 	)
 })
 

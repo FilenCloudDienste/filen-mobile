@@ -67,7 +67,7 @@ const Typing = memo(({ darkMode, lang, conversation }: { darkMode: boolean; lang
 			style={{
 				flexDirection: "row",
 				overflow: "hidden",
-				height: 20,
+				height: 25,
 				width: "200%",
 				alignItems: "center",
 				position: "absolute",

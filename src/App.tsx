@@ -128,6 +128,7 @@ export const App = Sentry.wrap(
 		const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
 		const [fetchedInitialNotification, setFetchedInitialNotification] = useState<boolean>(false)
 		const [initialNotification, setInitialNotification] = useState<InitialNotification | null>(null)
+		const isDeviceReady = useStore(state => state.isDeviceReady)
 
 		const handleShare = useCallback(async (items: any) => {
 			if (!items) {
@@ -184,14 +185,18 @@ export const App = Sentry.wrap(
 			}
 		}, [])
 
-		const setAppearance = useCallback(() => {
+		const setAppearance = useCallback((timeout: number = 1000) => {
 			setTimeout(() => {
-				if (typeof storage.getString("userSelectedTheme") !== "string" && storage.getBoolean("dontFollowSystemTheme")) {
+				if (!storage.getBoolean("dontFollowSystemTheme")) {
 					storage.set("darkMode", Appearance.getColorScheme() === "dark")
 
 					setStatusBarStyle(Appearance.getColorScheme() === "dark")
+				} else {
+					storage.set("darkMode", storage.getString("userSelectedTheme") === "dark")
+
+					setStatusBarStyle(storage.getString("userSelectedTheme") === "dark")
 				}
-			}, 1000) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
+			}, timeout) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
 		}, [])
 
 		useEffect(() => {
@@ -354,8 +359,9 @@ export const App = Sentry.wrap(
 			const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
 
 			getCfg().then(setCFG).catch(console.error)
+			setAppearance(1)
 
-			const appearanceListener = Appearance.addChangeListener(setAppearance)
+			const appearanceListener = Appearance.addChangeListener(() => setAppearance(1000))
 
 			storage.set("setupDone", false)
 			storage.set("cameraUploadUploaded", 0)

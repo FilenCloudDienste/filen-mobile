@@ -10,7 +10,7 @@ SQLite.enablePromise(true)
 
 const PREFIX = "kv:"
 let DBFS_PATH = ""
-const MEMORY_CACHE_MAX_OBJECT_SIZE = 1024 * 16
+const MEMORY_CACHE_MAX_OBJECT_SIZE = 1024 * 1024 * 1024
 
 const keyValueTableSQL = `CREATE TABLE IF NOT EXISTS key_value (\
     key TEXT, \

@@ -144,19 +144,18 @@ export const fetchNotesAndTags = async (skipCache: boolean = false): Promise<{ c
 
 		await Promise.all(promises)
 
-		await dbFs
-			.set("notesAndTags", {
-				notes: sortAndFilterNotes(notes, "", ""),
-				tags: sortAndFilterTags(tags)
-			})
-			.catch(console.error)
+		const sorted = {
+			notes: sortAndFilterNotes(notes, "", ""),
+			tags: sortAndFilterTags(tags)
+		}
+
+		await dbFs.set("notesAndTags", sorted).catch(console.error)
 
 		cleanupLocalDb(notes, tags).catch(console.error)
 
 		return {
 			cache: false,
-			notes,
-			tags
+			...sorted
 		}
 	}
 

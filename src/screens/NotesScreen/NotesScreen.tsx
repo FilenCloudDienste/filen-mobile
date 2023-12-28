@@ -24,6 +24,8 @@ import { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 
+const itemHeights = new Map<string, number>()
+
 const Item = memo(
 	({
 		darkMode,
@@ -42,7 +44,7 @@ const Item = memo(
 		userId: number
 		tags: NoteTag[]
 	}) => {
-		const [height, setHeight] = useState<number>(0)
+		const [itemHeight, setItemHeight] = useState<number>(itemHeights.has(note.uuid) ? itemHeights.get(note.uuid) : 0)
 
 		const participantsFilteredWithoutMe = useMemo(() => {
 			return note.participants
@@ -73,7 +75,13 @@ const Item = memo(
 		}, [me, note, userId])
 
 		return (
-			<View onLayout={e => setHeight(e.nativeEvent.layout.height)}>
+			<View
+				onLayout={e => {
+					itemHeights.set(note.uuid, e.nativeEvent.layout.height)
+
+					setItemHeight(e.nativeEvent.layout.height)
+				}}
+			>
 				<TouchableOpacity
 					style={{
 						flexDirection: "column",
@@ -336,8 +344,9 @@ const Item = memo(
 									flexDirection: "row",
 									justifyContent: "center",
 									position: "absolute",
+									opacity: itemHeight === 0 ? 0 : 1,
 									right: participantsFilteredWithoutMe.length > 1 ? 50 : 40,
-									top: height === 0 ? 15 : Math.floor(height / 2) - 12
+									top: itemHeight === 0 ? 15 : Math.floor(itemHeight / 2) - 12
 								}}
 							>
 								{participantsFilteredWithoutMe.map((participant, index) => {
@@ -416,7 +425,7 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 
 	const notesSorted = useMemo(() => {
 		return sortAndFilterNotes(notes, searchTerm, "")
-	}, [notes, searchTerm, tags])
+	}, [notes, searchTerm])
 
 	const loadNotesAndTags = useCallback(
 		async (skipCache: boolean = false) => {
@@ -463,7 +472,7 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 				setLoadDone(true)
 			}
 		},
-		[networkInfo]
+		[networkInfo, searchTerm]
 	)
 
 	const keyExtractor = useCallback((item: Note) => item.uuid, [])

@@ -10,7 +10,8 @@ import {
 	Text,
 	ScrollView,
 	Image,
-	Keyboard
+	Keyboard,
+	Platform
 } from "react-native"
 import { getColor } from "../../style"
 import { ChatConversation, ChatConversationParticipant, ChatMessage, chatSendTyping, TypingType, sendChatMessage } from "../../lib/api"
@@ -28,7 +29,7 @@ import { findClosestIndex, generateAvatarColorCode } from "../../lib/helpers"
 import { getUserNameFromParticipant, filterEmojisByShortcode } from "./utils"
 import { useKeyboard } from "@react-native-community/hooks"
 
-const INPUT_HEIGHT = 35
+const INPUT_HEIGHT = Platform.OS === "android" ? 43 : 35
 
 const Input = memo(
 	({
@@ -243,6 +244,10 @@ const Input = memo(
 
 		const addTextAfterLastTextComponent = useCallback(
 			(component: string, replaceWith: string) => {
+				if (typeof text !== "string") {
+					return
+				}
+
 				const closestIndex = findClosestIndex(text, component, textSelection.end)
 
 				if (closestIndex === -1) {
@@ -263,7 +268,7 @@ const Input = memo(
 
 		const toggleEmojiSuggestions = useCallback(
 			(selection: { start: number; end: number }) => {
-				if (text.length === 0 || text.indexOf(":") === -1 || selection.end <= 0) {
+				if (typeof text !== "string" || text.length === 0 || text.indexOf(":") === -1 || selection.end <= 0) {
 					setEmojiSuggestions([])
 					setEmojiSuggestionsOpen(false)
 
@@ -294,7 +299,7 @@ const Input = memo(
 
 		const toggleMentionSuggestions = useCallback(
 			(selection: { start: number; end: number }) => {
-				if (text.length === 0 || text.indexOf("@") === -1 || selection.end <= 0) {
+				if (typeof text !== "string" || text.length === 0 || text.indexOf("@") === -1 || selection.end <= 0) {
 					setMentionMode(false)
 
 					return
@@ -351,7 +356,7 @@ const Input = memo(
 		)
 
 		const keyboardDidHide = useCallback(() => {
-			if (text.trim().length <= 0) {
+			if (typeof text === "string" && text.trim().length <= 0) {
 				setReplyMessageUUID("")
 				setReplyToMessage(undefined)
 				setEditingMessageUUID("")
@@ -679,14 +684,14 @@ const Input = memo(
 				<TouchableOpacity
 					style={{
 						backgroundColor: getColor(darkMode, "backgroundSecondary"),
-						borderRadius: INPUT_HEIGHT + 4,
-						width: INPUT_HEIGHT + 4,
-						height: INPUT_HEIGHT + 4,
+						borderRadius: INPUT_HEIGHT,
+						width: INPUT_HEIGHT,
+						height: INPUT_HEIGHT,
 						flexDirection: "row",
 						alignItems: "center",
 						justifyContent: "center",
 						alignSelf: "flex-start",
-						marginTop: 3
+						marginTop: 1
 					}}
 				>
 					<Ionicon
@@ -706,20 +711,20 @@ const Input = memo(
 					value={typeof text !== "string" ? "" : text}
 					onChange={onChange}
 					onContentSizeChange={e => {
-						setTextContentHeight(
-							e.nativeEvent.contentSize.height < INPUT_HEIGHT
-								? INPUT_HEIGHT
-								: e.nativeEvent.contentSize.height > INPUT_HEIGHT * 3
-								? INPUT_HEIGHT * 3
-								: e.nativeEvent.contentSize.height
-						)
+						if (typeof text === "string" && text.length > 0) {
+							setTextContentHeight(Math.floor(e.nativeEvent.contentSize.height))
+						} else {
+							setTextContentHeight(INPUT_HEIGHT)
+						}
 					}}
+					inputMode="text"
+					maxFontSizeMultiplier={0}
+					allowFontScaling={false}
 					onSelectionChange={onSelectionChange}
 					onKeyPress={onKeyDownOrUp}
 					style={{
 						backgroundColor: getColor(darkMode, "backgroundSecondary"),
-						minHeight: textContentHeight,
-						maxHeight: INPUT_HEIGHT * 3,
+						height: textContentHeight >= INPUT_HEIGHT ? textContentHeight : INPUT_HEIGHT,
 						lineHeight: 20,
 						borderRadius: 20,
 						width: dimensions.width - insets.left - insets.right - 120,
@@ -737,9 +742,9 @@ const Input = memo(
 				/>
 				<TouchableOpacity
 					style={{
-						borderRadius: INPUT_HEIGHT + 4,
-						width: INPUT_HEIGHT + 4,
-						height: INPUT_HEIGHT + 4,
+						borderRadius: INPUT_HEIGHT,
+						width: INPUT_HEIGHT,
+						height: INPUT_HEIGHT,
 						backgroundColor:
 							typeof text === "string" && text.length > 0
 								? getColor(darkMode, "indigo")
@@ -748,7 +753,7 @@ const Input = memo(
 						alignItems: "center",
 						justifyContent: "center",
 						alignSelf: "flex-start",
-						marginTop: 3
+						marginTop: 1
 					}}
 					onPress={() => sendMessage()}
 				>

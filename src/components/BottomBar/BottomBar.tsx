@@ -276,12 +276,12 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 	return (
 		<View
 			style={{
-				paddingTop: 7,
 				height: 80,
 				flexDirection: "row",
 				justifyContent: "space-between",
 				borderTopColor: getColor(darkMode, "primaryBorder"),
-				borderTopWidth: 0.5
+				borderTopWidth: 0.5,
+				paddingTop: 5
 			}}
 			onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
 		>
@@ -301,7 +301,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 					style={{
 						color: showHome ? getColor(darkMode, "linkPrimary") : "gray",
 						fontSize: 11,
-						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
 					numberOfLines={1}
@@ -325,7 +324,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 					style={{
 						color: showCloud ? getColor(darkMode, "linkPrimary") : "gray",
 						fontSize: 11,
-						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
 					numberOfLines={1}
@@ -371,7 +369,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 					style={{
 						color: isPhotosScreen ? getColor(darkMode, "linkPrimary") : "gray",
 						fontSize: 11,
-						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
 					numberOfLines={1}
@@ -395,7 +392,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 					style={{
 						color: isNotesScreen ? getColor(darkMode, "linkPrimary") : "gray",
 						fontSize: 11,
-						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
 					numberOfLines={1}
@@ -445,7 +441,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 					style={{
 						color: isChatsScreen ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary"),
 						fontSize: 11,
-						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
 					numberOfLines={1}
@@ -469,7 +464,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 					style={{
 						color: showSettings ? getColor(darkMode, "linkPrimary") : "gray",
 						fontSize: 11,
-						marginTop: 3,
 						maxWidth: iconTextMaxWidth
 					}}
 					numberOfLines={1}

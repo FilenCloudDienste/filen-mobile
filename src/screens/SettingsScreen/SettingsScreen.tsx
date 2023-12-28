@@ -472,7 +472,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 					style={{
 						color: getColor(darkMode, "textPrimary"),
 						fontSize: 13,
-						marginTop: 5,
+						marginTop: 2,
 						fontWeight: "400"
 					}}
 					numberOfLines={1}
@@ -565,7 +565,6 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 	const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 	const [dontFollowSystemTheme, setDontFollowSystemTheme] = useMMKVBoolean("dontFollowSystemTheme", storage)
 	const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
-	const [hideEditorLineNumbers, setHideEditorLineNumbers] = useMMKVBoolean("hideEditorLineNumbers:" + userId, storage)
 
 	return (
 		<ScrollView
@@ -581,7 +580,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 					fontWeight: "bold",
 					fontSize: 24,
 					marginLeft: 15,
-					marginTop: 20
+					marginTop: 15
 				}}
 			>
 				{i18n(lang, "settings")}
@@ -851,7 +850,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 					title={i18n(lang, "hideFileFolderSize")}
 					iconBackgroundColor={getColor(darkMode, "indigo")}
 					iconName="analytics-outline"
-					withBottomBorder={Platform.OS === "ios"}
+					withBottomBorder={false}
 					rightComponent={
 						<Switch
 							trackColor={getColor(darkMode, "switchTrackColor")}
@@ -864,26 +863,6 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 						/>
 					}
 				/>
-				{Platform.OS === "ios" && (
-					<SettingsButtonLinkHighlight
-						title={i18n(lang, "hideTextEditorLineNumbers")}
-						iconBackgroundColor={getColor(darkMode, "indigo")}
-						iconName="code-outline"
-						rightComponent={
-							<Switch
-								trackColor={getColor(darkMode, "switchTrackColor")}
-								thumbColor={
-									hideEditorLineNumbers
-										? getColor(darkMode, "switchThumbColorEnabled")
-										: getColor(darkMode, "switchThumbColorDisabled")
-								}
-								ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-								onValueChange={() => setHideEditorLineNumbers(!hideEditorLineNumbers)}
-								value={hideEditorLineNumbers}
-							/>
-						}
-					/>
-				)}
 			</SettingsGroup>
 			<SettingsGroup>
 				<SettingsButtonLinkHighlight

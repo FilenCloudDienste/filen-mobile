@@ -1,10 +1,11 @@
 import React, { useState, useEffect, memo, useCallback, useRef, useMemo } from "react"
-import { View, Pressable, TextInput, KeyboardAvoidingView, useWindowDimensions } from "react-native"
+import { View, Pressable, TextInput, KeyboardAvoidingView, useWindowDimensions, Platform } from "react-native"
 import { getColor } from "../../style"
 import { parseQuillChecklistHtml, convertChecklistItemsToHtml, ChecklistItem } from "./utils"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { randomIdUnsafe } from "../../lib/helpers"
 import { FlashList } from "@shopify/flash-list"
+import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 
 const Item = memo(
 	({
@@ -270,6 +271,7 @@ const Checklist = memo(
 		const [inputRefs, setInputRefs] = useState<Record<string, TextInput>>({})
 		const dimensions = useWindowDimensions()
 		const lastFocusedId = useRef<string>("")
+		const keyboardOffset = useKeyboardOffset()
 
 		const build = useCallback(() => {
 			if (items.length <= 0 || readOnly) {
@@ -350,8 +352,8 @@ const Checklist = memo(
 
 		return (
 			<KeyboardAvoidingView
-				behavior="padding"
-				keyboardVerticalOffset={110}
+				behavior={Platform.OS === "android" ? undefined : "padding"}
+				keyboardVerticalOffset={keyboardOffset}
 				style={{
 					width: "100%",
 					height: "100%"

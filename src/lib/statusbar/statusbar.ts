@@ -4,7 +4,7 @@ import * as StatusBar from "expo-status-bar"
 import { getColor } from "../../style"
 
 export const setStatusBarStyle = (darkMode: boolean): void => {
-	if (Platform.OS == "android") {
+	if (Platform.OS === "android") {
 		NavigationBar.setBackgroundColorAsync(getColor(darkMode, "backgroundPrimary")).catch(console.error)
 
 		if (Platform.constants.Version >= 28) {
@@ -12,7 +12,8 @@ export const setStatusBarStyle = (darkMode: boolean): void => {
 		}
 
 		NavigationBar.setButtonStyleAsync(darkMode ? "dark" : "light").catch(console.error)
-		StatusBar.setStatusBarBackgroundColor(getColor(darkMode, "backgroundPrimary"), true)
+
+		StatusBar.setStatusBarBackgroundColor(getColor(darkMode, "backgroundPrimary"), false)
 		StatusBar.setStatusBarTranslucent(false)
 	}
 

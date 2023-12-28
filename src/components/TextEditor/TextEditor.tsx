@@ -1,6 +1,8 @@
 import React, { useState, useEffect, memo, useRef, useCallback } from "react"
-import { TextInput, Keyboard, ScrollView } from "react-native"
+import { TextInput, Keyboard, ScrollView, Platform } from "react-native"
 import { getColor } from "../../style"
+
+export type TextSelection = { start: number; end: number }
 
 const TextEditor = memo(
 	({
@@ -20,6 +22,7 @@ const TextEditor = memo(
 		const [scrolling, setScrolling] = useState<boolean>(false)
 		const scrollingTimeout = useRef<ReturnType<typeof setTimeout>>()
 		const ref = useRef<TextInput>()
+		const scrollRef = useRef<ScrollView>()
 		const [keyboardWillShow, setKeyboardWillShow] = useState<boolean>(false)
 		const intitialValue = useRef<string>(value).current
 
@@ -66,6 +69,12 @@ const TextEditor = memo(
 		}, [text, readOnly])
 
 		useEffect(() => {
+			if (Platform.OS === "android") {
+				ref?.current?.setNativeProps({ selection: { start: 0, end: 0 } })
+				ref?.current?.focus()
+				scrollRef?.current?.scrollTo({ x: 0, y: 1, animated: true })
+			}
+
 			const keyboardWillShowListener = Keyboard.addListener("keyboardWillShow", () => setKeyboardWillShow(true))
 			const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardWillShow(false))
 
@@ -77,8 +86,8 @@ const TextEditor = memo(
 
 		return (
 			<ScrollView
+				ref={scrollRef}
 				onScroll={onScroll}
-				scrollEventThrottle={0}
 				onScrollAnimationEnd={onScrollEnd}
 				onMomentumScrollBegin={onScroll}
 				onMomentumScrollEnd={onScrollEnd}
@@ -86,6 +95,11 @@ const TextEditor = memo(
 				onScrollEndDrag={onScrollEnd}
 				onPointerDown={onScrollEnd}
 				onPointerUp={onScrollEnd}
+				style={{
+					height: "100%",
+					width: "100%",
+					backgroundColor: getColor(darkMode, "backgroundPrimary")
+				}}
 			>
 				<TextInput
 					ref={ref}
@@ -102,10 +116,12 @@ const TextEditor = memo(
 					allowFontScaling={false}
 					onPressIn={onScrollEnd}
 					onPressOut={onScrollEnd}
+					onFocus={onScrollEnd}
+					onScroll={onScroll}
 					editable={readOnly ? false : !scrolling}
 					placeholder={placeholder}
 					style={{
-						height: "auto",
+						height: "100%",
 						width: "100%",
 						backgroundColor: getColor(darkMode, "backgroundPrimary"),
 						color: getColor(darkMode, "textPrimary"),

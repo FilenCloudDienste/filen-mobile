@@ -1,17 +1,19 @@
 import React, { memo } from "react"
-import { TouchableOpacity, KeyboardAvoidingView } from "react-native"
+import { TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import storage from "../../lib/storage"
 import { Image } from "expo-image"
+import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 
 const AuthContainer = memo(({ children }: { children: React.ReactNode[] }) => {
 	const darkMode = useDarkMode()
+	const keyboardOffset = useKeyboardOffset()
 
 	return (
 		<KeyboardAvoidingView
-			behavior="padding"
-			keyboardVerticalOffset={65}
+			behavior={Platform.OS === "android" ? undefined : "padding"}
+			keyboardVerticalOffset={keyboardOffset}
 			style={{
 				flex: 1,
 				width: "100%",

@@ -1,4 +1,4 @@
-import { memo, Fragment } from "react"
+import { memo } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages, UserGetAccount } from "../../lib/api"
 import { dbFs } from "../../lib/db"
 import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
@@ -7,7 +7,7 @@ import eventListener from "../../lib/eventListener"
 import storage from "../../lib/storage"
 import regexifyString from "regexify-string"
 import EMOJI_REGEX from "emojibase-regex"
-import { View, Text, Linking, TextInput, TouchableHighlight } from "react-native"
+import { View, Text, Linking, TextInput, TouchableHighlight, Platform } from "react-native"
 import { getColor } from "../../style"
 import { customEmojis } from "./customEmojis"
 import { Image } from "expo-image"
@@ -442,13 +442,13 @@ export const ReplaceMessageWithComponents = memo(
 			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${lineBreakRegex.source}|${linkRegex.source}|${mentions.source}`
 		)
 		const emojiCount = content.match(emojiRegex)
-		const defaultSize = 28
+		const defaultSize = 30
 		let size: number | undefined = defaultSize
 
 		if (emojiCount) {
 			const emojiCountJoined = emojiCount.join("")
 
-			if (emojiCountJoined.length !== content.length) {
+			if (emojiCountJoined.length !== content.trim().length) {
 				size = 20
 			}
 		}
@@ -690,7 +690,7 @@ export const ReplaceMessageWithComponents = memo(
 							style={{
 								color: getColor(darkMode, "textPrimary"),
 								fontSize: size,
-								lineHeight: size + 2,
+								lineHeight: size + (Platform.OS === "android" ? 4 : 2),
 								padding: 0
 							}}
 						>

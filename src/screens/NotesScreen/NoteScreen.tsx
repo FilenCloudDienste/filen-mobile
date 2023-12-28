@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from "react"
-import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity, ActivityIndicator, AppState } from "react-native"
+import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity, ActivityIndicator, AppState, Platform } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, CommonActions, useIsFocused } from "@react-navigation/native"
@@ -28,6 +28,7 @@ import {
 	showFullScreenLoadingModal,
 	hideFullScreenLoadingModal
 } from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
+import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 
 const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -53,6 +54,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const historyId = useRef<number>(route.params.historyId).current
 	const loadNoteTimeout = useRef<number>(0)
 	const isFocused = useIsFocused()
+	const keyboardOffset = useKeyboardOffset()
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!currentNoteRef.current) {
@@ -435,8 +437,8 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 								width: "100%",
 								backgroundColor: "transparent"
 							}}
-							behavior="padding"
-							keyboardVerticalOffset={65}
+							behavior={Platform.OS === "android" ? undefined : "padding"}
+							keyboardVerticalOffset={keyboardOffset}
 						>
 							<QuillEditor
 								key={contentKey}
@@ -632,8 +634,8 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 										backgroundColor: "transparent",
 										paddingTop: 10
 									}}
-									behavior="padding"
-									keyboardVerticalOffset={65}
+									behavior={Platform.OS === "android" ? undefined : "padding"}
+									keyboardVerticalOffset={keyboardOffset}
 								>
 									<TextEditor
 										darkMode={darkMode}

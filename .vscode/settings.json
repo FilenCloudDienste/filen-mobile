@@ -5,8 +5,8 @@
 	"editor.formatOnType": false,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": false,
-		"source.fixAll.format": false
+		"source.fixAll.eslint": "never",
+		"source.fixAll.format": "never"
 	},
 	"typescript.tsdk": "node_modules\\typescript\\lib",
 	"java.configuration.updateBuildConfiguration": "disabled",

@@ -335,7 +335,7 @@ export const ItemList = memo(({ navigation, route, items, searchTerm, populateLi
 	}, [generatedItemList.length, scrollIndex])
 
 	const estimatedItemSize = useMemo(() => {
-		const listItemHeight = 60
+		const listItemHeight = 50
 		const gridLengthDefault = Math.floor((dimensions.width - (insets.left + insets.right)) / itemsPerRow) + 55
 		const photosAllLength = Math.floor(dimensions.width / calcedPhotosGridSize)
 		const photosLength = Math.floor(dimensions.width - (insets.left + insets.right) - 1.5)

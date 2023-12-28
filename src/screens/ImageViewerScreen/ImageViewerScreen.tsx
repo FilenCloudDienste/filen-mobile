@@ -476,7 +476,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 						{typeof image.thumbnail !== "string" ? (
 							<Image
 								source={getImageForItem(image.file)}
-								resizeMode="cover"
+								contentFit="cover"
 								cachePolicy="none"
 								style={{
 									width: 25,
@@ -490,7 +490,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 								source={{
 									uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
 								}}
-								resizeMode="cover"
+								contentFit="cover"
 								cachePolicy="none"
 								style={{
 									width: 30,
