@@ -475,5 +475,17 @@ export const uk: {
 	chatOGNoTitle: "Назва відсутня",
 	chatOGNoDescription: "Опис відсутній",
 	chatEdited: "(редаговано)",
-	chatIsTyping: "друкує"
+	chatIsTyping: "друкує",
+	new: "Новий",
+	chatInfoTitle: "Чат з наскрізним шифруванням",
+	chatInfoSubtitle1: "За замовчуванням Filen захищає кожен чат за допомогою наскрізного шифрування з нульовим рівнем доступу.",
+	chatInfoSubtitle2: "Тільки учасники чату можуть розшифрувати і прочитати вміст.",
+	chatInfoSubtitle3:
+		"Система гарантує, що отримані дані дійсно надходять від відображеного користувача і не були змінені за минулий час.",
+	chatUnreadMessagesSince: "непрочитаних повідомлень з __DATE__",
+	chatMarkAsRead: "Позначити як прочитане",
+	reply: "Відповісти",
+	copyText: "Копіювати текст",
+	copyId: "Копіювати ID",
+	replyingTo: "Відповідь на"
 }
