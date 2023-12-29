@@ -89,7 +89,8 @@ export const queueFileUpload = ({
 			version: uploadVersion,
 			versionedUUID: undefined,
 			region: "",
-			bucket: ""
+			bucket: "",
+			type: "file"
 		}
 		const name = fileName
 		const size = file.size

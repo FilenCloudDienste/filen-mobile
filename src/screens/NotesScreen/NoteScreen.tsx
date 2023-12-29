@@ -16,7 +16,7 @@ import { useMMKVNumber } from "react-native-mmkv"
 import storage from "../../lib/storage"
 import debounce from "lodash/debounce"
 import { Semaphore, SemaphoreInterface, formatBytes } from "../../lib/helpers"
-import { decryptNoteKeyParticipant, encryptNotePreview, encryptNoteContent } from "../../lib/crypto"
+import { decryptNoteKeyParticipant, encryptNotePreview, encryptNoteContent, decryptNoteTitle } from "../../lib/crypto"
 import { MAX_NOTE_SIZE } from "../../lib/constants"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -29,6 +29,7 @@ import {
 	hideFullScreenLoadingModal
 } from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
+import { SocketEvent } from "../../lib/services/socket"
 
 const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -257,12 +258,46 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			}
 		})
 
+		const socketAuthedListener = eventListener.on("socketAuthed", () => {
+			loadNote(true)
+		})
+
+		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+			if (event.type === "noteContentEdited") {
+				if (event.data.editorId !== storage.getNumber("userId")) {
+					loadNote(true)
+				}
+			} else if (
+				event.type === "noteParticipantNew" ||
+				event.type === "noteParticipantPermissions" ||
+				event.type === "noteParticipantRemoved"
+			) {
+				loadNote(true)
+			} else if (event.type === "noteTitleEdited") {
+				try {
+					const userId = storage.getNumber("userId")
+					const privateKey = storage.getString("privateKey")
+					const noteKey = await decryptNoteKeyParticipant(
+						currentNoteRef.current.participants.filter(participant => participant.userId === userId)[0].metadata,
+						privateKey
+					)
+					const titleDecrypted = await decryptNoteTitle(event.data.title, noteKey)
+
+					setTitle(titleDecrypted)
+				} catch (e) {
+					console.error(e)
+				}
+			}
+		})
+
 		return () => {
 			keyboardDidShowListener.remove()
 			keyboardDidHideListener.remove()
 			keyboardWillHideListener.remove()
 			noteTitleEditedListener.remove()
 			appStateChangeListener.remove()
+			socketAuthedListener.remove()
+			socketEventListener.remove()
 
 			save()
 		}
@@ -315,10 +350,10 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 								<>
 									{currentNoteRef.current.type === "md" && (
 										<TouchableOpacity
+											onPress={() => setShowPreview(prev => !prev)}
 											style={{
 												marginRight: 10
 											}}
-											onPress={() => setShowPreview(prev => !prev)}
 										>
 											<Ionicon
 												name={showPreview ? "eye-off-outline" : "eye-outline"}
@@ -330,21 +365,8 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 											/>
 										</TouchableOpacity>
 									)}
-									<Ionicon
-										name="eye-outline"
-										style={{
-											flexShrink: 0
-										}}
-										color={getColor(darkMode, "textSecondary")}
-										size={24}
-									/>
 									{historyMode && (
-										<TouchableOpacity
-											style={{
-												marginLeft: 10
-											}}
-											onPress={restore}
-										>
+										<TouchableOpacity onPress={restore}>
 											<Ionicon
 												name="refresh-outline"
 												style={{

@@ -13,7 +13,7 @@ import {
 } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, useIsFocused } from "@react-navigation/native"
+import { NavigationContainerRef, useIsFocused, StackActions, CommonActions } from "@react-navigation/native"
 import {
 	ChatConversation,
 	ChatConversationParticipant,
@@ -25,7 +25,7 @@ import {
 	updateChatLastFocus
 } from "../../lib/api"
 import { SocketEvent } from "../../lib/services/socket"
-import { i18n } from "../../i18n"
+import { fetchChatConversations } from "./utils"
 import useLang from "../../lib/hooks/useLang"
 import { useMMKVNumber } from "react-native-mmkv"
 import storage from "../../lib/storage"
@@ -44,6 +44,8 @@ import TopbarUnread from "./TopbarUnread"
 import striptags from "striptags"
 import Input from "./Input"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
+import { ChatInfo } from "./Message"
+import { navigationAnimation } from "../../lib/state"
 
 const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -55,7 +57,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const isFocused = useIsFocused()
 	const [messages, setMessages] = useState<ChatMessage[]>([])
 	const [atBottom, setAtBottom] = useState<boolean>(true)
-	const conversation = useRef<ChatConversation>(route.params.conversation).current
+	const [conversation, setConversation] = useState<ChatConversation>(route.params.conversation)
 	const conversationMe = useRef<ChatConversationParticipant>(conversation.participants.filter(p => p.userId === userId)[0]).current
 	const lastFocusTimestampRef = useRef<string>("")
 	const [failedMessages, setFailedMessages] = useState<string[]>([])
@@ -74,10 +76,14 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const updateLastFocusMutex = useRef<SemaphoreInterface>(new Semaphore(1)).current
 	const didInitialLoad = useRef<boolean>(false)
 	const keyboardOffset = useKeyboardOffset()
+	const [showScrollDownButton, setShowScrollDownButton] = useState<boolean>(false)
+	const listRef = useRef<FlashList<ChatMessage>>()
 
 	const conversationParticipantsFilteredWithoutMe = useMemo(() => {
-		return conversation.participants.filter(participant => participant.userId !== userId).sort((a, b) => a.email.localeCompare(b.email))
-	}, [conversation, userId])
+		const filtered = conversation.participants.filter(participant => participant.userId !== userId)
+
+		return (conversation.participants.length <= 1 ? conversation.participants : filtered).sort((a, b) => a.email.localeCompare(b.email))
+	}, [conversation.participants, userId])
 
 	const sortedMessages = useMemo(() => {
 		const exists: Record<string, boolean> = {}
@@ -109,9 +115,13 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		loadPreviousMessages(firstMessage.sentTimestamp)
 	}, [sortedMessages])
 
-	const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-		setAtBottom(event.nativeEvent.contentOffset.y <= 100)
-	}, [])
+	const onScroll = useCallback(
+		(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+			setAtBottom(event.nativeEvent.contentOffset.y <= 100)
+			setShowScrollDownButton(event.nativeEvent.contentOffset.y >= (isPortrait ? dimensions.height * 1.5 : 1000))
+		},
+		[dimensions, isPortrait]
+	)
 
 	const fetchBlockedContacts = useCallback(async () => {
 		try {
@@ -122,6 +132,23 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			console.error(e)
 		}
 	}, [])
+
+	const loadConversation = useCallback(async () => {
+		try {
+			if (!networkInfo.online) {
+				return
+			}
+
+			const result = await fetchChatConversations(true)
+			const convos = result.conversations.filter(c => c.uuid === conversation.uuid)
+
+			if (convos.length > 0) {
+				setConversation(convos[0])
+			}
+		} catch (e) {
+			console.error(e)
+		}
+	}, [networkInfo, conversation])
 
 	const loadPreviousMessages = useCallback(
 		async (lastTimestamp: number) => {
@@ -290,12 +317,13 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				}
 			}
 		}
-	}, [JSON.stringify(lastFocusTimestamp)])
+	}, [JSON.stringify(lastFocusTimestamp), conversation])
 
 	useEffect(() => {
 		if (isFocused) {
 			loadMessages(true)
 			fetchBlockedContacts()
+			loadConversation()
 		}
 	}, [isFocused])
 
@@ -320,18 +348,21 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			loadMessages()
 			initLastFocus()
 			fetchBlockedContacts()
+			loadConversation()
 		}
 
 		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
 			if (nextAppState === "active") {
 				loadMessages(true)
 				fetchBlockedContacts()
+				loadConversation()
 			}
 		})
 
 		const socketAuthedListener = eventListener.on("socketAuthed", () => {
 			loadMessages(true)
 			fetchBlockedContacts()
+			loadConversation()
 		})
 
 		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
@@ -406,6 +437,31 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 						m.uuid === event.data.uuid ? { ...m, message, edited: true, editedTimestamp: event.data.editedTimestamp } : m
 					)
 				)
+			} else if (event.type === "chatConversationParticipantNew") {
+				if (event.data.conversation === conversation.uuid) {
+					loadConversation()
+				}
+			} else if (event.type === "chatConversationDeleted") {
+				if (event.data.uuid === conversation.uuid) {
+					navigation.dispatch(
+						CommonActions.reset({
+							index: 0,
+							routes: [
+								{
+									name: "ChatsScreen"
+								}
+							]
+						})
+					)
+				}
+			} else if (event.type === "chatConversationParticipantLeft") {
+				if (event.data.uuid === conversation.uuid) {
+					loadConversation()
+				}
+			} else if (event.type === "chatConversationNameEdited") {
+				if (event.data.uuid === conversation.uuid) {
+					loadConversation()
+				}
 			}
 		})
 
@@ -417,12 +473,38 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			setMessages(prev => prev.map(message => (message.uuid === uuid ? { ...message, embedDisabled: true } : message)))
 		})
 
+		const chatConversationParticipantRemovedListener = eventListener.on(
+			"chatConversationParticipantRemoved",
+			({ uuid, userId }: { uuid: string; userId: number }) => {
+				if (uuid === conversation.uuid) {
+					setConversation(prev => ({ ...prev, participants: prev.participants.filter(p => p.userId !== userId) }))
+
+					loadConversation()
+				}
+			}
+		)
+
+		const chatConversationParticipantAdded = eventListener.on("chatConversationParticipantAdded", ({ uuid }: { uuid: string }) => {
+			if (uuid === conversation.uuid) {
+				loadConversation()
+			}
+		})
+
+		const chatConversationNameEditedListener = eventListener.on("chatConversationNameEdited", ({ uuid }: { uuid: string }) => {
+			if (uuid === conversation.uuid) {
+				loadConversation()
+			}
+		})
+
 		return () => {
 			appStateChangeListener.remove()
 			socketAuthedListener.remove()
 			chatMessageDeleteListener.remove()
 			chatMessageEmbedDisabledListener.remove()
 			socketEventListener.remove()
+			chatConversationParticipantRemovedListener.remove()
+			chatConversationParticipantAdded.remove()
+			chatConversationNameEditedListener.remove()
 		}
 	}, [userId, conversation, conversationMe])
 
@@ -450,8 +532,8 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					backgroundColor: getColor(darkMode, "backgroundPrimary"),
 					zIndex: 1001,
 					justifyContent: "space-between",
-					paddingLeft: 10,
-					paddingRight: 10
+					paddingLeft: 15,
+					paddingRight: 15
 				}}
 			>
 				<View
@@ -483,9 +565,9 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					{conversationParticipantsFilteredWithoutMe.length > 1 ? (
 						<View
 							style={{
-								width: 32,
-								height: 32,
-								borderRadius: 32,
+								width: 30,
+								height: 30,
+								borderRadius: 30,
 								backgroundColor: generateAvatarColorCode(
 									conversation.participants.length + "@" + conversation.uuid,
 									darkMode
@@ -513,17 +595,17 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							}}
 							cachePolicy="memory-disk"
 							style={{
-								width: 32,
-								height: 32,
-								borderRadius: 32
+								width: 30,
+								height: 30,
+								borderRadius: 30
 							}}
 						/>
 					) : (
 						<View
 							style={{
-								width: 32,
-								height: 32,
-								borderRadius: 32,
+								width: 30,
+								height: 30,
+								borderRadius: 30,
 								backgroundColor: generateAvatarColorCode(
 									getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]),
 									darkMode
@@ -544,30 +626,41 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							</Text>
 						</View>
 					)}
-					<Text
-						numberOfLines={1}
-						style={{
-							color: getColor(darkMode, "textPrimary"),
-							fontWeight: "500",
-							fontSize: 18,
-							marginLeft: 10
+					<TouchableOpacity
+						onPress={() => {
+							if (userId === conversation.ownerId) {
+								eventListener.emit("openChatConversationNameDialog", conversation)
+							}
 						}}
 					>
-						{conversationTitle.length > 0
-							? conversationTitle
-							: typeof conversation.name === "string" && conversation.name.length > 0
-							? conversation.name
-							: conversationParticipantsFilteredWithoutMe.length > 0
-							? conversationParticipantsFilteredWithoutMe.map(user => striptags(getUserNameFromParticipant(user))).join(", ")
-							: conversation.participants.map(user => striptags(getUserNameFromParticipant(user))).join(", ")}
-					</Text>
+						<Text
+							numberOfLines={1}
+							style={{
+								color: getColor(darkMode, "textPrimary"),
+								fontWeight: "500",
+								fontSize: 18,
+								marginLeft: 10
+							}}
+						>
+							{conversationTitle.length > 0
+								? conversationTitle
+								: typeof conversation.name === "string" && conversation.name.length > 0
+								? conversation.name
+								: conversationParticipantsFilteredWithoutMe.length > 0
+								? conversationParticipantsFilteredWithoutMe
+										.map(user => striptags(getUserNameFromParticipant(user)))
+										.join(", ")
+								: conversation.participants.map(user => striptags(getUserNameFromParticipant(user))).join(", ")}
+						</Text>
+					</TouchableOpacity>
 				</View>
 				<View
 					style={{
 						width: "20%",
 						flexDirection: "row",
 						alignItems: "center",
-						justifyContent: "flex-end"
+						justifyContent: "flex-end",
+						paddingRight: 5
 					}}
 				>
 					<TouchableOpacity
@@ -576,6 +669,15 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							bottom: 15,
 							left: 15,
 							right: 15
+						}}
+						onPress={async () => {
+							await navigationAnimation({ enable: true })
+
+							navigation.dispatch(
+								StackActions.push("ChatParticipantsScreen", {
+									conversation
+								})
+							)
 						}}
 					>
 						<Ionicon
@@ -596,6 +698,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				lang={lang}
 			/>
 			<FlashList
+				ref={listRef}
 				key={"messages-" + isPortrait}
 				data={sortedMessages}
 				renderItem={renderItem}
@@ -622,7 +725,16 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				}}
 				onScroll={onScroll}
 				ListEmptyComponent={
-					<>
+					<View
+						style={{
+							transform: [{ rotateX: "180deg" }],
+							flexDirection: "column",
+							justifyContent: "center",
+							alignItems: "center",
+							width: "100%",
+							height: "100%"
+						}}
+					>
 						{loading ? (
 							<View
 								style={{
@@ -630,7 +742,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 									justifyContent: "center",
 									alignItems: "center",
 									width: "100%",
-									marginTop: Math.floor(dimensions.height / 2) - 100
+									marginBottom: Math.floor(dimensions.height / 2) - 50
 								}}
 							>
 								<ActivityIndicator
@@ -641,32 +753,45 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 						) : (
 							<View
 								style={{
-									flexDirection: "column",
-									justifyContent: "center",
-									alignItems: "center",
 									width: "100%",
-									marginTop: Math.floor(dimensions.height / 2) - 200
+									height: "100%",
+									paddingBottom: 30
 								}}
 							>
-								<Ionicon
-									name="chatbubble-outline"
-									size={40}
-									color={getColor(darkMode, "textSecondary")}
+								<ChatInfo
+									darkMode={darkMode}
+									lang={lang}
 								/>
-								<Text
-									style={{
-										color: getColor(darkMode, "textSecondary"),
-										fontSize: 16,
-										marginTop: 5
-									}}
-								>
-									{i18n(lang, "noChatsYet")}
-								</Text>
 							</View>
 						)}
-					</>
+					</View>
 				}
 			/>
+			{showScrollDownButton && (
+				<TouchableOpacity
+					style={{
+						backgroundColor: getColor(darkMode, "backgroundSecondary"),
+						width: 36,
+						height: 36,
+						borderRadius: 36,
+						position: "absolute",
+						bottom: 70,
+						right: 15,
+						flexDirection: "column",
+						alignItems: "center",
+						justifyContent: "center"
+					}}
+					onPress={() => {
+						listRef?.current?.scrollToOffset({ animated: true, offset: 0 })
+					}}
+				>
+					<Ionicon
+						name="chevron-down-outline"
+						color={getColor(darkMode, "textPrimary")}
+						size={22}
+					/>
+				</TouchableOpacity>
+			)}
 			<Input
 				darkMode={darkMode}
 				lang={lang}

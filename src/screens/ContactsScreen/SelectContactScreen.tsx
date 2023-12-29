@@ -34,7 +34,7 @@ export type SelectContactResponse =
 			requestId: string
 	  }
 
-export const selectContact = (
+export const selectContacts = (
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>,
 	hiddenUserIds: number[] = []
 ): Promise<SelectContactResponse> => {

@@ -23,6 +23,7 @@ import { Feather } from "@expo/vector-icons"
 import { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
+import { SocketEvent } from "../../lib/services/socket"
 
 const itemHeights = new Map<string, number>()
 
@@ -521,11 +522,33 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			}
 		})
 
+		const socketAuthedListener = eventListener.on("socketAuthed", () => {
+			loadNotesAndTags(true)
+		})
+
+		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+			if (
+				event.type === "noteParticipantNew" ||
+				event.type === "noteParticipantPermissions" ||
+				event.type === "noteParticipantRemoved" ||
+				event.type === "noteArchived" ||
+				event.type === "noteDeleted" ||
+				event.type === "noteNew" ||
+				event.type === "noteRestored" ||
+				event.type === "noteTitleEdited" ||
+				event.type === "noteContentEdited"
+			) {
+				loadNotesAndTags(true)
+			}
+		})
+
 		return () => {
 			notesUpdateListener.remove()
 			refreshNotesListener.remove()
 			notesTagsUpdateListener.remove()
 			appStateChangeListener.remove()
+			socketEventListener.remove()
+			socketAuthedListener.remove()
 		}
 	}, [])
 

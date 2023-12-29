@@ -35,57 +35,61 @@ eventListener.on("startForegroundService", type => {
 
 	if (showNotification) {
 		;(async () => {
-			const lang = storage.getString("lang") || "en"
-			const channelId = await notifee.createChannel({
-				id: "foregroundService",
-				name: "Foreground Service"
-			})
+			try {
+				const lang = storage.getString("lang") || "en"
+				const channelId = await notifee.createChannel({
+					id: "foregroundService",
+					name: "Foreground Service"
+				})
 
-			const notification = {
-				title:
-					type === "cameraUpload"
-						? i18n(lang, "cameraUploadNotificationTitle")
-						: type === "upload"
-						? i18n(lang, "uploadNotificationTitle")
-						: i18n(lang, "downloadNotificationTitle"),
-				android: {
-					channelId,
-					asForegroundService: true,
-					localOnly: true,
-					ongoing: true,
-					importance: AndroidImportance.HIGH,
-					progress: {
-						indeterminate: true
+				const notification = {
+					title:
+						type === "cameraUpload"
+							? i18n(lang, "cameraUploadNotificationTitle")
+							: type === "upload"
+							? i18n(lang, "uploadNotificationTitle")
+							: i18n(lang, "downloadNotificationTitle"),
+					android: {
+						channelId,
+						asForegroundService: true,
+						localOnly: true,
+						ongoing: true,
+						importance: AndroidImportance.HIGH,
+						progress: {
+							indeterminate: true
+						},
+						pressAction: {
+							id: "foregroundService",
+							launchActivity: "default"
+						},
+						groupSummary: true,
+						groupId: "foregroundService",
+						timestamp: Date.now()
 					},
-					pressAction: {
-						id: "foregroundService",
-						launchActivity: "default"
-					},
-					groupSummary: true,
-					groupId: "foregroundService",
-					timestamp: Date.now()
-				},
-				data: {
-					type: "foregroundService"
+					data: {
+						type: "foregroundService"
+					}
 				}
-			}
 
-			const id = await notifee.displayNotification(notification)
+				const id = await notifee.displayNotification(notification)
 
-			if (type === "upload") {
-				uploadNotification = {
-					...notification,
-					id
+				if (type === "upload") {
+					uploadNotification = {
+						...notification,
+						id
+					}
 				}
-			}
 
-			if (type === "download") {
-				downloadNotification = {
-					...notification,
-					id
+				if (type === "download") {
+					downloadNotification = {
+						...notification,
+						id
+					}
 				}
+			} catch (e) {
+				console.error(e)
 			}
-		})().catch(console.error)
+		})()
 	}
 })
 

@@ -52,6 +52,8 @@ export const TopBar = memo(
 				const isChatsScreen = route.name && route.name.indexOf("Chat") !== -1
 				const isNotesScreen = route.name && route.name.indexOf("Note") !== -1
 				const isContactsScreen = route.name && route.name.indexOf("Contact") !== -1
+				const isChatParticipantsScreen = route.name && route.name === "ChatParticipantsScreen"
+				const isSelectContactScreen = route.name && route.name === "SelectContactScreen"
 
 				if (isTransfersScreen) {
 					title = i18n(lang, "transfers")
@@ -73,6 +75,10 @@ export const TopBar = memo(
 					title = i18n(lang, "home")
 				} else if (isPhotosScreen) {
 					title = i18n(lang, "photos")
+				} else if (isChatParticipantsScreen) {
+					title = i18n(lang, "participants")
+				} else if (isSelectContactScreen) {
+					title = i18n(lang, "selectContacts")
 				} else if (isChatsScreen) {
 					title = i18n(lang, "chats")
 				} else if (isNotesScreen) {
@@ -155,7 +161,8 @@ export const TopBar = memo(
 			isChatsScreen,
 			isNotesScreen,
 			isContactsScreen,
-			isSelectContactScreen
+			isSelectContactScreen,
+			isChatParticipantsScreen
 		] = useMemo(() => {
 			const isMainScreen = route.name && route.name === "MainScreen"
 			const isTransfersScreen = route.name && route.name === "TransfersScreen"
@@ -173,6 +180,7 @@ export const TopBar = memo(
 			const isNotesScreen = route.name && route.name.indexOf("Note") !== -1
 			const isContactsScreen = route.name && route.name === "ContactsScreen"
 			const isSelectContactScreen = route.name && route.name === "SelectContactScreen"
+			const isChatParticipantsScreen = route.name && route.name === "ChatParticipantsScreen"
 
 			const showHomeTabBar = ["shared-in", "shared-out", "links", "recents", "offline", "favorites"].includes(parent)
 
@@ -198,7 +206,7 @@ export const TopBar = memo(
 				showBackButton = false
 			}
 
-			if (isTrashScreen || isSelectContactScreen) {
+			if (isTrashScreen || isSelectContactScreen || isChatParticipantsScreen) {
 				showBackButton = true
 			}
 
@@ -220,7 +228,8 @@ export const TopBar = memo(
 				isChatsScreen,
 				isNotesScreen,
 				isContactsScreen,
-				isSelectContactScreen
+				isSelectContactScreen,
+				isChatParticipantsScreen
 			]
 		}, [route, parent])
 
@@ -322,7 +331,11 @@ export const TopBar = memo(
 										}}
 										numberOfLines={1}
 									>
-										{isTrashScreen ? i18n(lang, "settings") : i18n(lang, "back")}
+										{isTrashScreen
+											? i18n(lang, "settings")
+											: isChatParticipantsScreen
+											? i18n(lang, "chats")
+											: i18n(lang, "back")}
 									</Text>
 								</TouchableOpacity>
 							)

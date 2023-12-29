@@ -3,7 +3,15 @@ import { View, Text, TouchableOpacity, useWindowDimensions, AppState, ActivityIn
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, useIsFocused, StackActions } from "@react-navigation/native"
-import { ChatConversation, chatConversationsUnread, chatConversationsRead } from "../../lib/api"
+import {
+	ChatConversation,
+	chatConversationsUnread,
+	chatConversationsRead,
+	chatConversationsCreate,
+	Contact,
+	getPublicKeyFromEmail,
+	chatConversationsParticipantsAdd
+} from "../../lib/api"
 import { SocketEvent } from "../../lib/services/socket"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
@@ -23,6 +31,12 @@ import striptags from "striptags"
 import { navigationAnimation } from "../../lib/state"
 import useIsPortrait from "../../lib/hooks/useIsPortrait"
 import { BottomBar } from "../../components/BottomBar"
+import { selectContacts } from "../ContactsScreen/SelectContactScreen"
+import {
+	showFullScreenLoadingModal,
+	hideFullScreenLoadingModal
+} from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
+import { showToast } from "../../components/Toasts"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -112,9 +126,7 @@ const Item = memo(
 						})
 					)
 				}}
-				onLongPress={() => {
-					eventListener.emit("openChatActionSheet", { conversation })
-				}}
+				onLongPress={() => eventListener.emit("openChatConversationActionSheet", conversation)}
 			>
 				<View
 					style={{
@@ -124,41 +136,54 @@ const Item = memo(
 					}}
 				>
 					{conversationParticipantsFilteredWithoutMe.length > 1 ? (
-						<View
-							style={{
-								width: AVATAR_HEIGHT,
-								height: AVATAR_HEIGHT,
-								borderRadius: AVATAR_HEIGHT,
-								backgroundColor: generateAvatarColorCode(
-									conversation.participants.length + "@" + conversation.uuid,
-									darkMode
-								),
-								flexDirection: "column",
-								alignItems: "center",
-								justifyContent: "center"
-							}}
-						>
+						<>
+							<View
+								style={{
+									width: AVATAR_HEIGHT,
+									height: AVATAR_HEIGHT,
+									borderRadius: AVATAR_HEIGHT,
+									backgroundColor: generateAvatarColorCode(
+										conversation.participants.length + "@" + conversation.uuid,
+										darkMode
+									),
+									flexDirection: "column",
+									alignItems: "center",
+									justifyContent: "center",
+									zIndex: 1001
+								}}
+							>
+								<Text
+									style={{
+										color: "white",
+										fontWeight: "bold",
+										fontSize: 20
+									}}
+								>
+									{conversation.participants.length.toString()}
+								</Text>
+							</View>
 							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
 								unreadConversationsMessages[conversation.uuid] > 0 && (
 									<View
 										style={{
 											backgroundColor: getColor(darkMode, "red"),
-											width: 18,
-											height: 18,
-											borderRadius: 18,
+											width: 16,
+											height: 16,
+											borderRadius: 16,
 											flexDirection: "row",
 											alignItems: "center",
 											justifyContent: "center",
 											position: "absolute",
-											left: AVATAR_HEIGHT / 2 + 3,
-											top: AVATAR_HEIGHT / 2 + 3
+											left: AVATAR_HEIGHT - 15,
+											top: AVATAR_HEIGHT - 1,
+											zIndex: 10001
 										}}
 									>
 										<Text
 											style={{
 												color: "white",
 												fontWeight: "bold",
-												fontSize: 12
+												fontSize: 11
 											}}
 										>
 											{unreadConversationsMessages[conversation.uuid] >= 9
@@ -167,113 +192,111 @@ const Item = memo(
 										</Text>
 									</View>
 								)}
-							<Text
-								style={{
-									color: "white",
-									fontWeight: "bold",
-									fontSize: 20
-								}}
-							>
-								{conversation.participants.length.toString()}
-							</Text>
-						</View>
+						</>
 					) : typeof conversationParticipantsFilteredWithoutMe[0].avatar === "string" &&
 					  conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1 ? (
-						<Image
-							source={{
-								uri: conversationParticipantsFilteredWithoutMe[0].avatar
-							}}
-							cachePolicy="memory-disk"
-							style={{
-								width: 34,
-								height: 34,
-								borderRadius: 34
-							}}
-						>
-							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
-								unreadConversationsMessages[conversation.uuid] > 0 && (
-									<View
-										style={{
-											backgroundColor: getColor(darkMode, "red"),
-											width: 18,
-											height: 18,
-											borderRadius: 18,
-											flexDirection: "row",
-											alignItems: "center",
-											justifyContent: "center",
-											position: "absolute",
-											left: AVATAR_HEIGHT / 2 + 3,
-											top: AVATAR_HEIGHT / 2 + 3
-										}}
-									>
-										<Text
-											style={{
-												color: "white",
-												fontWeight: "bold",
-												fontSize: 12
-											}}
-										>
-											{unreadConversationsMessages[conversation.uuid] >= 9
-												? 9
-												: unreadConversationsMessages[conversation.uuid]}
-										</Text>
-									</View>
-								)}
-						</Image>
-					) : (
-						<View
-							style={{
-								width: AVATAR_HEIGHT,
-								height: AVATAR_HEIGHT,
-								borderRadius: AVATAR_HEIGHT,
-								backgroundColor: generateAvatarColorCode(
-									getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]),
-									darkMode
-								),
-								flexDirection: "column",
-								alignItems: "center",
-								justifyContent: "center"
-							}}
-						>
-							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
-								unreadConversationsMessages[conversation.uuid] > 0 && (
-									<View
-										style={{
-											backgroundColor: getColor(darkMode, "red"),
-											width: 18,
-											height: 18,
-											borderRadius: 18,
-											flexDirection: "row",
-											alignItems: "center",
-											justifyContent: "center",
-											position: "absolute",
-											left: AVATAR_HEIGHT / 2 + 3,
-											top: AVATAR_HEIGHT / 2 + 3
-										}}
-									>
-										<Text
-											style={{
-												color: "white",
-												fontWeight: "bold",
-												fontSize: 12
-											}}
-										>
-											{unreadConversationsMessages[conversation.uuid] >= 9
-												? 9
-												: unreadConversationsMessages[conversation.uuid]}
-										</Text>
-									</View>
-								)}
-							<Text
+						<>
+							<Image
+								source={{
+									uri: conversationParticipantsFilteredWithoutMe[0].avatar
+								}}
+								cachePolicy="memory-disk"
 								style={{
-									color: "white",
-									fontWeight: "bold",
-									fontSize: 20
+									width: 34,
+									height: 34,
+									borderRadius: 34,
+									zIndex: 101
+								}}
+							/>
+							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
+								unreadConversationsMessages[conversation.uuid] > 0 && (
+									<View
+										style={{
+											backgroundColor: getColor(darkMode, "red"),
+											width: 16,
+											height: 16,
+											borderRadius: 16,
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "center",
+											position: "absolute",
+											left: AVATAR_HEIGHT - 15,
+											top: AVATAR_HEIGHT - 1,
+											zIndex: 10001
+										}}
+									>
+										<Text
+											style={{
+												color: "white",
+												fontWeight: "bold",
+												fontSize: 11
+											}}
+										>
+											{unreadConversationsMessages[conversation.uuid] >= 9
+												? 9
+												: unreadConversationsMessages[conversation.uuid]}
+										</Text>
+									</View>
+								)}
+						</>
+					) : (
+						<>
+							<View
+								style={{
+									width: AVATAR_HEIGHT,
+									height: AVATAR_HEIGHT,
+									borderRadius: AVATAR_HEIGHT,
+									backgroundColor: generateAvatarColorCode(
+										getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]),
+										darkMode
+									),
+									flexDirection: "column",
+									alignItems: "center",
+									justifyContent: "center",
+									zIndex: 1001
 								}}
 							>
-								{getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]).slice(0, 1).toUpperCase()}
-							</Text>
-						</View>
+								<Text
+									style={{
+										color: "white",
+										fontWeight: "bold",
+										fontSize: 20
+									}}
+								>
+									{getUserNameFromParticipant(conversationParticipantsFilteredWithoutMe[0]).slice(0, 1).toUpperCase()}
+								</Text>
+							</View>
+							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
+								unreadConversationsMessages[conversation.uuid] > 0 && (
+									<View
+										style={{
+											backgroundColor: getColor(darkMode, "red"),
+											width: 16,
+											height: 16,
+											borderRadius: 16,
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "center",
+											position: "absolute",
+											left: AVATAR_HEIGHT - 15,
+											top: AVATAR_HEIGHT - 1,
+											zIndex: 10001
+										}}
+									>
+										<Text
+											style={{
+												color: "white",
+												fontWeight: "bold",
+												fontSize: 11
+											}}
+										>
+											{unreadConversationsMessages[conversation.uuid] >= 9
+												? 9
+												: unreadConversationsMessages[conversation.uuid]}
+										</Text>
+									</View>
+								)}
+						</>
 					)}
 				</View>
 				<View
@@ -438,6 +461,77 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 		[networkInfo]
 	)
 
+	const createChat = useCallback(async () => {
+		if (!networkInfo.online) {
+			return
+		}
+
+		let contacts: Contact[] = []
+
+		try {
+			const selectContactsRes = await selectContacts(navigation)
+
+			if (selectContactsRes.cancelled) {
+				return
+			}
+
+			contacts = selectContactsRes.contacts
+		} catch (e) {
+			console.error(e)
+
+			showToast({ message: e.toString() })
+
+			return
+		}
+
+		if (contacts.length <= 0) {
+			return
+		}
+
+		showFullScreenLoadingModal()
+
+		try {
+			const key = await global.nodeThread.generateRandomString({ charLength: 32 })
+			const publicKey = storage.getString("publicKey")
+			const metadata = await global.nodeThread.encryptMetadataPublicKey({ data: JSON.stringify({ key }), publicKey })
+			const uuid = await global.nodeThread.uuidv4()
+
+			await chatConversationsCreate(uuid, metadata)
+
+			const promises: Promise<void>[] = []
+
+			for (const contact of contacts) {
+				promises.push(
+					new Promise(async (resolve, reject) => {
+						try {
+							const participantPublicKey = await getPublicKeyFromEmail(contact.email)
+							const participantMetadata = await global.nodeThread.encryptMetadataPublicKey({
+								data: JSON.stringify({ key }),
+								publicKey: participantPublicKey
+							})
+
+							await chatConversationsParticipantsAdd(uuid, contact.uuid, participantMetadata)
+						} catch (e) {
+							reject(e)
+
+							return
+						}
+
+						resolve()
+					})
+				)
+			}
+
+			await Promise.all(promises)
+
+			await loadConversations(true)
+		} catch (e) {
+			console.error(e)
+		} finally {
+			hideFullScreenLoadingModal()
+		}
+	}, [navigation, networkInfo])
+
 	const keyExtractor = useCallback((item: ChatConversation) => item.uuid, [])
 
 	const renderItem = useCallback(
@@ -521,6 +615,8 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 				}
 			} else if (event.type === "chatConversationsNew") {
 				loadConversations(true)
+			} else if (event.type === "chatConversationParticipantNew") {
+				loadConversations(true)
 			} else if (event.type === "chatConversationDeleted") {
 				setConversations(prev => prev.filter(c => c.uuid !== event.data.uuid))
 
@@ -528,8 +624,6 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			} else if (event.type === "chatConversationParticipantLeft") {
 				if (event.data.userId === userId) {
 					setConversations(prev => prev.filter(c => c.uuid !== event.data.uuid))
-
-					loadConversations(true)
 				} else {
 					setConversations(prev =>
 						prev.map(c =>
@@ -539,6 +633,8 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 						)
 					)
 				}
+
+				loadConversations(true)
 			} else if (event.type === "chatMessageDelete") {
 				loadConversations(true)
 			} else if (event.type === "chatConversationNameEdited") {
@@ -602,6 +698,22 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			}
 		})
 
+		const chatConversationNameEditedListener = eventListener.on(
+			"chatConversationNameEdited",
+			({ uuid, name }: { uuid: string; name: string }) => {
+				setConversations(prev =>
+					prev.map(conversation =>
+						conversation.uuid === uuid
+							? {
+									...conversation,
+									name
+							  }
+							: conversation
+					)
+				)
+			}
+		)
+
 		const updateChatConversationsListener = eventListener.on("updateChatConversations", () => {
 			loadConversations(true)
 		})
@@ -617,12 +729,23 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			}))
 		})
 
+		const chatConversationParticipantRemovedListener = eventListener.on("chatConversationParticipantRemoved", () => {
+			loadConversations(true)
+		})
+
+		const chatConversationParticipantAdded = eventListener.on("chatConversationParticipantAdded", () => {
+			loadConversations(true)
+		})
+
 		return () => {
 			appStateChangeListener.remove()
 			socketEventListener.remove()
 			updateChatConversationsListener.remove()
 			socketAuthedListener.remove()
 			chatConversationReadListener.remove()
+			chatConversationParticipantRemovedListener.remove()
+			chatConversationParticipantAdded.remove()
+			chatConversationNameEditedListener.remove()
 		}
 	}, [userId])
 
@@ -656,7 +779,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 							paddingLeft: 0,
 							justifyContent: "flex-end"
 						}}
-						onPress={() => {}}
+						onPress={() => createChat()}
 					>
 						<Ionicon
 							name="add-outline"

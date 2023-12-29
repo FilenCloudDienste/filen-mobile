@@ -25,6 +25,8 @@ const TextEditor = memo(
 		const scrollRef = useRef<ScrollView>()
 		const [keyboardWillShow, setKeyboardWillShow] = useState<boolean>(false)
 		const intitialValue = useRef<string>(value).current
+		const didInitialAdjustments = useRef<boolean>(Platform.OS === "ios")
+		const [selection, setSelection] = useState<TextSelection>({ end: 0, start: 0 })
 
 		const onScroll = useCallback(() => {
 			if (keyboardWillShow || readOnly) {
@@ -69,10 +71,11 @@ const TextEditor = memo(
 		}, [text, readOnly])
 
 		useEffect(() => {
-			if (Platform.OS === "android") {
+			if (Platform.OS === "android" && !didInitialAdjustments.current) {
+				didInitialAdjustments.current = true
+
 				ref?.current?.setNativeProps({ selection: { start: 0, end: 0 } })
 				ref?.current?.focus()
-				scrollRef?.current?.scrollTo({ x: 0, y: 1, animated: true })
 			}
 
 			const keyboardWillShowListener = Keyboard.addListener("keyboardWillShow", () => setKeyboardWillShow(true))
@@ -114,6 +117,14 @@ const TextEditor = memo(
 					inputMode="text"
 					maxFontSizeMultiplier={0}
 					allowFontScaling={false}
+					selection={selection}
+					onSelectionChange={e => {
+						if (!didInitialAdjustments.current) {
+							return
+						}
+
+						setSelection(e.nativeEvent.selection)
+					}}
 					onPressIn={onScrollEnd}
 					onPressOut={onScrollEnd}
 					onFocus={onScrollEnd}

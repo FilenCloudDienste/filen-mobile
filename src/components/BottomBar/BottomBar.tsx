@@ -402,26 +402,34 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 			<Pressable
 				style={{
 					alignItems: "center",
-					width: "20%"
+					width: "20%",
+					flexDirection: "column"
 				}}
 				onPress={() => navTo("chats")}
 			>
-				<Ionicon
-					name={isChatsScreen ? "chatbubble" : "chatbubble-outline"}
-					size={22}
-					color={isChatsScreen ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary")}
+				<View
+					style={{
+						alignItems: "center"
+					}}
 				>
+					<Ionicon
+						name={isChatsScreen ? "chatbubble" : "chatbubble-outline"}
+						size={22}
+						color={isChatsScreen ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary")}
+					/>
 					{chatUnread > 0 && (
 						<View
 							style={{
 								backgroundColor: getColor(darkMode, "red"),
-								width: 18,
-								height: 18,
-								borderRadius: 18,
+								width: 16,
+								height: 16,
+								borderRadius: 16,
 								flexDirection: "row",
 								alignItems: "center",
 								justifyContent: "center",
 								position: "absolute",
+								left: 11,
+								top: 0,
 								zIndex: 10001
 							}}
 						>
@@ -436,7 +444,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 							</Text>
 						</View>
 					)}
-				</Ionicon>
+				</View>
 				<Text
 					style={{
 						color: isChatsScreen ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "textSecondary"),

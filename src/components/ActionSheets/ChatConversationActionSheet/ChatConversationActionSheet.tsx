@@ -8,7 +8,7 @@ import { getColor } from "../../../style/colors"
 import { ActionButton, hideAllActionSheets } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { ChatMessage, chatDelete } from "../../../lib/api"
+import { ChatConversation, chatDelete, chatConversationsLeave } from "../../../lib/api"
 import storage from "../../../lib/storage"
 import {
 	showFullScreenLoadingModal,
@@ -18,15 +18,15 @@ import eventListener from "../../../lib/eventListener"
 import { useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
 
-const ChatMessageActionSheet = memo(() => {
+const ChatConversationActionSheet = memo(() => {
 	const darkMode = useDarkMode()
 	const insets = useSafeAreaInsets()
 	const lang = useLang()
-	const [selectedMessage, setSelectedMessage] = useState<ChatMessage | undefined>(undefined)
 	const [userId] = useMMKVNumber("userId", storage)
+	const [selectedConversation, setSelectedConversation] = useState<ChatConversation | undefined>(undefined)
 
 	const del = useCallback(async () => {
-		if (!selectedMessage) {
+		if (!selectedConversation || selectedConversation.ownerId !== userId) {
 			return
 		}
 
@@ -35,31 +35,54 @@ const ChatMessageActionSheet = memo(() => {
 		await hideAllActionSheets()
 
 		try {
-			await chatDelete(selectedMessage.uuid)
+			await chatDelete(selectedConversation.uuid)
 
-			eventListener.emit("chatMessageDelete", selectedMessage.uuid)
+			eventListener.emit("chatConversationDeleted", selectedConversation.uuid)
 		} catch (e) {
 			console.error(e)
 		} finally {
 			hideFullScreenLoadingModal()
 		}
-	}, [selectedMessage])
+	}, [selectedConversation, userId])
+
+	const leave = useCallback(async () => {
+		if (!selectedConversation || selectedConversation.ownerId === userId) {
+			return
+		}
+
+		showFullScreenLoadingModal()
+
+		await hideAllActionSheets()
+
+		try {
+			await chatConversationsLeave(selectedConversation.uuid)
+
+			eventListener.emit("chatConversationLeft", selectedConversation.uuid)
+		} catch (e) {
+			console.error(e)
+		} finally {
+			hideFullScreenLoadingModal()
+		}
+	}, [selectedConversation, userId])
 
 	useEffect(() => {
-		const openChatMessageActionSheetListener = eventListener.on("openChatMessageActionSheet", (message: ChatMessage) => {
-			setSelectedMessage(message)
+		const openChatConversationActionSheetListener = eventListener.on(
+			"openChatConversationActionSheet",
+			(conversation: ChatConversation) => {
+				setSelectedConversation(conversation)
 
-			SheetManager.show("ChatMessageActionSheet")
-		})
+				SheetManager.show("ChatConversationActionSheet")
+			}
+		)
 
 		return () => {
-			openChatMessageActionSheetListener.remove()
+			openChatConversationActionSheetListener.remove()
 		}
 	}, [])
 
 	return (
 		<ActionSheet
-			id="ChatMessageActionSheet"
+			id="ChatConversationActionSheet"
 			gestureEnabled={true}
 			containerStyle={{
 				backgroundColor: getColor(darkMode, "backgroundSecondary"),
@@ -80,45 +103,25 @@ const ChatMessageActionSheet = memo(() => {
 						height: 5
 					}}
 				/>
-				{selectedMessage && (
+				{selectedConversation && (
 					<>
-						<ActionButton
-							onPress={async () => {
-								await hideAllActionSheets()
-
-								eventListener.emit("replyToChatMessage", selectedMessage)
-							}}
-							icon="send-outline"
-							text={i18n(lang, "reply")}
-						/>
-						<ActionButton
-							onPress={async () => {
-								await hideAllActionSheets()
-
-								if (typeof selectedMessage.message === "string" && selectedMessage.message.length > 0) {
-									Clipboard.setString(selectedMessage.message)
-								}
-							}}
-							icon="copy-outline"
-							text={i18n(lang, "copyText")}
-						/>
-						{selectedMessage.senderId === userId && (
+						{selectedConversation.ownerId === userId && (
 							<>
 								<ActionButton
 									onPress={async () => {
 										await hideAllActionSheets()
 
-										eventListener.emit("editChatMessage", selectedMessage)
+										eventListener.emit("openChatConversationNameDialog", selectedConversation)
 									}}
-									icon="text-outline"
-									text={i18n(lang, "edit")}
+									icon="create-outline"
+									text={i18n(lang, "editName")}
 								/>
 								<ActionButton
 									onPress={() => del()}
 									textColor={getColor(darkMode, "red")}
 									icon={
 										<Ionicon
-											name="trash-bin-outline"
+											name="close-circle-outline"
 											size={22}
 											color={getColor(darkMode, "red")}
 										/>
@@ -127,11 +130,27 @@ const ChatMessageActionSheet = memo(() => {
 								/>
 							</>
 						)}
+						{selectedConversation.ownerId !== userId && (
+							<>
+								<ActionButton
+									onPress={() => leave()}
+									textColor={getColor(darkMode, "red")}
+									icon={
+										<Ionicon
+											name="remove-circle-outline"
+											size={22}
+											color={getColor(darkMode, "red")}
+										/>
+									}
+									text={i18n(lang, "leave")}
+								/>
+							</>
+						)}
 						<ActionButton
 							onPress={async () => {
 								await hideAllActionSheets()
 
-								Clipboard.setString(selectedMessage.uuid)
+								Clipboard.setString(selectedConversation.uuid)
 							}}
 							icon="copy-outline"
 							text={i18n(lang, "copyId")}
@@ -143,4 +162,4 @@ const ChatMessageActionSheet = memo(() => {
 	)
 })
 
-export default ChatMessageActionSheet
+export default ChatConversationActionSheet

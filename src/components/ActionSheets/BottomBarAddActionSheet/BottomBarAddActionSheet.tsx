@@ -15,7 +15,7 @@ import * as fs from "../../../lib/fs"
 import RNDocumentPicker, { DocumentPickerResponse } from "react-native-document-picker"
 import * as RNImagePicker from "react-native-image-picker"
 import mimeTypes from "mime-types"
-import { ActionButton, ActionSheetIndicator } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { getLastModified } from "../../../lib/services/cameraUpload"
 

@@ -1,53 +1,16 @@
-import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "react"
-import { View, Text, TouchableOpacity, useWindowDimensions, AppState, ActivityIndicator, Pressable, TouchableHighlight } from "react-native"
+import React, { useState, memo, useCallback, useMemo, useEffect } from "react"
+import { View, Text, TouchableOpacity, Pressable } from "react-native"
 import { getColor } from "../../style"
-import { NavigationContainerRef, useIsFocused } from "@react-navigation/native"
-import {
-	Note,
-	NoteParticipant,
-	Contact,
-	noteParticipantsAdd,
-	ChatConversation,
-	chatConversationsUnread,
-	ChatConversationParticipant,
-	ChatConversationsOnline,
-	ChatMessage,
-	chatConversations,
-	getChatLastFocus,
-	updateChatLastFocus,
-	BlockedContact
-} from "../../lib/api"
-import { SocketEvent } from "../../lib/services/socket"
+import { ChatConversation, ChatMessage, BlockedContact } from "../../lib/api"
 import { i18n } from "../../i18n"
-import useLang from "../../lib/hooks/useLang"
-import { useMMKVNumber, useMMKVObject } from "react-native-mmkv"
-import storage from "../../lib/storage"
-import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
+import { generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { FlashList } from "@shopify/flash-list"
 import { Image } from "expo-image"
-import { selectContact } from "../ContactsScreen/SelectContactScreen"
-import { showToast } from "../../components/Toasts"
 import {
-	showFullScreenLoadingModal,
-	hideFullScreenLoadingModal
-} from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
-import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
-import {
-	sortAndFilterConversations,
-	fetchChatConversations,
-	getUserNameFromAccount,
-	getMessageDisplayType,
 	getUserNameFromMessage,
-	getUserNameFromParticipant,
 	getUserNameFromReplyTo,
-	DisplayMessageAs,
-	MessageDisplayType,
-	fetchChatMessages,
-	formatDate,
 	formatMessageDate,
-	formatTime,
 	ReplaceMessageWithComponents,
 	extractLinksFromString,
 	isTimestampSameDay,
@@ -58,7 +21,7 @@ import {
 import Embed from "./Embeds/Embed"
 import { Octicons } from "@expo/vector-icons"
 
-const NewDivider = memo(
+export const NewDivider = memo(
 	({
 		darkMode,
 		paddingTop = 20,
@@ -126,7 +89,7 @@ const NewDivider = memo(
 	}
 )
 
-const ChatInfo = memo(({ darkMode, lang }: { darkMode: boolean; lang: string }) => {
+export const ChatInfo = memo(({ darkMode, lang }: { darkMode: boolean; lang: string }) => {
 	return (
 		<>
 			<View
@@ -229,7 +192,7 @@ const ChatInfo = memo(({ darkMode, lang }: { darkMode: boolean; lang: string }) 
 	)
 })
 
-const DateDivider = memo(({ timestamp, darkMode }: { timestamp: number; darkMode: boolean }) => {
+export const DateDivider = memo(({ timestamp, darkMode }: { timestamp: number; darkMode: boolean }) => {
 	return (
 		<View
 			style={{
@@ -280,7 +243,7 @@ const DateDivider = memo(({ timestamp, darkMode }: { timestamp: number; darkMode
 	)
 })
 
-const ReplyTo = memo(
+export const ReplyTo = memo(
 	({
 		darkMode,
 		message,
@@ -382,7 +345,7 @@ const ReplyTo = memo(
 	}
 )
 
-const MessageContent = memo(
+export const MessageContent = memo(
 	({
 		message,
 		darkMode,
@@ -463,7 +426,7 @@ const MessageContent = memo(
 	}
 )
 
-const Message = memo(
+export const Message = memo(
 	({
 		darkMode,
 		conversation,

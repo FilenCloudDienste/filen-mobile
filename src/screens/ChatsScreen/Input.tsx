@@ -14,7 +14,17 @@ import {
 	Platform
 } from "react-native"
 import { getColor } from "../../style"
-import { ChatConversation, ChatConversationParticipant, ChatMessage, chatSendTyping, TypingType, sendChatMessage } from "../../lib/api"
+import {
+	ChatConversation,
+	ChatConversationParticipant,
+	ChatMessage,
+	chatSendTyping,
+	TypingType,
+	sendChatMessage,
+	createFolder,
+	enableItemPublicLink,
+	itemPublicLinkInfo
+} from "../../lib/api"
 import { i18n } from "../../i18n"
 import { useMMKVString } from "react-native-mmkv"
 import storage from "../../lib/storage"
@@ -25,11 +35,17 @@ import Typing from "./Typing"
 import { TYPING_TIMEOUT } from "./Typing"
 import { showToast } from "../../components/Toasts"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { findClosestIndex, generateAvatarColorCode } from "../../lib/helpers"
+import { findClosestIndex, generateAvatarColorCode, convertTimestampToMs } from "../../lib/helpers"
 import { getUserNameFromParticipant, filterEmojisByShortcode } from "./utils"
 import { useKeyboard } from "@react-native-community/hooks"
+import { loadItems } from "../../lib/services/items"
+import { queueFileUpload } from "../../lib/services/upload"
+import RNDocumentPicker, { DocumentPickerResponse } from "react-native-document-picker"
+import * as fs from "../../lib/fs"
+import mimeTypes from "mime-types"
+import { getLastModified } from "../../lib/services/cameraUpload"
 
-const INPUT_HEIGHT = Platform.OS === "android" ? 43 : 35
+const INPUT_HEIGHT = Platform.OS === "android" ? 42 : 35
 
 const Input = memo(
 	({
@@ -241,6 +257,117 @@ const Input = memo(
 				setReplyMessageUUID("")
 			}
 		}, [])
+
+		const attachFile = useCallback(async () => {
+			let picked: DocumentPickerResponse[] = []
+
+			try {
+				picked = await RNDocumentPicker.pickMultiple({
+					type: [RNDocumentPicker.types.allFiles],
+					copyTo: "cachesDirectory",
+					allowMultiSelection: false
+				})
+			} catch (e) {
+				if (RNDocumentPicker.isCancel(e)) {
+					return
+				}
+
+				console.error(e)
+
+				return
+			}
+
+			if (picked.length !== 1) {
+				return
+			}
+
+			const getFileInfo = (
+				result: DocumentPickerResponse
+			): Promise<{ path: string; name: string; size: number; mime: string; lastModified: number }> => {
+				return new Promise((resolve, reject) => {
+					if (result.copyError) {
+						return reject(new Error("Could not copy file"))
+					}
+
+					if (typeof result.fileCopyUri !== "string") {
+						return reject(new Error("Could not copy file"))
+					}
+
+					const fileURI = decodeURIComponent(result.fileCopyUri.replace("file://", "").replace("file:", ""))
+
+					fs.stat(fileURI)
+						.then(info => {
+							if (!info.exists) {
+								return reject(new Error(fileURI + " does not exist"))
+							}
+
+							getLastModified(fileURI, result.name, convertTimestampToMs(info.modificationTime || Date.now()))
+								.then(lastModified => {
+									return resolve({
+										path: fileURI,
+										name: result.name,
+										size: info.size,
+										mime: mimeTypes.lookup(result.name) || result.type || "",
+										lastModified
+									})
+								})
+								.catch(reject)
+						})
+						.catch(reject)
+				})
+			}
+
+			try {
+				const defaultDriveUUID = storage.getString("defaultDriveUUID:" + storage.getNumber("userId"))
+
+				if (!defaultDriveUUID) {
+					return
+				}
+
+				const mainRoute = {
+					key: "MainScreen",
+					name: "MainScreen",
+					params: { parent: defaultDriveUUID }
+				}
+				const chatUploadsFolder = (await loadItems(mainRoute, true)).items.filter(
+					item => item.type === "folder" && item.name === "Chat Uploads"
+				)
+				let parentUUID = ""
+
+				if (chatUploadsFolder.length === 0) {
+					parentUUID = await createFolder("Chat Uploads", defaultDriveUUID)
+				} else {
+					parentUUID = chatUploadsFolder[0].uuid
+				}
+
+				const file = await getFileInfo(picked[0])
+				const item = await queueFileUpload({ file, parent: parentUUID })
+
+				if (!item.key) {
+					return
+				}
+
+				await enableItemPublicLink(item)
+
+				const linkInfo = await itemPublicLinkInfo(item)
+
+				const link = "https://drive.filen.io/d/" + linkInfo.uuid + "#" + item.key
+				const textAppended = text.length === 0 ? link : text + " " + link
+
+				setText(textAppended)
+				setTextSelection({ end: textAppended.length, start: textAppended.length })
+			} catch (e) {
+				console.error(e)
+
+				if (e == "wifiOnly") {
+					showToast({ message: i18n(lang, "onlyWifiUploads") })
+
+					return
+				}
+
+				showToast({ message: e.toString() })
+			}
+		}, [text])
 
 		const addTextAfterLastTextComponent = useCallback(
 			(component: string, replaceWith: string) => {
@@ -693,6 +820,7 @@ const Input = memo(
 						alignSelf: "flex-start",
 						marginTop: 1
 					}}
+					onPress={() => attachFile()}
 				>
 					<Ionicon
 						name="add-sharp"
@@ -708,10 +836,12 @@ const Input = memo(
 					returnKeyType="default"
 					scrollEnabled={true}
 					cursorColor={getColor(darkMode, "textSecondary")}
+					selectionColor={getColor(darkMode, "textSecondary")}
+					placeholderTextColor={getColor(darkMode, "textSecondary")}
 					value={typeof text !== "string" ? "" : text}
 					onChange={onChange}
 					onContentSizeChange={e => {
-						if (typeof text === "string" && text.length > 0) {
+						if (typeof text === "string" && text.length > 0 && e.nativeEvent.contentSize.height > INPUT_HEIGHT) {
 							setTextContentHeight(Math.floor(e.nativeEvent.contentSize.height))
 						} else {
 							setTextContentHeight(INPUT_HEIGHT)
@@ -725,13 +855,13 @@ const Input = memo(
 					style={{
 						backgroundColor: getColor(darkMode, "backgroundSecondary"),
 						height: textContentHeight >= INPUT_HEIGHT ? textContentHeight : INPUT_HEIGHT,
-						lineHeight: 20,
 						borderRadius: 20,
 						width: dimensions.width - insets.left - insets.right - 120,
 						paddingLeft: 12,
 						paddingRight: 12,
 						paddingTop: 10,
 						paddingBottom: 10,
+						lineHeight: 20,
 						color: getColor(darkMode, "textPrimary"),
 						fontSize: 17,
 						alignItems: "center",

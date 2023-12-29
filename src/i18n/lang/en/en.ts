@@ -494,5 +494,9 @@ export const en: {
 	reply: "Reply",
 	copyText: "Copy text",
 	copyId: "Copy ID",
-	replyingTo: "Replying to"
+	replyingTo: "Replying to",
+	selectContacts: "Select contacts",
+	editName: "Edit name",
+	chatConversationName: "Chat name",
+	name: "Name"
 }

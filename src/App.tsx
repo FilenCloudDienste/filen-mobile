@@ -87,6 +87,10 @@ import NoteTagDialog from "./components/Dialogs/NoteTagDialog"
 import NoteHistoryScreen from "./screens/NotesScreen/NoteHistoryScreen"
 import ChatScreen from "./screens/ChatsScreen/ChatScreen"
 import ChatMessageActionSheet from "./components/ActionSheets/ChatMessageActionSheet"
+import ChatParticipantsScreen from "./screens/ChatsScreen/ChatParticipantsScreen"
+import ChatParticipantActionSheet from "./components/ActionSheets/ChatParticipantActionSheet"
+import ChatConversationActionSheet from "./components/ActionSheets/ChatConversationActionSheet"
+import ChatConversationNameDialog from "./components/Dialogs/ChatConversationNameDialog"
 
 enableScreens(true)
 
@@ -770,6 +774,14 @@ export const App = Sentry.wrap(
 													animation: showNavigationAnimation ? "default" : "none"
 												}}
 											/>
+											<Stack.Screen
+												name="ChatParticipantsScreen"
+												component={ChatParticipantsScreen}
+												options={{
+													title: "ChatParticipantsScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
 										</Stack.Navigator>
 										{typeof cfg !== "undefined" &&
 											setupDone &&
@@ -801,6 +813,7 @@ export const App = Sentry.wrap(
 												"NoteParticipantsScreen",
 												"SelectContactScreen",
 												"NoteHistoryScreen",
+												"ChatParticipantsScreen",
 												...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
 											].includes(currentScreenName) && (
 												<View
@@ -832,6 +845,8 @@ export const App = Sentry.wrap(
 										<NoteParticipantsActionSheet />
 										<NoteTagsActionSheet />
 										<ChatMessageActionSheet />
+										<ChatParticipantActionSheet />
+										<ChatConversationActionSheet />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>
@@ -847,6 +862,7 @@ export const App = Sentry.wrap(
 						<NoteTitleDialog />
 						<NotesCreateTagDialog />
 						<NoteTagDialog />
+						<ChatConversationNameDialog />
 					</Fragment>
 				</NavigationContainer>
 				<Toast

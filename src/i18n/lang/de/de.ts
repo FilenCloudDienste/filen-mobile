@@ -492,5 +492,9 @@ export const de: {
 	reply: "Antworten",
 	copyText: "Text kopieren",
 	copyId: "ID kopieren",
-	replyingTo: "Antworten auf"
+	replyingTo: "Antworten auf",
+	selectContacts: "Kontakte auswählen",
+	editName: "Name ändern",
+	chatConversationName: "Chat Name",
+	name: "Name"
 }

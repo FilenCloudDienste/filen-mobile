@@ -219,6 +219,17 @@ export interface SocketChatConversationNameEdited {
 	name: string
 }
 
+export interface SocketChatConversationParticipantNew {
+	conversation: string
+	userId: number
+	email: string
+	avatar: string | null
+	nickName: string
+	metadata: string
+	permissionsAdd: boolean
+	addedTimestamp: number
+}
+
 export type SocketEvent =
 	| {
 			type: "newEvent"
@@ -350,6 +361,10 @@ export type SocketEvent =
 	| {
 			type: "chatConversationNameEdited"
 			data: SocketChatConversationNameEdited
+	  }
+	| {
+			type: "chatConversationParticipantNew"
+			data: SocketChatConversationParticipantNew
 	  }
 
 export const waitForLogin = () => {
@@ -626,6 +641,13 @@ export const connect = () => {
 	SOCKET_HANDLE.on("chatConversationNameEdited", (data: SocketChatConversationNameEdited) => {
 		eventListener.emit("socketEvent", {
 			type: "chatConversationNameEdited",
+			data
+		} as SocketEvent)
+	})
+
+	SOCKET_HANDLE.on("chatConversationParticipantNew", (data: SocketChatConversationParticipantNew) => {
+		eventListener.emit("socketEvent", {
+			type: "chatConversationParticipantNew",
 			data
 		} as SocketEvent)
 	})

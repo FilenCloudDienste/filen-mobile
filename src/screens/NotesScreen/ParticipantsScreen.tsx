@@ -15,13 +15,14 @@ import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
 import { Image } from "expo-image"
-import { selectContact } from "../ContactsScreen/SelectContactScreen"
+import { selectContacts } from "../ContactsScreen/SelectContactScreen"
 import { showToast } from "../../components/Toasts"
 import {
 	showFullScreenLoadingModal,
 	hideFullScreenLoadingModal
 } from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import { decryptNoteKeyParticipant, encryptMetadataPublicKey } from "../../lib/crypto"
+import { SocketEvent } from "../../lib/services/socket"
 
 const Item = memo(
 	({
@@ -187,7 +188,7 @@ const ParticipantsScreen = memo(
 			let contacts: Contact[] = []
 
 			try {
-				const selectContactRes = await selectContact(
+				const selectContactRes = await selectContacts(
 					navigation,
 					selectedNote.participants.map(p => p.userId)
 				)
@@ -340,10 +341,49 @@ const ParticipantsScreen = memo(
 				}
 			)
 
+			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
+				if (event.type === "noteParticipantRemoved") {
+					if (selectedNote.uuid === event.data.note) {
+						setSelectedNote(prev => ({ ...prev, participants: prev.participants.filter(p => p.userId !== event.data.userId) }))
+					}
+				} else if (event.type === "noteParticipantPermissions") {
+					if (selectedNote.uuid === event.data.note) {
+						setSelectedNote(prev => ({
+							...prev,
+							participants: prev.participants.map(p =>
+								p.userId === event.data.userId ? { ...p, permissionsWrite: event.data.permissionsWrite } : p
+							)
+						}))
+					}
+				} else if (event.type === "noteParticipantNew") {
+					if (selectedNote.uuid === event.data.note) {
+						setSelectedNote(prev => ({
+							...prev,
+							participants: [
+								...prev.participants,
+								...[
+									{
+										userId: event.data.userId,
+										isOwner: event.data.isOwner,
+										email: event.data.email,
+										avatar: event.data.avatar,
+										nickName: event.data.nickName,
+										metadata: event.data.metadata,
+										permissionsWrite: event.data.permissionsWrite,
+										addedTimestamp: event.data.addedTimestamp
+									}
+								]
+							]
+						}))
+					}
+				}
+			})
+
 			return () => {
 				noteParticipantRemovedListener.remove()
 				noteParticipantPermissionsListenr.remove()
 				noteParticipantAddedListener.remove()
+				socketEventListener.remove()
 			}
 		}, [selectedNote])
 
