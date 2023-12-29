@@ -78,8 +78,8 @@ const Item = memo(
 					style={{
 						flexDirection: "row",
 						alignItems: "center",
-						paddingLeft: 15,
-						paddingRight: 15,
+						paddingLeft: 20,
+						paddingRight: 20,
 						height: 55,
 						width: "100%",
 						marginBottom: index >= participants.length - 1 ? 55 : 0,

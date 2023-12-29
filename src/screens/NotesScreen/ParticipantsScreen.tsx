@@ -44,8 +44,8 @@ const Item = memo(
 				style={{
 					flexDirection: "row",
 					alignItems: "center",
-					paddingLeft: 15,
-					paddingRight: 15,
+					paddingLeft: 20,
+					paddingRight: 20,
 					height: 55,
 					marginBottom: index >= participantsFilteredWithoutMe.length - 1 ? 50 : 0
 				}}
@@ -175,8 +175,18 @@ const ParticipantsScreen = memo(
 		const dimensions = useWindowDimensions()
 
 		const participantsFilteredWithoutMe = useMemo(() => {
+			const exists: Record<string, boolean> = {}
+
 			return selectedNote.participants
-				.filter(p => p.userId !== userId)
+				.filter(p => {
+					if (exists[p.userId]) {
+						return false
+					}
+
+					exists[userId] = true
+
+					return p.userId !== userId
+				})
 				.sort((a, b) => getUserNameFromNoteParticipant(a).localeCompare(getUserNameFromNoteParticipant(b)))
 		}, [userId, selectedNote.participants])
 
@@ -322,7 +332,7 @@ const ParticipantsScreen = memo(
 						setSelectedNote(prev => ({
 							...prev,
 							participants: [
-								...prev.participants,
+								...prev.participants.filter(p => p.userId !== contact.userId),
 								...[
 									{
 										userId: contact.userId,
@@ -360,7 +370,7 @@ const ParticipantsScreen = memo(
 						setSelectedNote(prev => ({
 							...prev,
 							participants: [
-								...prev.participants,
+								...prev.participants.filter(p => p.userId !== event.data.userId),
 								...[
 									{
 										userId: event.data.userId,
