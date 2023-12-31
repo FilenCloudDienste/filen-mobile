@@ -17,6 +17,7 @@ import { FetchContactsResult, fetchContacts, sortContacts } from "./utils"
 import { showToast } from "../../components/Toasts"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { TopBar } from "../../components/TopBar"
+import { ONLINE_TIMEOUT } from "../../lib/constants"
 
 export interface SelectedContact extends Contact {
 	selected: boolean
@@ -126,6 +127,21 @@ const Item = memo(
 					}}
 				>
 					<View>
+						<View
+							style={{
+								backgroundColor: contact.lastActive > Date.now() - ONLINE_TIMEOUT ? getColor(darkMode, "green") : "gray",
+								width: 12,
+								height: 12,
+								borderRadius: 12,
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								position: "absolute",
+								left: 23,
+								top: 23,
+								zIndex: 10001
+							}}
+						/>
 						{contact.avatar.indexOf("https://") !== -1 ? (
 							<Image
 								source={{

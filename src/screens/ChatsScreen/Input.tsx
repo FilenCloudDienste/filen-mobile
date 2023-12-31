@@ -238,6 +238,7 @@ const Input = memo(
 				}
 			} finally {
 				setText("")
+				setTextContentHeight(INPUT_HEIGHT)
 
 				clearTimeout(isTypingTimer.current)
 

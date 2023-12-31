@@ -582,7 +582,7 @@ export const Message = memo(
 				<TouchableOpacity
 					style={{
 						flexDirection: "column",
-						paddingLeft: 61,
+						paddingLeft: 57,
 						paddingRight: 15,
 						height: "auto",
 						width: "100%",
@@ -686,7 +686,11 @@ export const Message = memo(
 							flexDirection: "row"
 						}}
 					>
-						<View>
+						<View
+							style={{
+								paddingTop: 3
+							}}
+						>
 							{message.senderAvatar && message.senderAvatar.indexOf("https://") !== -1 ? (
 								<Image
 									source={{
@@ -694,17 +698,17 @@ export const Message = memo(
 									}}
 									cachePolicy="memory-disk"
 									style={{
-										width: 36,
-										height: 36,
-										borderRadius: 36
+										width: 32,
+										height: 32,
+										borderRadius: 32
 									}}
 								/>
 							) : (
 								<View
 									style={{
-										width: 36,
-										height: 36,
-										borderRadius: 36,
+										width: 32,
+										height: 32,
+										borderRadius: 32,
 										backgroundColor: generateAvatarColorCode(message.senderEmail, darkMode),
 										flexDirection: "column",
 										alignItems: "center",
@@ -715,7 +719,7 @@ export const Message = memo(
 										style={{
 											color: "white",
 											fontWeight: "bold",
-											fontSize: 20
+											fontSize: 18
 										}}
 									>
 										{getUserNameFromMessage(message).slice(0, 1).toUpperCase()}
