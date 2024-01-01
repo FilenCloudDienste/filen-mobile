@@ -6,6 +6,7 @@ import { it } from "./lang/it"
 import { ru } from "./lang/ru"
 import { uk } from "./lang/uk"
 import { nl } from "./lang/nl"
+import { nb } from "./lang/nb"
 import { pl } from "./lang/pl"
 import { zh } from "./lang/zh"
 import { tr } from "./lang/tr"
@@ -24,6 +25,7 @@ export const translations: Record<string, Record<string, string>> = {
 	ru,
 	uk,
 	nl,
+	nb,
 	pl,
 	zh,
 	tr,
