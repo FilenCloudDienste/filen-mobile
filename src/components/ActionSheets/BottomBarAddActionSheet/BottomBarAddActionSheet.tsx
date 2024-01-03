@@ -273,7 +273,6 @@ const BottomBarAddActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="BottomBarAddActionSheet"
 			gestureEnabled={true}
@@ -288,14 +287,9 @@ const BottomBarAddActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: insets.bottom + 5
 				}}
 			>
-				<View
-					style={{
-						height: 5
-					}}
-				/>
 				<ActionButton
 					onPress={createFolder}
 					icon="folder-outline"

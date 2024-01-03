@@ -35,20 +35,6 @@ import { Image } from "expo-image"
 import { contactsRequestsInCount } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
 
-export interface SettingsButtonLinkHighlightProps {
-	onPress?: () => any
-	title?: string
-	rightText?: string
-	iconBackgroundColor?: string
-	iconName?: string
-	borderBottomRadius?: number
-	borderTopRadius?: number
-	withBottomBorder?: boolean
-	rightComponent?: React.ReactNode
-	withImage?: boolean
-	imageSrc?: string
-}
-
 export const SettingsButtonLinkHighlight = memo(
 	({
 		onPress,
@@ -62,7 +48,19 @@ export const SettingsButtonLinkHighlight = memo(
 		rightComponent,
 		withImage,
 		imageSrc
-	}: SettingsButtonLinkHighlightProps) => {
+	}: {
+		onPress?: () => any
+		title?: string
+		rightText?: string
+		iconBackgroundColor?: string
+		iconName?: string
+		borderBottomRadius?: number
+		borderTopRadius?: number
+		withBottomBorder?: boolean
+		rightComponent?: React.ReactNode
+		withImage?: boolean
+		imageSrc?: string
+	}) => {
 		const darkMode = useDarkMode()
 		const withIcon: boolean = typeof iconBackgroundColor == "string" && typeof iconName == "string"
 
@@ -243,12 +241,7 @@ export const SettingsButtonLinkHighlight = memo(
 	}
 )
 
-export interface SettingsButtonProps {
-	title?: any
-	rightComponent?: any
-}
-
-export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonProps) => {
+export const SettingsButton = memo(({ title, rightComponent }: { title?: any; rightComponent?: any }) => {
 	const darkMode = useDarkMode()
 
 	return (
@@ -295,12 +288,7 @@ export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonPro
 	)
 })
 
-export interface SettingsHeaderProps {
-	navigation: any
-	navigationEnabled?: boolean
-}
-
-export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: SettingsHeaderProps) => {
+export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: { navigation: any; navigationEnabled?: boolean }) => {
 	const darkMode = useDarkMode()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [email] = useMMKVString("email", storage)
@@ -514,12 +502,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 	)
 })
 
-export interface SettingsGroupProps {
-	marginTop?: number
-	children: any
-}
-
-export const SettingsGroup = memo((props: SettingsGroupProps) => {
+export const SettingsGroup = memo((props: { marginTop?: number; children: any }) => {
 	const darkMode = useDarkMode()
 
 	return (
@@ -546,12 +529,7 @@ export const SettingsGroup = memo((props: SettingsGroupProps) => {
 	)
 })
 
-export interface SettingsScreenProps {
-	navigation: any
-	route: any
-}
-
-export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) => {
+export const SettingsScreen = memo(({ navigation, route }: { navigation: any; route: any }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)

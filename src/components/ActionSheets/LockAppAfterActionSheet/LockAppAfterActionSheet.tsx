@@ -6,7 +6,7 @@ import { useMMKVNumber } from "react-native-mmkv"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
-import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
@@ -30,7 +30,6 @@ const LockAppAfterActionSheet = memo(() => {
 	)
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="LockAppAfterActionSheet"
 			gestureEnabled={true}
@@ -45,8 +44,7 @@ const LockAppAfterActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5),
-					paddingTop: 10
+					paddingBottom: insets.bottom + 5
 				}}
 			>
 				<ActionButton

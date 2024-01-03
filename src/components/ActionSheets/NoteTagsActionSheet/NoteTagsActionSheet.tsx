@@ -127,14 +127,9 @@ const NoteTagsActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: insets.bottom + 5
 				}}
 			>
-				<View
-					style={{
-						height: 15
-					}}
-				/>
 				{networkInfo.online ? (
 					<View
 						style={{

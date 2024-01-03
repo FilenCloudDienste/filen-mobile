@@ -105,14 +105,9 @@ const NoteParticipantsActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: insets.bottom + 5
 				}}
 			>
-				<View
-					style={{
-						height: 5
-					}}
-				/>
 				{selectedNote && selectedParticipant && (
 					<>
 						{selectedParticipant.permissionsWrite ? (
