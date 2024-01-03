@@ -206,7 +206,7 @@ export const TopBar = memo(
 				showBackButton = false
 			}
 
-			if (isTrashScreen || isSelectContactScreen || isChatParticipantsScreen) {
+			if (isTrashScreen || isSelectContactScreen || isChatParticipantsScreen || isContactsScreen) {
 				showBackButton = true
 			}
 

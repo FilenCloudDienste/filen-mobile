@@ -498,5 +498,16 @@ export const en: {
 	selectContacts: "Select contacts",
 	editName: "Edit name",
 	chatConversationName: "Chat name",
-	name: "Name"
+	name: "Name",
+	contactsTab_all: "All",
+	contactsTab_pending: "Pending",
+	contactsTab_requests: "Requests",
+	contactsTab_blocked: "Blocked",
+	block: "Block",
+	unblock: "Unblock",
+	addContactDialogTitle: "Add contact",
+	addContactDialogTitleEmailPlaceholder: "Filen email address of the contact",
+	send: "Send",
+	accept: "Accept",
+	deny: "Deny"
 }

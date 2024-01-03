@@ -496,5 +496,16 @@ export const de: {
 	selectContacts: "Kontakte auswählen",
 	editName: "Name ändern",
 	chatConversationName: "Chat Name",
-	name: "Name"
+	name: "Name",
+	contactsTab_all: "Alle",
+	contactsTab_pending: "Ausstehend",
+	contactsTab_requests: "Anfragen",
+	contactsTab_blocked: "Blockiert",
+	block: "Blockieren",
+	unblock: "Entblocken",
+	addContactDialogTitle: "Kontakt hinzufügen",
+	addContactDialogTitleEmailPlaceholder: "Filen E-Mail-Adresse des Kontakts",
+	send: "Senden",
+	accept: "Akzeptieren",
+	deny: "Ablehnen"
 }

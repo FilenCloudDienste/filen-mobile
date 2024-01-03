@@ -91,6 +91,8 @@ import ChatParticipantsScreen from "./screens/ChatsScreen/ChatParticipantsScreen
 import ChatParticipantActionSheet from "./components/ActionSheets/ChatParticipantActionSheet"
 import ChatConversationActionSheet from "./components/ActionSheets/ChatConversationActionSheet"
 import ChatConversationNameDialog from "./components/Dialogs/ChatConversationNameDialog"
+import ContactActionSheet from "./components/ActionSheets/ContactActionSheet"
+import AddContactDialog from "./components/Dialogs/AddContactDialog"
 
 enableScreens(true)
 
@@ -847,6 +849,7 @@ export const App = Sentry.wrap(
 										<ChatMessageActionSheet />
 										<ChatParticipantActionSheet />
 										<ChatConversationActionSheet />
+										<ContactActionSheet />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>
@@ -863,6 +866,7 @@ export const App = Sentry.wrap(
 						<NotesCreateTagDialog />
 						<NoteTagDialog />
 						<ChatConversationNameDialog />
+						<AddContactDialog />
 					</Fragment>
 				</NavigationContainer>
 				<Toast
