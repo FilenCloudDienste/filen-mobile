@@ -487,5 +487,9 @@ export const uk: {
 	reply: "Відповісти",
 	copyText: "Копіювати текст",
 	copyId: "Копіювати ID",
-	replyingTo: "Відповідь на"
+	replyingTo: "Відповідь на",
+	selectContacts: "Вибрати контакти",
+	editName: "Редагувати ім'я",
+	chatConversationName: "Назва чату",
+	name: "Ім'я"
 }

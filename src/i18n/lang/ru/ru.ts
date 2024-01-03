@@ -487,5 +487,9 @@ export const ru: {
 	reply: "Ответить",
 	copyText: "Копировать текст",
 	copyId: "Копировать ID",
-	replyingTo: "Ответ на"
+	replyingTo: "Ответ на",
+	selectContacts: "Выбрать контакты",
+	editName: "Редактировать имя",
+	chatConversationName: "Название чата",
+	name: "Имя"
 }
