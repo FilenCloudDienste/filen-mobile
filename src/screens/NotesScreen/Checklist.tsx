@@ -6,6 +6,7 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 import { randomIdUnsafe } from "../../lib/helpers"
 import { FlashList } from "@shopify/flash-list"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 const Item = memo(
 	({
@@ -272,6 +273,7 @@ const Checklist = memo(
 		const dimensions = useWindowDimensions()
 		const lastFocusedId = useRef<string>("")
 		const keyboardOffset = useKeyboardOffset()
+		const insets = useSafeAreaInsets()
 
 		const build = useCallback(() => {
 			if (items.length <= 0 || readOnly) {
@@ -365,8 +367,8 @@ const Checklist = memo(
 					keyExtractor={keyExtractor}
 					estimatedItemSize={50}
 					estimatedListSize={{
-						height: dimensions.height,
-						width: dimensions.width
+						height: dimensions.height - insets.top - insets.bottom,
+						width: dimensions.width - insets.left - insets.right
 					}}
 					extraData={{
 						darkMode,

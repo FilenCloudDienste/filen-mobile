@@ -460,7 +460,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 	const assetsHasNextPage = useRef<boolean>(true)
 	const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
 	const canPaginate = useRef<boolean>(true)
-	const [containerWidth, setContainerWidth] = useState<number>(dimensions.width)
+	const [containerWidth, setContainerWidth] = useState<number>(dimensions.width - insets.left - insets.right)
 
 	const [selectedAssets, photoCount, videoCount] = useMemo(() => {
 		const selectedAssets = assets.filter(asset => asset.selected)

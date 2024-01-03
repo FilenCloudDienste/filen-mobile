@@ -239,8 +239,8 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 					<View
 						key={image.uuid}
 						style={{
-							width: dimensions.width,
-							height: dimensions.height
+							width: dimensions.width - insets.left - insets.right,
+							height: dimensions.height - insets.top - insets.bottom
 						}}
 					>
 						<ActivityIndicator
@@ -268,11 +268,11 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 					zoomStep={2}
 					initialZoom={minZoom}
 					bindToBorders={true}
-					contentWidth={dimensions.width}
-					contentHeight={dimensions.height}
+					contentWidth={dimensions.width - insets.left - insets.right}
+					contentHeight={dimensions.height - insets.top - insets.bottom}
 					style={{
-						width: dimensions.width,
-						height: dimensions.height
+						width: dimensions.width - insets.left - insets.right,
+						height: dimensions.height - insets.top - insets.bottom
 					}}
 					onZoomBefore={(e: any, state: any, view: any) => {
 						setIsZooming(view.zoomLevel > 1)
@@ -383,8 +383,8 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 								}}
 								resizeMode="contain"
 								style={{
-									width: dimensions.width,
-									height: dimensions.height
+									width: dimensions.width - insets.left - insets.right,
+									height: dimensions.height - insets.top - insets.bottom
 								}}
 							>
 								{typeof images[image.uuid] == "string" && (
@@ -399,8 +399,8 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 										cachePolicy="none"
 										resizeMode="contain"
 										style={{
-											width: dimensions.width,
-											height: dimensions.height
+											width: dimensions.width - insets.left - insets.right,
+											height: dimensions.height - insets.top - insets.bottom
 										}}
 									/>
 								)}
@@ -466,7 +466,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 
 								listRef?.current?.scrollToOffset({
 									animated: false,
-									offset: dimensions.width * index + 1
+									offset: (dimensions.width - insets.left - insets.right) * index + 1
 								})
 
 								loadImage(imagePreviewModalItems[index], index)
@@ -541,8 +541,8 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 		<View
 			style={{
 				backgroundColor: "black",
-				height: dimensions.height,
-				width: dimensions.width
+				height: dimensions.height - insets.top - insets.bottom,
+				width: dimensions.width - insets.left - insets.right
 			}}
 		>
 			<View
@@ -550,7 +550,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 					opacity: showControls ? 0 : 1,
 					flexDirection: "row",
 					height: "auto",
-					width: dimensions.width,
+					width: dimensions.width - insets.left - insets.right,
 					justifyContent: "space-between",
 					alignItems: "center",
 					position: "absolute",
@@ -609,8 +609,8 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 			<FlatList
 				style={{
 					position: "absolute",
-					width: dimensions.width,
-					height: dimensions.height,
+					width: dimensions.width - insets.left - insets.right,
+					height: dimensions.height - insets.top - insets.right,
 					zIndex: 10,
 					top: 0,
 					bottom: 0,
@@ -637,7 +637,11 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 				initialNumToRender={1}
 				horizontal={true}
 				bounces={true}
-				getItemLayout={(_, index) => ({ length: dimensions.width, offset: dimensions.width * index, index })}
+				getItemLayout={(_, index) => ({
+					length: dimensions.width - insets.left - insets.right,
+					offset: (dimensions.width - insets.left - insets.right) * index,
+					index
+				})}
 				scrollEnabled={!isZooming && networkInfo.online}
 				pagingEnabled={true}
 				onViewableItemsChanged={onViewableItemsChangedRef?.current}
@@ -651,7 +655,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 				style={{
 					position: "absolute",
 					bottom: 0,
-					width: dimensions.width,
+					width: dimensions.width - insets.left - insets.right,
 					height: bottomMargin + 63,
 					zIndex: showControls ? 0 : 10000,
 					backgroundColor: "rgba(0, 0, 0, 1)",
@@ -661,7 +665,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 			<FlatList
 				style={{
 					position: "absolute",
-					width: dimensions.width,
+					width: dimensions.width - insets.left - insets.right,
 					bottom: bottomMargin,
 					height: 60,
 					opacity: showControls || !portrait ? 0 : 1,
@@ -684,7 +688,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 				horizontal={true}
 				scrollEnabled={true}
 				bounces={false}
-				initialNumToRender={Math.round(dimensions.width / 30) * 2}
+				initialNumToRender={Math.round((dimensions.width - insets.left - insets.right) / 30) * 2}
 				windowSize={8}
 				showsVerticalScrollIndicator={false}
 				showsHorizontalScrollIndicator={false}

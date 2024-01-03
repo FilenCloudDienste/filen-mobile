@@ -13,17 +13,22 @@ import { getColor } from "../../style"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { Item } from "../../types"
 
-export interface ItemListPhotosProps {
-	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
-	scrollDate: string
-	items: Item[]
-	normalizedPhotoRange: string
-	calcedPhotosGridSize: number
-	setScrollIndex: React.Dispatch<React.SetStateAction<number>>
-}
-
 const ItemListPhotos = memo(
-	({ navigation, scrollDate, items, normalizedPhotoRange, calcedPhotosGridSize, setScrollIndex }: ItemListPhotosProps) => {
+	({
+		navigation,
+		scrollDate,
+		items,
+		normalizedPhotoRange,
+		calcedPhotosGridSize,
+		setScrollIndex
+	}: {
+		navigation: NavigationContainerRef<ReactNavigation.RootParamList>
+		scrollDate: string
+		items: Item[]
+		normalizedPhotoRange: string
+		calcedPhotosGridSize: number
+		setScrollIndex: React.Dispatch<React.SetStateAction<number>>
+	}) => {
 		const networkInfo = useNetworkInfo()
 		const lang = useLang()
 		const darkMode = useDarkMode()

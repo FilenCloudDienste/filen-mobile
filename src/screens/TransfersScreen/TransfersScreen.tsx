@@ -450,6 +450,7 @@ export const TransfersScreenBody = memo(
 		const [currentView, setCurrentView] = useState<"ongoing" | "finished">("ongoing")
 		const scrollViewRef = useRef<any>()
 		const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
+		const insets = useSafeAreaInsets()
 
 		useEffect(() => {
 			setPortrait(dimensions.height >= dimensions.width)
@@ -576,8 +577,9 @@ export const TransfersScreenBody = memo(
 				</View>
 				<ScrollView
 					style={{
-						width: dimensions.width,
-						height: contentHeight - topBarHeight - bottomBarHeight + 30
+						width: dimensions.width - insets.left - insets.right,
+						height: contentHeight - topBarHeight - bottomBarHeight + 30,
+						marginTop: 20
 					}}
 					pagingEnabled={true}
 					horizontal={true}
@@ -590,7 +592,7 @@ export const TransfersScreenBody = memo(
 				>
 					<View
 						style={{
-							width: dimensions.width,
+							width: dimensions.width - insets.left - insets.right,
 							height: contentHeight - topBarHeight - bottomBarHeight + 30
 						}}
 					>
@@ -598,7 +600,7 @@ export const TransfersScreenBody = memo(
 					</View>
 					<View
 						style={{
-							width: dimensions.width,
+							width: dimensions.width - insets.left - insets.right,
 							height: contentHeight - topBarHeight - bottomBarHeight + 30
 						}}
 					>

@@ -231,13 +231,13 @@ export const MainScreen = memo(({ navigation, route }: MainScreenProps) => {
 
 	const listDimensions = useMemo(() => {
 		return {
-			width: dimensions.width,
+			width: dimensions.width + insets.left + insets.right,
 			height:
 				routeURL.indexOf("photos") !== -1
 					? contentHeight - 40 - bottomBarHeight + (Platform.OS == "android" ? 35 : 26)
 					: contentHeight - topBarHeight - bottomBarHeight + 30
 		}
-	}, [dimensions, portrait, contentHeight, bottomBarHeight, topBarHeight, routeURL])
+	}, [dimensions, portrait, contentHeight, bottomBarHeight, topBarHeight, routeURL, insets])
 
 	const searchFilteredItems = useMemo(() => {
 		if (searchTerm.length <= 0 || routeURL.indexOf("photos") !== -1) {
