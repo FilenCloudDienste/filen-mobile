@@ -556,7 +556,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							color={getColor(darkMode, "textPrimary")}
 							style={{
 								flexShrink: 0,
-								marginRight: 5
+								marginRight: 8
 							}}
 						/>
 					</TouchableOpacity>
