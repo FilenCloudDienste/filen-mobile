@@ -3,7 +3,7 @@ import { View, ScrollView, DeviceEventEmitter, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload, downloadFile } from "../../../lib/services/download/download"
 import { getFileExt, getParent, getRouteURL, getFilePreviewType, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
@@ -20,7 +20,7 @@ import * as fs from "../../../lib/fs"
 import * as MediaLibrary from "expo-media-library"
 import { isOnline } from "../../../lib/services/isOnline"
 import useNetworkInfo from "../../../lib/services/isOnline/useNetworkInfo"
-import { ActionButton, ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
+import { ActionButton, ItemActionSheetItemHeader } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
@@ -32,7 +32,7 @@ export interface ItemActionSheetProps {
 
 const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
 	const lang = useLang()
 	const [canSaveToGallery, setCanSaveToGallery] = useState<boolean>(false)
@@ -555,7 +555,6 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [currentActionSheetItem])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="ItemActionSheet"
 			gestureEnabled={true}
@@ -570,7 +569,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		>
 			<ScrollView
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				{typeof currentActionSheetItem !== "undefined" && (

@@ -44,16 +44,12 @@ const Embed = memo(
 	({
 		darkMode,
 		message,
-		userId,
-		isScrolling,
 		failedMessages,
 		lang,
 		conversation
 	}: {
 		darkMode: boolean
 		message: ChatMessage
-		userId: number
-		isScrolling: boolean
 		failedMessages: string[]
 		lang: string
 		conversation: ChatConversation

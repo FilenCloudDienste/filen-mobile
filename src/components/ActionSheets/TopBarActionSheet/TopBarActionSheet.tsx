@@ -3,7 +3,6 @@ import { View, DeviceEventEmitter, Platform, Alert } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload } from "../../../lib/services/download/download"
 import { getFileExt, getRouteURL, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
@@ -30,14 +29,10 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { Item } from "../../../types"
+import useDimensions from "../../../lib/hooks/useDimensions"
 
-export interface TopBarActionSheetProps {
-	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
-}
-
-const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
+const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
-	const insets: EdgeInsets = useSafeAreaInsets()
 	const [viewMode, setViewMode] = useMMKVString("viewMode", storage)
 	const lang = useLang()
 	const currentRoutes = useStore(state => state.currentRoutes)
@@ -62,6 +57,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 	const [canMakeAvailableOffline, setCanMakeAvailableOffline] = useState<boolean>(false)
 	const [canDownload, setCanDownload] = useState<boolean>(false)
 	const [bulkItems, setBulkItems] = useState<Item[]>([])
+	const dimensions = useDimensions()
 
 	const maxBulkActionsItemsCount: number = 10000
 	const minBulkActionsItemCount: number = 2
@@ -810,7 +806,6 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="TopBarActionSheet"
 			gestureEnabled={true}
@@ -825,7 +820,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				{/*

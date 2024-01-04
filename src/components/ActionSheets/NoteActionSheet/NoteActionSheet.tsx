@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useEffect, useState, useMemo } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { NavigationContainerRef, StackActions, NavigationContainerRefWithCurrent } from "@react-navigation/native"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
@@ -44,7 +44,7 @@ import Share from "react-native-share"
 
 const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [selectedNote, setSelectedNote] = useState<Note | undefined>(undefined)
 	const [tags, setTags] = useState<NoteTag[]>([])
@@ -400,7 +400,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				{selectedNote && (

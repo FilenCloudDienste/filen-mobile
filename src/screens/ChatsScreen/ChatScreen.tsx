@@ -9,7 +9,8 @@ import {
 	KeyboardAvoidingView,
 	NativeSyntheticEvent,
 	NativeScrollEvent,
-	Platform
+	Platform,
+	FlatList
 } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -70,7 +71,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const atBottomRef = useRef<boolean>(atBottom)
 	const isFocusedRef = useRef<boolean>(isFocused)
 	const [blockedContacts, setBlockedContacts] = useState<BlockedContact[]>([])
-	const [isScrolling, setIsScrolling] = useState<boolean>(false)
 	const markNotificationsAsReadMutex = useRef<SemaphoreInterface>(new Semaphore(1)).current
 	const markNotificationsAsReadLastMessageRef = useRef<string>("")
 	const updateLastFocusMutex = useRef<SemaphoreInterface>(new Semaphore(1)).current
@@ -235,7 +235,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					setLastFocusTimestamp={setLastFocusTimestamp}
 					editingMessageUUID={editingMessageUUID}
 					replyMessageUUID={replyMessageUUID}
-					isScrolling={isScrolling}
 				/>
 			)
 		},
@@ -250,8 +249,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			lastFocusTimestamp,
 			setLastFocusTimestamp,
 			editingMessageUUID,
-			replyMessageUUID,
-			isScrolling
+			replyMessageUUID
 		]
 	)
 
@@ -707,8 +705,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				inverted={true}
 				onEndReached={onEndReached}
 				onEndReachedThreshold={300}
-				onMomentumScrollEnd={() => setIsScrolling(false)}
-				onMomentumScrollBegin={() => setIsScrolling(true)}
 				extraData={{
 					darkMode,
 					userId,
@@ -720,8 +716,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					lastFocusTimestamp,
 					setLastFocusTimestamp,
 					editingMessageUUID,
-					replyMessageUUID,
-					isScrolling
+					replyMessageUUID
 				}}
 				onScroll={onScroll}
 				ListEmptyComponent={

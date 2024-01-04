@@ -1,11 +1,11 @@
 import React, { memo, useCallback, useEffect, useState } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
-import { ActionButton, ActionSheetIndicator, hideAllActionSheets } from "../ActionSheets"
+import { ActionButton, hideAllActionSheets } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { Note, NoteParticipant, noteParticipantsPermissions, noteParticipantsRemove } from "../../../lib/api"
@@ -18,7 +18,7 @@ import eventListener from "../../../lib/eventListener"
 
 const NoteParticipantsActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [selectedNote, setSelectedNote] = useState<Note | undefined>(undefined)
 	const [selectedParticipant, setSelectedParticipant] = useState<NoteParticipant | undefined>(undefined)
@@ -105,7 +105,7 @@ const NoteParticipantsActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				{selectedNote && selectedParticipant && (

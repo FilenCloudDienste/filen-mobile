@@ -350,18 +350,14 @@ export const MessageContent = memo(
 		message,
 		darkMode,
 		conversation,
-		userId,
 		lang,
-		failedMessages,
-		isScrolling
+		failedMessages
 	}: {
 		message: ChatMessage
 		darkMode: boolean
 		conversation: ChatConversation
-		userId: number
 		lang: string
 		failedMessages: string[]
-		isScrolling: boolean
 	}) => {
 		const isFailed = useMemo(() => {
 			return failedMessages.includes(message.uuid)
@@ -381,8 +377,6 @@ export const MessageContent = memo(
 							conversation={conversation}
 							message={message}
 							failedMessages={failedMessages}
-							userId={userId}
-							isScrolling={isScrolling}
 							lang={lang}
 						/>
 						{message.edited && (
@@ -442,8 +436,7 @@ export const Message = memo(
 		lastFocusTimestamp,
 		setLastFocusTimestamp,
 		editingMessageUUID,
-		replyMessageUUID,
-		isScrolling
+		replyMessageUUID
 	}: {
 		darkMode: boolean
 		conversation: ChatConversation
@@ -460,7 +453,6 @@ export const Message = memo(
 		editingMessageUUID: string
 		replyMessageUUID: string
 		setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
-		isScrolling: boolean
 	}) => {
 		const [date, setDate] = useState<string>(formatMessageDate(message.sentTimestamp, lang))
 
@@ -613,9 +605,7 @@ export const Message = memo(
 							lang={lang}
 							message={message}
 							conversation={conversation}
-							userId={userId}
 							failedMessages={failedMessages}
-							isScrolling={isScrolling}
 						/>
 					</View>
 				</TouchableOpacity>
@@ -777,9 +767,7 @@ export const Message = memo(
 									lang={lang}
 									message={message}
 									conversation={conversation}
-									userId={userId}
 									failedMessages={failedMessages}
-									isScrolling={isScrolling}
 								/>
 							</View>
 						</View>

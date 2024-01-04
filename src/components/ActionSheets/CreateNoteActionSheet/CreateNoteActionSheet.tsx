@@ -1,12 +1,12 @@
 import React, { memo, useCallback } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { NavigationContainerRef, StackActions } from "@react-navigation/native"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
-import { ActionButton, ActionSheetIndicator, hideAllActionSheets } from "../ActionSheets"
+import { ActionButton, hideAllActionSheets } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
@@ -25,7 +25,7 @@ import { navigationAnimation } from "../../../lib/state"
 
 const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 
 	const openTags = useCallback(async () => {
@@ -114,7 +114,7 @@ const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationCont
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				<ActionButton

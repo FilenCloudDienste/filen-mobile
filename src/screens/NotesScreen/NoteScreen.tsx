@@ -549,12 +549,14 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					)}
 					{(contentType === "code" || contentType === "text" || contentType === "md") && (
 						<>
-							{contentType === "md" && showPreview ? (
+							{contentType === "md" && showPreview && (
 								<View
 									style={{
 										width: "100%",
 										height: "auto",
-										marginTop: 10
+										marginTop: 40,
+										position: "absolute",
+										zIndex: 10001
 									}}
 								>
 									<Markdown
@@ -648,32 +650,33 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 										}}
 									/>
 								</View>
-							) : (
-								<KeyboardAvoidingView
-									style={{
-										height: "100%",
-										width: "100%",
-										backgroundColor: "transparent",
-										paddingTop: 10
-									}}
-									behavior={Platform.OS === "android" ? undefined : "padding"}
-									keyboardVerticalOffset={keyboardOffset}
-								>
-									<TextEditor
-										darkMode={darkMode}
-										value={content}
-										readOnly={readOnly}
-										placeholder={i18n(lang, "noteContentPlaceholder")}
-										onChange={value => {
-											if (readOnly) {
-												return
-											}
-
-											setEditedContent(value)
-										}}
-									/>
-								</KeyboardAvoidingView>
 							)}
+							<KeyboardAvoidingView
+								style={{
+									height: "100%",
+									width: "100%",
+									backgroundColor: "transparent",
+									paddingTop: 10,
+									opacity: contentType === "md" && showPreview ? 0 : 1,
+									zIndex: 101
+								}}
+								behavior={Platform.OS === "android" ? undefined : "padding"}
+								keyboardVerticalOffset={keyboardOffset}
+							>
+								<TextEditor
+									darkMode={darkMode}
+									value={content}
+									readOnly={readOnly}
+									placeholder={i18n(lang, "noteContentPlaceholder")}
+									onChange={value => {
+										if (readOnly) {
+											return
+										}
+
+										setEditedContent(value)
+									}}
+								/>
+							</KeyboardAvoidingView>
 						</>
 					)}
 				</>

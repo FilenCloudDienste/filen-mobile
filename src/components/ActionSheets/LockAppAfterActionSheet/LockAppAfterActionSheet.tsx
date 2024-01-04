@@ -1,9 +1,9 @@
 import React, { memo, useCallback } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import { useMMKVNumber } from "react-native-mmkv"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
 import { ActionButton } from "../ActionSheets"
@@ -13,7 +13,7 @@ import useLang from "../../../lib/hooks/useLang"
 
 const LockAppAfterActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
@@ -44,7 +44,7 @@ const LockAppAfterActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				<ActionButton

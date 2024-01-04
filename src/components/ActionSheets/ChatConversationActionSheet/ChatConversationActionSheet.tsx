@@ -1,8 +1,7 @@
 import React, { memo, useCallback, useEffect, useState } from "react"
-import { View, Platform, Clipboard } from "react-native"
+import { View, Clipboard } from "react-native"
 import ActionSheet from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
 import { ActionButton, hideAllActionSheets } from "../ActionSheets"
@@ -17,10 +16,11 @@ import {
 import eventListener from "../../../lib/eventListener"
 import { useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
+import useDimensions from "../../../lib/hooks/useDimensions"
 
 const ChatConversationActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [selectedConversation, setSelectedConversation] = useState<ChatConversation | undefined>(undefined)
@@ -95,7 +95,7 @@ const ChatConversationActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				{selectedConversation && (

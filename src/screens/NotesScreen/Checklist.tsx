@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useCallback, useRef, useMemo } from "react"
-import { View, Pressable, TextInput, KeyboardAvoidingView, useWindowDimensions, Platform } from "react-native"
+import { View, Pressable, TextInput, KeyboardAvoidingView, useWindowDimensions, Platform, Keyboard } from "react-native"
 import { getColor } from "../../style"
 import { parseQuillChecklistHtml, convertChecklistItemsToHtml, ChecklistItem } from "./utils"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -7,6 +7,7 @@ import { randomIdUnsafe } from "../../lib/helpers"
 import { FlashList } from "@shopify/flash-list"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import eventListener from "../../lib/eventListener"
 
 const Item = memo(
 	({
@@ -38,7 +39,7 @@ const Item = memo(
 					width: "100%",
 					flexDirection: "row",
 					alignItems: "center",
-					marginBottom: index + 1 >= items.length ? 200 : 12,
+					marginBottom: index + 1 >= items.length ? 100 : 12,
 					paddingLeft: 25,
 					paddingRight: 25
 				}}
@@ -242,6 +243,7 @@ const Item = memo(
 							setTimeout(() => setIdToFocus(newId), 250)
 						}
 					}}
+					onFocus={() => eventListener.emit("scrollToChecklistIndex", index)}
 					hitSlop={{
 						top: 15,
 						bottom: 15
@@ -274,6 +276,7 @@ const Checklist = memo(
 		const lastFocusedId = useRef<string>("")
 		const keyboardOffset = useKeyboardOffset()
 		const insets = useSafeAreaInsets()
+		const listRef = useRef<FlashList<ChecklistItem>>()
 
 		const build = useCallback(() => {
 			if (items.length <= 0 || readOnly) {
@@ -348,6 +351,23 @@ const Checklist = memo(
 			}
 		}, [items, readOnly])
 
+		useEffect(() => {
+			const scrollToChecklistIndexListener = eventListener.on("scrollToChecklistIndex", (index: number) => {
+				if (readOnly) {
+					return
+				}
+
+				listRef?.current?.scrollToIndex({
+					animated: true,
+					index
+				})
+			})
+
+			return () => {
+				scrollToChecklistIndexListener.remove()
+			}
+		}, [])
+
 		if (content.length <= 0 || items.length <= 0) {
 			return null
 		}
@@ -362,6 +382,7 @@ const Checklist = memo(
 				}}
 			>
 				<FlashList
+					ref={listRef}
 					data={items}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}

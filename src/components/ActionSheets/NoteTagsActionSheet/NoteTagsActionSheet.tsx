@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useEffect, useState } from "react"
-import { View, Platform, Text, TouchableOpacity } from "react-native"
+import { View, Text, TouchableOpacity } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
 import { ActionButton, hideAllActionSheets } from "../ActionSheets"
@@ -20,7 +20,7 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 
 const NoteTagsActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [selectedNote, setSelectedNote] = useState<Note | undefined>(undefined)
 	const networkInfo = useNetworkInfo()
@@ -127,7 +127,7 @@ const NoteTagsActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				{networkInfo.online ? (

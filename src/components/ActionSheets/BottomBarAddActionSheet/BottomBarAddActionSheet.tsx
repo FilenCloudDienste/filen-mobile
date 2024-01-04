@@ -1,9 +1,8 @@
 import React, { memo, useCallback } from "react"
-import { View, DeviceEventEmitter, Platform } from "react-native"
+import { View, DeviceEventEmitter } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { getRandomArbitrary, convertTimestampToMs, getFileExt, getParent, getFilePreviewType, safeAwait } from "../../../lib/helpers"
 import { queueFileUpload, UploadFile } from "../../../lib/services/upload/upload"
@@ -18,11 +17,12 @@ import mimeTypes from "mime-types"
 import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { getLastModified } from "../../../lib/services/cameraUpload"
+import useDimensions from "../../../lib/hooks/useDimensions"
 
 const BottomBarAddActionSheet = memo(() => {
 	const darkMode = useDarkMode()
 	const currentRoutes = useStore(state => state.currentRoutes)
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 
 	const createFolder = useCallback(async () => {
@@ -287,7 +287,7 @@ const BottomBarAddActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				<ActionButton

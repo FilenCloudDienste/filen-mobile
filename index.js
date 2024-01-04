@@ -39,7 +39,9 @@ eventListener.on("startForegroundService", type => {
 				const lang = storage.getString("lang") || "en"
 				const channelId = await notifee.createChannel({
 					id: "foregroundService",
-					name: "Foreground Service"
+					name: "Foreground Service",
+					vibration: false,
+					sound: undefined
 				})
 
 				const notification = {
@@ -55,6 +57,9 @@ eventListener.on("startForegroundService", type => {
 						localOnly: true,
 						ongoing: true,
 						importance: AndroidImportance.HIGH,
+						onlyAlertOnce: false,
+						loopSound: false,
+						autoCancel: false,
 						progress: {
 							indeterminate: true
 						},
@@ -163,7 +168,7 @@ if (Platform.OS === "android") {
 							resolve()
 						})
 				}
-			}, 1000)
+			}, 100)
 		})
 	})
 }
@@ -215,7 +220,8 @@ Notifications.events().registerNotificationReceivedForeground(async (notificatio
 
 	const channelId = await notifee.createChannel({
 		id: "chat",
-		name: "Chat"
+		name: "Chat",
+		vibration: false
 	})
 
 	const res = await nodeThread.encryptMetadata({
@@ -259,7 +265,8 @@ Notifications.events().registerNotificationReceivedBackground(async (notificatio
 
 	const channelId = await notifee.createChannel({
 		id: "chat",
-		name: "Chat"
+		name: "Chat",
+		vibration: false
 	})
 
 	const res = await nodeThread.encryptMetadata({

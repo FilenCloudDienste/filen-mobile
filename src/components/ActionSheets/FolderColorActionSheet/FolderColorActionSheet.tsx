@@ -1,21 +1,21 @@
 import React, { useEffect, useState, memo, useCallback } from "react"
-import { View, DeviceEventEmitter, Platform } from "react-native"
+import { View, DeviceEventEmitter } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { useStore } from "../../../lib/state"
 import { getAvailableFolderColors } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
-import { ActionButton, ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
+import { ActionButton, ItemActionSheetItemHeader } from "../ActionSheets"
 import { changeFolderColor } from "../../../lib/api"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { Item } from "../../../types"
 
 const FolderColorActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
@@ -101,16 +101,16 @@ const FolderColorActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				<ItemActionSheetItemHeader />
 				{Object.keys(availableFolderColors).map(prop => {
-					if (prop == "default_ios") {
+					if (prop === "default_ios") {
 						return null
 					}
 
-					if (typeof currentItem == "undefined") {
+					if (!currentItem) {
 						return null
 					}
 
@@ -119,7 +119,7 @@ const FolderColorActionSheet = memo(() => {
 							key={prop}
 							onPress={() => changeColor(prop)}
 							color={
-								prop == "default"
+								prop === "default"
 									? (availableFolderColors["default_ios"] as string)
 									: (availableFolderColors[prop] as string)
 							}

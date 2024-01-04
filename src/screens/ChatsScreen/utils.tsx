@@ -14,6 +14,7 @@ import { Image } from "expo-image"
 import EmojiConvertor from "emoji-js"
 import axios, { AxiosResponse } from "axios"
 import { memoize } from "lodash"
+import { isBetween } from "../../lib/helpers"
 
 export type MessageDisplayType = "image" | "ogEmbed" | "youtubeEmbed" | "twitterEmbed" | "filenEmbed" | "async" | "none" | "invalid"
 export type DisplayMessageAs = Record<string, MessageDisplayType>
@@ -50,12 +51,8 @@ export const formatTime = (date: Date): string => {
 
 export const formatMessageDate = (timestamp: number, lang: string = "en"): string => {
 	const now = Date.now()
-	const nowDate = new Date()
-	const thenDate = new Date(timestamp)
 	const diff = now - timestamp
 	const seconds = Math.floor(diff / 1000)
-	const nowDay = nowDate.getDate()
-	const thenDay = thenDate.getDate()
 
 	if (seconds <= 0) {
 		return "now"
@@ -71,28 +68,29 @@ export const formatMessageDate = (timestamp: number, lang: string = "en"): strin
 		return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
 	}
 
-	if (seconds < 3600 * 4) {
+	if (seconds < 3600 * 12) {
 		const hours = Math.floor(seconds / 3600)
 
 		return `${hours} hour${hours > 1 ? "s" : ""} ago`
 	}
 
-	if (nowDay === thenDay) {
-		const date = new Date(timestamp)
+	const nowDate = new Date()
+	const thenDate = new Date(timestamp)
+	const nowDay = nowDate.getDate()
+	const thenDay = thenDate.getDate()
 
-		return `Today at ${formatTime(date)}`
+	if (nowDay === thenDay) {
+		return `Today at ${formatTime(thenDate)}`
 	}
 
 	if (nowDay - 1 === thenDay) {
-		const date = new Date(timestamp)
-
-		return `Yesterday at ${formatTime(date)}`
+		return `Yesterday at ${formatTime(thenDate)}`
 	}
 
 	return `${formatDate(thenDate)} ${formatTime(thenDate)}`
 }
 
-export const isTimestampSameDay = (timestamp1: number, timestamp2: number) => {
+/*export const isTimestampSameDay = (timestamp1: number, timestamp2: number) => {
 	const date1 = new Date(timestamp1)
 	const date2 = new Date(timestamp2)
 
@@ -128,6 +126,20 @@ export const isTimestampSameMinute = (timestamp1: number, timestamp2: number) =>
 			date1Minutes + 2 === date2Minutes ||
 			date1Minutes === date2Minutes + 2)
 	)
+}*/
+
+export const isTimestampSameDay = (timestamp1: number, timestamp2: number): boolean => {
+	const day1 = Math.floor(timestamp1 / 86400000)
+	const day2 = Math.floor(timestamp2 / 86400000)
+
+	return day1 === day2
+}
+
+export const isTimestampSameMinute = (timestamp1: number, timestamp2: number): boolean => {
+	const minute1 = Math.floor(timestamp1 / 60000)
+	const minute2 = Math.floor(timestamp2 / 60000)
+
+	return isBetween(minute2, minute1 - 1, minute1 + 1)
 }
 
 export interface FetchChatConversationsResult {

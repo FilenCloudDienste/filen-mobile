@@ -1,9 +1,9 @@
 import React, { memo, useCallback } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { useStore } from "../../../lib/state"
 import { formatBytes, getAPIServer, getAPIKey, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
@@ -12,7 +12,7 @@ import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions
 import { getColor } from "../../../style/colors"
 import { updateUserInfo } from "../../../lib/services/user/info"
 import * as RNImagePicker from "react-native-image-picker"
-import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import axios from "axios"
 
@@ -22,7 +22,7 @@ const allowedTypes: string[] = ["image/jpg", "image/png", "image/jpeg"]
 
 const ProfilePictureActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 
 	const uploadAvatarImage = useCallback(async (base64: string) => {
@@ -255,7 +255,7 @@ const ProfilePictureActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				<ActionButton

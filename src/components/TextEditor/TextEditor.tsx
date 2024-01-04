@@ -1,5 +1,13 @@
 import React, { useState, useEffect, memo, useRef, useCallback } from "react"
-import { TextInput, Keyboard, ScrollView, Platform } from "react-native"
+import {
+	TextInput,
+	Keyboard,
+	ScrollView,
+	Platform,
+	NativeSyntheticEvent,
+	TextInputSelectionChangeEventData,
+	TextInputKeyPressEventData
+} from "react-native"
 import { getColor } from "../../style"
 
 export type TextSelection = { start: number; end: number }
@@ -64,6 +72,23 @@ const TextEditor = memo(
 			}, 500)
 		}, [readOnly])
 
+		const onKeyPress = useCallback((e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+			if (e.nativeEvent.key === "Enter") {
+				onScrollEnd()
+			}
+		}, [])
+
+		const onSelectionChange = useCallback(
+			(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+				if (!didInitialAdjustments.current) {
+					return
+				}
+
+				setSelection(e.nativeEvent.selection)
+			},
+			[setSelection, didInitialAdjustments]
+		)
+
 		useEffect(() => {
 			if (typeof onChange === "function" && !readOnly) {
 				onChange(text)
@@ -98,6 +123,8 @@ const TextEditor = memo(
 				onScrollEndDrag={onScrollEnd}
 				onPointerDown={onScrollEnd}
 				onPointerUp={onScrollEnd}
+				showsHorizontalScrollIndicator={false}
+				keyboardDismissMode="on-drag"
 				style={{
 					height: "100%",
 					width: "100%",
@@ -118,13 +145,8 @@ const TextEditor = memo(
 					maxFontSizeMultiplier={0}
 					allowFontScaling={false}
 					selection={selection}
-					onSelectionChange={e => {
-						if (!didInitialAdjustments.current) {
-							return
-						}
-
-						setSelection(e.nativeEvent.selection)
-					}}
+					onKeyPress={onKeyPress}
+					onSelectionChange={onSelectionChange}
 					onPressIn={onScrollEnd}
 					onPressOut={onScrollEnd}
 					onFocus={onScrollEnd}

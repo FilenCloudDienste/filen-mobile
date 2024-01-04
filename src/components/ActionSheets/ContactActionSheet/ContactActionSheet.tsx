@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useEffect, useState } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
 import { ActionButton, hideAllActionSheets } from "../ActionSheets"
@@ -28,7 +28,7 @@ import { SheetManager } from "react-native-actions-sheet"
 
 const ContactActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [selectedContact, setSelectedContact] = useState<Contact | undefined>(undefined)
 	const [selectedBlockedContact, setSelectedBlockedContact] = useState<BlockedContact | undefined>(undefined)
@@ -211,7 +211,7 @@ const ContactActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + 5
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
 				{selectedContact && (
