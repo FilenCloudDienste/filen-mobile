@@ -491,5 +491,16 @@ export const uk: {
 	selectContacts: "Вибрати контакти",
 	editName: "Редагувати ім'я",
 	chatConversationName: "Назва чату",
-	name: "Ім'я"
+	name: "Ім'я",
+	contactsTab_all: "Всі",
+	contactsTab_pending: "В очікуванні",
+	contactsTab_requests: "Запити",
+	contactsTab_blocked: "Заблоковані",
+	block: "Заблокувати",
+	unblock: "Розблокувати",
+	addContactDialogTitle: "Додати контакт",
+	addContactDialogTitleEmailPlaceholder: "Адреса електронної пошти контакта Filen",
+	send: "Відправити",
+	accept: "Прийняти",
+	deny: "Відхилити"
 }
