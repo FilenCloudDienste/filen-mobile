@@ -491,5 +491,16 @@ export const ru: {
 	selectContacts: "Выбрать контакты",
 	editName: "Редактировать имя",
 	chatConversationName: "Название чата",
-	name: "Имя"
+	name: "Имя",
+	contactsTab_all: "Все",
+	contactsTab_pending: "В ожидании",
+	contactsTab_requests: "Запросы",
+	contactsTab_blocked: "Заблокированные",
+	block: "Заблокировать",
+	unblock: "Разблокировать",
+	addContactDialogTitle: "Добавить контакт",
+	addContactDialogTitleEmailPlaceholder: "Адрес электронной почты контакта Filen",
+	send: "Отправить",
+	accept: "Принять",
+	deny: "Отказаться"
 }
