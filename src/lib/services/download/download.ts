@@ -13,6 +13,12 @@ import memoryCache from "../../memoryCache"
 import * as fs from "../../../lib/fs"
 import { isOnline, isWifi } from "../isOnline"
 import { MB } from "../../constants"
+import { getDirectoryTree } from "../../../lib/api"
+import {
+	showFullScreenLoadingModal,
+	hideFullScreenLoadingModal
+} from "../../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
+import pathModule from "path"
 
 const downloadSemaphore = new Semaphore(3)
 const maxThreads = 32
@@ -497,4 +503,96 @@ export const downloadFile = (file: Item, showProgress: boolean = true, maxChunks
 			})
 			.catch(reject)
 	})
+}
+
+export const downloadFolder = async ({
+	folder,
+	shared = false,
+	linked = false,
+	linkUUID,
+	linkHasPassword = false,
+	linkPassword,
+	linkSalt,
+	linkKey,
+	showFullScreenLoading = true
+}: {
+	folder: Item
+	shared?: boolean
+	linked?: boolean
+	linkUUID?: string
+	linkHasPassword?: boolean
+	linkPassword?: string
+	linkSalt?: string
+	linkKey?: string
+	showFullScreenLoading?: boolean
+}) => {
+	if (showFullScreenLoading) {
+		showFullScreenLoadingModal()
+	}
+
+	try {
+		const folderType: "normal" | "linked" | "shared" = shared ? "shared" : linked ? "linked" : "normal"
+
+		const [tree, baseDownloadPath] = await Promise.all([
+			getDirectoryTree(folder.uuid, folderType, linkUUID, linkHasPassword, linkPassword, linkSalt, linkKey),
+			fs.getDownloadPath({ type: "download" })
+		])
+
+		hideFullScreenLoadingModal()
+
+		const downloadedFilesPaths: Record<string, { item: Item; downloadPath: string; path: string }> = {}
+
+		for (const file of tree) {
+			if (Platform.OS === "ios" && file.item.uuid === folder.uuid) {
+				const baseFolderPath = pathModule.join(baseDownloadPath, pathModule.dirname(file.path), file.item.name)
+
+				await fs.mkdir(baseFolderPath, true)
+			}
+
+			if (file.item.type !== "file") {
+				continue
+			}
+
+			const tmpDownloadPath = await downloadFile(file.item, true, file.item.chunks)
+
+			downloadedFilesPaths[file.item.uuid] = {
+				item: file.item,
+				path: file.path,
+				downloadPath: tmpDownloadPath
+			}
+		}
+
+		for (const uuid in downloadedFilesPaths) {
+			const file = downloadedFilesPaths[uuid]
+
+			if (file.item.type !== "file") {
+				continue
+			}
+
+			if (Platform.OS === "android") {
+				await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
+					{
+						name: file.item.name,
+						parentFolder: pathModule.dirname(file.path),
+						mimeType: file.item.mime
+					},
+					"Download",
+					toBlobUtilPathDecode(file.downloadPath)
+				)
+			} else {
+				const fileDirPath = pathModule.join(baseDownloadPath, pathModule.dirname(file.path))
+
+				await fs.mkdir(fileDirPath, true)
+				await fs.copy(file.downloadPath, pathModule.join(fileDirPath, file.item.name))
+			}
+
+			await fs.unlink(file.downloadPath)
+		}
+	} catch (e) {
+		throw e
+	} finally {
+		if (showFullScreenLoading) {
+			hideFullScreenLoadingModal()
+		}
+	}
 }

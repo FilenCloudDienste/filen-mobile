@@ -5,7 +5,7 @@ import storage from "../../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import useDimensions from "../../../lib/hooks/useDimensions"
 import { useStore } from "../../../lib/state"
-import { queueFileDownload, downloadFile } from "../../../lib/services/download/download"
+import { queueFileDownload, downloadFile, downloadFolder } from "../../../lib/services/download/download"
 import { getFileExt, getParent, getRouteURL, getFilePreviewType, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
@@ -18,7 +18,6 @@ import { getColor } from "../../../style/colors"
 import { navigationAnimation } from "../../../lib/state"
 import * as fs from "../../../lib/fs"
 import * as MediaLibrary from "expo-media-library"
-import { isOnline } from "../../../lib/services/isOnline"
 import useNetworkInfo from "../../../lib/services/isOnline/useNetworkInfo"
 import { ActionButton, ItemActionSheetItemHeader } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
@@ -38,7 +37,6 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	const [canSaveToGallery, setCanSaveToGallery] = useState<boolean>(false)
 	const [itemListParent, setItemListParent] = useState<string>("")
 	const [routeURL, setRouteURL] = useState<string>("")
-	const [isDeviceOnline, setIsDeviceOnline] = useState<boolean>(false)
 	const [canDownload, setCanDownload] = useState<boolean>(false)
 	const [canEdit, setCanEdit] = useState<boolean>(false)
 	const setTextEditorState = useStore(state => state.setTextEditorState)
@@ -51,7 +49,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	const networkInfo = useNetworkInfo()
 
 	const can = useCallback(async () => {
-		if (typeof currentActionSheetItem !== "undefined") {
+		if (currentActionSheetItem) {
 			const userId: number = storage.getNumber("userId")
 			const isAvailableOffline =
 				currentActionSheetItem.type == "folder" ? false : await db.has(userId + ":offlineItems:" + currentActionSheetItem.uuid)
@@ -59,7 +57,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 
 			if (Platform.OS == "ios") {
 				if (["jpg", "jpeg", "heif", "heic", "png", "gif", "mov", "mp4", "hevc"].includes(getFileExt(currentActionSheetItem.name))) {
-					if (await isOnline()) {
+					if (networkInfo.online) {
 						setCanSaveToGallery(true)
 					} else {
 						if (isAvailableOffline) {
@@ -71,7 +69,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				}
 			} else {
 				if (["jpg", "jpeg", "png", "gif", "mov", "mp4"].includes(getFileExt(currentActionSheetItem.name))) {
-					if (await isOnline()) {
+					if (networkInfo.online) {
 						setCanSaveToGallery(true)
 					} else {
 						if (isAvailableOffline) {
@@ -92,7 +90,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				setCanEdit(false)
 			}
 
-			if (await isOnline()) {
+			if (networkInfo.online) {
 				setCanDownload(true)
 			} else {
 				if (isAvailableOffline) {
@@ -102,7 +100,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				}
 			}
 		}
-	}, [currentActionSheetItem])
+	}, [currentActionSheetItem, networkInfo])
 
 	const selection = useCallback(async () => {
 		if (!currentActionSheetItem) {
@@ -242,30 +240,41 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
 		if (hasPermissionsError) {
-			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+			showToast({ message: i18n(lang, "pleaseGrantPermission") })
 
 			return
 		}
 
 		if (!hasPermissionsResult) {
-			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+			showToast({ message: i18n(lang, "pleaseGrantPermission") })
 
 			return
 		}
 
-		queueFileDownload({ file: currentActionSheetItem, showNotification: true }).catch(err => {
-			if (err.toString() == "stopped") {
+		try {
+			if (currentActionSheetItem.type === "folder") {
+				await downloadFolder({
+					folder: currentActionSheetItem,
+					shared: typeof currentActionSheetItem.sharerId === "number" && currentActionSheetItem.sharerId > 0
+				})
+			} else {
+				await queueFileDownload({ file: currentActionSheetItem, showNotification: true })
+			}
+		} catch (e) {
+			if (e === "stopped") {
 				return
 			}
 
-			if (err.toString() == "wifiOnly") {
-				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+			if (e === "wifiOnly") {
+				showToast({ message: i18n(lang, "onlyWifiDownloads") })
+
+				return
 			}
 
-			console.error(err)
+			console.error(e)
 
-			showToast({ message: err.toString() })
-		})
+			showToast({ message: e.toString() })
+		}
 	}, [currentActionSheetItem, lang])
 
 	const removeFromOffline = useCallback(async () => {
@@ -538,15 +547,10 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 	}, [])
 
 	useEffect(() => {
-		setIsDeviceOnline(networkInfo.online)
 		can()
 	}, [networkInfo])
 
 	useEffect(() => {
-		;(async () => {
-			setIsDeviceOnline(await isOnline())
-		})()
-
 		if (typeof currentActionSheetItem !== "undefined") {
 			can()
 			setItemListParent(getParent())
@@ -572,7 +576,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				{typeof currentActionSheetItem !== "undefined" && (
+				{currentActionSheetItem && (
 					<>
 						<ItemActionSheetItemHeader />
 						<View
@@ -587,7 +591,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									text={i18n(lang, currentActionSheetItem.selected ? "unselect" : "select")}
 								/>
 							)}
-							{isDeviceOnline &&
+							{networkInfo.online &&
 								itemListParent !== "trash" &&
 								routeURL.indexOf("shared-in") == -1 &&
 								itemListParent !== "offline" &&
@@ -625,7 +629,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 										text={i18n(lang, "edit")}
 									/>
 								)}
-							{canDownload && currentActionSheetItem.type == "file" && itemListParent !== "offline" && (
+							{canDownload && itemListParent !== "offline" && (
 								<ActionButton
 									onPress={download}
 									icon="download-outline"
@@ -639,7 +643,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									text={i18n(lang, "removeFromOfflineStorage")}
 								/>
 							)}
-							{isDeviceOnline &&
+							{networkInfo.online &&
 								currentActionSheetItem.type == "file" &&
 								itemListParent !== "trash" &&
 								!currentActionSheetItem.offline && (
@@ -649,7 +653,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 										text={i18n(lang, "makeAvailableOffline")}
 									/>
 								)}
-							{isDeviceOnline &&
+							{networkInfo.online &&
 								currentActionSheetItem.type == "file" &&
 								itemListParent !== "trash" &&
 								routeURL.indexOf("shared-in") == -1 &&
@@ -660,7 +664,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 										text={i18n(lang, "versionHistory")}
 									/>
 								)}
-							{isDeviceOnline &&
+							{networkInfo.online &&
 								itemListParent !== "trash" &&
 								routeURL.indexOf("shared-in") == -1 &&
 								itemListParent !== "offline" && (
@@ -670,7 +674,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 										text={currentActionSheetItem.favorited ? i18n(lang, "unfavorite") : i18n(lang, "favorite")}
 									/>
 								)}
-							{isDeviceOnline &&
+							{networkInfo.online &&
 								currentActionSheetItem.type == "folder" &&
 								routeURL.indexOf("shared-in") == -1 &&
 								itemListParent !== "offline" && (
@@ -680,7 +684,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 										text={i18n(lang, "color")}
 									/>
 								)}
-							{isDeviceOnline &&
+							{networkInfo.online &&
 								!currentActionSheetItem.isSync &&
 								!currentActionSheetItem.isDefault &&
 								itemListParent !== "trash" &&
@@ -698,7 +702,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									/>
 								)}
 							{!currentActionSheetItem.isSync &&
-								isDeviceOnline &&
+								networkInfo.online &&
 								routeURL.indexOf("shared-in") == -1 &&
 								itemListParent !== "offline" &&
 								routeURL.indexOf("photos") == -1 && (
@@ -708,7 +712,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 										text={i18n(lang, "rename")}
 									/>
 								)}
-							{isDeviceOnline &&
+							{networkInfo.online &&
 								!currentActionSheetItem.isSync &&
 								!currentActionSheetItem.isDefault &&
 								itemListParent !== "trash" &&
@@ -721,7 +725,7 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									/>
 								)}
 							{typeof currentActionSheetItem == "object" &&
-								isDeviceOnline &&
+								networkInfo.online &&
 								itemListParent == "trash" &&
 								routeURL.indexOf("shared-in") == -1 && (
 									<>
@@ -737,21 +741,21 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 										/>
 									</>
 								)}
-							{isDeviceOnline && routeURL.indexOf("shared-in") !== -1 && getParent().length < 32 && (
+							{networkInfo.online && routeURL.indexOf("shared-in") !== -1 && getParent().length < 32 && (
 								<ActionButton
 									onPress={removeSharedIn}
 									icon="close-circle-outline"
 									text={i18n(lang, "removeFromSharedIn")}
 								/>
 							)}
-							{isDeviceOnline && routeURL.indexOf("shared-out") !== -1 && getParent().length < 32 && (
+							{networkInfo.online && routeURL.indexOf("shared-out") !== -1 && getParent().length < 32 && (
 								<ActionButton
 									onPress={stopSharing}
 									icon="close-circle-outline"
 									text={i18n(lang, "stopSharing")}
 								/>
 							)}
-							{!isDeviceOnline && (
+							{!networkInfo.online && (
 								<ActionButton
 									onPress={deviceOffline}
 									icon="cloud-offline-outline"

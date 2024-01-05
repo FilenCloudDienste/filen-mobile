@@ -550,7 +550,7 @@ export const checkIfItemParentIsShared = ({
 							const folders = contents.folders
 
 							for (let i = 0; i < files.length; i++) {
-								const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata, files[i].uuid)
+								const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata)
 
 								if (typeof decrypted == "object") {
 									if (typeof decrypted.name == "string") {
@@ -573,7 +573,7 @@ export const checkIfItemParentIsShared = ({
 							}
 
 							for (let i = 0; i < folders.length; i++) {
-								const decrypted = await decryptFolderName(masterKeys, folders[i].name, folders[i].uuid)
+								const decrypted = await decryptFolderName(masterKeys, folders[i].name)
 
 								if (typeof decrypted == "string") {
 									if (decrypted.length > 0) {
@@ -762,7 +762,7 @@ export const checkIfItemParentIsShared = ({
 							const folders = contents.folders
 
 							for (let i = 0; i < files.length; i++) {
-								const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata, files[i].uuid)
+								const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata)
 
 								if (typeof decrypted == "object") {
 									if (typeof decrypted.name == "string") {
@@ -785,7 +785,7 @@ export const checkIfItemParentIsShared = ({
 							}
 
 							for (let i = 0; i < folders.length; i++) {
-								const decrypted = await decryptFolderName(masterKeys, folders[i].name, folders[i].uuid)
+								const decrypted = await decryptFolderName(masterKeys, folders[i].name)
 
 								if (typeof decrypted == "string") {
 									if (decrypted.length > 0) {
@@ -1453,9 +1453,9 @@ export const getDirectoryTree = (
 				const privateKey = storage.getString("privateKey") || ""
 				const baseFolderName =
 					type == "normal"
-						? await decryptFolderName(masterKeys, baseFolderMetadata, baseFolderUUID)
+						? await decryptFolderName(masterKeys, baseFolderMetadata)
 						: type == "shared"
-						? await decryptFolderNamePrivateKey(privateKey, baseFolderMetadata, baseFolderUUID)
+						? await decryptFolderNamePrivateKey(privateKey, baseFolderMetadata)
 						: await decryptFolderNameLink(baseFolderMetadata, linkKey as string)
 
 				if (baseFolderParent !== "base") {
@@ -1485,9 +1485,9 @@ export const getDirectoryTree = (
 
 					const name =
 						type == "normal"
-							? await decryptFolderName(masterKeys, metadata, uuid)
+							? await decryptFolderName(masterKeys, metadata)
 							: type == "shared"
-							? await decryptFolderNamePrivateKey(privateKey, metadata, uuid)
+							? await decryptFolderNamePrivateKey(privateKey, metadata)
 							: await decryptFolderNameLink(metadata, linkKey as string)
 
 					if (name.length > 0 && !addedFolders[parent + ":" + name]) {
@@ -1506,9 +1506,9 @@ export const getDirectoryTree = (
 					const { uuid, bucket, region, chunks, parent, metadata, version } = content.files[i]
 					const decrypted =
 						type == "normal"
-							? await decryptFileMetadata(masterKeys, metadata, uuid)
+							? await decryptFileMetadata(masterKeys, metadata)
 							: type == "shared"
-							? await decryptFileMetadataPrivateKey(privateKey, metadata, uuid)
+							? await decryptFileMetadataPrivateKey(metadata, privateKey)
 							: await decryptFileMetadataLink(metadata, linkKey as string)
 
 					if (typeof decrypted.lastModified == "number") {
@@ -1983,7 +1983,7 @@ export const shareItemToUser = ({
 						const folder = folders[i]
 						const index = i
 
-						decryptFolderName(masterKeys, folder.name, folder.uuid)
+						decryptFolderName(masterKeys, folder.name)
 							.then(decrypted => {
 								shareItemRequest("folder", {
 									uuid: folder.uuid,
@@ -2001,7 +2001,7 @@ export const shareItemToUser = ({
 					for (let i = 0; i < files.length; i++) {
 						const file = files[i]
 
-						decryptFileMetadata(masterKeys, file.metadata, file.uuid)
+						decryptFileMetadata(masterKeys, file.metadata)
 							.then(decrypted => {
 								shareItemRequest("file", {
 									uuid: file.uuid,

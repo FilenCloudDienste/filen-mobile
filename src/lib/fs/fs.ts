@@ -305,7 +305,11 @@ export const downloadFile = async (uri: string, fileUri: string, options: FileSy
 	)
 }
 
-export const getDownloadPath = async ({ type = "temp" }: { type: string }): Promise<string> => {
+export const getDownloadPath = async ({
+	type = "temp"
+}: {
+	type: "temp" | "thumbnail" | "offline" | "misc" | "cachedDownloads" | "download" | "node" | "db" | "offline"
+}): Promise<string> => {
 	if (Platform.OS === "android") {
 		if (type === "temp") {
 			return cacheDirectory().endsWith("/") ? cacheDirectory() : cacheDirectory() + "/"

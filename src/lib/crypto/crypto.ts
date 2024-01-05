@@ -81,13 +81,13 @@ export const decryptFolderLinkKey = (masterKeys: string[], metadata: string): Pr
 	})
 }
 
-export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string, uuid: string): Promise<FileMetadata> => {
+export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string): Promise<FileMetadata> => {
 	return new Promise(async (resolve, reject) => {
-		const key = "decryptFileMetadataPrivateKey:" + uuid + ":" + metadata
+		const key = "decryptFileMetadataPrivateKey:" + metadata
 		const result = await db.get(key)
 
 		if (result) {
-			return result
+			return resolve(result)
 		}
 
 		let file = {
@@ -128,9 +128,7 @@ export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: stri
 
 				return resolve(file)
 			})
-			.catch(err => {
-				return resolve(file)
-			})
+			.catch(() => resolve(file))
 	})
 }
 
@@ -220,13 +218,13 @@ export const decryptFolderNameLink = async (metadata: string, linkKey: string): 
 	return folderName
 }
 
-export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string, uuid: string): Promise<string> => {
+export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string): Promise<string> => {
 	return new Promise(async (resolve, reject) => {
 		if (metadata == "default") {
 			return resolve("Default")
 		}
 
-		const key = "decryptFolderNamePrivateKey:" + uuid + ":" + metadata
+		const key = "decryptFolderNamePrivateKey:" + metadata
 		const result = await db.get<any>(key)
 
 		if (result) {
@@ -263,21 +261,17 @@ export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string
 
 				return resolve(name)
 			})
-			.catch(err => {
-				console.log(err)
-
-				return resolve(name)
-			})
+			.catch(() => resolve(name))
 	})
 }
 
-export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: string): Promise<string> => {
+export const decryptFolderName = (masterKeys: string[], metadata: string): Promise<string> => {
 	return new Promise(async (resolve, reject) => {
 		if (metadata == "default") {
 			return resolve("Default")
 		}
 
-		const key = "decryptFolderName:" + uuid + ":" + metadata
+		const key = "decryptFolderName:" + metadata
 		const result = await db.get(key)
 
 		if (result) {
@@ -323,9 +317,9 @@ export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: 
 	})
 }
 
-export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid: string): Promise<FileMetadata> => {
+export const decryptFileMetadata = (masterKeys: string[], metadata: string): Promise<FileMetadata> => {
 	return new Promise(async (resolve, reject) => {
-		const key = "decryptFileMetadata:" + uuid + ":" + metadata
+		const key = "decryptFileMetadata:" + metadata
 		const result = await db.get(key)
 
 		if (result) {

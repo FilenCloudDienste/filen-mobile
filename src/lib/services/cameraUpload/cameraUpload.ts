@@ -336,7 +336,7 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 
 	for (let i = 0; i < sorted.length; i++) {
 		const file = sorted[i]
-		const decrypted = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
+		const decrypted = await decryptFileMetadata(masterKeys, file.metadata)
 
 		if (typeof decrypted.name == "string") {
 			if (decrypted.name.length > 0) {

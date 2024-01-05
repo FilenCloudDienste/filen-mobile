@@ -50,7 +50,7 @@ const FileVersionsActionSheet = memo(() => {
 		async (item: any) => {
 			await SheetManager.hide("FileVersionsActionSheet")
 
-			decryptFileMetadata(getMasterKeys(), item.metadata, item.uuid)
+			decryptFileMetadata(getMasterKeys(), item.metadata)
 				.then(decrypted => {
 					item.name = decrypted.name
 					item.size = decrypted.size
@@ -231,7 +231,7 @@ const FileVersionsActionSheet = memo(() => {
 																			marginLeft: 15
 																		}}
 																		onPress={() => {
-																			decryptFileMetadata(getMasterKeys(), item.metadata, item.uuid).then(async (decrypted) => {
+																			decryptFileMetadata(getMasterKeys(), item.metadata).then(async (decrypted) => {
 																				item.name = decrypted.name
 																				item.size = decrypted.size
 																				item.mime = decrypted.mime

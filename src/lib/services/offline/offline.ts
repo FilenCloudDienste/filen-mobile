@@ -166,12 +166,8 @@ export const checkOfflineItems = async (items: Item[]) => {
 					items[i].favorited = offlineFilesInfo[prop].favorited
 
 					const metadata = await (offlineFilesInfo[prop].isVersioned
-						? decryptFileMetadata(
-								masterKeys,
-								offlineFilesInfo[prop].versionedInfo.metadata,
-								offlineFilesInfo[prop].versionedInfo.uuid
-						  )
-						: decryptFileMetadata(masterKeys, offlineFilesInfo[prop].metadata, prop))
+						? decryptFileMetadata(masterKeys, offlineFilesInfo[prop].versionedInfo.metadata)
+						: decryptFileMetadata(masterKeys, offlineFilesInfo[prop].metadata))
 
 					if (typeof metadata == "object") {
 						if (offlineFilesInfo[prop].isVersioned || items[i].name !== metadata.name) {
