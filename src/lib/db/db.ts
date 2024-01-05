@@ -221,6 +221,10 @@ export const dbFs = {
 						size += read.length
 
 						memoryCache.set(PREFIX + value.key, value.value)
+
+						if (readSliced.indexOf(prefix + "loaditems") !== -1) {
+							memoryCache.set(value.key, value.value)
+						}
 					}
 				}
 			}
