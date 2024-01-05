@@ -14,6 +14,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import memoryCache from "../../lib/memoryCache"
 import { Feather } from "@expo/vector-icons"
+import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 
 export const TopBar = memo(
 	({
@@ -117,6 +118,7 @@ export const TopBar = memo(
 		const dimensions = useWindowDimensions()
 		const [userId] = useMMKVNumber("userId", storage)
 		const [hideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
+		const networkInfo = useNetworkInfo()
 
 		const [parent, routeURL] = useMemo(() => {
 			const parent = getParent(route)
@@ -162,7 +164,8 @@ export const TopBar = memo(
 			isNotesScreen,
 			isContactsScreen,
 			isSelectContactScreen,
-			isChatParticipantsScreen
+			isChatParticipantsScreen,
+			showAddButton
 		] = useMemo(() => {
 			const isMainScreen = route.name && route.name === "MainScreen"
 			const isTransfersScreen = route.name && route.name === "TransfersScreen"
@@ -210,6 +213,21 @@ export const TopBar = memo(
 				showBackButton = true
 			}
 
+			const showAddButton =
+				route.name &&
+				route.name === "MainScreen" &&
+				!isOfflineScreen &&
+				!isTrashScreen &&
+				!isFavoritesScreen &&
+				!isPhotosScreen &&
+				!isRecentsScreen &&
+				!isNotesScreen &&
+				!isChatsScreen &&
+				!isContactsScreen &&
+				routeURL.indexOf("shared-in") === -1 &&
+				parent !== "shared-out" &&
+				parent !== "links"
+
 			return [
 				isMainScreen,
 				isTransfersScreen,
@@ -229,9 +247,16 @@ export const TopBar = memo(
 				isNotesScreen,
 				isContactsScreen,
 				isSelectContactScreen,
-				isChatParticipantsScreen
+				isChatParticipantsScreen,
+				showAddButton
 			]
 		}, [route, parent])
+
+		const openAddSheet = useCallback(() => {
+			if (showAddButton && networkInfo.online) {
+				SheetManager.show("BottomBarAddActionSheet")
+			}
+		}, [showAddButton, networkInfo.online])
 
 		const goBack = useCallback((): void => {
 			if (typeof setLoadDone !== "undefined") {
@@ -362,67 +387,113 @@ export const TopBar = memo(
 						{rightComponent ? (
 							rightComponent
 						) : (
-							<TouchableOpacity
-								hitSlop={{
-									top: 15,
-									bottom: 15,
-									right: 15,
-									left: 15
-								}}
-								style={{
-									alignItems: "flex-end",
-									flexDirection: "row",
-									backgroundColor: "transparent",
-									width: "33%",
-									paddingLeft: 0,
-									justifyContent: "flex-end"
-								}}
-								onPress={async () => {
-									if (isContactsScreen) {
-										await navigationAnimation({ enable: true })
-
-										navigation.dispatch(StackActions.push("AddContactScreen"))
-
-										return
-									}
-
-									if (isNotesScreen) {
-										SheetManager.show("CreateNoteActionSheet")
-
-										return
-									}
-
-									SheetManager.show("TopBarActionSheet")
-								}}
-							>
+							<>
 								{isNotesScreen ? (
-									<View>
+									<TouchableOpacity
+										hitSlop={{
+											top: 15,
+											bottom: 15,
+											right: 15,
+											left: 15
+										}}
+										style={{
+											alignItems: "flex-end",
+											flexDirection: "row",
+											backgroundColor: "transparent",
+											width: "33%",
+											paddingLeft: 0,
+											justifyContent: "flex-end"
+										}}
+										onPress={() => SheetManager.show("CreateNoteActionSheet")}
+									>
 										<Feather
 											name="edit"
 											size={18}
 											color={getColor(darkMode, "linkPrimary")}
 										/>
-									</View>
+									</TouchableOpacity>
 								) : isContactsScreen ? (
-									<View>
+									<TouchableOpacity
+										hitSlop={{
+											top: 15,
+											bottom: 15,
+											right: 15,
+											left: 15
+										}}
+										style={{
+											alignItems: "flex-end",
+											flexDirection: "row",
+											backgroundColor: "transparent",
+											width: "33%",
+											paddingLeft: 0,
+											justifyContent: "flex-end"
+										}}
+										onPress={async () => {
+											await navigationAnimation({ enable: true })
+
+											navigation.dispatch(StackActions.push("AddContactScreen"))
+										}}
+									>
 										<Ionicon
 											name="add-outline"
 											size={26}
 											color={getColor(darkMode, "linkPrimary")}
 										/>
-									</View>
-								) : (
-									!isSettingsScreen && (
-										<View>
-											<Ionicon
-												name="ellipsis-horizontal-circle-outline"
-												size={23}
-												color={getColor(darkMode, "linkPrimary")}
-											/>
+									</TouchableOpacity>
+								) : !isSettingsScreen ? (
+									<View
+										style={{
+											alignItems: "flex-end",
+											flexDirection: "row",
+											backgroundColor: "transparent",
+											width: "33%",
+											paddingLeft: 0,
+											justifyContent: "flex-end"
+										}}
+									>
+										<View
+											style={{
+												flexDirection: "row",
+												alignItems: "center",
+												gap: 8
+											}}
+										>
+											{showAddButton && networkInfo.online && (
+												<TouchableOpacity
+													hitSlop={{
+														top: 15,
+														bottom: 15,
+														right: 5,
+														left: 5
+													}}
+													onPress={openAddSheet}
+												>
+													<Ionicon
+														name="add-outline"
+														size={28}
+														color={getColor(darkMode, "linkPrimary")}
+													/>
+												</TouchableOpacity>
+											)}
+											<TouchableOpacity
+												hitSlop={{
+													top: 15,
+													bottom: 15,
+													right: 5,
+													left: 5
+												}}
+												onPress={() => SheetManager.show("TopBarActionSheet")}
+											>
+												<Ionicon
+													name="ellipsis-horizontal-circle-outline"
+													size={23}
+													color={getColor(darkMode, "linkPrimary")}
+												/>
+											</TouchableOpacity>
 										</View>
-									)
-								)}
-							</TouchableOpacity>
+									</View>
+								) : null}
+							</>
 						)}
 					</View>
 					{(isMainScreen || isNotesScreen || isContactsScreen || isChatsScreen || isSelectContactScreen) && !isPhotosScreen && (

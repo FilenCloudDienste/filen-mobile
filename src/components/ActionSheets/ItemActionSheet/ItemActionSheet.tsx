@@ -26,11 +26,7 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import * as db from "../../../lib/db"
 import Share from "react-native-share"
 
-export interface ItemActionSheetProps {
-	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
-}
-
-const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
+const ItemActionSheet = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
 	const dimensions = useDimensions()
 	const currentActionSheetItem = useStore(state => state.currentActionSheetItem)
