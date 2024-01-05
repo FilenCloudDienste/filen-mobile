@@ -77,6 +77,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const keyboardOffset = useKeyboardOffset()
 	const [showScrollDownButton, setShowScrollDownButton] = useState<boolean>(false)
 	const listRef = useRef<FlashList<ChatMessage>>()
+	const canLoadPreviousMessages = useRef<boolean>(true)
 
 	const conversationParticipantsFilteredWithoutMe = useMemo(() => {
 		const filtered = conversation.participants.filter(participant => participant.userId !== userId)
@@ -100,18 +101,26 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			})
 	}, [messages])
 
-	const onEndReached = useCallback(() => {
+	const onEndReached = useCallback(async () => {
 		if (sortedMessages.length === 0) {
 			return
 		}
 
 		const firstMessage = sortedMessages[sortedMessages.length - 1]
 
-		if (!firstMessage) {
+		if (!firstMessage || !canLoadPreviousMessages.current) {
 			return
 		}
 
-		loadPreviousMessages(firstMessage.sentTimestamp)
+		canLoadPreviousMessages.current = false
+
+		try {
+			await loadPreviousMessages(firstMessage.sentTimestamp)
+		} catch (e) {
+			console.error(e)
+		} finally {
+			canLoadPreviousMessages.current = true
+		}
 	}, [sortedMessages])
 
 	const onScroll = useCallback(
@@ -704,7 +713,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				estimatedItemSize={50}
 				inverted={true}
 				onEndReached={onEndReached}
-				onEndReachedThreshold={300}
+				onEndReachedThreshold={0.2}
 				extraData={{
 					darkMode,
 					userId,
