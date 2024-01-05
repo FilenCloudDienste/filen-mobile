@@ -24,6 +24,7 @@ import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
 import * as db from "../../../lib/db"
+import Share from "react-native-share"
 
 export interface ItemActionSheetProps {
 	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
@@ -229,6 +230,61 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 				showToast({ message: err.toString() })
 			})
 	}, [currentActionSheetItem])
+
+	const exportFile = useCallback(async () => {
+		if (!currentActionSheetItem || currentActionSheetItem.type === "folder") {
+			return
+		}
+
+		await SheetManager.hide("ItemActionSheet")
+
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
+
+		if (hasPermissionsError) {
+			showToast({ message: i18n(lang, "pleaseGrantPermission") })
+
+			return
+		}
+
+		if (!hasPermissionsResult) {
+			showToast({ message: i18n(lang, "pleaseGrantPermission") })
+
+			return
+		}
+
+		try {
+			const tmpPath = await downloadFile(currentActionSheetItem, true, currentActionSheetItem.chunks)
+
+			Share.open({
+				title: i18n(lang, "export"),
+				url: tmpPath,
+				failOnCancel: false,
+				filename: currentActionSheetItem.name
+			})
+				.then(() => {
+					fs.unlink(tmpPath).catch(console.error)
+				})
+				.catch(err => {
+					console.error(err)
+
+					fs.unlink(tmpPath).catch(console.error)
+				})
+		} catch (e) {
+			if (e === "stopped") {
+				return
+			}
+
+			if (e === "wifiOnly") {
+				showToast({ message: i18n(lang, "onlyWifiDownloads") })
+
+				return
+			}
+
+			console.error(e)
+
+			showToast({ message: e.toString() })
+		}
+	}, [currentActionSheetItem, lang])
 
 	const download = useCallback(async () => {
 		if (!currentActionSheetItem) {
@@ -630,11 +686,20 @@ const ItemActionSheet = memo(({ navigation }: ItemActionSheetProps) => {
 									/>
 								)}
 							{canDownload && itemListParent !== "offline" && (
-								<ActionButton
-									onPress={download}
-									icon="download-outline"
-									text={i18n(lang, "download")}
-								/>
+								<>
+									<ActionButton
+										onPress={download}
+										icon="download-outline"
+										text={i18n(lang, "download")}
+									/>
+									{currentActionSheetItem.type === "file" && (
+										<ActionButton
+											onPress={exportFile}
+											icon="arrow-down-circle-outline"
+											text={i18n(lang, "export")}
+										/>
+									)}
+								</>
 							)}
 							{currentActionSheetItem.type == "file" && itemListParent !== "trash" && currentActionSheetItem.offline && (
 								<ActionButton

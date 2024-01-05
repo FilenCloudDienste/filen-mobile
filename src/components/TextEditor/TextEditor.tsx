@@ -116,6 +116,7 @@ const TextEditor = memo(
 			<ScrollView
 				ref={scrollRef}
 				onScroll={onScroll}
+				scrollEventThrottle={100}
 				onScrollAnimationEnd={onScrollEnd}
 				onMomentumScrollBegin={onScroll}
 				onMomentumScrollEnd={onScrollEnd}
