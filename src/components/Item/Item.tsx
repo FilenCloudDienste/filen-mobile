@@ -22,6 +22,7 @@ import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import { Image } from "expo-image"
 import * as db from "../../lib/db"
 import { checkItemThumbnail } from "../../lib/services/thumbnails"
+import { blurhashes } from "../../style/colors"
 
 export interface ItemBaseProps {
 	item: Item
@@ -121,6 +122,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 									: getImageForItem(item)
 							}
 							cachePolicy="memory-disk"
+							placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 							style={{
 								width: 40,
 								height: 40,
@@ -341,6 +343,7 @@ export const GridItem = memo(
 											: getImageForItem(item)
 									}
 									cachePolicy="memory-disk"
+									placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 									style={{
 										width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
 										height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
@@ -482,6 +485,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 						: getImageForItem(item)
 				}
 				cachePolicy="memory-disk"
+				placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 				style={{
 					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
 					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
@@ -634,6 +638,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
 						: getImageForItem(item)
 				}
 				cachePolicy="memory-disk"
+				placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 				style={{
 					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
 					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,

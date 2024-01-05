@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { getColor } from "../../../style"
+import { getColor, blurhashes } from "../../../style"
 import { Text, Linking, Pressable } from "react-native"
 import { Image } from "expo-image"
 
@@ -25,6 +25,7 @@ const TwitterEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string
 				contentFit="contain"
 				source={require("../../../assets/images/x.png")}
 				cachePolicy="memory-disk"
+				placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 			/>
 			<Text
 				style={{

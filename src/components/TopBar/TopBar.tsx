@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useMemo, useCallback } from "react"
-import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform, useWindowDimensions } from "react-native"
+import { Text, View, TextInput, TouchableOpacity, DeviceEventEmitter, Keyboard, Platform } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVString, useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
@@ -15,6 +15,7 @@ import useLang from "../../lib/hooks/useLang"
 import memoryCache from "../../lib/memoryCache"
 import { Feather } from "@expo/vector-icons"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
+import useDimensions from "../../lib/hooks/useDimensions"
 
 export const TopBar = memo(
 	({
@@ -115,7 +116,7 @@ export const TopBar = memo(
 		const setTopBarHeight = useStore(state => state.setTopBarHeight)
 		const [publicKey] = useMMKVString("publicKey", storage)
 		const [privateKey] = useMMKVString("privateKey", storage)
-		const dimensions = useWindowDimensions()
+		const dimensions = useDimensions()
 		const [userId] = useMMKVNumber("userId", storage)
 		const [hideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 		const networkInfo = useNetworkInfo()
@@ -142,7 +143,7 @@ export const TopBar = memo(
 				}
 			}
 
-			return dimensions.width / tabs - 20
+			return Math.floor(dimensions.realWidth / tabs)
 		}, [dimensions, hideRecents, privateKey, publicKey])
 
 		const [
@@ -582,22 +583,164 @@ export const TopBar = memo(
 				{showHomeTabBar && (
 					<View
 						style={{
-							paddingTop: 3,
 							height: 40,
-							flexDirection: "row",
-							paddingLeft: 15,
-							paddingRight: 15,
-							borderBottomWidth: 0,
-							borderBottomColor: getColor(darkMode, "primaryBorder"),
-							justifyContent: "space-between"
+							flexDirection: "column",
+							justifyContent: "space-between",
+							marginTop: -3
 						}}
 					>
-						{!hideRecents && (
+						<View
+							style={{
+								flexDirection: "row",
+								justifyContent: "space-between",
+								alignItems: "center",
+								width: "100%",
+								height: 37
+							}}
+						>
+							{!hideRecents && (
+								<TouchableOpacity
+									style={{
+										borderBottomWidth: isRecentsScreen ? 2 : 0.5,
+										borderBottomColor: isRecentsScreen
+											? getColor(darkMode, "linkPrimary")
+											: getColor(darkMode, "primaryBorder"),
+										height: "100%",
+										flex: 1,
+										flexDirection: "row",
+										alignItems: "center",
+										justifyContent: "center"
+									}}
+									onPress={() => {
+										navigationAnimation({ enable: false }).then(() => {
+											navigation.dispatch(
+												CommonActions.reset({
+													index: 0,
+													routes: [
+														{
+															name: "MainScreen",
+															params: {
+																parent: "recents"
+															}
+														}
+													]
+												})
+											)
+										})
+									}}
+								>
+									<Text
+										style={{
+											color: getColor(darkMode, "textPrimary"),
+											fontSize: 15,
+											maxWidth: "80%"
+										}}
+										numberOfLines={1}
+									>
+										{i18n(lang, "recents")}
+									</Text>
+								</TouchableOpacity>
+							)}
+							{typeof privateKey === "string" &&
+								typeof publicKey === "string" &&
+								privateKey.length > 16 &&
+								publicKey.length > 16 && (
+									<>
+										<TouchableOpacity
+											style={{
+												borderBottomWidth: isSharedInScreen ? 2 : 0.5,
+												borderBottomColor: isSharedInScreen
+													? getColor(darkMode, "linkPrimary")
+													: getColor(darkMode, "primaryBorder"),
+												height: "100%",
+												flex: 1,
+												flexDirection: "row",
+												alignItems: "center",
+												justifyContent: "center"
+											}}
+											onPress={() => {
+												navigationAnimation({ enable: false }).then(() => {
+													navigation.dispatch(
+														CommonActions.reset({
+															index: 0,
+															routes: [
+																{
+																	name: "MainScreen",
+																	params: {
+																		parent: "shared-in"
+																	}
+																}
+															]
+														})
+													)
+												})
+											}}
+										>
+											<Text
+												style={{
+													color: getColor(darkMode, "textPrimary"),
+													fontSize: 15,
+													maxWidth: "80%"
+												}}
+												numberOfLines={1}
+											>
+												{i18n(lang, "sharedIn")}
+											</Text>
+										</TouchableOpacity>
+										<TouchableOpacity
+											style={{
+												borderBottomWidth: isSharedOutScreen ? 2 : 0.5,
+												borderBottomColor: isSharedOutScreen
+													? getColor(darkMode, "linkPrimary")
+													: getColor(darkMode, "primaryBorder"),
+												height: "100%",
+												flex: 1,
+												flexDirection: "row",
+												alignItems: "center",
+												justifyContent: "center"
+											}}
+											onPress={() => {
+												navigationAnimation({ enable: false }).then(() => {
+													navigation.dispatch(
+														CommonActions.reset({
+															index: 0,
+															routes: [
+																{
+																	name: "MainScreen",
+																	params: {
+																		parent: "shared-out"
+																	}
+																}
+															]
+														})
+													)
+												})
+											}}
+										>
+											<Text
+												style={{
+													color: getColor(darkMode, "textPrimary"),
+													fontSize: 15,
+													maxWidth: "80%"
+												}}
+												numberOfLines={1}
+											>
+												{i18n(lang, "sharedOut")}
+											</Text>
+										</TouchableOpacity>
+									</>
+								)}
 							<TouchableOpacity
 								style={{
-									borderBottomWidth: isRecentsScreen ? (Platform.OS === "ios" ? 2 : 2) : 0,
-									borderBottomColor: isRecentsScreen ? getColor(darkMode, "linkPrimary") : "#171717",
-									height: 27
+									borderBottomWidth: isPublicLinksScreen ? 2 : 0.5,
+									borderBottomColor: isPublicLinksScreen
+										? getColor(darkMode, "linkPrimary")
+										: getColor(darkMode, "primaryBorder"),
+									height: "100%",
+									flex: 1,
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center"
 								}}
 								onPress={() => {
 									navigationAnimation({ enable: false }).then(() => {
@@ -608,7 +751,7 @@ export const TopBar = memo(
 													{
 														name: "MainScreen",
 														params: {
-															parent: "recents"
+															parent: "links"
 														}
 													}
 												]
@@ -619,210 +762,104 @@ export const TopBar = memo(
 							>
 								<Text
 									style={{
-										color: isRecentsScreen ? getColor(darkMode, "linkPrimary") : "gray",
-										fontWeight: "bold",
-										fontSize: 14,
-										paddingTop: 2,
-										maxWidth: homeTabBarTextMaxWidth
+										color: getColor(darkMode, "textPrimary"),
+										fontSize: 15,
+										maxWidth: "80%"
 									}}
 									numberOfLines={1}
 								>
-									{i18n(lang, "recents")}
+									{i18n(lang, "publicLinks")}
 								</Text>
 							</TouchableOpacity>
-						)}
-						{typeof privateKey === "string" &&
-							typeof publicKey === "string" &&
-							privateKey.length > 16 &&
-							publicKey.length > 16 && (
-								<>
-									<TouchableOpacity
-										style={{
-											borderBottomWidth: isSharedInScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
-											borderBottomColor: isSharedInScreen ? getColor(darkMode, "linkPrimary") : "#171717",
-											height: 27
-										}}
-										onPress={() => {
-											navigationAnimation({ enable: false }).then(() => {
-												navigation.dispatch(
-													CommonActions.reset({
-														index: 0,
-														routes: [
-															{
-																name: "MainScreen",
-																params: {
-																	parent: "shared-in"
-																}
-															}
-														]
-													})
-												)
+							<TouchableOpacity
+								style={{
+									borderBottomWidth: isFavoritesScreen ? 2 : 0.5,
+									borderBottomColor: isFavoritesScreen
+										? getColor(darkMode, "linkPrimary")
+										: getColor(darkMode, "primaryBorder"),
+									height: "100%",
+									flex: 1,
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center"
+								}}
+								onPress={() => {
+									navigationAnimation({ enable: false }).then(() => {
+										navigation.dispatch(
+											CommonActions.reset({
+												index: 0,
+												routes: [
+													{
+														name: "MainScreen",
+														params: {
+															parent: "favorites"
+														}
+													}
+												]
 											})
-										}}
-									>
-										<Text
-											style={{
-												color: isSharedInScreen ? getColor(darkMode, "linkPrimary") : "gray",
-												fontWeight: "bold",
-												fontSize: 14,
-												paddingTop: 2,
-												maxWidth: homeTabBarTextMaxWidth
-											}}
-											numberOfLines={1}
-										>
-											{i18n(lang, "sharedIn")}
-										</Text>
-									</TouchableOpacity>
-									<TouchableOpacity
-										style={{
-											borderBottomWidth: isSharedOutScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
-											borderBottomColor: isSharedOutScreen ? getColor(darkMode, "linkPrimary") : "#171717",
-											height: 27
-										}}
-										onPress={() => {
-											navigationAnimation({ enable: false }).then(() => {
-												navigation.dispatch(
-													CommonActions.reset({
-														index: 0,
-														routes: [
-															{
-																name: "MainScreen",
-																params: {
-																	parent: "shared-out"
-																}
-															}
-														]
-													})
-												)
+										)
+									})
+								}}
+							>
+								<Text
+									style={{
+										color: getColor(darkMode, "textPrimary"),
+										fontSize: 15,
+										maxWidth: "80%"
+									}}
+									numberOfLines={1}
+								>
+									{i18n(lang, "favorites")}
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={{
+									borderBottomWidth: isOfflineScreen ? 2 : 0.5,
+									borderBottomColor: isOfflineScreen
+										? getColor(darkMode, "linkPrimary")
+										: getColor(darkMode, "primaryBorder"),
+									height: "100%",
+									flex: 1,
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "center"
+								}}
+								onPress={() => {
+									navigationAnimation({ enable: false }).then(() => {
+										navigation.dispatch(
+											CommonActions.reset({
+												index: 0,
+												routes: [
+													{
+														name: "MainScreen",
+														params: {
+															parent: "offline"
+														}
+													}
+												]
 											})
-										}}
-									>
-										<Text
-											style={{
-												color: isSharedOutScreen ? getColor(darkMode, "linkPrimary") : "gray",
-												fontWeight: "bold",
-												fontSize: 14,
-												paddingTop: 2,
-												maxWidth: homeTabBarTextMaxWidth
-											}}
-											numberOfLines={1}
-										>
-											{i18n(lang, "sharedOut")}
-										</Text>
-									</TouchableOpacity>
-								</>
-							)}
-						<TouchableOpacity
-							style={{
-								borderBottomWidth: isPublicLinksScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
-								borderBottomColor: isPublicLinksScreen ? getColor(darkMode, "linkPrimary") : "#171717",
-								height: 27
-							}}
-							onPress={() => {
-								navigationAnimation({ enable: false }).then(() => {
-									navigation.dispatch(
-										CommonActions.reset({
-											index: 0,
-											routes: [
-												{
-													name: "MainScreen",
-													params: {
-														parent: "links"
-													}
-												}
-											]
-										})
-									)
-								})
-							}}
-						>
-							<Text
-								style={{
-									color: isPublicLinksScreen ? getColor(darkMode, "linkPrimary") : "gray",
-									fontWeight: "bold",
-									fontSize: 14,
-									paddingTop: 2,
-									maxWidth: homeTabBarTextMaxWidth
+										)
+									})
 								}}
-								numberOfLines={1}
 							>
-								{i18n(lang, "publicLinks")}
-							</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
+								<Text
+									style={{
+										color: getColor(darkMode, "textPrimary"),
+										fontSize: 15,
+										maxWidth: "80%"
+									}}
+									numberOfLines={1}
+								>
+									{i18n(lang, "offlineFiles")}
+								</Text>
+							</TouchableOpacity>
+						</View>
+						<View
 							style={{
-								borderBottomWidth: isFavoritesScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
-								borderBottomColor: isFavoritesScreen ? getColor(darkMode, "linkPrimary") : "#171717",
-								height: 27
+								width: "100%",
+								height: 3
 							}}
-							onPress={() => {
-								navigationAnimation({ enable: false }).then(() => {
-									navigation.dispatch(
-										CommonActions.reset({
-											index: 0,
-											routes: [
-												{
-													name: "MainScreen",
-													params: {
-														parent: "favorites"
-													}
-												}
-											]
-										})
-									)
-								})
-							}}
-						>
-							<Text
-								style={{
-									color: isFavoritesScreen ? getColor(darkMode, "linkPrimary") : "gray",
-									fontWeight: "bold",
-									fontSize: 14,
-									paddingTop: 2,
-									maxWidth: homeTabBarTextMaxWidth
-								}}
-								numberOfLines={1}
-							>
-								{i18n(lang, "favorites")}
-							</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={{
-								borderBottomWidth: isOfflineScreen ? (Platform.OS === "ios" ? 1.5 : 2) : 0,
-								borderBottomColor: isOfflineScreen ? getColor(darkMode, "linkPrimary") : "#171717",
-								height: 27
-							}}
-							onPress={() => {
-								navigationAnimation({ enable: false }).then(() => {
-									navigation.dispatch(
-										CommonActions.reset({
-											index: 0,
-											routes: [
-												{
-													name: "MainScreen",
-													params: {
-														parent: "offline"
-													}
-												}
-											]
-										})
-									)
-								})
-							}}
-						>
-							<Text
-								style={{
-									color: isOfflineScreen ? getColor(darkMode, "linkPrimary") : "gray",
-									fontWeight: "bold",
-									fontSize: 14,
-									paddingTop: 2,
-									maxWidth: homeTabBarTextMaxWidth
-								}}
-								numberOfLines={1}
-							>
-								{i18n(lang, "offlineFiles")}
-							</Text>
-						</TouchableOpacity>
+						/>
 					</View>
 				)}
 			</View>

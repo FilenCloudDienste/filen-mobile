@@ -15,7 +15,7 @@ import useLang from "../../lib/hooks/useLang"
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
-import { getColor } from "../../style/colors"
+import { getColor, blurhashes } from "../../style/colors"
 import { SheetManager } from "react-native-actions-sheet"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -60,6 +60,7 @@ export const FinishedTransferItem = memo(({ index, item, containerWidth, darkMod
 				<Image
 					source={getImageForItem({ name: item.name, type: "file" } as Item)}
 					cachePolicy="memory-disk"
+					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 					style={{
 						width: 28,
 						height: 28,
@@ -241,6 +242,7 @@ export const OngoingTransferItem = memo(
 					<Image
 						source={getImageForItem({ name: item.name, type: "file" } as Item)}
 						cachePolicy="memory-disk"
+						placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 						style={{
 							width: 28,
 							height: 28,

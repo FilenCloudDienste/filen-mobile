@@ -1,6 +1,6 @@
 import React, { useState, memo, useCallback, useMemo, useEffect } from "react"
 import { View, Text, TouchableOpacity, Pressable } from "react-native"
-import { getColor } from "../../style"
+import { getColor, blurhashes } from "../../style"
 import { ChatConversation, ChatMessage, BlockedContact } from "../../lib/api"
 import { i18n } from "../../i18n"
 import { generateAvatarColorCode } from "../../lib/helpers"
@@ -284,6 +284,7 @@ export const ReplyTo = memo(
 						source={{
 							uri: message.replyTo.senderAvatar
 						}}
+						placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 						cachePolicy="memory-disk"
 						style={{
 							width: 13,
@@ -686,6 +687,7 @@ export const Message = memo(
 									source={{
 										uri: message.senderAvatar
 									}}
+									placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 									cachePolicy="memory-disk"
 									style={{
 										width: 32,

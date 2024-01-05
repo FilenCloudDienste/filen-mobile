@@ -9,7 +9,7 @@ import {
 	ActivityIndicator,
 	AppState
 } from "react-native"
-import { getColor } from "../../style"
+import { getColor, blurhashes } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, StackActions, useIsFocused } from "@react-navigation/native"
 import { Contact } from "../../lib/api"
@@ -157,6 +157,7 @@ const Item = memo(
 									uri: contact.avatar
 								}}
 								cachePolicy="memory-disk"
+								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 								style={{
 									width: 34,
 									height: 34,

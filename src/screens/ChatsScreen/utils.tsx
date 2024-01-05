@@ -8,7 +8,7 @@ import storage from "../../lib/storage"
 import regexifyString from "regexify-string"
 import EMOJI_REGEX from "emojibase-regex"
 import { View, Text, Linking, TextInput, TouchableHighlight, Platform } from "react-native"
-import { getColor } from "../../style"
+import { getColor, blurhashes } from "../../style"
 import { customEmojis } from "./customEmojis"
 import { Image } from "expo-image"
 import EmojiConvertor from "emoji-js"
@@ -676,6 +676,7 @@ export const ReplaceMessageWithComponents = memo(
 									uri: customEmojisListRecord[customEmoji]
 								}}
 								cachePolicy="memory-disk"
+								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 								style={{
 									width: size,
 									height: size,
@@ -912,6 +913,7 @@ export const ReplaceInlineMessageWithComponents = memo(
 								uri: customEmojisListRecord[customEmoji]
 							}}
 							cachePolicy="memory-disk"
+							placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 							style={{
 								width: size,
 								height: size,

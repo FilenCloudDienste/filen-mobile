@@ -21,7 +21,7 @@ import { StackActions, useIsFocused } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
 import { waitForStateUpdate } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
-import { getColor } from "../../style/colors"
+import { getColor, blurhashes } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
 import * as fs from "../../lib/fs"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../lib/permissions"
@@ -139,6 +139,7 @@ export const SettingsButtonLinkHighlight = memo(
 											uri: imageSrc
 										}}
 										cachePolicy="memory-disk"
+										placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 										style={{
 											width: 30,
 											height: 30,
@@ -436,6 +437,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: { 
 							: require("../../assets/images/appstore.png")
 					}
 					cachePolicy="memory-disk"
+					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 					style={{
 						width: 60,
 						height: 60,

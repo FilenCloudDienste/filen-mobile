@@ -27,6 +27,8 @@ import * as fs from "../../lib/fs"
 import { Item } from "../../types"
 import { useStore } from "../../lib/state"
 import { Image } from "expo-image"
+import { blurhashes } from "../../style"
+import useDarkMode from "../../lib/hooks/useDarkMode"
 
 export interface PreviewItem {
 	uri: string | undefined
@@ -63,6 +65,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 	const dimensions = useWindowDimensions()
 	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
 	const networkInfo = useNetworkInfo()
+	const darkMode = useDarkMode()
 
 	const [items, startIndex] = useRef<[PreviewItem[], number]>(
 		(() => {
@@ -397,7 +400,7 @@ const ImageViewerScreen = memo(({ navigation, route }: ImageViewerScreenProps) =
 											)
 										}}
 										cachePolicy="none"
-										resizeMode="contain"
+										contentFit="contain"
 										style={{
 											width: dimensions.width - insets.left - insets.right,
 											height: dimensions.height - insets.top - insets.bottom

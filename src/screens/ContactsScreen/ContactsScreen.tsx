@@ -12,7 +12,7 @@ import {
 	NativeScrollEvent
 } from "react-native"
 import { TopBar } from "../../components/TopBar"
-import { getColor } from "../../style"
+import { getColor, blurhashes } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, useIsFocused } from "@react-navigation/native"
 import { fetchContacts, FetchContactsResult } from "./utils"
@@ -99,6 +99,7 @@ const Item = memo(
 									uri: contact.avatar
 								}}
 								cachePolicy="memory-disk"
+								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 								style={{
 									width: 34,
 									height: 34,

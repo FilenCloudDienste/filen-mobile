@@ -13,7 +13,7 @@ import {
 	Keyboard,
 	Platform
 } from "react-native"
-import { getColor } from "../../style"
+import { getColor, blurhashes } from "../../style"
 import {
 	ChatConversation,
 	ChatConversationParticipant,
@@ -44,6 +44,7 @@ import RNDocumentPicker, { DocumentPickerResponse } from "react-native-document-
 import * as fs from "../../lib/fs"
 import mimeTypes from "mime-types"
 import { getLastModified } from "../../lib/services/cameraUpload"
+import { Image as ExpoImage } from "expo-image"
 
 const INPUT_HEIGHT = Platform.OS === "android" ? 42 : 35
 
@@ -737,10 +738,16 @@ const Input = memo(
 											{p.email !== "everyone" && (
 												<View>
 													{typeof p.avatar === "string" && p.avatar.indexOf("https://") !== -1 ? (
-														<Image
+														<ExpoImage
 															source={{
 																uri: p.avatar
 															}}
+															cachePolicy="memory-disk"
+															placeholder={
+																darkMode
+																	? blurhashes.dark.backgroundSecondary
+																	: blurhashes.light.backgroundSecondary
+															}
 															style={{
 																width: 24,
 																height: 24,

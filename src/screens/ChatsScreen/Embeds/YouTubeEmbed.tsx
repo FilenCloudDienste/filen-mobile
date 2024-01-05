@@ -1,5 +1,5 @@
 import { memo, useRef, useState, useEffect } from "react"
-import { getColor } from "../../../style"
+import { getColor, blurhashes } from "../../../style"
 import { Text, Linking, Pressable, View } from "react-native"
 import { Image } from "expo-image"
 import { getURL, parseYouTubeVideoId } from "../utils"
@@ -110,6 +110,7 @@ const YouTubeEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string
 						uri: "https://img.youtube.com/vi/" + parseYouTubeVideoId(link) + "/hqdefault.jpg"
 					}}
 					cachePolicy="none"
+					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 				/>
 			</View>
 		</Pressable>

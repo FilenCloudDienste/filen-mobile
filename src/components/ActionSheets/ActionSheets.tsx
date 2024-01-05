@@ -14,6 +14,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import * as db from "../../lib/db"
 import { Image } from "expo-image"
+import { blurhashes } from "../../style/colors"
 
 export const ActionButton = memo(
 	({
@@ -195,6 +196,7 @@ export const ItemActionSheetItemHeader = memo(() => {
 							: getImageForItem(currentActionSheetItem)
 					}
 					cachePolicy="memory-disk"
+					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 					style={{
 						width: 40,
 						height: 40,

@@ -107,7 +107,7 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
 					<SettingsButtonLinkHighlight
 						title="한국어"
 						onPress={() => storage.set("lang", "ko")}
-						withBottomBorder={true}
+						withBottomBorder={false}
 					/>
 				</SettingsGroup>
 				<View style={{ height: 25 }}></View>

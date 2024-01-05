@@ -15,6 +15,7 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
 import { Image } from "expo-image"
+import { blurhashes } from "../../style/colors"
 
 const fetchAssetsSemaphore = new Semaphore(3)
 
@@ -71,6 +72,7 @@ export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, exclude
 									uri: image
 								}}
 								cachePolicy="memory-disk"
+								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 								style={{
 									width: 30,
 									height: 30,
