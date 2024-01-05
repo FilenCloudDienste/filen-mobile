@@ -39,8 +39,9 @@ class FileProviderUtils {
   private var dbPathCreated = false
   private var db: Connection?
   private var dbInitialized = false
-  private let downloadSemaphore = Semaphore(max: 1)
-  private let uploadSemaphore = Semaphore(max: 1)
+  private let downloadSemaphore = Semaphore(max: 3)
+  private let uploadSemaphore = Semaphore(max: 3)
+  private let transferSemaphore = Semaphore(max: 10)
   
   internal lazy var sessionConfiguration: URLSessionConfiguration = {
     let configuration = URLSessionConfiguration.af.default
@@ -704,17 +705,16 @@ class FileProviderUtils {
     let sizeEnc = try FilenCrypto.shared.encryptMetadata(metadata: String(fileSize), key: key)
     let metadata = try FilenCrypto.shared.encryptMetadata(metadata: metadataJSONString, key: lastMasterKey)
     
-    var bucket = ""
-    var region = ""
+    let uploadFileResult = UploadFileResult()
     
-    /*try await withThrowingTaskGroup(of: Void.self) { group in
-      for index in 0...fileChunks {
+    try await withThrowingTaskGroup(of: Void.self) { group in
+      for index in 0..<fileChunks {
         autoreleasepool {
           group.addTask {
-            transferSemaphore.wait()
+            try await self.transferSemaphore.acquire()
             
             defer {
-              transferSemaphore.signal()
+              self.transferSemaphore.release()
             }
             
             let result = try await self.encryptAndUploadChunk(url: url, chunkSize: chunkSizeToUse, uuid: uuid, index: index, uploadKey: uploadKey, parent: parent, key: key)
@@ -727,9 +727,12 @@ class FileProviderUtils {
         
         for try await _ in group {}
       }
-    }*/
+    }
     
-    for index in 0..<fileChunks {
+    let bucket = await uploadFileResult.bucket
+    let region = await uploadFileResult.region
+    
+    /*for index in 0..<fileChunks {
       let result = try await self.encryptAndUploadChunk(
         url: url,
         chunkSize: chunkSizeToUse,
@@ -744,7 +747,7 @@ class FileProviderUtils {
         bucket = result.bucket
         region = result.region
       }
-    }
+    }*/
     
     let done = try await self.markUploadAsDone(
       uuid: uuid,
@@ -1211,23 +1214,12 @@ class FileProviderUtils {
     }
   }
   
-  func downloadAndDecryptChunk (destinationURL: URL, uuid: String, region: String, bucket: String, index: Int, key: String, version: Int) async throws -> Void {
+  func downloadAndDecryptChunk (uuid: String, region: String, bucket: String, index: Int, key: String, version: Int) async throws -> URL {
     guard let downloadURL = URL(string: "https://egest.filen.io/\(region)/\(bucket)/\(uuid)/\(index)") else {
       throw NSFileProviderError(.serverUnreachable)
     }
     
     let tempFileURL = try self.getTempPath().appendingPathComponent(UUID().uuidString.lowercased() + "." + uuid + "." + String(index), isDirectory: false)
-    
-    defer {
-      do {
-        if FileManager.default.fileExists(atPath: tempFileURL.path) {
-          try FileManager.default.removeItem(at: tempFileURL)
-        }
-      } catch {
-        print(error)
-      }
-    }
-    
     let downloadedFileURL = try await sessionManager.download(downloadURL){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
     
     defer {
@@ -1240,23 +1232,9 @@ class FileProviderUtils {
       }
     }
     
-    let decryptedFileURL = try FilenCrypto.shared.streamDecryptData(input: downloadedFileURL, output: tempFileURL, key: key, version: version)
+    _ = try FilenCrypto.shared.streamDecryptData(input: downloadedFileURL, output: tempFileURL, key: key, version: version)
     
-    defer {
-      do {
-        if FileManager.default.fileExists(atPath: decryptedFileURL.path) {
-          try FileManager.default.removeItem(at: decryptedFileURL)
-        }
-      } catch {
-        print(error)
-      }
-    }
-    
-    if index == 0 {
-      try FileManager.default.moveItem(atPath: decryptedFileURL.path, toPath: destinationURL.path)
-    } else {
-      try FilenUtils.shared.appendFile(from: decryptedFileURL, to: destinationURL)
-    }
+    return tempFileURL
   }
 
   func downloadFile (uuid: String, url: String, maxChunks: Int) async throws -> (didDownload: Bool, url: String) {
@@ -1295,31 +1273,30 @@ class FileProviderUtils {
     }
     
     let chunksToDownload = maxChunks >= itemJSON.chunks ? itemJSON.chunks : maxChunks
-    
-    /*let currentWriteIndex = DownloadFileCurrentWriteIndex()
+    let currentWriteIndex = DownloadFileCurrentWriteIndex()
     
     @Sendable
     func waitForWriteSlot (index: Int) async throws -> Void {
       let currentIndex = await currentWriteIndex.index
       
       if (currentIndex != index) {
-        try await Task.sleep(nanoseconds: 10_000_000)
+        try await Task.sleep(nanoseconds: UInt64(FilenUtils.shared.millisecondsToNanoseconds(milliseconds: 10)))
         
         return try await waitForWriteSlot(index: index)
       }
     }
     
     try await withThrowingTaskGroup(of: Void.self) { group in
-      for index in 0...chunksToDownload {
+      for index in 0..<chunksToDownload {
         autoreleasepool {
           group.addTask {
-            transferSemaphore.wait()
+            try await self.transferSemaphore.acquire()
             
             defer {
-              transferSemaphore.signal()
+              self.transferSemaphore.release()
             }
             
-            let chunk = await self.downloadAndDecryptChunk(
+            let decryptedChunkURL = try await self.downloadAndDecryptChunk(
               uuid: uuid,
               region: itemJSON.region,
               bucket: itemJSON.bucket,
@@ -1328,33 +1305,33 @@ class FileProviderUtils {
               version: itemJSON.version
             )
             
-            if let chunkData = chunk {
-              try await waitForWriteSlot(index: index)
-              
-              if (index == 0) {
-                FileManager.default.createFile(atPath: url, contents: chunkData)
-              } else {
-                let fileHandle = try FileHandle(forWritingTo: fileURL)
-                
-                fileHandle.seekToEndOfFile()
-                fileHandle.write(chunkData)
-                fileHandle.closeFile()
+            defer {
+              do {
+                if FileManager.default.fileExists(atPath: decryptedChunkURL.path) {
+                  try FileManager.default.removeItem(at: decryptedChunkURL)
+                }
+              } catch {
+                print(error)
               }
-            
-              await currentWriteIndex.increase()
-            } else {
-              print("[downloadFile] error: chunkData nil")
-              
-              throw NSFileProviderError(.serverUnreachable)
             }
+            
+            try await waitForWriteSlot(index: index)
+            
+            if index == 0 {
+              try FileManager.default.moveItem(atPath: decryptedChunkURL.path, toPath: tempFileURL.path)
+            } else {
+              try FilenUtils.shared.appendFile(from: decryptedChunkURL, to: tempFileURL)
+            }
+          
+            await currentWriteIndex.increase()
           }
         }
         
         for try await _ in group {}
       }
-    }*/
+    }
     
-    for index in 0..<chunksToDownload  {
+    /*for index in 0..<chunksToDownload  {
       try await self.downloadAndDecryptChunk(
         destinationURL: tempFileURL,
         uuid: uuid,
@@ -1364,7 +1341,7 @@ class FileProviderUtils {
         key: itemJSON.key,
         version: itemJSON.version
       )
-    }
+    }*/
     
     if !FileManager.default.fileExists(atPath: tempFileURL.path) {
       throw NSFileProviderError(.serverUnreachable)
@@ -1442,5 +1419,23 @@ extension BodyStringEncoding.Errors: LocalizedError {
       case .emptyURLRequest: return "Empty url request"
       case .encodingProblem: return "Encoding problem"
     }
+  }
+}
+
+actor DownloadFileCurrentWriteIndex {
+  var index = 0
+  
+  func increase() -> Void {
+    index += 1
+  }
+}
+
+actor UploadFileResult {
+  var bucket = ""
+  var region = ""
+  
+  func set(bucket b: String, region r: String) -> Void {
+    bucket = b
+    region = r
   }
 }

@@ -1,5 +1,5 @@
 import { memo, useRef } from "react"
-import { getColor, blurhashes } from "../../../style"
+import { getColor } from "../../../style"
 import { Text, Linking, Pressable, View } from "react-native"
 import { Image } from "expo-image"
 import { isMessageLink } from "../utils"
@@ -61,7 +61,6 @@ const ImageEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string }
 						borderRadius: 5
 					}}
 					contentFit="contain"
-					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 					source={{
 						uri: image
 					}}

@@ -221,6 +221,10 @@ class FilenUtils {
       return output
     }
   }
+  
+  func millisecondsToNanoseconds(milliseconds: Int) -> Int {
+    return milliseconds * 1_000_000
+  }
 }
 
 class Semaphore {

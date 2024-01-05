@@ -1,5 +1,5 @@
 import { memo, useRef } from "react"
-import { getColor, blurhashes } from "../../../style"
+import { getColor } from "../../../style"
 import { Text, Linking, Pressable, View } from "react-native"
 import { i18n } from "../../../i18n"
 import { Image } from "expo-image"
@@ -116,7 +116,6 @@ const OGEmbed = memo(
 								uri: image
 							}}
 							cachePolicy="none"
-							placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 						/>
 					</View>
 				)}
