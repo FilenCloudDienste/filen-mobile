@@ -1102,6 +1102,8 @@ export const toExpoFsPath = (path: string) => {
 	}
 
 	try {
+		path = path.split("file://").join("").split("file:").join("")
+
 		const before = path
 
 		path = encodeURI(path)
@@ -1122,7 +1124,9 @@ export const toExpoFsPathWithoutEncode = (path: string) => {
 	}
 
 	try {
-		if (path.indexOf("file://") == -1) {
+		path = path.split("file://").join("").split("file:").join("")
+
+		if (path.indexOf("file://") === -1) {
 			return "file://" + path
 		}
 
@@ -1133,7 +1137,7 @@ export const toExpoFsPathWithoutEncode = (path: string) => {
 }
 
 export const toBlobUtilPath = (path: string) => {
-	if (typeof path !== "string" || path.length <= 0) {
+	/*if (typeof path !== "string" || path.length <= 0) {
 		return path
 	}
 
@@ -1142,7 +1146,29 @@ export const toBlobUtilPath = (path: string) => {
 			return encodeURI(path.split("file://").join(""))
 		}
 
+		if (path.indexOf("file:") !== -1) {
+			return encodeURI(path.split("file:").join(""))
+		}
+
 		return encodeURI(path)
+	} catch {
+		return path
+	}*/
+
+	if (typeof path !== "string" || path.length <= 0) {
+		return path
+	}
+
+	try {
+		if (path.indexOf("file://") !== -1) {
+			return path.split("file://").join("")
+		}
+
+		if (path.indexOf("file:") !== -1) {
+			return path.split("file:").join("")
+		}
+
+		return path
 	} catch {
 		return path
 	}
@@ -1158,6 +1184,10 @@ export const toBlobUtilPathWithoutEncode = (path: string) => {
 			return path.split("file://").join("")
 		}
 
+		if (path.indexOf("file:") !== -1) {
+			return path.split("file:").join("")
+		}
+
 		return path
 	} catch {
 		return path
@@ -1170,11 +1200,19 @@ export const toBlobUtilPathDecode = (path: string) => {
 			return decodeURI(path.split("file://").join(""))
 		}
 
+		if (path.indexOf("file:") !== -1) {
+			return decodeURI(path.split("file:").join(""))
+		}
+
 		return decodeURI(path)
 	} catch {
 		try {
 			if (path.indexOf("file://") !== -1) {
 				return path.split("file://").join("")
+			}
+
+			if (path.indexOf("file:") !== -1) {
+				return path.split("file:").join("")
 			}
 
 			return path

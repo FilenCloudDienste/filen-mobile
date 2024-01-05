@@ -514,7 +514,8 @@ export const downloadFolder = async ({
 	linkPassword,
 	linkSalt,
 	linkKey,
-	showFullScreenLoading = true
+	showFullScreenLoading = true,
+	showNotification = true
 }: {
 	folder: Item
 	shared?: boolean
@@ -525,6 +526,7 @@ export const downloadFolder = async ({
 	linkSalt?: string
 	linkKey?: string
 	showFullScreenLoading?: boolean
+	showNotification?: boolean
 }) => {
 	if (showFullScreenLoading) {
 		showFullScreenLoadingModal()
@@ -540,54 +542,69 @@ export const downloadFolder = async ({
 
 		hideFullScreenLoadingModal()
 
-		const downloadedFilesPaths: Record<string, { item: Item; downloadPath: string; path: string }> = {}
+		const promises: Promise<void>[] = []
 
 		for (const file of tree) {
 			if (Platform.OS === "ios" && file.item.uuid === folder.uuid) {
 				const baseFolderPath = pathModule.join(baseDownloadPath, pathModule.dirname(file.path), file.item.name)
 
-				await fs.mkdir(baseFolderPath, true)
+				if ((await fs.stat(baseFolderPath)).exists) {
+					await fs.unlink(baseFolderPath)
+				}
 			}
 
 			if (file.item.type !== "file") {
 				continue
 			}
 
-			const tmpDownloadPath = await downloadFile(file.item, true, file.item.chunks)
+			promises.push(
+				new Promise(async (resolve, reject) => {
+					await downloadSemaphore.acquire()
 
-			downloadedFilesPaths[file.item.uuid] = {
-				item: file.item,
-				path: file.path,
-				downloadPath: tmpDownloadPath
-			}
+					try {
+						const tmpDownloadPath = await downloadFile(file.item, true, file.item.chunks)
+
+						if (Platform.OS === "android") {
+							await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
+								{
+									name: file.item.name,
+									parentFolder: pathModule.dirname(file.path),
+									mimeType: file.item.mime
+								},
+								"Download",
+								toBlobUtilPathDecode(tmpDownloadPath)
+							)
+						} else {
+							const fileDirPath = pathModule.join(baseDownloadPath, pathModule.dirname(file.path))
+
+							await fs.mkdir(fileDirPath, true)
+
+							const filePath = pathModule.join(fileDirPath, file.item.name)
+
+							if ((await fs.stat(filePath)).exists) {
+								await fs.unlink(filePath)
+							}
+
+							await fs.copy(tmpDownloadPath, filePath)
+						}
+
+						await fs.unlink(tmpDownloadPath)
+
+						resolve()
+					} catch (e) {
+						reject(e)
+					} finally {
+						downloadSemaphore.release()
+					}
+				})
+			)
 		}
 
-		for (const uuid in downloadedFilesPaths) {
-			const file = downloadedFilesPaths[uuid]
+		await Promise.all(promises)
 
-			if (file.item.type !== "file") {
-				continue
-			}
-
-			if (Platform.OS === "android") {
-				await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
-					{
-						name: file.item.name,
-						parentFolder: pathModule.dirname(file.path),
-						mimeType: file.item.mime
-					},
-					"Download",
-					toBlobUtilPathDecode(file.downloadPath)
-				)
-			} else {
-				const fileDirPath = pathModule.join(baseDownloadPath, pathModule.dirname(file.path))
-
-				await fs.mkdir(fileDirPath, true)
-				await fs.copy(file.downloadPath, pathModule.join(fileDirPath, file.item.name))
-			}
-
-			await fs.unlink(file.downloadPath)
-		}
+		showToast({
+			message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [folder.name])
+		})
 	} catch (e) {
 		throw e
 	} finally {
