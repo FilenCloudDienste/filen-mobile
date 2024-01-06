@@ -7,6 +7,9 @@ import android.graphics.BitmapFactory;
 import android.os.CancellationSignal;
 import android.provider.DocumentsContract;
 import android.util.Log;
+
+import com.tencent.mmkv.MMKV;
+
 import org.json.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -76,7 +79,22 @@ public class FilenDocumentsProviderUtils {
     }
 
     public static boolean needsBiometricAuth() {
-        return false; // @TODO
+        if (!isLoggedIn()) {
+            return false;
+        }
+
+        final int userId = getUserId();
+        int lockAppAfter = (int) MMKVHelper.getInstance().decodeDouble("lockAppAfter:" + userId, 0.0);
+        final int lastBiometricScreen = (int) MMKVHelper.getInstance().decodeDouble("lastBiometricScreen:" + userId, 0.0);
+        final boolean biometricPinAuth = MMKVHelper.getInstance().decodeBool("biometricPinAuth:" + userId, false);
+
+        if (lockAppAfter <= 900) { // 15 minutes minimum timeout since "immediate" locking setting will make the provider never open
+            lockAppAfter = 900;
+        }
+
+        lockAppAfter = (int) Math.floor(lockAppAfter * 1000);
+
+        return System.currentTimeMillis() >= (lastBiometricScreen + lockAppAfter) && biometricPinAuth;
     }
 
     public static Object[] getRootsInfo () {

@@ -243,14 +243,17 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 		throw new Error(response.message)
 	}
 
-	storage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
-	storage.set("defaultDriveOnly:" + (storage.getNumber("userId") || 0), true)
+	const userId = storage.getNumber("userId") || 0
+
+	storage.set("defaultDriveUUID:" + userId, response.data.uuid)
+	storage.set("defaultDriveOnly:" + userId, true)
 
 	sharedStorage.set("apiKey", storage.getString("apiKey") || "")
 	sharedStorage.set("masterKeys", storage.getString("masterKeys") || "[]")
 	sharedStorage.set("isLoggedIn", storage.getBoolean("isLoggedIn"))
-	sharedStorage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
-	sharedStorage.set("userId", storage.getNumber("userId") || 0)
+	sharedStorage.set("defaultDriveUUID:" + userId, response.data.uuid)
+	sharedStorage.set("userId", userId)
+	sharedStorage.set("biometricPinAuth:" + userId, storage.getBoolean("biometricPinAuth:" + userId))
 
 	const pushToken = storage.getString("pushToken")
 

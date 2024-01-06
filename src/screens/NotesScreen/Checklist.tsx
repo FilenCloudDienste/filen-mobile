@@ -359,7 +359,8 @@ const Checklist = memo(
 
 				listRef?.current?.scrollToIndex({
 					animated: true,
-					index
+					index,
+					viewOffset: 1
 				})
 			})
 

@@ -1,15 +1,6 @@
 import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from "react"
-import {
-	View,
-	Text,
-	TouchableOpacity,
-	useWindowDimensions,
-	Animated,
-	AppState,
-	AppStateStatus,
-	Platform
-} from "react-native"
-import storage from "../../lib/storage"
+import { View, Text, TouchableOpacity, useWindowDimensions, Animated, AppState, AppStateStatus, Platform } from "react-native"
+import storage, { sharedStorage } from "../../lib/storage/storage"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
@@ -23,41 +14,68 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { safeAwait } from "../../lib/helpers"
 
-let canGoBack: boolean = false
+let canGoBack = false
 
-export interface PINCodeRowProps {
-	numbers?: number[]
-	updatePinCode: (number: number) => void
-	promptBiometrics: () => void
-}
+export const PINCodeRow = memo(
+	({
+		numbers,
+		updatePinCode,
+		promptBiometrics
+	}: {
+		numbers?: number[]
+		updatePinCode: (number: number) => void
+		promptBiometrics: () => void
+	}) => {
+		const darkMode = useDarkMode()
 
-export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }: PINCodeRowProps) => {
-	const darkMode = useDarkMode()
+		const [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor] = useMemo(() => {
+			const buttonWidthHeight: number = 70
+			const buttonFontSize: number = 22
+			const buttonColor: string = darkMode ? "#333333" : "lightgray"
+			const buttonFontColor: string = getColor(darkMode, "textPrimary")
 
-	const [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor] = useMemo(() => {
-		const buttonWidthHeight: number = 70
-		const buttonFontSize: number = 22
-		const buttonColor: string = darkMode ? "#333333" : "lightgray"
-		const buttonFontColor: string = getColor(darkMode, "textPrimary")
+			return [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor]
+		}, [darkMode])
 
-		return [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor]
-	}, [darkMode])
-
-	return (
-		<View
-			style={{
-				width: 270,
-				height: "auto",
-				flexDirection: "row",
-				justifyContent: "space-between",
-				marginBottom: 15
-			}}
-		>
-			{typeof numbers !== "undefined" ? (
-				numbers.map(num => {
-					return (
+		return (
+			<View
+				style={{
+					width: 270,
+					height: "auto",
+					flexDirection: "row",
+					justifyContent: "space-between",
+					marginBottom: 15
+				}}
+			>
+				{typeof numbers !== "undefined" ? (
+					numbers.map(num => {
+						return (
+							<TouchableOpacity
+								key={num}
+								style={{
+									height: buttonWidthHeight,
+									width: buttonWidthHeight,
+									borderRadius: buttonWidthHeight,
+									backgroundColor: buttonColor,
+									justifyContent: "center",
+									alignItems: "center"
+								}}
+								onPress={() => updatePinCode(num)}
+							>
+								<Text
+									style={{
+										fontSize: buttonFontSize,
+										color: buttonFontColor
+									}}
+								>
+									{num}
+								</Text>
+							</TouchableOpacity>
+						)
+					})
+				) : (
+					<>
 						<TouchableOpacity
-							key={num}
 							style={{
 								height: buttonWidthHeight,
 								width: buttonWidthHeight,
@@ -66,7 +84,40 @@ export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }: PI
 								justifyContent: "center",
 								alignItems: "center"
 							}}
-							onPress={() => updatePinCode(num)}
+							onPress={() => {
+								if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+									return
+								}
+
+								promptBiometrics()
+							}}
+						>
+							{Platform.OS == "android" && Platform.constants.Version <= 22 ? (
+								<></>
+							) : (
+								<Text
+									style={{
+										fontSize: buttonFontSize
+									}}
+								>
+									<Ionicon
+										name="finger-print-outline"
+										size={buttonFontSize}
+										color={buttonFontColor}
+									/>
+								</Text>
+							)}
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={{
+								height: buttonWidthHeight,
+								width: buttonWidthHeight,
+								borderRadius: buttonWidthHeight,
+								backgroundColor: buttonColor,
+								justifyContent: "center",
+								alignItems: "center"
+							}}
+							onPress={() => updatePinCode(0)}
 						>
 							<Text
 								style={{
@@ -74,100 +125,40 @@ export const PINCodeRow = memo(({ numbers, updatePinCode, promptBiometrics }: PI
 									color: buttonFontColor
 								}}
 							>
-								{num}
+								0
 							</Text>
 						</TouchableOpacity>
-					)
-				})
-			) : (
-				<>
-					<TouchableOpacity
-						style={{
-							height: buttonWidthHeight,
-							width: buttonWidthHeight,
-							borderRadius: buttonWidthHeight,
-							backgroundColor: buttonColor,
-							justifyContent: "center",
-							alignItems: "center"
-						}}
-						onPress={() => {
-							if (Platform.OS == "android" && Platform.constants.Version <= 22) {
-								return
-							}
-
-							promptBiometrics()
-						}}
-					>
-						{Platform.OS == "android" && Platform.constants.Version <= 22 ? (
-							<></>
-						) : (
+						<TouchableOpacity
+							style={{
+								height: buttonWidthHeight,
+								width: buttonWidthHeight,
+								borderRadius: buttonWidthHeight,
+								backgroundColor: buttonColor,
+								justifyContent: "center",
+								alignItems: "center"
+							}}
+							onPress={() => updatePinCode(-1)}
+						>
 							<Text
 								style={{
 									fontSize: buttonFontSize
 								}}
 							>
 								<Ionicon
-									name="finger-print-outline"
+									name="backspace-outline"
 									size={buttonFontSize}
 									color={buttonFontColor}
 								/>
 							</Text>
-						)}
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={{
-							height: buttonWidthHeight,
-							width: buttonWidthHeight,
-							borderRadius: buttonWidthHeight,
-							backgroundColor: buttonColor,
-							justifyContent: "center",
-							alignItems: "center"
-						}}
-						onPress={() => updatePinCode(0)}
-					>
-						<Text
-							style={{
-								fontSize: buttonFontSize,
-								color: buttonFontColor
-							}}
-						>
-							0
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={{
-							height: buttonWidthHeight,
-							width: buttonWidthHeight,
-							borderRadius: buttonWidthHeight,
-							backgroundColor: buttonColor,
-							justifyContent: "center",
-							alignItems: "center"
-						}}
-						onPress={() => updatePinCode(-1)}
-					>
-						<Text
-							style={{
-								fontSize: buttonFontSize
-							}}
-						>
-							<Ionicon
-								name="backspace-outline"
-								size={buttonFontSize}
-								color={buttonFontColor}
-							/>
-						</Text>
-					</TouchableOpacity>
-				</>
-			)}
-		</View>
-	)
-})
+						</TouchableOpacity>
+					</>
+				)}
+			</View>
+		)
+	}
+)
 
-export interface BiometricAuthScreenProps {
-	navigation: any
-}
-
-export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProps) => {
+export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
@@ -227,7 +218,8 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 
 			setIsAuthing(false)
 
-			storage.set("lastBiometricScreen:" + userId, Date.now())
+			storage.set("lastBiometricScreen:" + userId, Date.now() - 1000)
+			sharedStorage.set("lastBiometricScreen:" + userId, Date.now() - 1000)
 
 			if (wasSetupScreen) {
 				navigationAnimation({ enable: true }).then(() => {
@@ -278,6 +270,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 					if (newCode == confirmPinCode) {
 						storage.set("pinCode:" + userId, confirmPinCode)
 						storage.set("biometricPinAuth:" + userId, true)
+						sharedStorage.set("biometricPinAuth:" + userId, true)
 
 						authed()
 					} else {
@@ -442,11 +435,7 @@ export const BiometricAuthScreen = memo(({ navigation }: BiometricAuthScreenProp
 						return (
 							<Ionicon
 								key={key}
-								name={
-									pinCode.charAt(key).length > 0
-										? "radio-button-on-outline"
-										: "radio-button-off-outline"
-								}
+								name={pinCode.charAt(key).length > 0 ? "radio-button-on-outline" : "radio-button-off-outline"}
 								size={22}
 								color={dotColor}
 								style={{

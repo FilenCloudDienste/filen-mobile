@@ -553,7 +553,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 								<View
 									style={{
 										width: "100%",
-										height: "auto",
+										height: "100%",
 										marginTop: 40,
 										position: "absolute",
 										zIndex: 10001

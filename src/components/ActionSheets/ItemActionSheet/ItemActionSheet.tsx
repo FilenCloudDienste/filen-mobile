@@ -25,6 +25,7 @@ import useLang from "../../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
 import * as db from "../../../lib/db"
 import Share from "react-native-share"
+import pathModule from "path"
 
 const ItemActionSheet = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
@@ -249,7 +250,18 @@ const ItemActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 		}
 
 		try {
-			const tmpPath = await downloadFile(currentActionSheetItem, true, currentActionSheetItem.chunks)
+			const [downloadedPath, tempPath] = await Promise.all([
+				downloadFile(currentActionSheetItem, true, currentActionSheetItem.chunks),
+				fs.getDownloadPath({ type: "temp" })
+			])
+
+			const tmpPath = pathModule.join(tempPath, currentActionSheetItem.name)
+
+			if ((await fs.stat(tmpPath)).exists) {
+				await fs.unlink(tmpPath)
+			}
+
+			await fs.move(downloadedPath, tmpPath)
 
 			Share.open({
 				title: i18n(lang, "export"),

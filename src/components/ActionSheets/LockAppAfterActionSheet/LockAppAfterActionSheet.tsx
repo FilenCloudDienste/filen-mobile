@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from "react"
 import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
-import storage from "../../../lib/storage"
+import storage, { sharedStorage } from "../../../lib/storage/storage"
 import { useMMKVNumber } from "react-native-mmkv"
 import useDimensions from "../../../lib/hooks/useDimensions"
 import { i18n } from "../../../i18n"
@@ -17,12 +17,15 @@ const LockAppAfterActionSheet = memo(() => {
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
+	const [lockAppAfterShared, setLockAppAfterShared] = useMMKVNumber("lockAppAfter:" + userId, sharedStorage)
 
 	const setLock = useCallback(
 		async (seconds: number) => {
 			setLockAppAfter(seconds)
+			setLockAppAfterShared(seconds)
 
-			storage.set("lastBiometricScreen:" + userId, Math.floor(Date.now()) + seconds * 1000)
+			storage.set("lastBiometricScreen:" + userId, Math.floor(Date.now() + seconds * 1000))
+			sharedStorage.set("lastBiometricScreen:" + userId, Math.floor(Date.now() + seconds * 1000))
 
 			await SheetManager.hide("LockAppAfterActionSheet")
 		},

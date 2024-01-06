@@ -25,8 +25,6 @@ import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { SocketEvent } from "../../lib/services/socket"
 
-const itemHeights = new Map<string, number>()
-
 const Item = memo(
 	({
 		darkMode,
@@ -45,8 +43,6 @@ const Item = memo(
 		userId: number
 		tags: NoteTag[]
 	}) => {
-		const [itemHeight, setItemHeight] = useState<number>(itemHeights.has(note.uuid) ? itemHeights.get(note.uuid) : 0)
-
 		const participantsFilteredWithoutMe = useMemo(() => {
 			return note.participants
 				.filter(p => p.userId !== userId)
@@ -76,47 +72,46 @@ const Item = memo(
 		}, [me, note, userId])
 
 		return (
-			<View
-				onLayout={e => {
-					itemHeights.set(note.uuid, e.nativeEvent.layout.height)
+			<TouchableOpacity
+				style={{
+					flexDirection: "column",
+					marginBottom: index >= notesSorted.length - 1 ? 130 : 0,
+					paddingBottom: index >= notesSorted.length - 1 ? 15 : 0
+				}}
+				onPress={async () => {
+					await navigationAnimation({ enable: true })
 
-					setItemHeight(e.nativeEvent.layout.height)
+					navigation.dispatch(
+						StackActions.push("NoteScreen", {
+							note,
+							tags,
+							readOnly: !writeAccess,
+							historyMode: false,
+							historyId: ""
+						})
+					)
+				}}
+				onLongPress={() => {
+					eventListener.emit("openNoteActionSheet", { note, tags })
 				}}
 			>
-				<TouchableOpacity
+				<View
 					style={{
-						flexDirection: "column",
-						marginBottom: index >= notesSorted.length - 1 ? 130 : 0,
-						paddingBottom: index >= notesSorted.length - 1 ? 15 : 0,
+						backgroundColor: getColor(darkMode, "backgroundPrimary"),
+						flexDirection: "row",
+						paddingLeft: 15,
+						paddingRight: 50,
 						width: "100%",
-						height: "100%"
-					}}
-					onPress={async () => {
-						await navigationAnimation({ enable: true })
-
-						navigation.dispatch(
-							StackActions.push("NoteScreen", {
-								note,
-								tags,
-								readOnly: !writeAccess,
-								historyMode: false,
-								historyId: ""
-							})
-						)
-					}}
-					onLongPress={() => {
-						eventListener.emit("openNoteActionSheet", { note, tags })
+						paddingTop: 15,
+						justifyContent: "space-between"
 					}}
 				>
 					<View
 						style={{
-							backgroundColor: getColor(darkMode, "backgroundPrimary"),
 							flexDirection: "row",
-							paddingLeft: 15,
-							paddingRight: 45,
+							gap: 10,
 							width: "100%",
-							height: "100%",
-							paddingTop: 15
+							height: "100%"
 						}}
 					>
 						<View
@@ -196,9 +191,7 @@ const Item = memo(
 						</View>
 						<View
 							style={{
-								flexDirection: "column",
-								paddingLeft: 10,
-								width: "100%"
+								flexDirection: "column"
 							}}
 						>
 							<View
@@ -328,87 +321,81 @@ const Item = memo(
 										})}
 								</View>
 							)}
-							{index < notesSorted.length - 1 && (
-								<View
-									style={{
-										backgroundColor: getColor(darkMode, "primaryBorder"),
-										height: 0.5,
-										width: "200%",
-										marginTop: 15
-									}}
-								/>
-							)}
 						</View>
-						{participantsFilteredWithoutMe.length > 0 && (
-							<View
-								style={{
-									flexDirection: "row",
-									justifyContent: "center",
-									position: "absolute",
-									opacity: itemHeight === 0 ? 0 : 1,
-									right: participantsFilteredWithoutMe.length > 1 ? 50 : 40,
-									top: itemHeight === 0 ? 15 : Math.floor(itemHeight / 2) - 12
-								}}
-							>
-								{participantsFilteredWithoutMe.map((participant, index) => {
-									if (index >= 2) {
-										return null
-									}
-
-									if (participant.avatar.indexOf("https://") !== -1) {
-										return (
-											<Image
-												key={participant.userId}
-												source={{
-													uri: participant.avatar
-												}}
-												cachePolicy="memory-disk"
-												placeholder={
-													darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary
-												}
-												style={{
-													width: 24,
-													height: 24,
-													borderRadius: 24,
-													left: index > 0 ? 10 : 0,
-													position: "absolute"
-												}}
-											/>
-										)
-									}
-
+					</View>
+					{participantsFilteredWithoutMe.length > 0 && (
+						<View
+							style={{
+								flexDirection: "row",
+								justifyContent: "flex-end",
+								alignItems: "center"
+							}}
+						>
+							{participantsFilteredWithoutMe.slice(0, 2).map((participant, index) => {
+								if (participant.avatar && participant.avatar.indexOf("https://") !== -1) {
 									return (
-										<View
+										<Image
 											key={participant.userId}
+											source={{
+												uri: participant.avatar
+											}}
+											cachePolicy="memory-disk"
+											placeholder={
+												darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary
+											}
 											style={{
 												width: 24,
 												height: 24,
 												borderRadius: 24,
-												backgroundColor: generateAvatarColorCode(participant.email, darkMode),
-												flexDirection: "column",
-												alignItems: "center",
-												justifyContent: "center",
-												left: index > 0 ? 10 : 0,
+												left: index > 0 ? 8 : 0,
 												position: "absolute"
 											}}
-										>
-											<Text
-												style={{
-													color: "white",
-													fontWeight: "bold",
-													fontSize: 16
-												}}
-											>
-												{getUserNameFromNoteParticipant(participant).slice(0, 1).toUpperCase()}
-											</Text>
-										</View>
+										/>
 									)
-								})}
-							</View>
-						)}
-					</View>
-				</TouchableOpacity>
-			</View>
+								}
+
+								return (
+									<View
+										key={participant.userId}
+										style={{
+											width: 24,
+											height: 24,
+											borderRadius: 24,
+											backgroundColor: generateAvatarColorCode(participant.email, darkMode),
+											flexDirection: "column",
+											alignItems: "center",
+											justifyContent: "center",
+											left: index > 0 ? 8 : 0,
+											position: "absolute"
+										}}
+									>
+										<Text
+											style={{
+												color: "white",
+												fontWeight: "bold",
+												fontSize: 16
+											}}
+										>
+											{getUserNameFromNoteParticipant(participant).slice(0, 1).toUpperCase()}
+										</Text>
+									</View>
+								)
+							})}
+						</View>
+					)}
+				</View>
+				{index < notesSorted.length - 1 && (
+					<View
+						style={{
+							backgroundColor: getColor(darkMode, "primaryBorder"),
+							height: 0.5,
+							width: "200%",
+							marginTop: 15,
+							marginLeft: 55
+						}}
+					/>
+				)}
+			</TouchableOpacity>
 		)
 	}
 )

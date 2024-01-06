@@ -12,7 +12,7 @@ import {
 	Alert,
 	AppState
 } from "react-native"
-import storage from "../../lib/storage"
+import storage, { sharedStorage } from "../../lib/storage/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { formatBytes, getFilenameFromPath, safeAwait } from "../../lib/helpers"
@@ -531,7 +531,7 @@ export const SettingsGroup = memo((props: { marginTop?: number; children: any })
 	)
 })
 
-export const SettingsScreen = memo(({ navigation, route }: { navigation: any; route: any }) => {
+export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
@@ -541,6 +541,7 @@ export const SettingsScreen = memo(({ navigation, route }: { navigation: any; ro
 	const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
 	const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
 	const [biometricPinAuth, setBiometricPinAuth] = useMMKVBoolean("biometricPinAuth:" + userId, storage)
+	const [biometricPinAuthShared, setBiometricPinAuthShared] = useMMKVBoolean("biometricPinAuth:" + userId, sharedStorage)
 	const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
 	const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
 	const [onlyUsePINCode, setOnlyUsePINCode] = useMMKVBoolean("onlyUsePINCode:" + userId, storage)
@@ -977,6 +978,7 @@ export const SettingsScreen = memo(({ navigation, route }: { navigation: any; ro
 												text: i18n(lang, "cancel"),
 												onPress: () => {
 													setBiometricPinAuth(true)
+													setBiometricPinAuthShared(true)
 
 													return false
 												},
@@ -993,6 +995,7 @@ export const SettingsScreen = memo(({ navigation, route }: { navigation: any; ro
 																text: i18n(lang, "cancel"),
 																onPress: () => {
 																	setBiometricPinAuth(true)
+																	setBiometricPinAuthShared(true)
 
 																	return false
 																},
@@ -1002,6 +1005,7 @@ export const SettingsScreen = memo(({ navigation, route }: { navigation: any; ro
 																text: i18n(lang, "ok"),
 																onPress: () => {
 																	setBiometricPinAuth(false)
+																	setBiometricPinAuthShared(false)
 
 																	storage.delete("pinCode:" + userId)
 																},

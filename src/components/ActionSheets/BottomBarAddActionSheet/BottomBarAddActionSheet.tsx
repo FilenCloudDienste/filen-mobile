@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from "react"
 import { View, DeviceEventEmitter } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
-import storage from "../../../lib/storage"
+import storage, { sharedStorage } from "../../../lib/storage/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
 import { getRandomArbitrary, convertTimestampToMs, getFileExt, getParent, getFilePreviewType, safeAwait } from "../../../lib/helpers"
@@ -55,7 +55,8 @@ const BottomBarAddActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
 			return new Promise((resolve, reject) => {
@@ -102,7 +103,8 @@ const BottomBarAddActionSheet = memo(() => {
 				durationLimit: 86400000
 			},
 			async response => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				if (response.errorMessage) {
 					console.error(response.errorMessage)
@@ -167,7 +169,8 @@ const BottomBarAddActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		DeviceEventEmitter.emit("openSelectMediaScreen")
 	}, [])
@@ -190,7 +193,8 @@ const BottomBarAddActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		const getFileInfo = (result: DocumentPickerResponse): Promise<UploadFile> => {
 			return new Promise((resolve, reject) => {
@@ -231,7 +235,8 @@ const BottomBarAddActionSheet = memo(() => {
 			copyTo: "cachesDirectory"
 		})
 			.then(async result => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				const parent = getParent()
 
@@ -260,7 +265,8 @@ const BottomBarAddActionSheet = memo(() => {
 				}
 			})
 			.catch(err => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				if (RNDocumentPicker.isCancel(err)) {
 					return

@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from "react"
 import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
-import storage from "../../../lib/storage"
+import storage, { sharedStorage } from "../../../lib/storage/storage"
 import useLang from "../../../lib/hooks/useLang"
 import useDimensions from "../../../lib/hooks/useDimensions"
 import { useStore } from "../../../lib/state"
@@ -81,7 +81,8 @@ const ProfilePictureActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		RNImagePicker.launchCamera(
 			{
@@ -95,7 +96,8 @@ const ProfilePictureActionSheet = memo(() => {
 				mediaType: "photo"
 			},
 			response => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				if (response.errorMessage) {
 					console.log(response.errorMessage)
@@ -171,7 +173,8 @@ const ProfilePictureActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		RNImagePicker.launchImageLibrary(
 			{
@@ -184,7 +187,8 @@ const ProfilePictureActionSheet = memo(() => {
 				maxHeight: 999999999
 			},
 			response => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				if (response.didCancel) {
 					return

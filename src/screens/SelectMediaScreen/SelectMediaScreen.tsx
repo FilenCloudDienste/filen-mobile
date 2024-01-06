@@ -28,7 +28,7 @@ import { showToast } from "../../components/Toasts"
 import { getAssetURI } from "../../lib/services/cameraUpload"
 import * as fs from "../../lib/fs"
 import { FlashList } from "@shopify/flash-list"
-import storage from "../../lib/storage"
+import storage, { sharedStorage } from "../../lib/storage/storage"
 import { Image } from "expo-image"
 
 const videoThumbnailSemaphore = new Semaphore(8)
@@ -543,12 +543,14 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 		}
 	}, [params])
 
-	if (typeof params == "undefined") {
+	if (!params) {
 		return (
 			<>
 				<DefaultTopBar
 					onPressBack={() => {
-						storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+						storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+						sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
 						navigation.goBack()
 					}}
 					leftText={i18n(lang, "back")}
@@ -570,12 +572,13 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 			}}
 			onLayout={e => setContainerWidth(e.nativeEvent.layout.width)}
 		>
-			{typeof route.params.album == "undefined" ? (
+			{!route.params.album ? (
 				<>
 					<DefaultTopBar
 						onPressBack={() => {
-							if (typeof params.prevNavigationState !== "undefined") {
-								storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+							if (params.prevNavigationState) {
+								storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+								sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 								navigationAnimation({ enable: true }).then(() => {
 									const newRoutes = [
@@ -621,7 +624,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 									left: 15
 								}}
 								onPress={() => {
-									storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+									storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+									sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
 									navigation.goBack()
 								}}
 							>
@@ -661,7 +666,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 				<>
 					<DefaultTopBar
 						onPressBack={() => {
-							storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+							storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+							sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
 							navigation.goBack()
 						}}
 						leftText={i18n(lang, "albums")}
@@ -682,8 +689,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 										left: 15
 									}}
 									onPress={() => {
-										if (typeof params.prevNavigationState !== "undefined") {
-											storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+										if (params.prevNavigationState) {
+											storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+											sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 											DeviceEventEmitter.emit("selectMediaScreenUpload", {
 												assets: selectedAssets,
@@ -715,7 +723,8 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 										paddingRight: 15
 									}}
 									onPress={() => {
-										storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+										storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+										sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 										navigation.dispatch(StackActions.pop(2))
 									}}

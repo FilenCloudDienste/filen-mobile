@@ -108,7 +108,11 @@ public class FilenDocumentsProvider extends DocumentsProvider {
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : getDefaultDocumentProjection());
         final String defaultDriveUUID = FilenDocumentsProviderUtils.getDefaultDriveUUID();
 
-        if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn() || defaultDriveUUID.length() == 0) {
+        if (defaultDriveUUID.length() == 0) {
+            throw new FileNotFoundException("Document " + documentId + " not found.");
+        }
+
+        if (!documentId.equals(defaultDriveUUID) && (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn())) {
             throw new FileNotFoundException("Document " + documentId + " not found.");
         }
 

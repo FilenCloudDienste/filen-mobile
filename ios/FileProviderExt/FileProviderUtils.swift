@@ -156,9 +156,23 @@ class FileProviderUtils {
   
   func needsFaceID () -> Bool {
     autoreleasepool {
-      // TODO
-      
-      return false
+      guard let loggedIn = MMKVInstance.shared.instance?.bool(forKey: "isLoggedIn", defaultValue: false), let userId = self.userId(), let lockAppAfterVal = MMKVInstance.shared.instance?.double(forKey: "lockAppAfter:" + userId, defaultValue: 0), let lastBiometricScreen = MMKVInstance.shared.instance?.double(forKey: "lastBiometricScreen:" + userId, defaultValue: 0), let biometricPinAuth = MMKVInstance.shared.instance?.bool(forKey: "biometricPinAuth" + userId, defaultValue: false) else {
+        return false
+      }
+
+      if !isLoggedIn {
+        return false
+      }
+
+      var lockAppAfter = lockAppAfterVal
+
+      if lockAppAfter <= 900 { // 15 minutes minimum timeout since "immediate" locking setting will make the provider never open
+        lockAppAfter = 900
+      }
+
+      lockAppAfter = floor(lockAppAfter * 1000)
+
+      return (Date().timeIntervalSince1970 * 1000) >= (lastBiometricScreen + lockAppAfter) && biometricPinAuth
     }
   }
   
