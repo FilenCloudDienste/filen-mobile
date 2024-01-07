@@ -502,5 +502,8 @@ export const uk: {
 	addContactDialogTitleEmailPlaceholder: "Адреса електронної пошти контакта Filen",
 	send: "Відправити",
 	accept: "Прийняти",
-	deny: "Відхилити"
+	deny: "Відхилити",
+	uploadFolders: "Завантажити папки",
+	uploadFolder: "Завантажити папку",
+	cameraUploadAutoOrganize: "Сортувати по альбомам"
 }
