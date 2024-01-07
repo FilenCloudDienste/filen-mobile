@@ -735,17 +735,21 @@ export const uploadFolder = async ({
 				lastModified: file.lastModified
 			}
 
-			queueFileUpload({ file: uploadFile, parent: fileParent }).catch(err => {
-				if (err === "wifiOnly") {
-					showToast({ message: i18n(storage.getString("lang") || "en", "onlyWifiUploads") })
+			queueFileUpload({ file: uploadFile, parent: fileParent })
+				.catch(err => {
+					if (err === "wifiOnly") {
+						showToast({ message: i18n(storage.getString("lang") || "en", "onlyWifiUploads") })
 
-					return
-				}
+						return
+					}
 
-				console.error(err)
+					console.error(err)
 
-				showToast({ message: err.toString() })
-			})
+					showToast({ message: err.toString() })
+				})
+				.finally(() => {
+					fs.unlink(tempPath).catch(console.error)
+				})
 		}
 	} catch (e) {
 		throw e

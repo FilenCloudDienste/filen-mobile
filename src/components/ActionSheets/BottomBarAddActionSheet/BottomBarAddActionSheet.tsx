@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from "react"
 import { View, DeviceEventEmitter, Platform } from "react-native"
-import ActionSheet, { SheetManager } from "react-native-actions-sheet"
+import ActionSheet from "react-native-actions-sheet"
 import storage, { sharedStorage } from "../../../lib/storage/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
@@ -20,6 +20,7 @@ import { getLastModified } from "../../../lib/services/cameraUpload"
 import useDimensions from "../../../lib/hooks/useDimensions"
 import { openDocumentTree } from "react-native-saf-x"
 import { MaterialIcons } from "@expo/vector-icons"
+import { hideAllActionSheets } from "../ActionSheets"
 
 const BottomBarAddActionSheet = memo(() => {
 	const darkMode = useDarkMode()
@@ -28,19 +29,19 @@ const BottomBarAddActionSheet = memo(() => {
 	const lang = useLang()
 
 	const createFolder = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		DeviceEventEmitter.emit("openCreateFolderDialog")
 	}, [])
 
 	const createTextFile = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		DeviceEventEmitter.emit("openCreateTextFileDialog")
 	}, [])
 
 	const takePhoto = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasCameraPermissions(true))
 
@@ -153,7 +154,7 @@ const BottomBarAddActionSheet = memo(() => {
 	}, [])
 
 	const uploadFromGallery = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
 		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
@@ -177,7 +178,7 @@ const BottomBarAddActionSheet = memo(() => {
 	}, [])
 
 	const uploadFolders = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
@@ -244,7 +245,7 @@ const BottomBarAddActionSheet = memo(() => {
 	}, [lang])
 
 	const uploadFiles = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 

@@ -108,6 +108,7 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
 						title="한국어"
 						onPress={() => storage.set("lang", "ko")}
 						withBottomBorder={false}
+						borderBottomRadius={10}
 					/>
 				</SettingsGroup>
 				<View style={{ height: 25 }}></View>

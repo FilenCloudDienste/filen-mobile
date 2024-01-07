@@ -453,7 +453,6 @@ export const checkIfItemParentIsShared = ({
 		let linkCheckDone: boolean = false
 		let resolved: boolean = false
 		let doneInterval: any = undefined
-		const apiKey: string = getAPIKey()
 		const masterKeys: string[] = getMasterKeys()
 
 		const done = () => {
