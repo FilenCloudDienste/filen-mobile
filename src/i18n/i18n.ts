@@ -34,7 +34,7 @@ export const translations: Record<string, Record<string, string>> = {
 	el,
 	es,
 	ko,
-	pt
+	pt,
 	sk
 }
 

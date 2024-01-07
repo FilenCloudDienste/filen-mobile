@@ -70,6 +70,16 @@ export const LanguageScreen = memo(({ navigation }: LanguageScreenProps) => {
 						withBottomBorder={true}
 					/>
 					<SettingsButtonLinkHighlight
+						title="Norsk bokmål"
+						onPress={() => storage.set("lang", "nb")}
+						withBottomBorder={true}
+					/>
+					<SettingsButtonLinkHighlight
+						title="Slovak"
+						onPress={() => storage.set("lang", "sk")}
+						withBottomBorder={true}
+					/>
+					<SettingsButtonLinkHighlight
 						title="Português"
 						onPress={() => storage.set("lang", "pt")}
 						borderBottomRadius={10}
