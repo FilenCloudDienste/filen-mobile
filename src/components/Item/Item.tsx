@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState, useRef } from "react"
+import React, { memo, useEffect, useMemo, useRef } from "react"
 import {
 	Text,
 	View,
@@ -19,9 +19,10 @@ import { Item } from "../../types"
 import { fetchFolderSize } from "../../lib/api"
 import memoryCache from "../../lib/memoryCache"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import * as db from "../../lib/db"
 import { checkItemThumbnail } from "../../lib/services/thumbnails"
+import { blurhashes } from "../../style/colors"
 
 export interface ItemBaseProps {
 	item: Item
@@ -105,14 +106,14 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 						width: 40
 					}}
 				>
-					{item.type == "folder" ? (
+					{item.type === "folder" ? (
 						<Ionicon
 							name="ios-folder"
 							size={40}
 							color={getFolderColor(item.color)}
 						/>
 					) : (
-						<FastImage
+						<Image
 							source={
 								hideThumbnails
 									? getImageForItem(item)
@@ -120,6 +121,8 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 									? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
 									: getImageForItem(item)
 							}
+							cachePolicy="memory-disk"
+							placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 							style={{
 								width: 40,
 								height: 40,
@@ -331,7 +334,7 @@ export const GridItem = memo(
 							</>
 						) : (
 							<>
-								<FastImage
+								<Image
 									source={
 										hideThumbnails
 											? getImageForItem(item)
@@ -339,6 +342,8 @@ export const GridItem = memo(
 											? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
 											: getImageForItem(item)
 									}
+									cachePolicy="memory-disk"
+									placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 									style={{
 										width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
 										height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
@@ -471,7 +476,7 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 				})
 			}}
 		>
-			<FastImage
+			<Image
 				source={
 					hideThumbnails
 						? getImageForItem(item)
@@ -479,6 +484,8 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
 						: getImageForItem(item)
 				}
+				cachePolicy="memory-disk"
+				placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 				style={{
 					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
 					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
@@ -622,7 +629,7 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
 			}}
 			onPress={() => photosRangeItemClick(item)}
 		>
-			<FastImage
+			<Image
 				source={
 					hideThumbnails
 						? getImageForItem(item)
@@ -630,6 +637,8 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
 						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
 						: getImageForItem(item)
 				}
+				cachePolicy="memory-disk"
+				placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 				style={{
 					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
 					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,

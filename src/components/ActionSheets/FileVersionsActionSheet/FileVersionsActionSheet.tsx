@@ -1,8 +1,8 @@
 import React, { useEffect, useState, memo, useCallback, useRef } from "react"
-import { View, Text, ScrollView, DeviceEventEmitter, ActivityIndicator, TouchableOpacity, Platform } from "react-native"
+import { View, Text, ScrollView, DeviceEventEmitter, ActivityIndicator, TouchableOpacity } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { convertTimestampToMs, getMasterKeys, simpleDate } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
@@ -15,7 +15,7 @@ import { decryptFileMetadata } from "../../../lib/crypto"
 
 const FileVersionsActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [versionData, setVersionData] = useState<any>([])
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
@@ -50,7 +50,7 @@ const FileVersionsActionSheet = memo(() => {
 		async (item: any) => {
 			await SheetManager.hide("FileVersionsActionSheet")
 
-			decryptFileMetadata(getMasterKeys(), item.metadata, item.uuid)
+			decryptFileMetadata(getMasterKeys(), item.metadata)
 				.then(decrypted => {
 					item.name = decrypted.name
 					item.size = decrypted.size
@@ -129,7 +129,6 @@ const FileVersionsActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="FileVersionsActionSheet"
 			gestureEnabled={!buttonsDisabled}
@@ -142,15 +141,14 @@ const FileVersionsActionSheet = memo(() => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				<ActionSheetIndicator />
 				<ItemActionSheetItemHeader />
 				{isLoading ? (
 					<View
@@ -233,7 +231,7 @@ const FileVersionsActionSheet = memo(() => {
 																			marginLeft: 15
 																		}}
 																		onPress={() => {
-																			decryptFileMetadata(getMasterKeys(), item.metadata, item.uuid).then(async (decrypted) => {
+																			decryptFileMetadata(getMasterKeys(), item.metadata).then(async (decrypted) => {
 																				item.name = decrypted.name
 																				item.size = decrypted.size
 																				item.mime = decrypted.mime

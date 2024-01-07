@@ -2,7 +2,7 @@ import React, { useEffect, useState, memo, useRef, useCallback } from "react"
 import { View, Text, DeviceEventEmitter, Platform, ActivityIndicator, Switch, TextInput, TouchableOpacity, Share } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
@@ -11,14 +11,14 @@ import * as Clipboard from "expo-clipboard"
 import RNPickerSelect from "react-native-picker-select"
 import { getColor } from "../../../style/colors"
 import { getMasterKeys, getRouteURL } from "../../../lib/helpers"
-import { ActionSheetIndicator, ItemActionSheetItemHeader, hideAllActionSheets } from "../ActionSheets"
+import { ItemActionSheetItemHeader, hideAllActionSheets } from "../ActionSheets"
 import { Item } from "../../../types"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { decryptFolderLinkKey } from "../../../lib/crypto"
 
 const PublicLinkActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [currentItem, setCurrentItem] = useState<Item | undefined>(undefined)
 	const currentItemRef = useRef<Item | undefined>(undefined)
@@ -191,7 +191,6 @@ const PublicLinkActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="PublicLinkActionSheet"
 			gestureEnabled={!fetchingInfo}
@@ -205,15 +204,14 @@ const PublicLinkActionSheet = memo(() => {
 				minHeight: 350
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				<ActionSheetIndicator />
 				<ItemActionSheetItemHeader />
 				{fetchingInfo ? (
 					<View

@@ -11,7 +11,7 @@ import {
 } from "../crypto"
 import storage from "../storage"
 import { i18n } from "../../i18n"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Platform } from "react-native"
 import { logout } from "../services/auth/logout"
 import { useStore } from "../state"
 import { isOnline } from "../services/isOnline"
@@ -453,7 +453,6 @@ export const checkIfItemParentIsShared = ({
 		let linkCheckDone: boolean = false
 		let resolved: boolean = false
 		let doneInterval: any = undefined
-		const apiKey: string = getAPIKey()
 		const masterKeys: string[] = getMasterKeys()
 
 		const done = () => {
@@ -550,7 +549,7 @@ export const checkIfItemParentIsShared = ({
 							const folders = contents.folders
 
 							for (let i = 0; i < files.length; i++) {
-								const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata, files[i].uuid)
+								const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata)
 
 								if (typeof decrypted == "object") {
 									if (typeof decrypted.name == "string") {
@@ -573,7 +572,7 @@ export const checkIfItemParentIsShared = ({
 							}
 
 							for (let i = 0; i < folders.length; i++) {
-								const decrypted = await decryptFolderName(masterKeys, folders[i].name, folders[i].uuid)
+								const decrypted = await decryptFolderName(masterKeys, folders[i].name)
 
 								if (typeof decrypted == "string") {
 									if (decrypted.length > 0) {
@@ -762,7 +761,7 @@ export const checkIfItemParentIsShared = ({
 							const folders = contents.folders
 
 							for (let i = 0; i < files.length; i++) {
-								const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata, files[i].uuid)
+								const decrypted = await decryptFileMetadata(masterKeys, files[i].metadata)
 
 								if (typeof decrypted == "object") {
 									if (typeof decrypted.name == "string") {
@@ -785,7 +784,7 @@ export const checkIfItemParentIsShared = ({
 							}
 
 							for (let i = 0; i < folders.length; i++) {
-								const decrypted = await decryptFolderName(masterKeys, folders[i].name, folders[i].uuid)
+								const decrypted = await decryptFolderName(masterKeys, folders[i].name)
 
 								if (typeof decrypted == "string") {
 									if (decrypted.length > 0) {
@@ -1171,8 +1170,11 @@ export const renameFolder = async (folder: Item, name: string): Promise<void> =>
 	}
 }
 
-export const createFolder = async (name: string, parent: string): Promise<string> => {
-	const [nameHashed, uuid] = await Promise.all([global.nodeThread.hashFn({ string: name.toLowerCase() }), global.nodeThread.uuidv4()])
+export const createFolder = async (name: string, parent: string, passedUUID?: string): Promise<string> => {
+	const [nameHashed, uuid] = await Promise.all([
+		global.nodeThread.hashFn({ string: name.toLowerCase() }),
+		passedUUID ? Promise.resolve(passedUUID) : global.nodeThread.uuidv4()
+	])
 	const masterKeys = getMasterKeys()
 	const encrypted = await encryptMetadata(JSON.stringify({ name }), masterKeys[masterKeys.length - 1])
 	const response = await apiRequest({
@@ -1453,9 +1455,9 @@ export const getDirectoryTree = (
 				const privateKey = storage.getString("privateKey") || ""
 				const baseFolderName =
 					type == "normal"
-						? await decryptFolderName(masterKeys, baseFolderMetadata, baseFolderUUID)
+						? await decryptFolderName(masterKeys, baseFolderMetadata)
 						: type == "shared"
-						? await decryptFolderNamePrivateKey(privateKey, baseFolderMetadata, baseFolderUUID)
+						? await decryptFolderNamePrivateKey(privateKey, baseFolderMetadata)
 						: await decryptFolderNameLink(baseFolderMetadata, linkKey as string)
 
 				if (baseFolderParent !== "base") {
@@ -1485,9 +1487,9 @@ export const getDirectoryTree = (
 
 					const name =
 						type == "normal"
-							? await decryptFolderName(masterKeys, metadata, uuid)
+							? await decryptFolderName(masterKeys, metadata)
 							: type == "shared"
-							? await decryptFolderNamePrivateKey(privateKey, metadata, uuid)
+							? await decryptFolderNamePrivateKey(privateKey, metadata)
 							: await decryptFolderNameLink(metadata, linkKey as string)
 
 					if (name.length > 0 && !addedFolders[parent + ":" + name]) {
@@ -1506,9 +1508,9 @@ export const getDirectoryTree = (
 					const { uuid, bucket, region, chunks, parent, metadata, version } = content.files[i]
 					const decrypted =
 						type == "normal"
-							? await decryptFileMetadata(masterKeys, metadata, uuid)
+							? await decryptFileMetadata(masterKeys, metadata)
 							: type == "shared"
-							? await decryptFileMetadataPrivateKey(privateKey, metadata, uuid)
+							? await decryptFileMetadataPrivateKey(metadata, privateKey)
 							: await decryptFileMetadataLink(metadata, linkKey as string)
 
 					if (typeof decrypted.lastModified == "number") {
@@ -1983,7 +1985,7 @@ export const shareItemToUser = ({
 						const folder = folders[i]
 						const index = i
 
-						decryptFolderName(masterKeys, folder.name, folder.uuid)
+						decryptFolderName(masterKeys, folder.name)
 							.then(decrypted => {
 								shareItemRequest("folder", {
 									uuid: folder.uuid,
@@ -2001,7 +2003,7 @@ export const shareItemToUser = ({
 					for (let i = 0; i < files.length; i++) {
 						const file = files[i]
 
-						decryptFileMetadata(masterKeys, file.metadata, file.uuid)
+						decryptFileMetadata(masterKeys, file.metadata)
 							.then(decrypted => {
 								shareItemRequest("file", {
 									uuid: file.uuid,
@@ -2337,6 +2339,86 @@ export const fetchGDPRInfo = async (): Promise<any> => {
 	}
 
 	return response.data
+}
+
+export interface UserGetSettings {
+	email: string
+	storageUsed: number
+	twoFactorEnabled: 0 | 1
+	twoFactorKey: string
+	unfinishedFiles: number
+	unfinishedStorage: number
+	versionedFiles: number
+	versionedStorage: number
+	versioningEnabled: boolean
+	loginAlertsEnabled: boolean
+}
+
+export interface UserGetAccountPlan {
+	cost: number
+	endTimestamp: number
+	id: number
+	lengthType: string
+	name: string
+	storage: number
+}
+
+export interface UserGetSubsInvoices {
+	gateway: string
+	id: string
+	planCost: number
+	planName: string
+	subId: string
+	timestamp: number
+}
+
+export interface UserGetAccountSubs {
+	id: string
+	planId: number
+	planName: string
+	planCost: number
+	gateway: string
+	storage: number
+	activated: number
+	cancelled: number
+	startTimestamp: number
+	cancelTimestamp: number
+}
+
+export interface UserGetAccount {
+	affBalance: number
+	affCount: number
+	affEarnings: number
+	affId: string
+	affRate: number
+	avatarURL: string
+	email: string
+	invoices: any
+	isPremium: 0 | 1
+	maxStorage: number
+	personal: {
+		city: string | null
+		companyName: string | null
+		country: string | null
+		firstName: string | null
+		lastName: string | null
+		postalCode: string | null
+		street: string | null
+		streetNumber: string | null
+		vatId: string | null
+	}
+	plans: UserGetAccountPlan[]
+	refId: string
+	refLimit: number
+	refStorage: number
+	referCount: number
+	referStorage: number
+	storage: number
+	nickName: string
+	displayName: string
+	appearOffline: boolean
+	subs: UserGetAccountSubs[]
+	subsInvoices: UserGetSubsInvoices[]
 }
 
 export const getAccount = async (): Promise<any> => {
@@ -2738,6 +2820,1099 @@ export const emptyTrash = async (): Promise<void> => {
 		method: "POST",
 		endpoint: "/v3/trash/empty",
 		data: {}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const versioning = async (enable: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/versioning",
+		data: {
+			enabled: enable ? 1 : 0
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const loginAlerts = async (enable: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/loginAlerts",
+		data: {
+			enabled: enable ? 1 : 0
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface ChatConversationParticipant {
+	userId: number
+	email: string
+	avatar: string | null
+	nickName: string
+	metadata: string
+	permissionsAdd: boolean
+	addedTimestamp: number
+}
+
+export interface ChatConversation {
+	uuid: string
+	lastMessageSender: number
+	lastMessage: string | null
+	lastMessageTimestamp: number
+	lastMessageUUID: string | null
+	ownerId: number
+	name: string | null
+	participants: ChatConversationParticipant[]
+	createdTimestamp: number
+}
+
+export const chatConversations = async (): Promise<ChatConversation[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/chat/conversations"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface ChatMessage {
+	conversation: string
+	uuid: string
+	senderId: number
+	senderEmail: string
+	senderAvatar: string | null
+	senderNickName: string
+	message: string
+	replyTo: {
+		uuid: string
+		senderId: number
+		senderEmail: string
+		senderAvatar: string
+		senderNickName: string
+		message: string
+	}
+	embedDisabled: boolean
+	edited: boolean
+	editedTimestamp: number
+	sentTimestamp: number
+}
+
+export const chatMessages = async (conversation: string, timestamp: number): Promise<ChatMessage[]> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/messages",
+		data: {
+			conversation,
+			timestamp
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const chatConversationNameEdit = async (uuid: string, name: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/name/edit",
+		data: {
+			uuid,
+			name
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const sendChatMessage = async (conversation: string, uuid: string, message: string, replyTo: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/send",
+		data: {
+			conversation,
+			uuid,
+			message,
+			replyTo
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const editChatMessage = async (conversation: string, uuid: string, message: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/edit",
+		data: {
+			conversation,
+			uuid,
+			message
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsCreate = async (uuid: string, metadata: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/create",
+		data: {
+			uuid,
+			metadata
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsParticipantsAdd = async (uuid: string, contactUUID: string, metadata: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/participants/add",
+		data: {
+			uuid,
+			contactUUID,
+			metadata
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export type TypingType = "up" | "down"
+
+export const chatSendTyping = async (conversation: string, type: TypingType): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/typing",
+		data: {
+			conversation,
+			type
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsRead = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/read",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsUnread = async (uuid: string): Promise<number> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/unread",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data.unread
+}
+
+export const chatUnread = async (): Promise<number> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/chat/unread"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data.unread
+}
+
+export interface ChatConversationsOnline {
+	userId: number
+	lastActive: number
+	appearOffline: boolean
+}
+
+export const chatConversationsOnline = async (conversation: string): Promise<ChatConversationsOnline[]> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/online",
+		data: {
+			conversation
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const chatDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export type NoteType = "text" | "md" | "code" | "rich" | "checklist"
+
+export interface NoteParticipant {
+	userId: number
+	isOwner: boolean
+	email: string
+	avatar: string | null
+	nickName: string
+	metadata: string
+	permissionsWrite: boolean
+	addedTimestamp: number
+}
+
+export interface Note {
+	uuid: string
+	ownerId: number
+	isOwner: boolean
+	favorite: boolean
+	pinned: boolean
+	tags: NoteTag[]
+	type: NoteType
+	metadata: string
+	title: string
+	preview: string
+	trash: boolean
+	archive: boolean
+	createdTimestamp: number
+	editedTimestamp: number
+	participants: NoteParticipant[]
+}
+
+export const notes = async (): Promise<Note[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/notes"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface NoteContent {
+	preview: string
+	content: string
+	editedTimestamp: number
+	editorId: number
+	type: NoteType
+}
+
+export const noteContent = async (uuid: string): Promise<NoteContent> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/content",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface CreateNote {
+	uuid: string
+	title: string
+	metadata: string
+}
+
+export const createNote = async ({ uuid, title, metadata }: CreateNote): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/create",
+		data: {
+			uuid,
+			title,
+			metadata
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const editNoteContent = async ({
+	uuid,
+	preview,
+	content,
+	type
+}: {
+	uuid: string
+	preview: string
+	content: string
+	type: NoteType
+}): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/content/edit",
+		data: {
+			uuid,
+			preview,
+			content,
+			type
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const editNoteTitle = async (uuid: string, title: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/title/edit",
+		data: {
+			uuid,
+			title
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const deleteNote = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const trashNote = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/trash",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const archiveNote = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/archive",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const restoreNote = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/restore",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteChangeType = async ({
+	uuid,
+	type,
+	preview,
+	content
+}: {
+	uuid: string
+	type: NoteType
+	preview: string
+	content: string
+}): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/type/change",
+		data: {
+			uuid,
+			type,
+			preview,
+			content
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notePinned = async (uuid: string, pinned: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/pinned",
+		data: {
+			uuid,
+			pinned
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteFavorite = async (uuid: string, favorite: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/favorite",
+		data: {
+			uuid,
+			favorite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface NoteHistory {
+	id: number
+	preview: string
+	content: string
+	editedTimestamp: number
+	editorId: number
+	type: NoteType
+}
+
+export const noteHistory = async (uuid: string): Promise<NoteHistory[]> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/history",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const noteHistoryRestore = async (uuid: string, id: number): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/history/restore",
+		data: {
+			uuid,
+			id
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteParticipantsAdd = async ({
+	uuid,
+	contactUUID,
+	metadata,
+	permissionsWrite
+}: {
+	uuid: string
+	contactUUID: string
+	metadata: string
+	permissionsWrite: boolean
+}): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/participants/add",
+		data: {
+			uuid,
+			contactUUID,
+			metadata,
+			permissionsWrite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteParticipantsRemove = async ({ uuid, userId }: { uuid: string; userId: number }): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/participants/remove",
+		data: {
+			uuid,
+			userId
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const noteParticipantsPermissions = async ({
+	uuid,
+	userId,
+	permissionsWrite
+}: {
+	uuid: string
+	userId: number
+	permissionsWrite: boolean
+}): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/participants/permissions",
+		data: {
+			uuid,
+			userId,
+			permissionsWrite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface Contact {
+	uuid: string
+	userId: number
+	email: string
+	avatar: string | null
+	nickName: string
+	lastActive: number
+	timestamp: number
+}
+
+export const contacts = async (): Promise<Contact[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface ContactRequest {
+	uuid: string
+	userId: number
+	email: string
+	avatar: string | null
+	nickName: string
+	timestamp: number
+}
+
+export const contactsRequestsIn = async (): Promise<ContactRequest[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts/requests/in"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsInCount = async (): Promise<number> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts/requests/in/count"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsOut = async (): Promise<ContactRequest[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts/requests/out"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsOutDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/requests/out/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const contactsRequestsSend = async (email: string): Promise<{ uuid: string }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/requests/send",
+		data: {
+			email
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsAccept = async (uuid: string): Promise<{ uuid: string }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/requests/accept",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsRequestsDeny = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/requests/deny",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const contactsDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const userNickname = async (nickname: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/nickname",
+		data: {
+			nickname
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const userAppearOffline = async (appearOffline: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/appearOffline",
+		data: {
+			appearOffline
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface BlockedContact {
+	uuid: string
+	userId: number
+	email: string
+	avatar: string | null
+	nickName: string
+	timestamp: number
+}
+
+export const contactsBlocked = async (): Promise<BlockedContact[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/contacts/blocked"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const contactsBlockedAdd = async (email: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/blocked/add",
+		data: {
+			email
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const contactsBlockedDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/contacts/blocked/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface NoteTag {
+	uuid: string
+	name: string
+	favorite: boolean
+	editedTimestamp: number
+	createdTimestamp: number
+}
+
+export const notesTags = async (): Promise<NoteTag[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/notes/tags"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const notesTagsCreate = async (name: string): Promise<{ uuid: string }> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tags/create",
+		data: {
+			name
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const notesTagsRename = async (uuid: string, name: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tags/rename",
+		data: {
+			uuid,
+			name
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notesTagsDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tags/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notesTagsFavorite = async (uuid: string, favorite: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tags/favorite",
+		data: {
+			uuid,
+			favorite
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notesTag = async (uuid: string, tag: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/tag",
+		data: {
+			uuid,
+			tag
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const notesUntag = async (uuid: string, tag: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/notes/untag",
+		data: {
+			uuid,
+			tag
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const messageEmbedDisable = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/message/embed/disable",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsParticipantsRemove = async (uuid: string, userId: number): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/participants/remove",
+		data: {
+			uuid,
+			userId
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsLeave = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/leave",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatConversationsDelete = async (uuid: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/conversations/delete",
+		data: {
+			uuid
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export interface ChatLastFocus {
+	uuid: string
+	lastFocus: number
+}
+
+export const updateChatLastFocus = async (conversations: ChatLastFocus[]): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/lastFocus",
+		data: {
+			conversations
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const getChatLastFocus = async (): Promise<ChatLastFocus[]> => {
+	const response = await apiRequest({
+		method: "GET",
+		endpoint: "/v3/chat/lastFocus"
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export interface UserProfile {
+	id: number
+	email: string
+	publicKey: string
+	avatar: string
+	appearOffline: boolean
+	lastActive: number
+	nickName: string
+	createdAt: number
+}
+
+export const getUserProfile = async (id: number): Promise<UserProfile> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/profile",
+		data: {
+			id
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+
+	return response.data
+}
+
+export const registerPushToken = async (token: string): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/user/pushToken",
+		data: {
+			token,
+			platform: Platform.OS
+		}
 	})
 
 	if (!response.status) {

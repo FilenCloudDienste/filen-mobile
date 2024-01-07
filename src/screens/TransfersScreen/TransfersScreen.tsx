@@ -9,14 +9,13 @@ import {
 	DeviceEventEmitter,
 	useWindowDimensions,
 	ScaledSize,
-	LayoutChangeEvent,
-	Image
+	LayoutChangeEvent
 } from "react-native"
 import useLang from "../../lib/hooks/useLang"
 import { useStore } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
-import { getColor } from "../../style/colors"
+import { getColor, blurhashes } from "../../style/colors"
 import { SheetManager } from "react-native-actions-sheet"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -25,6 +24,7 @@ import { getImageForItem } from "../../assets/thumbnails"
 import { Item } from "../../types"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { normalizeProgress } from "../../lib/helpers"
+import { Image } from "expo-image"
 
 const TRANSFER_ITEM_HEIGHT: number = 60
 
@@ -59,6 +59,8 @@ export const FinishedTransferItem = memo(({ index, item, containerWidth, darkMod
 			>
 				<Image
 					source={getImageForItem({ name: item.name, type: "file" } as Item)}
+					cachePolicy="memory-disk"
+					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 					style={{
 						width: 28,
 						height: 28,
@@ -135,10 +137,7 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
 		[containerWidth, portrait, darkMode]
 	)
 
-	const getItemLayout = useCallback(
-		(_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }),
-		[]
-	)
+	const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
 	const keyExtractor = useCallback((_, index) => index.toString(), [])
 	const onLayout = useCallback((e: LayoutChangeEvent) => {
 		setContainerWidth(e.nativeEvent.layout.width - insets.left - insets.right)
@@ -160,6 +159,11 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
 			renderItem={renderItem}
 			getItemLayout={getItemLayout}
 			onLayout={onLayout}
+			extraData={{
+				containerWidth,
+				portrait,
+				darkMode
+			}}
 			style={{
 				height: "100%",
 				width: "100%"
@@ -171,8 +175,7 @@ export const FinishedTransfersList = memo(({ finishedTransfers }: FinishedTransf
 							marginTop: containerHeight / 2 - 60,
 							justifyContent: "center",
 							alignItems: "center",
-							marginLeft:
-								!portrait && insets.left > 0 && insets.right > 0 ? -(insets.left + insets.right) : 0
+							marginLeft: !portrait && insets.left > 0 && insets.right > 0 ? -(insets.left + insets.right) : 0
 						}}
 					>
 						<Ionicon
@@ -210,15 +213,7 @@ export interface OngoingTransferItemProps {
 }
 
 export const OngoingTransferItem = memo(
-	({
-		index,
-		item,
-		containerWidth,
-		darkMode,
-		lang,
-		pausedTransfers,
-		setPausedTransfers
-	}: OngoingTransferItemProps) => {
+	({ index, item, containerWidth, darkMode, lang, pausedTransfers, setPausedTransfers }: OngoingTransferItemProps) => {
 		const progress = useMemo(() => {
 			return normalizeProgress(item.percent)
 		}, [item.percent])
@@ -246,6 +241,8 @@ export const OngoingTransferItem = memo(
 				>
 					<Image
 						source={getImageForItem({ name: item.name, type: "file" } as Item)}
+						cachePolicy="memory-disk"
+						placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 						style={{
 							width: 28,
 							height: 28,
@@ -353,27 +350,21 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
 	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
 	const insets = useSafeAreaInsets()
 
-	const renderItem = useCallback(
-		({ item, index }) => {
-			return (
-				<OngoingTransferItem
-					darkMode={darkMode}
-					lang={lang}
-					pausedTransfers={pausedTransfers}
-					setPausedTransfers={setPausedTransfers}
-					item={item}
-					containerWidth={containerWidth}
-					index={index}
-				/>
-			)
-		},
-		[containerWidth, portrait, pausedTransfers, darkMode, lang]
-	)
+	const renderItem = useCallback(({ item, index }) => {
+		return (
+			<OngoingTransferItem
+				darkMode={darkMode}
+				lang={lang}
+				pausedTransfers={pausedTransfers}
+				setPausedTransfers={setPausedTransfers}
+				item={item}
+				containerWidth={containerWidth}
+				index={index}
+			/>
+		)
+	}, [])
 
-	const getItemLayout = useCallback(
-		(_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }),
-		[]
-	)
+	const getItemLayout = useCallback((_, index) => ({ length: TRANSFER_ITEM_HEIGHT, offset: TRANSFER_ITEM_HEIGHT * index, index }), [])
 	const keyExtractor = useCallback((_, index) => index.toString(), [])
 	const onLayout = useCallback((e: LayoutChangeEvent) => {
 		setContainerWidth(e.nativeEvent.layout.width - insets.left - insets.right)
@@ -401,6 +392,13 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
 			renderItem={renderItem}
 			getItemLayout={getItemLayout}
 			onLayout={onLayout}
+			extraData={{
+				containerWidth,
+				portrait,
+				pausedTransfers,
+				darkMode,
+				lang
+			}}
 			style={{
 				height: "100%",
 				width: "100%"
@@ -412,8 +410,7 @@ export const OngoingTransfersList = memo(({ currentTransfers }: OngoingTransfers
 							marginTop: containerHeight / 2 - 60,
 							justifyContent: "center",
 							alignItems: "center",
-							marginLeft:
-								!portrait && insets.left > 0 && insets.right > 0 ? -(insets.left + insets.right) : 0
+							marginLeft: !portrait && insets.left > 0 && insets.right > 0 ? -(insets.left + insets.right) : 0
 						}}
 					>
 						<Ionicon
@@ -445,13 +442,7 @@ export interface TransfersScreenBodyProps {
 }
 
 export const TransfersScreenBody = memo(
-	({
-		currentTransfers,
-		currentUploads,
-		currentDownloads,
-		finishedTransfers,
-		navigation
-	}: TransfersScreenBodyProps) => {
+	({ currentTransfers, currentUploads, currentDownloads, finishedTransfers, navigation }: TransfersScreenBodyProps) => {
 		const bottomBarHeight = useStore(state => state.bottomBarHeight)
 		const contentHeight = useStore(state => state.contentHeight)
 		const dimensions: ScaledSize = useWindowDimensions()
@@ -461,6 +452,7 @@ export const TransfersScreenBody = memo(
 		const [currentView, setCurrentView] = useState<"ongoing" | "finished">("ongoing")
 		const scrollViewRef = useRef<any>()
 		const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
+		const insets = useSafeAreaInsets()
 
 		useEffect(() => {
 			setPortrait(dimensions.height >= dimensions.width)
@@ -502,10 +494,7 @@ export const TransfersScreenBody = memo(
 									paddingLeft: 0,
 									paddingRight: 15,
 									width: "33%",
-									opacity:
-										Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0
-											? 1
-											: 0
+									opacity: Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0 ? 1 : 0
 								}}
 								onPress={() => SheetManager.show("TopBarActionSheet")}
 							>
@@ -530,9 +519,7 @@ export const TransfersScreenBody = memo(
 							style={{
 								borderBottomWidth: currentView == "ongoing" ? (Platform.OS == "ios" ? 1.5 : 2) : 1,
 								borderBottomColor:
-									currentView == "ongoing"
-										? getColor(darkMode, "linkPrimary")
-										: getColor(darkMode, "primaryBorder"),
+									currentView == "ongoing" ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "primaryBorder"),
 								height: 27,
 								paddingLeft: 15,
 								paddingRight: 15,
@@ -562,9 +549,7 @@ export const TransfersScreenBody = memo(
 							style={{
 								borderBottomWidth: currentView == "finished" ? (Platform.OS == "ios" ? 1.5 : 2) : 1,
 								borderBottomColor:
-									currentView == "finished"
-										? getColor(darkMode, "linkPrimary")
-										: getColor(darkMode, "primaryBorder"),
+									currentView == "finished" ? getColor(darkMode, "linkPrimary") : getColor(darkMode, "primaryBorder"),
 								height: 27,
 								paddingLeft: 15,
 								paddingRight: 15,
@@ -594,8 +579,9 @@ export const TransfersScreenBody = memo(
 				</View>
 				<ScrollView
 					style={{
-						width: dimensions.width,
-						height: contentHeight - topBarHeight - bottomBarHeight + 30
+						width: dimensions.width - insets.left - insets.right,
+						height: contentHeight - topBarHeight - bottomBarHeight + 30,
+						marginTop: 20
 					}}
 					pagingEnabled={true}
 					horizontal={true}
@@ -603,14 +589,12 @@ export const TransfersScreenBody = memo(
 					disableIntervalMomentum={true}
 					snapToAlignment="center"
 					key={"transfers-list-" + (portrait ? "portrait" : "landscape")}
-					onMomentumScrollEnd={e =>
-						setCurrentView(e.nativeEvent.contentOffset.x == 0 ? "ongoing" : "finished")
-					}
+					onMomentumScrollEnd={e => setCurrentView(e.nativeEvent.contentOffset.x == 0 ? "ongoing" : "finished")}
 					ref={scrollViewRef}
 				>
 					<View
 						style={{
-							width: dimensions.width,
+							width: dimensions.width - insets.left - insets.right,
 							height: contentHeight - topBarHeight - bottomBarHeight + 30
 						}}
 					>
@@ -618,7 +602,7 @@ export const TransfersScreenBody = memo(
 					</View>
 					<View
 						style={{
-							width: dimensions.width,
+							width: dimensions.width - insets.left - insets.right,
 							height: contentHeight - topBarHeight - bottomBarHeight + 30
 						}}
 					>

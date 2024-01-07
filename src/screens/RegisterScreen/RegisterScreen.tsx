@@ -9,28 +9,26 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import AuthContainer from "../../components/AuthContainer"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { StackActions } from "@react-navigation/native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-export interface RegisterScreenProps {
-	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
-}
-
-export const RegisterScreen = memo(({ navigation }: RegisterScreenProps) => {
+export const RegisterScreen = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const [confirmPassword, setConfirmPassword] = useState<string>("")
 	const dimensions = useWindowDimensions()
+	const insets = useSafeAreaInsets()
 
 	const contentWidth = useMemo(() => {
-		const scaled = Math.floor(dimensions.width * 0.7)
+		const scaled = Math.floor((dimensions.width - insets.left - insets.right) * 0.7)
 
 		if (scaled > 300) {
 			return 300
 		}
 
 		return 300
-	}, [dimensions])
+	}, [dimensions, insets])
 
 	return (
 		<AuthContainer>

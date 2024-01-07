@@ -32,6 +32,15 @@ export type Color =
 	| "textSecondary"
 	| "linkPrimary"
 
+export const blurhashes = {
+	dark: {
+		backgroundSecondary: "L03IYLj[fQj[j]fQfQfQfQfQfQfQ"
+	},
+	light: {
+		backgroundSecondary: "L1TSUA?bfQ?b~qj[fQj[fQfQfQfQ"
+	}
+}
+
 export const colors = {
 	dark: {
 		primary: "black",

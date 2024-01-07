@@ -10,7 +10,6 @@ import { navigationAnimation } from "../../lib/state"
 import { StackActions } from "@react-navigation/native"
 import { getMasterKeys, convertTimestampToMs, simpleDate, safeAwait } from "../../lib/helpers"
 import { ListEmpty } from "../../components/ListEmpty"
-import { useMountedState } from "react-use"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -29,25 +28,25 @@ export const EventsInfoScreen = memo(({ navigation, route }: EventsInfoScreenPro
 	const [eventInfo, setEventInfo] = useState<any>(undefined)
 	const [isLoading, setIsLoading] = useState<boolean>(true)
 	const [eventText, setEventText] = useState<string>("")
-	const isMounted = useMountedState()
-
-	const uuid: string = route?.params?.uuid
+	const uuid = useRef<string>(route?.params?.uuid).current
 
 	useEffect(() => {
 		setIsLoading(true)
 
 		fetchEventInfo(uuid)
 			.then(info => {
-				if (isMounted()) {
-					setEventInfo(info)
+				setEventInfo(info)
 
-					getEventText({ item: info, masterKeys: getMasterKeys(), lang }).then(text => {
-						if (isMounted()) {
-							setEventText(text)
-							setIsLoading(false)
-						}
+				getEventText({ item: info, masterKeys: getMasterKeys(), lang })
+					.then(text => {
+						setEventText(text)
+						setIsLoading(false)
 					})
-				}
+					.catch(err => {
+						console.log(err)
+
+						showToast({ message: err.toString() })
+					})
 			})
 			.catch(err => {
 				console.log(err)
@@ -196,74 +195,74 @@ export const getEventText = async ({ item, masterKeys, lang }: GetEventText) => 
 
 	switch (item.type) {
 		case "fileUploaded":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventFileUploadedInfo", true, ["__NAME__"], [decrypted.name])
 			break
 		case "fileVersioned":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventFileVersionedInfo", true, ["__NAME__"], [decrypted.name])
 			break
 		case "versionedFileRestored":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventVersionedFileRestoredInfo", true, ["__NAME__"], [decrypted.name])
 			break
 		case "fileMoved":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventFileMovedInfo", true, ["__NAME__"], [decrypted.name])
 			break
 		case "fileRenamed":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
-			decryptedOld = await decryptFileMetadata(masterKeys, item.info.oldMetadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
+			decryptedOld = await decryptFileMetadata(masterKeys, item.info.oldMetadata)
 			eventText = i18n(lang, "eventFileRenamedInfo", true, ["__NAME__", "__NEW__"], [decryptedOld.name, decrypted.name])
 			break
 		case "fileTrash":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventFileTrashInfo", true, ["__NAME__"], [decrypted.name])
 			break
 		case "fileRm":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventFileRmInfo", true, ["__NAME__"], [decrypted.name])
 			break
 		case "fileRestored":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventFileRestoredInfo", true, ["__NAME__"], [decrypted.name])
 			break
 		case "fileShared":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventFileSharedInfo", true, ["__NAME__", "__EMAIL__"], [decrypted.name, item.info.receiverEmail])
 			break
 		case "fileLinkEdited":
-			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata, item.info.uuid)
+			decrypted = await decryptFileMetadata(masterKeys, item.info.metadata)
 			eventText = i18n(lang, "eventFileLinkEditedInfo", true, ["__NAME__"], [decrypted.name])
 			break
 		case "folderTrash":
-			decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
+			decrypted = await decryptFolderName(masterKeys, item.info.name)
 			eventText = i18n(lang, "eventFolderTrashInfo", true, ["__NAME__"], [decrypted])
 			break
 		case "folderShared":
-			decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
+			decrypted = await decryptFolderName(masterKeys, item.info.name)
 			eventText = i18n(lang, "eventFolderSharedInfo", true, ["__NAME__", "__EMAIL__"], [decrypted, item.info.receiverEmail])
 			break
 		case "folderMoved":
-			decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
+			decrypted = await decryptFolderName(masterKeys, item.info.name)
 			eventText = i18n(lang, "eventFolderMovedInfo", true, ["__NAME__"], [decrypted])
 			break
 		case "folderRenamed":
-			decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
-			decryptedOld = await decryptFolderName(masterKeys, item.info.oldName, item.info.uuid)
+			decrypted = await decryptFolderName(masterKeys, item.info.name)
+			decryptedOld = await decryptFolderName(masterKeys, item.info.oldName)
 			eventText = i18n(lang, "eventFolderRenamedInfo", true, ["__NAME__", "__NEW__"], [decryptedOld, decrypted])
 			break
 		case "subFolderCreated":
 		case "baseFolderCreated":
-			decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
+			decrypted = await decryptFolderName(masterKeys, item.info.name)
 			eventText = i18n(lang, "eventFolderCreatedInfo", true, ["__NAME__"], [decrypted])
 			break
 		case "folderRestored":
-			decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
+			decrypted = await decryptFolderName(masterKeys, item.info.name)
 			eventText = i18n(lang, "eventFolderRestoredInfo", true, ["__NAME__"], [decrypted])
 			break
 		case "folderColorChanged":
-			decrypted = await decryptFolderName(masterKeys, item.info.name, item.info.uuid)
+			decrypted = await decryptFolderName(masterKeys, item.info.name)
 			eventText = i18n(lang, "eventFolderColorChangedInfo", true, ["__NAME__"], [decrypted])
 			break
 		case "login":
@@ -337,7 +336,6 @@ export const EventRow = memo(({ item, masterKeys, navigation }: EventRowProps) =
 	const lang = useLang()
 	const darkMode = useDarkMode()
 	const [eventText, setEventText] = useState<string>("")
-	const isMounted = useMountedState()
 
 	useEffect(() => {
 		getEventText({
@@ -346,9 +344,7 @@ export const EventRow = memo(({ item, masterKeys, navigation }: EventRowProps) =
 			lang
 		})
 			.then(text => {
-				if (isMounted()) {
-					setEventText(text)
-				}
+				setEventText(text)
 			})
 			.catch(console.error)
 	}, [])
@@ -454,7 +450,6 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const dimensions = useWindowDimensions()
 	const masterKeys = useRef<string[]>(getMasterKeys()).current
-	const isMounted = useMountedState()
 	const bottomBarHeight = useStore(state => state.bottomBarHeight)
 	const contentHeight = useStore(state => state.contentHeight)
 	const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
@@ -479,12 +474,25 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 			}
 
 			if (data.events.length > 0) {
-				if (isMounted()) {
-					setEvents((prev: any) => (refresh ? data.events : [...prev, ...data.events]))
-				}
+				setEvents((prev: any) => (refresh ? data.events : [...prev, ...data.events]))
 			}
 		},
 		[isLoading, filter]
+	)
+
+	const renderItem = useCallback(
+		({ item }) => {
+			return (
+				<EventRow
+					item={item}
+					darkMode={darkMode}
+					lang={lang}
+					navigation={navigation}
+					masterKeys={masterKeys}
+				/>
+			)
+		},
+		[lang, darkMode, navigation, masterKeys]
 	)
 
 	useEffect(() => {
@@ -516,19 +524,15 @@ export const EventsScreen = memo(({ navigation, route }: EventsScreenProps) => {
 					keyExtractor={(item: any) => item.uuid}
 					numColumns={1}
 					initialNumToRender={Math.floor(dimensions.height / 30) + 10}
-					renderItem={({ item }) => {
-						return (
-							<EventRow
-								item={item}
-								darkMode={darkMode}
-								lang={lang}
-								navigation={navigation}
-								masterKeys={masterKeys}
-							/>
-						)
-					}}
+					renderItem={renderItem}
 					onMomentumScrollBegin={() => (onEndReachedCalledDuringMomentum.current = false)}
 					onEndReachedThreshold={0.1}
+					extraData={{
+						lang,
+						darkMode,
+						navigation,
+						masterKeys
+					}}
 					onEndReached={() => {
 						if (events.length > 0 && !onEndReachedCalledDuringMomentum.current && canPaginate.current) {
 							onEndReachedCalledDuringMomentum.current = true

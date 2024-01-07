@@ -1,20 +1,20 @@
 import React, { useEffect, useState, memo, useRef, useCallback } from "react"
-import { View, ActivityIndicator, Text, TextInput, TouchableOpacity, DeviceEventEmitter, Platform } from "react-native"
+import { View, ActivityIndicator, Text, TextInput, TouchableOpacity, DeviceEventEmitter } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { getPublicKeyFromEmail, shareItemToUser } from "../../../lib/api"
 import { getColor } from "../../../style/colors"
-import { ActionSheetIndicator, ItemActionSheetItemHeader } from "../ActionSheets"
+import { ItemActionSheetItemHeader } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { Item } from "../../../types"
 
 const ShareActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(false)
 	const [email, setEmail] = useState<string>("")
@@ -125,7 +125,6 @@ const ShareActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="ShareActionSheet"
 			gestureEnabled={buttonsDisabled ? false : true}
@@ -138,15 +137,14 @@ const ShareActionSheet = memo(() => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				<ActionSheetIndicator />
 				<ItemActionSheetItemHeader />
 				{isLoading ? (
 					<View

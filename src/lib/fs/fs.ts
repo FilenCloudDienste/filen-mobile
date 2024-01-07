@@ -13,6 +13,22 @@ import ReactNativeBlobUtil from "react-native-blob-util"
 const mutex = new Semaphore(1)
 let IOS_APP_GROUP_PATH = ""
 
+export const deleteOldIOSDocumentDirs = async (): Promise<void> => {
+	if (Platform.OS !== "ios") {
+		return
+	}
+
+	const dirs = await readDirectory(FileSystem.documentDirectory)
+
+	for (const dir of dirs) {
+		if (dir === "Downloads") {
+			continue
+		}
+
+		await unlink(FileSystem.documentDirectory + "/" + dir)
+	}
+}
+
 export const cacheDirectory = (): string => {
 	return FileSystem.cacheDirectory
 }
@@ -43,6 +59,19 @@ export const documentDirectory = (): string => {
 	}
 
 	return FileSystem.documentDirectory
+}
+
+export const expoCopy = async (from: string, to: string): Promise<void> => {
+	await mutex.acquire()
+
+	try {
+		await FileSystem.copyAsync({
+			from: toExpoFsPath(from),
+			to: toExpoFsPath(to)
+		})
+	} finally {
+		mutex.release()
+	}
 }
 
 export const copy = async (from: string, to: string): Promise<void> => {
@@ -276,7 +305,11 @@ export const downloadFile = async (uri: string, fileUri: string, options: FileSy
 	)
 }
 
-export const getDownloadPath = async ({ type = "temp" }: { type: string }): Promise<string> => {
+export const getDownloadPath = async ({
+	type = "temp"
+}: {
+	type: "temp" | "thumbnail" | "offline" | "misc" | "cachedDownloads" | "download" | "node" | "db" | "offline"
+}): Promise<string> => {
 	if (Platform.OS === "android") {
 		if (type === "temp") {
 			return cacheDirectory().endsWith("/") ? cacheDirectory() : cacheDirectory() + "/"
@@ -358,7 +391,8 @@ export const getDownloadPath = async ({ type = "temp" }: { type: string }): Prom
 
 		return path + "/"
 	} else if (type === "download") {
-		const root = documentDirectory().endsWith("/") ? documentDirectory() : documentDirectory() + "/"
+		const dir = FileSystem.documentDirectory
+		const root = dir.endsWith("/") ? dir : dir + "/"
 		const path = root + "Downloads"
 
 		await mkdir(path, true)

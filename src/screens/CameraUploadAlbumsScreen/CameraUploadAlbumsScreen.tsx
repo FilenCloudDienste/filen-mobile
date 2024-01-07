@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useCallback } from "react"
-import { View, Text, Switch, Platform, ScrollView, ActivityIndicator, Image } from "react-native"
+import { View, Text, Switch, Platform, ScrollView, ActivityIndicator } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
@@ -14,7 +14,8 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
-import { useMountedState } from "react-use"
+import { Image } from "expo-image"
+import { blurhashes } from "../../style/colors"
 
 const fetchAssetsSemaphore = new Semaphore(3)
 
@@ -38,12 +39,11 @@ export interface AlbumItemProps {
 
 export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, excludedAlbums, userId }: AlbumItemProps) => {
 	const [image, setImage] = useState<string>("")
-	const isMounted = useMountedState()
 
 	useEffect(() => {
 		getLastImageOfAlbum(album.album)
 			.then(uri => {
-				if (typeof uri === "string" && uri.length > 0 && isMounted()) {
+				if (typeof uri === "string" && uri.length > 0) {
 					setImage(uri)
 				}
 			})
@@ -71,6 +71,8 @@ export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, exclude
 								source={{
 									uri: image
 								}}
+								cachePolicy="memory-disk"
+								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 								style={{
 									width: 30,
 									height: 30,
@@ -148,7 +150,6 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 	const [fetchedAlbums, setFetchedAlbums] = useState<Album[]>([])
 	const [hasPermissions, setHasPermissions] = useState<boolean>(false)
 	const [loading, setLoading] = useState<boolean>(true)
-	const isMounted = useMountedState()
 
 	const fetchAlbums = useCallback(() => {
 		return new Promise<Album[]>((resolve, reject) => {
@@ -253,10 +254,8 @@ export const CameraUploadAlbumsScreen = memo(({ navigation }: CameraUploadAlbums
 
 				fetchAlbums()
 					.then(fetched => {
-						if (isMounted()) {
-							setFetchedAlbums(fetched)
-							setLoading(false)
-						}
+						setFetchedAlbums(fetched)
+						setLoading(false)
 					})
 					.catch(err => {
 						showToast({ message: err.toString() })

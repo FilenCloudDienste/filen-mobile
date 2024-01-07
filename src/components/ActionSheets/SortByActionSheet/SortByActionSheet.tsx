@@ -1,18 +1,18 @@
 import React, { useEffect, useState, memo, useCallback } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import storage from "../../../lib/storage"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
-import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { getRouteURL } from "../../../lib/helpers"
 
 const SortByActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [showASCDESC, setShowASCDESC] = useState<boolean>(false)
 	const [sortBy, setSortBy] = useState<string>("")
@@ -42,7 +42,7 @@ const SortByActionSheet = memo(() => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 			onBeforeShow={() => {
 				setShowASCDESC(false)
@@ -51,15 +51,9 @@ const SortByActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				<ActionSheetIndicator />
-				<View
-					style={{
-						height: 15
-					}}
-				/>
 				{showASCDESC ? (
 					<>
 						<ActionButton

@@ -4,17 +4,26 @@ import Ionicon from "@expo/vector-icons/Ionicons"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../style"
 
-export interface DefaultTopBarProps {
-	onPressBack: Function
-	leftText: string
-	middleText: string
-	rightComponent?: React.ReactNode | undefined
-	height?: number
-	hideLeftComponent?: boolean
-}
-
 const DefaultTopBar = memo(
-	({ onPressBack, leftText, middleText, rightComponent, height, hideLeftComponent }: DefaultTopBarProps) => {
+	({
+		onPressBack,
+		leftText,
+		middleText,
+		rightComponent,
+		height,
+		hideLeftComponent,
+		onPressMiddleText,
+		onLongPressMiddleText
+	}: {
+		onPressBack: () => void
+		leftText: string
+		middleText: string
+		rightComponent?: React.ReactNode | undefined
+		height?: number
+		hideLeftComponent?: boolean
+		onPressMiddleText?: () => void
+		onLongPressMiddleText?: () => void
+	}) => {
 		const darkMode = useDarkMode()
 
 		return (
@@ -23,7 +32,8 @@ const DefaultTopBar = memo(
 					flexDirection: "row",
 					justifyContent: "space-between",
 					alignItems: "center",
-					height: typeof height !== "undefined" ? height : undefined
+					height: typeof height !== "undefined" ? height : undefined,
+					marginTop: 10
 				}}
 			>
 				<TouchableOpacity
@@ -63,24 +73,46 @@ const DefaultTopBar = memo(
 						</>
 					)}
 				</TouchableOpacity>
-				<View
-					style={{
-						width: "33%",
-						alignItems: "center"
-					}}
-				>
-					<Text
+				{typeof onPressMiddleText === "function" ? (
+					<TouchableOpacity
 						style={{
-							fontSize: 17,
-							color: getColor(darkMode, "textPrimary"),
-							fontWeight: "600"
+							width: "33%",
+							alignItems: "center"
 						}}
-						numberOfLines={1}
+						onPress={onPressMiddleText}
+						onLongPress={onLongPressMiddleText}
 					>
-						{middleText}
-					</Text>
-				</View>
-				{typeof rightComponent == "undefined" ? <View style={{ width: "33%" }} /> : rightComponent}
+						<Text
+							style={{
+								fontSize: 17,
+								color: getColor(darkMode, "textPrimary"),
+								fontWeight: "600"
+							}}
+							numberOfLines={1}
+						>
+							{middleText}
+						</Text>
+					</TouchableOpacity>
+				) : (
+					<View
+						style={{
+							width: "33%",
+							alignItems: "center"
+						}}
+					>
+						<Text
+							style={{
+								fontSize: 17,
+								color: getColor(darkMode, "textPrimary"),
+								fontWeight: "600"
+							}}
+							numberOfLines={1}
+						>
+							{middleText}
+						</Text>
+					</View>
+				)}
+				{typeof rightComponent === "undefined" ? <View style={{ width: "33%" }} /> : rightComponent}
 			</View>
 		)
 	}

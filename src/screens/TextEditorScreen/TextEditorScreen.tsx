@@ -1,5 +1,5 @@
-import React, { useState, useEffect, memo, useCallback } from "react"
-import { View, TouchableOpacity, Alert, useWindowDimensions, Platform } from "react-native"
+import React, { useState, useEffect, memo, useCallback, useRef } from "react"
+import { View, TouchableOpacity, Alert, Platform, KeyboardAvoidingView } from "react-native"
 import useLang from "../../lib/hooks/useLang"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
@@ -8,270 +8,14 @@ import * as fs from "../../lib/fs"
 import { queueFileUpload } from "../../lib/services/upload/upload"
 import { useStore } from "../../lib/state"
 import { getColor } from "../../style/colors"
-import { getParent, getFileExt } from "../../lib/helpers"
+import { getParent } from "../../lib/helpers"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import CodeEditor, { CodeEditorSyntaxStyles } from "@rivascva/react-native-code-editor"
 import { NavigationContainerRef } from "@react-navigation/native"
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
-import { useKeyboard } from "@react-native-community/hooks"
-import { useMountedState } from "react-use"
-import { useMMKVNumber, useMMKVBoolean } from "react-native-mmkv"
-import storage from "../../lib/storage"
+import TextEditor from "../../components/TextEditor"
+import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 
-export type Languages =
-	| "1c"
-	| "abnf"
-	| "accesslog"
-	| "actionscript"
-	| "ada"
-	| "angelscript"
-	| "apache"
-	| "applescript"
-	| "arcade"
-	| "arduino"
-	| "armasm"
-	| "asciidoc"
-	| "aspectj"
-	| "autohotkey"
-	| "autoit"
-	| "avrasm"
-	| "awk"
-	| "axapta"
-	| "bash"
-	| "basic"
-	| "bnf"
-	| "brainfuck"
-	| "c-like"
-	| "c"
-	| "cal"
-	| "capnproto"
-	| "ceylon"
-	| "clean"
-	| "clojure-repl"
-	| "clojure"
-	| "cmake"
-	| "coffeescript"
-	| "coq"
-	| "cos"
-	| "cpp"
-	| "crmsh"
-	| "crystal"
-	| "csharp"
-	| "csp"
-	| "css"
-	| "d"
-	| "dart"
-	| "delphi"
-	| "diff"
-	| "django"
-	| "dns"
-	| "dockerfile"
-	| "dos"
-	| "dsconfig"
-	| "dts"
-	| "dust"
-	| "ebnf"
-	| "elixir"
-	| "elm"
-	| "erb"
-	| "erlang-repl"
-	| "erlang"
-	| "excel"
-	| "fix"
-	| "flix"
-	| "fortran"
-	| "fsharp"
-	| "gams"
-	| "gauss"
-	| "gcode"
-	| "gherkin"
-	| "glsl"
-	| "gml"
-	| "go"
-	| "golo"
-	| "gradle"
-	| "groovy"
-	| "haml"
-	| "handlebars"
-	| "haskell"
-	| "haxe"
-	| "hsp"
-	| "htmlbars"
-	| "http"
-	| "hy"
-	| "inform7"
-	| "ini"
-	| "irpf90"
-	| "isbl"
-	| "java"
-	| "javascript"
-	| "jboss-cli"
-	| "json"
-	| "julia-repl"
-	| "julia"
-	| "kotlin"
-	| "lasso"
-	| "latex"
-	| "ldif"
-	| "leaf"
-	| "less"
-	| "lisp"
-	| "livecodeserver"
-	| "livescript"
-	| "llvm"
-	| "lsl"
-	| "lua"
-	| "makefile"
-	| "markdown"
-	| "mathematica"
-	| "matlab"
-	| "maxima"
-	| "mel"
-	| "mercury"
-	| "mipsasm"
-	| "mizar"
-	| "mojolicious"
-	| "monkey"
-	| "moonscript"
-	| "n1ql"
-	| "nginx"
-	| "nim"
-	| "nix"
-	| "node-repl"
-	| "nsis"
-	| "objectivec"
-	| "ocaml"
-	| "openscad"
-	| "oxygene"
-	| "parser3"
-	| "perl"
-	| "pf"
-	| "pgsql"
-	| "php-template"
-	| "php"
-	| "plaintext"
-	| "pony"
-	| "powershell"
-	| "processing"
-	| "profile"
-	| "prolog"
-	| "properties"
-	| "protobuf"
-	| "puppet"
-	| "purebasic"
-	| "python-repl"
-	| "python"
-	| "q"
-	| "qml"
-	| "r"
-	| "reasonml"
-	| "rib"
-	| "roboconf"
-	| "routeros"
-	| "rsl"
-	| "ruby"
-	| "ruleslanguage"
-	| "rust"
-	| "sas"
-	| "scala"
-	| "scheme"
-	| "scilab"
-	| "scss"
-	| "shell"
-	| "smali"
-	| "smalltalk"
-	| "sml"
-	| "sqf"
-	| "sql"
-	| "stan"
-	| "stata"
-	| "step21"
-	| "stylus"
-	| "subunit"
-	| "swift"
-	| "taggerscript"
-	| "tap"
-	| "tcl"
-	| "thrift"
-	| "tp"
-	| "twig"
-	| "typescript"
-	| "vala"
-	| "vbnet"
-	| "vbscript-html"
-	| "vbscript"
-	| "verilog"
-	| "vhdl"
-	| "vim"
-	| "x86asm"
-	| "xl"
-	| "xml"
-	| "xquery"
-	| "yaml"
-	| "zephir"
-
-export const getLanguageOfFile = (name: string): Languages => {
-	const ext: string = getFileExt(name)
-
-	switch (ext) {
-		case "json":
-			return "json"
-			break
-		case "xml":
-			return "xml"
-			break
-		case "rs":
-			return "rust"
-			break
-		case "py":
-			return "python"
-			break
-		case "css":
-			return "css"
-			break
-		case "cpp":
-			return "cpp"
-			break
-		case "md":
-			return "markdown"
-			break
-		case "php":
-			return "php"
-			break
-		case "java":
-			return "java"
-			break
-		case "html":
-		case "html5":
-			return "htmlbars"
-			break
-		case "sql":
-			return "sql"
-			break
-		case "ts":
-			return "typescript"
-			break
-		case "tsx":
-			return "typescript"
-			break
-		case "jsx":
-			return "javascript"
-			break
-		case "js":
-			return "javascript"
-			break
-		default:
-			return "plaintext"
-			break
-	}
-}
-
-export interface TextEditorScreenProps {
-	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
-}
-
-export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => {
+export const TextEditorScreen = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const textEditorText = useStore(state => state.textEditorText)
@@ -280,17 +24,9 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 	const [value, setValue] = useState<string>("")
 	const createTextFileDialogName = useStore(state => state.createTextFileDialogName)
 	const textEditorParent = useStore(state => state.textEditorParent)
+	const keyboardOffset = useKeyboardOffset()
+	const fileName = useRef<string>(textEditorState == "edit" ? createTextFileDialogName : (currentActionSheetItem?.name as string)).current
 	const setTextEditorState = useStore(state => state.setTextEditorState)
-	const keyboard = useKeyboard()
-	const insets = useSafeAreaInsets()
-	const dimensions = useWindowDimensions()
-	const [portrait, setPortrait] = useState<boolean>(dimensions.height >= dimensions.width)
-	const isMounted = useMountedState()
-	const [isScrolling, setIsScrolling] = useState<boolean>(false)
-	const [userId] = useMMKVNumber("userId", storage)
-	const [hideEditorLineNumbers] = useMMKVBoolean("hideEditorLineNumbers:" + userId, storage)
-
-	const fileName: string = textEditorState == "edit" ? createTextFileDialogName : (currentActionSheetItem?.name as string)
 
 	const save = useCallback(() => {
 		if (value.length <= 0) {
@@ -410,12 +146,6 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 	}, [textEditorText, value])
 
 	useEffect(() => {
-		if (isMounted()) {
-			setPortrait(dimensions.height >= dimensions.width)
-		}
-	}, [dimensions])
-
-	useEffect(() => {
 		if (textEditorText.length > 0) {
 			setValue(textEditorText)
 		} else {
@@ -424,7 +154,15 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 	}, [textEditorText])
 
 	return (
-		<>
+		<KeyboardAvoidingView
+			style={{
+				height: "100%",
+				width: "100%",
+				backgroundColor: "transparent"
+			}}
+			behavior={Platform.OS === "android" ? undefined : "padding"}
+			keyboardVerticalOffset={keyboardOffset}
+		>
 			<DefaultTopBar
 				leftText={i18n(lang, "back")}
 				middleText={fileName}
@@ -464,35 +202,16 @@ export const TextEditorScreen = memo(({ navigation }: TextEditorScreenProps) => 
 					) : undefined
 				}
 			/>
-			<SafeAreaView
-				onTouchMove={() => setIsScrolling(true)}
-				onTouchEnd={() => setIsScrolling(false)}
-				onTouchEndCapture={() => setIsScrolling(false)}
-			>
-				<CodeEditor
-					style={{
-						marginTop: portrait ? -insets.top : 0,
-						fontSize: 15,
-						inputLineHeight: 21,
-						highlighterLineHeight: 21,
-						...(keyboard.keyboardShown
-							? Platform.OS == "ios"
-								? { marginBottom: keyboard.keyboardHeight - insets.bottom + 10 }
-								: { marginBottom: 35 }
-							: {})
-					}}
-					readOnly={Platform.OS == "ios" && isScrolling && !keyboard.keyboardShown}
-					autoFocus={textEditorText.length == 0}
-					onChange={e => {
-						setValue(e)
-						setTextEditorState("edit")
-					}}
-					initialValue={textEditorText.length > 0 ? textEditorText : ""}
-					language={getLanguageOfFile(fileName) as Languages}
-					syntaxStyle={darkMode ? CodeEditorSyntaxStyles.monokai : CodeEditorSyntaxStyles.github}
-					showLineNumbers={Platform.OS === "ios" && !hideEditorLineNumbers}
-				/>
-			</SafeAreaView>
-		</>
+			<TextEditor
+				darkMode={darkMode}
+				value={textEditorText.length > 0 ? textEditorText : ""}
+				readOnly={false}
+				placeholder=""
+				onChange={e => {
+					setValue(e)
+					setTextEditorState("edit")
+				}}
+			/>
+		</KeyboardAvoidingView>
 	)
 })

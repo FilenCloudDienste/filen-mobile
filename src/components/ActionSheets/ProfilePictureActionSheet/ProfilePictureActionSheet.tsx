@@ -1,9 +1,9 @@
 import React, { memo, useCallback } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
-import storage from "../../../lib/storage"
+import storage, { sharedStorage } from "../../../lib/storage/storage"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { useStore } from "../../../lib/state"
 import { formatBytes, getAPIServer, getAPIKey, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
@@ -12,7 +12,7 @@ import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions
 import { getColor } from "../../../style/colors"
 import { updateUserInfo } from "../../../lib/services/user/info"
 import * as RNImagePicker from "react-native-image-picker"
-import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import axios from "axios"
 
@@ -22,7 +22,7 @@ const allowedTypes: string[] = ["image/jpg", "image/png", "image/jpeg"]
 
 const ProfilePictureActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 
 	const uploadAvatarImage = useCallback(async (base64: string) => {
@@ -81,7 +81,8 @@ const ProfilePictureActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		RNImagePicker.launchCamera(
 			{
@@ -95,7 +96,8 @@ const ProfilePictureActionSheet = memo(() => {
 				mediaType: "photo"
 			},
 			response => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				if (response.errorMessage) {
 					console.log(response.errorMessage)
@@ -171,7 +173,8 @@ const ProfilePictureActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		RNImagePicker.launchImageLibrary(
 			{
@@ -184,7 +187,8 @@ const ProfilePictureActionSheet = memo(() => {
 				maxHeight: 999999999
 			},
 			response => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				if (response.didCancel) {
 					return
@@ -240,7 +244,6 @@ const ProfilePictureActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="ProfilePictureActionSheet"
 			gestureEnabled={true}
@@ -251,20 +254,14 @@ const ProfilePictureActionSheet = memo(() => {
 				paddingBottom: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				<ActionSheetIndicator />
-				<View
-					style={{
-						height: 15
-					}}
-				/>
 				<ActionButton
 					onPress={takePhoto}
 					icon="camera-outline"

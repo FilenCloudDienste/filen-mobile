@@ -1,4 +1,4 @@
-import React, { useEffect, memo } from "react"
+import React, { useEffect, memo, useState, useCallback } from "react"
 import {
 	View,
 	TouchableHighlight,
@@ -9,18 +9,19 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
-	Alert
+	Alert,
+	AppState
 } from "react-native"
-import storage from "../../lib/storage"
+import storage, { sharedStorage } from "../../lib/storage/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { formatBytes, getFilenameFromPath, safeAwait } from "../../lib/helpers"
 import { i18n } from "../../i18n"
-import { StackActions } from "@react-navigation/native"
+import { StackActions, useIsFocused } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
 import { waitForStateUpdate } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
-import { getColor } from "../../style/colors"
+import { getColor, blurhashes } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
 import * as fs from "../../lib/fs"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../lib/permissions"
@@ -30,21 +31,9 @@ import { isOnline } from "../../lib/services/isOnline"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { MISC_BASE_PATH } from "../../lib/constants"
-import FastImage from "react-native-fast-image"
-
-export interface SettingsButtonLinkHighlightProps {
-	onPress?: () => any
-	title?: string
-	rightText?: string
-	iconBackgroundColor?: string
-	iconName?: string
-	borderBottomRadius?: number
-	borderTopRadius?: number
-	withBottomBorder?: boolean
-	rightComponent?: React.ReactNode
-	withImage?: boolean
-	imageSrc?: string
-}
+import { Image } from "expo-image"
+import { contactsRequestsInCount } from "../../lib/api"
+import eventListener from "../../lib/eventListener"
 
 export const SettingsButtonLinkHighlight = memo(
 	({
@@ -59,7 +48,19 @@ export const SettingsButtonLinkHighlight = memo(
 		rightComponent,
 		withImage,
 		imageSrc
-	}: SettingsButtonLinkHighlightProps) => {
+	}: {
+		onPress?: () => any
+		title?: string
+		rightText?: string
+		iconBackgroundColor?: string
+		iconName?: string
+		borderBottomRadius?: number
+		borderTopRadius?: number
+		withBottomBorder?: boolean
+		rightComponent?: React.ReactNode
+		withImage?: boolean
+		imageSrc?: string
+	}) => {
 		const darkMode = useDarkMode()
 		const withIcon: boolean = typeof iconBackgroundColor == "string" && typeof iconName == "string"
 
@@ -133,10 +134,12 @@ export const SettingsButtonLinkHighlight = memo(
 								}}
 							>
 								{imageSrc.length > 0 ? (
-									<FastImage
+									<Image
 										source={{
 											uri: imageSrc
 										}}
+										cachePolicy="memory-disk"
+										placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 										style={{
 											width: 30,
 											height: 30,
@@ -239,12 +242,7 @@ export const SettingsButtonLinkHighlight = memo(
 	}
 )
 
-export interface SettingsButtonProps {
-	title?: any
-	rightComponent?: any
-}
-
-export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonProps) => {
+export const SettingsButton = memo(({ title, rightComponent }: { title?: any; rightComponent?: any }) => {
 	const darkMode = useDarkMode()
 
 	return (
@@ -291,12 +289,7 @@ export const SettingsButton = memo(({ title, rightComponent }: SettingsButtonPro
 	)
 })
 
-export interface SettingsHeaderProps {
-	navigation: any
-	navigationEnabled?: boolean
-}
-
-export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: SettingsHeaderProps) => {
+export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: { navigation: any; navigationEnabled?: boolean }) => {
 	const darkMode = useDarkMode()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [email] = useMMKVString("email", storage)
@@ -430,7 +423,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 					SheetManager.show("ProfilePictureActionSheet")
 				}}
 			>
-				<FastImage
+				<Image
 					source={
 						typeof userAvatarCached == "string" &&
 						userAvatarCached.length > 4 &&
@@ -443,6 +436,8 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 							? { uri: userInfo.avatarURL }
 							: require("../../assets/images/appstore.png")
 					}
+					cachePolicy="memory-disk"
+					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 					style={{
 						width: 60,
 						height: 60,
@@ -470,7 +465,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 					style={{
 						color: getColor(darkMode, "textPrimary"),
 						fontSize: 13,
-						marginTop: 5,
+						marginTop: 2,
 						fontWeight: "400"
 					}}
 					numberOfLines={1}
@@ -509,12 +504,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: Se
 	)
 })
 
-export interface SettingsGroupProps {
-	marginTop?: number
-	children: any
-}
-
-export const SettingsGroup = memo((props: SettingsGroupProps) => {
+export const SettingsGroup = memo((props: { marginTop?: number; children: any }) => {
 	const darkMode = useDarkMode()
 
 	return (
@@ -541,12 +531,7 @@ export const SettingsGroup = memo((props: SettingsGroupProps) => {
 	)
 })
 
-export interface SettingsScreenProps {
-	navigation: any
-	route: any
-}
-
-export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) => {
+export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
@@ -556,6 +541,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 	const [hideFileNames, setHideFileNames] = useMMKVBoolean("hideFileNames:" + userId, storage)
 	const [hideSizes, setHideSizes] = useMMKVBoolean("hideSizes:" + userId, storage)
 	const [biometricPinAuth, setBiometricPinAuth] = useMMKVBoolean("biometricPinAuth:" + userId, storage)
+	const [biometricPinAuthShared, setBiometricPinAuthShared] = useMMKVBoolean("biometricPinAuth:" + userId, sharedStorage)
 	const [startOnCloudScreen, setStartOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
 	const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
 	const [onlyUsePINCode, setOnlyUsePINCode] = useMMKVBoolean("onlyUsePINCode:" + userId, storage)
@@ -563,7 +549,49 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 	const [keepAppAwake, setKeepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 	const [dontFollowSystemTheme, setDontFollowSystemTheme] = useMMKVBoolean("dontFollowSystemTheme", storage)
 	const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
-	const [hideEditorLineNumbers, setHideEditorLineNumbers] = useMMKVBoolean("hideEditorLineNumbers:" + userId, storage)
+	const [contactRequestInCount, setContactRequestsInCount] = useState<number>(0)
+	const isFocused = useIsFocused()
+
+	const loadContactRequestsInCount = useCallback(async () => {
+		try {
+			const count = await contactsRequestsInCount()
+
+			setContactRequestsInCount(count)
+		} catch (e) {
+			console.error(e)
+		}
+	}, [])
+
+	useEffect(() => {
+		if (isFocused) {
+			loadContactRequestsInCount()
+		}
+	}, [isFocused])
+
+	useEffect(() => {
+		loadContactRequestsInCount()
+
+		const loadContactRequestsInCountInterval = setInterval(() => {
+			loadContactRequestsInCount()
+		}, 5000)
+
+		const appStateListener = AppState.addEventListener("change", nextAppState => {
+			if (nextAppState === "active") {
+				loadContactRequestsInCount()
+			}
+		})
+
+		const updateContactsListListener = eventListener.on("updateContactsList", () => {
+			loadContactRequestsInCount()
+		})
+
+		return () => {
+			clearInterval(loadContactRequestsInCountInterval)
+
+			appStateListener.remove()
+			updateContactsListListener.remove()
+		}
+	}, [])
 
 	return (
 		<ScrollView
@@ -579,7 +607,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 					fontWeight: "bold",
 					fontSize: 24,
 					marginLeft: 15,
-					marginTop: 20
+					marginTop: 15
 				}}
 			>
 				{i18n(lang, "settings")}
@@ -673,6 +701,68 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 					borderBottomRadius={10}
 					iconBackgroundColor={getColor(darkMode, "green")}
 					iconName="camera-outline"
+					borderTopRadius={10}
+				/>
+			</SettingsGroup>
+			<SettingsGroup>
+				<SettingsButtonLinkHighlight
+					onPress={async () => {
+						if (!(await isOnline())) {
+							showToast({ message: i18n(lang, "deviceOffline") })
+
+							return
+						}
+
+						await navigationAnimation({ enable: true })
+
+						navigation.dispatch(StackActions.push("ContactsScreen"))
+					}}
+					rightComponent={
+						<View
+							style={{
+								marginRight: -5,
+								flexDirection: "row",
+								alignItems: "center",
+								gap: 5
+							}}
+						>
+							{contactRequestInCount > 0 && (
+								<View
+									style={{
+										width: 18,
+										height: 18,
+										borderRadius: 18,
+										backgroundColor: getColor(darkMode, "red"),
+										flexDirection: "row",
+										alignItems: "center",
+										justifyContent: "center"
+									}}
+								>
+									<Text
+										style={{
+											color: "white",
+											fontSize: 11
+										}}
+										numberOfLines={1}
+									>
+										{contactRequestInCount >= 9 ? 9 : contactRequestInCount}
+									</Text>
+								</View>
+							)}
+							<Ionicon
+								name="chevron-forward-outline"
+								size={18}
+								color="gray"
+								style={{
+									marginTop: 2
+								}}
+							/>
+						</View>
+					}
+					title={i18n(lang, "contacts")}
+					borderBottomRadius={10}
+					iconBackgroundColor={contactRequestInCount > 0 ? getColor(darkMode, "red") : getColor(darkMode, "cyan")}
+					iconName="people-outline"
 					borderTopRadius={10}
 				/>
 			</SettingsGroup>
@@ -849,7 +939,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 					title={i18n(lang, "hideFileFolderSize")}
 					iconBackgroundColor={getColor(darkMode, "indigo")}
 					iconName="analytics-outline"
-					withBottomBorder={Platform.OS === "ios"}
+					withBottomBorder={false}
 					rightComponent={
 						<Switch
 							trackColor={getColor(darkMode, "switchTrackColor")}
@@ -862,26 +952,6 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 						/>
 					}
 				/>
-				{Platform.OS === "ios" && (
-					<SettingsButtonLinkHighlight
-						title={i18n(lang, "hideTextEditorLineNumbers")}
-						iconBackgroundColor={getColor(darkMode, "indigo")}
-						iconName="code-outline"
-						rightComponent={
-							<Switch
-								trackColor={getColor(darkMode, "switchTrackColor")}
-								thumbColor={
-									hideEditorLineNumbers
-										? getColor(darkMode, "switchThumbColorEnabled")
-										: getColor(darkMode, "switchThumbColorDisabled")
-								}
-								ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
-								onValueChange={() => setHideEditorLineNumbers(!hideEditorLineNumbers)}
-								value={hideEditorLineNumbers}
-							/>
-						}
-					/>
-				)}
 			</SettingsGroup>
 			<SettingsGroup>
 				<SettingsButtonLinkHighlight
@@ -908,6 +978,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 												text: i18n(lang, "cancel"),
 												onPress: () => {
 													setBiometricPinAuth(true)
+													setBiometricPinAuthShared(true)
 
 													return false
 												},
@@ -924,6 +995,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 																text: i18n(lang, "cancel"),
 																onPress: () => {
 																	setBiometricPinAuth(true)
+																	setBiometricPinAuthShared(true)
 
 																	return false
 																},
@@ -933,6 +1005,7 @@ export const SettingsScreen = memo(({ navigation, route }: SettingsScreenProps) 
 																text: i18n(lang, "ok"),
 																onPress: () => {
 																	setBiometricPinAuth(false)
+																	setBiometricPinAuthShared(false)
 
 																	storage.delete("pinCode:" + userId)
 																},

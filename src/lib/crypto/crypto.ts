@@ -1,5 +1,6 @@
 import { convertTimestampToMs, unixTimestamp, arrayBufferToBase64 } from "../helpers"
 import * as db from "../db"
+import memoryCache from "../memoryCache"
 
 export interface FileMetadata {
 	name: string
@@ -18,7 +19,14 @@ export const deriveKeyFromPassword = async (
 	bitLength: number = 512,
 	returnHex: boolean = true
 ): Promise<any> => {
-	return global.nodeThread.deriveKeyFromPassword({
+	const cacheKey = "deriveKeyFromPassword:" + password + ":" + salt + ":" + iterations + ":" + hash + ":" + bitLength + ":" + returnHex
+	const cacheResult = memoryCache.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	const result = await global.nodeThread.deriveKeyFromPassword({
 		password,
 		salt,
 		iterations,
@@ -26,6 +34,10 @@ export const deriveKeyFromPassword = async (
 		bitLength,
 		returnHex
 	})
+
+	memoryCache.set(cacheKey, result)
+
+	return result
 }
 
 export const decryptMetadata = async (data: string, key: string): Promise<any> => {
@@ -69,17 +81,13 @@ export const decryptFolderLinkKey = (masterKeys: string[], metadata: string): Pr
 	})
 }
 
-export const decryptFileMetadataPrivateKey = (
-	metadata: string,
-	privateKey: string,
-	uuid: string
-): Promise<FileMetadata> => {
+export const decryptFileMetadataPrivateKey = (metadata: string, privateKey: string): Promise<FileMetadata> => {
 	return new Promise(async (resolve, reject) => {
-		const key = "decryptFileMetadataPrivateKey:" + uuid + ":" + metadata
+		const key = "decryptFileMetadataPrivateKey:" + metadata
 		const result = await db.get(key)
 
 		if (result) {
-			return result
+			return resolve(result)
 		}
 
 		let file = {
@@ -120,9 +128,7 @@ export const decryptFileMetadataPrivateKey = (
 
 				return resolve(file)
 			})
-			.catch(err => {
-				return resolve(file)
-			})
+			.catch(() => resolve(file))
 	})
 }
 
@@ -212,13 +218,13 @@ export const decryptFolderNameLink = async (metadata: string, linkKey: string): 
 	return folderName
 }
 
-export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string, uuid: string): Promise<string> => {
+export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string): Promise<string> => {
 	return new Promise(async (resolve, reject) => {
 		if (metadata == "default") {
 			return resolve("Default")
 		}
 
-		const key = "decryptFolderNamePrivateKey:" + uuid + ":" + metadata
+		const key = "decryptFolderNamePrivateKey:" + metadata
 		const result = await db.get<any>(key)
 
 		if (result) {
@@ -255,21 +261,17 @@ export const decryptFolderNamePrivateKey = (privateKey: string, metadata: string
 
 				return resolve(name)
 			})
-			.catch(err => {
-				console.log(err)
-
-				return resolve(name)
-			})
+			.catch(() => resolve(name))
 	})
 }
 
-export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: string): Promise<string> => {
+export const decryptFolderName = (masterKeys: string[], metadata: string): Promise<string> => {
 	return new Promise(async (resolve, reject) => {
 		if (metadata == "default") {
 			return resolve("Default")
 		}
 
-		const key = "decryptFolderName:" + uuid + ":" + metadata
+		const key = "decryptFolderName:" + metadata
 		const result = await db.get(key)
 
 		if (result) {
@@ -315,9 +317,9 @@ export const decryptFolderName = (masterKeys: string[], metadata: string, uuid: 
 	})
 }
 
-export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid: string): Promise<FileMetadata> => {
+export const decryptFileMetadata = (masterKeys: string[], metadata: string): Promise<FileMetadata> => {
 	return new Promise(async (resolve, reject) => {
-		const key = "decryptFileMetadata:" + uuid + ":" + metadata
+		const key = "decryptFileMetadata:" + metadata
 		const result = await db.get(key)
 
 		if (result) {
@@ -350,10 +352,7 @@ export const decryptFileMetadata = (masterKeys: string[], metadata: string, uuid
 										mime: decrypted.mime,
 										key: decrypted.key,
 										lastModified: convertTimestampToMs(decrypted.lastModified),
-										hash:
-											typeof decrypted.hash == "string" && decrypted.hash.length > 0
-												? decrypted.hash
-												: ""
+										hash: typeof decrypted.hash == "string" && decrypted.hash.length > 0 ? decrypted.hash : ""
 									}
 								}
 							}
@@ -401,10 +400,320 @@ export const encryptData = (base64: string, key: string): Promise<any> => {
 	})
 }
 
-export const decryptData = (encrypted: ArrayBuffer, key: string, version: number): Promise<any> => {
-	return global.nodeThread.decryptData({
+export const decryptData = async (encrypted: ArrayBuffer, key: string, version: number): Promise<any> => {
+	return await global.nodeThread.decryptData({
 		base64: arrayBufferToBase64(encrypted),
 		key,
 		version
+	})
+}
+
+export const decryptChatMessageKey = async (metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptChatMessageKey:" + metadata
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	try {
+		const key = await global.nodeThread.decryptMetadataPrivateKey({
+			data: metadata,
+			privateKey
+		})
+
+		if (!key) {
+			return ""
+		}
+
+		const parsed = JSON.parse(key)
+
+		if (typeof parsed.key !== "string") {
+			return ""
+		}
+
+		db.set(cacheKey, parsed.key).catch(console.error)
+
+		return parsed.key
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptChatMessage = async (message: string, metadata: string, privateKey: string): Promise<string> => {
+	try {
+		const keyDecrypted = await decryptChatMessageKey(metadata, privateKey)
+
+		if (keyDecrypted.length === 0) {
+			return ""
+		}
+
+		const messageDecrypted = await decryptMetadata(message, keyDecrypted)
+
+		if (!messageDecrypted) {
+			return ""
+		}
+
+		const parsedMessage = JSON.parse(messageDecrypted)
+
+		if (typeof parsedMessage.message !== "string") {
+			return ""
+		}
+
+		return parsedMessage.message
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const encryptChatMessage = async (message: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ message }), key)
+}
+
+export const decryptNoteKeyOwner = async (metadata: string, masterKeys: string[]): Promise<string> => {
+	const cacheKey = "decryptNoteKeyOwner:" + metadata
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	let key = ""
+
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
+			const obj = await decryptMetadata(metadata, masterKeys[i])
+
+			if (obj && typeof obj.key === "string") {
+				if (obj.key.length >= 16) {
+					key = obj.key
+
+					break
+				}
+			}
+		} catch (e) {
+			continue
+		}
+	}
+
+	db.set(cacheKey, key).catch(console.error)
+
+	return key
+}
+
+export const decryptNoteKeyParticipant = async (metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptNoteKeyParticipant:" + metadata
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	try {
+		const key = await global.nodeThread.decryptMetadataPrivateKey({
+			data: metadata,
+			privateKey
+		})
+
+		if (typeof key !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(key)
+
+		if (typeof parsed.key !== "string") {
+			return ""
+		}
+
+		db.set(cacheKey, parsed.key).catch(console.error)
+
+		return parsed.key
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNoteContent = async (content: string, key: string): Promise<string> => {
+	try {
+		const decrypted = await decryptMetadata(content, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.content !== "string") {
+			return ""
+		}
+
+		return parsed.content
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	const cacheKey = "decryptNoteTitle:" + title
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	try {
+		const decrypted = await decryptMetadata(title, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.title !== "string") {
+			return ""
+		}
+
+		db.set(cacheKey, parsed.title).catch(console.error)
+
+		return parsed.title
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const decryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	const cacheKey = "decryptNotePreview:" + preview
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	try {
+		const decrypted = await decryptMetadata(preview, key)
+
+		if (typeof decrypted !== "string") {
+			return ""
+		}
+
+		const parsed = JSON.parse(decrypted)
+
+		if (typeof parsed.preview !== "string") {
+			return ""
+		}
+
+		db.set(cacheKey, parsed.preview).catch(console.error)
+
+		return parsed.preview
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const encryptNoteContent = async (content: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ content }), key)
+}
+
+export const encryptNoteTitle = async (title: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ title }), key)
+}
+
+export const encryptNotePreview = async (preview: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ preview }), key)
+}
+
+export const encryptNoteTagName = async (name: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ name }), key)
+}
+
+export const decryptNoteTagName = async (name: string, masterKeys: string[]): Promise<string> => {
+	const cacheKey = "decryptNoteTagName:" + name
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	let decryptedName = ""
+
+	for (let i = 0; i < masterKeys.length; i++) {
+		try {
+			const obj = JSON.parse(await decryptMetadata(name, masterKeys[i]))
+
+			if (obj && typeof obj.name === "string") {
+				if (obj.name.length > 0) {
+					decryptedName = obj.name
+
+					break
+				}
+			}
+		} catch (e) {
+			continue
+		}
+	}
+
+	db.set(cacheKey, decryptedName).catch(console.error)
+
+	return decryptedName
+}
+
+export const decryptChatConversationName = async (name: string, metadata: string, privateKey: string): Promise<string> => {
+	const cacheKey = "decryptChatConversationName:" + name + ":" + metadata
+	const cacheResult = await db.get(cacheKey)
+
+	if (cacheResult) {
+		return cacheResult
+	}
+
+	try {
+		const keyDecrypted = await decryptChatMessageKey(metadata, privateKey)
+
+		if (keyDecrypted.length === 0) {
+			return ""
+		}
+
+		const nameDecrypted = await decryptMetadata(name, keyDecrypted)
+
+		if (!nameDecrypted) {
+			return ""
+		}
+
+		const parsedMessage = JSON.parse(nameDecrypted)
+
+		if (typeof parsedMessage.name !== "string") {
+			return ""
+		}
+
+		db.set(cacheKey, parsedMessage.name).catch(console.error)
+
+		return parsedMessage.name
+	} catch (e) {
+		console.error(e)
+
+		return ""
+	}
+}
+
+export const encryptChatConversationName = async (name: string, key: string): Promise<string> => {
+	return await encryptMetadata(JSON.stringify({ name }), key)
+}
+
+export const encryptMetadataPublicKey = async (data: string, publicKey: string): Promise<string> => {
+	return await global.nodeThread.encryptMetadataPublicKey({
+		data,
+		publicKey
 	})
 }

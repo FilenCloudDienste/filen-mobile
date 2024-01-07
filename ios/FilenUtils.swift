@@ -221,6 +221,10 @@ class FilenUtils {
       return output
     }
   }
+  
+  func millisecondsToNanoseconds(milliseconds: Int) -> Int {
+    return milliseconds * 1_000_000
+  }
 }
 
 class Semaphore {
@@ -235,55 +239,63 @@ class Semaphore {
 
     func acquire () async throws -> Void {
         _ = try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                if self.counter < self.maxCount {
-                    self.counter += 1
-                  
-                    continuation.resume(returning: true)
-                } else {
-                    self.waiting.append(continuation)
-                }
-            }
+          self.queue.async {
+              if self.counter < self.maxCount {
+                self.counter += 1
+              
+                continuation.resume(returning: true)
+              } else {
+                self.waiting.append(continuation)
+              }
+          }
         }
     }
 
     func release () {
-        queue.async {
-            self.counter -= 1
-          
-            self.take()
-        }
+      self.queue.async {
+          self.counter -= 1
+        
+          self.take()
+      }
     }
 
     private func take () {
-        if !waiting.isEmpty && counter < maxCount {
-            counter += 1
+      if !self.waiting.isEmpty && self.counter < self.maxCount {
+        self.counter += 1
           
-            let continuation = waiting.removeFirst()
+        let continuation = self.waiting.removeFirst()
           
-            continuation.resume(returning: true)
-        }
+        continuation.resume(returning: true)
+      }
     }
 
     func count () -> Int {
-        return counter
+      return self.counter
     }
 
     func setMax (newMax: Int) {
-        maxCount = newMax
+      self.maxCount = newMax
     }
 
     func purge () -> Int {
-        let unresolved = waiting.count
+      let unresolved = self.waiting.count
+    
+      for continuation in self.waiting {
+          continuation.resume(
+            throwing: NSError(
+              domain: "Semaphore",
+              code: 1,
+              userInfo: [
+                NSLocalizedDescriptionKey: "Task has been purged."
+              ]
+            )
+          )
+      }
       
-        for continuation in waiting {
-            continuation.resume(throwing: NSError(domain: "Semaphore", code: 1, userInfo: [NSLocalizedDescriptionKey: "Task has been purged."]))
-        }
+      self.counter = 0
       
-        counter = 0
+      self.waiting.removeAll()
       
-        waiting.removeAll()
-      
-        return unresolved
+      return unresolved
     }
 }

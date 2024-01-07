@@ -2,7 +2,7 @@ import React, { useState, useEffect, Fragment, memo, useCallback } from "react"
 import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus } from "react-native"
 import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
-import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
+import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { NavigationContainer, createNavigationContainerRef, StackActions, CommonActions, DarkTheme } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { MainScreen } from "./screens/MainScreen"
@@ -70,6 +70,29 @@ import { ICFG } from "./types"
 import Announcements from "./components/Announcements"
 import { SheetProvider } from "react-native-actions-sheet"
 import notifee, { EventType, InitialNotification } from "@notifee/react-native"
+import ContactsScreen from "./screens/ContactsScreen"
+import NotesScreen from "./screens/NotesScreen"
+import ChatsScreen from "./screens/ChatsScreen"
+import NoteScreen from "./screens/NotesScreen/NoteScreen"
+import CreateNoteActionSheet from "./components/ActionSheets/CreateNoteActionSheet"
+import NoteActionSheet from "./components/ActionSheets/NoteActionSheet"
+import NoteChangeTypeActionSheet from "./components/ActionSheets/NoteChangeTypeActionSheet"
+import NoteParticipantsScreen from "./screens/NotesScreen/ParticipantsScreen"
+import NoteParticipantsActionSheet from "./components/ActionSheets/NoteParticipantsActionSheet"
+import SelectContactScreen from "./screens/ContactsScreen/SelectContactScreen"
+import NoteTitleDialog from "./components/Dialogs/NoteTitleDialog"
+import NoteTagsActionSheet from "./components/ActionSheets/NoteTagsActionSheet"
+import NotesCreateTagDialog from "./components/Dialogs/NotesCreateTagDialog"
+import NoteTagDialog from "./components/Dialogs/NoteTagDialog"
+import NoteHistoryScreen from "./screens/NotesScreen/NoteHistoryScreen"
+import ChatScreen from "./screens/ChatsScreen/ChatScreen"
+import ChatMessageActionSheet from "./components/ActionSheets/ChatMessageActionSheet"
+import ChatParticipantsScreen from "./screens/ChatsScreen/ChatParticipantsScreen"
+import ChatParticipantActionSheet from "./components/ActionSheets/ChatParticipantActionSheet"
+import ChatConversationActionSheet from "./components/ActionSheets/ChatConversationActionSheet"
+import ChatConversationNameDialog from "./components/Dialogs/ChatConversationNameDialog"
+import ContactActionSheet from "./components/ActionSheets/ContactActionSheet"
+import AddContactDialog from "./components/Dialogs/AddContactDialog"
 
 enableScreens(true)
 
@@ -106,104 +129,81 @@ export const App = Sentry.wrap(
 		const lang = useLang()
 		const setContentHeight = useStore(state => state.setContentHeight)
 		const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
-		const [userSelectedTheme, setUserSelectedTheme] = useMMKVString("userSelectedTheme", storage)
 		const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
 		const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 		const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
 		const [fetchedInitialNotification, setFetchedInitialNotification] = useState<boolean>(false)
 		const [initialNotification, setInitialNotification] = useState<InitialNotification | null>(null)
+		const isDeviceReady = useStore(state => state.isDeviceReady)
 
 		const handleShare = useCallback(async (items: any) => {
 			if (!items) {
 				return false
 			}
 
-			if (typeof items !== "undefined") {
-				if (typeof items.data !== "undefined") {
-					if (items.data !== null) {
-						if (items.data.length > 0) {
-							await new Promise(resolve => {
-								const wait = setInterval(() => {
-									if (
-										!isRouteInStack(navigationRef, [
-											"SetupScreen",
-											"BiometricAuthScreen",
-											"LoginScreen",
-											"SelectMediaScreen"
-										]) &&
-										storage.getBoolean("isLoggedIn")
-									) {
-										clearInterval(wait)
+			if (items && items.data && Array.isArray(items.data) && items.data.length > 0) {
+				await new Promise(resolve => {
+					const wait = setInterval(() => {
+						if (
+							isNavReady(navigationRef) &&
+							!isRouteInStack(navigationRef, [
+								"SetupScreen",
+								"BiometricAuthScreen",
+								"LoginScreen",
+								"SelectMediaScreen",
+								"RegisterScreen",
+								"ResendConfirmationScreen"
+							]) &&
+							storage.getBoolean("isLoggedIn")
+						) {
+							clearInterval(wait)
 
-										return resolve(true)
-									}
-								}, 250)
-							})
+							return resolve(true)
+						}
+					}, 100)
+				})
 
-							let containsValidItems = true
+				let containsValidItems = true
 
-							if (Platform.OS == "android") {
-								if (Array.isArray(items.data)) {
-									for (let i = 0; i < items.data.length; i++) {
-										if (items.data[i].indexOf("file://") == -1 && items.data[i].indexOf("content://") == -1) {
-											containsValidItems = false
-										}
-									}
-								} else {
-									if (items.data.indexOf("file://") == -1 && items.data.indexOf("content://") == -1) {
-										containsValidItems = false
-									}
-								}
-							} else {
-								for (let i = 0; i < items.data.length; i++) {
-									if (items.data[i].data.indexOf("file://") == -1 && items.data[i].data.indexOf("content://") == -1) {
-										containsValidItems = false
-									}
-								}
-							}
-
-							if (containsValidItems) {
-								setCurrentShareItems(items)
-
-								showToast({ type: "upload" })
-							} else {
-								showToast({ message: i18n(lang, "shareMenuInvalidType") })
-							}
+				if (Platform.OS === "android") {
+					for (let i = 0; i < items.data.length; i++) {
+						if (items.data[i].indexOf("file://") == -1 && items.data[i].indexOf("content://") == -1) {
+							containsValidItems = false
+						}
+					}
+				} else {
+					for (let i = 0; i < items.data.length; i++) {
+						if (items.data[i].data.indexOf("file://") == -1 && items.data[i].data.indexOf("content://") == -1) {
+							containsValidItems = false
 						}
 					}
 				}
+
+				if (!containsValidItems) {
+					showToast({ message: i18n(lang, "shareMenuInvalidType") })
+
+					return
+				}
+
+				setCurrentShareItems(items)
+
+				showToast({ type: "upload" })
 			}
 		}, [])
 
-		const setAppearance = useCallback(() => {
+		const setAppearance = useCallback((timeout: number = 1000) => {
 			setTimeout(() => {
-				if (typeof userSelectedTheme === "string" && userSelectedTheme.length > 1 && storage.getBoolean("dontFollowSystemTheme")) {
-					if (userSelectedTheme === "dark") {
-						storage.set("darkMode", true)
+				if (!storage.getBoolean("dontFollowSystemTheme")) {
+					storage.set("darkMode", Appearance.getColorScheme() === "dark")
 
-						setUserSelectedTheme("dark")
-						setStatusBarStyle(true)
-					} else {
-						storage.set("darkMode", false)
-
-						setUserSelectedTheme("light")
-						setStatusBarStyle(false)
-					}
+					setStatusBarStyle(Appearance.getColorScheme() === "dark")
 				} else {
-					if (Appearance.getColorScheme() === "dark") {
-						storage.set("darkMode", true)
+					storage.set("darkMode", storage.getString("userSelectedTheme") === "dark")
 
-						setUserSelectedTheme("dark")
-						setStatusBarStyle(true)
-					} else {
-						storage.set("darkMode", false)
-
-						setUserSelectedTheme("light")
-						setStatusBarStyle(false)
-					}
+					setStatusBarStyle(storage.getString("userSelectedTheme") === "dark")
 				}
-			}, 1000) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
-		}, [userSelectedTheme])
+			}, timeout) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
+		}, [])
 
 		useEffect(() => {
 			if (keepAppAwake) {
@@ -238,6 +238,7 @@ export const App = Sentry.wrap(
 				if (
 					storage.getBoolean("biometricPinAuth:" + userId) &&
 					Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
+					isNavReady(navigationRef) &&
 					!isRouteInStack(navigationRef, ["BiometricAuthScreen"])
 				) {
 					setBiometricAuthScreenState("auth")
@@ -271,11 +272,11 @@ export const App = Sentry.wrap(
 			const offlineSetup = () => {
 				try {
 					if (
-						typeof storage.getString("masterKeys") == "string" &&
-						typeof storage.getString("apiKey") == "string" &&
-						typeof storage.getString("privateKey") == "string" &&
-						typeof storage.getString("publicKey") == "string" &&
-						typeof storage.getNumber("userId") == "number"
+						typeof storage.getString("masterKeys") === "string" &&
+						typeof storage.getString("apiKey") === "string" &&
+						typeof storage.getString("privateKey") === "string" &&
+						typeof storage.getString("publicKey") === "string" &&
+						typeof storage.getNumber("userId") === "number"
 					) {
 						if (
 							storage.getString("masterKeys").length > 16 &&
@@ -317,7 +318,7 @@ export const App = Sentry.wrap(
 					setup({ navigation: navigationRef })
 						.then(() => nav())
 						.catch(err => {
-							console.log(err)
+							console.error(err)
 
 							offlineSetup()
 						})
@@ -329,13 +330,11 @@ export const App = Sentry.wrap(
 			const appStateListener = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
 				setAppState(nextAppState)
 
-				await isNavReady(navigationRef)
-
 				if (nextAppState === "background") {
-					if (!isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
-						let lockAppAfter: number = storage.getNumber("lockAppAfter:" + userId)
+					if (isNavReady(navigationRef) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
+						let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
 
-						if (lockAppAfter == 0) {
+						if (lockAppAfter === 0) {
 							lockAppAfter = 300
 						}
 
@@ -347,32 +346,28 @@ export const App = Sentry.wrap(
 						) {
 							setBiometricAuthScreenState("auth")
 
-							if (navigationRef && navigationRef.current && typeof navigationRef.current.dispatch == "function") {
-								navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
-							}
+							navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
 						}
 					}
 				}
 			})
 
-			const navigationRefListener = (event: any) => {
+			const navigationRefListener = navigationRef.addListener("state", event => {
 				if (event.data && event.data.state && Array.isArray(event.data.state.routes)) {
 					setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
 					setCurrentRoutes(event.data.state.routes)
 					setScrolledToBottom(false)
 				}
-			}
-
-			navigationRef.addListener("state", navigationRefListener)
+			})
 
 			ShareMenu.getInitialShare(handleShare)
 
 			const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
 
-			setAppearance()
 			getCfg().then(setCFG).catch(console.error)
+			setAppearance(1)
 
-			const appearanceListener = Appearance.addChangeListener(setAppearance)
+			const appearanceListener = Appearance.addChangeListener(() => setAppearance(1000))
 
 			storage.set("setupDone", false)
 			storage.set("cameraUploadUploaded", 0)
@@ -487,13 +482,13 @@ export const App = Sentry.wrap(
 
 			return () => {
 				shareMenuListener.remove()
-				navigationRef.removeListener("state", navigationRefListener)
 				appStateListener.remove()
 				appearanceListener.remove()
 				openSelectMediaScreenListener.remove()
 				selectMediaScreenUploadListener.remove()
 
 				notifeeOnForegroundListener()
+				navigationRefListener()
 			}
 		}, [])
 
@@ -717,6 +712,78 @@ export const App = Sentry.wrap(
 													presentation: Platform.OS == "ios" ? "modal" : undefined
 												}}
 											/>
+											<Stack.Screen
+												name="ContactsScreen"
+												component={ContactsScreen}
+												options={{
+													title: "ContactsScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="NotesScreen"
+												component={NotesScreen}
+												options={{
+													title: "NotesScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="ChatsScreen"
+												component={ChatsScreen}
+												options={{
+													title: "ChatsScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="NoteScreen"
+												component={NoteScreen}
+												options={{
+													title: "NoteScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="NoteParticipantsScreen"
+												component={NoteParticipantsScreen}
+												options={{
+													title: "NoteParticipantsScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="SelectContactScreen"
+												component={SelectContactScreen}
+												options={{
+													title: "SelectContactScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="NoteHistoryScreen"
+												component={NoteHistoryScreen}
+												options={{
+													title: "NoteHistoryScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="ChatScreen"
+												component={ChatScreen}
+												options={{
+													title: "ChatScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
+											<Stack.Screen
+												name="ChatParticipantsScreen"
+												component={ChatParticipantsScreen}
+												options={{
+													title: "ChatParticipantsScreen",
+													animation: showNavigationAnimation ? "default" : "none"
+												}}
+											/>
 										</Stack.Navigator>
 										{typeof cfg !== "undefined" &&
 											setupDone &&
@@ -741,14 +808,23 @@ export const App = Sentry.wrap(
 												"InviteScreen",
 												"TwoFactorScreen",
 												"ChangeEmailPasswordScreen",
+												"ChatsScreen",
+												"NotesScreen",
+												"ContactsScreen",
+												"NoteScreen",
+												"NoteParticipantsScreen",
+												"SelectContactScreen",
+												"NoteHistoryScreen",
+												"ChatParticipantsScreen",
 												...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
 											].includes(currentScreenName) && (
 												<View
 													style={{
-														position: "relative",
+														position: currentScreenName === "ChatsScreen" ? "absolute" : "relative",
 														width: "100%",
 														bottom: 0,
-														height: 50
+														height: 50,
+														backgroundColor: getColor(darkMode, "backgroundPrimary")
 													}}
 												>
 													<BottomBar navigation={navigationRef} />
@@ -765,6 +841,15 @@ export const App = Sentry.wrap(
 										<ProfilePictureActionSheet />
 										<SortByActionSheet />
 										<LockAppAfterActionSheet />
+										<CreateNoteActionSheet navigation={navigationRef} />
+										<NoteActionSheet navigation={navigationRef} />
+										<NoteChangeTypeActionSheet />
+										<NoteParticipantsActionSheet />
+										<NoteTagsActionSheet />
+										<ChatMessageActionSheet />
+										<ChatParticipantActionSheet />
+										<ChatConversationActionSheet />
+										<ContactActionSheet />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>
@@ -777,6 +862,11 @@ export const App = Sentry.wrap(
 						<CreateFolderDialog />
 						<CreateTextFileDialog navigation={navigationRef} />
 						<FullscreenLoadingModal />
+						<NoteTitleDialog />
+						<NotesCreateTagDialog />
+						<NoteTagDialog />
+						<ChatConversationNameDialog />
+						<AddContactDialog />
 					</Fragment>
 				</NavigationContainer>
 				<Toast

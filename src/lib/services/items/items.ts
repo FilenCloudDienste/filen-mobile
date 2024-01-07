@@ -9,8 +9,7 @@ import {
 	simpleDate,
 	convertTimestampToMs,
 	getMasterKeys,
-	getParent,
-	Semaphore
+	getParent
 } from "../../helpers"
 import { queueFileDownload } from "../download/download"
 import * as fs from "../../fs"
@@ -38,8 +37,6 @@ import {
 } from "../../crypto"
 import * as db from "../../db"
 
-const itemsSemaphore = new Semaphore(4096)
-
 export interface BuildFolder {
 	folder: any
 	name?: string
@@ -61,14 +58,14 @@ export const buildFolder = async ({
 		name = memoryCache.get(cacheKey)
 	} else {
 		if (!sharedIn) {
-			if (Array.isArray(masterKeys) && typeof folder.name !== "undefined") {
-				name = await decryptFolderName(masterKeys, folder.name, folder.uuid)
+			if (Array.isArray(masterKeys) && folder.name) {
+				name = await decryptFolderName(masterKeys, folder.name)
 
 				memoryCache.set(cacheKey, name)
 			}
 		} else {
-			if (Array.isArray(masterKeys) && typeof folder.metadata !== "undefined") {
-				name = await decryptFolderNamePrivateKey(privateKey, folder.metadata, folder.uuid)
+			if (folder.metadata) {
+				name = await decryptFolderNamePrivateKey(privateKey, folder.metadata)
 
 				memoryCache.set(cacheKey, name)
 			}
@@ -140,13 +137,13 @@ export const buildFile = async ({
 	} else {
 		if (!sharedIn) {
 			if (Array.isArray(masterKeys) && typeof file.metadata !== "undefined") {
-				metadata = await decryptFileMetadata(masterKeys, file.metadata, file.uuid)
+				metadata = await decryptFileMetadata(masterKeys, file.metadata)
 
 				memoryCache.set(cacheKey, metadata)
 			}
 		} else {
 			if (Array.isArray(masterKeys) && typeof file.metadata !== "undefined") {
-				metadata = await decryptFileMetadataPrivateKey(file.metadata, privateKey, file.uuid)
+				metadata = await decryptFileMetadataPrivateKey(file.metadata, privateKey)
 
 				memoryCache.set(cacheKey, metadata)
 			}
@@ -269,19 +266,13 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			for (const file of response.data.uploads) {
 				promises.push(
 					new Promise((resolve, reject) => {
-						itemsSemaphore.acquire().then(() => {
-							buildFile({ file, masterKeys, userId })
-								.then(item => {
-									itemsSemaphore.release()
-
-									resolve(item)
-								})
-								.catch(err => {
-									itemsSemaphore.release()
-
-									reject(err)
-								})
-						})
+						buildFile({ file, masterKeys, userId })
+							.then(item => {
+								resolve(item)
+							})
+							.catch(err => {
+								reject(err)
+							})
 					})
 				)
 			}
@@ -305,8 +296,6 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			for (const folder of response.data.folders) {
 				promises.push(
 					new Promise(async (resolve, reject) => {
-						await itemsSemaphore.acquire()
-
 						try {
 							const item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey })
 
@@ -318,8 +307,6 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 						} catch (e) {
 							reject(e)
 						}
-
-						itemsSemaphore.release()
 					})
 				)
 			}
@@ -327,19 +314,13 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			for (const file of response.data.uploads) {
 				promises.push(
 					new Promise((resolve, reject) => {
-						itemsSemaphore.acquire().then(() => {
-							buildFile({ file, masterKeys, sharedIn: true, privateKey, userId })
-								.then(item => {
-									itemsSemaphore.release()
-
-									resolve(item)
-								})
-								.catch(err => {
-									itemsSemaphore.release()
-
-									reject(err)
-								})
-						})
+						buildFile({ file, masterKeys, sharedIn: true, privateKey, userId })
+							.then(item => {
+								resolve(item)
+							})
+							.catch(err => {
+								reject(err)
+							})
 					})
 				)
 			}
@@ -360,8 +341,6 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			for (let folder of response.data.folders) {
 				promises.push(
 					new Promise(async (resolve, reject) => {
-						await itemsSemaphore.acquire()
-
 						try {
 							folder.name = folder.metadata
 
@@ -375,8 +354,6 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 						} catch (e) {
 							reject(e)
 						}
-
-						itemsSemaphore.release()
 					})
 				)
 			}
@@ -384,19 +361,13 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			for (const file of response.data.uploads) {
 				promises.push(
 					new Promise((resolve, reject) => {
-						itemsSemaphore.acquire().then(() => {
-							buildFile({ file, masterKeys, userId })
-								.then(item => {
-									itemsSemaphore.release()
-
-									resolve(item)
-								})
-								.catch(err => {
-									itemsSemaphore.release()
-
-									reject(err)
-								})
-						})
+						buildFile({ file, masterKeys, userId })
+							.then(item => {
+								resolve(item)
+							})
+							.catch(err => {
+								reject(err)
+							})
 					})
 				)
 			}
@@ -442,23 +413,15 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			for (const file of response.data.uploads) {
 				promises.push(
 					new Promise(async (resolve, reject) => {
-						await itemsSemaphore.acquire()
-
 						try {
 							const item = await buildFile({ file, masterKeys, userId })
 
 							if (canCompressThumbnail(getFileExt(item.name))) {
-								itemsSemaphore.release()
-
 								return resolve(item)
 							}
 
-							itemsSemaphore.release()
-
 							return resolve(null)
 						} catch (e) {
-							itemsSemaphore.release()
-
 							return reject(e)
 						}
 					})
@@ -501,8 +464,6 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			for (const folder of response.data.folders) {
 				promises.push(
 					new Promise(async (resolve, reject) => {
-						await itemsSemaphore.acquire()
-
 						try {
 							const item = await buildFolder({ folder, masterKeys })
 
@@ -514,8 +475,6 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 						} catch (e) {
 							reject(e)
 						}
-
-						itemsSemaphore.release()
 					})
 				)
 			}
@@ -523,19 +482,13 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			for (const file of response.data.uploads) {
 				promises.push(
 					new Promise((resolve, reject) => {
-						itemsSemaphore.acquire().then(() => {
-							buildFile({ file, masterKeys, userId })
-								.then(item => {
-									itemsSemaphore.release()
-
-									resolve(item)
-								})
-								.catch(err => {
-									itemsSemaphore.release()
-
-									reject(err)
-								})
-						})
+						buildFile({ file, masterKeys, userId })
+							.then(item => {
+								resolve(item)
+							})
+							.catch(err => {
+								reject(err)
+							})
 					})
 				)
 			}

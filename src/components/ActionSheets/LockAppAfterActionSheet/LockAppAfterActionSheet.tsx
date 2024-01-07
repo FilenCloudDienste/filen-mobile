@@ -1,28 +1,31 @@
 import React, { memo, useCallback } from "react"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
-import storage from "../../../lib/storage"
+import storage, { sharedStorage } from "../../../lib/storage/storage"
 import { useMMKVNumber } from "react-native-mmkv"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "../../../lib/hooks/useDimensions"
 import { i18n } from "../../../i18n"
 import { getColor } from "../../../style/colors"
-import { ActionSheetIndicator, ActionButton } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 
 const LockAppAfterActionSheet = memo(() => {
 	const darkMode = useDarkMode()
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [lockAppAfter, setLockAppAfter] = useMMKVNumber("lockAppAfter:" + userId, storage)
+	const [lockAppAfterShared, setLockAppAfterShared] = useMMKVNumber("lockAppAfter:" + userId, sharedStorage)
 
 	const setLock = useCallback(
 		async (seconds: number) => {
 			setLockAppAfter(seconds)
+			setLockAppAfterShared(seconds)
 
-			storage.set("lastBiometricScreen:" + userId, Math.floor(Date.now()) + seconds * 1000)
+			storage.set("lastBiometricScreen:" + userId, Math.floor(Date.now() + seconds * 1000))
+			sharedStorage.set("lastBiometricScreen:" + userId, Math.floor(Date.now() + seconds * 1000))
 
 			await SheetManager.hide("LockAppAfterActionSheet")
 		},
@@ -30,7 +33,6 @@ const LockAppAfterActionSheet = memo(() => {
 	)
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="LockAppAfterActionSheet"
 			gestureEnabled={true}
@@ -40,16 +42,14 @@ const LockAppAfterActionSheet = memo(() => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5),
-					paddingTop: 50
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				<ActionSheetIndicator />
 				<ActionButton
 					onPress={() => setLock(1)}
 					text={i18n(lang, "immediately")}

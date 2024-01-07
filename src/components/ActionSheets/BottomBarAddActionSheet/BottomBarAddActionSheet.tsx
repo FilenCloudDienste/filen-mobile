@@ -1,12 +1,11 @@
 import React, { memo, useCallback } from "react"
 import { View, DeviceEventEmitter, Platform } from "react-native"
-import ActionSheet, { SheetManager } from "react-native-actions-sheet"
-import storage from "../../../lib/storage"
+import ActionSheet from "react-native-actions-sheet"
+import storage, { sharedStorage } from "../../../lib/storage/storage"
 import useLang from "../../../lib/hooks/useLang"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { getRandomArbitrary, convertTimestampToMs, getFileExt, getParent, getFilePreviewType, safeAwait } from "../../../lib/helpers"
-import { queueFileUpload, UploadFile } from "../../../lib/services/upload/upload"
+import { queueFileUpload, UploadFile, uploadFolder } from "../../../lib/services/upload/upload"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../../lib/permissions"
@@ -15,31 +14,34 @@ import * as fs from "../../../lib/fs"
 import RNDocumentPicker, { DocumentPickerResponse } from "react-native-document-picker"
 import * as RNImagePicker from "react-native-image-picker"
 import mimeTypes from "mime-types"
-import { ActionButton, ActionSheetIndicator } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { getLastModified } from "../../../lib/services/cameraUpload"
+import useDimensions from "../../../lib/hooks/useDimensions"
+import { openDocumentTree } from "react-native-saf-x"
+import { MaterialIcons } from "@expo/vector-icons"
+import { hideAllActionSheets } from "../ActionSheets"
 
 const BottomBarAddActionSheet = memo(() => {
 	const darkMode = useDarkMode()
 	const currentRoutes = useStore(state => state.currentRoutes)
-	const insets = useSafeAreaInsets()
+	const dimensions = useDimensions()
 	const lang = useLang()
 
 	const createFolder = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		DeviceEventEmitter.emit("openCreateFolderDialog")
 	}, [])
 
 	const createTextFile = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		DeviceEventEmitter.emit("openCreateTextFileDialog")
 	}, [])
 
 	const takePhoto = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
-		await new Promise(resolve => setTimeout(resolve, 100))
+		await hideAllActionSheets()
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasCameraPermissions(true))
 
@@ -55,7 +57,8 @@ const BottomBarAddActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		const getFileInfo = (asset: RNImagePicker.Asset): Promise<UploadFile> => {
 			return new Promise((resolve, reject) => {
@@ -102,7 +105,8 @@ const BottomBarAddActionSheet = memo(() => {
 				durationLimit: 86400000
 			},
 			async response => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				if (response.errorMessage) {
 					console.error(response.errorMessage)
@@ -150,7 +154,7 @@ const BottomBarAddActionSheet = memo(() => {
 	}, [])
 
 	const uploadFromGallery = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
+		await hideAllActionSheets()
 
 		const [hasStoragePermissionsError, hasStoragePermissionsResult] = await safeAwait(hasStoragePermissions(true))
 		const [hasPhotoLibraryPermissionsError, hasPhotoLibraryPermissionsResult] = await safeAwait(hasPhotoLibraryPermissions(true))
@@ -167,14 +171,14 @@ const BottomBarAddActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		DeviceEventEmitter.emit("openSelectMediaScreen")
 	}, [])
 
-	const uploadFiles = useCallback(async () => {
-		await SheetManager.hide("BottomBarAddActionSheet")
-		await new Promise(resolve => setTimeout(resolve, 100))
+	const uploadFolders = useCallback(async () => {
+		await hideAllActionSheets()
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
@@ -190,7 +194,75 @@ const BottomBarAddActionSheet = memo(() => {
 			return
 		}
 
-		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 3600000)
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
+		try {
+			let uri = ""
+			const result = Platform.OS === "android" ? await openDocumentTree(true) : await RNDocumentPicker.pickDirectory()
+
+			if (result && result.uri) {
+				uri = result.uri
+			}
+
+			if (!uri || uri.length <= 0) {
+				return
+			}
+
+			const parent = getParent()
+
+			if (parent.length < 16) {
+				return
+			}
+
+			uploadFolder({ uri, parent, showFullScreenLoading: true }).catch(err => {
+				if (err === "stopped") {
+					return
+				}
+
+				if (err === "wifiOnly") {
+					showToast({ message: i18n(lang, "onlyWifiUploads") })
+
+					return
+				}
+
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		} catch (e) {
+			storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+			sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
+			if (RNDocumentPicker.isCancel(e)) {
+				return
+			}
+
+			console.error(e)
+
+			showToast({ message: e.toString() })
+		}
+	}, [lang])
+
+	const uploadFiles = useCallback(async () => {
+		await hideAllActionSheets()
+
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
+
+		if (hasPermissionsError) {
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		if (!hasPermissionsResult) {
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		const getFileInfo = (result: DocumentPickerResponse): Promise<UploadFile> => {
 			return new Promise((resolve, reject) => {
@@ -231,7 +303,8 @@ const BottomBarAddActionSheet = memo(() => {
 			copyTo: "cachesDirectory"
 		})
 			.then(async result => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				const parent = getParent()
 
@@ -260,7 +333,8 @@ const BottomBarAddActionSheet = memo(() => {
 				}
 			})
 			.catch(err => {
-				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 				if (RNDocumentPicker.isCancel(err)) {
 					return
@@ -273,7 +347,6 @@ const BottomBarAddActionSheet = memo(() => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="BottomBarAddActionSheet"
 			gestureEnabled={true}
@@ -283,20 +356,14 @@ const BottomBarAddActionSheet = memo(() => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				<ActionSheetIndicator />
-				<View
-					style={{
-						height: 15
-					}}
-				/>
 				<ActionButton
 					onPress={createFolder}
 					icon="folder-outline"
@@ -322,6 +389,23 @@ const BottomBarAddActionSheet = memo(() => {
 								onPress={uploadFromGallery}
 								icon="image-outline"
 								text={i18n(lang, "uploadFromGallery")}
+							/>
+							<ActionButton
+								onPress={uploadFolders}
+								icon={
+									<View
+										style={{
+											marginLeft: -2
+										}}
+									>
+										<MaterialIcons
+											name="drive-folder-upload"
+											size={24}
+											color={getColor(darkMode, "textSecondary")}
+										/>
+									</View>
+								}
+								text={i18n(lang, "uploadFolders")}
 							/>
 							<ActionButton
 								onPress={uploadFiles}

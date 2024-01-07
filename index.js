@@ -2,6 +2,7 @@ import { AppRegistry, Platform, LogBox } from "react-native"
 import { name as appName } from "./app.json"
 import "./src/lib/globals"
 import "./src/lib/node"
+import "./src/lib/services/socket/socket"
 import { App } from "./src/App"
 import { runCameraUpload } from "./src/lib/services/cameraUpload"
 import notifee, { AndroidImportance } from "@notifee/react-native"
@@ -34,57 +35,66 @@ eventListener.on("startForegroundService", type => {
 
 	if (showNotification) {
 		;(async () => {
-			const lang = storage.getString("lang") || "en"
-			const channelId = await notifee.createChannel({
-				id: "foregroundService",
-				name: "Foreground Service"
-			})
+			try {
+				const lang = storage.getString("lang") || "en"
+				const channelId = await notifee.createChannel({
+					id: "foregroundService",
+					name: "Foreground Service",
+					vibration: false,
+					sound: undefined
+				})
 
-			const notification = {
-				title:
-					type === "cameraUpload"
-						? i18n(lang, "cameraUploadNotificationTitle")
-						: type === "upload"
-						? i18n(lang, "uploadNotificationTitle")
-						: i18n(lang, "downloadNotificationTitle"),
-				android: {
-					channelId,
-					asForegroundService: true,
-					localOnly: true,
-					ongoing: true,
-					importance: AndroidImportance.HIGH,
-					progress: {
-						indeterminate: true
+				const notification = {
+					title:
+						type === "cameraUpload"
+							? i18n(lang, "cameraUploadNotificationTitle")
+							: type === "upload"
+							? i18n(lang, "uploadNotificationTitle")
+							: i18n(lang, "downloadNotificationTitle"),
+					android: {
+						channelId,
+						asForegroundService: true,
+						localOnly: true,
+						ongoing: true,
+						importance: AndroidImportance.HIGH,
+						onlyAlertOnce: false,
+						loopSound: false,
+						autoCancel: false,
+						progress: {
+							indeterminate: true
+						},
+						pressAction: {
+							id: "foregroundService",
+							launchActivity: "default"
+						},
+						groupSummary: true,
+						groupId: "foregroundService",
+						timestamp: Date.now()
 					},
-					pressAction: {
-						id: "foregroundService",
-						launchActivity: "default"
-					},
-					groupSummary: true,
-					groupId: "foregroundService",
-					timestamp: Date.now()
-				},
-				data: {
-					type: "foregroundService"
+					data: {
+						type: "foregroundService"
+					}
 				}
-			}
 
-			const id = await notifee.displayNotification(notification)
+				const id = await notifee.displayNotification(notification)
 
-			if (type === "upload") {
-				uploadNotification = {
-					...notification,
-					id
+				if (type === "upload") {
+					uploadNotification = {
+						...notification,
+						id
+					}
 				}
-			}
 
-			if (type === "download") {
-				downloadNotification = {
-					...notification,
-					id
+				if (type === "download") {
+					downloadNotification = {
+						...notification,
+						id
+					}
 				}
+			} catch (e) {
+				console.error(e)
 			}
-		})().catch(console.error)
+		})()
 	}
 })
 
@@ -152,17 +162,15 @@ if (Platform.OS === "android") {
 					notifee
 						.stopForegroundService()
 						.then(() => resolve())
-						.catch(console.error)
+						.catch(err => {
+							console.error(err)
+
+							resolve()
+						})
 				}
-			}, 1000)
+			}, 100)
 		})
 	})
-}
-
-const registerPushToken = async token => {
-	console.log("Push token:", token)
-
-	storage.set("pushToken", token)
 }
 
 const onPushNotification = async message => {
@@ -194,7 +202,7 @@ const onPushNotification = async message => {
 }
 
 Notifications.events().registerRemoteNotificationsRegistered(event => {
-	console.log(Platform.OS, "Device Token Received", event.deviceToken)
+	storage.set("pushToken", event.deviceToken)
 })
 
 Notifications.events().registerRemoteNotificationsRegistrationFailed(event => {
@@ -202,26 +210,27 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(event => {
 })
 
 Notifications.events().registerNotificationReceivedForeground(async (notification, completion) => {
+	console.log(Platform.OS, "Notification Received - Foreground", notification.payload)
+
 	if (Platform.OS === "ios") {
 		completion({ alert: true, sound: false, badge: false })
 
 		return
 	}
 
-	console.log(Platform.OS, "Notification Received - Foreground", notification.payload)
-
 	const channelId = await notifee.createChannel({
 		id: "chat",
-		name: "Chat"
+		name: "Chat",
+		vibration: false
 	})
 
 	const res = await nodeThread.encryptMetadata({
-		data: "lol",
-		key: "xddd"
+		data: "foo",
+		key: "bar"
 	})
 
 	await notifee.displayNotification({
-		title: "filen cock dienste",
+		title: "filen",
 		body: "Foreground: " + res,
 		android: {
 			channelId,
@@ -248,24 +257,25 @@ Notifications.events().registerNotificationOpened((notification, completion, act
 })
 
 Notifications.events().registerNotificationReceivedBackground(async (notification, completion) => {
+	console.log(Platform.OS, "Notification Received - Background", notification.payload)
+
 	if (Platform.OS === "ios") {
 		return
 	}
 
-	console.log(Platform.OS, "Notification Received - Background", notification.payload)
-
 	const channelId = await notifee.createChannel({
 		id: "chat",
-		name: "Chat"
+		name: "Chat",
+		vibration: false
 	})
 
 	const res = await nodeThread.encryptMetadata({
-		data: "lol",
-		key: "xddd"
+		data: "foo",
+		key: "bar"
 	})
 
 	await notifee.displayNotification({
-		title: "filen cock dienste",
+		title: "filen",
 		body: "Background: " + res,
 		android: {
 			channelId,
@@ -299,8 +309,6 @@ initPushNotifications().catch(console.error)
 
 setTimeout(() => {
 	runCameraUpload()
-
-	Notifications.getInitialNotification().then(console.log).catch(console.error)
 }, 5000)
 
 AppRegistry.registerComponent(appName, () => App)

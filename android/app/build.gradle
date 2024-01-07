@@ -70,7 +70,7 @@ react {
 
 // Override `hermesEnabled` by `expo.jsEngine`
 ext {
-  hermesEnabled = (findProperty('expo.jsEngine') ?: "hermes") == "hermes"
+  hermesEnabled = true //(findProperty('expo.jsEngine') ?: "hermes") == "hermes"
 }
 
 /**
@@ -211,7 +211,7 @@ dependencies {
     def isWebpEnabled = true;
     def isWebpAnimatedEnabled = true;
     def frescoVersion = rootProject.ext.frescoVersion
-    def enableHermesJSEngine = false;
+    def enableHermesJSEngine = true;
 
     // If your app supports Android versions before Ice Cream Sandwich (API level 14)
     if (isGifEnabled || isWebpEnabled) {

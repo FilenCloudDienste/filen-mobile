@@ -17,6 +17,12 @@ PODS:
     - ExpoModulesCore
   - ExpoClipboard (4.1.2):
     - ExpoModulesCore
+  - ExpoImage (1.5.1):
+    - ExpoModulesCore
+    - SDWebImage (~> 5.17.0)
+    - SDWebImageAVIFCoder (~> 0.10.1)
+    - SDWebImageSVGCoder (~> 1.7.0)
+    - SDWebImageWebPCoder (~> 0.13.0)
   - ExpoKeepAwake (12.0.1):
     - ExpoModulesCore
   - ExpoLocalAuthentication (13.2.1):
@@ -39,15 +45,31 @@ PODS:
     - ReactCommon/turbomodule/core (= 0.71.13)
   - fmt (6.2.1)
   - glog (0.3.5)
-  - libwebp (1.2.4):
-    - libwebp/demux (= 1.2.4)
-    - libwebp/mux (= 1.2.4)
-    - libwebp/webp (= 1.2.4)
-  - libwebp/demux (1.2.4):
+  - hermes-engine (0.71.13):
+    - hermes-engine/Pre-built (= 0.71.13)
+  - hermes-engine/Pre-built (0.71.13)
+  - libaom (3.0.0):
+    - libvmaf (>= 2.2.0)
+  - libavif (0.11.1):
+    - libavif/libaom (= 0.11.1)
+  - libavif/core (0.11.1)
+  - libavif/libaom (0.11.1):
+    - libaom (>= 2.0.0)
+    - libavif/core
+  - libevent (2.1.12)
+  - libvmaf (2.3.1)
+  - libwebp (1.3.2):
+    - libwebp/demux (= 1.3.2)
+    - libwebp/mux (= 1.3.2)
+    - libwebp/sharpyuv (= 1.3.2)
+    - libwebp/webp (= 1.3.2)
+  - libwebp/demux (1.3.2):
     - libwebp/webp
-  - libwebp/mux (1.2.4):
+  - libwebp/mux (1.3.2):
     - libwebp/demux
-  - libwebp/webp (1.2.4)
+  - libwebp/sharpyuv (1.3.2)
+  - libwebp/webp (1.3.2):
+    - libwebp/sharpyuv
   - MMKV (1.2.16):
     - MMKVCore (~> 1.2.16)
   - MMKVAppExtension (1.2.16):
@@ -67,6 +89,12 @@ PODS:
     - DoubleConversion
     - fmt (~> 6.2.1)
     - glog
+  - RCT-Folly/Futures (2021.07.22.00):
+    - boost
+    - DoubleConversion
+    - fmt (~> 6.2.1)
+    - glog
+    - libevent
   - RCTRequired (0.71.13)
   - RCTTypeSafety (0.71.13):
     - FBLazyVector (= 0.71.13)
@@ -88,51 +116,55 @@ PODS:
   - React-callinvoker (0.71.13)
   - React-Codegen (0.71.13):
     - FBReactNativeSpec
+    - hermes-engine
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
     - React-Core
-    - React-jsc
     - React-jsi
     - React-jsiexecutor
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
   - React-Core (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default (= 0.71.13)
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/CoreModulesHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/Default (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/DevSupport (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default (= 0.71.13)
     - React-Core/RCTWebSocket (= 0.71.13)
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-jsinspector (= 0.71.13)
@@ -140,100 +172,110 @@ PODS:
     - Yoga
   - React-Core/RCTActionSheetHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTAnimationHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTBlobHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTImageHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTLinkingHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTNetworkHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTSettingsHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTTextHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTVibrationHeaders (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - Yoga
   - React-Core/RCTWebSocket (0.71.13):
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default (= 0.71.13)
     - React-cxxreact (= 0.71.13)
-    - React-jsc
+    - React-hermes
     - React-jsi (= 0.71.13)
     - React-jsiexecutor (= 0.71.13)
     - React-perflogger (= 0.71.13)
@@ -251,6 +293,7 @@ PODS:
     - boost (= 1.76.0)
     - DoubleConversion
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-callinvoker (= 0.71.13)
     - React-jsi (= 0.71.13)
@@ -258,19 +301,27 @@ PODS:
     - React-logger (= 0.71.13)
     - React-perflogger (= 0.71.13)
     - React-runtimeexecutor (= 0.71.13)
-  - React-jsc (0.71.13):
-    - React-jsc/Fabric (= 0.71.13)
-    - React-jsi (= 0.71.13)
-  - React-jsc/Fabric (0.71.13):
-    - React-jsi (= 0.71.13)
+  - React-hermes (0.71.13):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
+    - RCT-Folly/Futures (= 2021.07.22.00)
+    - React-cxxreact (= 0.71.13)
+    - React-jsi
+    - React-jsiexecutor (= 0.71.13)
+    - React-jsinspector (= 0.71.13)
+    - React-perflogger (= 0.71.13)
   - React-jsi (0.71.13):
     - boost (= 1.76.0)
     - DoubleConversion
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
   - React-jsiexecutor (0.71.13):
     - DoubleConversion
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-cxxreact (= 0.71.13)
     - React-jsi (= 0.71.13)
@@ -305,6 +356,8 @@ PODS:
     - ReactCommon/turbomodule/core
   - react-native-sqlite-storage (6.0.1):
     - React-Core
+  - react-native-webview (13.6.3):
+    - React-Core
   - React-perflogger (0.71.13)
   - React-RCTActionSheet (0.71.13):
     - React-Core/RCTActionSheetHeaders (= 0.71.13)
@@ -322,6 +375,7 @@ PODS:
     - React-Core
     - ReactCommon/turbomodule/core
   - React-RCTBlob (0.71.13):
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Codegen (= 0.71.13)
     - React-Core/RCTBlobHeaders (= 0.71.13)
@@ -369,6 +423,7 @@ PODS:
   - ReactCommon/turbomodule/bridging (0.71.13):
     - DoubleConversion
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-callinvoker (= 0.71.13)
     - React-Core (= 0.71.13)
@@ -379,6 +434,7 @@ PODS:
   - ReactCommon/turbomodule/core (0.71.13):
     - DoubleConversion
     - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-callinvoker (= 0.71.13)
     - React-Core (= 0.71.13)
@@ -390,10 +446,6 @@ PODS:
     - React-Core
   - RNDeviceInfo (8.4.8):
     - React-Core
-  - RNFastImage (8.6.3):
-    - React-Core
-    - SDWebImage (~> 5.11.1)
-    - SDWebImageWebPCoder (~> 0.8.4)
   - RNFileViewer (2.1.5):
     - React-Core
   - RNFlashList (1.4.0):
@@ -413,16 +465,23 @@ PODS:
   - RNSentry (4.13.0):
     - React-Core
     - Sentry/HybridSDK (= 7.31.5)
+  - RNShare (10.0.2):
+    - React-Core
   - RNShareMenu (6.0.0):
     - React
   - RNSVG (13.4.0):
     - React-Core
-  - SDWebImage (5.11.1):
-    - SDWebImage/Core (= 5.11.1)
-  - SDWebImage/Core (5.11.1)
-  - SDWebImageWebPCoder (0.8.5):
+  - SDWebImage (5.17.0):
+    - SDWebImage/Core (= 5.17.0)
+  - SDWebImage/Core (5.17.0)
+  - SDWebImageAVIFCoder (0.10.1):
+    - libavif (>= 0.11.0)
+    - SDWebImage (~> 5.10)
+  - SDWebImageSVGCoder (1.7.0):
+    - SDWebImage/Core (~> 5.6)
+  - SDWebImageWebPCoder (0.13.0):
     - libwebp (~> 1.0)
-    - SDWebImage/Core (~> 5.10)
+    - SDWebImage/Core (~> 5.17)
   - Sentry/HybridSDK (7.31.5)
   - Yoga (1.14.0)
 
@@ -437,6 +496,7 @@ DEPENDENCIES:
   - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
+  - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoLocalAuthentication (from `../node_modules/expo-local-authentication/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
@@ -445,6 +505,8 @@ DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - libevent (~> 2.1.12)
   - MMKVAppExtension (= 1.2.16)
   - nodejs-mobile-react-native (from `../node_modules/nodejs-mobile-react-native`)
   - OpenSSL-Universal
@@ -458,7 +520,7 @@ DEPENDENCIES:
   - React-Core/RCTWebSocket (from `../node_modules/react-native/`)
   - React-CoreModules (from `../node_modules/react-native/React/CoreModules`)
   - React-cxxreact (from `../node_modules/react-native/ReactCommon/cxxreact`)
-  - React-jsc (from `../node_modules/react-native/ReactCommon/jsc`)
+  - React-hermes (from `../node_modules/react-native/ReactCommon/hermes`)
   - React-jsi (from `../node_modules/react-native/ReactCommon/jsi`)
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
@@ -474,6 +536,7 @@ DEPENDENCIES:
   - react-native-notifications (from `../node_modules/react-native-notifications`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-sqlite-storage (from `../node_modules/react-native-sqlite-storage`)
+  - react-native-webview (from `../node_modules/react-native-webview`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -489,7 +552,6 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
-  - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -497,6 +559,7 @@ DEPENDENCIES:
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
+  - RNShare (from `../node_modules/react-native-share`)
   - RNShareMenu (from `../node_modules/react-native-share-menu`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -505,12 +568,18 @@ SPEC REPOS:
   trunk:
     - Alamofire
     - fmt
+    - libaom
+    - libavif
+    - libevent
+    - libvmaf
     - libwebp
     - MMKV
     - MMKVAppExtension
     - MMKVCore
     - OpenSSL-Universal
     - SDWebImage
+    - SDWebImageAVIFCoder
+    - SDWebImageSVGCoder
     - SDWebImageWebPCoder
     - Sentry
 
@@ -533,6 +602,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo"
   ExpoClipboard:
     :path: "../node_modules/expo-clipboard/ios"
+  ExpoImage:
+    :path: "../node_modules/expo-image/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoLocalAuthentication:
@@ -549,6 +620,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/React/FBReactNativeSpec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  hermes-engine:
+    :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
   nodejs-mobile-react-native:
     :path: "../node_modules/nodejs-mobile-react-native"
   RCT-Folly:
@@ -569,8 +642,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/React/CoreModules"
   React-cxxreact:
     :path: "../node_modules/react-native/ReactCommon/cxxreact"
-  React-jsc:
-    :path: "../node_modules/react-native/ReactCommon/jsc"
+  React-hermes:
+    :path: "../node_modules/react-native/ReactCommon/hermes"
   React-jsi:
     :path: "../node_modules/react-native/ReactCommon/jsi"
   React-jsiexecutor:
@@ -601,6 +674,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-sqlite-storage:
     :path: "../node_modules/react-native-sqlite-storage"
+  react-native-webview:
+    :path: "../node_modules/react-native-webview"
   React-perflogger:
     :path: "../node_modules/react-native/ReactCommon/reactperflogger"
   React-RCTActionSheet:
@@ -631,8 +706,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
-  RNFastImage:
-    :path: "../node_modules/react-native-fast-image"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
   RNFlashList:
@@ -647,6 +720,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSentry:
     :path: "../node_modules/@sentry/react-native"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   RNShareMenu:
     :path: "../node_modules/react-native-share-menu"
   RNSVG:
@@ -665,6 +740,7 @@ SPEC CHECKSUMS:
   EXMediaLibrary: 587cd8aad27a6fc8d7c38b950bc75bc1845a7480
   Expo: b04d142a2b477a391b47c62d179c1a9e1140e6ad
   ExpoClipboard: 9b87df0ad145e3aa841614fab6aea54b7a604850
+  ExpoImage: bbd451559f49f78d858592fe1d4d74aedb3d900b
   ExpoKeepAwake: 69f5f627670d62318410392d03e0b5db0f85759a
   ExpoLocalAuthentication: b870b7a8df5e15b8b0be042185a2bb7764093096
   ExpoModulesCore: 6e0259511f4c4341b6b8357db393624df2280828
@@ -674,7 +750,12 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: c949e4b726d8cf9e19b73be60ecfa26355deceb3
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
-  libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
+  hermes-engine: 8b9dc37355d2e12879267382f4256afd356349a1
+  libaom: 144606b1da4b5915a1054383c3a4459ccdb3c661
+  libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
+  libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
+  libvmaf: 27f523f1e63c694d14d534cd0fddd2fab0ae8711
+  libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   MMKV: 784471ce430a2e2d16afef9053d63fab1b357d9e
   MMKVAppExtension: 2cc976e8a9a796a86ada7a95b0d407d6925e1262
   MMKVCore: 9cfef4c48c6c46f66226fc2e4634d78490206a48
@@ -685,13 +766,13 @@ SPEC CHECKSUMS:
   RCTTypeSafety: ca004f1fe0b76f7936f7fe7dfd761a4386cf72f5
   React: b27df2b1da30335cf1bf1909056c4e1c3a3603ae
   React-callinvoker: f2a69510d781d8226d51342a3cbe8a9b13573ea5
-  React-Codegen: fc3a9885cb4d341b87dc28627dc55d21abc89788
-  React-Core: ba3402af336f345b2178d97be2dd5d8d70f8f068
+  React-Codegen: 90eb4e8352b823234ee25adbe64233b2fc642aee
+  React-Core: 0771d135beb41b14e0e2ee9238fda50df6f18b97
   React-CoreModules: 0e081b26ab034992d6a60217fc35a83e8ad9b8ed
-  React-cxxreact: 65b6f835fb2654a8c2011412bad4f8a2f4d1ccca
-  React-jsc: 61eedc91c322c4d393cf8369a059902de301f2c9
-  React-jsi: a05a2aab770ba542966849e45f330bc366ad8905
-  React-jsiexecutor: 619be858f64120a6b9c1b36c1e8c538b55872e23
+  React-cxxreact: 3ec43be907f4d818c5113e436d661836d1ab5aa9
+  React-hermes: 870871faa5b35c8163361e22241360de26afe07d
+  React-jsi: c06ec745faeea7bb8845a9b906aefa7c049c86cb
+  React-jsiexecutor: a2867f1f81301b1f56ad968632b6ebc45c64a530
   React-jsinspector: 7e58fe86c7cc442fd11da0c9d8bef12a8d63f771
   React-logger: a3f6ca0d018749852a2a6f07c154bfc6fcd4195a
   react-native-blob-util: 30a6c9fd067aadf9177e61a998f2c7efb670598d
@@ -705,11 +786,12 @@ SPEC CHECKSUMS:
   react-native-notifications: 4601a5a8db4ced6ae7cfc43b44d35fe437ac50c4
   react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
   react-native-sqlite-storage: f6d515e1c446d1e6d026aa5352908a25d4de3261
+  react-native-webview: 88293a0f23eca8465c0433c023ec632930e644d0
   React-perflogger: 431a655960a02f01257d631b2a9bfbb02fd21064
   React-RCTActionSheet: 38c8d496d0faa63013d16f709e10a3acf6b5f100
   React-RCTAnimation: 6da4d599f3262ed8021433ddd96de45ac9e731b1
-  React-RCTAppDelegate: 3053338f2a9ebbaccb3828b3d471250a7e7b878c
-  React-RCTBlob: 54afdbd19710a6d0be0c28b64a4a0db625bc2a30
+  React-RCTAppDelegate: 66498edcd8ba93f0bd727304be671f9f3ddf0a23
+  React-RCTBlob: d8f7bf9f32fbde84565a81f4bdf34398f46d45dd
   React-RCTImage: 4e31e6ebf2b9705831d1855425a043b40eec1f61
   React-RCTLinking: 22ac16d44e2df03e9ca9125273fc58a7c507f529
   React-RCTNetwork: 4bacd206834633c23475485dbc21c18563627af4
@@ -717,10 +799,9 @@ SPEC CHECKSUMS:
   React-RCTText: 37a1341bdf1f80e9909f6b69a7a9ee747cb682d3
   React-RCTVibration: 2271362cdf9ff2dae6a2156f5101e5c30b02694d
   React-runtimeexecutor: 35cec6420c9d4144b0d06f9fdb093cf8f02bd52c
-  ReactCommon: 56296d2632e8eb53e94a2b7c0d05db694e164ca7
+  ReactCommon: fc9d1da17fa902910dcba550a54c16e7e1c70d2c
   RNCPicker: 0bf8ef8f7800524f32d2bb2a8bcadd53eda0ecd1
   RNDeviceInfo: 0400a6d0c94186d1120c3cbd97b23abc022187a9
-  RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
   RNFileViewer: ce7ca3ac370e18554d35d6355cffd7c30437c592
   RNFlashList: 399bf6a0db68f594ad2c86aaff3ea39564f39f8a
   RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
@@ -728,13 +809,16 @@ SPEC CHECKSUMS:
   RNPermissions: ee0d19dc2aee51875bd2596c782d217a06daa758
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
   RNSentry: acebe4104a6f5915ae871eb59dc73f13dcc92ef7
+  RNShare: 859ff710211285676b0bcedd156c12437ea1d564
   RNShareMenu: cb9dac548c8bf147d06f0bf07296ad51ea9f5fc3
   RNSVG: 07dbd870b0dcdecc99b3a202fa37c8ca163caec2
-  SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
-  SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
+  SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
+  SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
+  SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
+  SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   Sentry: 4c9babff9034785067c896fd580b1f7de44da020
   Yoga: 135109c9b8c5d1a8af3a58d21cd4c7aa7f3bf555
 
-PODFILE CHECKSUM: 68302db2a5a15e163aadeed28642bcc15306e642
+PODFILE CHECKSUM: 18d1a1d16d705d64c83cd1d33a1ce8681e00fdac
 
 COCOAPODS: 1.11.2

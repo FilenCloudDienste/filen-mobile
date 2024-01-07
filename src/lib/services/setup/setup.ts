@@ -1,6 +1,6 @@
 import { updateKeys } from "../user/keys"
-import { apiRequest } from "../../api"
-import { promiseAllSettled, toExpoFsPath } from "../../helpers"
+import { apiRequest, registerPushToken } from "../../api"
+import { promiseAllSettled } from "../../helpers"
 import storage from "../../storage"
 import { showToast } from "../../../components/Toasts"
 import { NavigationContainerRef } from "@react-navigation/native"
@@ -9,10 +9,11 @@ import { validate } from "uuid"
 import { Item } from "../../../types"
 import * as fs from "../../fs"
 import { init as initDb, dbFs } from "../../db"
-import FastImage from "react-native-fast-image"
+import { Image } from "expo-image"
 import { sharedStorage } from "../../storage/storage"
+import { Platform } from "react-native"
 
-const CACHE_CLEARING_ENABLED: boolean = true
+const CACHE_CLEARING_ENABLED = true
 
 const DONT_DELETE: string[] = [
 	"sentry",
@@ -119,9 +120,8 @@ export const checkOfflineItems = async (): Promise<void> => {
 }
 
 export const clearCacheDirectories = async (): Promise<void> => {
-	await FastImage.clearDiskCache().catch(console.error)
-
-	preloadAvatar().catch(console.error)
+	Image.clearDiskCache().catch(console.error)
+	Image.clearMemoryCache().catch(console.error)
 
 	const deletePromises = []
 	const cachedDownloadsPath = (await fs.getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
@@ -152,19 +152,6 @@ export const clearCacheDirectories = async (): Promise<void> => {
 		}
 	}
 
-	const tmpPath = (await fs.getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
-	const tmpItems = await fs.readDirectory(tmpPath)
-
-	for (let i = 0; i < tmpItems.length; i++) {
-		if (CACHE_CLEARING_ENABLED) {
-			if (canDelete(tmpItems[i])) {
-				deletePromises.push(fs.unlink(tmpPath + "/" + tmpItems[i]))
-			}
-		} else {
-			console.log("tmpItems", tmpItems[i])
-		}
-	}
-
 	const tempPath = (await fs.getDownloadPath({ type: "temp" })).slice(0, -1)
 	const tempItems = await fs.readDirectory(tempPath)
 
@@ -181,39 +168,19 @@ export const clearCacheDirectories = async (): Promise<void> => {
 	await promiseAllSettled(deletePromises)
 }
 
-export const preloadAvatar = async (): Promise<void> => {
-	const userId = storage.getNumber("userId")
-
-	if (userId == 0) {
-		return
-	}
-
-	const userAvatarCached = storage.getString("userAvatarCached:" + userId)
-
-	if (typeof userAvatarCached !== "string") {
-		return
-	}
-
-	const miscPath = await fs.getDownloadPath({ type: "misc" })
-	const avatarPath = miscPath + userAvatarCached
-	const stat = await fs.stat(avatarPath)
-
-	if (!stat.exists) {
-		return
-	}
-
-	FastImage.preload([
-		{
-			uri: toExpoFsPath(avatarPath)
-		}
-	])
-}
-
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<void> => {
 	dbFs.warmUp()
 		.then(() =>
 			checkOfflineItems()
-				.then(() => clearCacheDirectories().catch(console.error))
+				.then(() =>
+					clearCacheDirectories()
+						.then(() => {
+							if (Platform.OS === "ios") {
+								fs.deleteOldIOSDocumentDirs().catch(console.error)
+							}
+						})
+						.catch(console.error)
+				)
 				.catch(console.error)
 		)
 		.catch(console.error)
@@ -237,12 +204,27 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 		throw new Error(response.message)
 	}
 
-	storage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
-	storage.set("defaultDriveOnly:" + (storage.getNumber("userId") || 0), true)
+	const userId = storage.getNumber("userId") || 0
+
+	storage.set("defaultDriveUUID:" + userId, response.data.uuid)
+	storage.set("defaultDriveOnly:" + userId, true)
 
 	sharedStorage.set("apiKey", storage.getString("apiKey") || "")
 	sharedStorage.set("masterKeys", storage.getString("masterKeys") || "[]")
 	sharedStorage.set("isLoggedIn", storage.getBoolean("isLoggedIn"))
-	sharedStorage.set("defaultDriveUUID:" + (storage.getNumber("userId") || 0), response.data.uuid)
-	sharedStorage.set("userId", storage.getNumber("userId") || 0)
+	sharedStorage.set("defaultDriveUUID:" + userId, response.data.uuid)
+	sharedStorage.set("userId", userId)
+	sharedStorage.set("biometricPinAuth:" + userId, storage.getBoolean("biometricPinAuth:" + userId))
+
+	const pushToken = storage.getString("pushToken")
+
+	if (typeof pushToken === "string" && pushToken.length > 0) {
+		registerPushToken(pushToken).catch(console.error)
+	}
+
+	const deviceId = storage.getString("deviceId")
+
+	if (typeof deviceId !== "string") {
+		storage.set("deviceId", await global.nodeThread.uuidv4())
+	}
 }

@@ -7,6 +7,9 @@ import android.graphics.BitmapFactory;
 import android.os.CancellationSignal;
 import android.provider.DocumentsContract;
 import android.util.Log;
+
+import com.tencent.mmkv.MMKV;
+
 import org.json.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -76,7 +79,22 @@ public class FilenDocumentsProviderUtils {
     }
 
     public static boolean needsBiometricAuth() {
-        return false; // @TODO
+        if (!isLoggedIn()) {
+            return false;
+        }
+
+        final int userId = getUserId();
+        int lockAppAfter = (int) MMKVHelper.getInstance().decodeDouble("lockAppAfter:" + userId, 0.0);
+        final int lastBiometricScreen = (int) MMKVHelper.getInstance().decodeDouble("lastBiometricScreen:" + userId, 0.0);
+        final boolean biometricPinAuth = MMKVHelper.getInstance().decodeBool("biometricPinAuth:" + userId, false);
+
+        if (lockAppAfter <= 900) { // 15 minutes minimum timeout since "immediate" locking setting will make the provider never open
+            lockAppAfter = 900;
+        }
+
+        lockAppAfter = (int) Math.floor(lockAppAfter * 1000);
+
+        return System.currentTimeMillis() >= (lastBiometricScreen + lockAppAfter) && biometricPinAuth;
     }
 
     public static Object[] getRootsInfo () {
@@ -342,7 +360,7 @@ public class FilenDocumentsProviderUtils {
             final String[] masterKeys = getMasterKeys();
             final String lastMasterKey = masterKeys[masterKeys.length - 1];
             final String nameEncrypted = FilenCrypto.encryptMetadata(nameJSON, lastMasterKey);
-            final String nameHashed = FilenCrypto.hashFn(name);
+            final String nameHashed = FilenCrypto.hashFn(name.toLowerCase());
 
             FilenAPI.createFolder(getAPIKey(), uuid, nameEncrypted, nameHashed, parentUUID, new APIRequest.APICallback() {
                 @Override
@@ -913,7 +931,7 @@ public class FilenDocumentsProviderUtils {
             final String uploadKey = FilenCrypto.generateSecureRandomString(32);
             final String nameEncrypted = FilenCrypto.encryptMetadata(inputFileName, key);
             final String mimeEncrypted = FilenCrypto.encryptMetadata(mimeType, key);
-            final String nameHashed = FilenCrypto.hashFn(inputFileName);
+            final String nameHashed = FilenCrypto.hashFn(inputFileName.toLowerCase());
             final String sizeEncrypted = FilenCrypto.encryptMetadata(String.valueOf(inputFileSize), key);
             final String metadata = FilenCrypto.encryptMetadata(metadataJSON, lastMasterKey);
 
@@ -1059,7 +1077,7 @@ public class FilenDocumentsProviderUtils {
         final String[] masterKeys = getMasterKeys();
         final String lastMasterKey = masterKeys[masterKeys.length - 1];
         final String nameEncrypted = FilenCrypto.encryptMetadata(folderNameJSON, lastMasterKey);
-        final String nameHashed = FilenCrypto.hashFn(newName);
+        final String nameHashed = FilenCrypto.hashFn(newName.toLowerCase());
 
         final Thread thread = new Thread(() -> {
             try {
@@ -1153,7 +1171,7 @@ public class FilenDocumentsProviderUtils {
         final String lastMasterKey = masterKeys[masterKeys.length - 1];
         final String encryptMetadata = FilenCrypto.encryptMetadata(metadataJSON, lastMasterKey);
         final String nameEncrypted = FilenCrypto.encryptMetadata(newName, item.key);
-        final String nameHashed = FilenCrypto.hashFn(newName);
+        final String nameHashed = FilenCrypto.hashFn(newName.toLowerCase());
 
         final Thread thread = new Thread(() -> {
             try {

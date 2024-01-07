@@ -9,7 +9,7 @@ import { throttle } from "lodash"
 import memoryCache from "../../lib/memoryCache"
 import { getColor } from "../../style"
 import { Circle } from "react-native-progress"
-import { TransfersIndicatorProps, IndicatorProps, Download, ProgressData } from "../../types"
+import { TransfersIndicatorProps, IndicatorProps, Download, ProgressData, Item } from "../../types"
 import eventListener from "../../lib/eventListener"
 
 export const Indicator = memo(({ darkMode, visible, navigation, progress, currentRouteName }: IndicatorProps) => {
@@ -73,6 +73,26 @@ export const Indicator = memo(({ darkMode, visible, navigation, progress, curren
 	)
 })
 
+export type Transfer = {
+	uuid: string
+	started: number
+	bytes: number
+	percent: number
+	lastTime: number
+	lastBps: number
+	timeLeft: number
+	timestamp: number
+	size: number
+}
+
+export type CurrentUploads = Record<string, Transfer>
+
+export type CurrentDownloads = Record<string, Transfer>
+
+export type FinishedTransfer = Item & {
+	transferType: string
+}
+
 export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps) => {
 	const darkMode = useDarkMode()
 	const [visible, setVisible] = useState<boolean>(false)
@@ -80,43 +100,47 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 	const currentRoutes = useStore(state => state.currentRoutes)
 	const [currentRouteName, setCurrentRouteName] = useState<string>("")
 	const biometricAuthScreenVisible = useStore(state => state.biometricAuthScreenVisible)
-	const [currentUploads, setCurrentUploads] = useState<any>({})
-	const [currentDownloads, setCurrentDownloads] = useState<any>({})
+	const [currentUploads, setCurrentUploads] = useState<CurrentUploads>({})
+	const [currentDownloads, setCurrentDownloads] = useState<CurrentDownloads>({})
 	const setCurrentUploadsGlobal = useStore(state => state.setCurrentUploads)
 	const setCurrentDownloadsGlobal = useStore(state => state.setCurrentDownloads)
 	const setFinishedTransfersGlobal = useStore(state => state.setFinishedTransfers)
-	const [finishedTransfers, setFinishedTransfers] = useState<any>([])
+	const [finishedTransfers, setFinishedTransfers] = useState<FinishedTransfer[]>([])
 	const bytesSent = useRef<number>(0)
 	const allBytes = useRef<number>(0)
 	const progressStarted = useRef<number>(-1)
 
 	const throttledUpdate = useCallback(
-		throttle((currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible) => {
-			setCurrentUploadsGlobal(currentUploads)
-			setCurrentDownloadsGlobal(currentDownloads)
-			setFinishedTransfersGlobal(finishedTransfers)
+		throttle(
+			(
+				currentUploads: CurrentUploads,
+				currentDownloads: CurrentDownloads,
+				currentRouteName: string,
+				biometricAuthScreenVisible: boolean
+			) => {
+				if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0) {
+					setProgress((bytesSent.current / allBytes.current) * 100)
+				} else {
+					bytesSent.current = 0
+					progressStarted.current = -1
+					allBytes.current = 0
 
-			if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0) {
-				setProgress((bytesSent.current / allBytes.current) * 100)
-			} else {
-				bytesSent.current = 0
-				progressStarted.current = -1
-				allBytes.current = 0
+					setProgress(0)
+				}
 
-				setProgress(0)
-			}
-
-			if (
-				Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0 &&
-				currentRouteName !== "TransfersScreen" &&
-				!biometricAuthScreenVisible &&
-				currentRouteName !== "BiometricAuthScreen"
-			) {
-				setVisible(true)
-			} else {
-				setVisible(false)
-			}
-		}, 100),
+				if (
+					Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0 &&
+					currentRouteName !== "TransfersScreen" &&
+					!biometricAuthScreenVisible &&
+					currentRouteName !== "BiometricAuthScreen"
+				) {
+					setVisible(true)
+				} else {
+					setVisible(false)
+				}
+			},
+			1000
+		),
 		[]
 	)
 
@@ -125,26 +149,32 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 	}, [progress])
 
 	useEffect(() => {
-		throttledUpdate(currentUploads, currentDownloads, finishedTransfers, currentRouteName, biometricAuthScreenVisible)
+		throttledUpdate(currentUploads, currentDownloads, currentRouteName, biometricAuthScreenVisible)
+
+		setCurrentUploadsGlobal(currentUploads)
+		setCurrentDownloadsGlobal(currentDownloads)
+		setFinishedTransfersGlobal(finishedTransfers)
 
 		eventListener.emit(Object.keys(currentUploads).length > 0 ? "startForegroundService" : "stopForegroundService", "upload")
 		eventListener.emit(Object.keys(currentDownloads).length > 0 ? "startForegroundService" : "stopForegroundService", "download")
 	}, [currentUploads, currentDownloads, currentRouteName, biometricAuthScreenVisible, finishedTransfers])
 
 	useEffect(() => {
-		if (typeof currentRoutes !== "undefined") {
-			if (typeof currentRoutes[currentRoutes.length - 1] !== "undefined") {
+		try {
+			if (currentRoutes && currentRoutes[currentRoutes.length - 1] && currentRoutes[currentRoutes.length - 1].name) {
 				setCurrentRouteName(currentRoutes[currentRoutes.length - 1].name)
 			}
+		} catch (e) {
+			console.error(e)
 		}
 	}, [currentRoutes])
 
 	useEffect(() => {
 		const uploadListener = DeviceEventEmitter.addListener("upload", data => {
-			const now: number = Date.now()
+			const now = Date.now()
 
 			if (data.type == "start") {
-				setCurrentUploads((prev: any) => ({
+				setCurrentUploads(prev => ({
 					...prev,
 					[data.data.uuid]: {
 						...data.data,
@@ -168,7 +198,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 
 				allBytes.current += data.data.size
 			} else if (data.type == "started") {
-				setCurrentUploads((prev: any) => ({
+				setCurrentUploads(prev => ({
 					...prev,
 					[data.data.uuid]: {
 						...prev[data.data.uuid],
@@ -178,12 +208,12 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 					}
 				}))
 			} else if (data.type == "done") {
-				setCurrentUploads((prev: any) =>
+				setCurrentUploads(prev =>
 					Object.keys(prev)
 						.filter(key => key !== data.data.uuid)
 						.reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {})
 				)
-				setFinishedTransfers((prev: any) => [
+				setFinishedTransfers(prev => [
 					...[
 						{
 							...data.data,
@@ -193,7 +223,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 					...prev
 				])
 			} else if (data.type == "err") {
-				setCurrentUploads((prev: any) =>
+				setCurrentUploads(prev =>
 					Object.keys(prev)
 						.filter(key => key !== data.data.uuid)
 						.reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {})
@@ -212,10 +242,10 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 				}
 			}
 
-			const now: number = Date.now()
+			const now = Date.now()
 
 			if (data.type == "start") {
-				setCurrentDownloads((prev: any) => ({
+				setCurrentDownloads(prev => ({
 					...prev,
 					[data.data.uuid]: {
 						...data.data,
@@ -239,7 +269,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 
 				allBytes.current += data.data.size
 			} else if (data.type == "started") {
-				setCurrentDownloads((prev: any) => ({
+				setCurrentDownloads(prev => ({
 					...prev,
 					[data.data.uuid]: {
 						...prev[data.data.uuid],
@@ -249,12 +279,12 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 					}
 				}))
 			} else if (data.type == "done") {
-				setCurrentDownloads((prev: any) =>
+				setCurrentDownloads(prev =>
 					Object.keys(prev)
 						.filter(key => key !== data.data.uuid)
 						.reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {})
 				)
-				setFinishedTransfers((prev: any) => [
+				setFinishedTransfers(prev => [
 					...[
 						{
 							...data.data,
@@ -264,7 +294,7 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 					...prev
 				])
 			} else if (data.type == "err") {
-				setCurrentDownloads((prev: any) =>
+				setCurrentDownloads(prev =>
 					Object.keys(prev)
 						.filter(key => key !== data.data.uuid)
 						.reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {})
@@ -277,9 +307,9 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 		})
 
 		const uploadProgressListener = DeviceEventEmitter.addListener("uploadProgress", (data: ProgressData) => {
-			const now: number = Date.now()
+			const now = Date.now()
 
-			setCurrentUploads((prev: any) =>
+			setCurrentUploads(prev =>
 				Object.keys(prev).filter(key => key == data.data.uuid).length > 0
 					? {
 							...prev,
@@ -311,9 +341,9 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 				}
 			}
 
-			const now: number = Date.now()
+			const now = Date.now()
 
-			setCurrentDownloads((prev: any) =>
+			setCurrentDownloads(prev =>
 				Object.keys(prev).filter(key => key == data.data.uuid).length > 0
 					? {
 							...prev,
@@ -339,18 +369,18 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 		})
 
 		const stopTransferListener = DeviceEventEmitter.addListener("stopTransfer", uuid => {
-			setCurrentUploads((prev: any) =>
+			setCurrentUploads(prev =>
 				Object.keys(prev)
 					.filter(key => key !== uuid)
 					.reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {})
 			)
-			setCurrentDownloads((prev: any) =>
+			setCurrentDownloads(prev =>
 				Object.keys(prev)
 					.filter(key => key !== uuid)
 					.reduce((current, key) => Object.assign(current, { [key]: prev[key] }), {})
 			)
 
-			let size: number = 0
+			let size = 0
 
 			for (const prop in currentUploads) {
 				if (currentUploads[prop].uuid == uuid) {

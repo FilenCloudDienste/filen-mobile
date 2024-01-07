@@ -3,13 +3,12 @@ import { View, DeviceEventEmitter, Platform, Alert } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
-import { useSafeAreaInsets, EdgeInsets } from "react-native-safe-area-context"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload } from "../../../lib/services/download/download"
 import { getFileExt, getRouteURL, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
-import { StackActions } from "@react-navigation/native"
+import { StackActions, CommonActions } from "@react-navigation/native"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../../lib/permissions"
 import {
 	bulkFavorite,
@@ -25,19 +24,15 @@ import { removeFromOfflineStorage } from "../../../lib/services/offline"
 import { getColor } from "../../../style/colors"
 import { navigationAnimation } from "../../../lib/state"
 import * as MediaLibrary from "expo-media-library"
-import { ActionButton, ActionSheetIndicator } from "../ActionSheets"
+import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import useLang from "../../../lib/hooks/useLang"
 import { NavigationContainerRef } from "@react-navigation/native"
 import { Item } from "../../../types"
+import useDimensions from "../../../lib/hooks/useDimensions"
 
-export interface TopBarActionSheetProps {
-	navigation: NavigationContainerRef<ReactNavigation.RootParamList>
-}
-
-const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
+const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
-	const insets: EdgeInsets = useSafeAreaInsets()
 	const [viewMode, setViewMode] = useMMKVString("viewMode", storage)
 	const lang = useLang()
 	const currentRoutes = useStore(state => state.currentRoutes)
@@ -62,6 +57,7 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 	const [canMakeAvailableOffline, setCanMakeAvailableOffline] = useState<boolean>(false)
 	const [canDownload, setCanDownload] = useState<boolean>(false)
 	const [bulkItems, setBulkItems] = useState<Item[]>([])
+	const dimensions = useDimensions()
 
 	const maxBulkActionsItemsCount: number = 10000
 	const minBulkActionsItemCount: number = 2
@@ -810,7 +806,6 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 	}, [])
 
 	return (
-		// @ts-ignore
 		<ActionSheet
 			id="TopBarActionSheet"
 			gestureEnabled={true}
@@ -820,20 +815,14 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 				borderTopRightRadius: 15
 			}}
 			indicatorStyle={{
-				display: "none"
+				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
 			<View
 				style={{
-					paddingBottom: insets.bottom + (Platform.OS === "android" ? 25 : 5)
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
 			>
-				<ActionSheetIndicator />
-				<View
-					style={{
-						height: 15
-					}}
-				/>
 				{/*
 					currentRouteName == "TransfersScreen" && (
 						<>
@@ -1020,6 +1009,25 @@ const TopBarActionSheet = memo(({ navigation }: TopBarActionSheetProps) => {
 								text={i18n(lang, "emptyTrash")}
 							/>
 						)}
+						<ActionButton
+							onPress={async () => {
+								await SheetManager.hide("TopBarActionSheet")
+								await navigationAnimation({ enable: true })
+
+								navigation.dispatch(
+									CommonActions.reset({
+										index: 0,
+										routes: [
+											{
+												name: "SettingsScreen"
+											}
+										]
+									})
+								)
+							}}
+							icon="cog-outline"
+							text={i18n(lang, "settings")}
+						/>
 					</>
 				)}
 			</View>

@@ -10,7 +10,6 @@ import { showToast } from "../../components/Toasts"
 import { StackActions } from "@react-navigation/native"
 import { logout } from "../../lib/services/auth/logout"
 import { formatBytes } from "../../lib/helpers"
-import { useMountedState } from "react-use"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../style"
@@ -25,15 +24,12 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 	const lang = useLang()
 	const [accountSettings, setAccountSettings] = useState<any>({})
 	const [isLoading, setIsLoading] = useState<boolean>(true)
-	const isMounted = useMountedState()
 
 	useEffect(() => {
 		getSettings()
 			.then(settings => {
-				if (isMounted()) {
-					setAccountSettings(settings)
-					setIsLoading(false)
-				}
+				setAccountSettings(settings)
+				setIsLoading(false)
 			})
 			.catch(err => {
 				console.log(err)
@@ -86,9 +82,10 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 									})
 								}}
 								title={i18n(lang, "showGDPR")}
-								withBottomBorder={true}
+								withBottomBorder={false}
+								borderBottomRadius={10}
 							/>
-							<SettingsButtonLinkHighlight
+							{/*<SettingsButtonLinkHighlight
 								onPress={() => {
 									navigationAnimation({ enable: true }).then(() => {
 										navigation.dispatch(StackActions.push("InviteScreen"))
@@ -96,7 +93,7 @@ export const SettingsAccountScreen = memo(({ navigation }: SettingsAccountScreen
 								}}
 								title={i18n(lang, "invite")}
 								borderBottomRadius={10}
-							/>
+							/>*/}
 						</SettingsGroup>
 						<SettingsGroup>
 							<SettingsButtonLinkHighlight

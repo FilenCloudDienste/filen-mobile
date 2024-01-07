@@ -16,6 +16,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
   private let openingRangeData = "{".data(using: .utf8)!
   private let commaData = ",".data(using: .utf8)!
   private let endData = "]}}".data(using: .utf8)!
+  private let statusFalseData = "\"status\":false".data(using: .utf8)!
       
   init (identifier: NSFileProviderItemIdentifier) {
     self.identifier = identifier
@@ -73,8 +74,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         )
         
         return FileProviderItem(
-          identifier: NSFileProviderItemIdentifier(folder.uuid),
-          parentIdentifier: self.identifier,
+          identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: folder.uuid),
+          parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: self.identifier.rawValue),
           item: Item(
             uuid: folder.uuid,
             parent: folder.parent,
@@ -94,8 +95,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       }
       
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(folder.uuid),
-        parentIdentifier: self.identifier,
+        identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: folder.uuid),
+        parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: self.identifier.rawValue),
         item: Item(
           uuid: folder.uuid,
           parent: folder.parent,
@@ -177,8 +178,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         )
         
         return FileProviderItem(
-          identifier: NSFileProviderItemIdentifier(file.uuid),
-          parentIdentifier: self.identifier,
+          identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: file.uuid),
+          parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: self.identifier.rawValue),
           item: Item(
             uuid: file.uuid,
             parent: file.parent,
@@ -198,8 +199,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       }
       
       return FileProviderItem(
-        identifier: NSFileProviderItemIdentifier(file.uuid),
-        parentIdentifier: self.identifier,
+        identifier: FileProviderUtils.shared.getIdentifierFromUUID(id: file.uuid),
+        parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: self.identifier.rawValue),
         item: Item(
           uuid: file.uuid,
           parent: file.parent,
@@ -263,7 +264,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           try FileProviderUtils.shared.openDb().run(
             "INSERT OR REPLACE INTO items (uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
-              NSFileProviderItemIdentifier.rootContainer.rawValue,
+              rootFolderUUID,
               rootFolderUUID,
               "Cloud Drive",
               "folder",
@@ -281,7 +282,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         }
         
         let folderUUID = self.identifier == NSFileProviderItemIdentifier.rootContainer || self.identifier.rawValue == "root" || self.identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue ? rootFolderUUID : self.identifier.rawValue
-        let tempJSONFileURL = try await AF.download(url, method: .post, parameters: ["uuid": folderUUID], encoding: JSONEncoding.default, headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
+        let tempJSONFileURL = try await FileProviderUtils.shared.sessionManager.download(url, method: .post, parameters: ["uuid": folderUUID], encoding: JSONEncoding.default, headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
         
         defer {
           do {
@@ -315,13 +316,22 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
             let bytesRead = inputStream.read(&buffer, maxLength: bufferSize)
             
             if bytesRead > 0 || accumulatedData.count > 0 {
-              accumulatedData.append(contentsOf: buffer[0..<bytesRead])
+              if bytesRead > 0 {
+                accumulatedData.append(contentsOf: buffer[0..<bytesRead])
+              }
                 
               switch currentState {
               case .lookingForData:
+                if let dataRange = accumulatedData.range(of: self.statusFalseData) {
+                  break
+                }
+                
                 if let dataRange = accumulatedData.range(of: self.uploadsRangeData) {
                   accumulatedData.removeSubrange(0..<dataRange.endIndex)
+                  
                   currentState = .parsingData
+                } else {
+                  break
                 }
                 
               case .parsingData:

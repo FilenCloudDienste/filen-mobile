@@ -30,7 +30,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   }
   
   var capabilities: NSFileProviderItemCapabilities {
-    [.allowsReading, .allowsWriting, .allowsRenaming, .allowsReparenting, .allowsTrashing, .allowsDeleting]
+    [.allowsReading, .allowsWriting, .allowsRenaming, .allowsReparenting, .allowsTrashing, .allowsDeleting, .allowsEvicting]
   }
   
   var filename: String {
@@ -46,11 +46,11 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   }
   
   var creationDate: Date? {
-    Date(timeIntervalSince1970: TimeInterval(self.item.timestamp))
+    Date(timeIntervalSince1970: TimeInterval(FileProviderUtils.shared.convertTimestampToMs(self.item.timestamp) / 1000))
   }
   
   var contentModificationDate: Date? {
-    self.item.type == .folder ? nil : Date(timeIntervalSince1970: TimeInterval(self.item.lastModified / 1000))
+    self.item.type == .folder ? nil : Date(timeIntervalSince1970: TimeInterval(FileProviderUtils.shared.convertTimestampToMs(self.item.lastModified) / 1000))
   }
   
   var contentType: UTType {
@@ -59,21 +59,21 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   
   var favoriteRank: NSNumber? {
     get {
-      nil //FileProviderUtils.shared.getFavoriteRank(uuid: itemIdentifier.rawValue)
+      FileProviderUtils.shared.getFavoriteRank(uuid: itemIdentifier.rawValue)
     }
 
     set {
-      //FileProviderUtils.shared.setFavoriteRank(uuid: itemIdentifier.rawValue, rank: newValue)
+      FileProviderUtils.shared.setFavoriteRank(uuid: itemIdentifier.rawValue, rank: newValue)
     }
   }
 
   var tagData: Data? {
     get {
-      nil //FileProviderUtils.shared.getTagData(uuid: itemIdentifier.rawValue)
+      FileProviderUtils.shared.getTagData(uuid: itemIdentifier.rawValue)
     }
     
     set {
-      //FileProviderUtils.shared.setTagData(uuid: itemIdentifier.rawValue, data: newValue)
+      FileProviderUtils.shared.setTagData(uuid: itemIdentifier.rawValue, data: newValue)
     }
   }
   

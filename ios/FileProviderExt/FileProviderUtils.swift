@@ -39,8 +39,9 @@ class FileProviderUtils {
   private var dbPathCreated = false
   private var db: Connection?
   private var dbInitialized = false
-  private let downloadSemaphore = Semaphore(max: 1)
-  private let uploadSemaphore = Semaphore(max: 1)
+  private let downloadSemaphore = Semaphore(max: 3)
+  private let uploadSemaphore = Semaphore(max: 3)
+  private let transferSemaphore = Semaphore(max: 10)
   
   internal lazy var sessionConfiguration: URLSessionConfiguration = {
     let configuration = URLSessionConfiguration.af.default
@@ -155,9 +156,23 @@ class FileProviderUtils {
   
   func needsFaceID () -> Bool {
     autoreleasepool {
-      // TODO
-      
-      return false
+      guard let loggedIn = MMKVInstance.shared.instance?.bool(forKey: "isLoggedIn", defaultValue: false), let userId = self.userId(), let lockAppAfterVal = MMKVInstance.shared.instance?.double(forKey: "lockAppAfter:" + userId, defaultValue: 0), let lastBiometricScreen = MMKVInstance.shared.instance?.double(forKey: "lastBiometricScreen:" + userId, defaultValue: 0), let biometricPinAuth = MMKVInstance.shared.instance?.bool(forKey: "biometricPinAuth" + userId, defaultValue: false) else {
+        return false
+      }
+
+      if !isLoggedIn {
+        return false
+      }
+
+      var lockAppAfter = lockAppAfterVal
+
+      if lockAppAfter <= 900 { // 15 minutes minimum timeout since "immediate" locking setting will make the provider never open
+        lockAppAfter = 900
+      }
+
+      lockAppAfter = floor(lockAppAfter * 1000)
+
+      return (Date().timeIntervalSince1970 * 1000) >= (lastBiometricScreen + lockAppAfter) && biometricPinAuth
     }
   }
   
@@ -196,6 +211,19 @@ class FileProviderUtils {
       } catch {
         print("[removeMetadata] error: \(error)")
       }
+    }
+  }
+  
+  func getIdentifierFromUUID(id: String) -> NSFileProviderItemIdentifier {
+    if let root = rootFolderUUID() {
+      if root == id || id == NSFileProviderItemIdentifier.rootContainer.rawValue {
+        return NSFileProviderItemIdentifier.rootContainer
+      } else {
+        return NSFileProviderItemIdentifier(id)
+      }
+    } else {
+      print ("Couldn't get root identifier, returning id")
+      return NSFileProviderItemIdentifier(id)
     }
   }
   
@@ -278,8 +306,13 @@ class FileProviderUtils {
     return response
   }
   
-  func getItemFromUUID (uuid: String) -> ItemJSON? {
+  func getItemFromUUID (uuid id: String) -> ItemJSON? {
     guard let rootFolderUUID = self.rootFolderUUID() else { return nil }
+    var uuid = id
+    
+    if (id == NSFileProviderItemIdentifier.rootContainer.rawValue) {
+      uuid = rootFolderUUID
+    }
     
     do {
       if let row = try self.openDb().run("SELECT uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version FROM items WHERE uuid = ?", [uuid == NSFileProviderItemIdentifier.rootContainer.rawValue ? rootFolderUUID : uuid]).makeIterator().next() {
@@ -316,7 +349,7 @@ class FileProviderUtils {
     }
     
     let encryptedName = try FilenCrypto.shared.encryptFolderName(name: FolderMetadata(name: name), masterKeys: masterKeys)
-    let nameHashed = try FilenCrypto.shared.hashFn(message: name)
+    let nameHashed = try FilenCrypto.shared.hashFn(message: name.lowercased())
     
     let uuid = UUID().uuidString.lowercased()
     
@@ -361,7 +394,7 @@ class FileProviderUtils {
     }
     
     let encryptedName = try FilenCrypto.shared.encryptFolderName(name: FolderMetadata(name: toName), masterKeys: masterKeys)
-    let nameHashed = try FilenCrypto.shared.hashFn(message: toName)
+    let nameHashed = try FilenCrypto.shared.hashFn(message: toName.lowercased())
     
     let response: BaseAPIResponse = try await self.apiRequest(
       endpoint: "/v3/dir/rename",
@@ -404,7 +437,7 @@ class FileProviderUtils {
     )
     
     let encryptedName = try FilenCrypto.shared.encryptFileName(name: metadata.name, fileKey: metadata.key)
-    let nameHashed = try FilenCrypto.shared.hashFn(message: metadata.name)
+    let nameHashed = try FilenCrypto.shared.hashFn(message: metadata.name.lowercased())
     
     let response: BaseAPIResponse = try await self.apiRequest(
       endpoint: "/v3/file/rename",
@@ -479,7 +512,7 @@ class FileProviderUtils {
   
   func moveItem (parent: String, item: ItemJSON) async throws -> Void {
     let response: BaseAPIResponse = try await self.apiRequest(
-      endpoint: "/v3/" + item.type + "/move",
+      endpoint: "/v3/" + (item.type == "folder" ? "dir" : "file")  + "/move",
       method: "POST",
       body: [
         "uuid": item.uuid,
@@ -517,7 +550,7 @@ class FileProviderUtils {
   }
   
   func setFavoriteRank (uuid: String, rank: NSNumber?) -> Void {
-    Task {
+    autoreleasepool {
       if let rankNS = rank {
         let int = rankNS.intValue
         
@@ -682,21 +715,20 @@ class FileProviderUtils {
     let uploadKey = try FilenCrypto.shared.generateRandomString(length: 32)
     let nameEnc = try FilenCrypto.shared.encryptMetadata(metadata: fileName, key: key)
     let mimeEnc = try FilenCrypto.shared.encryptMetadata(metadata: mimeType, key: key)
-    let nameHashed = try FilenCrypto.shared.hashFn(message: fileName)
+    let nameHashed = try FilenCrypto.shared.hashFn(message: fileName.lowercased())
     let sizeEnc = try FilenCrypto.shared.encryptMetadata(metadata: String(fileSize), key: key)
     let metadata = try FilenCrypto.shared.encryptMetadata(metadata: metadataJSONString, key: lastMasterKey)
     
-    var bucket = ""
-    var region = ""
+    let uploadFileResult = UploadFileResult()
     
-    /*try await withThrowingTaskGroup(of: Void.self) { group in
-      for index in 0...fileChunks {
+    try await withThrowingTaskGroup(of: Void.self) { group in
+      for index in 0..<fileChunks {
         autoreleasepool {
           group.addTask {
-            transferSemaphore.wait()
+            try await self.transferSemaphore.acquire()
             
             defer {
-              transferSemaphore.signal()
+              self.transferSemaphore.release()
             }
             
             let result = try await self.encryptAndUploadChunk(url: url, chunkSize: chunkSizeToUse, uuid: uuid, index: index, uploadKey: uploadKey, parent: parent, key: key)
@@ -709,9 +741,12 @@ class FileProviderUtils {
         
         for try await _ in group {}
       }
-    }*/
+    }
     
-    for index in 0..<fileChunks {
+    let bucket = await uploadFileResult.bucket
+    let region = await uploadFileResult.region
+    
+    /*for index in 0..<fileChunks {
       let result = try await self.encryptAndUploadChunk(
         url: url,
         chunkSize: chunkSizeToUse,
@@ -726,7 +761,7 @@ class FileProviderUtils {
         bucket = result.bucket
         region = result.region
       }
-    }
+    }*/
     
     let done = try await self.markUploadAsDone(
       uuid: uuid,
@@ -1193,23 +1228,12 @@ class FileProviderUtils {
     }
   }
   
-  func downloadAndDecryptChunk (destinationURL: URL, uuid: String, region: String, bucket: String, index: Int, key: String, version: Int) async throws -> Void {
+  func downloadAndDecryptChunk (uuid: String, region: String, bucket: String, index: Int, key: String, version: Int) async throws -> URL {
     guard let downloadURL = URL(string: "https://egest.filen.io/\(region)/\(bucket)/\(uuid)/\(index)") else {
       throw NSFileProviderError(.serverUnreachable)
     }
     
     let tempFileURL = try self.getTempPath().appendingPathComponent(UUID().uuidString.lowercased() + "." + uuid + "." + String(index), isDirectory: false)
-    
-    defer {
-      do {
-        if FileManager.default.fileExists(atPath: tempFileURL.path) {
-          try FileManager.default.removeItem(at: tempFileURL)
-        }
-      } catch {
-        print(error)
-      }
-    }
-    
     let downloadedFileURL = try await sessionManager.download(downloadURL){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
     
     defer {
@@ -1222,23 +1246,9 @@ class FileProviderUtils {
       }
     }
     
-    let decryptedFileURL = try FilenCrypto.shared.streamDecryptData(input: downloadedFileURL, output: tempFileURL, key: key, version: version)
+    _ = try FilenCrypto.shared.streamDecryptData(input: downloadedFileURL, output: tempFileURL, key: key, version: version)
     
-    defer {
-      do {
-        if FileManager.default.fileExists(atPath: decryptedFileURL.path) {
-          try FileManager.default.removeItem(at: decryptedFileURL)
-        }
-      } catch {
-        print(error)
-      }
-    }
-    
-    if index == 0 {
-      try FileManager.default.moveItem(atPath: decryptedFileURL.path, toPath: destinationURL.path)
-    } else {
-      try FilenUtils.shared.appendFile(from: decryptedFileURL, to: destinationURL)
-    }
+    return tempFileURL
   }
 
   func downloadFile (uuid: String, url: String, maxChunks: Int) async throws -> (didDownload: Bool, url: String) {
@@ -1277,31 +1287,30 @@ class FileProviderUtils {
     }
     
     let chunksToDownload = maxChunks >= itemJSON.chunks ? itemJSON.chunks : maxChunks
-    
-    /*let currentWriteIndex = DownloadFileCurrentWriteIndex()
+    let currentWriteIndex = DownloadFileCurrentWriteIndex()
     
     @Sendable
     func waitForWriteSlot (index: Int) async throws -> Void {
       let currentIndex = await currentWriteIndex.index
       
       if (currentIndex != index) {
-        try await Task.sleep(nanoseconds: 10_000_000)
+        try await Task.sleep(nanoseconds: UInt64(FilenUtils.shared.millisecondsToNanoseconds(milliseconds: 10)))
         
         return try await waitForWriteSlot(index: index)
       }
     }
     
     try await withThrowingTaskGroup(of: Void.self) { group in
-      for index in 0...chunksToDownload {
+      for index in 0..<chunksToDownload {
         autoreleasepool {
           group.addTask {
-            transferSemaphore.wait()
+            try await self.transferSemaphore.acquire()
             
             defer {
-              transferSemaphore.signal()
+              self.transferSemaphore.release()
             }
             
-            let chunk = await self.downloadAndDecryptChunk(
+            let decryptedChunkURL = try await self.downloadAndDecryptChunk(
               uuid: uuid,
               region: itemJSON.region,
               bucket: itemJSON.bucket,
@@ -1310,33 +1319,33 @@ class FileProviderUtils {
               version: itemJSON.version
             )
             
-            if let chunkData = chunk {
-              try await waitForWriteSlot(index: index)
-              
-              if (index == 0) {
-                FileManager.default.createFile(atPath: url, contents: chunkData)
-              } else {
-                let fileHandle = try FileHandle(forWritingTo: fileURL)
-                
-                fileHandle.seekToEndOfFile()
-                fileHandle.write(chunkData)
-                fileHandle.closeFile()
+            defer {
+              do {
+                if FileManager.default.fileExists(atPath: decryptedChunkURL.path) {
+                  try FileManager.default.removeItem(at: decryptedChunkURL)
+                }
+              } catch {
+                print(error)
               }
-            
-              await currentWriteIndex.increase()
-            } else {
-              print("[downloadFile] error: chunkData nil")
-              
-              throw NSFileProviderError(.serverUnreachable)
             }
+            
+            try await waitForWriteSlot(index: index)
+            
+            if index == 0 {
+              try FileManager.default.moveItem(atPath: decryptedChunkURL.path, toPath: tempFileURL.path)
+            } else {
+              try FilenUtils.shared.appendFile(from: decryptedChunkURL, to: tempFileURL)
+            }
+          
+            await currentWriteIndex.increase()
           }
         }
         
         for try await _ in group {}
       }
-    }*/
+    }
     
-    for index in 0..<chunksToDownload  {
+    /*for index in 0..<chunksToDownload  {
       try await self.downloadAndDecryptChunk(
         destinationURL: tempFileURL,
         uuid: uuid,
@@ -1346,7 +1355,7 @@ class FileProviderUtils {
         key: itemJSON.key,
         version: itemJSON.version
       )
-    }
+    }*/
     
     if !FileManager.default.fileExists(atPath: tempFileURL.path) {
       throw NSFileProviderError(.serverUnreachable)
@@ -1376,6 +1385,16 @@ class FileProviderUtils {
     } catch {
         print("[cleanupTempDir] error:", error)
     }
+  }
+
+  func convertTimestampToMs (_ timestamp: Int) -> Int {
+      let now = Int(Date().timeIntervalSince1970 * 1000)
+
+      if abs(now - timestamp) < abs(now - timestamp * 1000) {
+          return timestamp
+      }
+
+      return timestamp * 1000
   }
 }
 
@@ -1414,5 +1433,23 @@ extension BodyStringEncoding.Errors: LocalizedError {
       case .emptyURLRequest: return "Empty url request"
       case .encodingProblem: return "Encoding problem"
     }
+  }
+}
+
+actor DownloadFileCurrentWriteIndex {
+  var index = 0
+  
+  func increase() -> Void {
+    index += 1
+  }
+}
+
+actor UploadFileResult {
+  var bucket = ""
+  var region = ""
+  
+  func set(bucket b: String, region r: String) -> Void {
+    bucket = b
+    region = r
   }
 }

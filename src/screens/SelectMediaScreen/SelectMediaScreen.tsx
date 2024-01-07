@@ -9,7 +9,6 @@ import {
 	TouchableHighlight,
 	TouchableOpacity,
 	Pressable,
-	Image,
 	DeviceEventEmitter,
 	ScrollView
 } from "react-native"
@@ -22,7 +21,6 @@ import { navigationAnimation } from "../../lib/state"
 import { getFileExt, getFilePreviewType, Semaphore, msToMinutesAndSeconds, getParent, toExpoFsPath } from "../../lib/helpers"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import * as VideoThumbnails from "expo-video-thumbnails"
-import { useMountedState } from "react-use"
 import { StackActions } from "@react-navigation/native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useIsFocused } from "@react-navigation/native"
@@ -30,9 +28,10 @@ import { showToast } from "../../components/Toasts"
 import { getAssetURI } from "../../lib/services/cameraUpload"
 import * as fs from "../../lib/fs"
 import { FlashList } from "@shopify/flash-list"
-import storage from "../../lib/storage"
+import storage, { sharedStorage } from "../../lib/storage/storage"
+import { Image } from "expo-image"
 
-const videoThumbnailSemaphore = new Semaphore(5)
+const videoThumbnailSemaphore = new Semaphore(8)
 const ALBUM_ROW_HEIGHT = 70
 const FETCH_ASSETS_LIMIT = 256
 
@@ -166,7 +165,6 @@ export const AssetItem = memo(
 	}) => {
 		const darkMode = useDarkMode()
 		const [image, setImage] = useState<string | undefined>(item.type == "image" ? item.asset.uri : undefined)
-		const isMounted = useMountedState()
 		const insets = useSafeAreaInsets()
 		const init = useRef<boolean>(false)
 
@@ -182,9 +180,7 @@ export const AssetItem = memo(
 					.then(uri => {
 						videoThumbnailSemaphore.release()
 
-						if (isMounted()) {
-							setImage(uri)
-						}
+						setImage(uri)
 					})
 					.catch(err => {
 						videoThumbnailSemaphore.release()
@@ -234,6 +230,7 @@ export const AssetItem = memo(
 						source={{
 							uri: encodeURI(item.asset.uri)
 						}}
+						cachePolicy="none"
 						style={{
 							width: size,
 							height: size
@@ -307,7 +304,6 @@ export interface AlbumItemProps {
 
 export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItemProps) => {
 	const [image, setImage] = useState<string>("")
-	const isMounted = useMountedState()
 	const init = useRef<boolean>(false)
 
 	useEffect(() => {
@@ -316,7 +312,7 @@ export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItem
 
 			getLastImageOfAlbum(item.album)
 				.then(uri => {
-					if (uri.length > 0 && isMounted()) {
+					if (uri.length > 0) {
 						setImage(uri)
 					}
 				})
@@ -366,6 +362,7 @@ export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItem
 							source={{
 								uri: encodeURI(image)
 							}}
+							cachePolicy="none"
 							style={{
 								width: 50,
 								height: 50,
@@ -457,14 +454,13 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 	const params = useRef<SelectMediaScreenParams>(route?.params || undefined).current
 	const [assets, setAssets] = useState<Asset[]>([])
 	const [albums, setAlbums] = useState<Album[]>([])
-	const isMounted = useMountedState()
 	const insets = useSafeAreaInsets()
 	const isFocused = useIsFocused()
 	const currentAssetsAfter = useRef<MediaLibrary.AssetRef | undefined>(undefined)
 	const assetsHasNextPage = useRef<boolean>(true)
 	const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
 	const canPaginate = useRef<boolean>(true)
-	const [containerWidth, setContainerWidth] = useState<number>(dimensions.width)
+	const [containerWidth, setContainerWidth] = useState<number>(dimensions.width - insets.left - insets.right)
 
 	const [selectedAssets, photoCount, videoCount] = useMemo(() => {
 		const selectedAssets = assets.filter(asset => asset.selected)
@@ -496,9 +492,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 			if (typeof params.album == "undefined") {
 				fetchAlbums()
 					.then(fetched => {
-						if (isMounted()) {
-							setAlbums(fetched)
-						}
+						setAlbums(fetched)
 					})
 					.catch(err => {
 						console.error(err)
@@ -511,13 +505,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 						if (fetched.assets.length > 0) {
 							currentAssetsAfter.current = fetched.assets[fetched.assets.length - 1].asset
 
-							if (isMounted()) {
-								setAssets(
-									fetched.assets.filter(
-										asset => typeof asset.asset.filename === "string" && asset.asset.filename.length > 0
-									)
-								)
-							}
+							setAssets(
+								fetched.assets.filter(asset => typeof asset.asset.filename === "string" && asset.asset.filename.length > 0)
+							)
 						}
 
 						assetsHasNextPage.current = fetched.hasNextPage
@@ -553,12 +543,14 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 		}
 	}, [params])
 
-	if (typeof params == "undefined") {
+	if (!params) {
 		return (
 			<>
 				<DefaultTopBar
 					onPressBack={() => {
-						storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+						storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+						sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
 						navigation.goBack()
 					}}
 					leftText={i18n(lang, "back")}
@@ -580,12 +572,13 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 			}}
 			onLayout={e => setContainerWidth(e.nativeEvent.layout.width)}
 		>
-			{typeof route.params.album == "undefined" ? (
+			{!route.params.album ? (
 				<>
 					<DefaultTopBar
 						onPressBack={() => {
-							if (typeof params.prevNavigationState !== "undefined") {
-								storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+							if (params.prevNavigationState) {
+								storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+								sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 								navigationAnimation({ enable: true }).then(() => {
 									const newRoutes = [
@@ -631,7 +624,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 									left: 15
 								}}
 								onPress={() => {
-									storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+									storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+									sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
 									navigation.goBack()
 								}}
 							>
@@ -671,7 +666,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 				<>
 					<DefaultTopBar
 						onPressBack={() => {
-							storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+							storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+							sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
 							navigation.goBack()
 						}}
 						leftText={i18n(lang, "albums")}
@@ -692,8 +689,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 										left: 15
 									}}
 									onPress={() => {
-										if (typeof params.prevNavigationState !== "undefined") {
-											storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+										if (params.prevNavigationState) {
+											storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+											sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 											DeviceEventEmitter.emit("selectMediaScreenUpload", {
 												assets: selectedAssets,
@@ -725,7 +723,8 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 										paddingRight: 15
 									}}
 									onPress={() => {
-										storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() - 5000)
+										storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+										sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 										navigation.dispatch(StackActions.pop(2))
 									}}
@@ -758,6 +757,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 							onMomentumScrollBegin={() => (onEndReachedCalledDuringMomentum.current = false)}
 							onEndReachedThreshold={0.1}
 							estimatedItemSize={estimatedItemSize}
+							extraData={{
+								containerWidth
+							}}
 							onEndReached={() => {
 								if (
 									assets.length > 0 &&
@@ -775,25 +777,23 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 											if (fetched.assets.length > 0) {
 												currentAssetsAfter.current = fetched.assets[fetched.assets.length - 1].asset
 
-												if (isMounted()) {
-													setAssets(prev => {
-														const existingIds: Record<string, boolean> = {}
+												setAssets(prev => {
+													const existingIds: Record<string, boolean> = {}
 
-														for (let i = 0; i < prev.length; i++) {
-															existingIds[prev[i].asset.id] = true
-														}
+													for (let i = 0; i < prev.length; i++) {
+														existingIds[prev[i].asset.id] = true
+													}
 
-														return [
-															...prev,
-															...fetched.assets.filter(
-																asset =>
-																	!existingIds[asset.asset.id] &&
-																	typeof asset.asset.filename === "string" &&
-																	asset.asset.filename.length > 0
-															)
-														]
-													})
-												}
+													return [
+														...prev,
+														...fetched.assets.filter(
+															asset =>
+																!existingIds[asset.asset.id] &&
+																typeof asset.asset.filename === "string" &&
+																asset.asset.filename.length > 0
+														)
+													]
+												})
 											}
 
 											assetsHasNextPage.current = fetched.hasNextPage
