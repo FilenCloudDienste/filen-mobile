@@ -1,11 +1,11 @@
 import React, { memo, useCallback } from "react"
-import { View, DeviceEventEmitter } from "react-native"
+import { View, DeviceEventEmitter, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage, { sharedStorage } from "../../../lib/storage/storage"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
 import { getRandomArbitrary, convertTimestampToMs, getFileExt, getParent, getFilePreviewType, safeAwait } from "../../../lib/helpers"
-import { queueFileUpload, UploadFile } from "../../../lib/services/upload/upload"
+import { queueFileUpload, UploadFile, uploadFolder } from "../../../lib/services/upload/upload"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { hasStoragePermissions, hasPhotoLibraryPermissions, hasCameraPermissions } from "../../../lib/permissions"
@@ -18,6 +18,8 @@ import { ActionButton } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import { getLastModified } from "../../../lib/services/cameraUpload"
 import useDimensions from "../../../lib/hooks/useDimensions"
+import { openDocumentTree } from "react-native-saf-x"
+import { MaterialIcons } from "@expo/vector-icons"
 
 const BottomBarAddActionSheet = memo(() => {
 	const darkMode = useDarkMode()
@@ -39,7 +41,6 @@ const BottomBarAddActionSheet = memo(() => {
 
 	const takePhoto = useCallback(async () => {
 		await SheetManager.hide("BottomBarAddActionSheet")
-		await new Promise(resolve => setTimeout(resolve, 100))
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasCameraPermissions(true))
 
@@ -175,9 +176,75 @@ const BottomBarAddActionSheet = memo(() => {
 		DeviceEventEmitter.emit("openSelectMediaScreen")
 	}, [])
 
+	const uploadFolders = useCallback(async () => {
+		await SheetManager.hide("BottomBarAddActionSheet")
+
+		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
+
+		if (hasPermissionsError) {
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		if (!hasPermissionsResult) {
+			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+
+			return
+		}
+
+		storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
+		try {
+			let uri = ""
+			const result = Platform.OS === "android" ? await openDocumentTree(true) : await RNDocumentPicker.pickDirectory()
+
+			if (result && result.uri) {
+				uri = result.uri
+			}
+
+			if (!uri || uri.length <= 0) {
+				return
+			}
+
+			const parent = getParent()
+
+			if (parent.length < 16) {
+				return
+			}
+
+			uploadFolder({ uri, parent, showFullScreenLoading: true }).catch(err => {
+				if (err === "stopped") {
+					return
+				}
+
+				if (err === "wifiOnly") {
+					showToast({ message: i18n(lang, "onlyWifiUploads") })
+
+					return
+				}
+
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		} catch (e) {
+			storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+			sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
+
+			if (RNDocumentPicker.isCancel(e)) {
+				return
+			}
+
+			console.error(e)
+
+			showToast({ message: e.toString() })
+		}
+	}, [lang])
+
 	const uploadFiles = useCallback(async () => {
 		await SheetManager.hide("BottomBarAddActionSheet")
-		await new Promise(resolve => setTimeout(resolve, 100))
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
@@ -321,6 +388,23 @@ const BottomBarAddActionSheet = memo(() => {
 								onPress={uploadFromGallery}
 								icon="image-outline"
 								text={i18n(lang, "uploadFromGallery")}
+							/>
+							<ActionButton
+								onPress={uploadFolders}
+								icon={
+									<View
+										style={{
+											marginLeft: -2
+										}}
+									>
+										<MaterialIcons
+											name="drive-folder-upload"
+											size={24}
+											color={getColor(darkMode, "textSecondary")}
+										/>
+									</View>
+								}
+								text={i18n(lang, "uploadFolders")}
 							/>
 							<ActionButton
 								onPress={uploadFiles}

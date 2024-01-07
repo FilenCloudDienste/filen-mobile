@@ -276,15 +276,15 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			await markNotificationsAsReadMutex.acquire()
 
 			if (
-				messages.length > 0 &&
-				markNotificationsAsReadLastMessageRef.current !== messages[messages.length - 1].uuid &&
+				sortedMessages.length > 0 &&
+				markNotificationsAsReadLastMessageRef.current !== sortedMessages[0].uuid &&
 				isFocused &&
 				atBottom
 			) {
 				try {
 					await markNotificationsAsRead(conversation.uuid)
 
-					markNotificationsAsReadLastMessageRef.current = messages[messages.length - 1].uuid
+					markNotificationsAsReadLastMessageRef.current = sortedMessages[0].uuid
 				} catch (e) {
 					console.error(e)
 				}
@@ -292,7 +292,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 
 			markNotificationsAsReadMutex.release()
 		})()
-	}, [messages, atBottom, isFocused, conversation, userId])
+	}, [sortedMessages, atBottom, isFocused, conversation])
 
 	useEffect(() => {
 		if (typeof lastFocusTimestamp !== "undefined") {

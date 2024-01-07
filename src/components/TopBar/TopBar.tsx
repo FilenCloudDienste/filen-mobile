@@ -128,24 +128,6 @@ export const TopBar = memo(
 			return [parent, routeURL]
 		}, [route])
 
-		const homeTabBarTextMaxWidth = useMemo(() => {
-			let tabs = 5
-
-			if (hideRecents) {
-				tabs -= 1
-			}
-
-			if (typeof privateKey !== "string" && typeof publicKey !== "string") {
-				tabs -= 2
-			} else {
-				if (typeof privateKey === "string" && typeof publicKey === "string" && privateKey.length < 16 && publicKey.length < 16) {
-					tabs -= 2
-				}
-			}
-
-			return Math.floor(dimensions.realWidth / tabs)
-		}, [dimensions, hideRecents, privateKey, publicKey])
-
 		const [
 			isMainScreen,
 			isTransfersScreen,
@@ -631,7 +613,9 @@ export const TopBar = memo(
 								>
 									<Text
 										style={{
-											color: getColor(darkMode, "textPrimary"),
+											color: isRecentsScreen
+												? getColor(darkMode, "textPrimary")
+												: getColor(darkMode, "textSecondary"),
 											fontSize: 15,
 											maxWidth: "80%"
 										}}
@@ -678,7 +662,9 @@ export const TopBar = memo(
 										>
 											<Text
 												style={{
-													color: getColor(darkMode, "textPrimary"),
+													color: isSharedInScreen
+														? getColor(darkMode, "textPrimary")
+														: getColor(darkMode, "textSecondary"),
 													fontSize: 15,
 													maxWidth: "80%"
 												}}
@@ -719,7 +705,9 @@ export const TopBar = memo(
 										>
 											<Text
 												style={{
-													color: getColor(darkMode, "textPrimary"),
+													color: isSharedOutScreen
+														? getColor(darkMode, "textPrimary")
+														: getColor(darkMode, "textSecondary"),
 													fontSize: 15,
 													maxWidth: "80%"
 												}}
@@ -762,7 +750,9 @@ export const TopBar = memo(
 							>
 								<Text
 									style={{
-										color: getColor(darkMode, "textPrimary"),
+										color: isPublicLinksScreen
+											? getColor(darkMode, "textPrimary")
+											: getColor(darkMode, "textSecondary"),
 										fontSize: 15,
 										maxWidth: "80%"
 									}}
@@ -803,7 +793,7 @@ export const TopBar = memo(
 							>
 								<Text
 									style={{
-										color: getColor(darkMode, "textPrimary"),
+										color: isFavoritesScreen ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary"),
 										fontSize: 15,
 										maxWidth: "80%"
 									}}
@@ -844,7 +834,7 @@ export const TopBar = memo(
 							>
 								<Text
 									style={{
-										color: getColor(darkMode, "textPrimary"),
+										color: isOfflineScreen ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary"),
 										fontSize: 15,
 										maxWidth: "80%"
 									}}

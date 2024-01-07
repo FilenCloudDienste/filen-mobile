@@ -509,5 +509,7 @@ export const en: {
 	addContactDialogTitleEmailPlaceholder: "Filen email address of the contact",
 	send: "Send",
 	accept: "Accept",
-	deny: "Deny"
+	deny: "Deny",
+	uploadFolders: "Upload folders",
+	uploadFolder: "Upload folder"
 }

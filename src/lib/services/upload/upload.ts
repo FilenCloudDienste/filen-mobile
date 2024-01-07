@@ -7,11 +7,11 @@ import {
 	toExpoFsPath,
 	getFilePreviewType
 } from "../../helpers"
-import { markUploadAsDone, checkIfItemParentIsShared } from "../../api"
+import { markUploadAsDone, checkIfItemParentIsShared, createFolder, folderExists } from "../../api"
 import { showToast } from "../../../components/Toasts"
 import storage from "../../storage"
 import { i18n } from "../../../i18n"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Platform } from "react-native"
 import { buildFile } from "../items"
 import ImageResizer from "react-native-image-resizer"
 import memoryCache from "../../memoryCache"
@@ -20,11 +20,20 @@ import { isOnline, isWifi } from "../isOnline"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { getThumbnailCacheKey } from "../thumbnails"
 import { encryptMetadata } from "../../crypto"
+import * as AndroidSAF from "react-native-saf-x"
+import pathModule from "path"
+import mimeTypes from "mime-types"
+import {
+	showFullScreenLoadingModal,
+	hideFullScreenLoadingModal
+} from "../../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 
 const maxThreads = 10
 const uploadSemaphore = new Semaphore(3)
 const uploadThreadsSemaphore = new Semaphore(maxThreads)
 const uploadVersion = 2
+const createFolderSemaphore = new Semaphore(10)
+const uploadFolderMutex = new Semaphore(1)
 
 export interface UploadFile {
 	path: string
@@ -488,4 +497,263 @@ export const queueFileUpload = ({
 
 		//showToast({ message: i18n(storage.getString("lang"), "fileUploaded", true, ["__NAME__"], [name]) })
 	})
+}
+
+export type UploadFolderItem = AndroidSAF.DocumentFileDetail & {
+	path: string
+}
+
+export const uploadFolder = async ({
+	uri,
+	parent,
+	showFullScreenLoading = true
+}: {
+	uri: string
+	parent: string
+	showFullScreenLoading?: boolean
+}) => {
+	await uploadFolderMutex.acquire()
+
+	if (showFullScreenLoading) {
+		showFullScreenLoadingModal()
+	}
+
+	try {
+		const isAndroidSAF = uri.startsWith("content://") && Platform.OS === "android"
+		const items: UploadFolderItem[] = []
+		const pathsToUUIDs: Record<string, string> = {}
+
+		if (isAndroidSAF) {
+			const stat = await AndroidSAF.stat(uri)
+			const uuid = await global.nodeThread.uuidv4()
+
+			pathsToUUIDs[stat.name] = uuid
+
+			items.push({
+				name: stat.name,
+				lastModified: stat.lastModified || Date.now(),
+				type: "directory",
+				uri,
+				mime: "",
+				size: 0,
+				path: stat.name
+			})
+		} else {
+			const name = pathModule.basename(uri)
+
+			if (!name || name.length <= 0) {
+				return
+			}
+
+			const stat = await fs.stat(uri)
+
+			if (!stat.exists) {
+				return
+			}
+
+			const uuid = await global.nodeThread.uuidv4()
+
+			pathsToUUIDs[name] = uuid
+
+			items.push({
+				name: name,
+				lastModified: stat.modificationTime || Date.now(),
+				type: "directory",
+				uri,
+				mime: "",
+				size: 0,
+				path: name
+			})
+		}
+
+		const readRecursive = async (path: string, currentPath: string) => {
+			if (isAndroidSAF) {
+				const files = await AndroidSAF.listFiles(path)
+
+				if (files.length <= 0) {
+					return
+				}
+
+				for (const file of files) {
+					const uuid = await global.nodeThread.uuidv4()
+					const fullPath = currentPath.length === 0 ? file.name : currentPath + "/" + file.name
+
+					if (pathsToUUIDs[fullPath]) {
+						continue
+					}
+
+					pathsToUUIDs[fullPath] = uuid
+
+					items.push({
+						name: file.name,
+						lastModified: file.lastModified || Date.now(),
+						type: file.type,
+						uri: file.uri,
+						mime: file.type === "directory" ? "" : mimeTypes.lookup(file.name) || "application/octet-stream",
+						size: file.type === "directory" ? 0 : file.size || 0,
+						path: fullPath
+					})
+
+					if (file.type === "directory") {
+						await readRecursive(file.uri, fullPath)
+					}
+				}
+			} else {
+				const files = await fs.readDirectory(path)
+
+				if (files.length <= 0) {
+					return
+				}
+
+				for (const file of files) {
+					const filePath = pathModule.join(path, file)
+					const stat = await fs.stat(filePath)
+
+					if (!stat.exists) {
+						continue
+					}
+
+					const uuid = await global.nodeThread.uuidv4()
+					const fullPath = currentPath.length === 0 ? file : currentPath + "/" + file
+
+					if (pathsToUUIDs[fullPath]) {
+						continue
+					}
+
+					pathsToUUIDs[fullPath] = uuid
+
+					if (stat.isDirectory) {
+						items.push({
+							name: file,
+							lastModified: stat.modificationTime || Date.now(),
+							type: "directory",
+							uri: filePath,
+							mime: "",
+							size: 0,
+							path: fullPath
+						})
+
+						await readRecursive(filePath, fullPath)
+					} else {
+						items.push({
+							name: file,
+							lastModified: stat.modificationTime || Date.now(),
+							type: "file",
+							uri: filePath,
+							mime: mimeTypes.lookup(file) || "application/octet-stream",
+							size: stat.size || 0,
+							path: fullPath
+						})
+					}
+				}
+			}
+		}
+
+		if (items.length <= 0) {
+			return
+		}
+
+		await readRecursive(uri, items[0].name)
+
+		const foldersToCreate = items
+			.sort((a, b) => a.path.split("/").length - b.path.split("/").length)
+			.filter(item => item.type === "directory")
+		const folderPromises: Promise<void>[] = []
+
+		for (const folder of foldersToCreate) {
+			folderPromises.push(
+				new Promise(async (resolve, reject) => {
+					await createFolderSemaphore.acquire()
+
+					try {
+						const baseDir = pathModule.dirname(folder.path)
+						const folderParent = baseDir === "." || baseDir.length <= 0 ? parent : pathsToUUIDs[baseDir] || ""
+
+						if (folderParent.length <= 16) {
+							resolve()
+
+							return
+						}
+
+						const exists = await folderExists({ name: folder.name, parent: folderParent })
+
+						if (exists.exists) {
+							pathsToUUIDs[folder.path] = exists.existsUUID
+
+							resolve()
+
+							return
+						}
+
+						await createFolder(folder.name, folderParent, pathsToUUIDs[folder.path])
+					} catch (e) {
+						reject(e)
+					} finally {
+						createFolderSemaphore.release()
+					}
+				})
+			)
+		}
+
+		await Promise.all(folderPromises)
+
+		const filesToUpload = items.sort((a, b) => a.path.split("/").length - b.path.split("/").length).filter(item => item.type === "file")
+		const tempDir = await fs.getDownloadPath({ type: "temp" })
+
+		if (showFullScreenLoading) {
+			hideFullScreenLoadingModal()
+		}
+
+		uploadFolderMutex.release()
+
+		for (const file of filesToUpload) {
+			const baseDir = pathModule.dirname(file.path)
+			const fileParent = baseDir === "." || baseDir.length <= 0 ? parent : pathsToUUIDs[baseDir] || ""
+			const tempPath = pathModule.join(tempDir, await global.nodeThread.uuidv4())
+
+			if (fileParent.length <= 16 || tempPath.length <= 0) {
+				continue
+			}
+
+			if ((await fs.stat(tempPath)).exists) {
+				await fs.unlink(tempPath)
+			}
+
+			if (isAndroidSAF) {
+				await AndroidSAF.copyFile(file.uri, tempPath, {
+					replaceIfDestinationExists: true
+				})
+			} else {
+				await fs.copy(file.uri, tempDir)
+			}
+
+			const uploadFile: UploadFile = {
+				path: tempPath,
+				name: file.name,
+				size: file.size,
+				mime: file.mime,
+				lastModified: file.lastModified
+			}
+
+			queueFileUpload({ file: uploadFile, parent: fileParent }).catch(err => {
+				if (err === "wifiOnly") {
+					showToast({ message: i18n(storage.getString("lang") || "en", "onlyWifiUploads") })
+
+					return
+				}
+
+				console.error(err)
+
+				showToast({ message: err.toString() })
+			})
+		}
+	} catch (e) {
+		throw e
+	} finally {
+		if (showFullScreenLoading) {
+			hideFullScreenLoadingModal()
+		}
+
+		uploadFolderMutex.release()
+	}
 }

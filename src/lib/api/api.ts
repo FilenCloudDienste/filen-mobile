@@ -1171,8 +1171,11 @@ export const renameFolder = async (folder: Item, name: string): Promise<void> =>
 	}
 }
 
-export const createFolder = async (name: string, parent: string): Promise<string> => {
-	const [nameHashed, uuid] = await Promise.all([global.nodeThread.hashFn({ string: name.toLowerCase() }), global.nodeThread.uuidv4()])
+export const createFolder = async (name: string, parent: string, passedUUID?: string): Promise<string> => {
+	const [nameHashed, uuid] = await Promise.all([
+		global.nodeThread.hashFn({ string: name.toLowerCase() }),
+		passedUUID ? Promise.resolve(passedUUID) : global.nodeThread.uuidv4()
+	])
 	const masterKeys = getMasterKeys()
 	const encrypted = await encryptMetadata(JSON.stringify({ name }), masterKeys[masterKeys.length - 1])
 	const response = await apiRequest({

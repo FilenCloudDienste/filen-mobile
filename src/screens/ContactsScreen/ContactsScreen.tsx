@@ -560,7 +560,7 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 						>
 							<Text
 								style={{
-									color: getColor(darkMode, "textPrimary"),
+									color: activeTab === tab ? getColor(darkMode, "textPrimary") : getColor(darkMode, "textSecondary"),
 									fontSize: 15,
 									maxWidth: "80%"
 								}}

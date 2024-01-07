@@ -1,4 +1,4 @@
-import { memo } from "react"
+import { memo, useMemo } from "react"
 import { ChatMessage, ChatConversationParticipant, chatConversations, ChatConversation, chatMessages, UserGetAccount } from "../../lib/api"
 import { dbFs } from "../../lib/db"
 import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
@@ -22,8 +22,17 @@ export type DisplayMessageAs = Record<string, MessageDisplayType>
 export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
 export const customEmojisListRecord = customEmojis.reduce((prev, value) => ({ ...prev, [value.id]: value.skins[0].src }), {})
+export const lineBreakRegex = /\n/
+export const codeRegex = /```([\s\S]*?)```/
+export const linkRegex = /(https?:\/\/\S+)/
+export const emojiRegexWithSkinTones = /:[\d+_a-z-]+(?:::skin-tone-\d+)?:/
+export const mentions = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/
+export const emojiRegex = new RegExp(`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}`)
+export const messageContentRegex = new RegExp(
+	`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${lineBreakRegex.source}|${linkRegex.source}|${mentions.source}`
+)
 
-const emojiConvertor = new EmojiConvertor()
+export const emojiConvertor = new EmojiConvertor()
 
 export const getUserNameFromMessage = (message: ChatMessage): string => {
 	return message.senderNickName.length > 0 ? message.senderNickName : message.senderEmail
@@ -444,37 +453,108 @@ export const ReplaceMessageWithComponents = memo(
 		participants: ChatConversationParticipant[]
 		failed: boolean
 	}) => {
-		const lineBreakRegex = /\n/
-		const codeRegex = /```([\s\S]*?)```/
-		const linkRegex = /(https?:\/\/\S+)/
-		const emojiRegexWithSkinTones = /:[\d+_a-z-]+(?:::skin-tone-\d+)?:/
-		const mentions = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/
-		const emojiRegex = new RegExp(`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}`)
-		const regex = new RegExp(
-			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${lineBreakRegex.source}|${linkRegex.source}|${mentions.source}`
-		)
-		const emojiCount = content.match(emojiRegex)
-		const defaultSize = 30
-		let size: number | undefined = defaultSize
+		const replaced = useMemo(() => {
+			const emojiCount = content.match(emojiRegex)
+			const defaultSize = 30
+			let size: number | undefined = defaultSize
 
-		if (emojiCount) {
-			const emojiCountJoined = emojiCount.join("")
+			if (emojiCount) {
+				const emojiCountJoined = emojiCount.join("")
 
-			if (emojiCountJoined.length !== content.trim().length) {
-				size = 20
+				if (emojiCountJoined.length !== content.trim().length) {
+					size = 20
+				}
 			}
-		}
 
-		const replaced = regexifyString({
-			pattern: regex,
-			decorator: (match, index) => {
-				if (match.startsWith("@") && (match.split("@").length === 3 || match.startsWith("@everyone"))) {
-					const email = match.slice(1).trim()
+			return regexifyString({
+				pattern: messageContentRegex,
+				decorator: (match, index) => {
+					if (match.startsWith("@") && (match.split("@").length === 3 || match.startsWith("@everyone"))) {
+						const email = match.slice(1).trim()
 
-					if (email === "everyone") {
+						if (email === "everyone") {
+							return (
+								<View
+									key={index}
+									style={{
+										backgroundColor: getColor(darkMode, "indigo"),
+										borderRadius: 5,
+										padding: 1,
+										paddingLeft: 3,
+										paddingRight: 3,
+										width: "auto",
+										height: "auto"
+									}}
+								>
+									<Text
+										style={{
+											color: failed ? getColor(darkMode, "red") : "white",
+											fontSize: 14
+										}}
+									>
+										@everyone
+									</Text>
+								</View>
+							)
+						}
+
+						if (email.indexOf("@") === -1) {
+							return (
+								<View
+									key={index}
+									style={{
+										backgroundColor: getColor(darkMode, "backgroundSecondary"),
+										borderRadius: 5,
+										padding: 1,
+										paddingLeft: 3,
+										paddingRight: 3,
+										width: "auto",
+										height: "auto"
+									}}
+								>
+									<Text
+										style={{
+											color: failed ? getColor(darkMode, "red") : getColor(darkMode, "textPrimary"),
+											fontSize: 14
+										}}
+									>
+										@UnknownUser
+									</Text>
+								</View>
+							)
+						}
+
+						const foundParticipant = participants.filter(p => p.email === email)
+
+						if (foundParticipant.length === 0) {
+							return (
+								<View
+									key={index}
+									style={{
+										backgroundColor: getColor(darkMode, "backgroundSecondary"),
+										borderRadius: 5,
+										padding: 1,
+										paddingLeft: 3,
+										paddingRight: 3,
+										width: "auto",
+										height: "auto"
+									}}
+								>
+									<Text
+										style={{
+											color: failed ? getColor(darkMode, "red") : getColor(darkMode, "textPrimary"),
+											fontSize: 14
+										}}
+									>
+										@UnknownUser
+									</Text>
+								</View>
+							)
+						}
+
 						return (
-							<View
-								key={match + ":" + index}
+							<TouchableHighlight
+								key={index}
 								style={{
 									backgroundColor: getColor(darkMode, "indigo"),
 									borderRadius: 5,
@@ -484,6 +564,7 @@ export const ReplaceMessageWithComponents = memo(
 									width: "auto",
 									height: "auto"
 								}}
+								onPress={() => eventListener.emit("openUserProfileModal", foundParticipant[0].userId)}
 							>
 								<Text
 									style={{
@@ -491,229 +572,150 @@ export const ReplaceMessageWithComponents = memo(
 										fontSize: 14
 									}}
 								>
-									@everyone
+									@{getUserNameFromParticipant(foundParticipant[0])}
 								</Text>
-							</View>
+							</TouchableHighlight>
 						)
 					}
 
-					if (email.indexOf("@") === -1) {
+					if (match.split("```").length >= 3) {
+						let code = match.split("```").join("")
+
+						if (code.startsWith("\n")) {
+							code = code.slice(1, code.length)
+						}
+
+						if (code.endsWith("\n")) {
+							code = code.slice(0, code.length - 1)
+						}
+
 						return (
 							<View
-								key={match + ":" + index}
+								key={index}
 								style={{
-									backgroundColor: getColor(darkMode, "backgroundSecondary"),
-									borderRadius: 5,
-									padding: 1,
-									paddingLeft: 3,
-									paddingRight: 3,
-									width: "auto",
-									height: "auto"
-								}}
-							>
-								<Text
-									style={{
-										color: failed ? getColor(darkMode, "red") : getColor(darkMode, "textPrimary"),
-										fontSize: 14
-									}}
-								>
-									@UnknownUser
-								</Text>
-							</View>
-						)
-					}
-
-					const foundParticipant = participants.filter(p => p.email === email)
-
-					if (foundParticipant.length === 0) {
-						return (
-							<View
-								key={match + ":" + index}
-								style={{
-									backgroundColor: getColor(darkMode, "backgroundSecondary"),
-									borderRadius: 5,
-									padding: 1,
-									paddingLeft: 3,
-									paddingRight: 3,
-									width: "auto",
-									height: "auto"
-								}}
-							>
-								<Text
-									style={{
-										color: failed ? getColor(darkMode, "red") : getColor(darkMode, "textPrimary"),
-										fontSize: 14
-									}}
-								>
-									@UnknownUser
-								</Text>
-							</View>
-						)
-					}
-
-					return (
-						<TouchableHighlight
-							key={match + ":" + index}
-							style={{
-								backgroundColor: getColor(darkMode, "indigo"),
-								borderRadius: 5,
-								padding: 1,
-								paddingLeft: 3,
-								paddingRight: 3,
-								width: "auto",
-								height: "auto"
-							}}
-							onPress={() => eventListener.emit("openUserProfileModal", foundParticipant[0].userId)}
-						>
-							<Text
-								style={{
-									color: failed ? getColor(darkMode, "red") : "white",
-									fontSize: 14
-								}}
-							>
-								@{getUserNameFromParticipant(foundParticipant[0])}
-							</Text>
-						</TouchableHighlight>
-					)
-				}
-
-				if (match.split("```").length >= 3) {
-					let code = match.split("```").join("")
-
-					if (code.startsWith("\n")) {
-						code = code.slice(1, code.length)
-					}
-
-					if (code.endsWith("\n")) {
-						code = code.slice(0, code.length - 1)
-					}
-
-					return (
-						<View
-							key={match + ":" + index}
-							style={{
-								flexDirection: "column",
-								maxWidth: "100%",
-								paddingTop: 5,
-								paddingBottom: 5
-							}}
-						>
-							<TextInput
-								style={{
+									flexDirection: "column",
 									maxWidth: "100%",
-									backgroundColor: getColor(darkMode, "backgroundSecondary"),
-									borderRadius: 5,
-									flexDirection: "row",
-									color: getColor(darkMode, "textPrimary"),
-									padding: 10
+									paddingTop: 5,
+									paddingBottom: 5
 								}}
-								value={code}
-								selectTextOnFocus={false}
-								autoCorrect={false}
-								autoFocus={false}
-								autoCapitalize="none"
-								autoComplete="off"
-								scrollEnabled={false}
-								editable={false}
-								multiline={true}
-							/>
-						</View>
-					)
-				}
+							>
+								<TextInput
+									style={{
+										maxWidth: "100%",
+										backgroundColor: getColor(darkMode, "backgroundSecondary"),
+										borderRadius: 5,
+										flexDirection: "row",
+										color: getColor(darkMode, "textPrimary"),
+										padding: 10
+									}}
+									value={code}
+									selectTextOnFocus={false}
+									autoCorrect={false}
+									autoFocus={false}
+									autoCapitalize="none"
+									autoComplete="off"
+									scrollEnabled={false}
+									editable={false}
+									multiline={true}
+								/>
+							</View>
+						)
+					}
 
-				if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
+					if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
+						return (
+							<View
+								key={index}
+								style={{
+									flexDirection: "row",
+									alignItems: "center",
+									flexWrap: "wrap",
+									flexShrink: 0
+								}}
+							>
+								<Text
+									style={{
+										color: failed ? getColor(darkMode, "red") : getColor(darkMode, "linkPrimary")
+									}}
+									onPress={() => Linking.openURL(match).catch(console.error)}
+									onLongPress={() => Linking.openURL(match).catch(console.error)}
+									numberOfLines={1}
+								>
+									{match}
+								</Text>
+							</View>
+						)
+					}
+
+					if (match.indexOf("\n") !== -1) {
+						return (
+							<View
+								key={index}
+								style={{
+									height: 0.5,
+									width: "100%",
+									flexBasis: "100%"
+								}}
+							/>
+						)
+					}
+
+					const customEmoji = match.split(":").join("").trim()
+
+					if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
+						return (
+							<View
+								key={index}
+								style={{
+									width: size,
+									height: size,
+									marginTop: 3
+								}}
+							>
+								<Image
+									source={{
+										uri: customEmojisListRecord[customEmoji]
+									}}
+									cachePolicy="memory-disk"
+									placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
+									style={{
+										width: size,
+										height: size,
+										flexShrink: 0
+									}}
+								/>
+							</View>
+						)
+					}
+
 					return (
 						<View
-							key={match + ":" + index}
+							key={index}
 							style={{
 								flexDirection: "row",
 								alignItems: "center",
-								flexWrap: "wrap",
+								justifyContent: "center",
+								marginTop: 2,
+								padding: 0,
 								flexShrink: 0
 							}}
 						>
 							<Text
 								style={{
-									color: failed ? getColor(darkMode, "red") : getColor(darkMode, "linkPrimary")
+									color: getColor(darkMode, "textPrimary"),
+									fontSize: size,
+									lineHeight: size + (Platform.OS === "android" ? 4 : 2),
+									padding: 0
 								}}
-								onPress={() => Linking.openURL(match).catch(console.error)}
-								onLongPress={() => Linking.openURL(match).catch(console.error)}
-								numberOfLines={1}
 							>
-								{match}
+								{emojiConvertor.replace_colons(match)}
 							</Text>
 						</View>
 					)
-				}
-
-				if (match.indexOf("\n") !== -1) {
-					return (
-						<View
-							key={match + ":" + index}
-							style={{
-								height: 0.5,
-								width: "100%",
-								flexBasis: "100%"
-							}}
-						/>
-					)
-				}
-
-				const customEmoji = match.split(":").join("").trim()
-
-				if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
-					return (
-						<View
-							key={match + ":" + index}
-							style={{
-								width: size,
-								height: size,
-								marginTop: 3
-							}}
-						>
-							<Image
-								source={{
-									uri: customEmojisListRecord[customEmoji]
-								}}
-								cachePolicy="memory-disk"
-								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
-								style={{
-									width: size,
-									height: size,
-									flexShrink: 0
-								}}
-							/>
-						</View>
-					)
-				}
-
-				return (
-					<View
-						key={match + ":" + index}
-						style={{
-							flexDirection: "row",
-							alignItems: "center",
-							justifyContent: "center",
-							marginTop: 2,
-							padding: 0,
-							flexShrink: 0
-						}}
-					>
-						<Text
-							style={{
-								color: getColor(darkMode, "textPrimary"),
-								fontSize: size,
-								lineHeight: size + (Platform.OS === "android" ? 4 : 2),
-								padding: 0
-							}}
-						>
-							{emojiConvertor.replace_colons(match)}
-						</Text>
-					</View>
-				)
-			},
-			input: content
-		})
+				},
+				input: content
+			})
+		}, [darkMode, content, failed, participants])
 
 		return (
 			<View
@@ -796,60 +798,68 @@ export const ReplaceInlineMessageWithComponents = memo(
 		color?: string
 		fontSize?: number
 	}) => {
-		const codeRegex = /```([\s\S]*?)```/
-		const linkRegex = /(https?:\/\/\S+)/
-		const emojiRegexWithSkinTones = /:[\d+_a-z-]+(?:::skin-tone-\d+)?:/
-		const mentions = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/
-		const regex = new RegExp(
-			`${EMOJI_REGEX.source}|${emojiRegexWithSkinTones.source}|${codeRegex.source}|${linkRegex.source}|${mentions.source}`
-		)
-		const defaultSize = emojiSize ? emojiSize : 11
-		let size: number | undefined = defaultSize
+		const replaced = useMemo(() => {
+			const defaultSize = emojiSize ? emojiSize : 11
+			let size: number | undefined = defaultSize
 
-		const replaced = regexifyString({
-			pattern: regex,
-			decorator: (match, index) => {
-				if (match.startsWith("@") && (match.split("@").length === 3 || match.startsWith("@everyone"))) {
-					const email = match.slice(1).trim()
+			return regexifyString({
+				pattern: messageContentRegex,
+				decorator: (match, index) => {
+					if (match.startsWith("@") && (match.split("@").length === 3 || match.startsWith("@everyone"))) {
+						const email = match.slice(1).trim()
 
-					if (email === "everyone") {
+						if (email === "everyone") {
+							return (
+								<View key={index}>
+									<Text
+										style={{
+											color: color ? color : getColor(darkMode, "textSecondary"),
+											fontSize: fontSize ? fontSize : 15
+										}}
+									>
+										@everyone
+									</Text>
+								</View>
+							)
+						}
+
+						const foundParticipant = participants.filter(p => p.email === email)
+
+						if (foundParticipant.length === 0) {
+							return (
+								<View key={index}>
+									<Text
+										style={{
+											color: color ? color : getColor(darkMode, "textSecondary"),
+											fontSize: fontSize ? fontSize : 15
+										}}
+									>
+										@UnknownUser
+									</Text>
+								</View>
+							)
+						}
+
+						if (hideMentions) {
+							return (
+								<View key={index}>
+									<Text
+										style={{
+											color: color ? color : getColor(darkMode, "textSecondary"),
+											fontSize: fontSize ? fontSize : 15
+										}}
+									>
+										@{getUserNameFromParticipant(foundParticipant[0])}
+									</Text>
+								</View>
+							)
+						}
+
 						return (
-							<View key={match + ":" + index}>
+							<View key={index}>
 								<Text
 									style={{
-										color: color ? color : getColor(darkMode, "textSecondary"),
-										fontSize: fontSize ? fontSize : 15
-									}}
-								>
-									@everyone
-								</Text>
-							</View>
-						)
-					}
-
-					const foundParticipant = participants.filter(p => p.email === email)
-
-					if (foundParticipant.length === 0) {
-						return (
-							<View key={match + ":" + index}>
-								<Text
-									style={{
-										color: color ? color : getColor(darkMode, "textSecondary"),
-										fontSize: fontSize ? fontSize : 15
-									}}
-								>
-									@UnknownUser
-								</Text>
-							</View>
-						)
-					}
-
-					if (hideMentions) {
-						return (
-							<View key={match + ":" + index}>
-								<Text
-									style={{
-										color: color ? color : getColor(darkMode, "textSecondary"),
+										color: color ? color : getColor(darkMode, "textPrimary"),
 										fontSize: fontSize ? fontSize : 15
 									}}
 								>
@@ -859,27 +869,27 @@ export const ReplaceInlineMessageWithComponents = memo(
 						)
 					}
 
-					return (
-						<View key={match + ":" + index}>
-							<Text
-								style={{
-									color: color ? color : getColor(darkMode, "textPrimary"),
-									fontSize: fontSize ? fontSize : 15
-								}}
-							>
-								@{getUserNameFromParticipant(foundParticipant[0])}
-							</Text>
-						</View>
-					)
-				}
+					if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
+						if (hideLinks) {
+							return (
+								<View key={index}>
+									<Text
+										style={{
+											color: color ? color : getColor(darkMode, "textPrimary"),
+											fontSize: fontSize ? fontSize : 15
+										}}
+									>
+										{match}
+									</Text>
+								</View>
+							)
+						}
 
-				if (linkRegex.test(match) && (match.startsWith("https://") || match.startsWith("http://"))) {
-					if (hideLinks) {
 						return (
-							<View key={match + ":" + index}>
+							<View key={index}>
 								<Text
 									style={{
-										color: color ? color : getColor(darkMode, "textPrimary"),
+										color: color ? color : getColor(darkMode, "linkPrimary"),
 										fontSize: fontSize ? fontSize : 15
 									}}
 								>
@@ -889,68 +899,55 @@ export const ReplaceInlineMessageWithComponents = memo(
 						)
 					}
 
+					const customEmoji = match.split(":").join("").trim()
+
+					if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
+						return (
+							<Image
+								key={index}
+								source={{
+									uri: customEmojisListRecord[customEmoji]
+								}}
+								cachePolicy="memory-disk"
+								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
+								style={{
+									width: size,
+									height: size,
+									flexShrink: 0,
+									marginTop: 3
+								}}
+							/>
+						)
+					}
+
 					return (
-						<View key={match + ":" + index}>
+						<View
+							key={index}
+							style={{
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								marginTop: 2,
+								padding: 0,
+								flexShrink: 0
+							}}
+						>
 							<Text
 								style={{
-									color: color ? color : getColor(darkMode, "linkPrimary"),
-									fontSize: fontSize ? fontSize : 15
+									color: getColor(darkMode, "textPrimary"),
+									fontSize: size,
+									lineHeight: size + 2,
+									padding: 0
 								}}
 							>
-								{match}
+								{emojiConvertor.replace_colons(match)}
 							</Text>
 						</View>
 					)
-				}
-
-				const customEmoji = match.split(":").join("").trim()
-
-				if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
-					return (
-						<Image
-							key={match + ":" + index}
-							source={{
-								uri: customEmojisListRecord[customEmoji]
-							}}
-							cachePolicy="memory-disk"
-							placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
-							style={{
-								width: size,
-								height: size,
-								flexShrink: 0,
-								marginTop: 3
-							}}
-						/>
-					)
-				}
-
-				return (
-					<View
-						key={match + ":" + index}
-						style={{
-							flexDirection: "row",
-							alignItems: "center",
-							justifyContent: "center",
-							marginTop: 2,
-							padding: 0,
-							flexShrink: 0
-						}}
-					>
-						<Text
-							style={{
-								color: getColor(darkMode, "textPrimary"),
-								fontSize: size,
-								lineHeight: size + 2,
-								padding: 0
-							}}
-						>
-							{emojiConvertor.replace_colons(match)}
-						</Text>
-					</View>
-				)
-			},
-			input: content.split("\n").join(" ").split("`").join("")
-		})
+				},
+				input: content.split("\n").join(" ").split("`").join("")
+			})
+		}, [content, darkMode, emojiSize, hideLinks, hideMentions, participants, color, fontSize])
 
 		return (
 			<View

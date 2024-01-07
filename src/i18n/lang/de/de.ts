@@ -507,5 +507,7 @@ export const de: {
 	addContactDialogTitleEmailPlaceholder: "Filen E-Mail-Adresse des Kontakts",
 	send: "Senden",
 	accept: "Akzeptieren",
-	deny: "Ablehnen"
+	deny: "Ablehnen",
+	uploadFolders: "Ordner hochladen",
+	uploadFolder: "Ordner hochladen"
 }

@@ -60,7 +60,8 @@ const TopbarUnread = memo(
 					style={{
 						flexDirection: "row",
 						alignItems: "center",
-						gap: 5
+						gap: 3,
+						maxWidth: "60%"
 					}}
 				>
 					<Text
@@ -71,7 +72,7 @@ const TopbarUnread = memo(
 						}}
 						numberOfLines={1}
 					>
-						{unreadMessages >= 9 ? "9+" : unreadMessages}
+						{unreadMessages >= 99 ? "99+" : unreadMessages}
 					</Text>
 					<Text
 						style={{
@@ -99,7 +100,8 @@ const TopbarUnread = memo(
 					<Text
 						style={{
 							fontSize: 12,
-							color: "white"
+							color: "white",
+							fontWeight: "600"
 						}}
 						numberOfLines={1}
 					>
