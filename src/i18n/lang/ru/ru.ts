@@ -502,5 +502,8 @@ export const ru: {
 	addContactDialogTitleEmailPlaceholder: "Адрес электронной почты контакта Filen",
 	send: "Отправить",
 	accept: "Принять",
-	deny: "Отказаться"
+	deny: "Отказаться",
+	uploadFolders: "Загрузить папки",
+	uploadFolder: "Загрузить папку",
+	cameraUploadAutoOrganize: "Сортировать по альбомам"
 }
