@@ -509,5 +509,6 @@ export const de: {
 	accept: "Akzeptieren",
 	deny: "Ablehnen",
 	uploadFolders: "Ordner hochladen",
-	uploadFolder: "Ordner hochladen"
+	uploadFolder: "Ordner hochladen",
+	cameraUploadAutoOrganize: "Nach Alben sortieren"
 }

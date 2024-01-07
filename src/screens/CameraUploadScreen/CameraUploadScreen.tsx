@@ -48,6 +48,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 		storage
 	)
 	const [cameraUploadCompressImages, setCameraUploadCompressImages] = useMMKVBoolean("cameraUploadCompressImages:" + userId, storage)
+	const [cameraUploadAutoOrganize, setCameraUploadAutoOrganize] = useMMKVBoolean("cameraUploadAutoOrganize:" + userId, storage)
 
 	const chooseFolder = async () => {
 		await navigationAnimation({ enable: true })
@@ -255,7 +256,6 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 					/>
 					<SettingsButtonLinkHighlight
 						title={i18n(lang, "cameraUploadCompressImages")}
-						withBottomBorder={true}
 						rightComponent={
 							<Switch
 								trackColor={getColor(darkMode, "switchTrackColor")}
@@ -277,7 +277,25 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 							})
 						}}
 						title={i18n(lang, "albums")}
+						withBottomBorder={true}
+					/>
+					<SettingsButtonLinkHighlight
+						title={i18n(lang, "cameraUploadAutoOrganize")}
+						withBottomBorder={false}
 						borderBottomRadius={10}
+						rightComponent={
+							<Switch
+								trackColor={getColor(darkMode, "switchTrackColor")}
+								thumbColor={
+									cameraUploadAutoOrganize
+										? getColor(darkMode, "switchThumbColorEnabled")
+										: getColor(darkMode, "switchThumbColorDisabled")
+								}
+								ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+								onValueChange={() => setCameraUploadAutoOrganize(!cameraUploadAutoOrganize)}
+								value={cameraUploadAutoOrganize}
+							/>
+						}
 					/>
 				</SettingsGroup>
 				{Platform.OS == "ios" && (

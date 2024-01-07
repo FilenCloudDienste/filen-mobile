@@ -817,6 +817,7 @@ export const runCameraUpload = async (maxQueue: number = 30, runOnce: boolean = 
 
 		const cameraUploadEnabled = storage.getBoolean("cameraUploadEnabled:" + userId)
 		const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId)
+		const cameraUploadAutoOrganize = storage.getBoolean("cameraUploadAutoOrganize:" + userId)
 
 		if (
 			!cameraUploadEnabled ||
@@ -864,10 +865,11 @@ export const runCameraUpload = async (maxQueue: number = 30, runOnce: boolean = 
 			const asset = delta.item.asset
 			const assetId = getAssetId(asset)
 			const parentFolderName = pathModule.dirname(delta.item.path)
-			const parentFolderUUID =
-				parentFolderName === "." || parentFolderName.length <= 0
-					? cameraUploadFolderUUID
-					: await getFileParentFolderUUID(cameraUploadFolderUUID, parentFolderName)
+			const parentFolderUUID = !cameraUploadAutoOrganize
+				? cameraUploadFolderUUID
+				: parentFolderName === "." || parentFolderName.length <= 0
+				? cameraUploadFolderUUID
+				: await getFileParentFolderUUID(cameraUploadFolderUUID, parentFolderName)
 
 			try {
 				const assetURI = await getAssetURI(asset)

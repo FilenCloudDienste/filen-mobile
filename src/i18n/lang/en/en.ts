@@ -511,5 +511,6 @@ export const en: {
 	accept: "Accept",
 	deny: "Deny",
 	uploadFolders: "Upload folders",
-	uploadFolder: "Upload folder"
+	uploadFolder: "Upload folder",
+	cameraUploadAutoOrganize: "Sort by albums"
 }
