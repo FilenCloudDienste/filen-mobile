@@ -767,7 +767,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 	}
 }
 
-export const hasPermissions = async (requestPermissions: boolean) => {
+export const hasPermissions = async (requestPermissions: boolean): Promise<boolean> => {
 	if (
 		!(await hasStoragePermissions(requestPermissions)) ||
 		!(await hasPhotoLibraryPermissions(requestPermissions)) ||
@@ -780,7 +780,7 @@ export const hasPermissions = async (requestPermissions: boolean) => {
 	return true
 }
 
-export const getFileParentFolderUUID = async (baseParentUUID: string, parentFolderName: string) => {
+export const getFileParentFolderUUID = async (baseParentUUID: string, parentFolderName: string): Promise<string> => {
 	if (parentFolderUUIDs[parentFolderName]) {
 		return parentFolderUUIDs[parentFolderName]
 	}
