@@ -34,14 +34,13 @@ const axios = require("axios")
 const util = require("util")
 const keyutil = require("js-crypto-key-utils")
 const CryptoApi = require("crypto-api-v1")
-const { uuid } = require("uuidv4")
+const { uuid: uuidv4 } = require("uuidv4")
 const https = require("https")
 const http = require("http")
 const fs = require("fs")
 const pathModule = require("path")
 const { Readable } = require("stream")
 const heicConvert = require("heic-convert")
-const { Semaphore } = require("await-semaphore")
 const progress = require("progress-stream")
 
 const axiosClient = axios.create({
@@ -76,10 +75,232 @@ const httpsDownloadAgent = new https.Agent({
 	maxSockets: 128
 })
 
+const Semaphore = function (max) {
+	var counter = 0
+	var waiting = []
+	var maxCount = max || 1
+
+	var take = function () {
+		if (waiting.length > 0 && counter < maxCount) {
+			counter++
+
+			let promise = waiting.shift()
+
+			promise.resolve()
+		}
+	}
+
+	this.acquire = function () {
+		if (counter < maxCount) {
+			counter++
+
+			return new Promise(resolve => {
+				resolve(true)
+			})
+		} else {
+			return new Promise((resolve, err) => {
+				waiting.push({ resolve: resolve, err: err })
+			})
+		}
+	}
+
+	this.release = function () {
+		counter--
+
+		take()
+	}
+
+	this.count = function () {
+		return counter
+	}
+
+	this.setMax = function (newMax) {
+		maxCount = newMax
+	}
+
+	this.purge = function () {
+		let unresolved = waiting.length
+
+		for (let i = 0; i < unresolved; i++) {
+			waiting[i].err("Task has been purged.")
+		}
+
+		counter = 0
+		waiting = []
+
+		return unresolved
+	}
+}
+
 const cachedDerivedKeys = {}
 const cachedPemKeys = {}
 let tasksRunning = 0
 const convertHeicSemaphore = new Semaphore(1)
+const maxDownloadThreads = 30
+const downloadThreadsSemaphore = new Semaphore(maxDownloadThreads)
+const downloadWriteThreadsSemaphore = new Semaphore(256)
+const uploadSemaphore = new Semaphore(3)
+const downloadSemaphore = new Semaphore(3)
+const maxUploadThreads = 10
+const uploadThreadsSemaphore = new Semaphore(maxUploadThreads)
+const currentUploads = {}
+const currentDownloads = {}
+let bytesSent = 0
+let allBytes = 0
+let progressStarted = -1
+const stoppedTransfers = {}
+const pausedTransfers = {}
+let finishedTransfers = []
+const failedTransfers = {}
+const showDownloadProgress = {}
+const showUploadProgress = {}
+let transfersProgress = 0
+let nextTransfersUpdate = 0
+const transfersUpdateTimeout = 500
+
+const buildTransfers = () => {
+	try {
+		const transfers = []
+		const exists = {}
+
+		for (const uuid in currentDownloads) {
+			transfers.push({
+				uuid,
+				progress: currentDownloads[uuid].percent,
+				timeLeft: currentDownloads[uuid].timeLeft,
+				lastBps: currentDownloads[uuid].lastBps,
+				name: currentDownloads[uuid].name,
+				type: "download",
+				done: currentDownloads[uuid].percent >= 100,
+				failed: failedTransfers[uuid] ? true : false,
+				stopped: stoppedTransfers[uuid] ? true : false,
+				paused: pausedTransfers[uuid] ? true : false,
+				failedReason: failedTransfers[uuid] && failedTransfers[uuid].reason ? failedTransfers[uuid].reason : null,
+				size: currentDownloads[uuid].size,
+				bytes: currentDownloads[uuid].bytes
+			})
+		}
+
+		for (const uuid in currentUploads) {
+			transfers.push({
+				uuid,
+				progress: currentUploads[uuid].percent,
+				timeLeft: currentUploads[uuid].timeLeft,
+				lastBps: currentUploads[uuid].lastBps,
+				name: currentUploads[uuid].name,
+				type: "upload",
+				done: currentUploads[uuid].percent >= 100,
+				failed: failedTransfers[uuid] ? true : false,
+				stopped: stoppedTransfers[uuid] ? true : false,
+				paused: pausedTransfers[uuid] ? true : false,
+				failedReason: failedTransfers[uuid] && failedTransfers[uuid].reason ? failedTransfers[uuid].reason : null,
+				size: currentUploads[uuid].size,
+				bytes: currentUploads[uuid].bytes
+			})
+		}
+
+		for (const uuid in failedTransfers) {
+			if (exists[uuid]) {
+				continue
+			}
+
+			exists[uuid] = true
+
+			transfers.push({
+				uuid,
+				progress: 0,
+				timeLeft: 0,
+				lastBps: 0,
+				name: failedTransfers[uuid].name,
+				type: failedTransfers[uuid].transferType,
+				done: false,
+				failed: true,
+				stopped: false,
+				paused: false,
+				failedReason: failedTransfers[uuid] && failedTransfers[uuid].reason ? failedTransfers[uuid].reason : null,
+				size: 0,
+				bytes: 0
+			})
+		}
+
+		for (const transfer of finishedTransfers) {
+			if (exists[transfer.uuid]) {
+				continue
+			}
+
+			exists[transfer.uuid] = true
+
+			transfers.push({
+				uuid: transfer.uuid,
+				progress: 100,
+				timeLeft: 0,
+				lastBps: 0,
+				name: transfer.name,
+				type: transfer.transferType,
+				done: true,
+				failed: false,
+				stopped: false,
+				paused: false,
+				failedReason: null,
+				size: 0,
+				bytes: 0
+			})
+		}
+
+		return transfers
+	} catch {
+		return []
+	}
+}
+
+const transfersUpdate = (retryCounter = 0) => {
+	const now = Date.now()
+
+	if (nextTransfersUpdate > now) {
+		if (retryCounter <= 2) {
+			setTimeout(() => transfersUpdate(retryCounter + 1), transfersUpdateTimeout + 100)
+		}
+
+		return
+	}
+
+	nextTransfersUpdate = now + transfersUpdateTimeout
+
+	rn_bridge.channel.send({
+		type: "transfersUpdate",
+		data: {
+			transfers: buildTransfers(),
+			currentDownloadsCount: Object.keys(currentDownloads).length,
+			currentUploadsCount: Object.keys(currentUploads).length,
+			progress: transfersProgress
+		}
+	})
+}
+
+const updateTransfersProgress = () => {
+	if (bytesSent <= 0) {
+		bytesSent = 0
+	}
+
+	if (allBytes <= 0) {
+		allBytes = 0
+	}
+
+	if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0) {
+		let prog = (bytesSent / allBytes) * 100
+
+		if (isNaN(prog) || typeof prog !== "number") {
+			prog = 0
+		}
+
+		transfersProgress = prog >= 100 ? 100 : prog <= 0 ? 0 : prog
+	} else {
+		progressStarted = -1
+		transfersProgress = 0
+		allBytes = 0
+		bytesSent = 0
+	}
+}
 
 const convertArrayBufferToUtf8String = buffer => {
 	return Buffer.from(buffer).toString("utf8")
@@ -97,12 +318,25 @@ const base64ToArrayBuffer = base64 => {
 	return Buffer.from(base64, "base64")
 }
 
-const stringToHex = string => {
-	return Buffer.from(string, "utf8").toString("hex")
-}
-
 const arrayBufferConcat = (buffer1, buffer2) => {
 	return Buffer.concat([buffer1, buffer2])
+}
+
+const calcSpeed = (now, started, bytes) => {
+	now = Date.now() - 1000
+
+	const secondsDiff = (now - started) / 1000
+	const bps = Math.floor((bytes / secondsDiff) * 1)
+
+	return bps > 0 ? bps : 0
+}
+
+const calcTimeLeft = (loadedBytes, totalBytes, started) => {
+	const elapsed = Date.now() - started
+	const speed = loadedBytes / (elapsed / 1000)
+	const remaining = (totalBytes - loadedBytes) / speed
+
+	return remaining > 0 ? remaining : 0
 }
 
 const convertWordArrayToArrayBuffer = wordArray => {
@@ -688,14 +922,31 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams, apiKey) => {
 						lastBytes = written
 					}
 
-					rn_bridge.channel.send({
-						type: "uploadProgress",
-						status: "progress",
-						data: {
-							uuid,
-							bytes
+					try {
+						if (currentUploads[uuid]) {
+							const now = Date.now()
+
+							currentUploads[uuid] = {
+								...currentUploads[uuid],
+								percent: ((currentUploads[uuid].bytes + bytes) / Math.floor((currentUploads[uuid].size || 0) * 1)) * 100,
+								lastBps: calcSpeed(now, currentUploads[uuid].started, currentUploads[uuid].bytes + bytes),
+								lastTime: now,
+								bytes: currentUploads[uuid].bytes + bytes,
+								timeLeft: calcTimeLeft(
+									currentUploads[uuid].bytes + bytes,
+									Math.floor((currentUploads[uuid].size || 0) * 1),
+									currentUploads[uuid].started
+								)
+							}
 						}
-					})
+
+						bytesSent += bytes
+
+						updateTransfersProgress()
+						transfersUpdate()
+					} catch (e) {
+						console.error(e)
+					}
 				}
 
 				const req = https.request(
@@ -789,7 +1040,7 @@ const encryptAndUploadFileChunk = (path, key, queryParams, chunkIndex, chunkSize
 
 		readChunk(path, chunkIndex * chunkSize, chunkSize)
 			.then(buffer => {
-				const maxTries = Number.MAX_SAFE_INTEGER
+				const maxTries = 256
 				let currentTries = 0
 				const triesTimeout = 1000
 
@@ -848,36 +1099,51 @@ const downloadFileChunk = (uuid, region, bucket, index) => {
 
 			response
 				.on("data", chunk => {
-					if (res == null) {
+					if (res === null || !(chunk instanceof Buffer)) {
 						return
 					}
 
 					res.push(chunk)
 
-					rn_bridge.channel.send({
-						type: "downloadProgress",
-						status: "progress",
-						data: {
-							uuid,
-							bytes: chunk.length
+					try {
+						if (showDownloadProgress[uuid]) {
+							const bytes = chunk.byteLength
+
+							if (currentDownloads[uuid]) {
+								const now = Date.now()
+
+								currentDownloads[uuid] = {
+									...currentDownloads[uuid],
+									percent:
+										((currentDownloads[uuid].bytes + bytes) / Math.floor((currentDownloads[uuid].size || 0) * 1)) * 100,
+									lastBps: calcSpeed(now, currentDownloads[uuid].started, currentDownloads[uuid].bytes + bytes),
+									lastTime: now,
+									bytes: currentDownloads[uuid].bytes + bytes,
+									timeLeft: calcTimeLeft(
+										currentDownloads[uuid].bytes + bytes,
+										Math.floor((currentDownloads[uuid].size || 0) * 1),
+										currentDownloads[uuid].started
+									)
+								}
+							}
+
+							bytesSent += bytes
+
+							updateTransfersProgress()
+							transfersUpdate()
 						}
-					})
+
+						updateTransfersProgress()
+					} catch (e) {
+						console.error(e)
+					}
 				})
-				.on("end", () => {
-					return resolve(Buffer.concat(res))
-				})
-				.on("error", err => {
-					return reject(err)
-				})
+				.on("end", () => resolve(Buffer.concat(res)))
+				.on("error", reject)
 		})
 
-		request.on("timeout", () => {
-			return reject(new Error("Request timed out"))
-		})
-
-		request.on("error", err => {
-			return reject(err)
-		})
+		request.on("timeout", () => reject(new Error("Request timed out")))
+		request.on("error", reject)
 
 		request.end()
 	})
@@ -986,10 +1252,10 @@ const convertHeic = (input, output, format) => {
 		input = pathModule.normalize(input)
 		output = pathModule.normalize(output)
 
-		convertHeicSemaphore.acquire().then(release => {
+		convertHeicSemaphore.acquire().then(() => {
 			fs.readFile(input, (err, inputBuffer) => {
 				if (err) {
-					release()
+					convertHeicSemaphore.release()
 
 					return reject(err)
 				}
@@ -1000,7 +1266,7 @@ const convertHeic = (input, output, format) => {
 				})
 					.then(outputBuffer => {
 						fs.writeFile(output, outputBuffer, err => {
-							release()
+							convertHeicSemaphore.release()
 
 							if (err) {
 								return reject(err)
@@ -1010,13 +1276,516 @@ const convertHeic = (input, output, format) => {
 						})
 					})
 					.catch(err => {
-						release()
+						convertHeicSemaphore.release()
 
 						return reject(err)
 					})
 			})
 		})
 	})
+}
+
+const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunks }) => {
+	showDownloadProgress[file.uuid] = showProgress
+
+	let now = Date.now()
+
+	delete stoppedTransfers[file.uuid]
+	delete pausedTransfers[file.uuid]
+	delete failedTransfers[file.uuid]
+	delete currentDownloads[file.uuid]
+
+	finishedTransfers = finishedTransfers.filter(t => t.uuid !== file.uuid)
+
+	if (showProgress) {
+		currentDownloads[file.uuid] = {
+			...file,
+			started: now,
+			bytes: 0,
+			percent: 0,
+			lastTime: now,
+			lastBps: 0,
+			timeLeft: 0,
+			timestamp: now
+		}
+
+		if (progressStarted === -1) {
+			progressStarted = now
+		} else {
+			if (now < progressStarted) {
+				progressStarted = now
+			}
+		}
+
+		allBytes += file.size
+
+		updateTransfersProgress()
+	}
+
+	updateTransfersProgress()
+
+	let currentWriteIndex = 0
+
+	const downloadChunk = async index => {
+		if (pausedTransfers[file.uuid]) {
+			await new Promise(resolve => {
+				const wait = setInterval(() => {
+					if (!pausedTransfers[file.uuid] || stoppedTransfers[file.uuid]) {
+						clearInterval(wait)
+
+						resolve()
+					}
+				}, 100)
+			})
+		}
+
+		if (stoppedTransfers[file.uuid]) {
+			throw "stopped"
+		}
+
+		const destPath = pathModule.join(tempDir.split("file://").join(""), uuidv4() + "." + file.uuid + "." + index)
+
+		await downloadDecryptAndWriteFileChunk(destPath, file.uuid, file.region, file.bucket, index, file.key, file.version)
+
+		return {
+			index,
+			path: destPath
+		}
+	}
+
+	const write = async (index, path) => {
+		if (index !== currentWriteIndex) {
+			setTimeout(() => {
+				write(index, path)
+			}, 10)
+
+			return
+		}
+
+		try {
+			if (index === 0) {
+				await new Promise(resolve => fs.unlink(destination, () => resolve()))
+
+				await new Promise((resolve, reject) => {
+					fs.rename(path, destination, err => {
+						if (err) {
+							reject(err)
+
+							return
+						}
+
+						resolve()
+					})
+				})
+			} else {
+				await appendFileToFile(destination, path)
+			}
+
+			currentWriteIndex += 1
+		} catch (e) {
+			throw e
+		} finally {
+			downloadWriteThreadsSemaphore.release()
+		}
+	}
+
+	await downloadSemaphore.acquire()
+
+	now = Date.now()
+
+	if (showProgress) {
+		if (currentDownloads[file.uuid]) {
+			currentDownloads[file.uuid] = {
+				...currentDownloads[file.uuid],
+				started: now,
+				lastTime: now,
+				timestamp: now
+			}
+
+			updateTransfersProgress()
+		}
+	}
+
+	updateTransfersProgress()
+
+	try {
+		await new Promise((resolve, reject) => {
+			let done = 0
+			let rejected = false
+
+			for (let i = 0; i < maxChunks; i++) {
+				Promise.all([downloadThreadsSemaphore.acquire(), downloadWriteThreadsSemaphore.acquire()]).then(() => {
+					if (rejected) {
+						return
+					}
+
+					downloadChunk(i)
+						.then(({ index, path }) => {
+							if (rejected) {
+								return
+							}
+
+							write(index, path).catch(err => {
+								downloadThreadsSemaphore.release()
+								downloadWriteThreadsSemaphore.release()
+
+								rejected = true
+
+								reject(err)
+							})
+
+							done += 1
+
+							downloadThreadsSemaphore.release()
+
+							if (done >= maxChunks && !rejected) {
+								resolve()
+							}
+						})
+						.catch(err => {
+							downloadThreadsSemaphore.release()
+							downloadWriteThreadsSemaphore.release()
+
+							rejected = true
+
+							reject(err)
+						})
+				})
+			}
+		})
+
+		await new Promise(resolve => {
+			if (currentWriteIndex >= maxChunks) {
+				resolve()
+
+				return
+			}
+
+			const wait = setInterval(() => {
+				if (currentWriteIndex >= maxChunks) {
+					clearInterval(wait)
+
+					resolve()
+				}
+			}, 10)
+		})
+
+		delete currentDownloads[file.uuid]
+
+		finishedTransfers.push({
+			...file,
+			transferType: "download"
+		})
+
+		updateTransfersProgress()
+
+		return destination
+	} catch (e) {
+		delete currentDownloads[file.uuid]
+
+		if (e !== "stopped") {
+			failedTransfers[file.uuid] = {
+				...file,
+				transferType: "download",
+				reason: e.toString()
+			}
+		}
+
+		if (showProgress) {
+			if (allBytes >= file.size) {
+				allBytes -= file.size
+			}
+
+			updateTransfersProgress()
+		}
+
+		updateTransfersProgress()
+
+		throw e
+	} finally {
+		downloadSemaphore.release()
+	}
+}
+
+const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, showProgress, parent }) => {
+	const stat = await new Promise((resolve, reject) => {
+		fs.stat(file.path, (err, stats) => {
+			if (err) {
+				reject(err)
+
+				return
+			}
+
+			resolve(stats)
+		})
+	})
+
+	const uuid = uuidv4()
+	let now = Date.now()
+
+	delete currentUploads[uuid]
+	delete failedTransfers[uuid]
+	delete stoppedTransfers[uuid]
+	delete pausedTransfers[uuid]
+
+	if (showProgress) {
+		currentUploads[uuid] = {
+			...file,
+			started: now,
+			bytes: 0,
+			percent: 0,
+			lastTime: now,
+			lastBps: 0,
+			timeLeft: 0,
+			timestamp: now
+		}
+
+		if (progressStarted === -1) {
+			progressStarted = now
+		} else {
+			if (now < progressStarted) {
+				progressStarted = now
+			}
+		}
+
+		allBytes += stat.size
+
+		updateTransfersProgress()
+	}
+
+	updateTransfersProgress()
+
+	file.size = stat.size
+
+	const fileName = file.name.split("/").join("_").split("\\").join("_")
+	const item = {
+		uuid,
+		name: fileName,
+		size: file.size,
+		chunks_size: file.size,
+		mime: file.mime || "",
+		key: "",
+		rm: "",
+		metadata: "",
+		chunks: 0,
+		parent,
+		timestamp: Math.floor(now / 1000),
+		version,
+		versionedUUID: undefined,
+		region: "",
+		bucket: "",
+		type: "file",
+		hash: ""
+	}
+	const name = fileName
+	const size = file.size
+	const mime = file.mime || ""
+	const chunkSizeToUse = 1024 * 1024 * 1
+	let dummyOffset = 0
+	let fileChunks = 0
+	const lastModified = file.lastModified
+
+	while (dummyOffset < size) {
+		fileChunks += 1
+		dummyOffset += chunkSizeToUse
+	}
+
+	item.chunks = fileChunks
+	item.name = name
+
+	let key = ""
+	let metadata = ""
+	let rm = ""
+	let uploadKey = ""
+	let nameEnc = ""
+	let nameH = ""
+	let mimeEnc = ""
+	let sizeEnc = ""
+	let metaData = ""
+
+	try {
+		key = randomString(32)
+		metadata =
+			typeof includeFileHash === "boolean" || typeof includeFileHash === "string"
+				? {
+						name,
+						size,
+						mime,
+						key,
+						lastModified,
+						hash:
+							typeof includeFileHash === "boolean"
+								? await getFileHash(file.path, "sha512")
+								: typeof includeFileHash === "string"
+								? includeFileHash
+								: ""
+				  }
+				: {
+						name,
+						size,
+						mime,
+						key,
+						lastModified
+				  }
+
+		rm = randomString(32)
+		uploadKey = randomString(32)
+
+		const res = await Promise.all([
+			encryptMetadata(name, key),
+			hashFn(name.toLowerCase()),
+			encryptMetadata(mime, key),
+			encryptMetadata(size.toString(), key),
+			encryptMetadata(JSON.stringify(metadata), masterKeys[masterKeys.length - 1])
+		])
+
+		nameEnc = res[0]
+		nameH = res[1]
+		mimeEnc = res[2]
+		sizeEnc = res[3]
+		metaData = res[4]
+
+		item.key = key
+		item.rm = rm
+		item.metadata = metaData
+		item.uuid = uuid
+	} catch (e) {
+		delete currentUploads[uuid]
+
+		if (e !== "stopped") {
+			failedTransfers[uuid] = {
+				...file,
+				transferType: "upload",
+				reason: e.toString()
+			}
+		}
+
+		if (showProgress) {
+			if (allBytes >= file.size) {
+				allBytes -= file.size
+			}
+
+			updateTransfersProgress()
+		}
+
+		updateTransfersProgress()
+
+		throw e
+	}
+
+	const upload = async index => {
+		if (pausedTransfers[item.uuid]) {
+			await new Promise(resolve => {
+				const wait = setInterval(() => {
+					if (!pausedTransfers[item.uuid] || stoppedTransfers[item.uuid]) {
+						clearInterval(wait)
+
+						resolve()
+					}
+				}, 100)
+			})
+		}
+
+		if (stoppedTransfers[item.uuid]) {
+			throw "stopped"
+		}
+
+		return await encryptAndUploadFileChunk(
+			file.path,
+			key,
+			new URLSearchParams({
+				uuid,
+				index: index.toString(),
+				uploadKey,
+				parent
+			}).toString(),
+			index,
+			chunkSizeToUse,
+			apiKey
+		)
+	}
+
+	await uploadSemaphore.acquire()
+
+	now = Date.now()
+
+	if (showProgress) {
+		if (currentUploads[item.uuid]) {
+			currentUploads[item.uuid] = {
+				...currentUploads[item.uuid],
+				started: now,
+				lastTime: now,
+				timestamp: now
+			}
+
+			updateTransfersProgress()
+		}
+	}
+
+	updateTransfersProgress()
+
+	try {
+		await new Promise((resolve, reject) => {
+			let done = 0
+
+			for (let i = 0; i < fileChunks; i++) {
+				uploadThreadsSemaphore.acquire().then(() => {
+					upload(i)
+						.then(res => {
+							done += 1
+
+							item.region = res.data.region
+							item.bucket = res.data.bucket
+
+							uploadThreadsSemaphore.release()
+
+							if (done >= fileChunks) {
+								resolve()
+							}
+						})
+						.catch(err => {
+							uploadThreadsSemaphore.release()
+
+							reject(err)
+						})
+				})
+			}
+		})
+	} catch (e) {
+		delete currentUploads[item.uuid]
+
+		if (e !== "stopped") {
+			failedTransfers[item.uuid] = {
+				...file,
+				transferType: "upload",
+				reason: e.toString()
+			}
+		}
+
+		if (showProgress) {
+			if (allBytes >= file.size) {
+				allBytes -= file.size
+			}
+
+			updateTransfersProgress()
+		}
+
+		updateTransfersProgress()
+
+		throw e
+	} finally {
+		uploadSemaphore.release()
+	}
+
+	return {
+		item,
+		nameEncrypted: nameEnc,
+		nameHashed: nameH,
+		mimeEncrypted: mimeEnc,
+		sizeEncrypted: sizeEnc,
+		metadataEncrypted: metaData,
+		uploadKey
+	}
 }
 
 /*rn_bridge.app.on("pause", (pauseLock) => {
@@ -1317,7 +2086,7 @@ rn_bridge.channel.on("message", message => {
 			rn_bridge.channel.send({
 				id: request.id,
 				type: request.type,
-				response: uuid()
+				response: uuidv4()
 			})
 
 			tasksRunning -= 1
@@ -1498,6 +2267,169 @@ rn_bridge.channel.on("message", message => {
 
 			tasksRunning -= 1
 		}
+	} else if (request.type === "downloadFile") {
+		downloadFile({
+			destination: request.destination,
+			tempDir: request.tempDir,
+			file: request.file,
+			showProgress: request.showProgress,
+			maxChunks: request.maxChunks
+		})
+			.then(result => {
+				rn_bridge.channel.send({
+					id: request.id,
+					type: request.type,
+					response: result
+				})
+
+				tasksRunning -= 1
+			})
+			.catch(err => {
+				rn_bridge.channel.send({
+					id: request.id,
+					type: request.type,
+					err: err.toString()
+				})
+
+				tasksRunning -= 1
+			})
+	} else if (request.type === "uploadFile") {
+		uploadFile({
+			file: request.file,
+			includeFileHash: request.includeFileHash,
+			masterKeys: request.masterKeys,
+			apiKey: request.apiKey,
+			version: request.version,
+			showProgress: request.showProgress,
+			parent: request.parent
+		})
+			.then(result => {
+				rn_bridge.channel.send({
+					id: request.id,
+					type: request.type,
+					response: result
+				})
+
+				tasksRunning -= 1
+			})
+			.catch(err => {
+				rn_bridge.channel.send({
+					id: request.id,
+					type: request.type,
+					err: err.toString()
+				})
+
+				tasksRunning -= 1
+			})
+	} else if (request.type === "uploadDone") {
+		if (currentUploads[request.uuid]) {
+			finishedTransfers.push({
+				...currentUploads[request.uuid],
+				transferType: "upload"
+			})
+
+			delete currentUploads[request.uuid]
+
+			updateTransfersProgress()
+		}
+
+		rn_bridge.channel.send({
+			id: request.id,
+			type: request.type,
+			response: true
+		})
+
+		tasksRunning -= 1
+	} else if (request.type === "uploadFailed") {
+		if (currentUploads[request.uuid]) {
+			if (currentUploads[request.uuid].size && allBytes >= currentUploads[request.uuid].size) {
+				allBytes -= currentUploads[request.uuid].size
+			}
+
+			failedTransfers[request.uuid] = {
+				...currentUploads[request.uuid],
+				transferType: "upload",
+				reason: request.reason
+			}
+
+			delete currentUploads[request.uuid]
+
+			updateTransfersProgress()
+		}
+
+		rn_bridge.channel.send({
+			id: request.id,
+			type: request.type,
+			response: true
+		})
+
+		tasksRunning -= 1
+	} else if (request.type === "removeTransfer") {
+		if (currentUploads[request.uuid] && currentUploads[request.uuid].size && allBytes >= currentUploads[request.uuid].size) {
+			allBytes -= currentUploads[request.uuid].size
+		}
+
+		if (currentDownloads[request.uuid] && currentDownloads[request.uuid].size && allBytes >= currentDownloads[request.uuid].size) {
+			allBytes -= currentDownloads[request.uuid].size
+		}
+
+		delete currentUploads[request.uuid]
+		delete currentDownloads[request.uuid]
+
+		updateTransfersProgress()
+
+		rn_bridge.channel.send({
+			id: request.id,
+			type: request.type,
+			response: true
+		})
+
+		tasksRunning -= 1
+	} else if (request.type === "stopTransfer") {
+		stoppedTransfers[request.uuid] = true
+
+		rn_bridge.channel.send({
+			id: request.id,
+			type: request.type,
+			response: true
+		})
+
+		tasksRunning -= 1
+	} else if (request.type === "pauseTransfer") {
+		pausedTransfers[request.uuid] = true
+
+		rn_bridge.channel.send({
+			id: request.id,
+			type: request.type,
+			response: true
+		})
+
+		tasksRunning -= 1
+	} else if (request.type === "resumeTransfer") {
+		delete pausedTransfers[request.uuid]
+
+		rn_bridge.channel.send({
+			id: request.id,
+			type: request.type,
+			response: true
+		})
+
+		tasksRunning -= 1
+	} else if (request.type === "getCurrentTransfers") {
+		rn_bridge.channel.send({
+			id: request.id,
+			type: request.type,
+			response: {
+				transfers: buildTransfers(),
+				currentDownloadsCount: Object.keys(currentDownloads).length,
+				currentUploadsCount: Object.keys(currentUploads).length,
+				progress: transfersProgress,
+				currentUploads,
+				currentDownloads
+			}
+		})
+
+		tasksRunning -= 1
 	} else {
 		rn_bridge.channel.send({
 			id: request.id,

@@ -1,5 +1,8 @@
 import nodejs from "nodejs-mobile-react-native"
-import { DeviceEventEmitter } from "react-native"
+import { Item } from "../../types"
+import eventListener from "../eventListener"
+import { UploadFile } from "../services/upload"
+import { CurrentDownloads, CurrentUploads, TransferItem } from "../../screens/TransfersScreen"
 
 nodejs.start("main.js")
 
@@ -57,6 +60,44 @@ declare global {
 		getFileHash: (params: { path: string; hashName: string }) => Promise<string>
 		convertHeic: (params: { input: string; output: string; format: "JPEG" | "PNG" }) => Promise<string>
 		createHashHexFromString: (params: { name: string; data: string }) => Promise<string>
+		downloadFile: (params: {
+			destination: string
+			tempDir: string
+			file: Item
+			showProgress: boolean
+			maxChunks: number
+		}) => Promise<string>
+		uploadFile: (params: {
+			file: UploadFile
+			includeFileHash: boolean | string
+			masterKeys: string[]
+			apiKey: string
+			version: number
+			showProgress: boolean
+			parent: string
+		}) => Promise<{
+			item: Item
+			nameEncrypted: string
+			nameHashed: string
+			mimeEncrypted: string
+			sizeEncrypted: string
+			metadataEncrypted: string
+			uploadKey: string
+		}>
+		uploadDone: (params: { uuid: string }) => Promise<void>
+		uploadFailed: (params: { uuid: string; reason: string }) => Promise<void>
+		removeTransfer: (params: { uuid: string }) => Promise<void>
+		stopTransfer: (params: { uuid: string }) => Promise<void>
+		pauseTransfer: (params: { uuid: string }) => Promise<void>
+		resumeTransfer: (params: { uuid: string }) => Promise<void>
+		getCurrentTransfers: () => Promise<{
+			currentUploads: CurrentUploads
+			currentDownloads: CurrentDownloads
+			transfers: TransferItem
+			currentUploadsCount: number
+			currentDownloadsCount: number
+			progress: number
+		}>
 	}
 }
 
@@ -524,53 +565,206 @@ global.nodeThread = {
 				})
 			})
 		})
+	},
+	downloadFile: ({ destination, file, showProgress, maxChunks, tempDir }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "downloadFile",
+					destination,
+					file,
+					showProgress,
+					maxChunks,
+					tempDir
+				})
+			})
+		})
+	},
+	uploadFile: ({ file, includeFileHash, masterKeys, apiKey, version, showProgress, parent }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "uploadFile",
+					file,
+					includeFileHash,
+					masterKeys,
+					apiKey,
+					version,
+					showProgress,
+					parent
+				})
+			})
+		})
+	},
+	uploadDone: ({ uuid }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "uploadDone",
+					uuid
+				})
+			})
+		})
+	},
+	uploadFailed: ({ uuid, reason }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "uploadFailed",
+					uuid,
+					reason
+				})
+			})
+		})
+	},
+	removeTransfer: ({ uuid }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "removeTransfer",
+					uuid
+				})
+			})
+		})
+	},
+	stopTransfer: ({ uuid }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "stopTransfer",
+					uuid
+				})
+			})
+		})
+	},
+	pauseTransfer: ({ uuid }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "pauseTransfer",
+					uuid
+				})
+			})
+		})
+	},
+	resumeTransfer: ({ uuid }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "resumeTransfer",
+					uuid
+				})
+			})
+		})
+	},
+	getCurrentTransfers: () => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "getCurrentTransfers"
+				})
+			})
+		})
 	}
 }
 
-nodejs.channel.addListener("message", message => {
-	if (message == "ready") {
-		return (global.nodeThread.ready = true)
-	}
-
-	if (typeof message.nodeError !== "undefined") {
-		console.error("NODE SIDE ERROR")
-		console.error(message.err)
-
-		return
-	}
-
-	if (typeof message.type == "string") {
-		if (message.type == "uploadProgress") {
-			DeviceEventEmitter.emit("uploadProgress", message)
-
-			return
-		} else if (message.type == "downloadProgress") {
-			DeviceEventEmitter.emit("downloadProgress", message)
+nodejs.channel.addListener(
+	"message",
+	(message: { id: number; err?: string; response: unknown; nodeError?: boolean; type?: string; data?: any } | "ready") => {
+		if (message === "ready") {
+			global.nodeThread.ready = true
 
 			return
 		}
-	}
 
-	const { id, err, response } = message
+		if (typeof message.nodeError !== "undefined") {
+			console.error("NODE SIDE ERROR")
+			console.error(message.err)
 
-	if (err) {
-		const reject = rejects[id]
-
-		if (typeof reject !== "undefined") {
-			console.error(err)
-
-			reject(err)
+			return
 		}
-	} else {
-		const resolve = resolves[id]
 
-		if (typeof resolve !== "undefined") {
-			resolve(response)
+		if (typeof message.type === "string") {
+			if (message.type === "transfersUpdate" && message.data) {
+				eventListener.emit("transfersUpdate", message.data)
+
+				return
+			}
 		}
+
+		const { id, err, response } = message
+
+		if (err) {
+			const reject = rejects[id]
+
+			if (typeof reject === "function") {
+				console.error(err)
+
+				reject(err)
+			}
+		} else {
+			const resolve = resolves[id]
+
+			if (typeof resolve === "function") {
+				resolve(response)
+			}
+		}
+
+		delete rejects[id]
+		delete resolves[id]
 	}
-
-	delete rejects[id]
-	delete resolves[id]
-
-	return true
-})
+)

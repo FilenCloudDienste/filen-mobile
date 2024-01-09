@@ -512,5 +512,8 @@ export const en: {
 	deny: "Deny",
 	uploadFolders: "Upload folders",
 	uploadFolder: "Upload folder",
-	cameraUploadAutoOrganize: "Sort by albums"
+	cameraUploadAutoOrganize: "Sort by albums",
+	finishing: "Finishing",
+	transferringFiles: "Transferring __NUM__ files",
+	paused: "Paused"
 }

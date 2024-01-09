@@ -3,6 +3,7 @@ import { Dimensions } from "react-native"
 import { subscribeWithSelector } from "zustand/middleware"
 import { ScaledSize } from "react-native"
 import { Item } from "../../types"
+import { TransferItem } from "../../screens/TransfersScreen"
 
 const window: ScaledSize = Dimensions.get("window")
 const screen: ScaledSize = Dimensions.get("screen")
@@ -112,6 +113,12 @@ export interface State {
 	setFinishedTransfers: (finishedTransfers: any[]) => void
 	scrolledToBottom: boolean
 	setScrolledToBottom: (scrolledToBottom: boolean) => void
+	transfers: TransferItem[]
+	setTransfers: (transfers: TransferItem[]) => void
+	transfersProgress: number
+	setTransfersProgress: (transfersProgress: number) => void
+	transfersPaused: boolean
+	setTransfersPaused: (transfersPaused: boolean) => void
 }
 
 export const useStore = create<State>()(
@@ -133,8 +140,7 @@ export const useStore = create<State>()(
 		fullscreenLoadingModalVisible: false,
 		setFullscreenLoadingModalVisible: fullscreenLoadingModalVisible => set({ fullscreenLoadingModalVisible }),
 		fullscreenLoadingModalDismissable: false,
-		setFullscreenLoadingModalDismissable: fullscreenLoadingModalDismissable =>
-			set({ fullscreenLoadingModalDismissable }),
+		setFullscreenLoadingModalDismissable: fullscreenLoadingModalDismissable => set({ fullscreenLoadingModalDismissable }),
 		uploads: {},
 		setUploads: uploads => set({ uploads }),
 		downloads: {},
@@ -194,8 +200,7 @@ export const useStore = create<State>()(
 		redeemCodeDialogVisible: false,
 		setRedeemCodeDialogVisible: redeemCodeDialogVisible => set({ redeemCodeDialogVisible }),
 		disable2FATwoFactorDialogVisible: false,
-		setDisable2FATwoFactorDialogVisible: disable2FATwoFactorDialogVisible =>
-			set({ disable2FATwoFactorDialogVisible }),
+		setDisable2FATwoFactorDialogVisible: disable2FATwoFactorDialogVisible => set({ disable2FATwoFactorDialogVisible }),
 		topBarHeight: 115.27,
 		setTopBarHeight: topBarHeight => set({ topBarHeight }),
 		bottomBarHeight: 80,
@@ -221,7 +226,13 @@ export const useStore = create<State>()(
 		finishedTransfers: [],
 		setFinishedTransfers: finishedTransfers => set({ finishedTransfers }),
 		scrolledToBottom: false,
-		setScrolledToBottom: scrolledToBottom => set({ scrolledToBottom })
+		setScrolledToBottom: scrolledToBottom => set({ scrolledToBottom }),
+		transfers: [],
+		setTransfers: transfers => set({ transfers }),
+		transfersProgress: 0,
+		setTransfersProgress: transfersProgress => set({ transfersProgress }),
+		transfersPaused: false,
+		setTransfersPaused: transfersPaused => set({ transfersPaused })
 	}))
 )
 

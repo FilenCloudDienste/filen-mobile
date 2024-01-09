@@ -93,6 +93,7 @@ import ChatConversationActionSheet from "./components/ActionSheets/ChatConversat
 import ChatConversationNameDialog from "./components/Dialogs/ChatConversationNameDialog"
 import ContactActionSheet from "./components/ActionSheets/ContactActionSheet"
 import AddContactDialog from "./components/Dialogs/AddContactDialog"
+import TransfersActionSheet from "./components/ActionSheets/TransfersActionSheet"
 
 enableScreens(true)
 
@@ -850,6 +851,7 @@ export const App = Sentry.wrap(
 										<ChatParticipantActionSheet />
 										<ChatConversationActionSheet />
 										<ContactActionSheet />
+										<TransfersActionSheet />
 									</View>
 								</SheetProvider>
 							</SafeAreaView>

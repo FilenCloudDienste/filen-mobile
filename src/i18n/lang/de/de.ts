@@ -277,7 +277,7 @@ export const de: {
 	textEditorPlaceholder: "Schreiben Sie etwas...",
 	couldNotOpenFileLocally: "Konnte __NAME__ nicht lokal öffnen",
 	noTransfers: "Zurzeit keine Übertragungen",
-	queued: "In der Warteschlange",
+	queued: "Warteschlange",
 	stop: "Stop",
 	pause: "Pause",
 	resume: "Fortfahren",
@@ -510,5 +510,8 @@ export const de: {
 	deny: "Ablehnen",
 	uploadFolders: "Ordner hochladen",
 	uploadFolder: "Ordner hochladen",
-	cameraUploadAutoOrganize: "Nach Alben sortieren"
+	cameraUploadAutoOrganize: "Nach Alben sortieren",
+	finishing: "Fertigstellen",
+	transferringFiles: "Übertrage __NUM__ Dateien",
+	paused: "Pausiert"
 }
