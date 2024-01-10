@@ -156,11 +156,13 @@ class FileProviderUtils {
   
   func needsFaceID () -> Bool {
     autoreleasepool {
-      guard let loggedIn = MMKVInstance.shared.instance?.bool(forKey: "isLoggedIn", defaultValue: false), let userId = self.userId(), let lockAppAfterVal = MMKVInstance.shared.instance?.double(forKey: "lockAppAfter:" + userId, defaultValue: 0), let lastBiometricScreen = MMKVInstance.shared.instance?.double(forKey: "lastBiometricScreen:" + userId, defaultValue: 0), let biometricPinAuth = MMKVInstance.shared.instance?.bool(forKey: "biometricPinAuth" + userId, defaultValue: false) else {
+      let userId = self.userId()
+      
+      guard let loggedIn = MMKVInstance.shared.instance?.bool(forKey: "isLoggedIn", defaultValue: false), let lockAppAfterVal = MMKVInstance.shared.instance?.double(forKey: "lockAppAfter:" + String(userId), defaultValue: 0), let lastBiometricScreen = MMKVInstance.shared.instance?.double(forKey: "lastBiometricScreen:" + String(userId), defaultValue: 0), let biometricPinAuth = MMKVInstance.shared.instance?.bool(forKey: "biometricPinAuth" + String(userId), defaultValue: false) else {
         return false
       }
 
-      if !isLoggedIn {
+      if !loggedIn {
         return false
       }
 
