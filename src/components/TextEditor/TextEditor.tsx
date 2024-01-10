@@ -75,6 +75,7 @@ const TextEditor = memo(
 		const onKeyPress = useCallback((e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
 			if (e.nativeEvent.key === "Enter") {
 				onScrollEnd()
+				setKeyboardWillShow(true)
 			}
 		}, [])
 

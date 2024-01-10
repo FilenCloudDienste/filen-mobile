@@ -130,3 +130,5 @@ export interface ICFG {
 		plans: IPlans[]
 	}
 }
+
+export type ShareMenuItems = { data: string | string[] | { data: string; mimeType?: string }[]; mimeType?: string }

@@ -2,25 +2,31 @@ import React, { useState, useEffect, memo, useCallback } from "react"
 import { View, Text, Platform, TouchableOpacity } from "react-native"
 import useLang from "../../../lib/hooks/useLang"
 import { useStore } from "../../../lib/state"
-import { getParent, getFilenameFromPath, getRouteURL, promiseAllSettled, randomIdUnsafe, safeAwait } from "../../../lib/helpers"
+import { getParent, getRouteURL, promiseAllSettled, randomIdUnsafe, safeAwait, Semaphore } from "../../../lib/helpers"
 import { i18n } from "../../../i18n"
-import { queueFileUpload } from "../../../lib/services/upload/upload"
-import mime from "mime-types"
+import { queueFileUpload, UploadFile, uploadFolder } from "../../../lib/services/upload/upload"
+import mimeTypes from "mime-types"
 import { hasStoragePermissions } from "../../../lib/permissions"
 import * as fs from "../../../lib/fs"
 import { getColor } from "../../../style"
 import { hideAllToasts, showToast } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
-import storage from "../../../lib/storage"
-import ReactNativeBlobUtil from "react-native-blob-util"
+import AndroidSAF from "react-native-saf-x"
+import {
+	showFullScreenLoadingModal,
+	hideFullScreenLoadingModal
+} from "../../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
+import pathModule from "path"
+
+const copySemaphore = new Semaphore(32)
 
 const UploadToast = memo(() => {
 	const darkMode = useDarkMode()
 	const lang = useLang()
-	const currentShareItems = useStore(state => state.currentShareItems) as any
+	const currentShareItems = useStore(state => state.currentShareItems)
 	const setCurrentShareItems = useStore(state => state.setCurrentShareItems)
-	const [items, setItems] = useState([])
-	const currentRoutes = useStore(state => state.currentRoutes) as any
+	const [uris, setURIs] = useState<string[]>([])
+	const currentRoutes = useStore(state => state.currentRoutes)
 	const [currentParent, setCurrentParent] = useState(getParent())
 	const [currentRouteURL, setCurrentRouteURL] = useState(getRouteURL())
 
@@ -30,12 +36,9 @@ const UploadToast = memo(() => {
 			currentRouteURL.indexOf("recents") !== -1 ||
 			currentRouteURL.indexOf("trash") !== -1 ||
 			currentRouteURL.indexOf("photos") !== -1 ||
-			currentRouteURL.indexOf("offline") !== -1
+			currentRouteURL.indexOf("offline") !== -1 ||
+			!Array.isArray(uris)
 		) {
-			return
-		}
-
-		if (!Array.isArray(items)) {
 			return
 		}
 
@@ -48,135 +51,139 @@ const UploadToast = memo(() => {
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
 		if (hasPermissionsError) {
-			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+			showToast({ message: i18n(lang, "pleaseGrantPermission") })
 
 			return
 		}
 
 		if (!hasPermissionsResult) {
-			showToast({ message: i18n(storage.getString("lang"), "pleaseGrantPermission") })
+			showToast({ message: i18n(lang, "pleaseGrantPermission") })
 
 			return
 		}
 
-		const copyFile = (item: string): Promise<{ path: string; ext: string; type: string; size: number; name: string }> => {
-			return new Promise((resolve, reject) => {
-				fs.getDownloadPath({ type: "temp" })
-					.then(path => {
-						path = path + randomIdUnsafe()
+		showFullScreenLoadingModal()
 
-						if (Platform.OS == "ios") {
-							item = decodeURIComponent(item)
-							path = decodeURIComponent(path)
-						}
+		const items: UploadFile[] = []
+		const copyPromises: Promise<void>[] = []
+		const foldersToUpload: string[] = []
+		const uploadPromises: Promise<void>[] = []
 
-						if (Platform.OS == "android") {
-							ReactNativeBlobUtil.fs.stat(item).then(stat => {
-								if (stat.type == "directory") {
-									reject(new Error(i18n(lang, "cannotShareDirIntoApp")))
+		try {
+			const tempPath = await fs.getDownloadPath({ type: "temp" })
 
-									return
-								}
+			for (const uri of uris) {
+				copyPromises.push(
+					new Promise(async (resolve, reject) => {
+						await copySemaphore.acquire()
 
-								ReactNativeBlobUtil.fs
-									.cp(item, path)
-									.then(() => {
-										const name = stat.filename
-										const type = mime.lookup(stat.filename) || ""
-										const ext = mime.extension(stat.filename) || ""
-										const size = stat.size
+						try {
+							const isAndroidSAF = uri.startsWith("content://") && Platform.OS === "android"
 
-										return resolve({ path, ext, type, size, name })
+							if (isAndroidSAF) {
+								const stat = await AndroidSAF.stat(uri)
+
+								if (stat.type === "directory") {
+									foldersToUpload.push(uri)
+								} else {
+									const tempFilePath = pathModule.join(tempPath, randomIdUnsafe() + "_" + stat.name)
+
+									if ((await fs.stat(tempFilePath)).exists) {
+										await fs.unlink(tempFilePath)
+									}
+
+									await AndroidSAF.copyFile(uri, tempFilePath, {
+										replaceIfDestinationExists: true
 									})
-									.catch(reject)
-							})
-						} else {
-							fs.stat(item).then(stat => {
-								if (!stat.exists || !stat.size) {
-									reject(new Error("Item not found"))
+
+									items.push({
+										name: stat.name,
+										lastModified: stat.lastModified || Date.now(),
+										mime: mimeTypes.lookup(stat.name) || "application/octet-stream",
+										size: stat.size || 0,
+										path: tempFilePath
+									})
+								}
+							} else {
+								const stat = await fs.stat(uri)
+
+								if (!stat.exists) {
+									resolve()
 
 									return
 								}
 
 								if (stat.isDirectory) {
-									reject(new Error(i18n(lang, "cannotShareDirIntoApp")))
+									foldersToUpload.push(uri)
+								} else {
+									const fileName = pathModule.basename(uri)
+									const tempFilePath = pathModule.join(tempPath, randomIdUnsafe() + "_" + fileName)
 
-									return
-								}
+									if ((await fs.stat(tempFilePath)).exists) {
+										await fs.unlink(tempFilePath)
+									}
 
-								fs.copy(item, path)
-									.then(() => {
-										const name = getFilenameFromPath(stat.uri)
-										const type = mime.lookup(name) || ""
-										const ext = mime.extension(name) || ""
-										const size = stat.size
+									await fs.copy(uri, tempFilePath)
 
-										return resolve({ path, ext, type, size, name })
+									items.push({
+										name: fileName,
+										lastModified: stat.modificationTime || Date.now(),
+										mime: mimeTypes.lookup(fileName) || "application/octet-stream",
+										size: stat.size || 0,
+										path: tempFilePath
 									})
-									.catch(reject)
-							})
+								}
+							}
+
+							try {
+								if (fs.documentDirectory().includes(uri) || fs.cacheDirectory().includes(uri) || tempPath.includes(uri)) {
+									if ((await fs.stat(uri)).exists) {
+										await fs.unlink(uri)
+									}
+								}
+							} catch {
+								// Noop
+							}
+
+							resolve()
+						} catch (e) {
+							reject(e)
+						} finally {
+							copySemaphore.release()
 						}
 					})
-					.catch(() => reject(new Error("Item not found")))
-			})
+				)
+			}
+
+			await Promise.all(copyPromises)
+
+			hideFullScreenLoadingModal()
+			setCurrentShareItems(null)
+			hideAllToasts()
+
+			for (const uri of foldersToUpload) {
+				uploadPromises.push(uploadFolder({ uri, parent, showFullScreenLoading: true }))
+			}
+
+			for (const item of items) {
+				uploadPromises.push(queueFileUpload({ file: item, parent }))
+			}
+
+			await promiseAllSettled(uploadPromises)
+		} catch (e) {
+			console.error(e)
+		} finally {
+			hideFullScreenLoadingModal()
+			setCurrentShareItems(null)
+			hideAllToasts()
 		}
-
-		const limit = 1000
-
-		if (items.length >= limit) {
-			showToast({ message: i18n(lang, "shareIntoAppLimit", true, ["__LIMIT__"], [limit]) })
-
-			return
-		}
-
-		const uploads = []
-
-		for (let i = 0; i < items.length; i++) {
-			uploads.push(
-				new Promise((resolve, reject) => {
-					copyFile(items[i])
-						.then(({ path, type, size, name }) => {
-							queueFileUpload({
-								file: {
-									path: path.replace("file://", ""),
-									name,
-									size,
-									mime: type,
-									lastModified: Date.now()
-								},
-								parent
-							})
-								.then(resolve)
-								.catch(reject)
-						})
-						.catch(reject)
-				})
-			)
-		}
-
-		setCurrentShareItems(undefined)
-		hideAllToasts()
-
-		promiseAllSettled(uploads)
-			.then(values => {
-				values.forEach(value => {
-					if (value.status == "rejected") {
-						// @ts-ignore
-						console.log(value.reason)
-
-						// @ts-ignore
-						showToast({ message: value.reason.toString() })
-					}
-				})
-			})
-			.catch(console.error)
-	}, [currentRouteURL, items, currentShareItems, lang])
+	}, [currentRouteURL, uris, lang])
 
 	useEffect(() => {
 		if (Array.isArray(currentRoutes)) {
 			const parent = getParent(currentRoutes[currentRoutes.length - 1])
 
-			if (typeof parent == "string" && parent.length > 0) {
+			if (typeof parent === "string" && parent.length > 0) {
 				setCurrentParent(parent)
 				setCurrentRouteURL(getRouteURL(currentRoutes[currentRoutes.length - 1]))
 			}
@@ -184,49 +191,41 @@ const UploadToast = memo(() => {
 	}, [currentRoutes])
 
 	useEffect(() => {
-		setItems([])
+		setURIs([])
 
-		if (typeof currentShareItems !== "undefined") {
-			if (typeof currentShareItems.data !== "undefined") {
-				if (currentShareItems !== null) {
-					const arr: any = []
+		if (currentShareItems) {
+			if (!Array.isArray(currentShareItems.data)) {
+				setURIs([currentShareItems.data])
+			} else {
+				const uriArray: string[] = []
 
-					if (Platform.OS == "android") {
-						if (Array.isArray(currentShareItems.data)) {
-							for (let i = 0; i < currentShareItems.data.length; i++) {
-								arr.push(currentShareItems.data[i])
-							}
-						} else {
-							arr.push(currentShareItems.data)
-						}
-
-						setItems(arr)
+				for (const item of currentShareItems.data) {
+					if (typeof item === "string") {
+						uriArray.push(item)
 					} else {
-						for (let i = 0; i < currentShareItems.data.length; i++) {
-							arr.push(currentShareItems.data[i].data)
-						}
-
-						setItems(arr)
+						uriArray.push(item.data)
 					}
 				}
+
+				setURIs(uriArray)
 			}
 		}
 	}, [currentShareItems])
 
-	if (items.length == 0) {
+	if (uris.length === 0) {
 		return null
 	}
 
 	return (
 		<>
-			{items.length > 0 && (
+			{uris.length > 0 && (
 				<View
 					style={{
 						flexDirection: "row",
 						justifyContent: "space-between",
 						width: "100%",
 						height: "100%",
-						zIndex: 99999
+						zIndex: 999999
 					}}
 				>
 					<View>
@@ -254,7 +253,7 @@ const UploadToast = memo(() => {
 							}}
 							onPress={() => {
 								hideAllToasts()
-								setCurrentShareItems(undefined)
+								setCurrentShareItems(null)
 							}}
 						>
 							<Text
@@ -284,11 +283,11 @@ const UploadToast = memo(() => {
 									fontSize: 15,
 									fontWeight: "400",
 									color:
-										currentRouteURL.indexOf("shared-in") == -1 &&
-										currentRouteURL.indexOf("recents") == -1 &&
-										currentRouteURL.indexOf("trash") == -1 &&
-										currentRouteURL.indexOf("photos") == -1 &&
-										currentRouteURL.indexOf("offline") == -1 &&
+										currentRouteURL.indexOf("shared-in") === -1 &&
+										currentRouteURL.indexOf("recents") === -1 &&
+										currentRouteURL.indexOf("trash") === -1 &&
+										currentRouteURL.indexOf("photos") === -1 &&
+										currentRouteURL.indexOf("offline") === -1 &&
 										currentParent.length > 32
 											? getColor(darkMode, "linkPrimary")
 											: getColor(darkMode, "textSecondary")

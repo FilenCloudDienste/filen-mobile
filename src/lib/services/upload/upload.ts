@@ -6,7 +6,8 @@ import {
 	canCompressThumbnailLocally,
 	toExpoFsPath,
 	getFilePreviewType,
-	toBlobUtilPath
+	toBlobUtilPath,
+	convertTimestampToMs
 } from "../../helpers"
 import { markUploadAsDone, checkIfItemParentIsShared, createFolder, folderExists } from "../../api"
 import { showToast } from "../../../components/Toasts"
@@ -65,6 +66,8 @@ export const queueFileUpload = async ({
 		throw new Error("wifiOnly")
 	}
 
+	file.lastModified = convertTimestampToMs(file.lastModified)
+
 	let item: Item = null
 	let metadataEncrypted = ""
 	let nameEncrypted = ""
@@ -90,7 +93,7 @@ export const queueFileUpload = async ({
 		item = result.item
 		metadataEncrypted = result.metadataEncrypted
 		nameEncrypted = result.nameEncrypted
-		nameHashed = result.nameEncrypted
+		nameHashed = result.nameHashed
 		mimeEncrypted = result.mimeEncrypted
 		sizeEncrypted = result.sizeEncrypted
 		uploadKey = result.uploadKey
@@ -98,7 +101,7 @@ export const queueFileUpload = async ({
 		const done = await markUploadAsDone({
 			uuid: item.uuid,
 			name: nameEncrypted,
-			nameHashed: nameHashed,
+			nameHashed,
 			size: sizeEncrypted,
 			chunks: item.chunks,
 			mime: mimeEncrypted,
@@ -124,7 +127,7 @@ export const queueFileUpload = async ({
 			}
 		})
 	} catch (e) {
-		if (e.toString() === "stopped") {
+		if (e === "stopped" || e.toString() === "stopped") {
 			if (item) {
 				await global.nodeThread.removeTransfer({ uuid: item.uuid }).catch(console.error)
 			}

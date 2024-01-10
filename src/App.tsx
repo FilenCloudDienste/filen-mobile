@@ -66,7 +66,7 @@ import * as fs from "./lib/fs"
 import mimeTypes from "mime-types"
 import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "./components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import { getCfg } from "./lib/api"
-import { ICFG } from "./types"
+import { ICFG, ShareMenuItems } from "./types"
 import Announcements from "./components/Announcements"
 import { SheetProvider } from "react-native-actions-sheet"
 import notifee, { EventType, InitialNotification } from "@notifee/react-native"
@@ -135,61 +135,39 @@ export const App = Sentry.wrap(
 		const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
 		const [fetchedInitialNotification, setFetchedInitialNotification] = useState<boolean>(false)
 		const [initialNotification, setInitialNotification] = useState<InitialNotification | null>(null)
-		const isDeviceReady = useStore(state => state.isDeviceReady)
 
-		const handleShare = useCallback(async (items: any) => {
-			if (!items) {
-				return false
+		const handleShare = useCallback(async (items: ShareMenuItems) => {
+			if (!items || !items.data) {
+				return
 			}
 
-			if (items && items.data && Array.isArray(items.data) && items.data.length > 0) {
-				await new Promise(resolve => {
-					const wait = setInterval(() => {
-						if (
-							isNavReady(navigationRef) &&
-							!isRouteInStack(navigationRef, [
-								"SetupScreen",
-								"BiometricAuthScreen",
-								"LoginScreen",
-								"SelectMediaScreen",
-								"RegisterScreen",
-								"ResendConfirmationScreen"
-							]) &&
-							storage.getBoolean("isLoggedIn")
-						) {
-							clearInterval(wait)
-
-							return resolve(true)
-						}
-					}, 100)
-				})
-
-				let containsValidItems = true
-
-				if (Platform.OS === "android") {
-					for (let i = 0; i < items.data.length; i++) {
-						if (items.data[i].indexOf("file://") == -1 && items.data[i].indexOf("content://") == -1) {
-							containsValidItems = false
-						}
-					}
-				} else {
-					for (let i = 0; i < items.data.length; i++) {
-						if (items.data[i].data.indexOf("file://") == -1 && items.data[i].data.indexOf("content://") == -1) {
-							containsValidItems = false
-						}
-					}
-				}
-
-				if (!containsValidItems) {
-					showToast({ message: i18n(lang, "shareMenuInvalidType") })
-
-					return
-				}
-
-				setCurrentShareItems(items)
-
-				showToast({ type: "upload" })
+			if (!Array.isArray(items.data) || items.data.length <= 0) {
+				return
 			}
+
+			await new Promise(resolve => {
+				const wait = setInterval(() => {
+					if (
+						isNavReady(navigationRef) &&
+						!isRouteInStack(navigationRef, [
+							"SetupScreen",
+							"BiometricAuthScreen",
+							"LoginScreen",
+							"SelectMediaScreen",
+							"RegisterScreen",
+							"ResendConfirmationScreen"
+						]) &&
+						storage.getBoolean("isLoggedIn")
+					) {
+						clearInterval(wait)
+
+						return resolve(true)
+					}
+				}, 100)
+			})
+
+			setCurrentShareItems(items)
+			showToast({ type: "upload" })
 		}, [])
 
 		const setAppearance = useCallback((timeout: number = 1000) => {

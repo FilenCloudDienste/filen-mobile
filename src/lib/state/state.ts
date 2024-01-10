@@ -2,7 +2,7 @@ import create from "zustand"
 import { Dimensions } from "react-native"
 import { subscribeWithSelector } from "zustand/middleware"
 import { ScaledSize } from "react-native"
-import { Item } from "../../types"
+import { Item, ShareMenuItems } from "../../types"
 import { TransferItem } from "../../screens/TransfersScreen"
 
 const window: ScaledSize = Dimensions.get("window")
@@ -67,8 +67,8 @@ export interface State {
 	setCameraUploadUploaded: (cameraUploadUploaded: number) => void
 	biometricAuthScreenState: string
 	setBiometricAuthScreenState: (biometricAuthScreenState: string) => void
-	currentShareItems: any
-	setCurrentShareItems: (currentShareItems: any) => void
+	currentShareItems: ShareMenuItems
+	setCurrentShareItems: (currentShareItems: ShareMenuItems) => void
 	textEditorState: string
 	setTextEditorState: (textEditorState: string) => void
 	textEditorText: string
@@ -181,7 +181,7 @@ export const useStore = create<State>()(
 		setCameraUploadUploaded: cameraUploadUploaded => set({ cameraUploadUploaded }),
 		biometricAuthScreenState: "auth",
 		setBiometricAuthScreenState: biometricAuthScreenState => set({ biometricAuthScreenState }),
-		currentShareItems: undefined,
+		currentShareItems: null,
 		setCurrentShareItems: currentShareItems => set({ currentShareItems }),
 		textEditorState: "new",
 		setTextEditorState: textEditorState => set({ textEditorState }),
