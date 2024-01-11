@@ -264,15 +264,13 @@ export const fetchLocalAssets = async (): Promise<MediaAsset[]> => {
 			}
 		}
 
-		getLocalAssetsMutex.release()
-
 		return result
 	} catch (e) {
 		console.error(e)
 
-		getLocalAssetsMutex.release()
-
 		throw e
+	} finally {
+		getLocalAssetsMutex.release()
 	}
 }
 

@@ -224,7 +224,7 @@ const buildTransfers = () => {
 		}
 
 		for (const transfer of finishedTransfers) {
-			if (exists[transfer.uuid]) {
+			if (typeof transfer.uuid !== "string" || exists[transfer.uuid]) {
 				continue
 			}
 
@@ -257,9 +257,11 @@ const transfersUpdate = (retryCounter = 0) => {
 	const now = Date.now()
 
 	if (nextTransfersUpdate > now) {
-		if (retryCounter <= 2) {
-			setTimeout(() => transfersUpdate(retryCounter + 1), transfersUpdateTimeout + 100)
+		if (retryCounter >= 5) {
+			return
 		}
+
+		setTimeout(() => transfersUpdate(retryCounter + 1), transfersUpdateTimeout + 100)
 
 		return
 	}
@@ -278,11 +280,11 @@ const transfersUpdate = (retryCounter = 0) => {
 }
 
 const updateTransfersProgress = () => {
-	if (bytesSent <= 0) {
+	if (bytesSent <= 0 || isNaN(bytesSent)) {
 		bytesSent = 0
 	}
 
-	if (allBytes <= 0) {
+	if (allBytes <= 0 || isNaN(allBytes)) {
 		allBytes = 0
 	}
 
@@ -1318,11 +1320,10 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 		}
 
 		allBytes += file.size
-
-		updateTransfersProgress()
 	}
 
 	updateTransfersProgress()
+	transfersUpdate()
 
 	let currentWriteIndex = 0
 
@@ -1401,12 +1402,11 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 				lastTime: now,
 				timestamp: now
 			}
-
-			updateTransfersProgress()
 		}
 	}
 
 	updateTransfersProgress()
+	transfersUpdate()
 
 	try {
 		await new Promise((resolve, reject) => {
@@ -1478,6 +1478,7 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 		})
 
 		updateTransfersProgress()
+		transfersUpdate()
 
 		return destination
 	} catch (e) {
@@ -1495,11 +1496,10 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 			if (allBytes >= file.size) {
 				allBytes -= file.size
 			}
-
-			updateTransfersProgress()
 		}
 
 		updateTransfersProgress()
+		transfersUpdate()
 
 		throw e
 	} finally {
@@ -1549,11 +1549,10 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 		}
 
 		allBytes += stat.size
-
-		updateTransfersProgress()
 	}
 
 	updateTransfersProgress()
+	transfersUpdate()
 
 	file.size = stat.size
 
@@ -1652,23 +1651,20 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 	} catch (e) {
 		delete currentUploads[uuid]
 
-		if (e !== "stopped") {
-			failedTransfers[uuid] = {
-				...file,
-				transferType: "upload",
-				reason: e.toString()
-			}
+		failedTransfers[uuid] = {
+			...file,
+			transferType: "upload",
+			reason: e.toString()
 		}
 
 		if (showProgress) {
 			if (allBytes >= file.size) {
 				allBytes -= file.size
 			}
-
-			updateTransfersProgress()
 		}
 
 		updateTransfersProgress()
+		transfersUpdate()
 
 		throw e
 	}
@@ -1717,12 +1713,11 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 				lastTime: now,
 				timestamp: now
 			}
-
-			updateTransfersProgress()
 		}
 	}
 
 	updateTransfersProgress()
+	transfersUpdate()
 
 	try {
 		await new Promise((resolve, reject) => {
@@ -1752,30 +1747,13 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 			}
 		})
 	} catch (e) {
-		delete currentUploads[item.uuid]
-
-		if (e !== "stopped") {
-			failedTransfers[item.uuid] = {
-				...file,
-				transferType: "upload",
-				reason: e.toString()
-			}
-		}
-
-		if (showProgress) {
-			if (allBytes >= file.size) {
-				allBytes -= file.size
-			}
-
-			updateTransfersProgress()
-		}
-
-		updateTransfersProgress()
-
 		throw e
 	} finally {
 		uploadSemaphore.release()
 	}
+
+	updateTransfersProgress()
+	transfersUpdate()
 
 	return {
 		item,
@@ -2282,6 +2260,9 @@ rn_bridge.channel.on("message", message => {
 					response: result
 				})
 
+				updateTransfersProgress()
+				transfersUpdate()
+
 				tasksRunning -= 1
 			})
 			.catch(err => {
@@ -2290,6 +2271,9 @@ rn_bridge.channel.on("message", message => {
 					type: request.type,
 					err: err.toString()
 				})
+
+				updateTransfersProgress()
+				transfersUpdate()
 
 				tasksRunning -= 1
 			})
@@ -2310,6 +2294,9 @@ rn_bridge.channel.on("message", message => {
 					response: result
 				})
 
+				updateTransfersProgress()
+				transfersUpdate()
+
 				tasksRunning -= 1
 			})
 			.catch(err => {
@@ -2319,6 +2306,9 @@ rn_bridge.channel.on("message", message => {
 					err: err.toString()
 				})
 
+				updateTransfersProgress()
+				transfersUpdate()
+
 				tasksRunning -= 1
 			})
 	} else if (request.type === "uploadDone") {
@@ -2327,11 +2317,12 @@ rn_bridge.channel.on("message", message => {
 				...currentUploads[request.uuid],
 				transferType: "upload"
 			})
-
-			delete currentUploads[request.uuid]
-
-			updateTransfersProgress()
 		}
+
+		delete currentUploads[request.uuid]
+
+		updateTransfersProgress()
+		transfersUpdate()
 
 		rn_bridge.channel.send({
 			id: request.id,
@@ -2351,11 +2342,12 @@ rn_bridge.channel.on("message", message => {
 				transferType: "upload",
 				reason: request.reason
 			}
-
-			delete currentUploads[request.uuid]
-
-			updateTransfersProgress()
 		}
+
+		delete currentUploads[request.uuid]
+
+		updateTransfersProgress()
+		transfersUpdate()
 
 		rn_bridge.channel.send({
 			id: request.id,
@@ -2377,6 +2369,7 @@ rn_bridge.channel.on("message", message => {
 		delete currentDownloads[request.uuid]
 
 		updateTransfersProgress()
+		transfersUpdate()
 
 		rn_bridge.channel.send({
 			id: request.id,
@@ -2394,6 +2387,9 @@ rn_bridge.channel.on("message", message => {
 			response: true
 		})
 
+		updateTransfersProgress()
+		transfersUpdate()
+
 		tasksRunning -= 1
 	} else if (request.type === "pauseTransfer") {
 		pausedTransfers[request.uuid] = true
@@ -2404,6 +2400,9 @@ rn_bridge.channel.on("message", message => {
 			response: true
 		})
 
+		updateTransfersProgress()
+		transfersUpdate()
+
 		tasksRunning -= 1
 	} else if (request.type === "resumeTransfer") {
 		delete pausedTransfers[request.uuid]
@@ -2413,6 +2412,9 @@ rn_bridge.channel.on("message", message => {
 			type: request.type,
 			response: true
 		})
+
+		updateTransfersProgress()
+		transfersUpdate()
 
 		tasksRunning -= 1
 	} else if (request.type === "getCurrentTransfers") {

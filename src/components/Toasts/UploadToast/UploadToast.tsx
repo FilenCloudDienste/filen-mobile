@@ -50,13 +50,7 @@ const UploadToast = memo(() => {
 
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
-		if (hasPermissionsError) {
-			showToast({ message: i18n(lang, "pleaseGrantPermission") })
-
-			return
-		}
-
-		if (!hasPermissionsResult) {
+		if (hasPermissionsError || !hasPermissionsResult) {
 			showToast({ message: i18n(lang, "pleaseGrantPermission") })
 
 			return
@@ -172,10 +166,13 @@ const UploadToast = memo(() => {
 			await promiseAllSettled(uploadPromises)
 		} catch (e) {
 			console.error(e)
-		} finally {
-			hideFullScreenLoadingModal()
+
 			setCurrentShareItems(null)
 			hideAllToasts()
+
+			showToast({ message: e.toString() })
+		} finally {
+			hideFullScreenLoadingModal()
 		}
 	}, [currentRouteURL, uris, lang])
 

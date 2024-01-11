@@ -93,19 +93,6 @@ export const TransfersIndicator = memo(({ navigation }: TransfersIndicatorProps)
 		)
 	}, [currentDownloadsCount, currentUploadsCount, currentRouteName, biometricAuthScreenVisible])
 
-	/*useEffect(() => {
-		eventListener.emit("foregroundServiceUploadDownloadProgress", progress)
-	}, [progress])*/
-
-	/*useEffect(() => {
-		//update(currentUploads, currentDownloads, currentRouteName, biometricAuthScreenVisible)
-		setCurrentUploadsGlobal(currentUploads)
-		setCurrentDownloadsGlobal(currentDownloads)
-		setFinishedTransfersGlobal(finishedTransfers)
-		//eventListener.emit(Object.keys(currentUploads).length > 0 ? "startForegroundService" : "stopForegroundService", "upload")
-		//eventListener.emit(Object.keys(currentDownloads).length > 0 ? "startForegroundService" : "stopForegroundService", "download")
-	}, [currentUploads, currentDownloads, currentRouteName, biometricAuthScreenVisible, finishedTransfers])*/
-
 	useEffect(() => {
 		try {
 			if (currentRoutes && currentRoutes[currentRoutes.length - 1] && currentRoutes[currentRoutes.length - 1].name) {

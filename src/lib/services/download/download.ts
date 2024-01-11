@@ -64,7 +64,7 @@ export const queueFileDownload = async ({
 				return
 			}
 		} catch (e) {
-			console.log(e)
+			console.error(e)
 		}
 	}
 
@@ -85,11 +85,6 @@ export const queueFileDownload = async ({
 	currentDownloads[file.uuid] = true
 
 	addDownloadMutex.release()
-
-	DeviceEventEmitter.emit("download", {
-		type: "start",
-		data: file
-	})
 
 	try {
 		var downloadPath = await fs.getDownloadPath({ type: storeOffline ? "offline" : "download" })
@@ -140,8 +135,8 @@ export const queueFileDownload = async ({
 					if ((await fs.stat(offlinePath)).exists) {
 						await fs.unlink(offlinePath)
 					}
-				} catch (e) {
-					//console.log(e)
+				} catch {
+					// Noop
 				}
 
 				fs.move(path, offlinePath)
@@ -159,8 +154,6 @@ export const queueFileDownload = async ({
 								})
 
 								callOptionalCallback(null, offlinePath)
-
-								console.log(file.name + " download done")
 							})
 							.catch(err => {
 								showToast({ message: err.toString() })
@@ -178,7 +171,7 @@ export const queueFileDownload = async ({
 						console.error(err)
 					})
 			} else {
-				if (Platform.OS == "android") {
+				if (Platform.OS === "android") {
 					ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
 						{
 							name: file.name,
@@ -192,14 +185,12 @@ export const queueFileDownload = async ({
 							fs.unlink(path)
 								.then(() => {
 									if (showNotification || useStore.getState().imagePreviewModalVisible) {
-										//showToast({
-										//	message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name])
-										//})
+										showToast({
+											message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name])
+										})
 									}
 
 									callOptionalCallback(null, "")
-
-									console.log(file.name + " download done")
 								})
 								.catch(err => {
 									showToast({ message: err.toString() })
@@ -214,7 +205,6 @@ export const queueFileDownload = async ({
 
 							callOptionalCallback(err)
 
-							console.log(file)
 							console.error(err)
 						})
 				} else {
@@ -222,21 +212,19 @@ export const queueFileDownload = async ({
 						if ((await fs.stat(filePath)).exists) {
 							await fs.unlink(filePath)
 						}
-					} catch (e) {
-						//console.log(e)
+					} catch {
+						// Noop
 					}
 
 					fs.move(path, filePath)
 						.then(() => {
 							if (showNotification || useStore.getState().imagePreviewModalVisible) {
-								//showToast({
-								//	message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name])
-								//})
+								showToast({
+									message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name])
+								})
 							}
 
 							callOptionalCallback(null, filePath)
-
-							console.log(file.name + " download done")
 						})
 						.catch(err => {
 							showToast({ message: err.toString() })
@@ -252,15 +240,8 @@ export const queueFileDownload = async ({
 			delete currentDownloads[file.uuid]
 
 			if (err.toString() !== "stopped") {
-				//showToast({ message: err.toString() })
+				showToast({ message: err.toString() })
 
-				DeviceEventEmitter.emit("download", {
-					type: "err",
-					data: file,
-					err: err.toString()
-				})
-
-				console.log(file)
 				console.error(err)
 			}
 
@@ -374,9 +355,9 @@ export const downloadFolder = async ({
 
 		await Promise.all(promises)
 
-		//showToast({
-		//	message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [folder.name])
-		//})
+		showToast({
+			message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [folder.name])
+		})
 	} catch (e) {
 		throw e
 	} finally {

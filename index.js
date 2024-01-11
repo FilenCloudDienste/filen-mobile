@@ -11,6 +11,7 @@ import { i18n } from "./src/i18n"
 import storage from "./src/lib/storage"
 import { Notifications, NotificationBackgroundFetchResult } from "react-native-notifications"
 import { hasNotificationPermissions } from "./src/lib/permissions"
+import { Semaphore } from "./src/lib/helpers"
 
 if (!__DEV__) {
 	console.log = () => {}
@@ -20,157 +21,174 @@ if (!__DEV__) {
 	LogBox.ignoreLogs(["new NativeEventEmitter", "Module AssetExporter", "DEPRECATED", "messaging()"])
 }
 
-const foregroundServices = {}
-let uploadNotification = null
-let downloadNotification = null
+let foregroundServiceRegistered = false
+let transfersNotificationMutex = new Semaphore(1)
+let transfersNotificationId = null
+let foregroundServiceChannelId = null
+let transfersNotification = null
+let lastTransfersNotificationProgress = -1
+let currentDownloadsCountGlobal = 0
+let currentUploadsCountGlobal = 0
+let nextHasPermissionsQuery = 0
+let lastHasPermissions = false
 
-eventListener.on("startForegroundService", type => {
-	if (Platform.OS === "ios") {
+const hasNotifyPermissions = async () => {
+	const now = Date.now()
+
+	if (nextHasPermissionsQuery > now) {
+		return lastHasPermissions
+	}
+
+	nextHasPermissionsQuery = now + 300000
+
+	const permissions = await hasNotificationPermissions(false)
+
+	lastHasPermissions = permissions
+
+	return lastHasPermissions
+}
+
+const registerForegroundService = async () => {
+	if (foregroundServiceRegistered) {
 		return
 	}
 
-	const showNotification = typeof foregroundServices[type] === "boolean" && foregroundServices[type] === false
+	foregroundServiceRegistered = true
 
-	foregroundServices[type] = true
+	notifee.registerForegroundService(() => {
+		return new Promise(resolve => {
+			const wait = setInterval(() => {
+				if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0) {
+					clearInterval(wait)
 
-	if (showNotification) {
-		;(async () => {
-			try {
-				const lang = storage.getString("lang") || "en"
-				const channelId = await notifee.createChannel({
+					notifee
+						.stopForegroundService()
+						.then(() => {
+							foregroundServiceRegistered = false
+
+							resolve()
+						})
+						.catch(err => {
+							console.error(err)
+
+							foregroundServiceRegistered = false
+
+							resolve()
+						})
+				}
+			}, 2500)
+		})
+	})
+}
+
+if (Platform.OS === "android") {
+	eventListener.on("transfersUpdate", async ({ progress, currentDownloadsCount, currentUploadsCount }) => {
+		currentDownloadsCountGlobal = currentDownloadsCount
+		currentUploadsCountGlobal = currentUploadsCount
+
+		await transfersNotificationMutex.acquire()
+
+		try {
+			if (currentDownloadsCount + currentUploadsCount <= 0) {
+				transfersNotificationId = null
+				foregroundServiceChannelId = null
+				transfersNotification = null
+				lastTransfersNotificationProgress = -1
+
+				return
+			}
+
+			if (currentDownloadsCount + currentUploadsCount <= 0) {
+				return
+			}
+
+			if (!foregroundServiceRegistered) {
+				registerForegroundService()
+			}
+
+			const permissions = await hasNotifyPermissions()
+
+			if (!permissions) {
+				return
+			}
+
+			if (!foregroundServiceChannelId) {
+				foregroundServiceChannelId = await notifee.createChannel({
 					id: "foregroundService",
 					name: "Foreground Service",
 					vibration: false,
 					sound: undefined
 				})
-
-				const notification = {
-					title:
-						type === "cameraUpload"
-							? i18n(lang, "cameraUploadNotificationTitle")
-							: type === "upload"
-							? i18n(lang, "uploadNotificationTitle")
-							: i18n(lang, "downloadNotificationTitle"),
-					android: {
-						channelId,
-						asForegroundService: true,
-						localOnly: true,
-						ongoing: true,
-						importance: AndroidImportance.HIGH,
-						onlyAlertOnce: false,
-						loopSound: false,
-						autoCancel: false,
-						progress: {
-							indeterminate: true
-						},
-						pressAction: {
-							id: "foregroundService",
-							launchActivity: "default"
-						},
-						groupSummary: true,
-						groupId: "foregroundService",
-						timestamp: Date.now()
-					},
-					data: {
-						type: "foregroundService"
-					}
-				}
-
-				const id = await notifee.displayNotification(notification)
-
-				if (type === "upload") {
-					uploadNotification = {
-						...notification,
-						id
-					}
-				}
-
-				if (type === "download") {
-					downloadNotification = {
-						...notification,
-						id
-					}
-				}
-			} catch (e) {
-				console.error(e)
 			}
-		})()
-	}
-})
 
-eventListener.on("stopForegroundService", type => {
-	if (Platform.OS === "ios") {
-		return
-	}
+			const lang = storage.getString("lang") || "en"
 
-	foregroundServices[type] = false
-})
+			progress = Math.round(progress)
+			progress = progress <= 0 ? 0 : progress
+			progress = progress >= 100 ? 100 : progress
 
-eventListener.on("foregroundServiceUploadDownloadProgress", progress => {
-	if (isNaN(progress) || Platform.OS === "ios") {
-		return
-	}
-
-	progress = Math.round(progress)
-	progress = progress <= 0 ? 0 : progress
-	progress = progress >= 100 ? 100 : progress
-
-	if (uploadNotification) {
-		notifee
-			.displayNotification({
-				...uploadNotification,
+			transfersNotification = {
+				title: i18n(lang, "transferringFiles", true, ["__NUM__"], [(currentDownloadsCount + currentUploadsCount).toString()]),
 				android: {
-					...uploadNotification.android,
+					channelId: foregroundServiceChannelId,
+					asForegroundService: true,
+					localOnly: true,
+					ongoing: true,
+					importance: AndroidImportance.HIGH,
+					onlyAlertOnce: false,
+					loopSound: false,
+					autoCancel: false,
 					progress: {
-						...uploadNotification.android.progress,
 						max: 100,
 						current: progress,
-						indeterminate: false
-					}
+						indeterminate: progress >= 100 || progress <= 0
+					},
+					pressAction: {
+						id: "foregroundService",
+						launchActivity: "default"
+					},
+					groupSummary: true,
+					groupId: "foregroundService",
+					timestamp: Date.now()
+				},
+				data: {
+					type: "foregroundService"
 				}
-			})
-			.catch(console.error)
-	}
+			}
 
-	if (downloadNotification) {
-		notifee
-			.displayNotification({
-				...downloadNotification,
-				android: {
-					...downloadNotification.android,
-					progress: {
-						...downloadNotification.android.progress,
-						max: 100,
-						current: progress,
-						indeterminate: false
+			if (!transfersNotificationId) {
+				transfersNotificationId = await notifee.displayNotification(transfersNotification)
+
+				lastTransfersNotificationProgress = progress
+			}
+
+			if (progress !== lastTransfersNotificationProgress && transfersNotificationId) {
+				await notifee.displayNotification({
+					...transfersNotification,
+					id: transfersNotificationId,
+					title: i18n(lang, "transferringFiles", true, ["__NUM__"], [(currentDownloadsCount + currentUploadsCount).toString()]),
+					android: {
+						...transfersNotification.android,
+						progress: {
+							...transfersNotification.android.progress,
+							current: progress,
+							indeterminate: progress >= 100 || progress <= 0
+						}
 					}
-				}
-			})
-			.catch(console.error)
-	}
-})
+				})
+
+				lastTransfersNotificationProgress = progress
+			}
+		} catch (e) {
+			console.error(e)
+		} finally {
+			transfersNotificationMutex.release()
+		}
+	})
+}
 
 if (Platform.OS === "android") {
 	notifee.onBackgroundEvent(async () => {})
-
-	notifee.registerForegroundService(() => {
-		return new Promise(resolve => {
-			const wait = setInterval(() => {
-				if (Object.keys(foregroundServices).filter(type => foregroundServices[type] === true).length <= 0) {
-					clearInterval(wait)
-
-					notifee
-						.stopForegroundService()
-						.then(() => resolve())
-						.catch(err => {
-							console.error(err)
-
-							resolve()
-						})
-				}
-			}, 100)
-		})
-	})
 }
 
 const onPushNotification = async message => {

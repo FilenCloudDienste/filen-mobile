@@ -132,8 +132,6 @@ export const clearCacheDirectories = async (): Promise<void> => {
 			if (canDelete(cacheDownloadsItems[i])) {
 				deletePromises.push(fs.unlink(cachedDownloadsPath + "/" + cacheDownloadsItems[i]))
 			}
-		} else {
-			console.log("cacheDownloadsItems", cacheDownloadsItems[i])
 		}
 	}
 
@@ -146,8 +144,6 @@ export const clearCacheDirectories = async (): Promise<void> => {
 				if (canDelete(cacheItems[i])) {
 					deletePromises.push(fs.unlink(cachePath + "/" + cacheItems[i]))
 				}
-			} else {
-				console.log("cacheItems", cacheItems[i])
 			}
 		}
 	}
@@ -160,8 +156,6 @@ export const clearCacheDirectories = async (): Promise<void> => {
 			if (canDelete(tempItems[i])) {
 				deletePromises.push(fs.unlink(tempPath + "/" + tempItems[i]))
 			}
-		} else {
-			console.log("tmpItems", tempItems[i])
 		}
 	}
 

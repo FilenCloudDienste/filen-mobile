@@ -132,7 +132,7 @@ export const queueFileUpload = async ({
 				await global.nodeThread.removeTransfer({ uuid: item.uuid }).catch(console.error)
 			}
 
-			throw new Error("stopped")
+			return
 		}
 
 		if (e.toString().toLowerCase().indexOf("blacklist") !== -1) {

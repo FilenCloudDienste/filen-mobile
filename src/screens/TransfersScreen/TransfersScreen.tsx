@@ -200,7 +200,7 @@ export const TransfersScreen = memo(({ navigation }: { navigation: NavigationCon
 	}, [transfers])
 
 	const doneAndFailedTransfers = useMemo(() => {
-		return transfers.filter(transfer => transfer.done || transfer.failed)
+		return transfers.filter(transfer => (transfer.done || transfer.failed) && typeof transfer.uuid === "string")
 	}, [transfers])
 
 	const keyExtractor = useCallback((item: TransferItem) => item.uuid, [])
