@@ -507,5 +507,8 @@ export const zh: {
 	deny: "拒绝",
 	uploadFolders: "上传文件夹",
 	uploadFolder: "上传文件夹",
-	cameraUploadAutoOrganize: "按相册排序"
+	cameraUploadAutoOrganize: "按相册排序",
+	finishing: "整理中",
+	transferringFiles: "正在传输 __NUM__ 个文件",
+	paused: "已暂停"
 }
