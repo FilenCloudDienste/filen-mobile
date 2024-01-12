@@ -505,5 +505,8 @@ export const uk: {
 	deny: "Відхилити",
 	uploadFolders: "Завантажити папки",
 	uploadFolder: "Завантажити папку",
-	cameraUploadAutoOrganize: "Сортувати по альбомам"
+	cameraUploadAutoOrganize: "Сортувати за альбомами",
+	finishing: "Завершення",
+	transferringFiles: "Передача __NUM__ файлів",
+	paused: "Призупинено"
 }
