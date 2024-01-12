@@ -505,5 +505,8 @@ export const ru: {
 	deny: "Отказаться",
 	uploadFolders: "Загрузить папки",
 	uploadFolder: "Загрузить папку",
-	cameraUploadAutoOrganize: "Сортировать по альбомам"
+	cameraUploadAutoOrganize: "Сортировать по альбомам",
+	finishing: "Завершение",
+	transferringFiles: "Передача __NUM__ файлов",
+	paused: "Приостановлено"
 }
