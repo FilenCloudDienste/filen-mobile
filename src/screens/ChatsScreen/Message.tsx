@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback, useMemo, useEffect } from "react"
+import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "react"
 import { View, Text, TouchableOpacity, Pressable } from "react-native"
 import { getColor, blurhashes } from "../../style"
 import { ChatConversation, ChatMessage, BlockedContact } from "../../lib/api"
@@ -455,7 +455,14 @@ export const Message = memo(
 		replyMessageUUID: string
 		setLastFocusTimestamp: React.Dispatch<React.SetStateAction<Record<string, number> | undefined>>
 	}) => {
+		const lastMessageUUID = useRef<string>(message.uuid)
 		const [date, setDate] = useState<string>(formatMessageDate(message.sentTimestamp, lang))
+
+		if (lastMessageUUID.current !== message.uuid) {
+			lastMessageUUID.current = message.uuid
+
+			setDate(formatMessageDate(message.sentTimestamp, lang))
+		}
 
 		const updateDate = useCallback(() => {
 			setDate(formatMessageDate(message.sentTimestamp, lang))

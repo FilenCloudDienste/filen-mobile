@@ -22,6 +22,7 @@ if (!__DEV__) {
 }
 
 let foregroundServiceRegistered = false
+let foregroundServiceRegisteredMutex = new Semaphore(1)
 let transfersNotificationMutex = new Semaphore(1)
 let transfersNotificationId = null
 let foregroundServiceChannelId = null
@@ -49,36 +50,41 @@ const hasNotifyPermissions = async () => {
 }
 
 const registerForegroundService = async () => {
-	if (foregroundServiceRegistered) {
-		return
-	}
+	await foregroundServiceRegisteredMutex.acquire()
 
-	foregroundServiceRegistered = true
+	try {
+		if (foregroundServiceRegistered) {
+			return
+		}
 
-	notifee.registerForegroundService(() => {
-		return new Promise(resolve => {
-			const wait = setInterval(() => {
-				if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0) {
-					clearInterval(wait)
+		foregroundServiceRegistered = true
 
-					notifee
-						.stopForegroundService()
-						.then(() => {
-							foregroundServiceRegistered = false
+		notifee.registerForegroundService(() => {
+			return new Promise(resolve => {
+				const wait = setInterval(() => {
+					if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0) {
+						clearInterval(wait)
 
-							resolve()
-						})
-						.catch(err => {
-							console.error(err)
+						notifee
+							.stopForegroundService()
+							.then(() => resolve())
+							.catch(err => {
+								console.error(err)
 
-							foregroundServiceRegistered = false
-
-							resolve()
-						})
-				}
-			}, 2500)
+								resolve()
+							})
+							.finally(() => {
+								foregroundServiceRegistered = false
+							})
+					}
+				}, 2500)
+			})
 		})
-	})
+	} catch (e) {
+		throw e
+	} finally {
+		foregroundServiceRegisteredMutex.release()
+	}
 }
 
 if (Platform.OS === "android") {
@@ -102,9 +108,7 @@ if (Platform.OS === "android") {
 				return
 			}
 
-			if (!foregroundServiceRegistered) {
-				registerForegroundService()
-			}
+			await registerForegroundService()
 
 			const permissions = await hasNotifyPermissions()
 

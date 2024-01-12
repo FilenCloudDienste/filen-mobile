@@ -488,7 +488,7 @@ export const App = Sentry.wrap(
 								style={{
 									backgroundColor:
 										currentScreenName === "ImageViewerScreen" ? "black" : getColor(darkMode, "backgroundPrimary"),
-									paddingTop: 5,
+									paddingTop: 0,
 									height: "100%",
 									width: "100%"
 								}}
