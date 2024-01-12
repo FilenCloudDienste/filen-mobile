@@ -240,6 +240,10 @@ const ImageViewerScreen = memo(
 						contentHeight={dimensions.realHeight}
 						contentWidth={dimensions.realWidth}
 						onShiftingBefore={(e, state, view) => {
+							if (isZooming) {
+								return false
+							}
+
 							const zoomLevel = Math.round(view.zoomLevel * 100) / 100
 
 							return zoomLevel <= 1
@@ -295,7 +299,7 @@ const ImageViewerScreen = memo(
 					</ReactNativeZoomableView>
 				)
 			},
-			[dimensions, images, imagePreviewModalItems, dimensions]
+			[dimensions, images, imagePreviewModalItems, isZooming]
 		)
 
 		const renderThumb = useCallback(
@@ -493,8 +497,7 @@ const ImageViewerScreen = memo(
 							dimensions,
 							images,
 							imagePreviewModalItems,
-							viewRefs,
-							imagePreviewModalIndex
+							isZooming
 						}}
 						ref={listRef}
 						data={imagePreviewModalItems}
@@ -536,7 +539,8 @@ const ImageViewerScreen = memo(
 							portrait: dimensions.isPortrait ? "thumbs-portrait" : "thumbs-landscape",
 							imagePreviewModalItems,
 							viewRefs,
-							imagePreviewModalIndex
+							imagePreviewModalIndex,
+							dimensions
 						}}
 						ref={thumbnailListRef}
 						data={imagePreviewModalItems}
