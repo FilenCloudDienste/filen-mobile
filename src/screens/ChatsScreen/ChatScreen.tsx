@@ -805,6 +805,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 				conversationMe={conversationMe}
 				setEditingMessageUUID={setEditingMessageUUID}
 				setReplyMessageUUID={setReplyMessageUUID}
+				editingMessageUUID={editingMessageUUID}
 			/>
 		</RootView>
 	)

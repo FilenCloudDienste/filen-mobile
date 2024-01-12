@@ -23,7 +23,8 @@ import {
 	sendChatMessage,
 	createFolder,
 	enableItemPublicLink,
-	itemPublicLinkInfo
+	itemPublicLinkInfo,
+	editChatMessage
 } from "../../lib/api"
 import { i18n } from "../../i18n"
 import { useMMKVString } from "react-native-mmkv"
@@ -57,7 +58,8 @@ const Input = memo(
 		setMessages,
 		setFailedMessages,
 		setEditingMessageUUID,
-		setReplyMessageUUID
+		setReplyMessageUUID,
+		editingMessageUUID
 	}: {
 		darkMode: boolean
 		conversation: ChatConversation
@@ -67,6 +69,7 @@ const Input = memo(
 		setFailedMessages: React.Dispatch<React.SetStateAction<string[]>>
 		setEditingMessageUUID: React.Dispatch<React.SetStateAction<string>>
 		setReplyMessageUUID: React.Dispatch<React.SetStateAction<string>>
+		editingMessageUUID: string
 	}) => {
 		const [text, setText] = useMMKVString("chatTextInput:" + conversation.uuid, storage)
 		const [textSelection, setTextSelection] = useState<{ start: number; end: number }>(
@@ -123,6 +126,78 @@ const Input = memo(
 				sendTypingEvents()
 			}, TYPING_TIMEOUT)
 		}, [])
+
+		const editMessage = useCallback(async () => {
+			let uuid: string
+
+			try {
+				const message = `${text}`
+
+				if (!message || message.length === 0 || !conversation || editingMessageUUID.length < 16) {
+					setEditingMessageUUID("")
+
+					return
+				}
+
+				if (message.length > 4096) {
+					showToast({ message: i18n(lang, "chatMessageLimitReached", true, ["__LIMIT__"], ["2000"]) })
+					setEditingMessageUUID("")
+
+					return
+				}
+
+				uuid = editingMessageUUID
+
+				setReplyToMessage(undefined)
+				setText("")
+				setEditingMessageUUID("")
+				setMessages(prev => prev.map(m => (m.uuid === uuid ? { ...m, message, edited: true, editedTimestamp: Date.now() } : m)))
+
+				const privateKey = storage.getString("privateKey")
+				const key = await decryptChatMessageKey(conversationMe.metadata, privateKey)
+
+				if (key.length === 0) {
+					setFailedMessages(prev => [...prev, uuid])
+
+					return
+				}
+
+				const messageEncrypted = await encryptChatMessage(message, key)
+
+				if (messageEncrypted.length === 0) {
+					setFailedMessages(prev => [...prev, uuid])
+
+					return
+				}
+
+				await editChatMessage(conversation.uuid, uuid, messageEncrypted)
+
+				eventListener.emit("chatMessageEdited", {
+					conversation: conversation.uuid,
+					uuid,
+					message
+				})
+			} catch (e) {
+				console.error(e)
+
+				showToast({ message: e.toString() })
+
+				if (uuid) {
+					setFailedMessages(prev => [...prev, uuid])
+				}
+			} finally {
+				setReplyToMessage(undefined)
+				setText("")
+				setEditingMessageUUID("")
+				setTextContentHeight(INPUT_HEIGHT)
+
+				clearTimeout(isTypingTimer.current)
+
+				isTyping.current = false
+
+				sendTypingEvents(true)
+			}
+		}, [conversation, editingMessageUUID, conversationMe, text])
 
 		const sendMessage = useCallback(async () => {
 			let uuid: string
@@ -893,7 +968,13 @@ const Input = memo(
 						alignSelf: "flex-start",
 						marginTop: 1
 					}}
-					onPress={() => sendMessage()}
+					onPress={() => {
+						if (editingMessageUUID.length > 16) {
+							editMessage()
+						} else {
+							sendMessage()
+						}
+					}}
 				>
 					<Ionicon
 						name="ios-send"
