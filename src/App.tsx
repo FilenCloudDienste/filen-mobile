@@ -65,7 +65,7 @@ import { queueFileUpload } from "./lib/services/upload"
 import * as fs from "./lib/fs"
 import mimeTypes from "mime-types"
 import { showFullScreenLoadingModal, hideFullScreenLoadingModal } from "./components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
-import { getCfg } from "./lib/api"
+import { getCfg, ChatConversation } from "./lib/api"
 import { ICFG, ShareMenuItems } from "./types"
 import Announcements from "./components/Announcements"
 import { SheetProvider } from "react-native-actions-sheet"
@@ -94,6 +94,7 @@ import ChatConversationNameDialog from "./components/Dialogs/ChatConversationNam
 import ContactActionSheet from "./components/ActionSheets/ContactActionSheet"
 import AddContactDialog from "./components/Dialogs/AddContactDialog"
 import TransfersActionSheet from "./components/ActionSheets/TransfersActionSheet"
+import { dbFs } from "./lib/db"
 
 enableScreens(true)
 
@@ -134,7 +135,93 @@ export const App = Sentry.wrap(
 		const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 		const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
 		const [fetchedInitialNotification, setFetchedInitialNotification] = useState<boolean>(false)
-		const [initialNotification, setInitialNotification] = useState<InitialNotification | null>(null)
+
+		const waitForSetupDone = useCallback(() => {
+			return new Promise<void>(resolve => {
+				if (setupDone) {
+					resolve()
+
+					return
+				}
+
+				const wait = setInterval(() => {
+					if (setupDone) {
+						clearInterval(wait)
+						resolve()
+
+						return
+					}
+				}, 100)
+			})
+		}, [setupDone])
+
+		const getInitialNotification = useCallback(async () => {
+			try {
+				const initNotification = await notifee.getInitialNotification()
+
+				if (initNotification) {
+					if (Platform.OS === "android") {
+						if (
+							initNotification.notification &&
+							initNotification.notification.android &&
+							initNotification.notification.android.pressAction &&
+							initNotification.notification.android.pressAction.id
+						) {
+							const ex = initNotification.notification.android.pressAction.id.split(":")
+							const type = ex[0]
+							const data = ex[1]
+
+							if (type === "openChats") {
+								await Promise.all([waitForSetupDone(), isNavReady(navigationRef), navigationAnimation({ enable: true })])
+
+								navigationRef.dispatch(
+									CommonActions.reset({
+										index: 0,
+										routes: [
+											{
+												name: "ChatsScreen"
+											}
+										]
+									})
+								)
+							}
+
+							if (type === "openChat" && data) {
+								const cache = await dbFs.get<ChatConversation[]>("chatConversations")
+								const hasCache = cache && Array.isArray(cache)
+
+								if (hasCache) {
+									const conversations = cache.filter(convo => convo.uuid === data)
+
+									if (conversations.length > 0) {
+										navigationRef.dispatch(
+											CommonActions.reset({
+												index: 1,
+												routes: [
+													{
+														name: "ChatsScreen"
+													},
+													{
+														name: "ChatScreen",
+														params: {
+															conversation: conversations[0]
+														}
+													}
+												]
+											})
+										)
+									}
+								}
+							}
+						}
+					}
+				}
+			} catch (e) {
+				console.error(e)
+			} finally {
+				setFetchedInitialNotification(true)
+			}
+		}, [navigationRef, setupDone])
 
 		const handleShare = useCallback(async (items: ShareMenuItems) => {
 			if (!items || !items.data) {
@@ -194,17 +281,7 @@ export const App = Sentry.wrap(
 
 		useEffect(() => {
 			const nav = async () => {
-				try {
-					const initNotification = await notifee.getInitialNotification()
-
-					if (initNotification) {
-						setInitialNotification(initNotification)
-					}
-				} catch (e) {
-					console.error(e)
-				}
-
-				setFetchedInitialNotification(true)
+				await getInitialNotification().catch(console.error)
 
 				let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
 
@@ -328,6 +405,8 @@ export const App = Sentry.wrap(
 							navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
 						}
 					}
+				} else if (nextAppState === "active") {
+					getInitialNotification().catch(console.error)
 				}
 			})
 

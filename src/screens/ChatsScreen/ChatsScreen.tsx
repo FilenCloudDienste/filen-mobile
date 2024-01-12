@@ -410,10 +410,10 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 					return
 				}
 
-				const cache = await dbFs.get<ReturnType<typeof fetchChatConversations>>("chatConversations")
-				const hasCache = cache && cache.conversations && Array.isArray(cache.conversations)
+				const cache = await dbFs.get<ChatConversation[]>("chatConversations")
+				const hasCache = cache && Array.isArray(cache)
 
-				if (hasCache) {
+				if (!hasCache) {
 					setLoadDone(false)
 					setConversations([])
 				}

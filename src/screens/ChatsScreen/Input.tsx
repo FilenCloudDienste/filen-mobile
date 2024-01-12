@@ -186,10 +186,11 @@ const Input = memo(
 					setFailedMessages(prev => [...prev, uuid])
 				}
 			} finally {
-				setReplyToMessage(undefined)
 				setText("")
-				setEditingMessageUUID("")
 				setTextContentHeight(INPUT_HEIGHT)
+				setEditingMessageUUID("")
+				setReplyToMessage(undefined)
+				setReplyMessageUUID("")
 
 				clearTimeout(isTypingTimer.current)
 
@@ -315,6 +316,9 @@ const Input = memo(
 			} finally {
 				setText("")
 				setTextContentHeight(INPUT_HEIGHT)
+				setEditingMessageUUID("")
+				setReplyToMessage(undefined)
+				setReplyMessageUUID("")
 
 				clearTimeout(isTypingTimer.current)
 

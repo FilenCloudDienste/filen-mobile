@@ -213,7 +213,11 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 	const pushToken = storage.getString("pushToken")
 
 	if (typeof pushToken === "string" && pushToken.length > 0) {
-		registerPushToken(pushToken).catch(console.error)
+		registerPushToken(pushToken)
+			.then(() => {
+				console.log("Push token registered:", pushToken)
+			})
+			.catch(console.error)
 	}
 
 	const deviceId = storage.getString("deviceId")
