@@ -136,7 +136,7 @@ const ImageViewerScreen = memo(
 					return
 				}
 			} catch (e) {
-				//console.log(e)
+				console.error(e)
 			}
 
 			downloadFile(image.file, false, image.file.chunks)
@@ -323,7 +323,7 @@ const ImageViewerScreen = memo(
 								try {
 									await viewRefs[imagePreviewModalItems[imagePreviewModalIndex].uuid]?.zoomTo(1)
 								} catch (e) {
-									console.log(e)
+									console.error(e)
 								}
 
 								if (isBetween(index, 0, imagePreviewModalItems.length)) {
