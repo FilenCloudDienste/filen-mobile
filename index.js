@@ -234,9 +234,10 @@ const onCameraUploadNotification = async () => {
 }
 
 const buildNotification = async (payload, channelId) => {
+	const lang = storage.getString("lang") || "en"
 	let notification = {
 		title: "Filen",
-		body: "New notification",
+		body: i18n(lang, "newNotification"),
 		android: {
 			channelId,
 			pressAction: {
@@ -267,12 +268,12 @@ const buildNotification = async (payload, channelId) => {
 				? payload.senderNickName
 				: typeof payload.senderEmail === "string" && payload.senderEmail.length > 0
 				? payload.senderEmail
-				: "A user"
+				: i18n(lang, "aUser")
 
 		notification = {
 			...notification,
 			title: senderName,
-			body: "Sent you a message",
+			body: i18n(lang, "chatMessageNewBody"),
 			android: {
 				...notification.android,
 				pressAction: {
@@ -308,6 +309,28 @@ const buildNotification = async (payload, channelId) => {
 							}
 						}
 					}
+				}
+			}
+		}
+	}
+
+	if (payload.type === "contactRequestReceived") {
+		const senderName =
+			typeof payload.senderNickName === "string" && payload.senderNickName.length > 0
+				? payload.senderNickName
+				: typeof payload.senderEmail === "string" && payload.senderEmail.length > 0
+				? payload.senderEmail
+				: i18n(lang, "aUser")
+
+		notification = {
+			...notification,
+			title: senderName,
+			body: i18n(lang, "contactRequestReceivedBody"),
+			android: {
+				...notification.android,
+				pressAction: {
+					...notification.android.pressAction,
+					id: "openContacts"
 				}
 			}
 		}

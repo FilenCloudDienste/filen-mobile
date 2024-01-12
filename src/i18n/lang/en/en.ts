@@ -515,5 +515,9 @@ export const en: {
 	cameraUploadAutoOrganize: "Sort by albums",
 	finishing: "Finishing",
 	transferringFiles: "Transferring __NUM__ files",
-	paused: "Paused"
+	paused: "Paused",
+	contactRequestReceivedBody: "Sent you a contact request",
+	chatMessageNewBody: "Sent you a message",
+	aUser: "A user",
+	newNotification: "New notification"
 }

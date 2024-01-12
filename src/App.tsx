@@ -69,7 +69,7 @@ import { getCfg, ChatConversation } from "./lib/api"
 import { ICFG, ShareMenuItems } from "./types"
 import Announcements from "./components/Announcements"
 import { SheetProvider } from "react-native-actions-sheet"
-import notifee, { EventType, InitialNotification } from "@notifee/react-native"
+import notifee, { EventType } from "@notifee/react-native"
 import ContactsScreen from "./screens/ContactsScreen"
 import NotesScreen from "./screens/NotesScreen"
 import ChatsScreen from "./screens/ChatsScreen"
@@ -212,6 +212,24 @@ export const App = Sentry.wrap(
 										)
 									}
 								}
+							}
+
+							if (type === "openContacts") {
+								await Promise.all([waitForSetupDone(), isNavReady(navigationRef), navigationAnimation({ enable: true })])
+
+								navigationRef.dispatch(
+									CommonActions.reset({
+										index: 1,
+										routes: [
+											{
+												name: "SettingsScreen"
+											},
+											{
+												name: "ContactsScreen"
+											}
+										]
+									})
+								)
 							}
 						}
 					}

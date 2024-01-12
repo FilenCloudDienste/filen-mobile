@@ -513,5 +513,9 @@ export const de: {
 	cameraUploadAutoOrganize: "Nach Alben sortieren",
 	finishing: "Fertigstellen",
 	transferringFiles: "Übertrage __NUM__ Dateien",
-	paused: "Pausiert"
+	paused: "Pausiert",
+	contactRequestReceivedBody: "Hat Dir eine Kontaktanfrage gesendet",
+	chatMessageNewBody: "Hat Dir eine Nachricht gesendet",
+	aUser: "Ein Benutzer",
+	newNotification: "Neue Benachrichtigung"
 }
