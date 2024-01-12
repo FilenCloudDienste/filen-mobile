@@ -43,6 +43,7 @@ const ImageViewerScreen = memo(
 		const setListScrollAgain = useRef<boolean>(false)
 		const dimensions = useDimensions()
 		const networkInfo = useNetworkInfo()
+		const didLoadFirstImage = useRef<boolean>(false)
 
 		const [items, startIndex] = useRef<[PreviewItem[], number]>(
 			(() => {
@@ -170,11 +171,7 @@ const ImageViewerScreen = memo(
 				return
 			}
 
-			loadImage(viewableItems[0].item, viewableItems[0].index)
-				.catch(console.error)
-				.finally(() => {
-					setIsZooming(false)
-				})
+			loadImage(viewableItems[0].item, viewableItems[0].index).catch(console.error)
 		})
 
 		const updateItemThumbnail = useCallback((item: PreviewItem, path: string) => {
@@ -342,7 +339,7 @@ const ImageViewerScreen = memo(
 										offset: dimensions.realWidth * index + 1
 									})
 
-									loadImage(imagePreviewModalItems[index], index)
+									loadImage(imagePreviewModalItems[index], index).catch(console.error)
 								}
 							}}
 						>
@@ -400,6 +397,12 @@ const ImageViewerScreen = memo(
 					if (navigation.canGoBack()) {
 						navigation.goBack()
 					}
+				}
+			} else {
+				if (!didLoadFirstImage.current && imagePreviewModalItems[startIndex]) {
+					didLoadFirstImage.current = true
+
+					loadImage(imagePreviewModalItems[startIndex], startIndex).catch(console.error)
 				}
 			}
 		}, [])
