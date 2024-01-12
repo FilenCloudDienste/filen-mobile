@@ -105,6 +105,7 @@ const ImageViewerScreen = memo(
 
 			setCurrentName(image.file.name)
 			setImagePreviewModalIndex(index)
+			setIsZooming(false)
 
 			if (isBetween(index, 0, imagePreviewModalItems.length)) {
 				thumbnailListRef?.current?.scrollToIndex({
@@ -229,7 +230,7 @@ const ImageViewerScreen = memo(
 						ref={ref => (viewRefs[image.uuid] = ref)}
 						maxZoom={10}
 						minZoom={minZoom}
-						zoomStep={2}
+						zoomStep={3}
 						initialZoom={minZoom}
 						bindToBorders={true}
 						style={{
@@ -241,7 +242,7 @@ const ImageViewerScreen = memo(
 						onShiftingBefore={(e, state, view) => {
 							const zoomLevel = Math.round(view.zoomLevel * 100) / 100
 
-							return zoomLevel < 1
+							return zoomLevel <= 1
 						}}
 						onTransform={e => {
 							const zoomLevel = Math.round(e.zoomLevel * 100) / 100
