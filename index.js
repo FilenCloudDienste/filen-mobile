@@ -464,6 +464,16 @@ Notifications.events().registerNotificationReceivedBackground(async (notificatio
 	}
 })
 
+Notifications.events().registerRemoteNotificationsRegistrationDenied(() => {
+	storage.delete("pushToken")
+})
+
+Notifications.events().registerRemoteNotificationsRegistrationFailed(err => {
+	console.error(err)
+
+	storage.delete("pushToken")
+})
+
 const initPushNotifications = async () => {
 	const permissions = await hasNotifyPermissions(true)
 

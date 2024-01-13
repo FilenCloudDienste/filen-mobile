@@ -1,0 +1,3 @@
+import ConfirmRemoveNoteParticipantDialog from "./ConfirmRemoveNoteParticipantDialog"
+
+export default ConfirmRemoveNoteParticipantDialog

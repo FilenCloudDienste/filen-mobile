@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from "react"
+import React, { memo, useEffect, useState } from "react"
 import { View } from "react-native"
 import ActionSheet from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
@@ -8,12 +8,8 @@ import { getColor } from "../../../style/colors"
 import { ActionButton, hideAllActionSheets } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { chatConversationsParticipantsRemove, ChatConversation, ChatConversationParticipant } from "../../../lib/api"
+import { ChatConversation, ChatConversationParticipant } from "../../../lib/api"
 import storage from "../../../lib/storage"
-import {
-	showFullScreenLoadingModal,
-	hideFullScreenLoadingModal
-} from "../../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import eventListener from "../../../lib/eventListener"
 import { useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
@@ -25,29 +21,6 @@ const ChatParticipantActionSheet = memo(() => {
 	const [userId] = useMMKVNumber("userId", storage)
 	const [selectedConversation, setSelectedConversation] = useState<ChatConversation | undefined>(undefined)
 	const [selectedParticipant, setSelectedParticipant] = useState<ChatConversationParticipant | undefined>(undefined)
-
-	const remove = useCallback(async () => {
-		if (!selectedConversation || !selectedParticipant) {
-			return
-		}
-
-		showFullScreenLoadingModal()
-
-		await hideAllActionSheets()
-
-		try {
-			await chatConversationsParticipantsRemove(selectedConversation.uuid, selectedParticipant.userId)
-
-			eventListener.emit("chatConversationParticipantRemoved", {
-				uuid: selectedConversation.uuid,
-				userId: selectedParticipant.userId
-			})
-		} catch (e) {
-			console.error(e)
-		} finally {
-			hideFullScreenLoadingModal()
-		}
-	}, [selectedConversation, selectedParticipant])
 
 	useEffect(() => {
 		const openChatParticipantActionSheetListener = eventListener.on(
@@ -86,7 +59,14 @@ const ChatParticipantActionSheet = memo(() => {
 				{selectedConversation && selectedParticipant && userId === selectedConversation.ownerId && (
 					<>
 						<ActionButton
-							onPress={() => remove()}
+							onPress={async () => {
+								await hideAllActionSheets()
+
+								eventListener.emit("openConfirmRemoveChatParticipantDialog", {
+									conversation: selectedConversation,
+									participant: selectedParticipant
+								})
+							}}
 							textColor={getColor(darkMode, "red")}
 							icon={
 								<Ionicon

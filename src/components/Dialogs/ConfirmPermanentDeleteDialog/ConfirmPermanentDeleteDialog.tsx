@@ -103,7 +103,7 @@ const ConfirmPermanentDeleteDialog = memo(() => {
 						label={i18n(lang, "deletePermanently")}
 						disabled={buttonsDisabled}
 						onPress={permanentDelete}
-						color={getColor(darkMode, "linkPrimary")}
+						color={getColor(darkMode, "red")}
 					/>
 				</Dialog.Container>
 			)}

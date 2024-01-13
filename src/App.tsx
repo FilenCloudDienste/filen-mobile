@@ -95,6 +95,15 @@ import ContactActionSheet from "./components/ActionSheets/ContactActionSheet"
 import AddContactDialog from "./components/Dialogs/AddContactDialog"
 import TransfersActionSheet from "./components/ActionSheets/TransfersActionSheet"
 import { dbFs } from "./lib/db"
+import ConfirmDeleteNoteTagDialog from "./components/Dialogs/ConfirmDeleteNoteTagDialog"
+import ConfirmDeleteNotePermanentlyDialog from "./components/Dialogs/ConfirmDeleteNotePermanentlyDialog"
+import ConfirmDeleteChatDialog from "./components/Dialogs/ConfirmDeleteChatDialog"
+import ConfirmDeleteChatMessageDialog from "./components/Dialogs/ConfirmDeleteChatMessageDialog"
+import ConfirmLeaveChatDialog from "./components/Dialogs/ConfirmLeaveChatDialog"
+import ConfirmLeaveNoteDialog from "./components/Dialogs/ConfirmLeaveNoteDialog"
+import ConfirmRemoveContactDialog from "./components/Dialogs/ConfirmRemoveContactDialog"
+import ConfirmRemoveChatParticipantDialog from "./components/Dialogs/ConfirmRemoveChatParticipantDialog"
+import ConfirmRemoveNoteParticipantDialog from "./components/Dialogs/ConfirmRemoveNoteParticipantDialog"
 
 enableScreens(true)
 
@@ -944,6 +953,15 @@ export const App = Sentry.wrap(
 						<NoteTagDialog />
 						<ChatConversationNameDialog />
 						<AddContactDialog />
+						<ConfirmDeleteNoteTagDialog />
+						<ConfirmDeleteNotePermanentlyDialog navigation={navigationRef} />
+						<ConfirmDeleteChatDialog />
+						<ConfirmDeleteChatMessageDialog />
+						<ConfirmLeaveChatDialog />
+						<ConfirmLeaveNoteDialog />
+						<ConfirmRemoveContactDialog />
+						<ConfirmRemoveChatParticipantDialog />
+						<ConfirmRemoveNoteParticipantDialog />
 					</Fragment>
 				</NavigationContainer>
 				<Toast

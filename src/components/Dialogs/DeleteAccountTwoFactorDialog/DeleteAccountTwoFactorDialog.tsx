@@ -123,7 +123,7 @@ const DeleteAccountTwoFactorDialog = memo(({ navigation }: DeleteAccountTwoFacto
 				label={i18n(lang, "delete")}
 				disabled={buttonsDisabled}
 				onPress={deleteAcc}
-				color={getColor(darkMode, "linkPrimary")}
+				color={getColor(darkMode, "red")}
 			/>
 		</Dialog.Container>
 	)

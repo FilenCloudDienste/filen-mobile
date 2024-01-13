@@ -517,5 +517,17 @@ export const de: {
 	contactRequestReceivedBody: "Hat Dir eine Kontaktanfrage gesendet",
 	chatMessageNewBody: "Hat Dir eine Nachricht gesendet",
 	aUser: "Ein Benutzer",
-	newNotification: "Neue Benachrichtigung"
+	newNotification: "Neue Benachrichtigung",
+	confirmDeleteName: "Bist Du sicher, dass Du __NAME__ löschen willst?",
+	confirmDeleteNamePermanently:
+		"Bist Du sicher, dass Du __NAME__ permanent löschen willst? Diese Aktion kannst Du nicht rückgängig machen!",
+	confirmDeleteChatPermanently:
+		"Bist Du sicher, dass Du diesen Chat permanent löschen willst? Diese Aktion kannst Du nicht rückgängig machen!",
+	confirmDeleteChatMessagePermanently:
+		"Bist Du sicher, dass Du diese Nachricht permanent löschen willst? Diese Aktion kannst Du nicht rückgängig machen!",
+	confirmLeaveChatPermanently: "Bist Du sicher, dass Du diesen Chat verlassen willst?",
+	confirmLeaveNotePermanently: "Bist Du sicher, dass Du diese Notiz verlassen willst?",
+	confirmRemoveContact: "Bist Du sicher, dass Du __NAME__ von Deiner Kontaktliste entfernen möchtest?",
+	confirmRemoveChatParticipant: "Bist Du sicher, dass Du __NAME__ aus diesem Chat entfernen möchtest?",
+	confirmRemoveNoteParticipant: "Bist Du sicher, dass Du __NAME__ aus dieser Notiz entfernen möchtest?"
 }

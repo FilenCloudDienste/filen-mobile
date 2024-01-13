@@ -1,0 +1,3 @@
+import ConfirmDeleteChatMessageDialog from "./ConfirmDeleteChatMessageDialog"
+
+export default ConfirmDeleteChatMessageDialog

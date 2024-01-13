@@ -519,5 +519,14 @@ export const en: {
 	contactRequestReceivedBody: "Sent you a contact request",
 	chatMessageNewBody: "Sent you a message",
 	aUser: "A user",
-	newNotification: "New notification"
+	newNotification: "New notification",
+	confirmDeleteName: "Are you sure that you want to delete __NAME__?",
+	confirmDeleteNamePermanently: "Are you sure that you want to delete __NAME__ permanently? You cannot undo this!",
+	confirmDeleteChatPermanently: "Are you sure that you want to this chat permanently? You cannot undo this!",
+	confirmDeleteChatMessagePermanently: "Are you sure that you want to this message permanently? You cannot undo this!",
+	confirmLeaveChatPermanently: "Are you sure that you want to leave this chat?",
+	confirmLeaveNotePermanently: "Are you sure that you want to leave this note?",
+	confirmRemoveContact: "Are you sure that you want to remove __NAME__ from your contacts?",
+	confirmRemoveChatParticipant: "Are you sure that you want to remove __NAME__ from this chat?",
+	confirmRemoveNoteParticipant: "Are you sure that you want to remove __NAME__ from this note?"
 }

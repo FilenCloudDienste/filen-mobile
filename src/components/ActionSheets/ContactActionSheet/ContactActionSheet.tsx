@@ -16,8 +16,7 @@ import {
 	contactsBlockedDelete,
 	contactsRequestsAccept,
 	contactsRequestsDeny,
-	contactsRequestsOutDelete,
-	contactsDelete
+	contactsRequestsOutDelete
 } from "../../../lib/api"
 import {
 	showFullScreenLoadingModal,
@@ -25,6 +24,7 @@ import {
 } from "../../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import eventListener from "../../../lib/eventListener"
 import { SheetManager } from "react-native-actions-sheet"
+import { showToast } from "../../../components/Toasts"
 
 const ContactActionSheet = memo(() => {
 	const darkMode = useDarkMode()
@@ -34,27 +34,6 @@ const ContactActionSheet = memo(() => {
 	const [selectedBlockedContact, setSelectedBlockedContact] = useState<BlockedContact | undefined>(undefined)
 	const [selectedContactRequestIn, setSelectedContactRequestIn] = useState<ContactRequest | undefined>(undefined)
 	const [selectedContactRequestOut, setSelectedContactRequestOut] = useState<ContactRequest | undefined>(undefined)
-
-	const remove = useCallback(async () => {
-		if (!selectedContact) {
-			return
-		}
-
-		showFullScreenLoadingModal()
-
-		await hideAllActionSheets()
-
-		try {
-			await contactsDelete(selectedContact.uuid)
-
-			eventListener.emit("contactDeleted", selectedContact.uuid)
-			eventListener.emit("updateContactsList")
-		} catch (e) {
-			console.error(e)
-		} finally {
-			hideFullScreenLoadingModal()
-		}
-	}, [selectedContact])
 
 	const block = useCallback(async () => {
 		if (!selectedContact) {
@@ -72,6 +51,8 @@ const ContactActionSheet = memo(() => {
 			eventListener.emit("updateContactsList")
 		} catch (e) {
 			console.error(e)
+
+			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
 		}
@@ -93,6 +74,8 @@ const ContactActionSheet = memo(() => {
 			eventListener.emit("updateContactsList")
 		} catch (e) {
 			console.error(e)
+
+			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
 		}
@@ -114,6 +97,8 @@ const ContactActionSheet = memo(() => {
 			eventListener.emit("updateContactsList")
 		} catch (e) {
 			console.error(e)
+
+			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
 		}
@@ -135,6 +120,8 @@ const ContactActionSheet = memo(() => {
 			eventListener.emit("updateContactsList")
 		} catch (e) {
 			console.error(e)
+
+			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
 		}
@@ -156,6 +143,8 @@ const ContactActionSheet = memo(() => {
 			eventListener.emit("updateContactsList")
 		} catch (e) {
 			console.error(e)
+
+			showToast({ message: e.toString() })
 		} finally {
 			hideFullScreenLoadingModal()
 		}
@@ -217,7 +206,11 @@ const ContactActionSheet = memo(() => {
 				{selectedContact && (
 					<>
 						<ActionButton
-							onPress={() => remove()}
+							onPress={async () => {
+								await hideAllActionSheets()
+
+								eventListener.emit("openConfirmRemoveContactDialog", selectedContact)
+							}}
 							textColor={getColor(darkMode, "red")}
 							icon={
 								<Ionicon

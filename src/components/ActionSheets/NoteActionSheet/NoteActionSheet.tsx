@@ -15,7 +15,6 @@ import {
 	noteChangeType,
 	noteParticipantsAdd,
 	Note,
-	deleteNote,
 	trashNote,
 	restoreNote,
 	noteFavorite,
@@ -79,7 +78,8 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			return
 		}
 
-		hideAllActionSheets()
+		await hideAllActionSheets()
+
 		showFullScreenLoadingModal()
 
 		try {
@@ -103,7 +103,8 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			return
 		}
 
-		hideAllActionSheets()
+		await hideAllActionSheets()
+
 		showFullScreenLoadingModal()
 
 		try {
@@ -118,36 +119,13 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 		}
 	}, [selectedNote])
 
-	const deletePermanently = useCallback(async () => {
-		if (!selectedNote) {
-			return
-		}
-
-		hideAllActionSheets()
-		showFullScreenLoadingModal()
-
-		try {
-			await deleteNote(selectedNote.uuid)
-			await refresh()
-
-			if (isInsideNote && navigation.canGoBack()) {
-				navigation.goBack()
-			}
-		} catch (e) {
-			console.error(e)
-
-			showToast({ message: e.toString() })
-		} finally {
-			hideFullScreenLoadingModal()
-		}
-	}, [selectedNote, isInsideNote, navigation])
-
 	const archive = useCallback(async () => {
 		if (!selectedNote) {
 			return
 		}
 
-		hideAllActionSheets()
+		await hideAllActionSheets()
+
 		showFullScreenLoadingModal()
 
 		try {
@@ -168,7 +146,8 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				return
 			}
 
-			hideAllActionSheets()
+			await hideAllActionSheets()
+
 			showFullScreenLoadingModal()
 
 			try {
@@ -191,7 +170,8 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				return
 			}
 
-			hideAllActionSheets()
+			await hideAllActionSheets()
+
 			showFullScreenLoadingModal()
 
 			try {
@@ -208,34 +188,13 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 		[selectedNote]
 	)
 
-	const leave = useCallback(async () => {
-		if (!selectedNote) {
-			return
-		}
-
-		hideAllActionSheets()
-		showFullScreenLoadingModal()
-
-		try {
-			const userId = storage.getNumber("userId")
-
-			await noteParticipantsRemove({ uuid: selectedNote.uuid, userId })
-			await refresh()
-		} catch (e) {
-			console.error(e)
-
-			showToast({ message: e.toString() })
-		} finally {
-			hideFullScreenLoadingModal()
-		}
-	}, [selectedNote])
-
 	const duplicate = useCallback(async () => {
 		if (!selectedNote) {
 			return
 		}
 
-		hideAllActionSheets()
+		await hideAllActionSheets()
+
 		showFullScreenLoadingModal()
 
 		try {
@@ -543,7 +502,14 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 										{selectedNote.trash && (
 											<>
 												<ActionButton
-													onPress={deletePermanently}
+													onPress={async () => {
+														await hideAllActionSheets()
+
+														eventListener.emit("openConfirmDeleteNotePermanentlyDialog", {
+															note: selectedNote,
+															isInsideNote
+														})
+													}}
 													icon={
 														<Ionicon
 															name="trash-outline"
@@ -559,7 +525,11 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 									</>
 								) : (
 									<ActionButton
-										onPress={leave}
+										onPress={async () => {
+											await hideAllActionSheets()
+
+											eventListener.emit("openConfirmLeaveNoteDialog", selectedNote)
+										}}
 										icon={
 											<Ionicon
 												name="exit-outline"

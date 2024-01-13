@@ -103,7 +103,7 @@ const ConfirmRemoveFromSharedInDialog = memo(() => {
 						label={i18n(lang, "removeFromSharedIn")}
 						disabled={buttonsDisabled}
 						onPress={remove}
-						color={getColor(darkMode, "linkPrimary")}
+						color={getColor(darkMode, "red")}
 					/>
 				</Dialog.Container>
 			)}

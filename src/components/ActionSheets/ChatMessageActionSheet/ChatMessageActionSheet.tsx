@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from "react"
+import React, { memo, useEffect, useState } from "react"
 import { View, Clipboard } from "react-native"
 import ActionSheet from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
@@ -7,12 +7,8 @@ import { getColor } from "../../../style/colors"
 import { ActionButton, hideAllActionSheets } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { ChatMessage, chatDelete } from "../../../lib/api"
+import { ChatMessage } from "../../../lib/api"
 import storage from "../../../lib/storage"
-import {
-	showFullScreenLoadingModal,
-	hideFullScreenLoadingModal
-} from "../../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import eventListener from "../../../lib/eventListener"
 import { useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
@@ -24,26 +20,6 @@ const ChatMessageActionSheet = memo(() => {
 	const lang = useLang()
 	const [selectedMessage, setSelectedMessage] = useState<ChatMessage | undefined>(undefined)
 	const [userId] = useMMKVNumber("userId", storage)
-
-	const del = useCallback(async () => {
-		if (!selectedMessage) {
-			return
-		}
-
-		showFullScreenLoadingModal()
-
-		await hideAllActionSheets()
-
-		try {
-			await chatDelete(selectedMessage.uuid)
-
-			eventListener.emit("chatMessageDelete", selectedMessage.uuid)
-		} catch (e) {
-			console.error(e)
-		} finally {
-			hideFullScreenLoadingModal()
-		}
-	}, [selectedMessage])
 
 	useEffect(() => {
 		const openChatMessageActionSheetListener = eventListener.on("openChatMessageActionSheet", (message: ChatMessage) => {
@@ -109,7 +85,11 @@ const ChatMessageActionSheet = memo(() => {
 									text={i18n(lang, "edit")}
 								/>
 								<ActionButton
-									onPress={() => del()}
+									onPress={async () => {
+										await hideAllActionSheets()
+
+										eventListener.emit("openConfirmDeleteChatMessageDialog", selectedMessage)
+									}}
 									textColor={getColor(darkMode, "red")}
 									icon={
 										<Ionicon

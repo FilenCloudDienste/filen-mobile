@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useCallback, useRef } from "react"
 import Dialog from "react-native-dialog"
 import useLang from "../../../lib/hooks/useLang"
-import { notesTags, NoteTag, notesTagsRename, notesTagsDelete } from "../../../lib/api"
+import { notesTags, NoteTag, notesTagsRename } from "../../../lib/api"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
 import { Text, Platform } from "react-native"
@@ -34,30 +34,6 @@ const NoteTagDialog = memo(() => {
 		eventListener.emit("notesTagsUpdate", notesAndTags.tags)
 		eventListener.emit("refreshNotes")
 	}, [])
-
-	const del = useCallback(async () => {
-		if (!selectedTag) {
-			return
-		}
-
-		setButtonsDisabled(true)
-		setOpen(false)
-		showFullScreenLoadingModal()
-
-		Keyboard.dismiss()
-
-		try {
-			await notesTagsDelete(selectedTag.uuid)
-			await refresh()
-		} catch (e) {
-			console.error(e)
-
-			showToast({ message: e.toString() })
-		} finally {
-			hideFullScreenLoadingModal()
-			setButtonsDisabled(false)
-		}
-	}, [selectedTag])
 
 	const rename = useCallback(async () => {
 		const name = striptags(value.trim())
@@ -179,7 +155,11 @@ const NoteTagDialog = memo(() => {
 					<Dialog.Button
 						label={i18n(lang, "delete")}
 						disabled={buttonsDisabled}
-						onPress={del}
+						onPress={() => {
+							setOpen(false)
+
+							eventListener.emit("openConfirmDeleteNoteTagDialog", selectedTag)
+						}}
 						color={getColor(darkMode, "red")}
 					/>
 					<Dialog.Button

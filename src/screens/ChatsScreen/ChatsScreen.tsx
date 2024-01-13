@@ -738,6 +738,12 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			loadConversations(true)
 		})
 
+		const chatConversationDeletedListener = eventListener.on("chatConversationDeleted", (uuid: string) => {
+			setConversations(prev => prev.filter(c => c.uuid !== uuid))
+
+			loadConversations(true)
+		})
+
 		return () => {
 			appStateChangeListener.remove()
 			socketEventListener.remove()
@@ -747,6 +753,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			chatConversationParticipantRemovedListener.remove()
 			chatConversationParticipantAdded.remove()
 			chatConversationNameEditedListener.remove()
+			chatConversationDeletedListener.remove()
 		}
 	}, [userId])
 

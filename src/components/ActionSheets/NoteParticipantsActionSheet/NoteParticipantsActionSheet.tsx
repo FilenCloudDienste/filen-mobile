@@ -8,7 +8,7 @@ import { getColor } from "../../../style/colors"
 import { ActionButton, hideAllActionSheets } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { Note, NoteParticipant, noteParticipantsPermissions, noteParticipantsRemove } from "../../../lib/api"
+import { Note, NoteParticipant, noteParticipantsPermissions } from "../../../lib/api"
 import { showToast } from "../../../components/Toasts"
 import {
 	showFullScreenLoadingModal,
@@ -22,28 +22,6 @@ const NoteParticipantsActionSheet = memo(() => {
 	const lang = useLang()
 	const [selectedNote, setSelectedNote] = useState<Note | undefined>(undefined)
 	const [selectedParticipant, setSelectedParticipant] = useState<NoteParticipant | undefined>(undefined)
-
-	const remove = useCallback(async () => {
-		if (!selectedNote || !selectedParticipant) {
-			return
-		}
-
-		showFullScreenLoadingModal()
-
-		try {
-			await noteParticipantsRemove({ uuid: selectedNote.uuid, userId: selectedParticipant.userId })
-
-			eventListener.emit("noteParticipantRemoved", { uuid: selectedNote.uuid, userId: selectedParticipant.userId })
-			eventListener.emit("refreshNotes")
-		} catch (e) {
-			console.error(e)
-
-			showToast({ message: e.toString() })
-		} finally {
-			hideFullScreenLoadingModal()
-			hideAllActionSheets()
-		}
-	}, [selectedNote, selectedParticipant])
 
 	const permissions = useCallback(
 		async (write: boolean) => {
@@ -124,7 +102,14 @@ const NoteParticipantsActionSheet = memo(() => {
 							/>
 						)}
 						<ActionButton
-							onPress={() => remove()}
+							onPress={async () => {
+								await hideAllActionSheets()
+
+								eventListener.emit("openConfirmRemoveNoteParticipantDialog", {
+									note: selectedNote,
+									participant: selectedParticipant
+								})
+							}}
 							icon={
 								<Ionicon
 									name="close-circle-outline"
