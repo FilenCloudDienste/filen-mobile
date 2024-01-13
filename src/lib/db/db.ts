@@ -8,7 +8,7 @@ import memoryCache from "../memoryCache"
 
 SQLite.enablePromise(true)
 
-const PREFIX = "kv:"
+const PREFIX = "kv:3:"
 let DBFS_PATH = ""
 const MEMORY_CACHE_MAX_OBJECT_SIZE = 1024 * 1024 * 1024
 
@@ -322,7 +322,7 @@ export const cameraUpload = {
 
 export const init = async () => {
 	db = await SQLite.openDatabase({
-		name: "db",
+		name: "db_v3",
 		location: "default"
 	})
 

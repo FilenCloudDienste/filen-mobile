@@ -1,6 +1,6 @@
 import { MMKV } from "react-native-mmkv"
 
-export const STORAGE_ID = "filen_v2"
+export const STORAGE_ID = "filen_v3"
 export const SHARED_STORAGE_ID = "filen_shared"
 
 export const getInstace = (id: string) => {

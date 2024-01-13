@@ -165,6 +165,10 @@ export const App = Sentry.wrap(
 		}, [setupDone])
 
 		const getInitialNotification = useCallback(async () => {
+			if (!storage.getBoolean("isLoggedIn")) {
+				return
+			}
+
 			try {
 				const initNotification = await notifee.getInitialNotification()
 
