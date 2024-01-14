@@ -36,7 +36,7 @@ const MAX_FAILED = 3
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout = 0
 const getFilesMutex = new Semaphore(1)
-const parentFolderUUIDs: Record<string, string> = {}
+const parentFolderUUIDs: Record<string, { uuid: string; cachedUntil: number }> = {}
 const getFileParentFolderUUIDMutex = new Semaphore(1)
 
 export const runMutex = new Semaphore(1)
@@ -787,21 +787,27 @@ export const getFileParentFolderUUID = async (baseParentUUID: string, parentFold
 
 		parentFolderName = parentFolderName.toLowerCase()
 
-		if (parentFolderUUIDs[parentFolderName]) {
-			return parentFolderUUIDs[parentFolderName]
+		if (parentFolderUUIDs[parentFolderName] && parentFolderUUIDs[parentFolderName].cachedUntil > Date.now()) {
+			return parentFolderUUIDs[parentFolderName].uuid
 		}
 
 		const exists = await folderExists({ name: folderNameBefore, parent: baseParentUUID })
 
 		if (exists.exists) {
-			parentFolderUUIDs[parentFolderName] = exists.existsUUID
+			parentFolderUUIDs[parentFolderName] = {
+				uuid: exists.existsUUID,
+				cachedUntil: Date.now() + 300000
+			}
 
 			return exists.existsUUID
 		}
 
 		const uuid = await createFolder(folderNameBefore, baseParentUUID)
 
-		parentFolderUUIDs[parentFolderName] = uuid
+		parentFolderUUIDs[parentFolderName] = {
+			uuid,
+			cachedUntil: Date.now() + 300000
+		}
 
 		return uuid
 	} catch (e) {
