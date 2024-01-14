@@ -508,5 +508,18 @@ export const ru: {
 	cameraUploadAutoOrganize: "Сортировать по альбомам",
 	finishing: "Завершение",
 	transferringFiles: "Передача __NUM__ файлов",
-	paused: "Приостановлено"
+	paused: "Приостановлено",
+	contactRequestReceivedBody: "Отправил вам запрос на контакт",
+	chatMessageNewBody: "Отправил вам сообщение",
+	aUser: "Пользователь",
+	newNotification: "Новое уведомление",
+	confirmDeleteName: "Вы уверены, что хотите удалить __NAME__?",
+	confirmDeleteNamePermanently: "Вы уверены, что хотите удалить __NAME__ навсегда? Вы не можете отменить это!",
+	confirmDeleteChatPermanently: "Вы уверены, что хотите удалить этот чат навсегда? Вы не можете отменить это!",
+	confirmDeleteChatMessagePermanently: "Вы уверены, что хотите сохранить это сообщение навсегда? Вы не можете отменить это!",
+	confirmLeaveChatPermanently: "Вы уверены, что хотите покинуть этот чат?",
+	confirmLeaveNotePermanently: "Вы уверены, что хотите покинуть эту заметку?",
+	confirmRemoveContact: "Вы уверены, что хотите удалить __NAME__ из своих контактов?",
+	confirmRemoveChatParticipant: "Вы уверены, что хотите удалить __NAME__ из этого чата?",
+	confirmRemoveNoteParticipant: "Вы уверены, что хотите удалить __NAME__ из этой заметки?"
 }
