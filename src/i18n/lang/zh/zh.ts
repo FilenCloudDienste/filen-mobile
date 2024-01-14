@@ -521,7 +521,7 @@ export const zh: {
 	confirmDeleteChatMessagePermanently: "您确定要永久删除此消息吗？一旦删除，您将无法撤消此操作！",
 	confirmLeaveChatPermanently: "您确定要离开此聊天吗？",
 	confirmLeaveNotePermanently: "您确定要离开此笔记吗？",
-	confirmRemoveContact: "您确定要从联系人中删除 __NAME__ 吗？",
-	confirmRemoveChatParticipant: "您确定要从此聊天中删除 __NAME__ 吗？",
-	confirmRemoveNoteParticipant: "您确定要从此笔记中删除 __NAME__ 吗？"
+	confirmRemoveContact: "您确定要从联系人中移除 __NAME__ 吗？",
+	confirmRemoveChatParticipant: "您确定要从此聊天中移除 __NAME__ 吗？",
+	confirmRemoveNoteParticipant: "您确定要从此笔记中移除 __NAME__ 吗？"
 }
