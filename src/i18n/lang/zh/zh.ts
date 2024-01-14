@@ -483,7 +483,7 @@ export const zh: {
 	chatInfoSubtitle1: "Filen 默认使用零知识端到端加密来保护每次聊天。",
 	chatInfoSubtitle2: "只有聊天的成员才能解密和阅读内容。",
 	chatInfoSubtitle3:
-		"系统确保接收到的数据确实上来自显示的用户，并且在此期间没有被更改。",
+		"系统确保接收到的数据确实来自显示的用户，并且在此期间没有被更改。",
 	chatUnreadMessagesSince: "自 __DATE__ 以来的未读消息",
 	chatMarkAsRead: "标为已读",
 	reply: "回复",
@@ -510,5 +510,18 @@ export const zh: {
 	cameraUploadAutoOrganize: "按相册排序",
 	finishing: "整理中",
 	transferringFiles: "正在传输 __NUM__ 个文件",
-	paused: "已暂停"
+	paused: "已暂停",
+	contactRequestReceivedBody: "向您发送了添加联系人请求",
+	chatMessageNewBody: "给您发了一条消息",
+	aUser: "一位用户",
+	newNotification: "新消息",
+	confirmDeleteName: "您确定要删除 __NAME__ 吗？",
+	confirmDeleteNamePermanently: "您确定要永久删除 __NAME__ 吗？一旦删除，您将无法撤消此操作！",
+	confirmDeleteChatPermanently: "您确定要永久删除此聊天吗？一旦删除，您将无法撤消此操作！",
+	confirmDeleteChatMessagePermanently: "您确定要永久删除此消息吗？一旦删除，您将无法撤消此操作！",
+	confirmLeaveChatPermanently: "您确定要离开此聊天吗？",
+	confirmLeaveNotePermanently: "您确定要离开此笔记吗？",
+	confirmRemoveContact: "您确定要从联系人中移除 __NAME__ 吗？",
+	confirmRemoveChatParticipant: "您确定要从此聊天中移除 __NAME__ 吗？",
+	confirmRemoveNoteParticipant: "您确定要从此笔记中移除 __NAME__ 吗？"
 }
