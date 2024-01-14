@@ -463,7 +463,7 @@ export const es: {
 	duplicate: "Duplicar",
 	history: "Historial",
 	participants: "Participantes",
-	changeType: "Change type",
+	changeType: "Cambiar el tipo",
 	permissionsRead: "Lectura",
 	permissionsWrite: "Escritura",
 	permissionsReadWrite: "Lectura/Escritura",
