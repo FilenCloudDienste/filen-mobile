@@ -32,11 +32,12 @@ const CryptoJS = require("crypto-js")
 
 const TIMEOUT = 5000
 const FAILED: Record<string, number> = {}
-const MAX_FAILED = 1
+const MAX_FAILED = 3
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout = 0
 const getFilesMutex = new Semaphore(1)
 const parentFolderUUIDs: Record<string, string> = {}
+const getFileParentFolderUUIDMutex = new Semaphore(1)
 
 export const runMutex = new Semaphore(1)
 export const getLocalAssetsMutex = new Semaphore(1)
@@ -779,26 +780,38 @@ export const hasPermissions = async (requestPermissions: boolean): Promise<boole
 }
 
 export const getFileParentFolderUUID = async (baseParentUUID: string, parentFolderName: string): Promise<string> => {
-	if (parentFolderUUIDs[parentFolderName]) {
-		return parentFolderUUIDs[parentFolderName]
+	await getFileParentFolderUUIDMutex.acquire()
+
+	try {
+		const folderNameBefore = parentFolderName
+
+		parentFolderName = parentFolderName.toLowerCase()
+
+		if (parentFolderUUIDs[parentFolderName]) {
+			return parentFolderUUIDs[parentFolderName]
+		}
+
+		const exists = await folderExists({ name: folderNameBefore, parent: baseParentUUID })
+
+		if (exists.exists) {
+			parentFolderUUIDs[parentFolderName] = exists.existsUUID
+
+			return exists.existsUUID
+		}
+
+		const uuid = await createFolder(folderNameBefore, baseParentUUID)
+
+		parentFolderUUIDs[parentFolderName] = uuid
+
+		return uuid
+	} catch (e) {
+		throw e
+	} finally {
+		getFileParentFolderUUIDMutex.release()
 	}
-
-	const exists = await folderExists({ name: parentFolderName, parent: baseParentUUID })
-
-	if (exists.exists) {
-		parentFolderUUIDs[parentFolderName] = exists.existsUUID
-
-		return exists.existsUUID
-	}
-
-	const uuid = await createFolder(parentFolderName, baseParentUUID)
-
-	parentFolderUUIDs[parentFolderName] = uuid
-
-	return uuid
 }
 
-export const runCameraUpload = async (maxQueue: number = 30, runOnce: boolean = false): Promise<void> => {
+export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = false): Promise<void> => {
 	await runMutex.acquire()
 
 	try {

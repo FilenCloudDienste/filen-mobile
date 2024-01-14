@@ -68,6 +68,7 @@ export const queueFileUpload = async ({
 
 	file.lastModified = convertTimestampToMs(file.lastModified)
 
+	const uuid = await global.nodeThread.uuidv4()
 	let item: Item = null
 	let metadataEncrypted = ""
 	let nameEncrypted = ""
@@ -81,6 +82,7 @@ export const queueFileUpload = async ({
 		file.path = toBlobUtilPath(file.path)
 
 		const result = await global.nodeThread.uploadFile({
+			uuid,
 			file,
 			includeFileHash,
 			showProgress: true,
@@ -99,7 +101,7 @@ export const queueFileUpload = async ({
 		uploadKey = result.uploadKey
 
 		const done = await markUploadAsDone({
-			uuid: item.uuid,
+			uuid,
 			name: nameEncrypted,
 			nameHashed,
 			size: sizeEncrypted,
@@ -118,7 +120,7 @@ export const queueFileUpload = async ({
 			type: "file",
 			parent,
 			metaData: {
-				uuid: item.uuid,
+				uuid,
 				name: item.name,
 				size: item.size,
 				mime: item.mime,
@@ -128,9 +130,7 @@ export const queueFileUpload = async ({
 		})
 	} catch (e) {
 		if (e === "stopped" || e.toString() === "stopped") {
-			if (item) {
-				await global.nodeThread.removeTransfer({ uuid: item.uuid }).catch(console.error)
-			}
+			await global.nodeThread.removeTransfer({ uuid }).catch(console.error)
 
 			return
 		}
@@ -138,16 +138,12 @@ export const queueFileUpload = async ({
 		if (e.toString().toLowerCase().indexOf("blacklist") !== -1) {
 			showToast({ message: i18n(storage.getString("lang"), "notEnoughRemoteStorage") })
 
-			if (item) {
-				await global.nodeThread.uploadFailed({ uuid: item.uuid, reason: "notEnoughRemoteStorage" }).catch(console.error)
-			}
+			await global.nodeThread.uploadFailed({ uuid, reason: "notEnoughRemoteStorage" }).catch(console.error)
 
 			throw new Error("notEnoughRemoteStorage")
 		}
 
-		if (item) {
-			await global.nodeThread.uploadFailed({ uuid: item.uuid, reason: e.toString() }).catch(console.error)
-		}
+		await global.nodeThread.uploadFailed({ uuid, reason: e.toString() }).catch(console.error)
 
 		throw e
 	}
@@ -158,7 +154,7 @@ export const queueFileUpload = async ({
 				await new Promise<void>(resolve => {
 					fs.getDownloadPath({ type: "thumbnail" })
 						.then(async dest => {
-							dest = dest + item.uuid + ".jpg"
+							dest = dest + uuid + ".jpg"
 
 							try {
 								if ((await fs.stat(dest)).exists) {
@@ -168,7 +164,7 @@ export const queueFileUpload = async ({
 								//console.log(e)
 							}
 
-							const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid: item.uuid })
+							const { width, height, quality, cacheKey } = getThumbnailCacheKey({ uuid })
 
 							if (width <= 1 || height <= 1) {
 								resolve()
@@ -195,11 +191,8 @@ export const queueFileUpload = async ({
 															.then(() => {
 																fs.move(compressed.uri, dest)
 																	.then(() => {
-																		storage.set(cacheKey, item.uuid + ".jpg")
-																		memoryCache.set(
-																			"cachedThumbnailPaths:" + item.uuid,
-																			item.uuid + ".jpg"
-																		)
+																		storage.set(cacheKey, uuid + ".jpg")
+																		memoryCache.set("cachedThumbnailPaths:" + uuid, uuid + ".jpg")
 
 																		resolve()
 																	})
@@ -215,8 +208,8 @@ export const queueFileUpload = async ({
 											.then(compressed => {
 												fs.move(compressed.uri, dest)
 													.then(() => {
-														storage.set(cacheKey, item.uuid + ".jpg")
-														memoryCache.set("cachedThumbnailPaths:" + item.uuid, item.uuid + ".jpg")
+														storage.set(cacheKey, uuid + ".jpg")
+														memoryCache.set("cachedThumbnailPaths:" + uuid, uuid + ".jpg")
 
 														resolve()
 													})
@@ -249,7 +242,7 @@ export const queueFileUpload = async ({
 				rm: item.rm,
 				size: item.size,
 				timestamp: item.timestamp,
-				uuid: item.uuid,
+				uuid,
 				version: item.version
 			},
 			masterKeys,
@@ -272,15 +265,15 @@ export const queueFileUpload = async ({
 			}
 		})
 
-		await global.nodeThread.uploadDone({ uuid: item.uuid }).catch(console.error)
+		await global.nodeThread.uploadDone({ uuid }).catch(console.error)
 
 		return item
 	} catch (e) {
-		await global.nodeThread.uploadFailed({ uuid: item.uuid, reason: e.toString() }).catch(console.error)
+		await global.nodeThread.uploadFailed({ uuid, reason: e.toString() }).catch(console.error)
 
 		throw e
 	} finally {
-		global.nodeThread.removeTransfer({ uuid: item.uuid }).catch(console.error)
+		global.nodeThread.removeTransfer({ uuid }).catch(console.error)
 	}
 
 	//showToast({ message: i18n(storage.getString("lang"), "fileUploaded", true, ["__NAME__"], [name]) })

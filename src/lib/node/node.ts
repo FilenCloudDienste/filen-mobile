@@ -68,6 +68,7 @@ declare global {
 			maxChunks: number
 		}) => Promise<string>
 		uploadFile: (params: {
+			uuid: string
 			file: UploadFile
 			includeFileHash: boolean | string
 			masterKeys: string[]
@@ -586,7 +587,7 @@ global.nodeThread = {
 			})
 		})
 	},
-	uploadFile: ({ file, includeFileHash, masterKeys, apiKey, version, showProgress, parent }) => {
+	uploadFile: ({ file, includeFileHash, masterKeys, apiKey, version, showProgress, parent, uuid }) => {
 		const id = (currentId += 1)
 
 		return new Promise((resolve, reject) => {
@@ -603,7 +604,8 @@ global.nodeThread = {
 					apiKey,
 					version,
 					showProgress,
-					parent
+					parent,
+					uuid
 				})
 			})
 		})

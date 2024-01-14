@@ -1505,7 +1505,7 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 	}
 }
 
-const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, showProgress, parent }) => {
+const uploadFile = async ({ uuid, file, includeFileHash, masterKeys, apiKey, version, showProgress, parent }) => {
 	const stat = await new Promise((resolve, reject) => {
 		fs.stat(file.path, (err, stats) => {
 			if (err) {
@@ -1518,7 +1518,6 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 		})
 	})
 
-	const uuid = uuidv4()
 	let now = Date.now()
 
 	delete currentUploads[uuid]
@@ -2271,6 +2270,7 @@ rn_bridge.channel.on("message", message => {
 			})
 	} else if (request.type === "uploadFile") {
 		uploadFile({
+			uuid: request.uuid,
 			file: request.file,
 			includeFileHash: request.includeFileHash,
 			masterKeys: request.masterKeys,

@@ -399,10 +399,12 @@ const onForegroundNotification = async (payload, completion) => {
 	}
 
 	if (Platform.OS === "ios") {
-		completion({ alert: true, sound: false, badge: false })
+		completion({ alert: false, sound: false, badge: false })
 
 		return
 	}
+
+	return
 
 	await normalNotificationMutex.acquire()
 
