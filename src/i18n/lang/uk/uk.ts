@@ -508,5 +508,18 @@ export const uk: {
 	cameraUploadAutoOrganize: "Сортувати за альбомами",
 	finishing: "Завершення",
 	transferringFiles: "Передача __NUM__ файлів",
-	paused: "Призупинено"
+	paused: "Призупинено",
+	contactRequestReceivedBody: "Відправив вам запит на контакт",
+	chatMessageNewBody: "Відправив вам повідомлення",
+	aUser: "Користувач",
+	newNotification: "Нове повідомлення",
+	confirmDeleteName: "Ви впевнені, що хочете видалити __NAME__?",
+	confirmDeleteNamePermanently: "Ви впевнені, що хочете видалити __NAME__ назавжди? Ви не можете це скасувати!",
+	confirmDeleteChatPermanently: "Ви впевнені, що хочете видалити цей чат назавжди? Ви не можете це скасувати!",
+	confirmDeleteChatMessagePermanently: "Ви впевнені, що хочете видалити це повідомлення назавжди? Ви не можете це скасувати!",
+	confirmLeaveChatPermanently: "Ви впевнені, що хочете покинути цей чат?",
+	confirmLeaveNotePermanently: "Ви впевнені, що хочете покинути цю нотатку?",
+	confirmRemoveContact: "Ви впевнені, що хочете видалити __NAME__ зі своїх контактів?",
+	confirmRemoveChatParticipant: "Ви дійсно хочете видалити __NAME__ з цього чату?",
+	confirmRemoveNoteParticipant: "Ви впевнені, що хочете видалити __NAME__ з цієї нотатки?"
 }
