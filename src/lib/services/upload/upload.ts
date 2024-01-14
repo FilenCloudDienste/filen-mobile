@@ -279,6 +279,8 @@ export const queueFileUpload = async ({
 		await global.nodeThread.uploadFailed({ uuid: item.uuid, reason: e.toString() }).catch(console.error)
 
 		throw e
+	} finally {
+		global.nodeThread.removeTransfer({ uuid: item.uuid }).catch(console.error)
 	}
 
 	//showToast({ message: i18n(storage.getString("lang"), "fileUploaded", true, ["__NAME__"], [name]) })

@@ -223,7 +223,7 @@ const buildTransfers = () => {
 			})
 		}
 
-		for (const transfer of finishedTransfers) {
+		for (const transfer of finishedTransfers.reverse()) {
 			if (typeof transfer.uuid !== "string" || exists[transfer.uuid]) {
 				continue
 			}
@@ -257,7 +257,7 @@ const transfersUpdate = (retryCounter = 0) => {
 	const now = Date.now()
 
 	if (nextTransfersUpdate > now) {
-		if (retryCounter >= 5) {
+		if (retryCounter >= 16) {
 			return
 		}
 
@@ -280,28 +280,34 @@ const transfersUpdate = (retryCounter = 0) => {
 }
 
 const updateTransfersProgress = () => {
-	if (bytesSent <= 0 || isNaN(bytesSent)) {
-		bytesSent = 0
-	}
-
-	if (allBytes <= 0 || isNaN(allBytes)) {
-		allBytes = 0
-	}
-
-	if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0) {
-		let prog = (bytesSent / allBytes) * 100
-
-		if (isNaN(prog) || typeof prog !== "number") {
-			prog = 0
+	try {
+		if (bytesSent <= 0 || isNaN(bytesSent)) {
+			bytesSent = 0
 		}
 
-		transfersProgress = prog >= 100 ? 100 : prog <= 0 ? 0 : prog
-	} else {
-		progressStarted = -1
-		transfersProgress = 0
-		allBytes = 0
-		bytesSent = 0
+		if (allBytes <= 0 || isNaN(allBytes)) {
+			allBytes = 0
+		}
+
+		if (Object.keys(currentUploads).length + Object.keys(currentDownloads).length > 0) {
+			let prog = (bytesSent / allBytes) * 100
+
+			if (isNaN(prog) || typeof prog !== "number") {
+				prog = 0
+			}
+
+			transfersProgress = prog >= 100 ? 100 : prog <= 0 ? 0 : prog
+		} else {
+			progressStarted = -1
+			transfersProgress = 0
+			allBytes = 0
+			bytesSent = 0
+		}
+	} catch (e) {
+		console.error(e)
 	}
+
+	transfersUpdate()
 }
 
 const convertArrayBufferToUtf8String = buffer => {
@@ -945,7 +951,6 @@ const encryptAndUploadChunkBuffer = (buffer, key, queryParams, apiKey) => {
 						bytesSent += bytes
 
 						updateTransfersProgress()
-						transfersUpdate()
 					} catch (e) {
 						console.error(e)
 					}
@@ -1130,9 +1135,6 @@ const downloadFileChunk = (uuid, region, bucket, index) => {
 							}
 
 							bytesSent += bytes
-
-							updateTransfersProgress()
-							transfersUpdate()
 						}
 
 						updateTransfersProgress()
@@ -1323,7 +1325,6 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 	}
 
 	updateTransfersProgress()
-	transfersUpdate()
 
 	let currentWriteIndex = 0
 
@@ -1406,7 +1407,6 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 	}
 
 	updateTransfersProgress()
-	transfersUpdate()
 
 	try {
 		await new Promise((resolve, reject) => {
@@ -1478,7 +1478,6 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 		})
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		return destination
 	} catch (e) {
@@ -1499,7 +1498,6 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 		}
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		throw e
 	} finally {
@@ -1552,7 +1550,6 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 	}
 
 	updateTransfersProgress()
-	transfersUpdate()
 
 	file.size = stat.size
 
@@ -1664,7 +1661,6 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 		}
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		throw e
 	}
@@ -1717,7 +1713,6 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 	}
 
 	updateTransfersProgress()
-	transfersUpdate()
 
 	try {
 		await new Promise((resolve, reject) => {
@@ -1753,7 +1748,6 @@ const uploadFile = async ({ file, includeFileHash, masterKeys, apiKey, version, 
 	}
 
 	updateTransfersProgress()
-	transfersUpdate()
 
 	return {
 		item,
@@ -2261,7 +2255,6 @@ rn_bridge.channel.on("message", message => {
 				})
 
 				updateTransfersProgress()
-				transfersUpdate()
 
 				tasksRunning -= 1
 			})
@@ -2273,7 +2266,6 @@ rn_bridge.channel.on("message", message => {
 				})
 
 				updateTransfersProgress()
-				transfersUpdate()
 
 				tasksRunning -= 1
 			})
@@ -2295,7 +2287,6 @@ rn_bridge.channel.on("message", message => {
 				})
 
 				updateTransfersProgress()
-				transfersUpdate()
 
 				tasksRunning -= 1
 			})
@@ -2307,7 +2298,6 @@ rn_bridge.channel.on("message", message => {
 				})
 
 				updateTransfersProgress()
-				transfersUpdate()
 
 				tasksRunning -= 1
 			})
@@ -2322,7 +2312,6 @@ rn_bridge.channel.on("message", message => {
 		delete currentUploads[request.uuid]
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		rn_bridge.channel.send({
 			id: request.id,
@@ -2347,7 +2336,6 @@ rn_bridge.channel.on("message", message => {
 		delete currentUploads[request.uuid]
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		rn_bridge.channel.send({
 			id: request.id,
@@ -2369,7 +2357,6 @@ rn_bridge.channel.on("message", message => {
 		delete currentDownloads[request.uuid]
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		rn_bridge.channel.send({
 			id: request.id,
@@ -2388,7 +2375,6 @@ rn_bridge.channel.on("message", message => {
 		})
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		tasksRunning -= 1
 	} else if (request.type === "pauseTransfer") {
@@ -2401,7 +2387,6 @@ rn_bridge.channel.on("message", message => {
 		})
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		tasksRunning -= 1
 	} else if (request.type === "resumeTransfer") {
@@ -2414,7 +2399,6 @@ rn_bridge.channel.on("message", message => {
 		})
 
 		updateTransfersProgress()
-		transfersUpdate()
 
 		tasksRunning -= 1
 	} else if (request.type === "getCurrentTransfers") {

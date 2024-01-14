@@ -259,10 +259,6 @@ export const App = Sentry.wrap(
 				return
 			}
 
-			if (!Array.isArray(items.data) || items.data.length <= 0) {
-				return
-			}
-
 			await new Promise(resolve => {
 				const wait = setInterval(() => {
 					if (

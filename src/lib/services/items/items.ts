@@ -400,7 +400,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
 			const response = await apiRequest({
 				method: "POST",
-				endpoint: "/v3/dir/content",
+				endpoint: "/v3/dir/download",
 				data: {
 					uuid: cameraUploadParent
 				}
@@ -410,7 +410,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 				throw new Error(response.message + ": " + response.code)
 			}
 
-			for (const file of response.data.uploads) {
+			for (const file of response.data.files) {
 				promises.push(
 					new Promise(async (resolve, reject) => {
 						try {
