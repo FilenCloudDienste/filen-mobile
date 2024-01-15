@@ -40,57 +40,66 @@ const PublicLinkActionSheet = memo(() => {
 		const req = () => {
 			itemPublicLinkInfo(item)
 				.then(async info => {
-					if (waitUntilEnabled) {
-						if (item.type == "folder") {
-							if (typeof info.exists == "boolean" && !info.exists) {
-								return setTimeout(req, 250)
+					try {
+						if (waitUntilEnabled) {
+							if (item.type == "folder") {
+								if (typeof info.exists == "boolean" && !info.exists) {
+									return setTimeout(req, 250)
+								}
+							} else {
+								if (typeof info.enabled == "boolean" && !info.enabled) {
+									return setTimeout(req, 250)
+								}
 							}
+						}
+
+						if (waitUntilDisabled) {
+							if (item.type == "folder") {
+								if (typeof info.exists == "boolean" && info.exists) {
+									return setTimeout(req, 250)
+								}
+							} else {
+								if (typeof info.enabled == "boolean" && info.enabled) {
+									return setTimeout(req, 250)
+								}
+							}
+						}
+
+						if (item.type == "folder" && typeof info.exists == "boolean" && info.exists) {
+							const masterKeys: string[] = getMasterKeys()
+							const keyDecrypted: string = await decryptFolderLinkKey(masterKeys, info.key)
+
+							if (keyDecrypted.length == 0) {
+								await hideAllActionSheets().catch(console.error)
+
+								return
+							}
+
+							setLinkEnabled(
+								typeof info.exists == "boolean" &&
+									info.exists &&
+									typeof keyDecrypted == "string" &&
+									keyDecrypted.length >= 32
+							)
+							setDownloadBtnEnabled(false)
+							setLinkURL(
+								typeof keyDecrypted == "string" && keyDecrypted.length >= 32
+									? "https://drive.filen.io/f/" + info.uuid + "#" + keyDecrypted
+									: ""
+							)
 						} else {
-							if (typeof info.enabled == "boolean" && !info.enabled) {
-								return setTimeout(req, 250)
-							}
-						}
-					}
-
-					if (waitUntilDisabled) {
-						if (item.type == "folder") {
-							if (typeof info.exists == "boolean" && info.exists) {
-								return setTimeout(req, 250)
-							}
-						} else {
-							if (typeof info.enabled == "boolean" && info.enabled) {
-								return setTimeout(req, 250)
-							}
-						}
-					}
-
-					if (item.type == "folder" && typeof info.exists == "boolean" && info.exists) {
-						const masterKeys: string[] = getMasterKeys()
-						const keyDecrypted: string = await decryptFolderLinkKey(masterKeys, info.key)
-
-						if (keyDecrypted.length == 0) {
-							await hideAllActionSheets().catch(console.error)
-
-							return
+							setLinkEnabled(typeof info.enabled == "boolean" && info.enabled)
+							setDownloadBtnEnabled(
+								typeof info.downloadBtn == "string" ? info.downloadBtn == "enable" : info.downloadBtn == 1
+							)
+							setLinkURL("https://drive.filen.io/d/" + info.uuid + "#" + item.key)
 						}
 
-						setLinkEnabled(
-							typeof info.exists == "boolean" && info.exists && typeof keyDecrypted == "string" && keyDecrypted.length >= 32
-						)
-						setDownloadBtnEnabled(false)
-						setLinkURL(
-							typeof keyDecrypted == "string" && keyDecrypted.length >= 32
-								? "https://drive.filen.io/f/" + info.uuid + "#" + keyDecrypted
-								: ""
-						)
-					} else {
-						setLinkEnabled(typeof info.enabled == "boolean" && info.enabled)
-						setDownloadBtnEnabled(typeof info.downloadBtn == "string" ? info.downloadBtn == "enable" : info.downloadBtn == 1)
-						setLinkURL("https://drive.filen.io/d/" + info.uuid + "#" + item.key)
+						setInfo(info)
+						setFetchingInfo(false)
+					} catch (e) {
+						console.error(e)
 					}
-
-					setInfo(info)
-					setFetchingInfo(false)
 				})
 				.catch(err => {
 					setFetchingInfo(false)
@@ -103,7 +112,7 @@ const PublicLinkActionSheet = memo(() => {
 	}, [])
 
 	const enable = useCallback(async () => {
-		if (typeof currentItem == "undefined") {
+		if (!currentItem) {
 			return
 		}
 
@@ -114,17 +123,17 @@ const PublicLinkActionSheet = memo(() => {
 			await enableItemPublicLink(currentItem, (current, total) => setProgress({ current, total }))
 
 			fetchInfo(currentItem, true)
-		} catch (e: any) {
+		} catch (e) {
 			console.error(e)
 
 			fetchInfo(currentItem)
+		} finally {
+			setProgress({ current: 0, total: 0 })
 		}
-
-		setProgress({ current: 0, total: 0 })
 	}, [currentItem])
 
 	const disable = useCallback(async () => {
-		if (typeof currentItem == "undefined" || typeof info == "undefined") {
+		if (!currentItem || !info) {
 			return
 		}
 
@@ -139,25 +148,25 @@ const PublicLinkActionSheet = memo(() => {
 					data: currentItem
 				})
 			}
-		} catch (e: any) {
+
+			if (getRouteURL().indexOf("links") === -1) {
+				fetchInfo(currentItem)
+			} else {
+				await new Promise(resolve => setTimeout(resolve, 250))
+				await hideAllActionSheets().catch(console.error)
+			}
+		} catch (e) {
 			console.error(e)
-		}
-
-		setFetchingInfo(false)
-		setLinkEnabled(false)
-		setInfo(undefined)
-
-		if (getRouteURL().indexOf("links") === -1) {
-			fetchInfo(currentItem)
-		} else {
-			await new Promise(resolve => setTimeout(resolve, 250))
-			await hideAllActionSheets().catch(console.error)
+		} finally {
+			setFetchingInfo(false)
+			setLinkEnabled(false)
+			setInfo(undefined)
 		}
 	}, [currentItem, info])
 
 	const save = useCallback(
 		async (expirationText: string, password: string, downloadBtn: "enable" | "disable") => {
-			if (typeof currentItem == "undefined" || typeof info == "undefined") {
+			if (!currentItem || !info) {
 				return
 			}
 
@@ -165,7 +174,7 @@ const PublicLinkActionSheet = memo(() => {
 
 			try {
 				await editItemPublicLink(currentItem, info.uuid, expirationText, password, downloadBtn)
-			} catch (e: any) {
+			} catch (e) {
 				console.error(e)
 			}
 

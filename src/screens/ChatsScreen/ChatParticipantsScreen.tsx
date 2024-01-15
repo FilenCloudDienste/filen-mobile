@@ -109,7 +109,7 @@ const Item = memo(
 								zIndex: 10001
 							}}
 						/>
-						{participant.avatar.indexOf("https://") !== -1 ? (
+						{typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1 ? (
 							<Image
 								source={{
 									uri: participant.avatar

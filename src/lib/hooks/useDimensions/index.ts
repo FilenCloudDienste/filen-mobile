@@ -1,12 +1,13 @@
 import { useMemo } from "react"
-import { StatusBar, Platform } from "react-native"
+import { StatusBar, Platform, useWindowDimensions, Dimensions } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { useDimensions as useDims } from "@react-native-community/hooks"
 import { useVisibility } from "expo-navigation-bar"
 import useIsPortrait from "../useIsPortrait"
 
+const SCREEN = Dimensions.get("screen")
+
 export default function useDimensions() {
-	const dims = useDims()
+	const dims = useWindowDimensions()
 	const insets = useSafeAreaInsets()
 	const navigationBarVisibility = Platform.OS === "android" ? useVisibility() : null
 	const isPortrait = useIsPortrait()
@@ -15,20 +16,20 @@ export default function useDimensions() {
 		const statusbarHeight = StatusBar.currentHeight ?? 0
 
 		return {
-			width: dims.window.width,
-			height: dims.window.height,
-			realWidth: dims.window.width - insets.left - insets.right,
-			realHeight: dims.window.height - insets.top - insets.left,
+			width: dims.width,
+			height: dims.height,
+			realWidth: dims.width - insets.left - insets.right,
+			realHeight: dims.height - insets.top - insets.left,
 			statusbarHeight,
 			navigationBarHeight:
 				Platform.OS === "android"
 					? navigationBarVisibility === "visible" || navigationBarVisibility === null
-						? dims.screen.height - dims.window.height - (isPortrait ? statusbarHeight : 0)
+						? SCREEN.height - dims.height - (isPortrait ? statusbarHeight : 0)
 						: 0
 					: 0,
 			insets,
-			screen: dims.screen,
-			window: dims.window,
+			screen: SCREEN,
+			window: dims,
 			isPortrait
 		}
 	}, [dims, insets, isPortrait, navigationBarVisibility])

@@ -332,7 +332,7 @@ const Item = memo(
 							}}
 						>
 							{participantsFilteredWithoutMe.slice(0, 2).map((participant, index) => {
-								if (participant.avatar && participant.avatar.indexOf("https://") !== -1) {
+								if (typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1) {
 									return (
 										<Image
 											key={participant.userId}

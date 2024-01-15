@@ -151,7 +151,7 @@ const Item = memo(
 								zIndex: 10001
 							}}
 						/>
-						{contact.avatar.indexOf("https://") !== -1 ? (
+						{typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? (
 							<Image
 								source={{
 									uri: contact.avatar

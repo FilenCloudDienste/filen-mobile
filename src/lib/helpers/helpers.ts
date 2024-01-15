@@ -129,7 +129,7 @@ export const getFilenameFromPath = (path: string): string => {
 	return path.split("\\")?.pop()?.split("/")?.pop() as string
 }
 
-export const getRouteURL = (passedRoute?: any): string => {
+export const getRouteURL = (passedRoute?: any): string | null | undefined => {
 	try {
 		if (typeof passedRoute !== "undefined") {
 			var route = passedRoute
@@ -165,7 +165,7 @@ export const getRouteURL = (passedRoute?: any): string => {
 	return "base"
 }
 
-export const getParent = (passedRoute?: any): string => {
+export const getParent = (passedRoute?: any): string | null | undefined => {
 	try {
 		let routes = useStore.getState().currentRoutes
 
