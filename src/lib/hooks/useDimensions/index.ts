@@ -4,13 +4,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useVisibility } from "expo-navigation-bar"
 import useIsPortrait from "../useIsPortrait"
 
-const SCREEN = Dimensions.get("screen")
-
 export default function useDimensions() {
 	const dims = useWindowDimensions()
 	const insets = useSafeAreaInsets()
 	const navigationBarVisibility = Platform.OS === "android" ? useVisibility() : null
 	const isPortrait = useIsPortrait()
+
+	const SCREEN = useMemo(() => {
+		return Dimensions.get("screen")
+	}, [isPortrait])
 
 	const dimensions = useMemo(() => {
 		const statusbarHeight = StatusBar.currentHeight ?? 0

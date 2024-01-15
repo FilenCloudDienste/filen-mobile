@@ -53,6 +53,8 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const readOnly = useRef<boolean>(route.params.readOnly).current
 	const historyMode = useRef<boolean>(route.params.historyMode).current
 	const historyId = useRef<number>(route.params.historyId).current
+	const historyContent = useRef<string>(route.params.historyContent).current
+	const historyType = useRef<NoteType | "">(route.params.historyType).current
 	const loadNoteTimeout = useRef<number>(0)
 	const isFocused = useIsFocused()
 	const keyboardOffset = useKeyboardOffset()
@@ -70,6 +72,16 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 
 	const loadNote = useCallback(
 		async (skipCache: boolean = false) => {
+			if (historyContent && historyContent.length > 0 && historyMode && historyId && historyType) {
+				setContent(historyContent)
+				setEditedContent(historyContent)
+				setSynced(prev => ({ ...prev, content: true, title: true }))
+				setContentType(historyType.length > 0 ? (historyType as NoteType) : "text")
+				setLoadDone(true)
+
+				return
+			}
+
 			if (skipCache && !networkInfo.online) {
 				return
 			}
@@ -398,7 +410,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 										</TouchableOpacity>
 									) : (
 										<>
-											{keyboardShowing && (
+											{keyboardShowing && contentType !== "rich" && (
 												<TouchableOpacity
 													style={{
 														marginRight: 10

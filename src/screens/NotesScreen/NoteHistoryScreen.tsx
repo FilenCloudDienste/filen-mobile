@@ -57,7 +57,9 @@ const Item = memo(
 							tags: [],
 							readOnly: true,
 							historyMode: true,
-							historyId: entry.entry.id
+							historyId: entry.entry.id,
+							historyContent: entry.content,
+							historyType: entry.entry.type
 						})
 					)
 				}}

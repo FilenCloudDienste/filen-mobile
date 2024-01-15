@@ -85,7 +85,9 @@ const CreateNoteActionSheet = memo(({ navigation }: { navigation: NavigationCont
 						tags: notesAndTags.tags,
 						readOnly: false,
 						historyMode: false,
-						historyId: ""
+						historyId: "",
+						historyContent: "",
+						historyType: ""
 					})
 				)
 			}

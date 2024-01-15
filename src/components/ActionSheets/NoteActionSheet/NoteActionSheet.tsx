@@ -238,7 +238,9 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 						tags,
 						readOnly: false,
 						historyMode: false,
-						historyId: ""
+						historyId: "",
+						historyContent: "",
+						historyType: ""
 					})
 				)
 			}

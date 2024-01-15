@@ -343,7 +343,7 @@ const Input = memo(
 			let picked: DocumentPickerResponse[] = []
 
 			try {
-				picked = await RNDocumentPicker.pickMultiple({
+				picked = await RNDocumentPicker.pick({
 					type: [RNDocumentPicker.types.allFiles],
 					copyTo: "cachesDirectory",
 					allowMultiSelection: false
@@ -359,7 +359,7 @@ const Input = memo(
 			}
 
 			if (picked.length !== 1) {
-				return
+				picked = picked.slice(0, 1)
 			}
 
 			const getFileInfo = (

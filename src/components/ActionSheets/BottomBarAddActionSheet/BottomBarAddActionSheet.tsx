@@ -298,7 +298,7 @@ const BottomBarAddActionSheet = memo(() => {
 			})
 		}
 
-		RNDocumentPicker.pickMultiple({
+		RNDocumentPicker.pick({
 			type: [RNDocumentPicker.types.allFiles],
 			copyTo: "cachesDirectory"
 		})

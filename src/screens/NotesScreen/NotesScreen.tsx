@@ -87,7 +87,9 @@ const Item = memo(
 							tags,
 							readOnly: !writeAccess,
 							historyMode: false,
-							historyId: ""
+							historyId: "",
+							historyContent: "",
+							historyType: ""
 						})
 					)
 				}}
