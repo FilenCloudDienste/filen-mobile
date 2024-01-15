@@ -321,3 +321,6 @@ misc.txt
 android/**/google-services.json
 ios/**/GoogleService-Info.plist
 GoogleService-Info.*
+
+sentry.properties
+**/sentry.properties/**
