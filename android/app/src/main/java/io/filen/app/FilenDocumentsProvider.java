@@ -875,6 +875,17 @@ public class FilenDocumentsProvider extends DocumentsProvider {
     }
 
     @Override
+    public String copyDocument (String sourceDocumentId, String targetParentDocumentId) throws FileNotFoundException {
+        Log.d("FilenDocumentsProvider", "copyDocument: " + sourceDocumentId + ", " + targetParentDocumentId);
+
+        if (FilenDocumentsProviderUtils.needsBiometricAuth() || !FilenDocumentsProviderUtils.isLoggedIn() || FilenDocumentsProviderUtils.getDefaultDriveUUID().length() == 0) {
+            throw new FileNotFoundException("Please authenticate.");
+        }
+
+        throw new UnsupportedOperationException("Copy not supported");
+    }
+
+    @Override
     public String renameDocument (String documentId, String displayName) throws FileNotFoundException {
         Log.d("FilenDocumentsProvider", "renameDocument: " + documentId + ", " + displayName);
 

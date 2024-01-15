@@ -1,8 +1,10 @@
 import * as Network from "expo-network"
 import { networkState } from "./isOnline"
 import { useState, useEffect, useCallback } from "react"
+import { AppState } from "react-native"
+import NetInfo, { NetInfoStateType } from "@react-native-community/netinfo"
 
-export interface NetworkInfo {
+export type NetworkInfo = {
 	online: boolean
 	wifi: boolean
 }
@@ -12,29 +14,52 @@ export const useNetworkInfo = () => {
 
 	const update = useCallback(async () => {
 		try {
-			const state = await networkState()
+			const s = await networkState()
 
 			setState({
-				online: state.isConnected && state.isInternetReachable,
+				online: s.isConnected && s.isInternetReachable,
 				wifi:
-					state.type === Network.NetworkStateType.WIFI ||
-					state.type === Network.NetworkStateType.VPN ||
-					state.type === Network.NetworkStateType.ETHERNET ||
-					state.type === Network.NetworkStateType.BLUETOOTH ||
-					state.type === Network.NetworkStateType.WIMAX
+					s.type === Network.NetworkStateType.WIFI ||
+					s.type === Network.NetworkStateType.VPN ||
+					s.type === Network.NetworkStateType.ETHERNET ||
+					s.type === Network.NetworkStateType.BLUETOOTH ||
+					s.type === Network.NetworkStateType.WIMAX
 			})
 		} catch (e) {
 			console.error(e)
+
+			setState({
+				online: false,
+				wifi: false
+			})
 		}
 	}, [])
 
 	useEffect(() => {
 		update()
 
-		const interval = setInterval(update, 5000)
+		const appStateListener = AppState.addEventListener("change", s => {
+			if (s === "active") {
+				update()
+			}
+		})
+
+		const removeNetInfoListener = NetInfo.addEventListener(s => {
+			setState({
+				online: s.isConnected && s.isInternetReachable,
+				wifi:
+					s.type === NetInfoStateType.wifi ||
+					s.type === NetInfoStateType.vpn ||
+					s.type === NetInfoStateType.ethernet ||
+					s.type === NetInfoStateType.bluetooth ||
+					s.type === NetInfoStateType.wimax
+			})
+		})
 
 		return () => {
-			clearInterval(interval)
+			removeNetInfoListener()
+
+			appStateListener.remove()
 		}
 	}, [])
 

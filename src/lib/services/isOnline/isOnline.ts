@@ -45,6 +45,12 @@ export const networkState = async (): Promise<Network.NetworkState> => {
 		networkStateTimeout = Date.now() + 3000
 
 		return res
+	} catch (e) {
+		if (results.has("networkState")) {
+			return results.get("networkState")
+		}
+
+		throw e
 	} finally {
 		mutex.release()
 	}

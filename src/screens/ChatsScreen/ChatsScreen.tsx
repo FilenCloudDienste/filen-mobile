@@ -37,6 +37,7 @@ import {
 	hideFullScreenLoadingModal
 } from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import { showToast } from "../../components/Toasts"
+import notifee from "@notifee/react-native"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -533,6 +534,14 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 		}
 	}, [navigation, networkInfo])
 
+	const resetNotifications = useCallback(async () => {
+		try {
+			await Promise.all([notifee.cancelAllNotifications(), notifee.setBadgeCount(0), notifee.cancelDisplayedNotifications()])
+		} catch (e) {
+			console.error(e)
+		}
+	}, [])
+
 	const keyExtractor = useCallback((item: ChatConversation) => item.uuid, [])
 
 	const renderItem = useCallback(
@@ -556,6 +565,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	useEffect(() => {
 		if (isFocused) {
 			loadConversations(true)
+			resetNotifications()
 		}
 	}, [isFocused])
 
@@ -565,10 +575,12 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 
 	useEffect(() => {
 		loadConversations()
+		resetNotifications()
 
 		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
 			if (nextAppState === "active") {
 				loadConversations(true)
+				resetNotifications()
 			}
 		})
 
