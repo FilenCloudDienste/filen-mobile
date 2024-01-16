@@ -388,6 +388,7 @@ const Checklist = memo(
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					estimatedItemSize={50}
+					keyboardDismissMode="on-drag"
 					estimatedListSize={{
 						height: dimensions.height - insets.top - insets.bottom,
 						width: dimensions.width - insets.left - insets.right

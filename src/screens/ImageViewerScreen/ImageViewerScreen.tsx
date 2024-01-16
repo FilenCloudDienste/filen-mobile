@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, FlatList } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { ReactNativeZoomableView } from "@openspacelabs/react-native-zoomable-view"
 import { downloadFile } from "../../lib/services/download/download"
@@ -10,7 +10,6 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import { showToast } from "../../components/Toasts"
 import { getFileExt, toExpoFsPath, isBetween, getFilePreviewType, canCompressThumbnail } from "../../lib/helpers"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
-import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { getItemOfflinePath } from "../../lib/services/offline"
 import * as fs from "../../lib/fs"
 import { Item } from "../../types"
@@ -28,7 +27,7 @@ export type PreviewItem = {
 	file: Item
 }
 
-const minZoom = 0.99999999999
+const minZoom = 1
 
 const ImageViewerScreen = memo(
 	({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
@@ -36,13 +35,12 @@ const ImageViewerScreen = memo(
 		const [images, setImages] = useState<Record<string, string>>({})
 		const [isZooming, setIsZooming] = useState<boolean>(false)
 		const thumbnailListRef = useRef<FlashList<PreviewItem>>()
-		const listRef = useRef<FlashList<PreviewItem>>()
+		const listRef = useRef<FlatList<PreviewItem>>()
 		const [showControls, setShowControls] = useState<boolean>(false)
 		const viewRefs = useRef<Record<string, ReactNativeZoomableView>>({}).current
 		const currentImagePreviewDownloads = useRef<Record<string, boolean>>({}).current
 		const setListScrollAgain = useRef<boolean>(false)
 		const dimensions = useDimensions()
-		const networkInfo = useNetworkInfo()
 		const didLoadFirstImage = useRef<boolean>(false)
 
 		const [items, startIndex] = useRef<[PreviewItem[], number]>(
@@ -62,7 +60,7 @@ const ImageViewerScreen = memo(
 					const ext = getFileExt(item.name)
 
 					if (getFilePreviewType(ext) === "image" && canCompressThumbnail(ext)) {
-						if (item.uuid == uuid.current) {
+						if (item.uuid === uuid.current) {
 							currentIndex = index
 							imgFound = true
 						}
@@ -80,7 +78,7 @@ const ImageViewerScreen = memo(
 					}
 				}
 
-				if (items.length == 1) {
+				if (items.length === 1) {
 					return [items, 0]
 				}
 
@@ -105,7 +103,6 @@ const ImageViewerScreen = memo(
 
 			setCurrentName(image.file.name)
 			setImagePreviewModalIndex(index)
-			setIsZooming(false)
 
 			if (isBetween(index, 0, imagePreviewModalItems.length)) {
 				thumbnailListRef?.current?.scrollToIndex({
@@ -182,7 +179,7 @@ const ImageViewerScreen = memo(
 
 			setImagePreviewModalItems(prev => [
 				...prev.map(mapItem =>
-					mapItem.file.uuid == item.uuid && typeof mapItem.thumbnail === "undefined"
+					mapItem.file.uuid === item.uuid && typeof mapItem.thumbnail === "undefined"
 						? { ...mapItem, thumbnail: item.uuid + ".jpg" }
 						: mapItem
 				)
@@ -225,78 +222,115 @@ const ImageViewerScreen = memo(
 				}
 
 				return (
-					<ReactNativeZoomableView
-						key={image.uuid}
-						ref={ref => (viewRefs[image.uuid] = ref)}
-						maxZoom={10}
-						minZoom={minZoom}
-						zoomStep={3}
-						initialZoom={minZoom}
-						bindToBorders={true}
+					<View
 						style={{
 							width: dimensions.realWidth,
 							height: dimensions.realHeight
 						}}
-						contentHeight={dimensions.realHeight}
-						contentWidth={dimensions.realWidth}
-						onShiftingBefore={(e, state, view) => {
-							if (isZooming) {
-								return false
-							}
-
-							const zoomLevel = Math.round(view.zoomLevel * 100) / 100
-
-							return zoomLevel <= 1
+						onLayout={() => {
+							setIsZooming(false)
 						}}
-						onTransform={e => {
-							const zoomLevel = Math.round(e.zoomLevel * 100) / 100
-
-							setIsZooming(zoomLevel > 1)
-						}}
-						onSingleTap={() => setShowControls(prev => !prev)}
 					>
-						<ImageBackground
-							source={{
-								uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
+						<ReactNativeZoomableView
+							ref={ref => (viewRefs[image.uuid] = ref)}
+							minZoom={minZoom}
+							initialZoom={minZoom}
+							maxZoom={10}
+							zoomStep={4}
+							bindToBorders={true}
+							contentHeight={dimensions.realHeight}
+							contentWidth={dimensions.realWidth}
+							disablePanOnInitialZoom={true}
+							visualTouchFeedbackEnabled={false}
+							onLayout={() => {
+								setIsZooming(false)
 							}}
-							cachePolicy="none"
-							contentFit="contain"
-							style={{
-								width: dimensions.realWidth,
-								height: dimensions.realHeight
+							onShiftingAfter={(e, state, view) => {
+								setIsZooming(view.zoomLevel > minZoom)
+
+								if (view.zoomLevel <= minZoom) {
+									return true
+								}
+
+								return false
 							}}
+							onShiftingBefore={(e, state, view) => {
+								setIsZooming(view.zoomLevel > minZoom)
+
+								if (view.zoomLevel <= minZoom) {
+									return true
+								}
+
+								return false
+							}}
+							onShiftingEnd={(e, state, view) => {
+								setIsZooming(view.zoomLevel > minZoom)
+
+								if (view.zoomLevel <= minZoom) {
+									return true
+								}
+
+								return false
+							}}
+							onTransform={e => {
+								setIsZooming(e.zoomLevel > minZoom)
+							}}
+							onZoomAfter={(e, state, view) => {
+								setIsZooming(view.zoomLevel > minZoom)
+							}}
+							onZoomBefore={(e, state, view) => {
+								setIsZooming(view.zoomLevel > minZoom)
+							}}
+							onZoomEnd={(e, state, view) => {
+								setIsZooming(view.zoomLevel > minZoom)
+							}}
+							onSingleTap={() => setShowControls(prev => !prev)}
 						>
-							{typeof images[image.uuid] == "string" && (
-								<Image
-									source={{
-										uri: decodeURIComponent(
-											images[image.uuid].startsWith("file://") ? images[image.uuid] : "file://" + images[image.uuid]
-										)
-									}}
-									cachePolicy="none"
-									contentFit="contain"
+							<ImageBackground
+								source={{
+									uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
+								}}
+								cachePolicy="none"
+								contentFit="contain"
+								style={{
+									width: dimensions.realWidth,
+									height: dimensions.realHeight
+								}}
+							>
+								{typeof images[image.uuid] === "string" && (
+									<Image
+										source={{
+											uri: decodeURIComponent(
+												images[image.uuid].startsWith("file://")
+													? images[image.uuid]
+													: "file://" + images[image.uuid]
+											)
+										}}
+										cachePolicy="none"
+										contentFit="contain"
+										style={{
+											width: dimensions.realWidth,
+											height: dimensions.realHeight
+										}}
+									/>
+								)}
+							</ImageBackground>
+							{typeof images[image.uuid] !== "string" && (
+								<ActivityIndicator
+									size="small"
+									color={"white"}
 									style={{
-										width: dimensions.realWidth,
-										height: dimensions.realHeight
+										margin: "auto",
+										position: "absolute",
+										top: 0,
+										left: 0,
+										bottom: 0,
+										right: 0
 									}}
 								/>
 							)}
-						</ImageBackground>
-						{typeof images[image.uuid] !== "string" && (
-							<ActivityIndicator
-								size="small"
-								color={"white"}
-								style={{
-									margin: "auto",
-									position: "absolute",
-									top: 0,
-									left: 0,
-									bottom: 0,
-									right: 0
-								}}
-							/>
-						)}
-					</ReactNativeZoomableView>
+						</ReactNativeZoomableView>
+					</View>
 				)
 			},
 			[dimensions, images, imagePreviewModalItems, isZooming]
@@ -397,7 +431,7 @@ const ImageViewerScreen = memo(
 		useEffect(() => {
 			if (startIndex === -1) {
 				;async () => {
-					await new Promise(resolve => setTimeout(resolve, 250))
+					await new Promise(resolve => setTimeout(resolve, 500))
 
 					if (navigation.canGoBack()) {
 						navigation.goBack()
@@ -491,7 +525,7 @@ const ImageViewerScreen = memo(
 						height: dimensions.realHeight
 					}}
 				>
-					<FlashList
+					<FlatList
 						extraData={{
 							portrait: dimensions.isPortrait ? "portrait" : "landscape",
 							dimensions,
@@ -505,14 +539,16 @@ const ImageViewerScreen = memo(
 						renderItem={renderImage}
 						key={dimensions.isPortrait ? "portrait" : "landscape"}
 						keyExtractor={keyExtractor}
+						getItemLayout={(_, index) => ({
+							length: dimensions.realWidth,
+							offset: dimensions.realWidth * index,
+							index
+						})}
+						initialNumToRender={3}
+						windowSize={3}
 						horizontal={true}
-						bounces={true}
-						estimatedItemSize={dimensions.realWidth}
-						estimatedListSize={{
-							height: dimensions.realHeight,
-							width: dimensions.realWidth
-						}}
-						scrollEnabled={!isZooming && networkInfo.online}
+						bounces={false}
+						scrollEnabled={!isZooming}
 						pagingEnabled={true}
 						onViewableItemsChanged={onViewableItemsChangedRef?.current}
 						viewabilityConfig={viewabilityConfigRef?.current}

@@ -113,863 +113,861 @@ if (!__DEV__) {
 		enableNative: true,
 		enabled: true,
 		enableAppHangTracking: true,
-		enableNativeCrashHandling: true,
-		enableOutOfMemoryTracking: true,
-		enableAutoPerformanceTracking: false
+		enableNativeCrashHandling: true
 	})
 }
 
 const Stack = createNativeStackNavigator()
 const navigationRef = createNavigationContainerRef()
 
-export const App = Sentry.wrap(
-	memo(() => {
-		const isLoggedIn = useIsLoggedIn()
-		const darkMode = useDarkMode()
-		const [currentScreenName, setCurrentScreenName] = useState<string>("MainScreen")
-		const setCurrentRoutes = useStore(state => state.setCurrentRoutes)
-		const toastBottomOffset = useStore(state => state.toastBottomOffset)
-		const toastTopOffset = useStore(state => state.toastTopOffset)
-		const scrolledToBottom = useStore(state => state.scrolledToBottom)
-		const setScrolledToBottom = useStore(state => state.setScrolledToBottom)
-		const showNavigationAnimation = useStore(state => state.showNavigationAnimation)
-		const [userId] = useMMKVNumber("userId", storage)
-		const setBiometricAuthScreenState = useStore(state => state.setBiometricAuthScreenState)
-		const setCurrentShareItems = useStore(state => state.setCurrentShareItems)
-		const setAppState = useStore(state => state.setAppState)
-		const lang = useLang()
-		const setContentHeight = useStore(state => state.setContentHeight)
-		const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
-		const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
-		const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
-		const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
-		const [fetchedInitialNotification, setFetchedInitialNotification] = useState<boolean>(false)
+const Instance = memo(() => {
+	const isLoggedIn = useIsLoggedIn()
+	const darkMode = useDarkMode()
+	const [currentScreenName, setCurrentScreenName] = useState<string>("MainScreen")
+	const setCurrentRoutes = useStore(state => state.setCurrentRoutes)
+	const toastBottomOffset = useStore(state => state.toastBottomOffset)
+	const toastTopOffset = useStore(state => state.toastTopOffset)
+	const scrolledToBottom = useStore(state => state.scrolledToBottom)
+	const setScrolledToBottom = useStore(state => state.setScrolledToBottom)
+	const showNavigationAnimation = useStore(state => state.showNavigationAnimation)
+	const [userId] = useMMKVNumber("userId", storage)
+	const setBiometricAuthScreenState = useStore(state => state.setBiometricAuthScreenState)
+	const setCurrentShareItems = useStore(state => state.setCurrentShareItems)
+	const setAppState = useStore(state => state.setAppState)
+	const lang = useLang()
+	const setContentHeight = useStore(state => state.setContentHeight)
+	const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
+	const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
+	const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
+	const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
+	const [fetchedInitialNotification, setFetchedInitialNotification] = useState<boolean>(false)
 
-		const waitForSetupDone = useCallback(() => {
-			return new Promise<void>(resolve => {
+	const waitForSetupDone = useCallback(() => {
+		return new Promise<void>(resolve => {
+			if (setupDone) {
+				resolve()
+
+				return
+			}
+
+			const wait = setInterval(() => {
 				if (setupDone) {
+					clearInterval(wait)
 					resolve()
 
 					return
 				}
+			}, 100)
+		})
+	}, [setupDone])
 
-				const wait = setInterval(() => {
-					if (setupDone) {
-						clearInterval(wait)
-						resolve()
+	const getInitialNotification = useCallback(async () => {
+		if (!storage.getBoolean("isLoggedIn")) {
+			return
+		}
 
-						return
-					}
-				}, 100)
-			})
-		}, [setupDone])
+		try {
+			const initNotification = await notifee.getInitialNotification()
 
-		const getInitialNotification = useCallback(async () => {
-			if (!storage.getBoolean("isLoggedIn")) {
-				return
-			}
+			if (initNotification) {
+				if (Platform.OS === "android") {
+					if (
+						initNotification.notification &&
+						initNotification.notification.android &&
+						initNotification.notification.android.pressAction &&
+						initNotification.notification.android.pressAction.id
+					) {
+						const ex = initNotification.notification.android.pressAction.id.split(":")
+						const type = ex[0]
+						const data = ex[1]
 
-			try {
-				const initNotification = await notifee.getInitialNotification()
+						if (type === "openChats") {
+							await Promise.all([waitForSetupDone(), isNavReady(navigationRef), navigationAnimation({ enable: true })])
 
-				if (initNotification) {
-					if (Platform.OS === "android") {
-						if (
-							initNotification.notification &&
-							initNotification.notification.android &&
-							initNotification.notification.android.pressAction &&
-							initNotification.notification.android.pressAction.id
-						) {
-							const ex = initNotification.notification.android.pressAction.id.split(":")
-							const type = ex[0]
-							const data = ex[1]
+							navigationRef.dispatch(
+								CommonActions.reset({
+									index: 0,
+									routes: [
+										{
+											name: "ChatsScreen"
+										}
+									]
+								})
+							)
+						}
 
-							if (type === "openChats") {
-								await Promise.all([waitForSetupDone(), isNavReady(navigationRef), navigationAnimation({ enable: true })])
+						if (type === "openChat" && data) {
+							const cache = await dbFs.get<ChatConversation[]>("chatConversations")
+							const hasCache = cache && Array.isArray(cache)
 
-								navigationRef.dispatch(
-									CommonActions.reset({
-										index: 0,
-										routes: [
-											{
-												name: "ChatsScreen"
-											}
-										]
-									})
-								)
-							}
+							if (hasCache) {
+								const conversations = cache.filter(convo => convo.uuid === data)
 
-							if (type === "openChat" && data) {
-								const cache = await dbFs.get<ChatConversation[]>("chatConversations")
-								const hasCache = cache && Array.isArray(cache)
-
-								if (hasCache) {
-									const conversations = cache.filter(convo => convo.uuid === data)
-
-									if (conversations.length > 0) {
-										navigationRef.dispatch(
-											CommonActions.reset({
-												index: 1,
-												routes: [
-													{
-														name: "ChatsScreen"
-													},
-													{
-														name: "ChatScreen",
-														params: {
-															conversation: conversations[0]
-														}
+								if (conversations.length > 0) {
+									navigationRef.dispatch(
+										CommonActions.reset({
+											index: 1,
+											routes: [
+												{
+													name: "ChatsScreen"
+												},
+												{
+													name: "ChatScreen",
+													params: {
+														conversation: conversations[0]
 													}
-												]
-											})
-										)
-									}
+												}
+											]
+										})
+									)
 								}
 							}
+						}
 
-							if (type === "openContacts") {
-								await Promise.all([waitForSetupDone(), isNavReady(navigationRef), navigationAnimation({ enable: true })])
+						if (type === "openContacts") {
+							await Promise.all([waitForSetupDone(), isNavReady(navigationRef), navigationAnimation({ enable: true })])
 
-								navigationRef.dispatch(
-									CommonActions.reset({
-										index: 1,
-										routes: [
-											{
-												name: "SettingsScreen"
-											},
-											{
-												name: "ContactsScreen"
-											}
-										]
-									})
-								)
-							}
+							navigationRef.dispatch(
+								CommonActions.reset({
+									index: 1,
+									routes: [
+										{
+											name: "SettingsScreen"
+										},
+										{
+											name: "ContactsScreen"
+										}
+									]
+								})
+							)
 						}
 					}
 				}
-			} catch (e) {
-				console.error(e)
-			} finally {
-				setFetchedInitialNotification(true)
 			}
-		}, [navigationRef, setupDone])
+		} catch (e) {
+			console.error(e)
+		} finally {
+			setFetchedInitialNotification(true)
+		}
+	}, [navigationRef, setupDone])
 
-		const handleShare = useCallback(async (items: ShareMenuItems) => {
-			if (!items || !items.data) {
-				return
-			}
+	const handleShare = useCallback(async (items: ShareMenuItems) => {
+		if (!items || !items.data) {
+			return
+		}
 
-			await new Promise(resolve => {
-				const wait = setInterval(() => {
-					if (
-						isNavReady(navigationRef) &&
-						!isRouteInStack(navigationRef, [
-							"SetupScreen",
-							"BiometricAuthScreen",
-							"LoginScreen",
-							"SelectMediaScreen",
-							"RegisterScreen",
-							"ResendConfirmationScreen"
-						]) &&
-						storage.getBoolean("isLoggedIn")
-					) {
-						clearInterval(wait)
-
-						return resolve(true)
-					}
-				}, 100)
-			})
-
-			setCurrentShareItems(items)
-			showToast({ type: "upload" })
-		}, [])
-
-		const setAppearance = useCallback((timeout: number = 1000) => {
-			setTimeout(() => {
-				if (!storage.getBoolean("dontFollowSystemTheme")) {
-					storage.set("darkMode", Appearance.getColorScheme() === "dark")
-
-					setStatusBarStyle(Appearance.getColorScheme() === "dark")
-				} else {
-					storage.set("darkMode", storage.getString("userSelectedTheme") === "dark")
-
-					setStatusBarStyle(storage.getString("userSelectedTheme") === "dark")
-				}
-			}, timeout) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
-		}, [])
-
-		useEffect(() => {
-			if (keepAppAwake) {
-				activateKeepAwakeAsync().catch(console.error)
-			} else {
-				deactivateKeepAwake()
-			}
-		}, [keepAppAwake])
-
-		useEffect(() => {
-			const nav = async () => {
-				await getInitialNotification().catch(console.error)
-
-				let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
-
-				if (lockAppAfter === 0) {
-					lockAppAfter = 300
-				}
-
-				lockAppAfter = Math.floor(lockAppAfter * 1000)
-
+		await new Promise(resolve => {
+			const wait = setInterval(() => {
 				if (
-					storage.getBoolean("biometricPinAuth:" + userId) &&
-					Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
 					isNavReady(navigationRef) &&
-					!isRouteInStack(navigationRef, ["BiometricAuthScreen"])
+					!isRouteInStack(navigationRef, [
+						"SetupScreen",
+						"BiometricAuthScreen",
+						"LoginScreen",
+						"SelectMediaScreen",
+						"RegisterScreen",
+						"ResendConfirmationScreen"
+					]) &&
+					storage.getBoolean("isLoggedIn")
 				) {
-					setBiometricAuthScreenState("auth")
+					clearInterval(wait)
 
-					navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
-				} else {
-					navigationRef.current?.dispatch(
-						CommonActions.reset({
-							index: 0,
-							routes: [
-								{
-									name: "MainScreen",
-									params: {
-										parent: startOnCloudScreen
-											? storage.getBoolean("defaultDriveOnly:" + userId)
-												? storage.getString("defaultDriveUUID:" + userId)
-												: "base"
-											: storage.getBoolean("hideRecents:" + userId)
-											? "shared-in"
-											: "recents"
-									}
-								}
-							]
-						})
-					)
+					return resolve(true)
 				}
+			}, 100)
+		})
 
-				setSetupDone(true)
+		setCurrentShareItems(items)
+		showToast({ type: "upload" })
+	}, [])
+
+	const setAppearance = useCallback((timeout: number = 1000) => {
+		setTimeout(() => {
+			if (!storage.getBoolean("dontFollowSystemTheme")) {
+				storage.set("darkMode", Appearance.getColorScheme() === "dark")
+
+				setStatusBarStyle(Appearance.getColorScheme() === "dark")
+			} else {
+				storage.set("darkMode", storage.getString("userSelectedTheme") === "dark")
+
+				setStatusBarStyle(storage.getString("userSelectedTheme") === "dark")
+			}
+		}, timeout) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
+	}, [])
+
+	useEffect(() => {
+		if (keepAppAwake) {
+			activateKeepAwakeAsync().catch(console.error)
+		} else {
+			deactivateKeepAwake()
+		}
+	}, [keepAppAwake])
+
+	useEffect(() => {
+		const nav = async () => {
+			await getInitialNotification().catch(console.error)
+
+			let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
+
+			if (lockAppAfter === 0) {
+				lockAppAfter = 300
 			}
 
-			const offlineSetup = () => {
-				try {
-					if (
-						typeof storage.getString("masterKeys") === "string" &&
-						typeof storage.getString("apiKey") === "string" &&
-						typeof storage.getString("privateKey") === "string" &&
-						typeof storage.getString("publicKey") === "string" &&
-						typeof storage.getNumber("userId") === "number"
-					) {
-						if (
-							storage.getString("masterKeys").length > 16 &&
-							storage.getString("apiKey").length > 16 &&
-							storage.getString("privateKey").length > 16 &&
-							storage.getString("publicKey").length > 16 &&
-							storage.getNumber("userId") !== 0
-						) {
-							nav()
-						} else {
-							setSetupDone(false)
+			lockAppAfter = Math.floor(lockAppAfter * 1000)
 
-							showToast({ message: i18n(lang, "appSetupNotPossible") })
-						}
+			if (
+				storage.getBoolean("biometricPinAuth:" + userId) &&
+				Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
+				isNavReady(navigationRef) &&
+				!isRouteInStack(navigationRef, ["BiometricAuthScreen"])
+			) {
+				setBiometricAuthScreenState("auth")
+
+				navigationRef.current?.dispatch(StackActions.push("BiometricAuthScreen"))
+			} else {
+				navigationRef.current?.dispatch(
+					CommonActions.reset({
+						index: 0,
+						routes: [
+							{
+								name: "MainScreen",
+								params: {
+									parent: startOnCloudScreen
+										? storage.getBoolean("defaultDriveOnly:" + userId)
+											? storage.getString("defaultDriveUUID:" + userId)
+											: "base"
+										: storage.getBoolean("hideRecents:" + userId)
+										? "shared-in"
+										: "recents"
+								}
+							}
+						]
+					})
+				)
+			}
+
+			setSetupDone(true)
+		}
+
+		const offlineSetup = () => {
+			try {
+				if (
+					typeof storage.getString("masterKeys") === "string" &&
+					typeof storage.getString("apiKey") === "string" &&
+					typeof storage.getString("privateKey") === "string" &&
+					typeof storage.getString("publicKey") === "string" &&
+					typeof storage.getNumber("userId") === "number"
+				) {
+					if (
+						storage.getString("masterKeys").length > 16 &&
+						storage.getString("apiKey").length > 16 &&
+						storage.getString("privateKey").length > 16 &&
+						storage.getString("publicKey").length > 16 &&
+						storage.getNumber("userId") !== 0
+					) {
+						nav()
 					} else {
 						setSetupDone(false)
 
 						showToast({ message: i18n(lang, "appSetupNotPossible") })
 					}
-				} catch (e) {
-					console.error(e)
-
+				} else {
 					setSetupDone(false)
 
 					showToast({ message: i18n(lang, "appSetupNotPossible") })
 				}
-			}
+			} catch (e) {
+				console.error(e)
 
-			if (isLoggedIn) {
 				setSetupDone(false)
 
-				isNavReady(navigationRef).then(() => {
-					if (storage.getBoolean("setupDone")) {
-						nav()
-
-						return
-					}
-
-					setup({ navigation: navigationRef })
-						.then(() => nav())
-						.catch(err => {
-							console.error(err)
-
-							offlineSetup()
-						})
-				})
+				showToast({ message: i18n(lang, "appSetupNotPossible") })
 			}
-		}, [isLoggedIn])
+		}
 
-		useEffect(() => {
-			const appStateListener = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
-				setAppState(nextAppState)
+		if (isLoggedIn) {
+			setSetupDone(false)
 
-				if (nextAppState === "background") {
-					if (isNavReady(navigationRef) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
-						let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
+			isNavReady(navigationRef).then(() => {
+				if (storage.getBoolean("setupDone")) {
+					nav()
 
-						if (lockAppAfter === 0) {
-							lockAppAfter = 300
-						}
-
-						lockAppAfter = Math.floor(lockAppAfter * 1000)
-
-						if (
-							Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
-							storage.getBoolean("biometricPinAuth:" + userId)
-						) {
-							setBiometricAuthScreenState("auth")
-
-							navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
-						}
-					}
-				} else if (nextAppState === "active") {
-					getInitialNotification().catch(console.error)
+					return
 				}
+
+				setup({ navigation: navigationRef })
+					.then(() => nav())
+					.catch(err => {
+						console.error(err)
+
+						offlineSetup()
+					})
 			})
+		}
+	}, [isLoggedIn])
 
-			const navigationRefListener = navigationRef.addListener("state", event => {
-				if (event.data && event.data.state && Array.isArray(event.data.state.routes)) {
-					setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
-					setCurrentRoutes(event.data.state.routes)
-					setScrolledToBottom(false)
-				}
-			})
+	useEffect(() => {
+		const appStateListener = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
+			setAppState(nextAppState)
 
-			ShareMenu.getInitialShare(handleShare)
+			if (nextAppState === "background") {
+				if (isNavReady(navigationRef) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
+					let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
 
-			const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
-
-			getCfg().then(setCFG).catch(console.error)
-			setAppearance(1)
-
-			const appearanceListener = Appearance.addChangeListener(() => setAppearance(1000))
-
-			storage.set("setupDone", false)
-			storage.set("cameraUploadUploaded", 0)
-			storage.set("cameraUploadTotal", 0)
-
-			const openSelectMediaScreenListener = DeviceEventEmitter.addListener("openSelectMediaScreen", async () => {
-				await navigationAnimation({ enable: true })
-
-				if (navigationRef && navigationRef.current && typeof navigationRef.current.dispatch === "function") {
-					const currentNavState = navigationRef.current.getState()
-
-					navigationRef.current.dispatch(
-						StackActions.push("SelectMediaScreen", {
-							prevNavigationState: currentNavState,
-							album: undefined
-						})
-					)
-				}
-			})
-
-			const selectMediaScreenUploadListener = DeviceEventEmitter.addListener(
-				"selectMediaScreenUpload",
-				async ({ assets, parent }: { assets: Asset[]; parent: string }) => {
-					await new Promise(resolve => setTimeout(resolve, 500))
-
-					showFullScreenLoadingModal()
-
-					try {
-						const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + storage.getNumber("userId"))
-						const cameraUploadCompressImages = storage.getBoolean("cameraUploadCompressImages:" + storage.getNumber("userId"))
-
-						for (let i = 0; i < assets.length; i++) {
-							const assetURI = await getAssetURI(assets[i].asset)
-							const tmp = (await fs.getDownloadPath({ type: "temp" })).slice(0, -1)
-							const tmpPath = tmp + "/" + (await generateRandomString(16)) + assets[i].asset.filename
-
-							await fs.copy(assetURI, tmpPath)
-
-							const stat = await fs.stat(tmpPath)
-							const lastModified = await getLastModified(
-								tmpPath,
-								assets[i].asset.filename,
-								convertTimestampToMs(assets[i].asset.creationTime || assets[i].asset.modificationTime || Date.now())
-							)
-
-							if (stat.exists && stat.size) {
-								let filePath = tmpPath
-								let fileName = assets[i].asset.filename
-
-								if (
-									Platform.OS == "ios" &&
-									!cameraUploadEnableHeic &&
-									filePath.toLowerCase().endsWith(".heic") &&
-									assets[i].asset.mediaType == "photo" &&
-									filePath.toLowerCase().indexOf("fullsizerender") == -1
-								) {
-									const convertedPath = await convertHeicToJPGIOS(filePath)
-									const newName =
-										fileName.indexOf(".") !== -1 ? fileName.substring(0, fileName.lastIndexOf(".")) + ".JPG" : fileName
-
-									filePath = convertedPath
-									fileName = newName
-								}
-
-								if (cameraUploadCompressImages && compressableImageExts.includes(getFileExt(filePath))) {
-									const compressed = await compressImage(filePath)
-									const assetFilenameWithoutEx =
-										fileName.indexOf(".") !== -1 ? fileName.substring(0, fileName.lastIndexOf(".")) : fileName
-
-									filePath = compressed
-									fileName = assetFilenameWithoutEx + ".JPG"
-								}
-
-								queueFileUpload({
-									file: {
-										path: filePath,
-										name: fileName,
-										size: stat.size,
-										mime: mimeTypes.lookup(fileName) || "",
-										lastModified
-									},
-									parent
-								}).catch(console.error)
-							}
-						}
-					} catch (e: any) {
-						console.error(e)
-
-						showToast({ message: e.toString() })
+					if (lockAppAfter === 0) {
+						lockAppAfter = 300
 					}
 
-					hideFullScreenLoadingModal()
-				}
-			)
+					lockAppAfter = Math.floor(lockAppAfter * 1000)
 
-			const notifeeOnForegroundListener = notifee.onForegroundEvent(async event => {
-				if (event.type === EventType.PRESS && event.detail && event.detail.notification) {
 					if (
-						event.detail.notification.data &&
-						event.detail.notification.data.type &&
-						event.detail.notification.data.type === "foregroundService" &&
-						navigationRef &&
-						navigationRef.current &&
-						typeof navigationRef.current.dispatch === "function"
+						Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
+						storage.getBoolean("biometricPinAuth:" + userId)
 					) {
-						await navigationAnimation({ enable: true })
+						setBiometricAuthScreenState("auth")
 
-						navigationRef.current.dispatch(StackActions.push("TransfersScreen"))
+						navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
 					}
 				}
-			})
-
-			return () => {
-				shareMenuListener.remove()
-				appStateListener.remove()
-				appearanceListener.remove()
-				openSelectMediaScreenListener.remove()
-				selectMediaScreenUploadListener.remove()
-
-				notifeeOnForegroundListener()
-				navigationRefListener()
+			} else if (nextAppState === "active") {
+				getInitialNotification().catch(console.error)
 			}
-		}, [])
+		})
 
-		return (
-			<>
-				<NavigationContainer
-					ref={navigationRef}
-					theme={darkMode ? DarkTheme : undefined}
-				>
-					<Fragment>
-						<SafeAreaProvider
+		const navigationRefListener = navigationRef.addListener("state", event => {
+			if (event.data && event.data.state && Array.isArray(event.data.state.routes)) {
+				setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
+				setCurrentRoutes(event.data.state.routes)
+				setScrolledToBottom(false)
+			}
+		})
+
+		ShareMenu.getInitialShare(handleShare)
+
+		const shareMenuListener = ShareMenu.addNewShareListener(handleShare)
+
+		getCfg().then(setCFG).catch(console.error)
+		setAppearance(1)
+
+		const appearanceListener = Appearance.addChangeListener(() => setAppearance(1000))
+
+		storage.set("setupDone", false)
+		storage.set("cameraUploadUploaded", 0)
+		storage.set("cameraUploadTotal", 0)
+
+		const openSelectMediaScreenListener = DeviceEventEmitter.addListener("openSelectMediaScreen", async () => {
+			await navigationAnimation({ enable: true })
+
+			if (navigationRef && navigationRef.current && typeof navigationRef.current.dispatch === "function") {
+				const currentNavState = navigationRef.current.getState()
+
+				navigationRef.current.dispatch(
+					StackActions.push("SelectMediaScreen", {
+						prevNavigationState: currentNavState,
+						album: undefined
+					})
+				)
+			}
+		})
+
+		const selectMediaScreenUploadListener = DeviceEventEmitter.addListener(
+			"selectMediaScreenUpload",
+			async ({ assets, parent }: { assets: Asset[]; parent: string }) => {
+				await new Promise(resolve => setTimeout(resolve, 500))
+
+				showFullScreenLoadingModal()
+
+				try {
+					const cameraUploadEnableHeic = storage.getBoolean("cameraUploadEnableHeic:" + storage.getNumber("userId"))
+					const cameraUploadCompressImages = storage.getBoolean("cameraUploadCompressImages:" + storage.getNumber("userId"))
+
+					for (let i = 0; i < assets.length; i++) {
+						const assetURI = await getAssetURI(assets[i].asset)
+						const tmp = (await fs.getDownloadPath({ type: "temp" })).slice(0, -1)
+						const tmpPath = tmp + "/" + (await generateRandomString(16)) + assets[i].asset.filename
+
+						await fs.copy(assetURI, tmpPath)
+
+						const stat = await fs.stat(tmpPath)
+						const lastModified = await getLastModified(
+							tmpPath,
+							assets[i].asset.filename,
+							convertTimestampToMs(assets[i].asset.creationTime || assets[i].asset.modificationTime || Date.now())
+						)
+
+						if (stat.exists && stat.size) {
+							let filePath = tmpPath
+							let fileName = assets[i].asset.filename
+
+							if (
+								Platform.OS == "ios" &&
+								!cameraUploadEnableHeic &&
+								filePath.toLowerCase().endsWith(".heic") &&
+								assets[i].asset.mediaType == "photo" &&
+								filePath.toLowerCase().indexOf("fullsizerender") == -1
+							) {
+								const convertedPath = await convertHeicToJPGIOS(filePath)
+								const newName =
+									fileName.indexOf(".") !== -1 ? fileName.substring(0, fileName.lastIndexOf(".")) + ".JPG" : fileName
+
+								filePath = convertedPath
+								fileName = newName
+							}
+
+							if (cameraUploadCompressImages && compressableImageExts.includes(getFileExt(filePath))) {
+								const compressed = await compressImage(filePath)
+								const assetFilenameWithoutEx =
+									fileName.indexOf(".") !== -1 ? fileName.substring(0, fileName.lastIndexOf(".")) : fileName
+
+								filePath = compressed
+								fileName = assetFilenameWithoutEx + ".JPG"
+							}
+
+							queueFileUpload({
+								file: {
+									path: filePath,
+									name: fileName,
+									size: stat.size,
+									mime: mimeTypes.lookup(fileName) || "",
+									lastModified
+								},
+								parent
+							}).catch(console.error)
+						}
+					}
+				} catch (e: any) {
+					console.error(e)
+
+					showToast({ message: e.toString() })
+				}
+
+				hideFullScreenLoadingModal()
+			}
+		)
+
+		const notifeeOnForegroundListener = notifee.onForegroundEvent(async event => {
+			if (event.type === EventType.PRESS && event.detail && event.detail.notification) {
+				if (
+					event.detail.notification.data &&
+					event.detail.notification.data.type &&
+					event.detail.notification.data.type === "foregroundService" &&
+					navigationRef &&
+					navigationRef.current &&
+					typeof navigationRef.current.dispatch === "function"
+				) {
+					await navigationAnimation({ enable: true })
+
+					navigationRef.current.dispatch(StackActions.push("TransfersScreen"))
+				}
+			}
+		})
+
+		return () => {
+			shareMenuListener.remove()
+			appStateListener.remove()
+			appearanceListener.remove()
+			openSelectMediaScreenListener.remove()
+			selectMediaScreenUploadListener.remove()
+
+			notifeeOnForegroundListener()
+			navigationRefListener()
+		}
+	}, [])
+
+	return (
+		<>
+			<NavigationContainer
+				ref={navigationRef}
+				theme={darkMode ? DarkTheme : undefined}
+			>
+				<Fragment>
+					<SafeAreaProvider
+						style={{
+							backgroundColor: getColor(darkMode, "backgroundPrimary")
+						}}
+					>
+						<SafeAreaView
+							mode="padding"
 							style={{
-								backgroundColor: getColor(darkMode, "backgroundPrimary")
+								backgroundColor:
+									currentScreenName === "ImageViewerScreen" ? "black" : getColor(darkMode, "backgroundPrimary"),
+								paddingTop: 0,
+								height: "100%",
+								width: "100%"
 							}}
 						>
-							<SafeAreaView
-								mode="padding"
-								style={{
-									backgroundColor:
-										currentScreenName === "ImageViewerScreen" ? "black" : getColor(darkMode, "backgroundPrimary"),
-									paddingTop: 0,
-									height: "100%",
-									width: "100%"
-								}}
-							>
-								<SheetProvider>
-									<View
-										style={{
-											width: "100%",
-											height: "100%",
-											backgroundColor: getColor(darkMode, "backgroundPrimary")
+							<SheetProvider>
+								<View
+									style={{
+										width: "100%",
+										height: "100%",
+										backgroundColor: getColor(darkMode, "backgroundPrimary")
+									}}
+									onLayout={e => setContentHeight(e.nativeEvent.layout.height)}
+								>
+									<Stack.Navigator
+										initialRouteName={
+											isLoggedIn
+												? setupDone && fetchedInitialNotification
+													? "MainScreen"
+													: "SetupScreen"
+												: "LoginScreen"
+										}
+										screenOptions={{
+											animation: showNavigationAnimation ? "default" : "none",
+											headerShown: false
 										}}
-										onLayout={e => setContentHeight(e.nativeEvent.layout.height)}
 									>
-										<Stack.Navigator
-											initialRouteName={
-												isLoggedIn
-													? setupDone && fetchedInitialNotification
-														? "MainScreen"
-														: "SetupScreen"
-													: "LoginScreen"
-											}
-											screenOptions={{
-												animation: showNavigationAnimation ? "default" : "none",
-												headerShown: false
+										<Stack.Screen
+											name="SetupScreen"
+											component={SetupScreen}
+											options={{
+												title: "SetupScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="LoginScreen"
+											options={{
+												title: "LoginScreen",
+												animation: showNavigationAnimation ? "default" : "none"
 											}}
 										>
-											<Stack.Screen
-												name="SetupScreen"
-												component={SetupScreen}
-												options={{
-													title: "SetupScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="LoginScreen"
-												options={{
-													title: "LoginScreen",
-													animation: showNavigationAnimation ? "default" : "none"
+											{props => (
+												<LoginScreen
+													{...props}
+													setSetupDone={setSetupDone}
+												/>
+											)}
+										</Stack.Screen>
+										<Stack.Screen
+											name="RegisterScreen"
+											component={RegisterScreen}
+											options={{
+												title: "RegisterScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="ResendConfirmationScreen"
+											component={ResendConfirmationScreen}
+											options={{
+												title: "ResendConfirmationScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="MainScreen"
+											initialParams={{
+												parent: startOnCloudScreen
+													? storage.getBoolean("defaultDriveOnly:" + userId)
+														? storage.getString("defaultDriveUUID:" + userId)
+														: "base"
+													: storage.getBoolean("hideRecents:" + userId)
+													? "shared-in"
+													: "recents"
+											}}
+											component={MainScreen}
+											options={{
+												title: "MainScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="SettingsScreen"
+											component={SettingsScreen}
+											options={{
+												title: "SettingsScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="TransfersScreen"
+											component={TransfersScreen}
+											options={{
+												title: "TransfersScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="CameraUploadScreen"
+											component={CameraUploadScreen}
+											options={{
+												title: "CameraUploadScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="CameraUploadAlbumsScreen"
+											component={CameraUploadAlbumsScreen}
+											options={{
+												title: "CameraUploadAlbumsScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="BiometricAuthScreen"
+											component={BiometricAuthScreen}
+											options={{
+												title: "BiometricAuthScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="LanguageScreen"
+											component={LanguageScreen}
+											options={{
+												title: "LanguageScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="SettingsAdvancedScreen"
+											component={SettingsAdvancedScreen}
+											options={{
+												title: "SettingsAdvancedScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="SettingsAccountScreen"
+											component={SettingsAccountScreen}
+											options={{
+												title: "SettingsAccountScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="EventsScreen"
+											component={EventsScreen}
+											options={{
+												title: "EventsScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="EventsInfoScreen"
+											component={EventsInfoScreen}
+											options={{
+												title: "EventsInfoScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="GDPRScreen"
+											component={GDPRScreen}
+											options={{
+												title: "GDPRScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="InviteScreen"
+											component={InviteScreen}
+											options={{
+												title: "InviteScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="TextEditorScreen"
+											component={TextEditorScreen}
+											options={{
+												title: "TextEditorScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="ImageViewerScreen"
+											component={ImageViewerScreen}
+											options={{
+												title: "ImageViewerScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="SelectMediaScreen"
+											component={SelectMediaScreen}
+											options={{
+												title: "SelectMediaScreen",
+												animation: showNavigationAnimation ? "default" : "none",
+												presentation: Platform.OS == "ios" ? "modal" : undefined
+											}}
+										/>
+										<Stack.Screen
+											name="ContactsScreen"
+											component={ContactsScreen}
+											options={{
+												title: "ContactsScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="NotesScreen"
+											component={NotesScreen}
+											options={{
+												title: "NotesScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="ChatsScreen"
+											component={ChatsScreen}
+											options={{
+												title: "ChatsScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="NoteScreen"
+											component={NoteScreen}
+											options={{
+												title: "NoteScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="NoteParticipantsScreen"
+											component={NoteParticipantsScreen}
+											options={{
+												title: "NoteParticipantsScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="SelectContactScreen"
+											component={SelectContactScreen}
+											options={{
+												title: "SelectContactScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="NoteHistoryScreen"
+											component={NoteHistoryScreen}
+											options={{
+												title: "NoteHistoryScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="ChatScreen"
+											component={ChatScreen}
+											options={{
+												title: "ChatScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+										<Stack.Screen
+											name="ChatParticipantsScreen"
+											component={ChatParticipantsScreen}
+											options={{
+												title: "ChatParticipantsScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
+									</Stack.Navigator>
+									{typeof cfg !== "undefined" &&
+										setupDone &&
+										fetchedInitialNotification &&
+										isLoggedIn &&
+										["MainScreen", "SettingsScreen"].includes(currentScreenName) && <Announcements cfg={cfg} />}
+									{setupDone &&
+										fetchedInitialNotification &&
+										isLoggedIn &&
+										[
+											"MainScreen",
+											"SettingsScreen",
+											"TransfersScreen",
+											"CameraUploadScreen",
+											"CameraUploadAlbumsScreen",
+											"EventsScreen",
+											"EventsInfoScreen",
+											"SettingsAdvancedScreen",
+											"SettingsAccountScreen",
+											"LanguageScreen",
+											"GDPRScreen",
+											"InviteScreen",
+											"TwoFactorScreen",
+											"ChangeEmailPasswordScreen",
+											"ChatsScreen",
+											"NotesScreen",
+											"ContactsScreen",
+											"NoteScreen",
+											"NoteParticipantsScreen",
+											"SelectContactScreen",
+											"NoteHistoryScreen",
+											"ChatParticipantsScreen",
+											...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
+										].includes(currentScreenName) && (
+											<View
+												style={{
+													position: currentScreenName === "ChatsScreen" ? "absolute" : "relative",
+													width: "100%",
+													bottom: 0,
+													height: 50,
+													backgroundColor: getColor(darkMode, "backgroundPrimary")
 												}}
 											>
-												{props => (
-													<LoginScreen
-														{...props}
-														setSetupDone={setSetupDone}
-													/>
-												)}
-											</Stack.Screen>
-											<Stack.Screen
-												name="RegisterScreen"
-												component={RegisterScreen}
-												options={{
-													title: "RegisterScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="ResendConfirmationScreen"
-												component={ResendConfirmationScreen}
-												options={{
-													title: "ResendConfirmationScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="MainScreen"
-												initialParams={{
-													parent: startOnCloudScreen
-														? storage.getBoolean("defaultDriveOnly:" + userId)
-															? storage.getString("defaultDriveUUID:" + userId)
-															: "base"
-														: storage.getBoolean("hideRecents:" + userId)
-														? "shared-in"
-														: "recents"
-												}}
-												component={MainScreen}
-												options={{
-													title: "MainScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="SettingsScreen"
-												component={SettingsScreen}
-												options={{
-													title: "SettingsScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="TransfersScreen"
-												component={TransfersScreen}
-												options={{
-													title: "TransfersScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="CameraUploadScreen"
-												component={CameraUploadScreen}
-												options={{
-													title: "CameraUploadScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="CameraUploadAlbumsScreen"
-												component={CameraUploadAlbumsScreen}
-												options={{
-													title: "CameraUploadAlbumsScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="BiometricAuthScreen"
-												component={BiometricAuthScreen}
-												options={{
-													title: "BiometricAuthScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="LanguageScreen"
-												component={LanguageScreen}
-												options={{
-													title: "LanguageScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="SettingsAdvancedScreen"
-												component={SettingsAdvancedScreen}
-												options={{
-													title: "SettingsAdvancedScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="SettingsAccountScreen"
-												component={SettingsAccountScreen}
-												options={{
-													title: "SettingsAccountScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="EventsScreen"
-												component={EventsScreen}
-												options={{
-													title: "EventsScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="EventsInfoScreen"
-												component={EventsInfoScreen}
-												options={{
-													title: "EventsInfoScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="GDPRScreen"
-												component={GDPRScreen}
-												options={{
-													title: "GDPRScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="InviteScreen"
-												component={InviteScreen}
-												options={{
-													title: "InviteScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="TextEditorScreen"
-												component={TextEditorScreen}
-												options={{
-													title: "TextEditorScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="ImageViewerScreen"
-												component={ImageViewerScreen}
-												options={{
-													title: "ImageViewerScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="SelectMediaScreen"
-												component={SelectMediaScreen}
-												options={{
-													title: "SelectMediaScreen",
-													animation: showNavigationAnimation ? "default" : "none",
-													presentation: Platform.OS == "ios" ? "modal" : undefined
-												}}
-											/>
-											<Stack.Screen
-												name="ContactsScreen"
-												component={ContactsScreen}
-												options={{
-													title: "ContactsScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="NotesScreen"
-												component={NotesScreen}
-												options={{
-													title: "NotesScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="ChatsScreen"
-												component={ChatsScreen}
-												options={{
-													title: "ChatsScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="NoteScreen"
-												component={NoteScreen}
-												options={{
-													title: "NoteScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="NoteParticipantsScreen"
-												component={NoteParticipantsScreen}
-												options={{
-													title: "NoteParticipantsScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="SelectContactScreen"
-												component={SelectContactScreen}
-												options={{
-													title: "SelectContactScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="NoteHistoryScreen"
-												component={NoteHistoryScreen}
-												options={{
-													title: "NoteHistoryScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="ChatScreen"
-												component={ChatScreen}
-												options={{
-													title: "ChatScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-											<Stack.Screen
-												name="ChatParticipantsScreen"
-												component={ChatParticipantsScreen}
-												options={{
-													title: "ChatParticipantsScreen",
-													animation: showNavigationAnimation ? "default" : "none"
-												}}
-											/>
-										</Stack.Navigator>
-										{typeof cfg !== "undefined" &&
-											setupDone &&
-											fetchedInitialNotification &&
-											isLoggedIn &&
-											["MainScreen", "SettingsScreen"].includes(currentScreenName) && <Announcements cfg={cfg} />}
-										{setupDone &&
-											fetchedInitialNotification &&
-											isLoggedIn &&
-											[
-												"MainScreen",
-												"SettingsScreen",
-												"TransfersScreen",
-												"CameraUploadScreen",
-												"CameraUploadAlbumsScreen",
-												"EventsScreen",
-												"EventsInfoScreen",
-												"SettingsAdvancedScreen",
-												"SettingsAccountScreen",
-												"LanguageScreen",
-												"GDPRScreen",
-												"InviteScreen",
-												"TwoFactorScreen",
-												"ChangeEmailPasswordScreen",
-												"ChatsScreen",
-												"NotesScreen",
-												"ContactsScreen",
-												"NoteScreen",
-												"NoteParticipantsScreen",
-												"SelectContactScreen",
-												"NoteHistoryScreen",
-												"ChatParticipantsScreen",
-												...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
-											].includes(currentScreenName) && (
-												<View
-													style={{
-														position: currentScreenName === "ChatsScreen" ? "absolute" : "relative",
-														width: "100%",
-														bottom: 0,
-														height: 50,
-														backgroundColor: getColor(darkMode, "backgroundPrimary")
-													}}
-												>
-													<BottomBar navigation={navigationRef} />
-												</View>
-											)}
-										<TransfersIndicator navigation={navigationRef} />
-										<TopBarActionSheet navigation={navigationRef} />
-										<BottomBarAddActionSheet />
-										<ItemActionSheet navigation={navigationRef} />
-										<FolderColorActionSheet />
-										<PublicLinkActionSheet />
-										<ShareActionSheet />
-										<FileVersionsActionSheet />
-										<ProfilePictureActionSheet />
-										<SortByActionSheet />
-										<LockAppAfterActionSheet />
-										<CreateNoteActionSheet navigation={navigationRef} />
-										<NoteActionSheet navigation={navigationRef} />
-										<NoteChangeTypeActionSheet />
-										<NoteParticipantsActionSheet />
-										<NoteTagsActionSheet />
-										<ChatMessageActionSheet />
-										<ChatParticipantActionSheet />
-										<ChatConversationActionSheet />
-										<ContactActionSheet />
-										<TransfersActionSheet />
-									</View>
-								</SheetProvider>
-							</SafeAreaView>
-						</SafeAreaProvider>
-						<DeleteAccountTwoFactorDialog navigation={navigationRef} />
-						<ConfirmStopSharingDialog />
-						<ConfirmRemoveFromSharedInDialog />
-						<ConfirmPermanentDeleteDialog />
-						<RenameDialog />
-						<CreateFolderDialog />
-						<CreateTextFileDialog navigation={navigationRef} />
-						<FullscreenLoadingModal />
-						<NoteTitleDialog />
-						<NotesCreateTagDialog />
-						<NoteTagDialog />
-						<ChatConversationNameDialog />
-						<AddContactDialog />
-						<ConfirmDeleteNoteTagDialog />
-						<ConfirmDeleteNotePermanentlyDialog navigation={navigationRef} />
-						<ConfirmDeleteChatDialog />
-						<ConfirmDeleteChatMessageDialog />
-						<ConfirmLeaveChatDialog />
-						<ConfirmLeaveNoteDialog />
-						<ConfirmRemoveContactDialog />
-						<ConfirmRemoveChatParticipantDialog />
-						<ConfirmRemoveNoteParticipantDialog />
-					</Fragment>
-				</NavigationContainer>
-				<Toast
-					ref={ref => (global.toast = ref)}
-					offsetBottom={scrolledToBottom ? 135 : toastBottomOffset}
-					offsetTop={toastTopOffset}
-				/>
-			</>
-		)
-	})
-)
+												<BottomBar navigation={navigationRef} />
+											</View>
+										)}
+									<TransfersIndicator navigation={navigationRef} />
+									<TopBarActionSheet navigation={navigationRef} />
+									<BottomBarAddActionSheet />
+									<ItemActionSheet navigation={navigationRef} />
+									<FolderColorActionSheet />
+									<PublicLinkActionSheet />
+									<ShareActionSheet />
+									<FileVersionsActionSheet />
+									<ProfilePictureActionSheet />
+									<SortByActionSheet />
+									<LockAppAfterActionSheet />
+									<CreateNoteActionSheet navigation={navigationRef} />
+									<NoteActionSheet navigation={navigationRef} />
+									<NoteChangeTypeActionSheet />
+									<NoteParticipantsActionSheet />
+									<NoteTagsActionSheet />
+									<ChatMessageActionSheet />
+									<ChatParticipantActionSheet />
+									<ChatConversationActionSheet />
+									<ContactActionSheet />
+									<TransfersActionSheet />
+								</View>
+							</SheetProvider>
+						</SafeAreaView>
+					</SafeAreaProvider>
+					<DeleteAccountTwoFactorDialog navigation={navigationRef} />
+					<ConfirmStopSharingDialog />
+					<ConfirmRemoveFromSharedInDialog />
+					<ConfirmPermanentDeleteDialog />
+					<RenameDialog />
+					<CreateFolderDialog />
+					<CreateTextFileDialog navigation={navigationRef} />
+					<FullscreenLoadingModal />
+					<NoteTitleDialog />
+					<NotesCreateTagDialog />
+					<NoteTagDialog />
+					<ChatConversationNameDialog />
+					<AddContactDialog />
+					<ConfirmDeleteNoteTagDialog />
+					<ConfirmDeleteNotePermanentlyDialog navigation={navigationRef} />
+					<ConfirmDeleteChatDialog />
+					<ConfirmDeleteChatMessageDialog />
+					<ConfirmLeaveChatDialog />
+					<ConfirmLeaveNoteDialog />
+					<ConfirmRemoveContactDialog />
+					<ConfirmRemoveChatParticipantDialog />
+					<ConfirmRemoveNoteParticipantDialog />
+				</Fragment>
+			</NavigationContainer>
+			<Toast
+				ref={ref => (global.toast = ref)}
+				offsetBottom={scrolledToBottom ? 135 : toastBottomOffset}
+				offsetTop={toastTopOffset}
+			/>
+		</>
+	)
+})
+
+export const App = !__DEV__ ? Sentry.wrap(Instance) : Instance

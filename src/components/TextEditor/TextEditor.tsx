@@ -27,61 +27,21 @@ const TextEditor = memo(
 		placeholder: string
 	}) => {
 		const [text, setText] = useState<string>(value)
-		const [scrolling, setScrolling] = useState<boolean>(false)
-		const scrollingTimeout = useRef<ReturnType<typeof setTimeout>>()
 		const ref = useRef<TextInput>()
 		const scrollRef = useRef<ScrollView>()
-		const [keyboardWillShow, setKeyboardWillShow] = useState<boolean>(false)
 		const intitialValue = useRef<string>(value).current
 		const didInitialAdjustments = useRef<boolean>(Platform.OS === "ios")
 		const [selection, setSelection] = useState<TextSelection>({ end: 0, start: 0 })
 
-		const onScroll = useCallback(() => {
-			if (keyboardWillShow || readOnly) {
-				return
-			}
-
-			setScrolling(true)
-
-			clearTimeout(scrollingTimeout.current)
-
-			scrollingTimeout.current = setTimeout(() => {
-				setScrolling(false)
-			}, 500)
-
-			if (ref.current) {
-				ref.current.blur()
-			}
-
-			if (Keyboard.isVisible) {
-				Keyboard.dismiss()
-			}
-		}, [keyboardWillShow, readOnly])
-
-		const onScrollEnd = useCallback(() => {
-			if (readOnly) {
-				return
-			}
-
-			setScrolling(false)
-
-			clearTimeout(scrollingTimeout.current)
-
-			scrollingTimeout.current = setTimeout(() => {
-				setScrolling(false)
-			}, 500)
-		}, [readOnly])
-
 		const onKeyPress = useCallback((e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
 			if (e.nativeEvent.key === "Enter") {
-				onScrollEnd()
-				setKeyboardWillShow(true)
+				e.stopPropagation()
 			}
 		}, [])
 
 		const onSelectionChange = useCallback(
 			(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-				if (!didInitialAdjustments.current) {
+				if (!didInitialAdjustments.current || Platform.OS !== "android") {
 					return
 				}
 
@@ -103,28 +63,12 @@ const TextEditor = memo(
 				ref?.current?.setNativeProps({ selection: { start: 0, end: 0 } })
 				ref?.current?.focus()
 			}
-
-			const keyboardWillShowListener = Keyboard.addListener("keyboardWillShow", () => setKeyboardWillShow(true))
-			const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardWillShow(false))
-
-			return () => {
-				keyboardWillShowListener.remove()
-				keyboardDidHideListener.remove()
-			}
 		}, [])
 
 		return (
 			<ScrollView
 				ref={scrollRef}
-				onScroll={onScroll}
 				scrollEventThrottle={100}
-				onScrollAnimationEnd={onScrollEnd}
-				onMomentumScrollBegin={onScroll}
-				onMomentumScrollEnd={onScrollEnd}
-				onScrollBeginDrag={onScroll}
-				onScrollEndDrag={onScrollEnd}
-				onPointerDown={onScrollEnd}
-				onPointerUp={onScrollEnd}
 				showsHorizontalScrollIndicator={false}
 				keyboardDismissMode="on-drag"
 				style={{
@@ -149,11 +93,7 @@ const TextEditor = memo(
 					selection={selection}
 					onKeyPress={onKeyPress}
 					onSelectionChange={onSelectionChange}
-					onPressIn={onScrollEnd}
-					onPressOut={onScrollEnd}
-					onFocus={onScrollEnd}
-					onScroll={onScroll}
-					editable={readOnly ? false : !scrolling}
+					editable={!readOnly}
 					placeholder={placeholder}
 					style={{
 						height: "100%",
