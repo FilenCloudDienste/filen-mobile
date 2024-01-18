@@ -53,7 +53,7 @@ export type TransferItem = {
 	progress: number
 	timeLeft: number
 	lastBps: number
-	uuid: string
+	uuid?: string
 	type: "upload" | "download"
 	done: boolean
 	failed: boolean
@@ -62,6 +62,7 @@ export type TransferItem = {
 	failedReason?: string
 	size: number
 	bytes: number
+	doneTimestamp?: number
 }
 
 const ListItem = memo(
@@ -200,7 +201,12 @@ export const TransfersScreen = memo(({ navigation }: { navigation: NavigationCon
 	}, [transfers])
 
 	const doneAndFailedTransfers = useMemo(() => {
-		return transfers.filter(transfer => (transfer.done || transfer.failed) && typeof transfer.uuid === "string")
+		return transfers
+			.filter(
+				transfer =>
+					(transfer.done || transfer.failed) && typeof transfer.uuid === "string" && typeof transfer.doneTimestamp === "number"
+			)
+			.sort((a, b) => b.doneTimestamp - a.doneTimestamp)
 	}, [transfers])
 
 	const keyExtractor = useCallback((item: TransferItem) => item.uuid, [])

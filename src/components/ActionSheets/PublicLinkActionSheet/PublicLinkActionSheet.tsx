@@ -202,15 +202,15 @@ const PublicLinkActionSheet = memo(() => {
 	return (
 		<ActionSheet
 			id="PublicLinkActionSheet"
-			gestureEnabled={!fetchingInfo}
-			closeOnPressBack={!fetchingInfo}
-			closeOnTouchBackdrop={!fetchingInfo}
-			closable={!fetchingInfo}
+			gestureEnabled={true}
+			closable={!fetchingInfo && !(progress.total > 0)}
+			closeOnPressBack={!fetchingInfo && !(progress.total > 0)}
+			closeOnTouchBackdrop={!fetchingInfo && !(progress.total > 0)}
 			containerStyle={{
 				backgroundColor: getColor(darkMode, "backgroundSecondary"),
 				borderTopLeftRadius: 15,
 				borderTopRightRadius: 15,
-				minHeight: 350
+				height: 350
 			}}
 			indicatorStyle={{
 				backgroundColor: getColor(darkMode, "backgroundTertiary")
@@ -218,7 +218,9 @@ const PublicLinkActionSheet = memo(() => {
 		>
 			<View
 				style={{
-					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
+					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight,
+					width: "100%",
+					height: 350
 				}}
 			>
 				<ItemActionSheetItemHeader />
@@ -226,6 +228,7 @@ const PublicLinkActionSheet = memo(() => {
 					<View
 						style={{
 							width: "100%",
+							paddingTop: 100,
 							justifyContent: "center",
 							alignItems: "center"
 						}}
@@ -362,7 +365,7 @@ const PublicLinkActionSheet = memo(() => {
 										</TouchableOpacity>
 										<TouchableOpacity
 											onPress={() => {
-												Clipboard.setString(linkURL)
+												Clipboard.setStringAsync(linkURL).catch(console.error)
 
 												showToast({
 													message: i18n(lang, "copiedToClipboard"),

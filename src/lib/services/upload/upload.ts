@@ -22,7 +22,6 @@ import { isOnline, isWifi } from "../isOnline"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { getThumbnailCacheKey } from "../thumbnails"
 import { Item } from "../../../types"
-import * as AndroidSAF from "react-native-saf-x"
 import pathModule from "path"
 import mimeTypes from "mime-types"
 import {
@@ -272,14 +271,12 @@ export const queueFileUpload = async ({
 		await global.nodeThread.uploadFailed({ uuid, reason: e.toString() }).catch(console.error)
 
 		throw e
-	} finally {
-		global.nodeThread.removeTransfer({ uuid }).catch(console.error)
 	}
 
 	//showToast({ message: i18n(storage.getString("lang"), "fileUploaded", true, ["__NAME__"], [name]) })
 }
 
-export type UploadFolderItem = AndroidSAF.DocumentFileDetail & {
+export type UploadFolderItem = fs.SAFStat & {
 	path: string
 }
 
@@ -304,8 +301,7 @@ export const uploadFolder = async ({
 		const pathsToUUIDs: Record<string, string> = {}
 
 		if (isAndroidSAF) {
-			const stat = await AndroidSAF.stat(uri)
-			const uuid = await global.nodeThread.uuidv4()
+			const [stat, uuid] = await Promise.all([fs.saf.stat(uri), global.nodeThread.uuidv4()])
 
 			pathsToUUIDs[stat.name] = uuid
 
@@ -325,13 +321,11 @@ export const uploadFolder = async ({
 				return
 			}
 
-			const stat = await fs.stat(uri)
+			const [stat, uuid] = await Promise.all([fs.stat(uri), global.nodeThread.uuidv4()])
 
 			if (!stat.exists) {
 				return
 			}
-
-			const uuid = await global.nodeThread.uuidv4()
 
 			pathsToUUIDs[name] = uuid
 
@@ -348,7 +342,7 @@ export const uploadFolder = async ({
 
 		const readRecursive = async (path: string, currentPath: string) => {
 			if (isAndroidSAF) {
-				const files = await AndroidSAF.listFiles(path)
+				const files = await fs.saf.ls(path)
 
 				if (files.length <= 0) {
 					return
@@ -466,6 +460,8 @@ export const uploadFolder = async ({
 						}
 
 						await createFolder(folder.name, folderParent, pathsToUUIDs[folder.path])
+
+						resolve()
 					} catch (e) {
 						reject(e)
 					} finally {
@@ -500,11 +496,9 @@ export const uploadFolder = async ({
 			}
 
 			if (isAndroidSAF) {
-				await AndroidSAF.copyFile(file.uri, tempPath, {
-					replaceIfDestinationExists: true
-				})
+				await fs.saf.copy(file.uri, tempPath)
 			} else {
-				await fs.copy(file.uri, tempDir)
+				await fs.copy(file.uri, tempPath)
 			}
 
 			const uploadFile: UploadFile = {

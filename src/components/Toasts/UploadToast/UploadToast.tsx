@@ -11,12 +11,12 @@ import * as fs from "../../../lib/fs"
 import { getColor } from "../../../style"
 import { hideAllToasts, showToast } from "../Toasts"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
-import AndroidSAF from "react-native-saf-x"
 import {
 	showFullScreenLoadingModal,
 	hideFullScreenLoadingModal
 } from "../../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import pathModule from "path"
+import * as ExpoFS from "expo-file-system"
 
 const copySemaphore = new Semaphore(32)
 
@@ -75,19 +75,20 @@ const UploadToast = memo(() => {
 							const isAndroidSAF = uri.startsWith("content://") && Platform.OS === "android"
 
 							if (isAndroidSAF) {
-								const stat = await AndroidSAF.stat(uri)
+								const stat = await fs.saf.stat(uri)
 
-								if (stat.type === "directory") {
+								if (stat.isDirectory) {
 									foldersToUpload.push(uri)
 								} else {
-									const tempFilePath = pathModule.join(tempPath, randomIdUnsafe() + "_" + stat.name)
+									const tempFilePath = pathModule.join(tempPath, await global.nodeThread.uuidv4())
 
 									if ((await fs.stat(tempFilePath)).exists) {
 										await fs.unlink(tempFilePath)
 									}
 
-									await AndroidSAF.copyFile(uri, tempFilePath, {
-										replaceIfDestinationExists: true
+									await ExpoFS.StorageAccessFramework.copyAsync({
+										from: uri,
+										to: tempFilePath
 									})
 
 									items.push({
@@ -111,7 +112,7 @@ const UploadToast = memo(() => {
 									foldersToUpload.push(uri)
 								} else {
 									const fileName = pathModule.basename(uri)
-									const tempFilePath = pathModule.join(tempPath, randomIdUnsafe() + "_" + fileName)
+									const tempFilePath = pathModule.join(tempPath, await global.nodeThread.uuidv4())
 
 									if ((await fs.stat(tempFilePath)).exists) {
 										await fs.unlink(tempFilePath)
@@ -191,15 +192,47 @@ const UploadToast = memo(() => {
 		setURIs([])
 
 		if (currentShareItems) {
-			if (!Array.isArray(currentShareItems.data)) {
+			if (
+				!Array.isArray(currentShareItems.data) &&
+				typeof currentShareItems.data === "string" &&
+				(currentShareItems.data.startsWith("file:") ||
+					currentShareItems.data.startsWith("content:") ||
+					currentShareItems.data.startsWith("asset:") ||
+					currentShareItems.data.startsWith("ph:") ||
+					currentShareItems.data.startsWith("assets-library:"))
+			) {
 				setURIs([currentShareItems.data])
 			} else {
 				const uriArray: string[] = []
 
 				for (const item of currentShareItems.data) {
 					if (typeof item === "string") {
+						if (
+							!(
+								item.startsWith("file:") ||
+								item.startsWith("content:") ||
+								item.startsWith("asset:") ||
+								item.startsWith("ph:") ||
+								item.startsWith("assets-library:")
+							)
+						) {
+							continue
+						}
+
 						uriArray.push(item)
 					} else {
+						if (
+							!(
+								item.data.startsWith("file:") ||
+								item.data.startsWith("content:") ||
+								item.data.startsWith("asset:") ||
+								item.data.startsWith("ph:") ||
+								item.data.startsWith("assets-library:")
+							)
+						) {
+							continue
+						}
+
 						uriArray.push(item.data)
 					}
 				}

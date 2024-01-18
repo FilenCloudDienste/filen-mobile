@@ -177,7 +177,8 @@ const buildTransfers = () => {
 				paused: pausedTransfers[uuid] ? true : false,
 				failedReason: failedTransfers[uuid] && failedTransfers[uuid].reason ? failedTransfers[uuid].reason : null,
 				size: currentDownloads[uuid].size,
-				bytes: currentDownloads[uuid].bytes
+				bytes: currentDownloads[uuid].bytes,
+				doneTimestamp: 0
 			})
 		}
 
@@ -195,7 +196,8 @@ const buildTransfers = () => {
 				paused: pausedTransfers[uuid] ? true : false,
 				failedReason: failedTransfers[uuid] && failedTransfers[uuid].reason ? failedTransfers[uuid].reason : null,
 				size: currentUploads[uuid].size,
-				bytes: currentUploads[uuid].bytes
+				bytes: currentUploads[uuid].bytes,
+				doneTimestamp: 0
 			})
 		}
 
@@ -219,11 +221,12 @@ const buildTransfers = () => {
 				paused: false,
 				failedReason: failedTransfers[uuid] && failedTransfers[uuid].reason ? failedTransfers[uuid].reason : null,
 				size: 0,
-				bytes: 0
+				bytes: 0,
+				doneTimestamp: failedTransfers[uuid].doneTimestamp
 			})
 		}
 
-		for (const transfer of finishedTransfers.reverse()) {
+		for (const transfer of finishedTransfers) {
 			if (typeof transfer.uuid !== "string" || exists[transfer.uuid]) {
 				continue
 			}
@@ -243,7 +246,8 @@ const buildTransfers = () => {
 				paused: false,
 				failedReason: null,
 				size: 0,
-				bytes: 0
+				bytes: 0,
+				doneTimestamp: transfer.doneTimestamp
 			})
 		}
 
@@ -1474,7 +1478,8 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 
 		finishedTransfers.push({
 			...file,
-			transferType: "download"
+			transferType: "download",
+			doneTimestamp: Date.now()
 		})
 
 		updateTransfersProgress()
@@ -1487,7 +1492,8 @@ const downloadFile = async ({ destination, tempDir, file, showProgress, maxChunk
 			failedTransfers[file.uuid] = {
 				...file,
 				transferType: "download",
-				reason: e.toString()
+				reason: e.toString(),
+				doneTimestamp: Date.now()
 			}
 		}
 
@@ -1650,7 +1656,8 @@ const uploadFile = async ({ uuid, file, includeFileHash, masterKeys, apiKey, ver
 		failedTransfers[uuid] = {
 			...file,
 			transferType: "upload",
-			reason: e.toString()
+			reason: e.toString(),
+			doneTimestamp: Date.now()
 		}
 
 		if (showProgress) {
@@ -2305,11 +2312,15 @@ rn_bridge.channel.on("message", message => {
 		if (currentUploads[request.uuid]) {
 			finishedTransfers.push({
 				...currentUploads[request.uuid],
-				transferType: "upload"
+				transferType: "upload",
+				doneTimestamp: Date.now()
 			})
 		}
 
 		delete currentUploads[request.uuid]
+		delete failedTransfers[request.uuid]
+		delete stoppedTransfers[request.uuid]
+		delete pausedTransfers[request.uuid]
 
 		updateTransfersProgress()
 
@@ -2329,11 +2340,14 @@ rn_bridge.channel.on("message", message => {
 			failedTransfers[request.uuid] = {
 				...currentUploads[request.uuid],
 				transferType: "upload",
-				reason: request.reason
+				reason: request.reason,
+				doneTimestamp: Date.now()
 			}
 		}
 
 		delete currentUploads[request.uuid]
+		delete stoppedTransfers[request.uuid]
+		delete pausedTransfers[request.uuid]
 
 		updateTransfersProgress()
 
@@ -2355,6 +2369,9 @@ rn_bridge.channel.on("message", message => {
 
 		delete currentUploads[request.uuid]
 		delete currentDownloads[request.uuid]
+		delete stoppedTransfers[request.uuid]
+		delete pausedTransfers[request.uuid]
+		delete failedTransfers[request.uuid]
 
 		updateTransfersProgress()
 

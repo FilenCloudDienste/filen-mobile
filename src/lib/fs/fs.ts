@@ -9,6 +9,10 @@ import {
 } from "../helpers"
 import { Platform } from "react-native"
 import ReactNativeBlobUtil from "react-native-blob-util"
+import * as ScopedStorage from "react-native-scoped-storage"
+import AndroidSAF from "react-native-saf-x"
+import mimeTypes from "mime-types"
+import pathModule from "path"
 
 const mutex = new Semaphore(1)
 let IOS_APP_GROUP_PATH = ""
@@ -405,5 +409,135 @@ export const getDownloadPath = async ({
 		await mkdir(path, true)
 
 		return path + "/"
+	}
+}
+
+export type SAFStat = {
+	name: string
+	size: number
+	lastModified: number
+	isDirectory?: boolean
+	type: "file" | "directory"
+	mime: string
+	uri: string
+	path: string
+	lib?: "expo-filesystem" | "react-native-blob-util" | "android-saf-x" | "android-scoped-storage"
+}
+
+export const saf = {
+	ls: async (uri: string) => {
+		return await AndroidSAF.listFiles(uri)
+	},
+	copy: async (from: string, to: string): Promise<void> => {
+		try {
+			await AndroidSAF.copyFile(from, to, {
+				replaceIfDestinationExists: true
+			})
+
+			return
+		} catch {
+			// Noop
+		}
+
+		try {
+			if ((await FileSystem.getInfoAsync(to)).exists) {
+				await FileSystem.deleteAsync(to)
+			}
+		} catch {
+			// Noop
+		}
+
+		try {
+			await FileSystem.StorageAccessFramework.copyAsync({
+				from,
+				to
+			})
+
+			return
+		} catch {
+			// Noop
+		}
+
+		await ReactNativeBlobUtil.fs.cp(from, to)
+	},
+	stat: async (uri: string): Promise<SAFStat> => {
+		try {
+			const stat = await AndroidSAF.stat(uri)
+
+			return {
+				name: stat.name,
+				size: stat.size || 0,
+				lastModified: convertTimestampToMs(stat.lastModified || Date.now()),
+				isDirectory: stat.type === "directory",
+				type: stat.type,
+				uri,
+				path: uri,
+				mime: mimeTypes.lookup(stat.name) || "application/octet-stream",
+				lib: "android-saf-x"
+			}
+		} catch {
+			// Noop
+		}
+
+		try {
+			const stat = await ReactNativeBlobUtil.fs.stat(uri)
+
+			return {
+				name: stat.filename,
+				size: stat.size || 0,
+				lastModified: convertTimestampToMs(stat.lastModified || Date.now()),
+				isDirectory: stat.type === "directory",
+				type: stat.type,
+				uri,
+				path: uri,
+				mime: mimeTypes.lookup(stat.filename) || "application/octet-stream",
+				lib: "react-native-blob-util"
+			}
+		} catch {
+			// Noop
+		}
+
+		try {
+			const stat = await ScopedStorage.stat(uri)
+
+			if (
+				typeof stat.name === "string" &&
+				typeof stat.size === "number" &&
+				typeof stat.lastModified === "number" &&
+				typeof stat.type === "string"
+			) {
+				return {
+					name: stat.name,
+					size: stat.size || 0,
+					lastModified: convertTimestampToMs(stat.lastModified || Date.now()),
+					isDirectory: stat.type === "directory",
+					type: stat.type,
+					uri,
+					path: uri,
+					mime: mimeTypes.lookup(stat.name) || "application/octet-stream",
+					lib: "react-native-blob-util"
+				}
+			}
+		} catch {
+			// Noop
+		}
+
+		const stat = await FileSystem.getInfoAsync(uri)
+
+		if (!stat.exists) {
+			throw new Error(uri + " does not exist.")
+		}
+
+		return {
+			name: pathModule.basename(stat.uri),
+			size: stat.size || 0,
+			lastModified: convertTimestampToMs(stat.modificationTime || Date.now()),
+			isDirectory: stat.isDirectory,
+			type: stat.isDirectory ? "directory" : "file",
+			uri,
+			path: uri,
+			mime: mimeTypes.lookup(pathModule.basename(stat.uri)) || "application/octet-stream",
+			lib: "expo-filesystem"
+		}
 	}
 }

@@ -142,7 +142,7 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
 									height: "auto"
 								}}
 								onPress={() => {
-									Clipboard.setString("https://filen.io/r/" + accountData.refId)
+									Clipboard.setStringAsync("https://filen.io/r/" + accountData.refId).catch(console.error)
 
 									showToast({ message: i18n(lang, "copiedToClipboard") })
 								}}
@@ -190,7 +190,7 @@ export const InviteScreen = memo(({ navigation }: InviteScreenProps) => {
 									</TouchableOpacity>
 									<TouchableOpacity
 										onPress={() => {
-											Clipboard.setString("https://filen.io/r/" + accountData.refId)
+											Clipboard.setStringAsync("https://filen.io/r/" + accountData.refId).catch(console.error)
 
 											showToast({ message: i18n(lang, "copiedToClipboard") })
 										}}

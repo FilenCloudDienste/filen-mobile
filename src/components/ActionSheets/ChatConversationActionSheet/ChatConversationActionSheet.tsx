@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState } from "react"
-import { View, Clipboard } from "react-native"
+import { View } from "react-native"
 import ActionSheet from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
 import { i18n } from "../../../i18n"
@@ -13,6 +13,7 @@ import eventListener from "../../../lib/eventListener"
 import { useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
 import useDimensions from "../../../lib/hooks/useDimensions"
+import * as Clipboard from "expo-clipboard"
 
 const ChatConversationActionSheet = memo(() => {
 	const darkMode = useDarkMode()
@@ -109,7 +110,7 @@ const ChatConversationActionSheet = memo(() => {
 							onPress={async () => {
 								await hideAllActionSheets()
 
-								Clipboard.setString(selectedConversation.uuid)
+								Clipboard.setStringAsync(selectedConversation.uuid).catch(console.error)
 							}}
 							icon="copy-outline"
 							text={i18n(lang, "copyId")}
