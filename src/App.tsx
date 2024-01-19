@@ -2,6 +2,7 @@ import React, { useState, useEffect, Fragment, memo, useCallback } from "react"
 import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus } from "react-native"
 import { setup } from "./lib/services/setup"
 import storage from "./lib/storage"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { NavigationContainer, createNavigationContainerRef, StackActions, CommonActions, DarkTheme } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
@@ -575,7 +576,11 @@ const Instance = memo(() => {
 	}, [])
 
 	return (
-		<>
+		<GestureHandlerRootView
+			style={{
+				flex: 1
+			}}
+		>
 			<NavigationContainer
 				ref={navigationRef}
 				theme={darkMode ? DarkTheme : undefined}
@@ -963,10 +968,11 @@ const Instance = memo(() => {
 			</NavigationContainer>
 			<Toast
 				ref={ref => (global.toast = ref)}
-				offsetBottom={scrolledToBottom ? 135 : toastBottomOffset}
+				offsetBottom={scrolledToBottom ? 130 : toastBottomOffset}
 				offsetTop={toastTopOffset}
+				swipeEnabled={true}
 			/>
-		</>
+		</GestureHandlerRootView>
 	)
 })
 

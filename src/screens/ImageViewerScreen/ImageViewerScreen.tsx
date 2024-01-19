@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity, FlatList } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, FlatList, Pressable } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { ReactNativeZoomableView } from "@openspacelabs/react-native-zoomable-view"
 import { downloadFile } from "../../lib/services/download/download"
@@ -17,6 +17,9 @@ import { useStore } from "../../lib/state"
 import { Image, ImageBackground } from "expo-image"
 import useDimensions from "../../lib/hooks/useDimensions"
 import { FlashList } from "@shopify/flash-list"
+import Zoom from "react-native-zoom-reanimated"
+
+const Zoomer = Zoom as any
 
 export type PreviewItem = {
 	uri: string | undefined
@@ -27,13 +30,10 @@ export type PreviewItem = {
 	file: Item
 }
 
-const minZoom = 1
-
 const ImageViewerScreen = memo(
 	({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 		const uuid = useRef<string>(route.params.uuid)
 		const [images, setImages] = useState<Record<string, string>>({})
-		const [isZooming, setIsZooming] = useState<boolean>(false)
 		const thumbnailListRef = useRef<FlashList<PreviewItem>>()
 		const listRef = useRef<FlatList<PreviewItem>>()
 		const [showControls, setShowControls] = useState<boolean>(false)
@@ -222,70 +222,15 @@ const ImageViewerScreen = memo(
 				}
 
 				return (
-					<View
+					<Pressable
 						style={{
 							width: dimensions.realWidth,
 							height: dimensions.realHeight
 						}}
-						onLayout={() => {
-							setIsZooming(false)
-						}}
+						onResponderMove={() => console.log("moving")}
+						onPress={() => setShowControls(prev => !prev)}
 					>
-						<ReactNativeZoomableView
-							ref={ref => (viewRefs[image.uuid] = ref)}
-							minZoom={minZoom}
-							initialZoom={minZoom}
-							maxZoom={10}
-							zoomStep={4}
-							bindToBorders={true}
-							contentHeight={dimensions.realHeight}
-							contentWidth={dimensions.realWidth}
-							disablePanOnInitialZoom={true}
-							visualTouchFeedbackEnabled={false}
-							onLayout={() => {
-								setIsZooming(false)
-							}}
-							onShiftingAfter={(e, state, view) => {
-								setIsZooming(view.zoomLevel > minZoom)
-
-								if (view.zoomLevel <= minZoom) {
-									return true
-								}
-
-								return false
-							}}
-							onShiftingBefore={(e, state, view) => {
-								setIsZooming(view.zoomLevel > minZoom)
-
-								if (view.zoomLevel <= minZoom) {
-									return true
-								}
-
-								return false
-							}}
-							onShiftingEnd={(e, state, view) => {
-								setIsZooming(view.zoomLevel > minZoom)
-
-								if (view.zoomLevel <= minZoom) {
-									return true
-								}
-
-								return false
-							}}
-							onTransform={e => {
-								setIsZooming(e.zoomLevel > minZoom)
-							}}
-							onZoomAfter={(e, state, view) => {
-								setIsZooming(view.zoomLevel > minZoom)
-							}}
-							onZoomBefore={(e, state, view) => {
-								setIsZooming(view.zoomLevel > minZoom)
-							}}
-							onZoomEnd={(e, state, view) => {
-								setIsZooming(view.zoomLevel > minZoom)
-							}}
-							onSingleTap={() => setShowControls(prev => !prev)}
-						>
+						<Zoomer onLayout={e => console.log(e)}>
 							<ImageBackground
 								source={{
 									uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
@@ -318,7 +263,7 @@ const ImageViewerScreen = memo(
 							{typeof images[image.uuid] !== "string" && (
 								<ActivityIndicator
 									size="small"
-									color={"white"}
+									color="white"
 									style={{
 										margin: "auto",
 										position: "absolute",
@@ -329,11 +274,11 @@ const ImageViewerScreen = memo(
 									}}
 								/>
 							)}
-						</ReactNativeZoomableView>
-					</View>
+						</Zoomer>
+					</Pressable>
 				)
 			},
-			[dimensions, images, imagePreviewModalItems, isZooming]
+			[dimensions, images, imagePreviewModalItems]
 		)
 
 		const renderThumb = useCallback(
@@ -341,45 +286,47 @@ const ImageViewerScreen = memo(
 				const image = item
 
 				return (
-					<View
+					<TouchableOpacity
 						style={{
 							width: 30,
-							height: 49
+							height: "100%",
+							backgroundColor: "transparent",
+							flexDirection: "column",
+							justifyContent: "space-between",
+							alignItems: "center"
+						}}
+						onPress={async () => {
+							try {
+								await viewRefs[imagePreviewModalItems[imagePreviewModalIndex].uuid]?.zoomTo(1)
+							} catch (e) {
+								console.error(e)
+							}
+
+							if (isBetween(index, 0, imagePreviewModalItems.length)) {
+								setListScrollAgain.current = true
+
+								thumbnailListRef?.current?.scrollToIndex({
+									animated: false,
+									index,
+									viewPosition: 0.5
+								})
+
+								listRef?.current?.scrollToOffset({
+									animated: false,
+									offset: dimensions.realWidth * index + 1
+								})
+
+								loadImage(imagePreviewModalItems[index], index).catch(console.error)
+							}
 						}}
 					>
-						<TouchableOpacity
-							key={image.uuid}
+						<View
 							style={{
-								width: 30,
-								height: 49,
-								backgroundColor: "transparent",
-								flexDirection: "column",
-								justifyContent: "space-between",
-								alignItems: "center"
-							}}
-							onPress={async () => {
-								try {
-									await viewRefs[imagePreviewModalItems[imagePreviewModalIndex].uuid]?.zoomTo(1)
-								} catch (e) {
-									console.error(e)
-								}
-
-								if (isBetween(index, 0, imagePreviewModalItems.length)) {
-									setListScrollAgain.current = true
-
-									thumbnailListRef?.current?.scrollToIndex({
-										animated: false,
-										index,
-										viewPosition: 0.5
-									})
-
-									listRef?.current?.scrollToOffset({
-										animated: false,
-										offset: dimensions.realWidth * index + 1
-									})
-
-									loadImage(imagePreviewModalItems[index], index).catch(console.error)
-								}
+								flexDirection: "row",
+								alignItems: "center",
+								justifyContent: "center",
+								width: "100%",
+								height: 35
 							}}
 						>
 							{typeof image.thumbnail !== "string" ? (
@@ -388,10 +335,8 @@ const ImageViewerScreen = memo(
 									contentFit="cover"
 									cachePolicy="none"
 									style={{
-										width: 25,
-										height: 35,
-										marginTop: 2.5,
-										marginLeft: 2.5
+										width: 18,
+										height: 25
 									}}
 								/>
 							) : (
@@ -403,30 +348,29 @@ const ImageViewerScreen = memo(
 									cachePolicy="none"
 									style={{
 										width: 30,
-										height: 40
+										height: 35
 									}}
 								/>
 							)}
-							<View
-								style={{
-									backgroundColor: imagePreviewModalIndex === index ? "gray" : "transparent",
-									width: 15,
-									height: 5,
-									borderRadius: 20
-								}}
-							/>
-						</TouchableOpacity>
-					</View>
+						</View>
+						<View
+							style={{
+								backgroundColor: imagePreviewModalIndex === index ? "gray" : "transparent",
+								width: 15,
+								height: 5,
+								borderRadius: 20,
+								position: "absolute",
+								top: 38,
+								zIndex: 999999
+							}}
+						/>
+					</TouchableOpacity>
 				)
 			},
 			[imagePreviewModalItems, viewRefs, imagePreviewModalIndex, dimensions]
 		)
 
 		const keyExtractor = useCallback((item: PreviewItem) => item.uuid, [])
-
-		useEffect(() => {
-			setShowControls(isZooming)
-		}, [isZooming])
 
 		useEffect(() => {
 			if (startIndex === -1) {
@@ -530,8 +474,7 @@ const ImageViewerScreen = memo(
 							portrait: dimensions.isPortrait ? "portrait" : "landscape",
 							dimensions,
 							images,
-							imagePreviewModalItems,
-							isZooming
+							imagePreviewModalItems
 						}}
 						ref={listRef}
 						data={imagePreviewModalItems}
@@ -548,7 +491,7 @@ const ImageViewerScreen = memo(
 						windowSize={3}
 						horizontal={true}
 						bounces={false}
-						scrollEnabled={!isZooming}
+						scrollEnabled={true}
 						pagingEnabled={true}
 						onViewableItemsChanged={onViewableItemsChangedRef?.current}
 						viewabilityConfig={viewabilityConfigRef?.current}
@@ -559,12 +502,11 @@ const ImageViewerScreen = memo(
 				<View
 					style={{
 						position: "absolute",
-						bottom: 0,
+						bottom: dimensions.navigationBarHeight > 0 ? -dimensions.navigationBarHeight : 0,
 						width: dimensions.realWidth,
 						zIndex: showControls ? 0 : 10000,
-						height: dimensions.isPortrait
-							? dimensions.navigationBarHeight + dimensions.insets.bottom + 10
-							: dimensions.insets.bottom + 85,
+						height: "auto",
+						paddingBottom: dimensions.navigationBarHeight + dimensions.insets.bottom,
 						backgroundColor: "rgba(0, 0, 0, 1)",
 						opacity: showControls ? 0 : 1
 					}}
@@ -589,7 +531,7 @@ const ImageViewerScreen = memo(
 						bounces={false}
 						estimatedListSize={{
 							width: dimensions.realWidth,
-							height: 49
+							height: 50
 						}}
 						showsVerticalScrollIndicator={false}
 						showsHorizontalScrollIndicator={false}

@@ -2,7 +2,6 @@ import React, { useState, memo, useCallback, useRef, useEffect } from "react"
 import {
 	View,
 	TouchableOpacity,
-	useWindowDimensions,
 	TextInput,
 	NativeSyntheticEvent,
 	TextInputChangeEventData,
@@ -35,7 +34,6 @@ import { decryptChatMessageKey, encryptChatMessage } from "../../lib/crypto"
 import Typing from "./Typing"
 import { TYPING_TIMEOUT } from "./Typing"
 import { showToast } from "../../components/Toasts"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { findClosestIndex, generateAvatarColorCode, convertTimestampToMs } from "../../lib/helpers"
 import { getUserNameFromParticipant, filterEmojisByShortcode } from "./utils"
 import { useKeyboard } from "@react-native-community/hooks"
@@ -46,8 +44,7 @@ import * as fs from "../../lib/fs"
 import mimeTypes from "mime-types"
 import { getLastModified } from "../../lib/services/cameraUpload"
 import { Image as ExpoImage } from "expo-image"
-
-const INPUT_HEIGHT = Platform.OS === "android" ? 42 : 35
+import useDimensions from "../../lib/hooks/useDimensions"
 
 const Input = memo(
 	({
@@ -79,9 +76,11 @@ const Input = memo(
 		const isTypingTimer = useRef<ReturnType<typeof setTimeout>>()
 		const isTypingTimeout = useRef<Record<TypingType, number>>({ down: 0, up: 0 })
 		const [replyToMessage, setReplyToMessage] = useState<ChatMessage | undefined>(undefined)
-		const [textContentHeight, setTextContentHeight] = useState<number>(INPUT_HEIGHT)
-		const dimensions = useWindowDimensions()
-		const insets = useSafeAreaInsets()
+		const chatTextContentHeightCached = useRef<number | undefined>(storage.getNumber("chatTextContentHeight")).current
+		const [textContentHeight, setTextContentHeight] = useState<number>(
+			typeof chatTextContentHeightCached === "number" && chatTextContentHeightCached > 0 ? chatTextContentHeightCached : 0
+		)
+		const dimensions = useDimensions()
 		const [emojiSuggestionsOpen, setEmojiSuggestionsOpen] = useState<boolean>(false)
 		const [emojiSuggestions, setEmojiSuggestions] = useState<{ id: string; src: string }[]>([])
 		const [mentionMode, setMentionMode] = useState<boolean>(false)
@@ -187,7 +186,6 @@ const Input = memo(
 				}
 			} finally {
 				setText("")
-				setTextContentHeight(INPUT_HEIGHT)
 				setEditingMessageUUID("")
 				setReplyToMessage(undefined)
 				setReplyMessageUUID("")
@@ -315,7 +313,6 @@ const Input = memo(
 				}
 			} finally {
 				setText("")
-				setTextContentHeight(INPUT_HEIGHT)
 				setEditingMessageUUID("")
 				setReplyToMessage(undefined)
 				setReplyMessageUUID("")
@@ -343,6 +340,10 @@ const Input = memo(
 			let picked: DocumentPickerResponse[] = []
 
 			try {
+				if (Platform.OS === "ios") {
+					await new Promise(resolve => setTimeout(resolve, 250))
+				}
+
 				picked = await RNDocumentPicker.pick({
 					type: [RNDocumentPicker.types.allFiles],
 					copyTo: "cachesDirectory",
@@ -619,11 +620,10 @@ const Input = memo(
 					width: "100%",
 					minHeight: 55,
 					flexDirection: "row",
-					alignItems: "center",
 					borderTopColor: getColor(darkMode, "primaryBorder"),
 					borderTopWidth: 0.5,
-					paddingTop: 5,
-					paddingBottom: 5,
+					paddingTop: 8,
+					paddingBottom: 8,
 					paddingLeft: 10,
 					paddingRight: 10,
 					justifyContent: "space-between",
@@ -640,7 +640,7 @@ const Input = memo(
 					<View
 						style={{
 							flexDirection: "row",
-							width: dimensions.width - insets.left - insets.right,
+							width: dimensions.realWidth,
 							position: "absolute",
 							bottom: inputContainerHeight,
 							backgroundColor: getColor(darkMode, "backgroundSecondary"),
@@ -697,8 +697,8 @@ const Input = memo(
 					<ScrollView
 						style={{
 							flexDirection: "column",
-							maxHeight: Math.floor((dimensions.height - insets.top - insets.bottom - keyboard.keyboardHeight) / 2),
-							width: dimensions.width - insets.left - insets.right,
+							maxHeight: Math.floor((dimensions.realHeight - keyboard.keyboardHeight) / 2),
+							width: dimensions.realWidth,
 							position: "absolute",
 							bottom: inputContainerHeight,
 							backgroundColor: getColor(darkMode, "backgroundSecondary"),
@@ -765,8 +765,8 @@ const Input = memo(
 					<ScrollView
 						style={{
 							flexDirection: "column",
-							maxHeight: Math.floor((dimensions.height - insets.top - insets.bottom - keyboard.keyboardHeight) / 2),
-							width: dimensions.width - insets.left - insets.right,
+							maxHeight: Math.floor((dimensions.realHeight - keyboard.keyboardHeight) / 2),
+							width: dimensions.realWidth,
 							position: "absolute",
 							bottom: inputContainerHeight,
 							backgroundColor: getColor(darkMode, "backgroundSecondary"),
@@ -898,14 +898,13 @@ const Input = memo(
 				<TouchableOpacity
 					style={{
 						backgroundColor: getColor(darkMode, "backgroundSecondary"),
-						borderRadius: INPUT_HEIGHT,
-						width: INPUT_HEIGHT,
-						height: INPUT_HEIGHT,
+						borderRadius: textContentHeight,
+						width: textContentHeight,
+						height: textContentHeight,
 						flexDirection: "row",
 						alignItems: "center",
 						justifyContent: "center",
-						alignSelf: "flex-start",
-						marginTop: 1
+						alignSelf: "flex-start"
 					}}
 					onPress={() => attachFile()}
 				>
@@ -927,28 +926,34 @@ const Input = memo(
 					placeholderTextColor={getColor(darkMode, "textSecondary")}
 					value={typeof text !== "string" ? "" : text}
 					onChange={onChange}
-					onContentSizeChange={e => {
-						if (typeof text === "string" && text.length > 0 && e.nativeEvent.contentSize.height > INPUT_HEIGHT) {
-							setTextContentHeight(Math.floor(e.nativeEvent.contentSize.height))
-						} else {
-							setTextContentHeight(INPUT_HEIGHT)
-						}
-					}}
 					inputMode="text"
 					maxFontSizeMultiplier={0}
 					allowFontScaling={false}
 					onSelectionChange={onSelectionChange}
 					onKeyPress={onKeyDownOrUp}
+					onLayout={e => {
+						if (!e || !e.nativeEvent || !e.nativeEvent.layout) {
+							return
+						}
+
+						setTextContentHeight(prev => {
+							const height = prev <= 0 ? e.nativeEvent.layout.height : prev
+
+							storage.set("chatTextContentHeight", height)
+
+							return height
+						})
+					}}
 					style={{
 						backgroundColor: getColor(darkMode, "backgroundSecondary"),
-						height: textContentHeight >= INPUT_HEIGHT ? textContentHeight : INPUT_HEIGHT,
+						maxHeight: dimensions.realHeight / 4,
+						minHeight: textContentHeight,
 						borderRadius: 20,
-						width: dimensions.width - insets.left - insets.right - 120,
-						paddingLeft: 12,
-						paddingRight: 12,
+						width: dimensions.realWidth - textContentHeight * 2 - 30,
+						paddingLeft: 15,
+						paddingRight: 15,
 						paddingTop: 10,
 						paddingBottom: 10,
-						lineHeight: 20,
 						color: getColor(darkMode, "textPrimary"),
 						fontSize: 17,
 						alignItems: "center",
@@ -959,9 +964,9 @@ const Input = memo(
 				/>
 				<TouchableOpacity
 					style={{
-						borderRadius: INPUT_HEIGHT,
-						width: INPUT_HEIGHT,
-						height: INPUT_HEIGHT,
+						borderRadius: textContentHeight,
+						width: textContentHeight,
+						height: textContentHeight,
 						backgroundColor:
 							typeof text === "string" && text.length > 0
 								? getColor(darkMode, "indigo")
@@ -969,8 +974,7 @@ const Input = memo(
 						flexDirection: "row",
 						alignItems: "center",
 						justifyContent: "center",
-						alignSelf: "flex-start",
-						marginTop: 1
+						alignSelf: "flex-start"
 					}}
 					onPress={() => {
 						if (editingMessageUUID.length > 16) {

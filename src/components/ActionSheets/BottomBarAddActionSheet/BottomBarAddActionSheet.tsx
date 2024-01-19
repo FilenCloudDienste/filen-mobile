@@ -198,6 +198,10 @@ const BottomBarAddActionSheet = memo(() => {
 		sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
 		try {
+			if (Platform.OS === "ios") {
+				await new Promise(resolve => setTimeout(resolve, 250))
+			}
+
 			let uri = ""
 			const result = Platform.OS === "android" ? await openDocumentTree(true) : await RNDocumentPicker.pickDirectory()
 
@@ -234,7 +238,7 @@ const BottomBarAddActionSheet = memo(() => {
 			storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 			sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
-			if (RNDocumentPicker.isCancel(e)) {
+			if (RNDocumentPicker.isCancel(e) || RNDocumentPicker.isInProgress(e)) {
 				return
 			}
 
@@ -390,23 +394,25 @@ const BottomBarAddActionSheet = memo(() => {
 								icon="image-outline"
 								text={i18n(lang, "uploadFromGallery")}
 							/>
-							<ActionButton
-								onPress={uploadFolders}
-								icon={
-									<View
-										style={{
-											marginLeft: -2
-										}}
-									>
-										<MaterialIcons
-											name="drive-folder-upload"
-											size={24}
-											color={getColor(darkMode, "textSecondary")}
-										/>
-									</View>
-								}
-								text={i18n(lang, "uploadFolders")}
-							/>
+							{Platform.OS === "android" && (
+								<ActionButton
+									onPress={uploadFolders}
+									icon={
+										<View
+											style={{
+												marginLeft: -2
+											}}
+										>
+											<MaterialIcons
+												name="drive-folder-upload"
+												size={24}
+												color={getColor(darkMode, "textSecondary")}
+											/>
+										</View>
+									}
+									text={i18n(lang, "uploadFolders")}
+								/>
+							)}
 							<ActionButton
 								onPress={uploadFiles}
 								icon="cloud-upload-outline"
