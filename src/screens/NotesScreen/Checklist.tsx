@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useCallback, useRef, useMemo } from "react"
-import { View, Pressable, TextInput, KeyboardAvoidingView, useWindowDimensions, Platform, Keyboard } from "react-native"
+import { View, Pressable, TextInput, KeyboardAvoidingView, Platform } from "react-native"
 import { getColor } from "../../style"
 import { parseQuillChecklistHtml, convertChecklistItemsToHtml, ChecklistItem } from "./utils"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -8,6 +8,7 @@ import { FlashList } from "@shopify/flash-list"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import eventListener from "../../lib/eventListener"
+import useDimensions from "../../lib/hooks/useDimensions"
 
 const Item = memo(
 	({
@@ -18,7 +19,8 @@ const Item = memo(
 		setItems,
 		setIdToFocus,
 		setInputRefs,
-		readOnly
+		readOnly,
+		dimensions
 	}: {
 		darkMode: boolean
 		item: ChecklistItem
@@ -28,6 +30,7 @@ const Item = memo(
 		setIdToFocus: React.Dispatch<React.SetStateAction<string>>
 		setInputRefs: React.Dispatch<React.SetStateAction<Record<string, TextInput>>>
 		readOnly: boolean
+		dimensions: ReturnType<typeof useDimensions>
 	}) => {
 		const itemIndex = useMemo(() => {
 			return items.findIndex(i => i.id === item.id)
@@ -39,7 +42,7 @@ const Item = memo(
 					width: "100%",
 					flexDirection: "row",
 					alignItems: "center",
-					marginBottom: index + 1 >= items.length ? 100 : 12,
+					marginBottom: index + 1 >= items.length ? dimensions.realHeight / 2 : 12,
 					paddingLeft: 25,
 					paddingRight: 25
 				}}
@@ -272,11 +275,11 @@ const Checklist = memo(
 		const [items, setItems] = useState<ChecklistItem[]>(initialItems)
 		const [idToFocus, setIdToFocus] = useState<string>("")
 		const [inputRefs, setInputRefs] = useState<Record<string, TextInput>>({})
-		const dimensions = useWindowDimensions()
 		const lastFocusedId = useRef<string>("")
 		const keyboardOffset = useKeyboardOffset()
 		const insets = useSafeAreaInsets()
 		const listRef = useRef<FlashList<ChecklistItem>>()
+		const dimensions = useDimensions()
 
 		const build = useCallback(() => {
 			if (items.length <= 0 || readOnly) {
@@ -302,10 +305,11 @@ const Checklist = memo(
 						setItems={setItems}
 						setIdToFocus={setIdToFocus}
 						readOnly={readOnly}
+						dimensions={dimensions}
 					/>
 				)
 			},
-			[darkMode, items, setInputRefs, setItems, setIdToFocus]
+			[darkMode, items, setInputRefs, setItems, setIdToFocus, dimensions]
 		)
 
 		const focusItem = useCallback(
@@ -398,7 +402,8 @@ const Checklist = memo(
 						items,
 						setInputRefs,
 						setItems,
-						setIdToFocus
+						setIdToFocus,
+						dimensions
 					}}
 				/>
 			</KeyboardAvoidingView>

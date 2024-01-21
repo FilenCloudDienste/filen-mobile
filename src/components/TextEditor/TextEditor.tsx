@@ -9,6 +9,7 @@ import {
 	TextInputKeyPressEventData
 } from "react-native"
 import { getColor } from "../../style"
+import useDimensions from "../../lib/hooks/useDimensions"
 
 export type TextSelection = { start: number; end: number }
 
@@ -31,7 +32,8 @@ const TextEditor = memo(
 		const scrollRef = useRef<ScrollView>()
 		const intitialValue = useRef<string>(value).current
 		const didInitialAdjustments = useRef<boolean>(Platform.OS === "ios")
-		const [selection, setSelection] = useState<TextSelection>({ end: 0, start: 0 })
+		const [selection, setSelection] = useState<TextSelection>(Platform.OS === "android" ? { end: 0, start: 0 } : null)
+		const dimensions = useDimensions()
 
 		const onKeyPress = useCallback((e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
 			if (e.nativeEvent.key === "Enter") {
@@ -100,7 +102,7 @@ const TextEditor = memo(
 						width: "100%",
 						backgroundColor: getColor(darkMode, "backgroundPrimary"),
 						color: getColor(darkMode, "textPrimary"),
-						paddingBottom: 100,
+						paddingBottom: dimensions.realHeight / 2,
 						paddingLeft: 15,
 						paddingRight: 15,
 						fontSize: 16

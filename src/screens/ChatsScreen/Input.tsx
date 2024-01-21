@@ -76,10 +76,6 @@ const Input = memo(
 		const isTypingTimer = useRef<ReturnType<typeof setTimeout>>()
 		const isTypingTimeout = useRef<Record<TypingType, number>>({ down: 0, up: 0 })
 		const [replyToMessage, setReplyToMessage] = useState<ChatMessage | undefined>(undefined)
-		const chatTextContentHeightCached = useRef<number | undefined>(storage.getNumber("chatTextContentHeight")).current
-		const [textContentHeight, setTextContentHeight] = useState<number>(
-			typeof chatTextContentHeightCached === "number" && chatTextContentHeightCached > 0 ? chatTextContentHeightCached : 0
-		)
 		const dimensions = useDimensions()
 		const [emojiSuggestionsOpen, setEmojiSuggestionsOpen] = useState<boolean>(false)
 		const [emojiSuggestions, setEmojiSuggestions] = useState<{ id: string; src: string }[]>([])
@@ -898,9 +894,9 @@ const Input = memo(
 				<TouchableOpacity
 					style={{
 						backgroundColor: getColor(darkMode, "backgroundSecondary"),
-						borderRadius: textContentHeight,
-						width: textContentHeight,
-						height: textContentHeight,
+						borderRadius: 40,
+						width: 40,
+						height: 40,
 						flexDirection: "row",
 						alignItems: "center",
 						justifyContent: "center",
@@ -931,29 +927,16 @@ const Input = memo(
 					allowFontScaling={false}
 					onSelectionChange={onSelectionChange}
 					onKeyPress={onKeyDownOrUp}
-					onLayout={e => {
-						if (!e || !e.nativeEvent || !e.nativeEvent.layout) {
-							return
-						}
-
-						setTextContentHeight(prev => {
-							const height = prev <= 0 ? e.nativeEvent.layout.height : prev
-
-							storage.set("chatTextContentHeight", height)
-
-							return height
-						})
-					}}
 					style={{
 						backgroundColor: getColor(darkMode, "backgroundSecondary"),
 						maxHeight: dimensions.realHeight / 4,
-						minHeight: textContentHeight,
+						minHeight: 40,
 						borderRadius: 20,
-						width: dimensions.realWidth - textContentHeight * 2 - 30,
+						width: dimensions.realWidth - 40 * 2 - 30,
 						paddingLeft: 15,
 						paddingRight: 15,
-						paddingTop: 10,
-						paddingBottom: 10,
+						paddingTop: Platform.OS === "android" ? 5 : 10,
+						paddingBottom: Platform.OS === "android" ? 5 : 10,
 						color: getColor(darkMode, "textPrimary"),
 						fontSize: 17,
 						alignItems: "center",
@@ -964,9 +947,9 @@ const Input = memo(
 				/>
 				<TouchableOpacity
 					style={{
-						borderRadius: textContentHeight,
-						width: textContentHeight,
-						height: textContentHeight,
+						borderRadius: 40,
+						width: 40,
+						height: 40,
 						backgroundColor:
 							typeof text === "string" && text.length > 0
 								? getColor(darkMode, "indigo")

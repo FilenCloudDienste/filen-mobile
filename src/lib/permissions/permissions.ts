@@ -7,15 +7,15 @@ import notifee from "@notifee/react-native"
 import { Notifications } from "react-native-notifications"
 
 export const hasWritePermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	if (Platform.OS == "ios") {
+	if (Platform.OS === "ios") {
 		return true
 	}
 
-	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+	if (Platform.OS === "android" && Platform.constants.Version <= 22) {
 		return true
 	}
 
-	if (Platform.OS == "android" && Platform.constants.Version <= 29) {
+	if (Platform.OS === "android" && Platform.constants.Version <= 29) {
 		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
 
 		if (!has) {
@@ -41,15 +41,15 @@ export const hasWritePermissions = async (requestPermissions: boolean): Promise<
 }
 
 export const hasReadPermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	if (Platform.OS == "ios") {
+	if (Platform.OS === "ios") {
 		return true
 	}
 
-	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+	if (Platform.OS === "android" && Platform.constants.Version <= 22) {
 		return true
 	}
 
-	if (Platform.OS == "android" && Platform.constants.Version <= 29) {
+	if (Platform.OS === "android" && Platform.constants.Version <= 29) {
 		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
 
 		if (!has) {
@@ -75,11 +75,11 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 }
 
 export const hasCameraPermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+	if (Platform.OS === "android" && Platform.constants.Version <= 22) {
 		return true
 	}
 
-	if (Platform.OS == "ios") {
+	if (Platform.OS === "ios") {
 		const has = await check(PERMISSIONS.IOS.CAMERA)
 
 		if (has !== RESULTS.GRANTED) {
@@ -119,7 +119,7 @@ export const hasCameraPermissions = async (requestPermissions: boolean): Promise
 }
 
 export const hasBiometricPermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	if (Platform.OS == "android") {
+	if (Platform.OS === "android") {
 		return true
 	}
 
@@ -141,11 +141,11 @@ export const hasBiometricPermissions = async (requestPermissions: boolean): Prom
 }
 
 export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+	if (Platform.OS === "android" && Platform.constants.Version <= 22) {
 		return true
 	}
 
-	if (Platform.OS == "android" && Platform.constants.Version >= 29) {
+	if (Platform.OS === "android" && Platform.constants.Version >= 29) {
 		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_MEDIA_LOCATION)
 
 		if (!has) {
@@ -185,18 +185,18 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 		}
 	}
 
-	if (Platform.OS == "ios") {
+	if (Platform.OS === "ios") {
 		const permissions = [PERMISSIONS.IOS.PHOTO_LIBRARY, PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY]
 		const has = await checkMultiple(permissions)
 
-		if (Object.values(has).filter(value => value == RESULTS.GRANTED).length !== 2) {
+		if (Object.values(has).filter(value => value === RESULTS.GRANTED).length !== 2) {
 			if (!requestPermissions) {
 				return false
 			}
 
 			const get = await requestMultiple(permissions)
 
-			if (Object.values(get).filter(value => value == RESULTS.GRANTED).length !== 2) {
+			if (Object.values(get).filter(value => value === RESULTS.GRANTED).length !== 2) {
 				return false
 			}
 		}
@@ -206,11 +206,11 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 }
 
 export const hasStoragePermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	if (Platform.OS == "ios") {
+	if (Platform.OS === "ios") {
 		return true
 	}
 
-	if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+	if (Platform.OS === "android" && Platform.constants.Version <= 22) {
 		return true
 	}
 

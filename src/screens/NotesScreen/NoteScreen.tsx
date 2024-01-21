@@ -30,6 +30,7 @@ import {
 } from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 import { SocketEvent } from "../../lib/services/socket"
+import useDimensions from "../../lib/hooks/useDimensions"
 
 const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -58,6 +59,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const loadNoteTimeout = useRef<number>(0)
 	const isFocused = useIsFocused()
 	const keyboardOffset = useKeyboardOffset()
+	const dimensions = useDimensions()
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!currentNoteRef.current) {
@@ -392,7 +394,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 								</>
 							) : (
 								<>
-									{currentNoteRef.current.type === "md" ? (
+									{currentNoteRef.current.type === "md" && (
 										<TouchableOpacity
 											style={{
 												marginRight: 10
@@ -408,32 +410,6 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 												size={24}
 											/>
 										</TouchableOpacity>
-									) : (
-										<>
-											{keyboardShowing && contentType !== "rich" && (
-												<TouchableOpacity
-													style={{
-														marginRight: 10
-													}}
-													onPress={() => {
-														try {
-															Keyboard.dismiss()
-														} catch (e) {
-															console.error(e)
-														}
-													}}
-												>
-													<Ionicon
-														name="chevron-down-outline"
-														style={{
-															flexShrink: 0
-														}}
-														color={getColor(darkMode, "linkPrimary")}
-														size={24}
-													/>
-												</TouchableOpacity>
-											)}
-										</>
 									)}
 									{!networkInfo.online ? (
 										<Ionicon
@@ -516,7 +492,9 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
                                     }
 
                                     .ql-editor {
-                                        padding-bottom: 300px !important;
+                                        padding-bottom: ` +
+										dimensions.realHeight / 2 +
+										`px !important;
                                         margin-top: -5px !important;
                                     }
                                     `
@@ -577,7 +555,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 											contentContainerStyle: {
 												paddingLeft: 15,
 												paddingRight: 15,
-												paddingBottom: 100,
+												paddingBottom: dimensions.realHeight / 2,
 												paddingTop: 0,
 												backgroundColor: getColor(darkMode, "backgroundPrimary")
 											},

@@ -1,7 +1,6 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
 import { ActivityIndicator, Text, View, TouchableOpacity, FlatList, Pressable } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { ReactNativeZoomableView } from "@openspacelabs/react-native-zoomable-view"
 import { downloadFile } from "../../lib/services/download/download"
 import { navigationAnimation } from "../../lib/state"
 import { generateItemThumbnail } from "../../lib/services/thumbnails"
@@ -37,7 +36,6 @@ const ImageViewerScreen = memo(
 		const thumbnailListRef = useRef<FlashList<PreviewItem>>()
 		const listRef = useRef<FlatList<PreviewItem>>()
 		const [showControls, setShowControls] = useState<boolean>(false)
-		const viewRefs = useRef<Record<string, ReactNativeZoomableView>>({}).current
 		const currentImagePreviewDownloads = useRef<Record<string, boolean>>({}).current
 		const setListScrollAgain = useRef<boolean>(false)
 		const dimensions = useDimensions()
@@ -229,6 +227,7 @@ const ImageViewerScreen = memo(
 						}}
 						onResponderMove={() => console.log("moving")}
 						onPress={() => setShowControls(prev => !prev)}
+						onLongPress={() => setShowControls(false)}
 					>
 						<Zoomer onLayout={e => console.log(e)}>
 							<ImageBackground
@@ -296,12 +295,6 @@ const ImageViewerScreen = memo(
 							alignItems: "center"
 						}}
 						onPress={async () => {
-							try {
-								await viewRefs[imagePreviewModalItems[imagePreviewModalIndex].uuid]?.zoomTo(1)
-							} catch (e) {
-								console.error(e)
-							}
-
 							if (isBetween(index, 0, imagePreviewModalItems.length)) {
 								setListScrollAgain.current = true
 
@@ -367,7 +360,7 @@ const ImageViewerScreen = memo(
 					</TouchableOpacity>
 				)
 			},
-			[imagePreviewModalItems, viewRefs, imagePreviewModalIndex, dimensions]
+			[imagePreviewModalItems, imagePreviewModalIndex, dimensions]
 		)
 
 		const keyExtractor = useCallback((item: PreviewItem) => item.uuid, [])
@@ -516,7 +509,6 @@ const ImageViewerScreen = memo(
 						extraData={{
 							portrait: dimensions.isPortrait ? "thumbs-portrait" : "thumbs-landscape",
 							imagePreviewModalItems,
-							viewRefs,
 							imagePreviewModalIndex,
 							dimensions
 						}}
