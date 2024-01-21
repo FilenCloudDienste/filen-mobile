@@ -346,7 +346,7 @@ const Input = memo(
 					allowMultiSelection: false
 				})
 			} catch (e) {
-				if (RNDocumentPicker.isCancel(e)) {
+				if (RNDocumentPicker.isCancel(e) || RNDocumentPicker.isInProgress(e)) {
 					return
 				}
 

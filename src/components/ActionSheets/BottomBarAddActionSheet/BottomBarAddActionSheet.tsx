@@ -251,6 +251,10 @@ const BottomBarAddActionSheet = memo(() => {
 	const uploadFiles = useCallback(async () => {
 		await hideAllActionSheets()
 
+		if (Platform.OS === "ios") {
+			await new Promise(resolve => setTimeout(resolve, 250))
+		}
+
 		const [hasPermissionsError, hasPermissionsResult] = await safeAwait(hasStoragePermissions(true))
 
 		if (hasPermissionsError) {
@@ -340,7 +344,7 @@ const BottomBarAddActionSheet = memo(() => {
 				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 				sharedStorage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
 
-				if (RNDocumentPicker.isCancel(err)) {
+				if (RNDocumentPicker.isCancel(err) || RNDocumentPicker.isInProgress(err)) {
 					return
 				}
 
