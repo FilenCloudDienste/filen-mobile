@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useCallback } from "react"
-import { View, ScrollView, DeviceEventEmitter, Platform } from "react-native"
+import { View, DeviceEventEmitter, Platform } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
