@@ -641,7 +641,7 @@ const ItemActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				backgroundColor: getColor(darkMode, "backgroundTertiary")
 			}}
 		>
-			<ScrollView
+			<View
 				style={{
 					paddingBottom: dimensions.insets.bottom + dimensions.navigationBarHeight
 				}}
@@ -844,7 +844,7 @@ const ItemActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 						</View>
 					</>
 				)}
-			</ScrollView>
+			</View>
 		</ActionSheet>
 	)
 })
