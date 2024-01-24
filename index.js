@@ -122,7 +122,12 @@ if (Platform.OS === "android") {
 				"transferringFiles",
 				true,
 				["__NUM__"],
-				[(currentUploadsCountGlobal + currentDownloadsCountGlobal).toString()]
+				[
+					(currentUploadsCountGlobal + currentDownloadsCountGlobal <= 0 && cameraUploadStatusGlobal !== "inactive"
+						? 1
+						: currentUploadsCountGlobal + currentDownloadsCountGlobal
+					).toString()
+				]
 			),
 			android: {
 				channelId: foregroundServiceChannelId,
@@ -166,7 +171,12 @@ if (Platform.OS === "android") {
 					"transferringFiles",
 					true,
 					["__NUM__"],
-					[(currentUploadsCountGlobal + currentDownloadsCountGlobal).toString()]
+					[
+						(currentUploadsCountGlobal + currentDownloadsCountGlobal <= 0 && cameraUploadStatusGlobal !== "inactive"
+							? 1
+							: currentUploadsCountGlobal + currentDownloadsCountGlobal
+						).toString()
+					]
 				),
 				android: {
 					...transfersNotification.android,
