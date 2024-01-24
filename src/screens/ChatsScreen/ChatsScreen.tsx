@@ -1,6 +1,6 @@
 import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "react"
 import { View, Text, TouchableOpacity, useWindowDimensions, AppState, ActivityIndicator, RefreshControl } from "react-native"
-import { getColor, blurhashes } from "../../style"
+import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, useIsFocused, StackActions } from "@react-navigation/native"
 import {
@@ -202,7 +202,7 @@ const Item = memo(
 									uri: conversationParticipantsFilteredWithoutMe[0].avatar
 								}}
 								cachePolicy="memory-disk"
-								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
+								placeholder={require("../../assets/images/avatar_placeholder.jpg")}
 								style={{
 									width: 34,
 									height: 34,

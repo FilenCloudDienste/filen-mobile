@@ -229,7 +229,7 @@ const ImageViewerScreen = memo(
 						onPress={() => setShowControls(prev => !prev)}
 						onLongPress={() => setShowControls(false)}
 					>
-						<Zoomer onLayout={e => console.log(e)}>
+						<Zoomer>
 							<ImageBackground
 								source={{
 									uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)

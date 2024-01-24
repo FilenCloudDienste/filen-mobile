@@ -12,7 +12,7 @@ import {
 	Keyboard,
 	Platform
 } from "react-native"
-import { getColor, blurhashes } from "../../style"
+import { getColor } from "../../style"
 import {
 	ChatConversation,
 	ChatConversationParticipant,
@@ -818,11 +818,7 @@ const Input = memo(
 																uri: p.avatar
 															}}
 															cachePolicy="memory-disk"
-															placeholder={
-																darkMode
-																	? blurhashes.dark.backgroundSecondary
-																	: blurhashes.light.backgroundSecondary
-															}
+															placeholder={require("../../assets/images/avatar_placeholder.jpg")}
 															style={{
 																width: 24,
 																height: 24,

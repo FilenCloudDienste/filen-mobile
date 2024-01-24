@@ -829,6 +829,8 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 		const userId = storage.getNumber("userId")
 
 		if (!isLoggedIn || userId === 0) {
+			eventListener.emit("cameraUploadStatus", "inactive")
+
 			return
 		}
 
@@ -845,6 +847,8 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 			(storage.getBoolean("onlyWifiUploads") && !(await isWifi())) ||
 			!(await hasPermissions(true))
 		) {
+			eventListener.emit("cameraUploadStatus", "inactive")
+
 			return
 		}
 
@@ -860,6 +864,8 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 		if (!folderExists) {
 			disableCameraUpload(true)
 
+			eventListener.emit("cameraUploadStatus", "inactive")
+
 			return
 		}
 
@@ -870,7 +876,7 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 		storage.set("cameraUploadTotal", Object.keys(local).length)
 		storage.set("cameraUploadUploaded", currentlyUploadedCount)
 
-		eventListener.emit(deltas.length > 0 ? "startForegroundService" : "stopForegroundService", "cameraUpload")
+		eventListener.emit("cameraUploadStatus", deltas.length > 0 ? "active" : "inactive")
 
 		let currentQueue = 0
 		const uploads: Promise<void>[] = []
@@ -984,12 +990,8 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 		}
 
 		eventListener.emit(
-			deltas.length <= 0
-				? "stopForegroundService"
-				: deltas.length - uploadedThisRun > 0
-				? "startForegroundService"
-				: "stopForegroundService",
-			"cameraUpload"
+			"cameraUploadStatus",
+			deltas.length <= 0 ? "inactive" : deltas.length - uploadedThisRun > 0 ? "active" : "inactive"
 		)
 	} catch (e) {
 		console.error(e)

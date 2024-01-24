@@ -11,7 +11,7 @@ import {
 	NativeScrollEvent,
 	Platform
 } from "react-native"
-import { getColor, blurhashes } from "../../style"
+import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { NavigationContainerRef, useIsFocused, StackActions, CommonActions } from "@react-navigation/native"
 import {
@@ -600,7 +600,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 								uri: conversationParticipantsFilteredWithoutMe[0].avatar
 							}}
 							cachePolicy="memory-disk"
-							placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
+							placeholder={require("../../assets/images/avatar_placeholder.jpg")}
 							style={{
 								width: 30,
 								height: 30,

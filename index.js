@@ -39,6 +39,7 @@ let normalNotificationMutex = new Semaphore(1)
 let backgroundNotificationMutex = new Semaphore(1)
 let cameraUploadNotificationMutex = new Semaphore(1)
 let nextAllowedCameraUploadNotification = 0
+let cameraUploadStatusGlobal = "inactive"
 
 const hasNotifyPermissions = async () => {
 	const now = Date.now()
@@ -69,7 +70,7 @@ const registerForegroundService = async () => {
 		notifee.registerForegroundService(() => {
 			return new Promise(resolve => {
 				const wait = setInterval(() => {
-					if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0) {
+					if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0 && cameraUploadStatusGlobal === "inactive") {
 						clearInterval(wait)
 
 						notifee
@@ -95,6 +96,124 @@ const registerForegroundService = async () => {
 }
 
 if (Platform.OS === "android") {
+	const handleForegroundService = async progress => {
+		await registerForegroundService()
+
+		const permissions = await hasNotifyPermissions()
+
+		if (!permissions) {
+			return
+		}
+
+		if (!foregroundServiceChannelId) {
+			foregroundServiceChannelId = await notifee.createChannel({
+				id: "foregroundService",
+				name: "Foreground Service",
+				vibration: false,
+				sound: undefined
+			})
+		}
+
+		const lang = storage.getString("lang") || "en"
+
+		transfersNotification = {
+			title: i18n(
+				lang,
+				"transferringFiles",
+				true,
+				["__NUM__"],
+				[(currentUploadsCountGlobal + currentDownloadsCountGlobal).toString()]
+			),
+			android: {
+				channelId: foregroundServiceChannelId,
+				asForegroundService: true,
+				localOnly: true,
+				ongoing: true,
+				importance: AndroidImportance.HIGH,
+				onlyAlertOnce: false,
+				loopSound: false,
+				autoCancel: false,
+				progress: {
+					max: 100,
+					current: progress,
+					indeterminate: progress >= 100 || progress <= 0
+				},
+				pressAction: {
+					id: "foregroundService",
+					launchActivity: "default"
+				},
+				groupSummary: true,
+				groupId: "foregroundService",
+				timestamp: Date.now()
+			},
+			data: {
+				type: "foregroundService"
+			}
+		}
+
+		if (!transfersNotificationId) {
+			transfersNotificationId = await notifee.displayNotification(transfersNotification)
+
+			lastTransfersNotificationProgress = progress
+		}
+
+		if (progress !== lastTransfersNotificationProgress && transfersNotificationId) {
+			await notifee.displayNotification({
+				...transfersNotification,
+				id: transfersNotificationId,
+				title: i18n(
+					lang,
+					"transferringFiles",
+					true,
+					["__NUM__"],
+					[(currentUploadsCountGlobal + currentDownloadsCountGlobal).toString()]
+				),
+				android: {
+					...transfersNotification.android,
+					progress: {
+						...transfersNotification.android.progress,
+						current: progress,
+						indeterminate: progress >= 100 || progress <= 0
+					}
+				}
+			})
+
+			lastTransfersNotificationProgress = progress
+		}
+	}
+
+	eventListener.on("cameraUploadStatus", async status => {
+		cameraUploadStatusGlobal = status
+
+		await transfersNotificationMutex.acquire()
+
+		try {
+			if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0 && cameraUploadStatusGlobal === "inactive") {
+				transfersNotificationId = null
+				foregroundServiceChannelId = null
+				transfersNotification = null
+				lastTransfersNotificationProgress = -1
+				currentDownloadsCountGlobal = 0
+				currentUploadsCountGlobal = 0
+				cameraUploadStatusGlobal = "inactive"
+
+				return
+			}
+
+			if (cameraUploadStatusGlobal === "inactive") {
+				return
+			}
+
+			const progress = 0
+
+			await handleForegroundService(progress)
+		} catch (e) {
+			console.error(e)
+		} finally {
+			transfersNotificationMutex.release()
+		}
+	})
+
 	eventListener.on("transfersUpdate", async ({ progress, currentDownloadsCount, currentUploadsCount }) => {
 		currentDownloadsCountGlobal = currentDownloadsCount
 		currentUploadsCountGlobal = currentUploadsCount
@@ -102,94 +221,27 @@ if (Platform.OS === "android") {
 		await transfersNotificationMutex.acquire()
 
 		try {
-			if (currentDownloadsCount + currentUploadsCount <= 0) {
+			if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0 && cameraUploadStatusGlobal === "inactive") {
 				transfersNotificationId = null
 				foregroundServiceChannelId = null
 				transfersNotification = null
 				lastTransfersNotificationProgress = -1
+				currentDownloadsCountGlobal = 0
+				currentUploadsCountGlobal = 0
+				cameraUploadStatusGlobal = "inactive"
 
 				return
 			}
 
-			if (currentDownloadsCount + currentUploadsCount <= 0) {
+			if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0) {
 				return
 			}
-
-			await registerForegroundService()
-
-			const permissions = await hasNotifyPermissions()
-
-			if (!permissions) {
-				return
-			}
-
-			if (!foregroundServiceChannelId) {
-				foregroundServiceChannelId = await notifee.createChannel({
-					id: "foregroundService",
-					name: "Foreground Service",
-					vibration: false,
-					sound: undefined
-				})
-			}
-
-			const lang = storage.getString("lang") || "en"
 
 			progress = Math.round(progress)
 			progress = progress <= 0 ? 0 : progress
 			progress = progress >= 100 ? 100 : progress
 
-			transfersNotification = {
-				title: i18n(lang, "transferringFiles", true, ["__NUM__"], [(currentDownloadsCount + currentUploadsCount).toString()]),
-				android: {
-					channelId: foregroundServiceChannelId,
-					asForegroundService: true,
-					localOnly: true,
-					ongoing: true,
-					importance: AndroidImportance.HIGH,
-					onlyAlertOnce: false,
-					loopSound: false,
-					autoCancel: false,
-					progress: {
-						max: 100,
-						current: progress,
-						indeterminate: progress >= 100 || progress <= 0
-					},
-					pressAction: {
-						id: "foregroundService",
-						launchActivity: "default"
-					},
-					groupSummary: true,
-					groupId: "foregroundService",
-					timestamp: Date.now()
-				},
-				data: {
-					type: "foregroundService"
-				}
-			}
-
-			if (!transfersNotificationId) {
-				transfersNotificationId = await notifee.displayNotification(transfersNotification)
-
-				lastTransfersNotificationProgress = progress
-			}
-
-			if (progress !== lastTransfersNotificationProgress && transfersNotificationId) {
-				await notifee.displayNotification({
-					...transfersNotification,
-					id: transfersNotificationId,
-					title: i18n(lang, "transferringFiles", true, ["__NUM__"], [(currentDownloadsCount + currentUploadsCount).toString()]),
-					android: {
-						...transfersNotification.android,
-						progress: {
-							...transfersNotification.android.progress,
-							current: progress,
-							indeterminate: progress >= 100 || progress <= 0
-						}
-					}
-				})
-
-				lastTransfersNotificationProgress = progress
-			}
+			await handleForegroundService(progress)
 		} catch (e) {
 			console.error(e)
 		} finally {

@@ -437,7 +437,7 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: { 
 							: require("../../assets/images/appstore.png")
 					}
 					cachePolicy="memory-disk"
-					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
+					placeholder={require("../../assets/images/avatar_placeholder.jpg")}
 					style={{
 						width: 60,
 						height: 60,
