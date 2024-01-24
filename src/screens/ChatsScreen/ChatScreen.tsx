@@ -238,7 +238,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					blockedContacts={blockedContacts}
 					failedMessages={failedMessages}
 					prevMessage={sortedMessages[index + 1]}
-					nextMessage={sortedMessages[index - 1]}
 					lastFocusTimestamp={lastFocusTimestamp}
 					setLastFocusTimestamp={setLastFocusTimestamp}
 					editingMessageUUID={editingMessageUUID}

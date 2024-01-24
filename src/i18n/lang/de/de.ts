@@ -529,5 +529,6 @@ export const de: {
 	confirmLeaveNotePermanently: "Bist Du sicher, dass Du diese Notiz verlassen willst?",
 	confirmRemoveContact: "Bist Du sicher, dass Du __NAME__ von Deiner Kontaktliste entfernen möchtest?",
 	confirmRemoveChatParticipant: "Bist Du sicher, dass Du __NAME__ aus diesem Chat entfernen möchtest?",
-	confirmRemoveNoteParticipant: "Bist Du sicher, dass Du __NAME__ aus dieser Notiz entfernen möchtest?"
+	confirmRemoveNoteParticipant: "Bist Du sicher, dass Du __NAME__ aus dieser Notiz entfernen möchtest?",
+	blockedUserMessageHidden: "Nachricht des blockierten Benutzers ausgeblendet"
 }

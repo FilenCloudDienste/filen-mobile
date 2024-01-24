@@ -352,17 +352,45 @@ export const MessageContent = memo(
 		darkMode,
 		conversation,
 		lang,
-		failedMessages
+		failedMessages,
+		isBlocked
 	}: {
 		message: ChatMessage
 		darkMode: boolean
 		conversation: ChatConversation
 		lang: string
 		failedMessages: string[]
+		isBlocked: boolean
 	}) => {
 		const isFailed = useMemo(() => {
 			return failedMessages.includes(message.uuid)
 		}, [failedMessages, message])
+
+		if (isBlocked) {
+			return (
+				<View
+					style={{
+						width: "100%",
+						flexDirection: "column"
+					}}
+				>
+					<Text
+						style={{
+							color: getColor(darkMode, "textSecondary"),
+							fontSize: 14,
+							fontStyle: "italic",
+							width: "auto",
+							flexDirection: "row",
+							flexShrink: 0,
+							alignItems: "center",
+							lineHeight: 26
+						}}
+					>
+						{i18n(lang, "blockedUserMessageHidden")}
+					</Text>
+				</View>
+			)
+		}
 
 		return (
 			<>
@@ -433,7 +461,6 @@ export const Message = memo(
 		blockedContacts,
 		failedMessages,
 		prevMessage,
-		nextMessage,
 		lastFocusTimestamp,
 		setLastFocusTimestamp,
 		editingMessageUUID,
@@ -449,7 +476,6 @@ export const Message = memo(
 		blockedContacts: BlockedContact[]
 		failedMessages: string[]
 		prevMessage: ChatMessage
-		nextMessage: ChatMessage
 		lastFocusTimestamp: Record<string, number> | undefined
 		editingMessageUUID: string
 		replyMessageUUID: string
@@ -457,16 +483,21 @@ export const Message = memo(
 	}) => {
 		const lastMessageUUID = useRef<string>(message.uuid)
 		const [date, setDate] = useState<string>(formatMessageDate(message.sentTimestamp, lang))
+		const dateInterval = useRef<ReturnType<typeof setTimeout>>()
+
+		const updateDate = useCallback(() => {
+			setDate(formatMessageDate(message.sentTimestamp, lang))
+		}, [message.sentTimestamp, lang, setDate, lastMessageUUID, message.uuid])
 
 		if (lastMessageUUID.current !== message.uuid) {
 			lastMessageUUID.current = message.uuid
 
+			clearInterval(dateInterval.current)
+
+			dateInterval.current = setInterval(updateDate, 15000)
+
 			setDate(formatMessageDate(message.sentTimestamp, lang))
 		}
-
-		const updateDate = useCallback(() => {
-			setDate(formatMessageDate(message.sentTimestamp, lang))
-		}, [message.sentTimestamp, lang, setDate])
 
 		const blockedContactsIds = useMemo(() => {
 			return blockedContacts.map(c => c.userId)
@@ -483,14 +514,6 @@ export const Message = memo(
 
 			return prevMessage.senderId === message.senderId && isTimestampSameMinute(message.sentTimestamp, prevMessage.sentTimestamp)
 		}, [message, prevMessage])
-
-		const groupWithNextMessage = useMemo(() => {
-			if (!nextMessage) {
-				return false
-			}
-
-			return nextMessage.senderId === message.senderId && isTimestampSameMinute(message.sentTimestamp, nextMessage.sentTimestamp)
-		}, [message, nextMessage])
 
 		const prevMessageSameDay = useMemo(() => {
 			if (!prevMessage) {
@@ -570,10 +593,12 @@ export const Message = memo(
 		}, [isNewMessage, darkMode, message, mentioningMe, userId, replyMessageUUID, editingMessageUUID])
 
 		useEffect(() => {
-			const dateInterval = setInterval(updateDate, 15000)
+			clearInterval(dateInterval.current)
+
+			dateInterval.current = setInterval(updateDate, 15000)
 
 			return () => {
-				clearInterval(dateInterval)
+				clearInterval(dateInterval.current)
 			}
 		}, [])
 
@@ -614,6 +639,7 @@ export const Message = memo(
 							message={message}
 							conversation={conversation}
 							failedMessages={failedMessages}
+							isBlocked={isBlocked}
 						/>
 					</View>
 				</TouchableOpacity>
@@ -777,6 +803,7 @@ export const Message = memo(
 									message={message}
 									conversation={conversation}
 									failedMessages={failedMessages}
+									isBlocked={isBlocked}
 								/>
 							</View>
 						</View>
