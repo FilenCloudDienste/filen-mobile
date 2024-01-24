@@ -142,25 +142,24 @@ const PublicLinkActionSheet = memo(() => {
 		try {
 			await disableItemPublicLink(currentItem, info.uuid)
 
-			if (getRouteURL().indexOf("links") !== -1) {
-				DeviceEventEmitter.emit("event", {
-					type: "remove-item",
-					data: currentItem
-				})
-			}
-
-			if (getRouteURL().indexOf("links") === -1) {
-				fetchInfo(currentItem)
-			} else {
-				await new Promise(resolve => setTimeout(resolve, 250))
-				await hideAllActionSheets().catch(console.error)
-			}
+			fetchInfo(currentItem)
 		} catch (e) {
 			console.error(e)
 		} finally {
 			setFetchingInfo(false)
 			setLinkEnabled(false)
 			setInfo(undefined)
+
+			if (getRouteURL().indexOf("links") !== -1) {
+				DeviceEventEmitter.emit("event", {
+					type: "remove-item",
+					data: currentItem
+				})
+
+				await new Promise(resolve => setTimeout(resolve, 250))
+
+				hideAllActionSheets().catch(console.error)
+			}
 		}
 	}, [currentItem, info])
 

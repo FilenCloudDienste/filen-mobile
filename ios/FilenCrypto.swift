@@ -10,6 +10,7 @@ import CommonCrypto
 import Security
 import OpenSSL
 import IkigaJSON
+import SwiftyRSA
 
 class FilenCrypto {
   public static let shared: FilenCrypto = {
@@ -143,32 +144,34 @@ class FilenCrypto {
     }
   }
   
-  func generateKeyPair() -> (publicKey: String, privateKey: String)? {
-    autoreleasepool {
-      let attributes: [CFString: Any] = [
-          kSecAttrKeyType: kSecAttrKeyTypeRSA,
-          kSecAttrKeySizeInBits: 4096
-      ]
-
-      guard let keyPair = SecKeyCreateRandomKey(attributes as CFDictionary, nil) else { return nil }
-      guard let publicKeyData = SecKeyCopyExternalRepresentation(keyPair, nil) as Data? else { return nil }
-      guard let privateKeyData = SecKeyCopyExternalRepresentation(keyPair, nil) as Data? else { return nil }
-
-      let publicKeyBase64 = publicKeyData.base64EncodedString()
-      let privateKeyBase64 = privateKeyData.base64EncodedString()
-
-      return (publicKey: publicKeyBase64, privateKey: privateKeyBase64)
-    }
-  }
-  
   func decryptMetadataPrivateKey (metadata: String, privateKey: String) -> String? {
     autoreleasepool {
       var error: Unmanaged<CFError>?
       
-      guard let importedKey = self.importPublicKeyFromBase64DER(base64Key: privateKey) else { return nil }
-      guard let metadataData = metadata.data(using: .utf8) else { return nil }
-      guard let decryptedData = SecKeyCreateDecryptedData(importedKey, .rsaEncryptionOAEPSHA512, metadataData as CFData, &error) as Data? else { return nil }
-      guard let decryptedString = String(data: decryptedData, encoding: .utf8) else { return nil }
+      guard let importedKey = self.importPrivateKeyFromBase64DER(base64Key: privateKey) else {
+        print("[decryptMetadataPrivateKey]: Could not import private key")
+        
+        return nil
+      }
+      
+      guard let metadataData = Data(base64Encoded: metadata) else {
+        print("[decryptMetadataPrivateKey]: Could not convert metadata to data")
+        
+        return nil
+      }
+      
+      guard let decryptedData = SecKeyCreateDecryptedData(importedKey, .rsaEncryptionOAEPSHA512, metadataData as CFData, &error) as Data? else {
+        print("[decryptMetadataPrivateKey]: Could not decrypt data")
+        print(error!.takeRetainedValue())
+        
+        return nil
+      }
+      
+      guard let decryptedString = String(data: decryptedData, encoding: .utf8) else {
+        print("[decryptMetadataPrivateKey]: Could not convert decrypted data to string")
+        
+        return nil
+      }
       
       return decryptedString
     }
@@ -178,9 +181,24 @@ class FilenCrypto {
     autoreleasepool {
       var error: Unmanaged<CFError>?
     
-      guard let importedKey = self.importPublicKeyFromBase64DER(base64Key: publicKey) else { return nil }
-      guard let metadataData = metadata.data(using: .utf8) else { return nil }
-      guard let encryptedData = SecKeyCreateEncryptedData(importedKey, .rsaEncryptionOAEPSHA512, metadataData as CFData, &error) as Data? else { return nil }
+      guard let importedKey = self.importPublicKeyFromBase64DER(base64Key: publicKey) else {
+        print("[encryptMetadataPublicKey]: Could not import public key")
+        
+        return nil
+      }
+      
+      guard let metadataData = metadata.data(using: .utf8) else {
+        print("[encryptMetadataPublicKey]: Could not convert metadata to data")
+        
+        return nil
+      }
+      
+      guard let encryptedData = SecKeyCreateEncryptedData(importedKey, .rsaEncryptionOAEPSHA512, metadataData as CFData, &error) as Data? else {
+        print("[encryptMetadataPublicKey]: Could not encrypt data")
+        print(error!.takeRetainedValue())
+        
+        return nil
+      }
       
       return encryptedData.base64EncodedString()
     }
@@ -1167,21 +1185,27 @@ class FilenCrypto {
   }
   
   func importPublicKeyFromBase64DER(base64Key: String) -> SecKey? {
-    guard let derData = Data(base64Encoded: base64Key) else { return nil }
-    
-    let keyAttributes: [CFString: Any] = [
-        kSecAttrKeyType: kSecAttrKeyTypeRSA,
-        kSecAttrKeyClass: kSecAttrKeyClassPublic,
-        kSecAttrKeySizeInBits: 4096
-    ]
-    
-    var error: Unmanaged<CFError>?
-  
-    if let publicKey = SecKeyCreateWithData(derData as CFData, keyAttributes as CFDictionary, &error) {
-      return publicKey
+    autoreleasepool {
+      do {
+        return try PublicKey(base64Encoded: base64Key).reference
+      } catch {
+        print("[importPublicKeyFromBase64DER] error: \(error)")
+        
+        return nil
+      }
     }
-    
-    return nil
+  }
+  
+  func importPrivateKeyFromBase64DER(base64Key: String) -> SecKey? {
+    autoreleasepool {
+      do {
+        return try PrivateKey(base64Encoded: base64Key).reference
+      } catch {
+        print("[importPrivateKeyFromBase64DER] error: \(error)")
+        
+        return nil
+      }
+    }
   }
   
   func removePKCS7Padding(from bytes: [UInt8]) -> [UInt8] {

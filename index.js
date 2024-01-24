@@ -293,18 +293,21 @@ const buildNotification = async (payload, channelId) => {
 				if (participants.length > 0) {
 					const participant = participants[0]
 					const privateKey = storage.getString("privateKey")
-					const messageDecrypted = await decryptChatMessage(payload.message, participant.metadata, privateKey)
 
-					if (messageDecrypted.length > 0) {
-						notification = {
-							...notification,
-							title: senderName,
-							body: messageDecrypted,
-							android: {
-								...notification.android,
-								pressAction: {
-									...notification.android.pressAction,
-									id: "openChat:" + payload.conversation
+					if (typeof privateKey === "string" && privateKey.length > 0) {
+						const messageDecrypted = await decryptChatMessage(payload.message, participant.metadata, privateKey)
+
+						if (messageDecrypted.length > 0) {
+							notification = {
+								...notification,
+								title: senderName,
+								body: messageDecrypted,
+								android: {
+									...notification.android,
+									pressAction: {
+										...notification.android.pressAction,
+										id: "openChat:" + payload.conversation
+									}
 								}
 							}
 						}
@@ -475,6 +478,16 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(err => {
 
 	storage.delete("pushToken")
 })
+
+if (Platform.OS === "ios") {
+	Notifications.ios.registerRemoteNotifications({
+		carPlay: false,
+		criticalAlert: false,
+		providesAppNotificationSettings: false,
+		provisional: false,
+		announcement: false
+	})
+}
 
 const initPushNotifications = async () => {
 	const permissions = await hasNotifyPermissions(true)

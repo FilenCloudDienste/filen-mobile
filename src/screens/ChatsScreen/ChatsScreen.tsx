@@ -16,7 +16,7 @@ import { SocketEvent } from "../../lib/services/socket"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
 import { useMMKVNumber } from "react-native-mmkv"
-import storage from "../../lib/storage"
+import storage, { sharedStorage } from "../../lib/storage/storage"
 import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -537,6 +537,8 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const resetNotifications = useCallback(async () => {
 		try {
 			await Promise.all([notifee.cancelAllNotifications(), notifee.setBadgeCount(0), notifee.cancelDisplayedNotifications()])
+
+			sharedStorage.set("notificationBadgeCount", 0)
 		} catch (e) {
 			console.error(e)
 		}

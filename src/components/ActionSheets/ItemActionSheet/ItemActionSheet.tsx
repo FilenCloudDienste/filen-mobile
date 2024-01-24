@@ -365,6 +365,8 @@ const ItemActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 		removeFromOfflineStorage({ item: currentActionSheetItem })
 			.then(() => {
 				//showToast({ message: i18n(lang, "itemRemovedFromOfflineStorage", true, ["__NAME__"], [currentActionSheetItem.name]) })
+
+				useStore.setState({ currentActionSheetItem: { ...currentActionSheetItem, offline: false } })
 			})
 			.catch(err => {
 				console.log(err)
@@ -394,19 +396,23 @@ const ItemActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 			return
 		}
 
-		queueFileDownload({ file: currentActionSheetItem, storeOffline: true }).catch(err => {
-			if (err.toString() == "stopped") {
-				return
-			}
+		queueFileDownload({ file: currentActionSheetItem, storeOffline: true })
+			.then(() => {
+				useStore.setState({ currentActionSheetItem: { ...currentActionSheetItem, offline: true } })
+			})
+			.catch(err => {
+				if (err.toString() == "stopped") {
+					return
+				}
 
-			if (err.toString() == "wifiOnly") {
-				return showToast({ message: i18n(lang, "onlyWifiDownloads") })
-			}
+				if (err.toString() == "wifiOnly") {
+					return showToast({ message: i18n(lang, "onlyWifiDownloads") })
+				}
 
-			console.error(err)
+				console.error(err)
 
-			showToast({ message: err.toString() })
-		})
+				showToast({ message: err.toString() })
+			})
 	}, [currentActionSheetItem, lang])
 
 	const versions = useCallback(async () => {

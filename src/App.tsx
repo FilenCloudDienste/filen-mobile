@@ -105,6 +105,7 @@ import ConfirmLeaveNoteDialog from "./components/Dialogs/ConfirmLeaveNoteDialog"
 import ConfirmRemoveContactDialog from "./components/Dialogs/ConfirmRemoveContactDialog"
 import ConfirmRemoveChatParticipantDialog from "./components/Dialogs/ConfirmRemoveChatParticipantDialog"
 import ConfirmRemoveNoteParticipantDialog from "./components/Dialogs/ConfirmRemoveNoteParticipantDialog"
+import { Notifications } from "react-native-notifications"
 
 enableScreens(true)
 
@@ -141,116 +142,6 @@ const Instance = memo(() => {
 	const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
 	const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 	const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
-	const [fetchedInitialNotification, setFetchedInitialNotification] = useState<boolean>(false)
-
-	const waitForSetupDone = useCallback(() => {
-		return new Promise<void>(resolve => {
-			if (setupDone) {
-				resolve()
-
-				return
-			}
-
-			const wait = setInterval(() => {
-				if (setupDone) {
-					clearInterval(wait)
-					resolve()
-
-					return
-				}
-			}, 100)
-		})
-	}, [setupDone])
-
-	const getInitialNotification = useCallback(async () => {
-		if (!storage.getBoolean("isLoggedIn")) {
-			return
-		}
-
-		try {
-			const initNotification = await notifee.getInitialNotification()
-
-			if (initNotification) {
-				if (Platform.OS === "android") {
-					if (
-						initNotification.notification &&
-						initNotification.notification.android &&
-						initNotification.notification.android.pressAction &&
-						initNotification.notification.android.pressAction.id
-					) {
-						const ex = initNotification.notification.android.pressAction.id.split(":")
-						const type = ex[0]
-						const data = ex[1]
-
-						if (type === "openChats") {
-							await Promise.all([waitForSetupDone(), isNavReady(navigationRef), navigationAnimation({ enable: true })])
-
-							navigationRef.dispatch(
-								CommonActions.reset({
-									index: 0,
-									routes: [
-										{
-											name: "ChatsScreen"
-										}
-									]
-								})
-							)
-						}
-
-						if (type === "openChat" && data) {
-							const cache = await dbFs.get<ChatConversation[]>("chatConversations")
-							const hasCache = cache && Array.isArray(cache)
-
-							if (hasCache) {
-								const conversations = cache.filter(convo => convo.uuid === data)
-
-								if (conversations.length > 0) {
-									navigationRef.dispatch(
-										CommonActions.reset({
-											index: 1,
-											routes: [
-												{
-													name: "ChatsScreen"
-												},
-												{
-													name: "ChatScreen",
-													params: {
-														conversation: conversations[0]
-													}
-												}
-											]
-										})
-									)
-								}
-							}
-						}
-
-						if (type === "openContacts") {
-							await Promise.all([waitForSetupDone(), isNavReady(navigationRef), navigationAnimation({ enable: true })])
-
-							navigationRef.dispatch(
-								CommonActions.reset({
-									index: 1,
-									routes: [
-										{
-											name: "SettingsScreen"
-										},
-										{
-											name: "ContactsScreen"
-										}
-									]
-								})
-							)
-						}
-					}
-				}
-			}
-		} catch (e) {
-			console.error(e)
-		} finally {
-			setFetchedInitialNotification(true)
-		}
-	}, [navigationRef, setupDone])
 
 	const handleShare = useCallback(async (items: ShareMenuItems) => {
 		if (!items || !items.data) {
@@ -306,8 +197,6 @@ const Instance = memo(() => {
 
 	useEffect(() => {
 		const nav = async () => {
-			await getInitialNotification().catch(console.error)
-
 			let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
 
 			if (lockAppAfter === 0) {
@@ -430,8 +319,6 @@ const Instance = memo(() => {
 						navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
 					}
 				}
-			} else if (nextAppState === "active") {
-				getInitialNotification().catch(console.error)
 			}
 		})
 
@@ -611,13 +498,7 @@ const Instance = memo(() => {
 									onLayout={e => setContentHeight(e.nativeEvent.layout.height)}
 								>
 									<Stack.Navigator
-										initialRouteName={
-											isLoggedIn
-												? setupDone && fetchedInitialNotification
-													? "MainScreen"
-													: "SetupScreen"
-												: "LoginScreen"
-										}
+										initialRouteName={isLoggedIn ? (setupDone ? "MainScreen" : "SetupScreen") : "LoginScreen"}
 										screenOptions={{
 											animation: showNavigationAnimation ? "default" : "none",
 											headerShown: false
@@ -874,11 +755,9 @@ const Instance = memo(() => {
 									</Stack.Navigator>
 									{typeof cfg !== "undefined" &&
 										setupDone &&
-										fetchedInitialNotification &&
 										isLoggedIn &&
 										["MainScreen", "SettingsScreen"].includes(currentScreenName) && <Announcements cfg={cfg} />}
 									{setupDone &&
-										fetchedInitialNotification &&
 										isLoggedIn &&
 										[
 											"MainScreen",

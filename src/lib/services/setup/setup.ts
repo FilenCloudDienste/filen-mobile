@@ -28,7 +28,9 @@ const DONT_DELETE: string[] = [
 	"io.filen",
 	"image_cache",
 	"http-cache",
-	"a document being saved by"
+	"a document being saved by",
+	"io.",
+	"com."
 ]
 
 export const canDelete = (name: string): boolean => {

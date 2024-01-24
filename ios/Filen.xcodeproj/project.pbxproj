@@ -18,6 +18,10 @@
 		3D8900C027ACCC1700C43F8A /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D8900BE27ACCC1700C43F8A /* MainInterface.storyboard */; };
 		3D8900C427ACCC1700C43F8A /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3D8900BA27ACCC1700C43F8A /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3D8900C927ACCC6200C43F8A /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8900C827ACCC6200C43F8A /* ShareViewController.swift */; };
+		3DA330F82B602F8000F187A0 /* MMKV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA330F72B602F8000F187A0 /* MMKV.swift */; };
+		3DA330F92B607F2000F187A0 /* FilenUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCF99ED2AC4965300DB7363 /* FilenUtils.swift */; };
+		3DA330FA2B607F2400F187A0 /* FilenCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCF99F02AC49BE600DB7363 /* FilenCrypto.swift */; };
+		3DA330FC2B60824000F187A0 /* IkigaJSON in Frameworks */ = {isa = PBXBuildFile; productRef = 3DA330FB2B60824000F187A0 /* IkigaJSON */; };
 		3DB3FE742ACA38D30028D154 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB3FE732ACA38D30028D154 /* Types.swift */; };
 		3DB3FE762ACBC7D60028D154 /* MMKV.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB3FE752ACBC7D60028D154 /* MMKV.swift */; };
 		3DB3FE772ACD84230028D154 /* FilenCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCF99F02AC49BE600DB7363 /* FilenCrypto.swift */; };
@@ -106,6 +110,7 @@
 		3D8900C127ACCC1700C43F8A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3D8900C827ACCC6200C43F8A /* ShareViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ShareViewController.swift; path = "../../node_modules/react-native-share-menu/ios/ShareViewController.swift"; sourceTree = "<group>"; };
 		3D8900CA27ACCC7C00C43F8A /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
+		3DA330F72B602F8000F187A0 /* MMKV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMKV.swift; sourceTree = "<group>"; };
 		3DB3FE732ACA38D30028D154 /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		3DB3FE752ACBC7D60028D154 /* MMKV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMKV.swift; sourceTree = "<group>"; };
 		3DCF99E02AC45AD500DB7363 /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -166,6 +171,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DA330FC2B60824000F187A0 /* IkigaJSON in Frameworks */,
 				49836C86A1FE092AA9F93BEE /* libPods-NotificationServiceExtension.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -229,6 +235,7 @@
 				3DCF99E22AC45AD500DB7363 /* NotificationService.swift */,
 				3DCF99E42AC45AD500DB7363 /* Info.plist */,
 				3DCF99EC2AC45B5E00DB7363 /* NotificationServiceExtension-Bridging-Header.h */,
+				3DA330F72B602F8000F187A0 /* MMKV.swift */,
 			);
 			path = NotificationServiceExtension;
 			sourceTree = "<group>";
@@ -417,6 +424,9 @@
 			dependencies = (
 			);
 			name = NotificationServiceExtension;
+			packageProductDependencies = (
+				3DA330FB2B60824000F187A0 /* IkigaJSON */,
+			);
 			productName = NotificationServiceExtension;
 			productReference = 3DCF99E02AC45AD500DB7363 /* NotificationServiceExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -800,6 +810,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DA330FA2B607F2400F187A0 /* FilenCrypto.swift in Sources */,
+				3DA330F92B607F2000F187A0 /* FilenUtils.swift in Sources */,
+				3DA330F82B602F8000F187A0 /* MMKV.swift in Sources */,
 				3DCF99E32AC45AD500DB7363 /* NotificationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1453,6 +1466,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3D2E142B2AD16E02006BEDCD /* XCRemoteSwiftPackageReference "SQLite.swift.git" */;
 			productName = SQLite;
+		};
+		3DA330FB2B60824000F187A0 /* IkigaJSON */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3D2E14262AD16B0C006BEDCD /* XCRemoteSwiftPackageReference "IkigaJSON" */;
+			productName = IkigaJSON;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

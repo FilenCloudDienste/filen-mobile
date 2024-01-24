@@ -4,7 +4,7 @@ import { dbFs } from "../../lib/db"
 import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
 import { validate } from "uuid"
 import eventListener from "../../lib/eventListener"
-import storage from "../../lib/storage"
+import storage, { sharedStorage } from "../../lib/storage/storage"
 import regexifyString from "regexify-string"
 import EMOJI_REGEX from "emojibase-regex"
 import { View, Text, Linking, TextInput, TouchableHighlight, Platform } from "react-native"
@@ -99,44 +99,6 @@ export const formatMessageDate = (timestamp: number, lang: string = "en"): strin
 	return `${formatDate(thenDate)} ${formatTime(thenDate)}`
 }
 
-/*export const isTimestampSameDay = (timestamp1: number, timestamp2: number) => {
-	const date1 = new Date(timestamp1)
-	const date2 = new Date(timestamp2)
-
-	return date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate()
-}
-
-export const isTimestampSameMinute = (timestamp1: number, timestamp2: number) => {
-	const date1 = new Date(timestamp1)
-	const date2 = new Date(timestamp2)
-	const date1Year = date1.getFullYear()
-	const date1Month = date1.getMonth()
-	const date1Date = date1.getDate()
-	const date1Minutes = date1.getMinutes()
-	const date2Year = date2.getFullYear()
-	const date2Month = date2.getMonth()
-	const date2Date = date2.getDate()
-	const date2Minutes = date2.getMinutes()
-	const date1Hours = date1.getHours()
-	const date2Hours = date2.getHours()
-
-	return (
-		date1Year === date2Year &&
-		date1Month === date2Month &&
-		date1Date === date2Date &&
-		date1Hours === date2Hours &&
-		(date1Minutes === date2Minutes ||
-			date1Minutes - 1 === date2Minutes ||
-			date1Minutes === date2Minutes - 1 ||
-			date1Minutes + 1 === date2Minutes ||
-			date1Minutes === date2Minutes + 1 ||
-			date1Minutes - 2 === date2Minutes ||
-			date1Minutes === date2Minutes - 2 ||
-			date1Minutes + 2 === date2Minutes ||
-			date1Minutes === date2Minutes + 2)
-	)
-}*/
-
 export const isTimestampSameDay = (timestamp1: number, timestamp2: number): boolean => {
 	const day1 = Math.floor(timestamp1 / 86400000)
 	const day2 = Math.floor(timestamp2 / 86400000)
@@ -204,6 +166,8 @@ export const fetchChatConversations = async (skipCache: boolean = false): Promis
 		await Promise.all(promises)
 
 		await dbFs.set("chatConversations", conversationsDecrypted).catch(console.error)
+
+		sharedStorage.set("chatConversations", JSON.stringify(conversationsDecrypted))
 
 		cleanupLocalDb(conversationsDecrypted).catch(console.error)
 
@@ -1017,7 +981,7 @@ export const headURL = async (url: string): Promise<Record<string, string>> => {
 		throw new Error("Response type is not string: " + url)
 	}
 
-	return response.headers
+	return response.headers as Record<string, string>
 }
 
 export const getURL = async (url: string): Promise<AxiosResponse> => {

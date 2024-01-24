@@ -55,8 +55,12 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
       launchAutomaticallySubstyle = "2">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <RemoteRunnable
+         runnableDebuggingMode = "1"
+         BundleIdentifier = "io.filen.app"
+         RemotePath = "/Users/jan/Library/Developer/CoreSimulator/Devices/EFA7205F-F604-4A88-8818-2434E265CE38/data/Containers/Bundle/Application/AB32208A-3EAC-4DF8-BA84-70AD72DAC245/Filen.app">
+      </RemoteRunnable>
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
@@ -64,7 +68,7 @@
             BlueprintName = "Filen"
             ReferencedContainer = "container:Filen.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
