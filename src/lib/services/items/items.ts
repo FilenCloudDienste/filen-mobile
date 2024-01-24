@@ -87,13 +87,13 @@ export const buildFolder = async ({
 		lastModified: folderLastModified,
 		lastModifiedSort: parseFloat(folderLastModified + "." + folder.uuid.replace(/\D/g, "")),
 		parent: folder.parent || "base",
-		receiverId: typeof folder.receiverId == "number" ? folder.receiverId : 0,
-		receiverEmail: typeof folder.receiverEmail == "string" ? folder.receiverEmail : "",
-		sharerId: typeof folder.sharerId == "number" ? folder.sharerId : 0,
-		sharerEmail: typeof folder.sharerEmail == "string" ? folder.sharerEmail : "",
+		receiverId: typeof folder.receiverId === "number" ? folder.receiverId : 0,
+		receiverEmail: typeof folder.receiverEmail === "string" ? folder.receiverEmail : "",
+		sharerId: typeof folder.sharerId === "number" ? folder.sharerId : 0,
+		sharerEmail: typeof folder.sharerEmail === "string" ? folder.sharerEmail : "",
 		color: folder.color || null,
-		favorited: folder.favorited == 1 ? true : false,
-		isBase: typeof folder.parent == "string" ? false : true,
+		favorited: folder.favorited === 1 ? true : false,
+		isBase: typeof folder.parent === "string" ? false : true,
 		isSync: folder.is_sync || false,
 		isDefault: folder.is_default || false,
 		size: cachedSize ? (cachedSize > 0 ? cachedSize : 0) : 0,
@@ -160,7 +160,7 @@ export const buildFile = async ({
 		} else {
 			const thumbnailCache = storage.getString(thumbnailCacheKey)
 
-			if (typeof thumbnailCache == "string") {
+			if (typeof thumbnailCache === "string") {
 				if (thumbnailCache.length > 0) {
 					thumbnailCachePath = thumbnailCache
 
@@ -171,7 +171,7 @@ export const buildFile = async ({
 	}
 
 	const fileLastModified =
-		typeof metadata.lastModified == "number" && !isNaN(metadata.lastModified) && metadata.lastModified > 1348846653
+		typeof metadata.lastModified === "number" && !isNaN(metadata.lastModified) && metadata.lastModified > 1348846653
 			? convertTimestampToMs(metadata.lastModified)
 			: convertTimestampToMs(file.timestamp)
 	const isAvailableOffline = await db.has(userId + ":offlineItems:" + file.uuid)
@@ -182,7 +182,14 @@ export const buildFile = async ({
 		uuid: file.uuid,
 		name: metadata.name,
 		mime: metadata.mime,
-		size: typeof file.size == "number" ? file.size : typeof file.chunks_size == "number" ? file.chunks_size : 0,
+		size:
+			typeof file.size === "number"
+				? file.size
+				: typeof file.chunks_size === "number"
+				? file.chunks_size
+				: typeof file.chunksSize === "number"
+				? file.chunksSize
+				: 0,
 		key: metadata.key,
 		lastModified: fileLastModified,
 		lastModifiedSort: parseFloat(fileLastModified + "." + file.uuid.replace(/\D/g, "")),
@@ -193,10 +200,10 @@ export const buildFile = async ({
 		chunks: file.chunks,
 		date: simpleDate(fileLastModified),
 		timestamp: file.timestamp,
-		receiverId: typeof file.receiverId == "number" ? file.receiverId : 0,
-		receiverEmail: typeof file.receiverEmail == "string" ? file.receiverEmail : undefined,
-		sharerId: typeof file.sharerId == "number" ? file.sharerId : 0,
-		sharerEmail: typeof file.sharerEmail == "string" ? file.sharerEmail : undefined,
+		receiverId: typeof file.receiverId === "number" ? file.receiverId : 0,
+		receiverEmail: typeof file.receiverEmail === "string" ? file.receiverEmail : undefined,
+		sharerId: typeof file.sharerId === "number" ? file.sharerId : 0,
+		sharerEmail: typeof file.sharerEmail === "string" ? file.sharerEmail : undefined,
 		offline: isAvailableOffline,
 		version: file.version,
 		favorited: file.favorited,
@@ -206,7 +213,7 @@ export const buildFile = async ({
 		isBase: false,
 		isSync: false,
 		isDefault: false,
-		hash: typeof metadata.hash == "string" && metadata.hash.length > 0 ? metadata.hash : ""
+		hash: typeof metadata.hash === "string" && metadata.hash.length > 0 ? metadata.hash : ""
 	}
 }
 
@@ -239,7 +246,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 	const masterKeys = getMasterKeys()
 	const privateKey = storage.getString("privateKey")
 
-	if (userId == 0 || masterKeys.length <= 0) {
+	if (userId === 0 || masterKeys.length <= 0) {
 		throw new Error("Invalid user data")
 	}
 
@@ -494,7 +501,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 			}
 		}
 
-		let items = (await Promise.all(promises)).filter(item => item !== null && typeof item.uuid == "string")
+		let items = (await Promise.all(promises)).filter(item => item !== null && typeof item.uuid === "string")
 
 		if (url.indexOf("shared-out") !== -1) {
 			const groups: Item[] = []
@@ -553,7 +560,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 	if (!(await isOnline())) {
 		if (cached && Array.isArray(cached)) {
 			const sorted = sortItems({ items: cached, passedRoute: route }).filter(
-				item => item !== null && typeof item.uuid == "string" && item.name.length > 0
+				item => item !== null && typeof item.uuid === "string" && item.name.length > 0
 			)
 
 			memoryCache.set("loadItems:" + url, sorted)
@@ -572,7 +579,7 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
 	if (cached && Array.isArray(cached) && !skipCache) {
 		const sorted = sortItems({ items: cached, passedRoute: route }).filter(
-			item => item !== null && typeof item.uuid == "string" && item.name.length > 0
+			item => item !== null && typeof item.uuid === "string" && item.name.length > 0
 		)
 
 		memoryCache.set("loadItems:" + url, sorted)
@@ -607,7 +614,7 @@ export const previewItem = async ({
 	const previewType = getFilePreviewType(getFileExt(item.name))
 	const canThumbnail = canCompressThumbnail(getFileExt(item.name))
 
-	if (item.size >= 131072 && (previewType == "code" || previewType == "text")) {
+	if (item.size >= 131072 && (previewType === "code" || previewType === "text")) {
 		DeviceEventEmitter.emit("event", {
 			type: "open-item-actionsheet",
 			data: item
@@ -638,7 +645,7 @@ export const previewItem = async ({
 		//console.log(e)
 	}
 
-	if (previewType == "image") {
+	if (previewType === "image") {
 		if (!canThumbnail) {
 			DeviceEventEmitter.emit("event", {
 				type: "open-item-actionsheet",
@@ -691,7 +698,7 @@ export const previewItem = async ({
 						})
 				}
 
-				if (previewType == "video") {
+				if (previewType === "video") {
 					FileViewer.open(path, {
 						displayName: item.name,
 						showOpenWithDialog: false
@@ -706,7 +713,7 @@ export const previewItem = async ({
 								message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name])
 							})
 						})
-				} else if (previewType == "pdf" || previewType == "doc") {
+				} else if (previewType === "pdf" || previewType === "doc") {
 					FileViewer.open(path, {
 						displayName: item.name,
 						showOpenWithDialog: false
@@ -721,7 +728,7 @@ export const previewItem = async ({
 								message: i18n(storage.getString("lang"), "couldNotOpenFileLocally", true, ["__NAME__"], [item.name])
 							})
 						})
-				} else if (previewType == "text" || previewType == "code") {
+				} else if (previewType === "text" || previewType === "code") {
 					fs.readAsString(path, "utf8")
 						.then(content => {
 							if (setCurrentActionSheetItem) {
@@ -785,11 +792,11 @@ export const previewItem = async ({
 		},
 		isPreview: true
 	}).catch(err => {
-		if (err.toString() == "stopped") {
+		if (err.toString() === "stopped") {
 			return
 		}
 
-		if (err.toString() == "wifiOnly") {
+		if (err.toString() === "wifiOnly") {
 			showToast({ message: i18n(storage.getString("lang"), "onlyWifiDownloads") })
 
 			return
