@@ -523,5 +523,6 @@ export const zh: {
 	confirmLeaveNotePermanently: "您确定要离开此笔记吗？",
 	confirmRemoveContact: "您确定要从联系人中移除 __NAME__ 吗？",
 	confirmRemoveChatParticipant: "您确定要从此聊天中移除 __NAME__ 吗？",
-	confirmRemoveNoteParticipant: "您确定要从此笔记中移除 __NAME__ 吗？"
+	confirmRemoveNoteParticipant: "您确定要从此笔记中移除 __NAME__ 吗？",
+	blockedUserMessageHidden: "被拉黑的用户的消息已被隐藏"
 }
