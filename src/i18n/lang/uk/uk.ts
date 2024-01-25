@@ -521,5 +521,6 @@ export const uk: {
 	confirmLeaveNotePermanently: "Ви впевнені, що хочете покинути цю нотатку?",
 	confirmRemoveContact: "Ви впевнені, що хочете видалити __NAME__ зі своїх контактів?",
 	confirmRemoveChatParticipant: "Ви дійсно хочете видалити __NAME__ з цього чату?",
-	confirmRemoveNoteParticipant: "Ви впевнені, що хочете видалити __NAME__ з цієї нотатки?"
+	confirmRemoveNoteParticipant: "Ви впевнені, що хочете видалити __NAME__ з цієї нотатки?",
+	blockedUserMessageHidden: "Повідомлення заблокованого користувача приховано"
 }

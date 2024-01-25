@@ -521,5 +521,6 @@ export const ru: {
 	confirmLeaveNotePermanently: "Вы уверены, что хотите покинуть эту заметку?",
 	confirmRemoveContact: "Вы уверены, что хотите удалить __NAME__ из своих контактов?",
 	confirmRemoveChatParticipant: "Вы уверены, что хотите удалить __NAME__ из этого чата?",
-	confirmRemoveNoteParticipant: "Вы уверены, что хотите удалить __NAME__ из этой заметки?"
+	confirmRemoveNoteParticipant: "Вы уверены, что хотите удалить __NAME__ из этой заметки?",
+	blockedUserMessageHidden: "Сообщение заблокированного пользователя скрыто"
 }
