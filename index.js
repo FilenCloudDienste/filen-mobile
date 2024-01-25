@@ -40,6 +40,7 @@ let backgroundNotificationMutex = new Semaphore(1)
 let cameraUploadNotificationMutex = new Semaphore(1)
 let nextAllowedCameraUploadNotification = 0
 let cameraUploadStatusGlobal = "inactive"
+let notificationGroupSummaryCreated = false
 
 const hasNotifyPermissions = async () => {
 	const now = Date.now()
@@ -306,7 +307,7 @@ const buildNotification = async (payload, channelId) => {
 				id: "open",
 				launchActivity: "default"
 			},
-			groupSummary: true,
+			groupSummary: !notificationGroupSummaryCreated,
 			groupId: "notifications",
 			timestamp: Date.now()
 		},
@@ -314,6 +315,8 @@ const buildNotification = async (payload, channelId) => {
 			payload
 		}
 	}
+
+	notificationGroupSummaryCreated = true
 
 	if (payload.type === "chatMessageNew") {
 		const userId = storage.getNumber("userId")
