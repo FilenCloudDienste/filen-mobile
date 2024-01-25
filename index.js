@@ -35,12 +35,12 @@ let currentUploadsCountGlobal = 0
 let nextHasPermissionsQuery = 0
 let lastHasPermissions = false
 let normalNotificationsChannelId = null
-let normalNotificationMutex = new Semaphore(1)
-let backgroundNotificationMutex = new Semaphore(1)
+let buildNotificationMutex = new Semaphore(1)
 let cameraUploadNotificationMutex = new Semaphore(1)
 let nextAllowedCameraUploadNotification = 0
 let cameraUploadStatusGlobal = "inactive"
-let notificationGroupSummaryCreated = false
+let normalNotificationsMutex = new Semaphore(1)
+let handleForegroundServiceMutex = new Semaphore(1)
 
 const hasNotifyPermissions = async () => {
 	const now = Date.now()
@@ -71,22 +71,28 @@ const registerForegroundService = async () => {
 		notifee.registerForegroundService(() => {
 			return new Promise(resolve => {
 				const wait = setInterval(() => {
-					if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0 && cameraUploadStatusGlobal === "inactive") {
-						clearInterval(wait)
+					handleForegroundServiceMutex.acquire().then(() => {
+						if (currentDownloadsCountGlobal + currentUploadsCountGlobal <= 0 && cameraUploadStatusGlobal === "inactive") {
+							clearInterval(wait)
 
-						notifee
-							.stopForegroundService()
-							.then(() => resolve())
-							.catch(err => {
-								console.error(err)
+							notifee
+								.stopForegroundService()
+								.then(() => resolve())
+								.catch(err => {
+									console.error(err)
 
-								resolve()
-							})
-							.finally(() => {
-								foregroundServiceRegistered = false
-							})
-					}
-				}, 2500)
+									resolve()
+								})
+								.finally(() => {
+									foregroundServiceRegistered = false
+
+									handleForegroundServiceMutex.release()
+								})
+						} else {
+							handleForegroundServiceMutex.release()
+						}
+					})
+				}, 1000)
 			})
 		})
 	} catch (e) {
@@ -96,8 +102,10 @@ const registerForegroundService = async () => {
 	}
 }
 
-if (Platform.OS === "android") {
-	const handleForegroundService = async progress => {
+const handleForegroundService = async progress => {
+	await handleForegroundServiceMutex.acquire()
+
+	try {
 		await registerForegroundService()
 
 		const permissions = await hasNotifyPermissions()
@@ -148,9 +156,10 @@ if (Platform.OS === "android") {
 					id: "foregroundService",
 					launchActivity: "default"
 				},
-				groupSummary: true,
 				groupId: "foregroundService",
-				timestamp: Date.now()
+				timestamp: Date.now(),
+				smallIcon: "ic_small_icon",
+				color: "#ffffff"
 			},
 			data: {
 				type: "foregroundService"
@@ -191,8 +200,14 @@ if (Platform.OS === "android") {
 
 			lastTransfersNotificationProgress = progress
 		}
+	} catch (e) {
+		throw e
+	} finally {
+		handleForegroundServiceMutex.release()
 	}
+}
 
+if (Platform.OS === "android") {
 	eventListener.on("cameraUploadStatus", async status => {
 		cameraUploadStatusGlobal = status
 
@@ -279,9 +294,11 @@ const resetBadgeCount = async () => {
 const onCameraUploadNotification = async () => {
 	await cameraUploadNotificationMutex.acquire()
 
-	const now = Date.now()
-
 	try {
+		eventListener.emit("cameraUploadStatus", "active")
+
+		const now = Date.now()
+
 		if (nextAllowedCameraUploadNotification > now) {
 			return
 		}
@@ -293,85 +310,108 @@ const onCameraUploadNotification = async () => {
 		throw e
 	} finally {
 		cameraUploadNotificationMutex.release()
+
+		eventListener.emit("cameraUploadStatus", "inactive")
 	}
 }
 
-const buildNotification = async (payload, channelId) => {
-	const lang = storage.getString("lang") || "en"
-	let notification = {
-		title: "Filen",
-		body: i18n(lang, "newNotification"),
-		android: {
-			channelId,
-			pressAction: {
-				id: "open",
-				launchActivity: "default"
-			},
-			groupSummary: !notificationGroupSummaryCreated,
-			groupId: "notifications",
-			timestamp: Date.now()
-		},
-		data: {
-			payload
-		}
-	}
+const buildNotification = async payload => {
+	await buildNotificationMutex.acquire()
 
-	notificationGroupSummaryCreated = true
+	try {
+		const permissions = await hasNotifyPermissions()
 
-	if (payload.type === "chatMessageNew") {
-		const userId = storage.getNumber("userId")
-
-		if (userId === parseInt(payload.senderId)) {
-			return
+		if (!permissions) {
+			return null
 		}
 
-		const cache = await dbFs.get("chatConversations")
-		const hasCache = cache && Array.isArray(cache)
+		if (!normalNotificationsChannelId) {
+			normalNotificationsChannelId = await notifee.createChannel({
+				id: "notifications",
+				name: "Notifications",
+				vibration: false,
+				sound: undefined
+			})
+		}
 
-		const senderName =
-			typeof payload.senderNickName === "string" && payload.senderNickName.length > 0
-				? payload.senderNickName
-				: typeof payload.senderEmail === "string" && payload.senderEmail.length > 0
-				? payload.senderEmail
-				: i18n(lang, "aUser")
-
-		notification = {
-			...notification,
-			title: senderName,
-			body: i18n(lang, "chatMessageNewBody"),
+		const lang = storage.getString("lang") || "en"
+		let notification = {
+			title: "Filen",
+			body: i18n(lang, "newNotification"),
 			android: {
-				...notification.android,
+				channelId: normalNotificationsChannelId,
 				pressAction: {
-					...notification.android.pressAction,
-					id: "openChats"
-				}
+					id: "open",
+					launchActivity: "default"
+				},
+				groupId: "notifications",
+				timestamp: Date.now(),
+				smallIcon: "ic_small_icon",
+				color: "#ffffff"
+			},
+			data: {
+				payload
 			}
 		}
 
-		if (hasCache) {
-			const conversations = cache.filter(conversation => conversation.uuid === payload.conversation)
+		if (payload.type === "chatMessageNew") {
+			const userId = storage.getNumber("userId")
 
-			if (conversations.length > 0) {
-				const conversation = conversations[0]
-				const participants = conversation.participants.filter(participant => participant.userId === userId)
+			if (userId === parseInt(payload.senderId)) {
+				return null
+			}
 
-				if (participants.length > 0) {
-					const participant = participants[0]
-					const privateKey = storage.getString("privateKey")
+			const cache = await dbFs.get("chatConversations")
+			const hasCache = cache && Array.isArray(cache)
 
-					if (typeof privateKey === "string" && privateKey.length > 0) {
-						const messageDecrypted = await decryptChatMessage(payload.message, participant.metadata, privateKey)
+			const senderName =
+				typeof payload.senderNickName === "string" && payload.senderNickName.length > 0
+					? payload.senderNickName
+					: typeof payload.senderEmail === "string" && payload.senderEmail.length > 0
+					? payload.senderEmail
+					: i18n(lang, "aUser")
 
-						if (messageDecrypted.length > 0) {
-							notification = {
-								...notification,
-								title: senderName,
-								body: messageDecrypted,
-								android: {
-									...notification.android,
-									pressAction: {
-										...notification.android.pressAction,
-										id: "openChat:" + payload.conversation
+			notification = {
+				...notification,
+				title: senderName,
+				body: i18n(lang, "chatMessageNewBody"),
+				android: {
+					...notification.android,
+					...(typeof payload.senderAvatar === "string" && payload.senderAvatar.startsWith("https://")
+						? { largeIcon: payload.senderAvatar }
+						: {}),
+					pressAction: {
+						...notification.android.pressAction,
+						id: "openChats"
+					}
+				}
+			}
+
+			if (hasCache) {
+				const conversations = cache.filter(conversation => conversation.uuid === payload.conversation)
+
+				if (conversations.length > 0) {
+					const conversation = conversations[0]
+					const participants = conversation.participants.filter(participant => participant.userId === userId)
+
+					if (participants.length > 0) {
+						const participant = participants[0]
+						const privateKey = storage.getString("privateKey")
+
+						if (typeof privateKey === "string" && privateKey.length > 0) {
+							const messageDecrypted = await decryptChatMessage(payload.message, participant.metadata, privateKey)
+
+							if (messageDecrypted.length > 0) {
+								notification = {
+									...notification,
+									title: senderName,
+									body: messageDecrypted,
+									android: {
+										...notification.android,
+										pressAction: {
+											...notification.android.pressAction,
+											id: "openChat:" + payload.conversation
+										}
 									}
 								}
 							}
@@ -380,31 +420,38 @@ const buildNotification = async (payload, channelId) => {
 				}
 			}
 		}
-	}
 
-	if (payload.type === "contactRequestReceived") {
-		const senderName =
-			typeof payload.senderNickName === "string" && payload.senderNickName.length > 0
-				? payload.senderNickName
-				: typeof payload.senderEmail === "string" && payload.senderEmail.length > 0
-				? payload.senderEmail
-				: i18n(lang, "aUser")
+		if (payload.type === "contactRequestReceived") {
+			const senderName =
+				typeof payload.senderNickName === "string" && payload.senderNickName.length > 0
+					? payload.senderNickName
+					: typeof payload.senderEmail === "string" && payload.senderEmail.length > 0
+					? payload.senderEmail
+					: i18n(lang, "aUser")
 
-		notification = {
-			...notification,
-			title: senderName,
-			body: i18n(lang, "contactRequestReceivedBody"),
-			android: {
-				...notification.android,
-				pressAction: {
-					...notification.android.pressAction,
-					id: "openContacts"
+			notification = {
+				...notification,
+				title: senderName,
+				body: i18n(lang, "contactRequestReceivedBody"),
+				android: {
+					...notification.android,
+					...(typeof payload.senderAvatar === "string" && payload.senderAvatar.startsWith("https://")
+						? { largeIcon: payload.senderAvatar }
+						: {}),
+					pressAction: {
+						...notification.android.pressAction,
+						id: "openContacts"
+					}
 				}
 			}
 		}
-	}
 
-	return notification
+		return notification
+	} catch (e) {
+		throw e
+	} finally {
+		buildNotificationMutex.release()
+	}
 }
 
 const onBackgroundNotification = async (payload, completion) => {
@@ -415,9 +462,13 @@ const onBackgroundNotification = async (payload, completion) => {
 	}
 
 	if (payload.type === "cameraUpload") {
-		completion(NotificationBackgroundFetchResult.NEW_DATA)
+		try {
+			onCameraUploadNotification().catch(console.error)
+		} catch (e) {
+			console.error(e)
+		}
 
-		onCameraUploadNotification().catch(console.error)
+		completion(NotificationBackgroundFetchResult.NEW_DATA)
 
 		return
 	}
@@ -426,30 +477,23 @@ const onBackgroundNotification = async (payload, completion) => {
 		return
 	}
 
-	await backgroundNotificationMutex.acquire()
+	await normalNotificationsMutex.acquire()
 
 	try {
-		if (!normalNotificationsChannelId) {
-			normalNotificationsChannelId = await notifee.createChannel({
-				id: "notifications",
-				name: "Notifications",
-				vibration: false,
-				sound: undefined
-			})
+		const notification = await buildNotification(payload)
+
+		if (notification) {
+			await notifee.displayNotification(notification)
+			await increaseBadgeCount(1)
 		}
 
-		const notification = await buildNotification(payload, normalNotificationsChannelId)
-
-		await notifee.displayNotification(notification)
-		await increaseBadgeCount(1)
+		completion(NotificationBackgroundFetchResult.NEW_DATA)
 	} catch (e) {
 		completion(NotificationBackgroundFetchResult.FAILED)
 
 		throw e
 	} finally {
-		backgroundNotificationMutex.release()
-
-		completion(NotificationBackgroundFetchResult.NEW_DATA)
+		normalNotificationsMutex.release()
 	}
 }
 
@@ -472,31 +516,7 @@ const onForegroundNotification = async (payload, completion) => {
 		return
 	}
 
-	return
-
-	await normalNotificationMutex.acquire()
-
-	try {
-		if (!normalNotificationsChannelId) {
-			normalNotificationsChannelId = await notifee.createChannel({
-				id: "notifications",
-				name: "Notifications",
-				vibration: false,
-				sound: undefined
-			})
-		}
-
-		const notification = await buildNotification(payload, normalNotificationsChannelId)
-
-		await notifee.displayNotification(notification)
-		await increaseBadgeCount(1)
-	} catch (e) {
-		throw e
-	} finally {
-		normalNotificationMutex.release()
-
-		completion({ alert: false, sound: false, badge: false })
-	}
+	completion({ alert: false, sound: false, badge: false })
 }
 
 Notifications.events().registerRemoteNotificationsRegistered(event => {
@@ -508,8 +528,6 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(event => {
 })
 
 Notifications.events().registerNotificationReceivedForeground(async (notification, completion) => {
-	console.log(Platform.OS, "Notification Received - Foreground", notification.payload)
-
 	try {
 		await onForegroundNotification(notification.payload, completion)
 	} catch (e) {
@@ -518,15 +536,10 @@ Notifications.events().registerNotificationReceivedForeground(async (notificatio
 })
 
 Notifications.events().registerNotificationOpened((notification, completion, action) => {
-	console.log(Platform.OS, "Notification opened by device user", notification)
-	console.log(Platform.OS, `Notification opened with an action identifier: ${action.identifier} and response text: ${action.text}`)
-
 	completion()
 })
 
 Notifications.events().registerNotificationReceivedBackground(async (notification, completion) => {
-	console.log(Platform.OS, "Notification Received - Background", notification.payload)
-
 	try {
 		await onBackgroundNotification(notification.payload, completion)
 	} catch (e) {
@@ -562,7 +575,13 @@ const initPushNotifications = async () => {
 	}
 
 	try {
-		Notifications.registerRemoteNotifications()
+		Notifications.registerRemoteNotifications({
+			carPlay: false,
+			criticalAlert: false,
+			providesAppNotificationSettings: false,
+			provisional: false,
+			announcement: false
+		})
 	} catch (e) {
 		throw e
 	}
@@ -572,6 +591,8 @@ initPushNotifications().catch(console.error)
 
 setTimeout(() => {
 	runCameraUpload()
+
+	global.nodeThread.getCurrentTransfers().catch(console.error)
 }, 5000)
 
 AppRegistry.registerComponent(appName, () => App)

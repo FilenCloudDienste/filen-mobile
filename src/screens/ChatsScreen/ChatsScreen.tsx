@@ -38,6 +38,7 @@ import {
 } from "../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
 import { showToast } from "../../components/Toasts"
 import notifee from "@notifee/react-native"
+import { Notifications } from "react-native-notifications"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -536,7 +537,12 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 
 	const resetNotifications = useCallback(async () => {
 		try {
-			await Promise.all([notifee.cancelAllNotifications(), notifee.setBadgeCount(0), notifee.cancelDisplayedNotifications()])
+			await Promise.all([
+				notifee.cancelAllNotifications(),
+				notifee.setBadgeCount(0),
+				notifee.cancelDisplayedNotifications(),
+				Notifications.removeAllDeliveredNotifications()
+			])
 
 			sharedStorage.set("notificationBadgeCount", 0)
 		} catch (e) {

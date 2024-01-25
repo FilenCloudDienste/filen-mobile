@@ -4,7 +4,7 @@ import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { useStore } from "../../../lib/state"
-import { queueFileDownload } from "../../../lib/services/download/download"
+import { queueFileDownload, downloadFolder } from "../../../lib/services/download/download"
 import { getFileExt, getRouteURL, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
 import { showToast } from "../../Toasts"
 import { i18n } from "../../../i18n"
@@ -192,8 +192,9 @@ const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContaine
 		}
 
 		if (doesSelectedItemsContainFolders()) {
-			setCanDownload(false)
 			setCanMakeAvailableOffline(false)
+			setCanShowRemoveOffline(false)
+			setCanShowSaveToGallery(false)
 		}
 	}, [routeURL, photosGridSize])
 
@@ -542,21 +543,42 @@ const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContaine
 		}
 
 		items.forEach(item => {
-			queueFileDownload({ file: item }).catch(err => {
-				if (err.toString() == "stopped") {
-					return
-				}
+			if (item.type === "folder") {
+				downloadFolder({
+					folder: item,
+					shared: typeof item.sharerId === "number" && item.sharerId > 0
+				}).catch(err => {
+					if (err.toString() === "stopped") {
+						return
+					}
 
-				if (err.toString() == "wifiOnly") {
-					showToast({ message: i18n(lang, "onlyWifiDownloads") })
+					if (err.toString() === "wifiOnly") {
+						showToast({ message: i18n(lang, "onlyWifiDownloads") })
 
-					return
-				}
+						return
+					}
 
-				console.error(err)
+					console.error(err)
 
-				showToast({ message: err.toString() })
-			})
+					showToast({ message: err.toString() })
+				})
+			} else {
+				queueFileDownload({ file: item }).catch(err => {
+					if (err.toString() === "stopped") {
+						return
+					}
+
+					if (err.toString() === "wifiOnly") {
+						showToast({ message: i18n(lang, "onlyWifiDownloads") })
+
+						return
+					}
+
+					console.error(err)
+
+					showToast({ message: err.toString() })
+				})
+			}
 		})
 	}, [lang, bulkItems])
 

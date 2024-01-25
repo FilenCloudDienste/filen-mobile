@@ -261,7 +261,7 @@ const transfersUpdate = (retryCounter = 0) => {
 	const now = Date.now()
 
 	if (nextTransfersUpdate > now) {
-		if (retryCounter >= 16) {
+		if (retryCounter >= 5) {
 			return
 		}
 
@@ -2431,6 +2431,8 @@ rn_bridge.channel.on("message", message => {
 				currentDownloads
 			}
 		})
+
+		updateTransfersProgress()
 
 		tasksRunning -= 1
 	} else {

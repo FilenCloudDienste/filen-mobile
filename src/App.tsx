@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Fragment, memo, useCallback } from "react"
 import { View, Platform, DeviceEventEmitter, Appearance, AppState, AppStateStatus } from "react-native"
 import { setup } from "./lib/services/setup"
-import storage from "./lib/storage"
+import storage, { sharedStorage } from "./lib/storage/storage"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import { NavigationContainer, createNavigationContainerRef, StackActions, CommonActions, DarkTheme } from "@react-navigation/native"
@@ -187,6 +187,21 @@ const Instance = memo(() => {
 		}, timeout) // We use a timeout due to the RN appearance event listener firing both "dark" and "light" on app resume which causes the screen to flash for a second
 	}, [])
 
+	const resetNotifications = useCallback(async () => {
+		try {
+			await Promise.all([
+				notifee.cancelAllNotifications(),
+				notifee.setBadgeCount(0),
+				notifee.cancelDisplayedNotifications(),
+				Notifications.removeAllDeliveredNotifications()
+			])
+
+			sharedStorage.set("notificationBadgeCount", 0)
+		} catch (e) {
+			console.error(e)
+		}
+	}, [])
+
 	useEffect(() => {
 		if (keepAppAwake) {
 			activateKeepAwakeAsync().catch(console.error)
@@ -319,6 +334,8 @@ const Instance = memo(() => {
 						navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
 					}
 				}
+			} else if (nextAppState === "active") {
+				resetNotifications()
 			}
 		})
 
@@ -336,6 +353,7 @@ const Instance = memo(() => {
 
 		getCfg().then(setCFG).catch(console.error)
 		setAppearance(1)
+		resetNotifications()
 
 		const appearanceListener = Appearance.addChangeListener(() => setAppearance(1000))
 

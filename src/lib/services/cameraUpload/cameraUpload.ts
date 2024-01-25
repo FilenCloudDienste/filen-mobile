@@ -32,7 +32,7 @@ const CryptoJS = require("crypto-js")
 
 const TIMEOUT = 5000
 const FAILED: Record<string, number> = {}
-const MAX_FAILED = 3
+const MAX_FAILED = 5
 const uploadSemaphore = new Semaphore(MAX_CAMERA_UPLOAD_QUEUE)
 let runTimeout = 0
 const getFilesMutex = new Semaphore(1)
@@ -817,7 +817,7 @@ export const getFileParentFolderUUID = async (baseParentUUID: string, parentFold
 	}
 }
 
-export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = false): Promise<void> => {
+export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean = false): Promise<void> => {
 	await runMutex.acquire()
 
 	try {
@@ -885,18 +885,22 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 		const upload = async (delta: Delta): Promise<void> => {
 			await uploadSemaphore.acquire()
 
-			const asset = delta.item.asset
-			const assetId = getAssetId(asset)
-			const parentFolderName = pathModule.dirname(delta.item.path)
-			const parentFolderUUID = !cameraUploadAutoOrganize
-				? cameraUploadFolderUUID
-				: parentFolderName === "." || parentFolderName.length <= 0
-				? cameraUploadFolderUUID
-				: await getFileParentFolderUUID(cameraUploadFolderUUID, parentFolderName)
+			let assetId: string = null
 
 			try {
+				const asset = delta.item.asset
+
+				assetId = getAssetId(asset)
+
+				const parentFolderName = pathModule.dirname(delta.item.path)
+				const parentFolderUUID = !cameraUploadAutoOrganize
+					? cameraUploadFolderUUID
+					: parentFolderName === "." || parentFolderName.length <= 0
+					? cameraUploadFolderUUID
+					: await getFileParentFolderUUID(cameraUploadFolderUUID, parentFolderName)
+
 				const assetURI = await getAssetURI(asset)
-				var stat = await fs.stat(assetURI)
+				const stat = await fs.stat(assetURI)
 				const [lastModified, lastModifiedStat, lastSize] = await Promise.all([
 					db.cameraUpload.getLastModified(asset),
 					db.cameraUpload.getLastModifiedStat(asset),
@@ -924,48 +928,44 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 					return
 				}
 
-				var files = await getFiles(asset, assetURI)
+				const files = await getFiles(asset, assetURI)
+
+				for (const file of files) {
+					await queueFileUpload({
+						file,
+						parent: parentFolderUUID,
+						isCameraUpload: true
+					}).catch(console.error)
+
+					if (file.path.includes(fs.documentDirectory()) || file.path.includes(fs.cacheDirectory())) {
+						await fs.unlink(file.path).catch(console.error)
+					}
+				}
+
+				uploadedThisRun += 1
+
+				storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
+
+				if (stat.exists) {
+					await Promise.all([
+						db.cameraUpload.setLastModified(asset, convertTimestampToMs(delta.item.lastModified)),
+						db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || delta.item.lastModified)),
+						db.cameraUpload.setLastSize(asset, stat.size || 0)
+					])
+				}
 			} catch (e) {
-				console.error(e)
-
-				if (typeof FAILED[assetId] !== "number") {
-					FAILED[assetId] = 1
-				} else {
-					FAILED[assetId] += 1
+				if (assetId) {
+					if (typeof FAILED[assetId] !== "number") {
+						FAILED[assetId] = 1
+					} else {
+						FAILED[assetId] += 1
+					}
 				}
 
+				throw e
+			} finally {
 				uploadSemaphore.release()
-
-				return
 			}
-
-			for (const file of files) {
-				await queueFileUpload({
-					file,
-					parent: parentFolderUUID,
-					isCameraUpload: true
-				}).catch(console.error)
-
-				if (file.path.includes(fs.documentDirectory()) || file.path.includes(fs.cacheDirectory())) {
-					await fs.unlink(file.path).catch(console.error)
-				}
-			}
-
-			uploadedThisRun += 1
-
-			storage.set("cameraUploadUploaded", currentlyUploadedCount + uploadedThisRun)
-
-			if (stat.exists) {
-				await Promise.all([
-					db.cameraUpload.setLastModified(asset, convertTimestampToMs(delta.item.lastModified)),
-					db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || delta.item.lastModified)),
-					db.cameraUpload.setLastSize(asset, stat.size || 0)
-				])
-			}
-
-			uploadSemaphore.release()
-
-			return
 		}
 
 		for (let i = 0; i < deltas.length; i++) {
@@ -989,10 +989,7 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 			storage.set("cameraUploadUploaded", Object.keys(local).length)
 		}
 
-		eventListener.emit(
-			"cameraUploadStatus",
-			deltas.length <= 0 ? "inactive" : deltas.length - uploadedThisRun > 0 ? "active" : "inactive"
-		)
+		eventListener.emit("cameraUploadStatus", deltas.length > 0 && !runOnce ? "active" : "inactive")
 	} catch (e) {
 		console.error(e)
 	} finally {
@@ -1004,6 +1001,8 @@ export const runCameraUpload = async (maxQueue: number = 50, runOnce: boolean = 
 			setTimeout(() => {
 				runCameraUpload(maxQueue)
 			}, TIMEOUT)
+		} else {
+			eventListener.emit("cameraUploadStatus", "inactive")
 		}
 	}
 }

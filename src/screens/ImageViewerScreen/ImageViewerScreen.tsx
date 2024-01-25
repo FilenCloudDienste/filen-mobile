@@ -288,8 +288,7 @@ const ImageViewerScreen = memo(
 					<TouchableOpacity
 						style={{
 							width: 30,
-							height: "100%",
-							backgroundColor: "transparent",
+							height: 45,
 							flexDirection: "column",
 							justifyContent: "space-between",
 							alignItems: "center"
@@ -340,7 +339,7 @@ const ImageViewerScreen = memo(
 									contentFit="cover"
 									cachePolicy="none"
 									style={{
-										width: 30,
+										width: "100%",
 										height: 35
 									}}
 								/>
@@ -351,10 +350,7 @@ const ImageViewerScreen = memo(
 								backgroundColor: imagePreviewModalIndex === index ? "gray" : "transparent",
 								width: 15,
 								height: 5,
-								borderRadius: 20,
-								position: "absolute",
-								top: 38,
-								zIndex: 999999
+								borderRadius: 20
 							}}
 						/>
 					</TouchableOpacity>
@@ -464,7 +460,6 @@ const ImageViewerScreen = memo(
 				>
 					<FlatList
 						extraData={{
-							portrait: dimensions.isPortrait ? "portrait" : "landscape",
 							dimensions,
 							images,
 							imagePreviewModalItems
@@ -495,19 +490,17 @@ const ImageViewerScreen = memo(
 				<View
 					style={{
 						position: "absolute",
-						bottom: dimensions.navigationBarHeight > 0 ? -dimensions.navigationBarHeight : 0,
+						bottom: 0,
 						width: dimensions.realWidth,
-						zIndex: showControls ? 0 : 10000,
-						height: "auto",
-						paddingBottom: dimensions.navigationBarHeight + dimensions.insets.bottom,
-						backgroundColor: "rgba(0, 0, 0, 1)",
+						zIndex: showControls ? 1 : 10000,
+						height: 45,
+						backgroundColor: "black",
 						opacity: showControls ? 0 : 1
 					}}
 				>
 					<FlashList
 						key={dimensions.isPortrait ? "thumbs-portrait" : "thumbs-landscape"}
 						extraData={{
-							portrait: dimensions.isPortrait ? "thumbs-portrait" : "thumbs-landscape",
 							imagePreviewModalItems,
 							imagePreviewModalIndex,
 							dimensions
@@ -523,7 +516,7 @@ const ImageViewerScreen = memo(
 						bounces={false}
 						estimatedListSize={{
 							width: dimensions.realWidth,
-							height: 50
+							height: 45
 						}}
 						showsVerticalScrollIndicator={false}
 						showsHorizontalScrollIndicator={false}
