@@ -256,6 +256,7 @@ export const CameraUploadScreen = memo(({ navigation }: CameraUploadScreenProps)
 					/>
 					<SettingsButtonLinkHighlight
 						title={i18n(lang, "cameraUploadCompressImages")}
+						withBottomBorder={true}
 						rightComponent={
 							<Switch
 								trackColor={getColor(darkMode, "switchTrackColor")}
