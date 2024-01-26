@@ -208,7 +208,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 		})
 
 		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
-			if (event.type === "chatMessageNew" && storage.getNumber("userId") !== event.data.senderId) {
+			if (event.type === "chatMessageNew" && storage.getNumber("userId") !== event.data.senderId && !event.data.muted) {
 				setChatUnread(prev => prev + 1)
 			}
 		})

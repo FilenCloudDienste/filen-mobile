@@ -128,6 +128,7 @@ export interface SocketFolderColorChanged {
 
 export interface SocketChatMessageNew extends ChatMessage {
 	conversation: string
+	muted: boolean
 }
 
 export interface SocketChatTyping {

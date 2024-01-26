@@ -140,7 +140,7 @@ const ChatConversationActionSheet = memo(() => {
 						)}
 						<ActionButton
 							onPress={() => muteConvo(!selectedConversation.muted)}
-							icon={selectedConversation.muted ? "volume-outline" : "volume-mute-outline"}
+							icon={selectedConversation.muted ? "volume-high-outline" : "volume-mute-outline"}
 							text={selectedConversation.muted ? i18n(lang, "unmute") : i18n(lang, "mute")}
 						/>
 						<ActionButton

@@ -25,7 +25,9 @@ export const TextEditorScreen = memo(({ navigation }: { navigation: NavigationCo
 	const createTextFileDialogName = useStore(state => state.createTextFileDialogName)
 	const textEditorParent = useStore(state => state.textEditorParent)
 	const keyboardOffset = useKeyboardOffset()
-	const fileName = useRef<string>(textEditorState == "edit" ? createTextFileDialogName : (currentActionSheetItem?.name as string)).current
+	const fileName = useRef<string>(
+		textEditorState === "edit" ? createTextFileDialogName : (currentActionSheetItem?.name as string)
+	).current
 	const setTextEditorState = useStore(state => state.setTextEditorState)
 
 	const save = useCallback(() => {
@@ -33,7 +35,7 @@ export const TextEditorScreen = memo(({ navigation }: { navigation: NavigationCo
 			return
 		}
 
-		if (value == textEditorText) {
+		if (value === textEditorText) {
 			return navigation.goBack()
 		}
 
@@ -92,11 +94,11 @@ export const TextEditorScreen = memo(({ navigation }: { navigation: NavigationCo
 						},
 						parent
 					}).catch(err => {
-						if (err.toString() == "stopped") {
+						if (err.toString() === "stopped") {
 							return
 						}
 
-						if (err.toString() == "wifiOnly") {
+						if (err.toString() === "wifiOnly") {
 							showToast({ message: i18n(lang, "onlyWifiUploads") })
 
 							return
@@ -167,9 +169,8 @@ export const TextEditorScreen = memo(({ navigation }: { navigation: NavigationCo
 				leftText={i18n(lang, "back")}
 				middleText={fileName}
 				onPressBack={() => close()}
-				height={44}
 				rightComponent={
-					textEditorState == "edit" ? (
+					textEditorState === "edit" ? (
 						<View
 							style={{
 								flexDirection: "row",
@@ -202,16 +203,24 @@ export const TextEditorScreen = memo(({ navigation }: { navigation: NavigationCo
 					) : undefined
 				}
 			/>
-			<TextEditor
-				darkMode={darkMode}
-				value={textEditorText.length > 0 ? textEditorText : ""}
-				readOnly={false}
-				placeholder=""
-				onChange={e => {
-					setValue(e)
-					setTextEditorState("edit")
+			<View
+				style={{
+					height: "100%",
+					width: "100%",
+					marginTop: 5
 				}}
-			/>
+			>
+				<TextEditor
+					darkMode={darkMode}
+					value={textEditorText.length > 0 ? textEditorText : ""}
+					readOnly={false}
+					placeholder=""
+					onChange={e => {
+						setValue(e)
+						setTextEditorState("edit")
+					}}
+				/>
+			</View>
 		</KeyboardAvoidingView>
 	)
 })

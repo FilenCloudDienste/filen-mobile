@@ -270,7 +270,8 @@ const Item = memo(
 								</Text>
 							</View>
 							{typeof unreadConversationsMessages[conversation.uuid] === "number" &&
-								unreadConversationsMessages[conversation.uuid] > 0 && (
+								unreadConversationsMessages[conversation.uuid] > 0 &&
+								!conversation.muted && (
 									<View
 										style={{
 											backgroundColor: getColor(darkMode, "red"),
@@ -610,7 +611,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 
 		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
 			if (event.type === "chatMessageNew") {
-				if (event.data.senderId !== userId) {
+				if (event.data.senderId !== userId && !event.data.muted) {
 					setUnreadConversationsMessages(prev => ({
 						...prev,
 						[event.data.conversation]: typeof prev[event.data.conversation] !== "number" ? 1 : prev[event.data.conversation] + 1
