@@ -53,12 +53,13 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
 	storage.set("cameraUploadEnabled:" + userId, false)
 
 	if (resetFolder) {
+		db.dbFs.remove("loadItems:photos").catch(console.error)
+		db.dbFs.remove("cameraUploadLastLoadRemoteCache:" + storage.getString("cameraUploadFolderUUID:" + userId)).catch(console.error)
+
 		storage.delete("cameraUploadFolderUUID:" + userId)
 		storage.delete("cameraUploadFolderName:" + userId)
 		storage.set("cameraUploadUploaded", 0)
 		storage.set("cameraUploadTotal", 0)
-
-		db.dbFs.remove("loadItems:photos").catch(console.error)
 	}
 }
 
@@ -248,7 +249,8 @@ export const fetchLocalAssets = async (): Promise<MediaAsset[]> => {
 
 					result.push({
 						...asset,
-						filename: newFileName
+						filename: newFileName,
+						path: asset.path.includes("/") ? pathModule.join(pathModule.dirname(asset.path), newFileName) : newFileName
 					})
 				} else {
 					const assetId = getAssetId(asset)
@@ -265,7 +267,8 @@ export const fetchLocalAssets = async (): Promise<MediaAsset[]> => {
 
 						result.push({
 							...asset,
-							filename: newFileName
+							filename: newFileName,
+							path: asset.path.includes("/") ? pathModule.join(pathModule.dirname(asset.path), newFileName) : newFileName
 						})
 					}
 				}
@@ -304,7 +307,7 @@ export const loadLocal = async (): Promise<CameraUploadItems> => {
 	const items: CameraUploadItems = {}
 
 	for (const asset of assets) {
-		items[getAssetDeltaName(asset.path)] = {
+		items[getAssetDeltaName(asset.filename)] = {
 			name: asset.filename,
 			lastModified: convertTimestampToMs(asset.modificationTime),
 			creation: convertTimestampToMs(asset.creationTime),
@@ -338,7 +341,8 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 
 	const items: CameraUploadItems = {}
 	const parentFolderNames: Record<string, string> = {}
-	const sorted = response.data.files.sort((a: any, b: any) => a.timestamp - b.timestamp)
+
+	/*const sorted = response.data.files.sort((a: any, b: any) => a.timestamp - b.timestamp)
 	const last = sorted[sorted.length - 1]
 	const cameraUploadLastLoadRemote = (await db.dbFs.get("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID)) as {
 		uuid: string
@@ -350,7 +354,7 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 		if (cameraUploadLastLoadRemote.count === sorted.length && cameraUploadLastLoadRemote.uuid === last.uuid) {
 			return cameraUploadLastLoadRemote.items
 		}
-	}
+	}*/
 
 	for (const folder of response.data.folders) {
 		if (folder.parent === "base") {
@@ -364,13 +368,13 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 		}
 	}
 
-	for (const file of sorted) {
+	for (const file of response.data.files) {
 		const decrypted = await decryptFileMetadata(masterKeys, file.metadata)
 
 		if (typeof decrypted.name === "string" && decrypted.name.length > 0) {
 			const path = parentFolderNames[file.parent] ? pathModule.join(parentFolderNames[file.parent], decrypted.name) : decrypted.name
 
-			items[getAssetDeltaName(path)] = {
+			items[getAssetDeltaName(decrypted.name)] = {
 				name: decrypted.name,
 				lastModified: convertTimestampToMs(decrypted.lastModified),
 				creation: convertTimestampToMs(decrypted.lastModified),
@@ -382,11 +386,11 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 		}
 	}
 
-	await db.dbFs.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, {
+	/*await db.dbFs.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, {
 		uuid: last.uuid,
 		count: response.data.files.length,
 		items
-	})
+	})*/
 
 	return items
 }
@@ -915,6 +919,10 @@ export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean
 		const upload = async (delta: Delta): Promise<void> => {
 			await uploadSemaphore.acquire()
 
+			if (!storage.getBoolean("cameraUploadEnabled:" + userId)) {
+				return
+			}
+
 			let assetId: string = null
 
 			try {
@@ -924,6 +932,7 @@ export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean
 
 				const assetURI = await getAssetURI(asset)
 				const stat = await fs.stat(assetURI)
+
 				/*const [lastModified, lastModifiedStat, lastSize] = await Promise.all([
 					db.cameraUpload.getLastModified(asset),
 					db.cameraUpload.getLastModifiedStat(asset),

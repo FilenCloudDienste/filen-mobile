@@ -14,13 +14,7 @@ import * as db from "../../../lib/db"
 import memoryCache from "../../../lib/memoryCache"
 
 const CameraUploadChooseFolderToast = memo(
-	({
-		message,
-		navigation
-	}: {
-		message?: string | undefined
-		navigation?: NavigationContainerRef<ReactNavigation.RootParamList>
-	}) => {
+	({ message, navigation }: { message?: string | undefined; navigation?: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 		const darkMode = useDarkMode()
 		const lang = useLang()
 		const currentRoutes = useStore(state => state.currentRoutes) as any
@@ -41,15 +35,15 @@ const CameraUploadChooseFolderToast = memo(
 			}
 
 			const parent = getParent()
-			const folderName = memoryCache.has("itemCache:folder:" + parent)
-				? memoryCache.get("itemCache:folder:" + parent).name
-				: ""
+			const folderName = memoryCache.has("itemCache:folder:" + parent) ? memoryCache.get("itemCache:folder:" + parent).name : ""
 
 			if (parent.length < 32 || folderName.length <= 0) {
 				return
 			}
 
 			const userId = storage.getNumber("userId")
+
+			db.dbFs.remove("cameraUploadLastLoadRemoteCache:" + storage.getString("cameraUploadFolderUUID:" + userId)).catch(console.error)
 
 			storage.set("cameraUploadFolderUUID:" + userId, parent)
 			storage.set("cameraUploadFolderName:" + userId, folderName)

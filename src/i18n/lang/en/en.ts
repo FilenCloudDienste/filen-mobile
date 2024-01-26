@@ -535,5 +535,7 @@ export const en: {
 	chatSettings: "Chat settings",
 	nickname: "Nickname",
 	appearOffline: "Appear offline",
-	muteAllChats: "Mute all chats"
+	muteAllChats: "Mute all chats",
+	transferringFile: "Transferring one file",
+	transferringDots: "Transferring..."
 }

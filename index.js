@@ -124,20 +124,16 @@ const handleForegroundService = async progress => {
 		}
 
 		const lang = storage.getString("lang") || "en"
+		const transferring =
+			currentUploadsCountGlobal + currentDownloadsCountGlobal <= 0 && cameraUploadStatusGlobal !== "inactive"
+				? 1
+				: currentUploadsCountGlobal + currentDownloadsCountGlobal
 
 		transfersNotification = {
-			title: i18n(
-				lang,
-				"transferringFiles",
-				true,
-				["__NUM__"],
-				[
-					(currentUploadsCountGlobal + currentDownloadsCountGlobal <= 0 && cameraUploadStatusGlobal !== "inactive"
-						? 1
-						: currentUploadsCountGlobal + currentDownloadsCountGlobal
-					).toString()
-				]
-			),
+			title:
+				transferring <= 1
+					? i18n(lang, "transferringDots")
+					: i18n(lang, "transferringFiles", true, ["__NUM__"], [transferring.toString()]),
 			android: {
 				channelId: foregroundServiceChannelId,
 				asForegroundService: true,
@@ -173,21 +169,18 @@ const handleForegroundService = async progress => {
 		}
 
 		if (progress !== lastTransfersNotificationProgress && transfersNotificationId) {
+			const transferring =
+				currentUploadsCountGlobal + currentDownloadsCountGlobal <= 0 && cameraUploadStatusGlobal !== "inactive"
+					? 1
+					: currentUploadsCountGlobal + currentDownloadsCountGlobal
+
 			await notifee.displayNotification({
 				...transfersNotification,
 				id: transfersNotificationId,
-				title: i18n(
-					lang,
-					"transferringFiles",
-					true,
-					["__NUM__"],
-					[
-						(currentUploadsCountGlobal + currentDownloadsCountGlobal <= 0 && cameraUploadStatusGlobal !== "inactive"
-							? 1
-							: currentUploadsCountGlobal + currentDownloadsCountGlobal
-						).toString()
-					]
-				),
+				title:
+					transferring <= 1
+						? i18n(lang, "transferringDots")
+						: i18n(lang, "transferringFiles", true, ["__NUM__"], [transferring.toString()]),
 				android: {
 					...transfersNotification.android,
 					progress: {
