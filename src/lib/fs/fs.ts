@@ -529,14 +529,14 @@ export const saf = {
 		}
 
 		return {
-			name: pathModule.basename(stat.uri),
+			name: pathModule.parse(stat.uri).name || (await global.nodeThread.uuidv4()),
 			size: stat.size || 0,
 			lastModified: convertTimestampToMs(stat.modificationTime || Date.now()),
 			isDirectory: stat.isDirectory,
 			type: stat.isDirectory ? "directory" : "file",
 			uri,
 			path: uri,
-			mime: mimeTypes.lookup(pathModule.basename(stat.uri)) || "application/octet-stream",
+			mime: mimeTypes.lookup(pathModule.parse(stat.uri).name || (await global.nodeThread.uuidv4())) || "application/octet-stream",
 			lib: "expo-filesystem"
 		}
 	}

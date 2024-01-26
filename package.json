@@ -1,6 +1,6 @@
 {
 	"name": "filen-mobile",
-	"version": "2.0.61",
+	"version": "2.0.70",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
@@ -9,9 +9,9 @@
 		"test": "jest",
 		"lint": "eslint .",
 		"clear-cache": "watchman watch-del-all && rm -rf $TMPDIR/react-native-packager-cache-* && rm -rf $TMPDIR/metro-bundler-cache-*",
-		"dist-android-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-native-packager-cache-* && rm -rf $TMPDIR/metro-bundler-cache-* && cd ./android && ./gradlew clean --parallel --max-workers=8 && ./gradlew bundleRelease --parallel --max-workers=8 && ./gradlew assembleRelease --parallel --max-workers=8 && cd ..",
-		"dist-android": "cd ./android && ./gradlew bundleRelease --parallel --max-workers=8 && ./gradlew assembleRelease --parallel --max-workers=8 && cd ..",
-		"dist-android-apk": "cd ./android && ./gradlew assembleRelease --parallel --max-workers=8 && cd ..",
+		"dist-android-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-native-packager-cache-* && rm -rf $TMPDIR/metro-bundler-cache-* && cd ./android && ./gradlew clean --parallel --max-workers=4 && ./gradlew bundleRelease --parallel --max-workers=4 && ./gradlew assembleRelease --parallel --max-workers=4 && cd ..",
+		"dist-android": "cd ./android && ./gradlew bundleRelease --parallel --max-workers=4 && ./gradlew assembleRelease --parallel --max-workers=4 && cd ..",
+		"dist-android-apk": "cd ./android && ./gradlew assembleRelease --parallel --max-workers=4 && cd ..",
 		"splash": "react-native generate-bootsplash bootsplash.png --background-color=#263179 --logo-width=100 --flavor=main --assets-path=src/assets",
 		"icons": "react-native-svg-app-icon",
 		"install-release-apk-op": "adb -s 6c7a7e7b install android/app/build/outputs/apk/release/app-release.apk",

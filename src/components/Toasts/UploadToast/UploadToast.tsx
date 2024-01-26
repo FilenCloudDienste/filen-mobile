@@ -111,7 +111,14 @@ const UploadToast = memo(() => {
 								if (stat.isDirectory) {
 									foldersToUpload.push(uri)
 								} else {
-									const fileName = pathModule.basename(uri)
+									const fileName = pathModule.parse(uri).name
+
+									if (!fileName || fileName.length <= 0) {
+										resolve()
+
+										return
+									}
+
 									const tempFilePath = pathModule.join(tempPath, await global.nodeThread.uuidv4())
 
 									if ((await fs.stat(tempFilePath)).exists) {

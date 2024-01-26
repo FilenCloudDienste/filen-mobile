@@ -106,7 +106,8 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 				currentScreenName === "GDPRScreen" ||
 				currentScreenName === "InviteScreen" ||
 				currentScreenName === "TwoFactorScreen" ||
-				currentScreenName === "ChangeEmailPasswordScreen"
+				currentScreenName === "ChangeEmailPasswordScreen" ||
+				currentScreenName === "SettingsChatsScreen"
 
 			const showHome = isSharedScreen || isRecentsScreen || isFavoritesScreen || isOfflineScreen
 

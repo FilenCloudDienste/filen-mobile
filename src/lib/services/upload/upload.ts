@@ -315,7 +315,7 @@ export const uploadFolder = async ({
 				path: stat.name
 			})
 		} else {
-			const name = pathModule.basename(uri)
+			const name = pathModule.parse(uri).name
 
 			if (!name || name.length <= 0) {
 				return

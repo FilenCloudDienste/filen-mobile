@@ -492,7 +492,7 @@
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
 				3D2E14262AD16B0C006BEDCD /* XCRemoteSwiftPackageReference "IkigaJSON" */,
-				3D2E142B2AD16E02006BEDCD /* XCRemoteSwiftPackageReference "SQLite.swift.git" */,
+				3D2E142B2AD16E02006BEDCD /* XCRemoteSwiftPackageReference "SQLite.swift" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -930,7 +930,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Filen/Filen.entitlements;
-				CURRENT_PROJECT_VERSION = 2061;
+				CURRENT_PROJECT_VERSION = 2070;
 				DEVELOPMENT_TEAM = 7YTW5D2K7P;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Filen/Info.plist;
@@ -939,7 +939,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.61;
+				MARKETING_VERSION = 2.0.70;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -967,7 +967,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Filen/Filen.entitlements;
-				CURRENT_PROJECT_VERSION = 2061;
+				CURRENT_PROJECT_VERSION = 2070;
 				DEVELOPMENT_TEAM = 7YTW5D2K7P;
 				INFOPLIST_FILE = Filen/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -975,7 +975,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.61;
+				MARKETING_VERSION = 2.0.70;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1441,7 +1441,7 @@
 				minimumVersion = 2.2.0;
 			};
 		};
-		3D2E142B2AD16E02006BEDCD /* XCRemoteSwiftPackageReference "SQLite.swift.git" */ = {
+		3D2E142B2AD16E02006BEDCD /* XCRemoteSwiftPackageReference "SQLite.swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stephencelis/SQLite.swift.git";
 			requirement = {
@@ -1464,7 +1464,7 @@
 		};
 		3D2E142C2AD16E02006BEDCD /* SQLite */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3D2E142B2AD16E02006BEDCD /* XCRemoteSwiftPackageReference "SQLite.swift.git" */;
+			package = 3D2E142B2AD16E02006BEDCD /* XCRemoteSwiftPackageReference "SQLite.swift" */;
 			productName = SQLite;
 		};
 		3DA330FB2B60824000F187A0 /* IkigaJSON */ = {
