@@ -234,9 +234,7 @@ export const fetchLocalAssets = async (): Promise<MediaAsset[]> => {
 		const existingNames: Record<string, boolean> = {}
 		const result: MediaAsset[] = []
 
-		for (let i = 0; i < sorted.length; i++) {
-			const asset = sorted[i]
-
+		for (const asset of sorted) {
 			if (!existingNames[asset.filename.toLowerCase()]) {
 				existingNames[asset.filename.toLowerCase()] = true
 
@@ -305,9 +303,7 @@ export const loadLocal = async (): Promise<CameraUploadItems> => {
 
 	const items: CameraUploadItems = {}
 
-	for (let i = 0; i < assets.length; i++) {
-		const asset = assets[i]
-
+	for (const asset of assets) {
 		items[getAssetDeltaName(asset.path)] = {
 			name: asset.filename,
 			lastModified: convertTimestampToMs(asset.modificationTime),
@@ -999,8 +995,7 @@ export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean
 			}
 		}
 
-		for (let i = 0; i < deltas.length; i++) {
-			const delta = deltas[i]
+		for (const delta of deltas) {
 			const assetId = getAssetId(delta.item.asset)
 
 			if (maxQueue > currentQueue && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED) {
