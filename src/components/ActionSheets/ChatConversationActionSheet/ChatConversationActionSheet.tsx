@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react"
+import React, { memo, useEffect, useState, useCallback } from "react"
 import { View } from "react-native"
 import ActionSheet from "react-native-actions-sheet"
 import useLang from "../../../lib/hooks/useLang"
@@ -7,13 +7,18 @@ import { getColor } from "../../../style/colors"
 import { ActionButton, hideAllActionSheets } from "../ActionSheets"
 import useDarkMode from "../../../lib/hooks/useDarkMode"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { ChatConversation } from "../../../lib/api"
+import { ChatConversation, chatMute } from "../../../lib/api"
 import storage from "../../../lib/storage"
 import eventListener from "../../../lib/eventListener"
 import { useMMKVNumber } from "react-native-mmkv"
 import { SheetManager } from "react-native-actions-sheet"
 import useDimensions from "../../../lib/hooks/useDimensions"
 import * as Clipboard from "expo-clipboard"
+import {
+	showFullScreenLoadingModal,
+	hideFullScreenLoadingModal
+} from "../../../components/Modals/FullscreenLoadingModal/FullscreenLoadingModal"
+import { showToast } from "../../../components/Toasts"
 
 const ChatConversationActionSheet = memo(() => {
 	const darkMode = useDarkMode()
@@ -21,6 +26,33 @@ const ChatConversationActionSheet = memo(() => {
 	const lang = useLang()
 	const [userId] = useMMKVNumber("userId", storage)
 	const [selectedConversation, setSelectedConversation] = useState<ChatConversation | undefined>(undefined)
+
+	const muteConvo = useCallback(
+		async (mute: boolean) => {
+			if (!selectedConversation) {
+				return
+			}
+
+			await hideAllActionSheets()
+
+			showFullScreenLoadingModal()
+
+			try {
+				await chatMute(selectedConversation.uuid, mute)
+
+				setSelectedConversation(prev => ({ ...prev, muted: mute }))
+
+				eventListener.emit("updateChatConversations")
+			} catch (e) {
+				console.error(e)
+
+				showToast({ message: e.toString() })
+			} finally {
+				hideFullScreenLoadingModal()
+			}
+		},
+		[selectedConversation]
+	)
 
 	useEffect(() => {
 		const openChatConversationActionSheetListener = eventListener.on(
@@ -106,6 +138,11 @@ const ChatConversationActionSheet = memo(() => {
 								/>
 							</>
 						)}
+						<ActionButton
+							onPress={() => muteConvo(!selectedConversation.muted)}
+							icon={selectedConversation.muted ? "volume-outline" : "volume-mute-outline"}
+							text={selectedConversation.muted ? i18n(lang, "unmute") : i18n(lang, "mute")}
+						/>
 						<ActionButton
 							onPress={async () => {
 								await hideAllActionSheets()

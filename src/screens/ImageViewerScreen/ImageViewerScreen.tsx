@@ -493,7 +493,7 @@ const ImageViewerScreen = memo(
 						bottom: 0,
 						width: dimensions.realWidth,
 						zIndex: showControls ? 1 : 10000,
-						height: 45,
+						height: dimensions.insets.bottom + 50,
 						backgroundColor: "black",
 						opacity: showControls ? 0 : 1
 					}}

@@ -2875,6 +2875,7 @@ export interface ChatConversation {
 	name: string | null
 	participants: ChatConversationParticipant[]
 	createdTimestamp: number
+	muted: boolean
 }
 
 export const chatConversations = async (): Promise<ChatConversation[]> => {
@@ -2936,6 +2937,21 @@ export const chatConversationNameEdit = async (uuid: string, name: string): Prom
 		data: {
 			uuid,
 			name
+		}
+	})
+
+	if (!response.status) {
+		throw new Error(response.message)
+	}
+}
+
+export const chatMute = async (uuid: string, mute: boolean): Promise<void> => {
+	const response = await apiRequest({
+		method: "POST",
+		endpoint: "/v3/chat/mute",
+		data: {
+			uuid,
+			mute
 		}
 	})
 

@@ -529,5 +529,7 @@ export const en: {
 	confirmRemoveContact: "Are you sure that you want to remove __NAME__ from your contacts?",
 	confirmRemoveChatParticipant: "Are you sure that you want to remove __NAME__ from this chat?",
 	confirmRemoveNoteParticipant: "Are you sure that you want to remove __NAME__ from this note?",
-	blockedUserMessageHidden: "Message of blocked user hidden"
+	blockedUserMessageHidden: "Message of blocked user hidden",
+	mute: "Mute",
+	unmute: "Unmute"
 }

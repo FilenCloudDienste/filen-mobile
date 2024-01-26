@@ -321,20 +321,36 @@ const Item = memo(
 							justifyContent: "center"
 						}}
 					>
-						<Text
+						<View
 							style={{
-								color: getColor(darkMode, "textPrimary"),
-								fontSize: 16,
-								maxWidth: "100%"
+								flexDirection: "row",
+								alignItems: "center",
+								maxWidth: "100%",
+								gap: 8
 							}}
-							numberOfLines={1}
 						>
-							{typeof conversation.name === "string" && conversation.name.length > 0
-								? conversation.name
-								: conversationParticipantsFilteredWithoutMe
-										.map(participant => striptags(getUserNameFromParticipant(participant)))
-										.join(", ")}
-						</Text>
+							{conversation.muted && (
+								<Ionicon
+									name="volume-mute-outline"
+									color={getColor(darkMode, "textSecondary")}
+									size={17}
+								/>
+							)}
+							<Text
+								style={{
+									color: getColor(darkMode, "textPrimary"),
+									fontSize: 16,
+									maxWidth: "90%"
+								}}
+								numberOfLines={1}
+							>
+								{typeof conversation.name === "string" && conversation.name.length > 0
+									? conversation.name
+									: conversationParticipantsFilteredWithoutMe
+											.map(participant => striptags(getUserNameFromParticipant(participant)))
+											.join(", ")}
+							</Text>
+						</View>
 						{typeof conversation.lastMessage === "string" && conversation.lastMessage.length > 0 && (
 							<View
 								style={{

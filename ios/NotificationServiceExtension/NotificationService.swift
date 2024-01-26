@@ -201,4 +201,5 @@ struct ChatConversation: Codable {
   var name: String?
   var participants: [ChatConversationParticipant]
   var createdTimestamp: Int
+  var muted: Bool
 }
