@@ -532,5 +532,9 @@ export const de: {
 	confirmRemoveNoteParticipant: "Bist Du sicher, dass Du __NAME__ aus dieser Notiz entfernen möchtest?",
 	blockedUserMessageHidden: "Nachricht des blockierten Benutzers ausgeblendet",
 	mute: "Stummschalten",
-	unmute: "Stummschaltung aufheben"
+	unmute: "Stummschaltung aufheben",
+	chatSettings: "Chat Einstellungen",
+	nickname: "Nickname",
+	appearOffline: "Offline erscheinen",
+	muteAllChats: "Alle Chats stummschalten"
 }

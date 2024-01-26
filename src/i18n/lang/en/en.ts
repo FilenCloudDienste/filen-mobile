@@ -531,5 +531,9 @@ export const en: {
 	confirmRemoveNoteParticipant: "Are you sure that you want to remove __NAME__ from this note?",
 	blockedUserMessageHidden: "Message of blocked user hidden",
 	mute: "Mute",
-	unmute: "Unmute"
+	unmute: "Unmute",
+	chatSettings: "Chat settings",
+	nickname: "Nickname",
+	appearOffline: "Appear offline",
+	muteAllChats: "Mute all chats"
 }

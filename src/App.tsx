@@ -95,7 +95,7 @@ import ChatConversationNameDialog from "./components/Dialogs/ChatConversationNam
 import ContactActionSheet from "./components/ActionSheets/ContactActionSheet"
 import AddContactDialog from "./components/Dialogs/AddContactDialog"
 import TransfersActionSheet from "./components/ActionSheets/TransfersActionSheet"
-import { dbFs } from "./lib/db"
+import SettingsChatsScreen from "./screens/SettingsChatsScreen"
 import ConfirmDeleteNoteTagDialog from "./components/Dialogs/ConfirmDeleteNoteTagDialog"
 import ConfirmDeleteNotePermanentlyDialog from "./components/Dialogs/ConfirmDeleteNotePermanentlyDialog"
 import ConfirmDeleteChatDialog from "./components/Dialogs/ConfirmDeleteChatDialog"
@@ -106,6 +106,7 @@ import ConfirmRemoveContactDialog from "./components/Dialogs/ConfirmRemoveContac
 import ConfirmRemoveChatParticipantDialog from "./components/Dialogs/ConfirmRemoveChatParticipantDialog"
 import ConfirmRemoveNoteParticipantDialog from "./components/Dialogs/ConfirmRemoveNoteParticipantDialog"
 import { Notifications } from "react-native-notifications"
+import ChatNickNameDialog from "./components/Dialogs/ChatNickNameDialog"
 
 enableScreens(true)
 
@@ -770,6 +771,14 @@ const Instance = memo(() => {
 												animation: showNavigationAnimation ? "default" : "none"
 											}}
 										/>
+										<Stack.Screen
+											name="SettingsChatsScreen"
+											component={SettingsChatsScreen}
+											options={{
+												title: "SettingsChatsScreen",
+												animation: showNavigationAnimation ? "default" : "none"
+											}}
+										/>
 									</Stack.Navigator>
 									{typeof cfg !== "undefined" &&
 										setupDone &&
@@ -800,6 +809,7 @@ const Instance = memo(() => {
 											"SelectContactScreen",
 											"NoteHistoryScreen",
 											"ChatParticipantsScreen",
+											"SettingsChatsScreen",
 											...(Platform.OS === "ios" ? ["SelectMediaScreen"] : [])
 										].includes(currentScreenName) && (
 											<View
@@ -861,6 +871,7 @@ const Instance = memo(() => {
 					<ConfirmRemoveContactDialog />
 					<ConfirmRemoveChatParticipantDialog />
 					<ConfirmRemoveNoteParticipantDialog />
+					<ChatNickNameDialog />
 				</Fragment>
 			</NavigationContainer>
 			<Toast

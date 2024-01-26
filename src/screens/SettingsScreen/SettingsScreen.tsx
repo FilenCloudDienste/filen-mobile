@@ -760,10 +760,27 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 						</View>
 					}
 					title={i18n(lang, "contacts")}
-					borderBottomRadius={10}
+					withBottomBorder={true}
 					iconBackgroundColor={contactRequestInCount > 0 ? getColor(darkMode, "red") : getColor(darkMode, "cyan")}
 					iconName="people-outline"
 					borderTopRadius={10}
+				/>
+				<SettingsButtonLinkHighlight
+					onPress={async () => {
+						if (!(await isOnline())) {
+							showToast({ message: i18n(lang, "deviceOffline") })
+
+							return
+						}
+
+						await navigationAnimation({ enable: true })
+
+						navigation.dispatch(StackActions.push("SettingsChatsScreen"))
+					}}
+					title={i18n(lang, "chats")}
+					borderBottomRadius={10}
+					iconBackgroundColor={getColor(darkMode, "blue")}
+					iconName="chatbubble-outline"
 				/>
 			</SettingsGroup>
 			<SettingsGroup>
