@@ -524,5 +524,13 @@ export const zh: {
 	confirmRemoveContact: "您确定要从联系人中移除 __NAME__ 吗？",
 	confirmRemoveChatParticipant: "您确定要从此聊天中移除 __NAME__ 吗？",
 	confirmRemoveNoteParticipant: "您确定要从此笔记中移除 __NAME__ 吗？",
-	blockedUserMessageHidden: "被拉黑的用户的消息已被隐藏"
+	blockedUserMessageHidden: "被拉黑的用户的消息已被隐藏",
+	mute: "静音",
+	unmute: "取消静音",
+	chatSettings: "聊天设置",
+	nickname: "N昵称",
+	appearOffline: "显示为离线",
+	muteAllChats: "静音所有聊天",
+	transferringFile: "正在传输一个文件",
+	transferringDots: "传输中..."
 }
