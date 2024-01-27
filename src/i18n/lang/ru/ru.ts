@@ -522,5 +522,15 @@ export const ru: {
 	confirmRemoveContact: "Вы уверены, что хотите удалить __NAME__ из своих контактов?",
 	confirmRemoveChatParticipant: "Вы уверены, что хотите удалить __NAME__ из этого чата?",
 	confirmRemoveNoteParticipant: "Вы уверены, что хотите удалить __NAME__ из этой заметки?",
-	blockedUserMessageHidden: "Сообщение заблокированного пользователя скрыто"
+	blockedUserMessageHidden: "Сообщение заблокированного пользователя скрыто",
+	mute: "Отключить звук",
+	unmute: "Включить звук",
+	chatSettings: "Настройки чата",
+	nickname: "Псевдоним",
+	appearOffline: "Статус \"Не в сети\"",
+	muteAllChats: "Отключить звук во всех чатах",
+	transferringFile: "Передача одного файла",
+	transferringDots: "Передача...",
+	notificationPermissionsNeededAndroid:
+		"Для корректной работы Filen необходимы все разрешения на уведомления. Фоновые передачи и социальные уведомления не будут работать без них."
 }
