@@ -522,5 +522,15 @@ export const uk: {
 	confirmRemoveContact: "Ви впевнені, що хочете видалити __NAME__ зі своїх контактів?",
 	confirmRemoveChatParticipant: "Ви дійсно хочете видалити __NAME__ з цього чату?",
 	confirmRemoveNoteParticipant: "Ви впевнені, що хочете видалити __NAME__ з цієї нотатки?",
-	blockedUserMessageHidden: "Повідомлення заблокованого користувача приховано"
+	blockedUserMessageHidden: "Повідомлення заблокованого користувача приховано",
+	mute: "Вимкнути звук",
+	unmute: "Увімкнути звук",
+	chatSettings: "Налаштування чату",
+	nickname: "Псевдонім",
+	appearOffline: "Статус \"Не в мережі\"",
+	muteAllChats: "Вимкнути звук в усіх чатах",
+	transferringFile: "Передача одного файлу",
+	transferringDots: "Передача...",
+	notificationPermissionsNeededAndroid:
+		"Для коректної роботи Filen потрібні всі дозволи на повідомлення. Без них фонові передачі та соціальні повідомлення не працюватимуть."
 }
