@@ -252,11 +252,5 @@ export const hasNotificationPermissions = async (requestPermissions: boolean): P
 		}
 	}
 
-	const hasPermissions = await Notifications.isRegisteredForRemoteNotifications()
-
-	if (!hasPermissions) {
-		return false
-	}
-
 	return true
 }

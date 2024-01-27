@@ -143,6 +143,14 @@ const handleForegroundService = async progress => {
 				onlyAlertOnce: false,
 				loopSound: false,
 				autoCancel: false,
+				actions: [
+					{
+						title: i18n(lang, "stop"),
+						pressAction: {
+							id: "stop"
+						}
+					}
+				],
 				progress: {
 					max: 100,
 					current: progress,
@@ -269,19 +277,11 @@ if (Platform.OS === "android") {
 	})
 }
 
-if (Platform.OS === "android") {
-	notifee.onBackgroundEvent(async () => {})
-}
-
 const increaseBadgeCount = async by => {
 	const current = await notifee.getBadgeCount()
 	const newCount = current + by > 0 ? current + by : 1
 
 	await notifee.setBadgeCount(newCount)
-}
-
-const resetBadgeCount = async () => {
-	await notifee.setBadgeCount(0)
 }
 
 const onCameraUploadNotification = async () => {
