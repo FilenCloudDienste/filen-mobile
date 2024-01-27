@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity, FlatList, Pressable } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, FlatList, Pressable, Platform } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { downloadFile } from "../../lib/services/download/download"
 import { navigationAnimation } from "../../lib/state"
@@ -493,7 +493,10 @@ const ImageViewerScreen = memo(
 						bottom: 0,
 						width: dimensions.realWidth,
 						zIndex: showControls ? 1 : 10000,
-						height: dimensions.insets.bottom + 50,
+						height:
+							Platform.OS === "ios"
+								? dimensions.insets.bottom + 50
+								: dimensions.insets.bottom + dimensions.navigationBarHeight + 50,
 						backgroundColor: "black",
 						opacity: showControls ? 0 : 1
 					}}

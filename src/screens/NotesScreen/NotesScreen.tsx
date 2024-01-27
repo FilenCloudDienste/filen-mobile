@@ -343,6 +343,8 @@ const Item = memo(
 											}}
 											cachePolicy="memory-disk"
 											placeholder={require("../../assets/images/avatar_placeholder.jpg")}
+											placeholderContentFit="contain"
+											contentFit="contain"
 											style={{
 												width: 24,
 												height: 24,

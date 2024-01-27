@@ -286,6 +286,8 @@ export const ReplyTo = memo(
 						}}
 						placeholder={require("../../assets/images/avatar_placeholder.jpg")}
 						cachePolicy="memory-disk"
+						placeholderContentFit="contain"
+						contentFit="contain"
 						style={{
 							width: 13,
 							height: 13,
@@ -722,6 +724,8 @@ export const Message = memo(
 									}}
 									placeholder={require("../../assets/images/avatar_placeholder.jpg")}
 									cachePolicy="memory-disk"
+									placeholderContentFit="contain"
+									contentFit="contain"
 									style={{
 										width: 32,
 										height: 32,

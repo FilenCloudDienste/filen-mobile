@@ -59,6 +59,12 @@ const TextEditor = memo(
 		}, [text, readOnly])
 
 		useEffect(() => {
+			if (!editorEnabled) {
+				ref?.current?.blur()
+			}
+		}, [editorEnabled])
+
+		useEffect(() => {
 			if (Platform.OS === "android" && !didInitialAdjustments.current) {
 				didInitialAdjustments.current = true
 

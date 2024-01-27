@@ -440,6 +440,8 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: { 
 					}
 					cachePolicy="memory-disk"
 					placeholder={require("../../assets/images/avatar_placeholder.jpg")}
+					placeholderContentFit="contain"
+					contentFit="contain"
 					style={{
 						width: 60,
 						height: 60,

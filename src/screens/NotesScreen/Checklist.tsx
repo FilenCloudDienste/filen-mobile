@@ -34,9 +34,17 @@ const Item = memo(
 		dimensions: ReturnType<typeof useDimensions>
 		editorEnabled: boolean
 	}) => {
+		const textInputRef = useRef<TextInput>()
+
 		const itemIndex = useMemo(() => {
 			return items.findIndex(i => i.id === item.id)
 		}, [item, items])
+
+		useEffect(() => {
+			if (!editorEnabled) {
+				textInputRef?.current?.blur()
+			}
+		}, [editorEnabled])
 
 		return (
 			<View
@@ -173,7 +181,11 @@ const Item = memo(
 					</>
 				)}
 				<TextInput
-					ref={ref => setInputRefs(prev => ({ ...prev, [item.id]: ref }))}
+					ref={ref => {
+						textInputRef.current = ref
+
+						setInputRefs(prev => ({ ...prev, [item.id]: ref }))
+					}}
 					multiline={true}
 					scrollEnabled={false}
 					autoFocus={false}

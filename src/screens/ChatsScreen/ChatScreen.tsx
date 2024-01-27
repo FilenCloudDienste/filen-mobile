@@ -600,6 +600,8 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 							}}
 							cachePolicy="memory-disk"
 							placeholder={require("../../assets/images/avatar_placeholder.jpg")}
+							placeholderContentFit="contain"
+							contentFit="contain"
 							style={{
 								width: 30,
 								height: 30,
