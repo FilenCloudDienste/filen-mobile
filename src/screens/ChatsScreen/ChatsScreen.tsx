@@ -39,6 +39,7 @@ import {
 import { showToast } from "../../components/Toasts"
 import notifee from "@notifee/react-native"
 import { Notifications } from "react-native-notifications"
+import { SheetManager } from "react-native-actions-sheet"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -809,29 +810,53 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 				searchTerm={searchTerm}
 				setSearchTerm={setSearchTerm}
 				rightComponent={
-					<TouchableOpacity
-						hitSlop={{
-							top: 15,
-							bottom: 15,
-							right: 15,
-							left: 15
-						}}
+					<View
 						style={{
-							alignItems: "flex-end",
 							flexDirection: "row",
-							backgroundColor: "transparent",
-							width: "33%",
-							paddingLeft: 0,
+							alignItems: "center",
+							gap: 8,
 							justifyContent: "flex-end"
 						}}
-						onPress={() => createChat()}
 					>
-						<Ionicon
-							name="add-outline"
-							size={26}
-							color={getColor(darkMode, "linkPrimary")}
-						/>
-					</TouchableOpacity>
+						<TouchableOpacity
+							hitSlop={{
+								top: 15,
+								bottom: 15,
+								right: 15,
+								left: 15
+							}}
+							style={{
+								alignItems: "flex-end",
+								flexDirection: "row",
+								backgroundColor: "transparent",
+								width: "33%",
+								paddingLeft: 0,
+								justifyContent: "flex-end"
+							}}
+							onPress={() => createChat()}
+						>
+							<Ionicon
+								name="add-outline"
+								size={28}
+								color={getColor(darkMode, "linkPrimary")}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							hitSlop={{
+								top: 15,
+								bottom: 15,
+								right: 5,
+								left: 5
+							}}
+							onPress={() => SheetManager.show("TopBarActionSheet")}
+						>
+							<Ionicon
+								name="ellipsis-horizontal-circle-outline"
+								size={23}
+								color={getColor(darkMode, "linkPrimary")}
+							/>
+						</TouchableOpacity>
+					</View>
 				}
 			/>
 			<View

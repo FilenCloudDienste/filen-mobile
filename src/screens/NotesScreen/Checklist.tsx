@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useCallback, useRef, useMemo } from "react"
-import { View, Pressable, TextInput, KeyboardAvoidingView, Platform } from "react-native"
+import { View, Pressable, TextInput, KeyboardAvoidingView, Platform, Keyboard } from "react-native"
 import { getColor } from "../../style"
 import { parseQuillChecklistHtml, convertChecklistItemsToHtml, ChecklistItem } from "./utils"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -20,7 +20,8 @@ const Item = memo(
 		setIdToFocus,
 		setInputRefs,
 		readOnly,
-		dimensions
+		dimensions,
+		editorEnabled
 	}: {
 		darkMode: boolean
 		item: ChecklistItem
@@ -31,6 +32,7 @@ const Item = memo(
 		setInputRefs: React.Dispatch<React.SetStateAction<Record<string, TextInput>>>
 		readOnly: boolean
 		dimensions: ReturnType<typeof useDimensions>
+		editorEnabled: boolean
 	}) => {
 		const itemIndex = useMemo(() => {
 			return items.findIndex(i => i.id === item.id)
@@ -42,7 +44,7 @@ const Item = memo(
 					width: "100%",
 					flexDirection: "row",
 					alignItems: "center",
-					marginBottom: index + 1 >= items.length ? dimensions.realHeight / 2 : 12,
+					marginBottom: index + 1 >= items.length ? 250 : 12,
 					paddingLeft: 25,
 					paddingRight: 25
 				}}
@@ -175,10 +177,10 @@ const Item = memo(
 					multiline={true}
 					scrollEnabled={false}
 					autoFocus={false}
-					autoCapitalize="none"
-					autoComplete="off"
-					autoCorrect={false}
-					editable={!readOnly}
+					//autoCapitalize="none"
+					//autoComplete="off"
+					//autoCorrect={false}
+					editable={!readOnly && editorEnabled}
 					style={{
 						color: getColor(darkMode, "textPrimary"),
 						marginLeft: 15,
@@ -280,6 +282,7 @@ const Checklist = memo(
 		const insets = useSafeAreaInsets()
 		const listRef = useRef<FlashList<ChecklistItem>>()
 		const dimensions = useDimensions()
+		const [editorEnabled, setEditorEnabled] = useState<boolean>(true)
 
 		const build = useCallback(() => {
 			if (items.length <= 0 || readOnly) {
@@ -306,10 +309,11 @@ const Checklist = memo(
 						setIdToFocus={setIdToFocus}
 						readOnly={readOnly}
 						dimensions={dimensions}
+						editorEnabled={editorEnabled}
 					/>
 				)
 			},
-			[darkMode, items, setInputRefs, setItems, setIdToFocus, dimensions]
+			[darkMode, items, setInputRefs, setItems, setIdToFocus, dimensions, editorEnabled]
 		)
 
 		const focusItem = useCallback(
@@ -322,6 +326,12 @@ const Checklist = memo(
 					lastFocusedId.current = id
 
 					inputRefs[id].focus()
+
+					const index = items.findIndex(item => item.id === id)
+
+					if (index !== 1) {
+						eventListener.emit("scrollToChecklistIndex", index)
+					}
 				}
 			},
 			[inputRefs, items, readOnly]
@@ -332,14 +342,14 @@ const Checklist = memo(
 		}, [idToFocus, inputRefs, items])
 
 		useEffect(() => {
-			if (!readOnly) {
+			if (!readOnly && editorEnabled) {
 				setTimeout(() => {
 					if (items.length === 1 && items[0].text.length === 0) {
 						focusItem(items[0].id)
 					}
 				}, 500)
 			}
-		}, [idToFocus, inputRefs, items, readOnly])
+		}, [idToFocus, inputRefs, items, readOnly, editorEnabled])
 
 		useEffect(() => {
 			if (content.length === 0) {
@@ -361,11 +371,13 @@ const Checklist = memo(
 					return
 				}
 
-				listRef?.current?.scrollToIndex({
-					animated: true,
-					index,
-					viewOffset: 1
-				})
+				setTimeout(() => {
+					listRef?.current?.scrollToIndex({
+						animated: true,
+						index,
+						viewOffset: 0.5
+					})
+				}, 300)
 			})
 
 			return () => {
@@ -393,6 +405,8 @@ const Checklist = memo(
 					keyExtractor={keyExtractor}
 					estimatedItemSize={50}
 					keyboardDismissMode="on-drag"
+					onScrollBeginDrag={() => setEditorEnabled(false)}
+					onScrollEndDrag={() => setEditorEnabled(true)}
 					estimatedListSize={{
 						height: dimensions.height - insets.top - insets.bottom,
 						width: dimensions.width - insets.left - insets.right

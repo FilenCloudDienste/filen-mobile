@@ -299,13 +299,15 @@ export const TransfersScreen = memo(({ navigation }: { navigation: NavigationCon
 								}}
 								numberOfLines={1}
 							>
-								{i18n(
-									lang,
-									"transferringFiles",
-									true,
-									["__NUM__"],
-									[(groupedTransfers.downloads + groupedTransfers.uploads).toString()]
-								)}
+								{groupedTransfers.downloads + groupedTransfers.uploads <= 1
+									? i18n(lang, "transferringFile")
+									: i18n(
+											lang,
+											"transferringFiles",
+											true,
+											["__NUM__"],
+											[(groupedTransfers.downloads + groupedTransfers.uploads).toString()]
+									  )}
 							</Text>
 							<Text
 								style={{

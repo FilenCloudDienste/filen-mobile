@@ -1,7 +1,6 @@
 import React, { useState, useEffect, memo, useRef, useCallback } from "react"
 import {
 	TextInput,
-	Keyboard,
 	ScrollView,
 	Platform,
 	NativeSyntheticEvent,
@@ -34,6 +33,7 @@ const TextEditor = memo(
 		const didInitialAdjustments = useRef<boolean>(Platform.OS === "ios")
 		const [selection, setSelection] = useState<TextSelection>(Platform.OS === "android" ? { end: 0, start: 0 } : null)
 		const dimensions = useDimensions()
+		const [editorEnabled, setEditorEnabled] = useState<boolean>(true)
 
 		const onKeyPress = useCallback((e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
 			if (e.nativeEvent.key === "Enter") {
@@ -78,15 +78,17 @@ const TextEditor = memo(
 					width: "100%",
 					backgroundColor: getColor(darkMode, "backgroundPrimary")
 				}}
+				onScrollBeginDrag={() => setEditorEnabled(false)}
+				onScrollEndDrag={() => setEditorEnabled(true)}
 			>
 				<TextInput
 					ref={ref}
 					value={text}
 					onChangeText={setText}
 					multiline={true}
-					autoCapitalize="none"
-					autoComplete="off"
-					autoCorrect={false}
+					//autoCapitalize="none"
+					//autoComplete="off"
+					//autoCorrect={false}
 					autoFocus={intitialValue.length === 0}
 					scrollEnabled={false}
 					inputMode="text"
@@ -95,7 +97,7 @@ const TextEditor = memo(
 					selection={selection}
 					onKeyPress={onKeyPress}
 					onSelectionChange={onSelectionChange}
-					editable={!readOnly}
+					editable={!readOnly && editorEnabled}
 					placeholder={placeholder}
 					style={{
 						height: "100%",

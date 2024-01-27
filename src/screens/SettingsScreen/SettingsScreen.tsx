@@ -34,6 +34,8 @@ import { MISC_BASE_PATH } from "../../lib/constants"
 import { Image } from "expo-image"
 import { contactsRequestsInCount } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
+import { hasNotificationPermissions } from "../../lib/permissions"
+import notifee from "@notifee/react-native"
 
 export const SettingsButtonLinkHighlight = memo(
 	({
@@ -551,6 +553,7 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 	const [contactRequestInCount, setContactRequestsInCount] = useState<number>(0)
 	const isFocused = useIsFocused()
+	const [notificationPermissions, setNotificationPermissions] = useState<boolean | undefined>(undefined)
 
 	const loadContactRequestsInCount = useCallback(async () => {
 		try {
@@ -562,14 +565,26 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 		}
 	}, [])
 
+	const loadNotificationAuthorization = useCallback(async () => {
+		try {
+			const has = await hasNotificationPermissions(true)
+
+			setNotificationPermissions(has)
+		} catch (e) {
+			console.error(e)
+		}
+	}, [])
+
 	useEffect(() => {
 		if (isFocused) {
 			loadContactRequestsInCount()
+			loadNotificationAuthorization()
 		}
 	}, [isFocused])
 
 	useEffect(() => {
 		loadContactRequestsInCount()
+		loadNotificationAuthorization()
 
 		const loadContactRequestsInCountInterval = setInterval(() => {
 			loadContactRequestsInCount()
@@ -578,6 +593,7 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 		const appStateListener = AppState.addEventListener("change", nextAppState => {
 			if (nextAppState === "active") {
 				loadContactRequestsInCount()
+				loadNotificationAuthorization()
 			}
 		})
 
@@ -615,6 +631,36 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 			<SettingsGroup marginTop={15}>
 				<SettingsHeader navigation={navigation} />
 			</SettingsGroup>
+			{Platform.OS === "android" && typeof notificationPermissions === "boolean" && !notificationPermissions && (
+				<SettingsGroup marginTop={15}>
+					<View
+						style={{
+							padding: 10,
+							flexDirection: "column",
+							gap: 10
+						}}
+					>
+						<Text
+							style={{
+								color: getColor(darkMode, "textSecondary"),
+								fontSize: 14
+							}}
+						>
+							{i18n(lang, "notificationPermissionsNeededAndroid")}
+						</Text>
+						<TouchableOpacity onPress={() => notifee.openNotificationSettings().catch(console.error)}>
+							<Text
+								style={{
+									color: getColor(darkMode, "linkPrimary"),
+									fontSize: 14
+								}}
+							>
+								{i18n(lang, "settings")}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</SettingsGroup>
+			)}
 			<SettingsGroup>
 				<SettingsButtonLinkHighlight
 					onPress={async () => {

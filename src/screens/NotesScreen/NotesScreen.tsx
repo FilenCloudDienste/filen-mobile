@@ -557,33 +557,57 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 				searchTerm={searchTerm}
 				setSearchTerm={setSearchTerm}
 				rightComponent={
-					<TouchableOpacity
-						hitSlop={{
-							top: 15,
-							bottom: 15,
-							right: 15,
-							left: 15
-						}}
+					<View
 						style={{
-							alignItems: "flex-end",
 							flexDirection: "row",
-							backgroundColor: "transparent",
-							width: "33%",
-							paddingLeft: 0,
+							alignItems: "center",
+							gap: 12,
 							justifyContent: "flex-end"
 						}}
-						onPress={() => {
-							SheetManager.show("CreateNoteActionSheet")
-						}}
 					>
-						{networkInfo.online && (
-							<Feather
-								name="edit"
-								size={18}
+						<TouchableOpacity
+							hitSlop={{
+								top: 15,
+								bottom: 15,
+								right: 15,
+								left: 15
+							}}
+							style={{
+								alignItems: "flex-end",
+								flexDirection: "row",
+								backgroundColor: "transparent",
+								width: "33%",
+								paddingLeft: 0,
+								justifyContent: "flex-end"
+							}}
+							onPress={() => {
+								SheetManager.show("CreateNoteActionSheet")
+							}}
+						>
+							{networkInfo.online && (
+								<Feather
+									name="edit"
+									size={18}
+									color={getColor(darkMode, "linkPrimary")}
+								/>
+							)}
+						</TouchableOpacity>
+						<TouchableOpacity
+							hitSlop={{
+								top: 15,
+								bottom: 15,
+								right: 5,
+								left: 5
+							}}
+							onPress={() => SheetManager.show("TopBarActionSheet")}
+						>
+							<Ionicon
+								name="ellipsis-horizontal-circle-outline"
+								size={23}
 								color={getColor(darkMode, "linkPrimary")}
 							/>
-						)}
-					</TouchableOpacity>
+						</TouchableOpacity>
+					</View>
 				}
 			/>
 			<View

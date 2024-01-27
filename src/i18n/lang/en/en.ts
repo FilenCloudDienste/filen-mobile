@@ -537,5 +537,7 @@ export const en: {
 	appearOffline: "Appear offline",
 	muteAllChats: "Mute all chats",
 	transferringFile: "Transferring one file",
-	transferringDots: "Transferring..."
+	transferringDots: "Transferring...",
+	notificationPermissionsNeededAndroid:
+		"Filen requires all notification permissions to function correctly. Background transfers and social notifications will not work without them."
 }

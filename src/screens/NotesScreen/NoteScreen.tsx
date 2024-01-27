@@ -48,7 +48,6 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const currentNoteRef = useRef<Note>(route.params.note)
 	const [contentKey, setContentKey] = useState<string>("content-key-" + Date.now())
 	const [showPreview, setShowPreview] = useState<boolean>(false)
-	const [keyboardShowing, setKeyboardShowing] = useState<boolean>(false)
 	const [title, setTitle] = useState<string>(currentNoteRef.current.title)
 	const networkInfo = useNetworkInfo()
 	const readOnly = useRef<boolean>(route.params.readOnly).current
@@ -256,10 +255,6 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	useEffect(() => {
 		loadNote()
 
-		const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => setKeyboardShowing(true))
-		const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardShowing(false))
-		const keyboardWillHideListener = Keyboard.addListener("keyboardWillHide", () => setKeyboardShowing(false))
-
 		const noteTitleEditedListener = eventListener.on("noteTitleEdited", ({ uuid, title }: { uuid: string; title: string }) => {
 			if (uuid === currentNoteRef.current.uuid) {
 				setTitle(title)
@@ -305,9 +300,6 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		})
 
 		return () => {
-			keyboardDidShowListener.remove()
-			keyboardDidHideListener.remove()
-			keyboardWillHideListener.remove()
 			noteTitleEditedListener.remove()
 			appStateChangeListener.remove()
 			socketAuthedListener.remove()

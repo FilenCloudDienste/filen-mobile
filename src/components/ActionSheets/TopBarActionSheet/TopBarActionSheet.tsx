@@ -868,128 +868,130 @@ const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContaine
 				*/}
 				{currentRouteName !== "TransfersScreen" && (
 					<>
-						{routeURL.indexOf("photos") == -1 && routeURL.indexOf("recents") == -1 && currentItems.length > 0 && (
-							<ActionButton
-								onPress={sortBy}
-								icon="funnel-outline"
-								text={i18n(lang, "sortBy")}
-							/>
-						)}
-						{canShowSelectAllItems && currentItems.length > 0 && (
-							<ActionButton
-								onPress={selectAll}
-								icon="add-outline"
-								text={i18n(lang, "selectAll")}
-							/>
-						)}
-						{canShowUnselectAllItems && currentItems.length > 0 && itemsSelectedCount > 0 && (
-							<ActionButton
-								onPress={unselectAll}
-								icon="remove-outline"
-								text={i18n(lang, "unselectAll")}
-							/>
-						)}
-						<>
-							{routeURL.indexOf("trash") !== -1 &&
-							itemsSelectedCount >= minBulkActionsItemCount &&
-							itemsSelectedCount <= maxBulkActionsItemsCount ? (
-								<>
+						{!(currentRouteName.toLowerCase().includes("note") || currentRouteName.toLowerCase().includes("chat")) && (
+							<>
+								{routeURL.indexOf("photos") == -1 && routeURL.indexOf("recents") == -1 && currentItems.length > 0 && (
 									<ActionButton
-										onPress={restore}
-										icon="refresh-outline"
-										text={i18n(lang, "restore")}
+										onPress={sortBy}
+										icon="funnel-outline"
+										text={i18n(lang, "sortBy")}
 									/>
+								)}
+								{canShowSelectAllItems && currentItems.length > 0 && (
 									<ActionButton
-										onPress={permanentDelete}
-										icon="close-circle-outline"
-										text={i18n(lang, "deletePermanently")}
+										onPress={selectAll}
+										icon="add-outline"
+										text={i18n(lang, "selectAll")}
 									/>
-								</>
-							) : (
+								)}
+								{canShowUnselectAllItems && currentItems.length > 0 && itemsSelectedCount > 0 && (
+									<ActionButton
+										onPress={unselectAll}
+										icon="remove-outline"
+										text={i18n(lang, "unselectAll")}
+									/>
+								)}
 								<>
-									{routeURL.indexOf("recents") == -1 &&
-										canShowBulkItemsActions &&
-										canShowMoveItems &&
-										itemsSelectedCount >= minBulkActionsItemCount &&
-										itemsSelectedCount <= maxBulkActionsItemsCount && (
+									{routeURL.indexOf("trash") !== -1 &&
+									itemsSelectedCount >= minBulkActionsItemCount &&
+									itemsSelectedCount <= maxBulkActionsItemsCount ? (
+										<>
 											<ActionButton
-												onPress={move}
-												icon="move-outline"
-												text={i18n(lang, "move")}
+												onPress={restore}
+												icon="refresh-outline"
+												text={i18n(lang, "restore")}
 											/>
-										)}
-									{canShowBulkItemsActions &&
-										canShowAddFavorite &&
-										itemsSelectedCount >= minBulkActionsItemCount &&
-										itemsSelectedCount <= maxBulkActionsItemsCount && (
 											<ActionButton
-												onPress={favorite}
-												icon="heart"
-												text={i18n(lang, "favorite")}
-											/>
-										)}
-									{canShowBulkItemsActions &&
-										canShowRemoveFavorite &&
-										itemsSelectedCount >= minBulkActionsItemCount &&
-										itemsSelectedCount <= maxBulkActionsItemsCount && (
-											<ActionButton
-												onPress={unfavorite}
-												icon="heart-outline"
-												text={i18n(lang, "unfavorite")}
-											/>
-										)}
-									{canShowBulkItemsActions &&
-										canShowSaveToGallery &&
-										itemsSelectedCount >= minBulkActionsItemCount &&
-										itemsSelectedCount <= maxBulkActionsItemsCount && (
-											<ActionButton
-												onPress={saveToGallery}
-												icon="image-outline"
-												text={i18n(lang, "saveToGallery")}
-											/>
-										)}
-									{canMakeAvailableOffline &&
-										routeURL.indexOf("offline") == -1 &&
-										canShowBulkItemsActions &&
-										itemsSelectedCount >= minBulkActionsItemCount &&
-										itemsSelectedCount <= maxBulkActionsItemsCount && (
-											<ActionButton
-												onPress={makeOffline}
-												icon="save-outline"
-												text={i18n(lang, "makeAvailableOffline")}
-											/>
-										)}
-									{canShowBulkItemsActions &&
-										canShowRemoveOffline &&
-										itemsSelectedCount >= minBulkActionsItemCount &&
-										itemsSelectedCount <= maxBulkActionsItemsCount && (
-											<ActionButton
-												onPress={removeFromOffline}
+												onPress={permanentDelete}
 												icon="close-circle-outline"
-												text={i18n(lang, "removeFromOfflineStorage")}
+												text={i18n(lang, "deletePermanently")}
 											/>
-										)}
-									{canDownload &&
-										canShowBulkItemsActions &&
-										itemsSelectedCount >= minBulkActionsItemCount &&
-										itemsSelectedCount <= maxBulkActionsItemsCount && (
-											<ActionButton
-												onPress={download}
-												icon="download-outline"
-												text={i18n(lang, "download")}
-											/>
-										)}
-									{canShowBulkItemsActions &&
-										canShowTrash &&
-										itemsSelectedCount >= minBulkActionsItemCount &&
-										itemsSelectedCount <= maxBulkActionsItemsCount && (
-											<ActionButton
-												onPress={trash}
-												icon="trash-outline"
-												text={i18n(lang, "trash")}
-											/>
-										)}
-									{/*
+										</>
+									) : (
+										<>
+											{routeURL.indexOf("recents") == -1 &&
+												canShowBulkItemsActions &&
+												canShowMoveItems &&
+												itemsSelectedCount >= minBulkActionsItemCount &&
+												itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton
+														onPress={move}
+														icon="move-outline"
+														text={i18n(lang, "move")}
+													/>
+												)}
+											{canShowBulkItemsActions &&
+												canShowAddFavorite &&
+												itemsSelectedCount >= minBulkActionsItemCount &&
+												itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton
+														onPress={favorite}
+														icon="heart"
+														text={i18n(lang, "favorite")}
+													/>
+												)}
+											{canShowBulkItemsActions &&
+												canShowRemoveFavorite &&
+												itemsSelectedCount >= minBulkActionsItemCount &&
+												itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton
+														onPress={unfavorite}
+														icon="heart-outline"
+														text={i18n(lang, "unfavorite")}
+													/>
+												)}
+											{canShowBulkItemsActions &&
+												canShowSaveToGallery &&
+												itemsSelectedCount >= minBulkActionsItemCount &&
+												itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton
+														onPress={saveToGallery}
+														icon="image-outline"
+														text={i18n(lang, "saveToGallery")}
+													/>
+												)}
+											{canMakeAvailableOffline &&
+												routeURL.indexOf("offline") == -1 &&
+												canShowBulkItemsActions &&
+												itemsSelectedCount >= minBulkActionsItemCount &&
+												itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton
+														onPress={makeOffline}
+														icon="save-outline"
+														text={i18n(lang, "makeAvailableOffline")}
+													/>
+												)}
+											{canShowBulkItemsActions &&
+												canShowRemoveOffline &&
+												itemsSelectedCount >= minBulkActionsItemCount &&
+												itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton
+														onPress={removeFromOffline}
+														icon="close-circle-outline"
+														text={i18n(lang, "removeFromOfflineStorage")}
+													/>
+												)}
+											{canDownload &&
+												canShowBulkItemsActions &&
+												itemsSelectedCount >= minBulkActionsItemCount &&
+												itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton
+														onPress={download}
+														icon="download-outline"
+														text={i18n(lang, "download")}
+													/>
+												)}
+											{canShowBulkItemsActions &&
+												canShowTrash &&
+												itemsSelectedCount >= minBulkActionsItemCount &&
+												itemsSelectedCount <= maxBulkActionsItemsCount && (
+													<ActionButton
+														onPress={trash}
+														icon="trash-outline"
+														text={i18n(lang, "trash")}
+													/>
+												)}
+											{/*
 												canShowBulkItemsActions && canShowStopSharing && itemsSelectedCount >= minBulkActionsItemCount && itemsSelectedCount <= maxBulkActionsItemsCount && (
 													<ActionButton
 														onPress={stopSharing}
@@ -1007,29 +1009,31 @@ const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContaine
 													/>
 												)
 											*/}
+										</>
+									)}
 								</>
-							)}
-						</>
-						{canShowListViewStyle && (
-							<ActionButton
-								onPress={updateViewMode}
-								icon={viewModeParsed[routeURL] !== "grid" ? "grid-outline" : "list-outline"}
-								text={viewModeParsed[routeURL] !== "grid" ? i18n(lang, "gridView") : i18n(lang, "listView")}
-							/>
-						)}
-						{canShowTransfersButton && (
-							<ActionButton
-								onPress={showTransfers}
-								icon="repeat-outline"
-								text={i18n(lang, "transfers")}
-							/>
-						)}
-						{routeURL.indexOf("trash") !== -1 && currentItems.length > 0 && (
-							<ActionButton
-								onPress={clearTrash}
-								icon="trash-outline"
-								text={i18n(lang, "emptyTrash")}
-							/>
+								{canShowListViewStyle && (
+									<ActionButton
+										onPress={updateViewMode}
+										icon={viewModeParsed[routeURL] !== "grid" ? "grid-outline" : "list-outline"}
+										text={viewModeParsed[routeURL] !== "grid" ? i18n(lang, "gridView") : i18n(lang, "listView")}
+									/>
+								)}
+								{canShowTransfersButton && (
+									<ActionButton
+										onPress={showTransfers}
+										icon="repeat-outline"
+										text={i18n(lang, "transfers")}
+									/>
+								)}
+								{routeURL.indexOf("trash") !== -1 && currentItems.length > 0 && (
+									<ActionButton
+										onPress={clearTrash}
+										icon="trash-outline"
+										text={i18n(lang, "emptyTrash")}
+									/>
+								)}
+							</>
 						)}
 						<ActionButton
 							onPress={async () => {

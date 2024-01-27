@@ -537,6 +537,8 @@ export const de: {
 	nickname: "Nickname",
 	appearOffline: "Offline erscheinen",
 	muteAllChats: "Alle Chats stummschalten",
-	transferringFile: "Übertrage eine Dateie",
-	transferringDots: "Übertrage..."
+	transferringFile: "Übertrage eine Datei",
+	transferringDots: "Übertrage...",
+	notificationPermissionsNeededAndroid:
+		"Filen benötigt alle Benachrichtigungsberechtigungen, um ordnungsgemäß zu funktionieren. Hintergrundübertragungen und soziale Benachrichtigungen funktionieren ohne sie nicht."
 }

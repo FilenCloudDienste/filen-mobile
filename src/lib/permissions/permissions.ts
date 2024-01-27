@@ -3,7 +3,7 @@ import { check, PERMISSIONS, RESULTS, request, requestMultiple, checkMultiple } 
 import * as MediaLibrary from "expo-media-library"
 import storage from "../storage"
 import { i18n } from "../../i18n"
-import notifee from "@notifee/react-native"
+import notifee, { AuthorizationStatus } from "@notifee/react-native"
 import { Notifications } from "react-native-notifications"
 
 export const hasWritePermissions = async (requestPermissions: boolean): Promise<boolean> => {
@@ -224,32 +224,18 @@ export const hasStoragePermissions = async (requestPermissions: boolean): Promis
 }
 
 export const hasNotificationPermissions = async (requestPermissions: boolean): Promise<boolean> => {
-	const notifeePermissions = await notifee.requestPermission()
+	const notifeePermissions = await notifee.requestPermission({
+		carPlay: false,
+		alert: true,
+		badge: true,
+		sound: true,
+		criticalAlert: false,
+		provisional: false,
+		announcement: false
+	})
 
-	if (notifeePermissions.authorizationStatus !== 1) {
+	if (![AuthorizationStatus.AUTHORIZED, AuthorizationStatus.PROVISIONAL].includes(notifeePermissions.authorizationStatus)) {
 		return false
-	}
-
-	if (Platform.OS === "android") {
-		const has = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS)
-
-		if (!has) {
-			if (!requestPermissions) {
-				return false
-			}
-
-			const get = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS, {
-				title: i18n(storage.getString("lang"), "permissionsNotificationsTitle"),
-				message: i18n(storage.getString("lang"), "permissionsNotificationsMessage"),
-				buttonNeutral: i18n(storage.getString("lang"), "permissionsAskMeLater"),
-				buttonPositive: i18n(storage.getString("lang"), "ok"),
-				buttonNegative: i18n(storage.getString("lang"), "cancel")
-			})
-
-			if (get !== PermissionsAndroid.RESULTS.GRANTED) {
-				return false
-			}
-		}
 	}
 
 	return true

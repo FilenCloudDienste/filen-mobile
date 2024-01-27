@@ -45,7 +45,7 @@ let handleForegroundServiceMutex = new Semaphore(1)
 const hasNotifyPermissions = async () => {
 	const now = Date.now()
 
-	if (nextHasPermissionsQuery > now) {
+	if (nextHasPermissionsQuery !== 0 && nextHasPermissionsQuery > now) {
 		return lastHasPermissions
 	}
 
@@ -512,6 +512,8 @@ const onForegroundNotification = async (payload, completion) => {
 	completion({ alert: false, sound: false, badge: false })
 }
 
+notifee.onBackgroundEvent(async () => {})
+
 Notifications.events().registerRemoteNotificationsRegistered(event => {
 	storage.set("pushToken", event.deviceToken)
 })
@@ -521,6 +523,8 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(event => {
 })
 
 Notifications.events().registerNotificationReceivedForeground(async (notification, completion) => {
+	console.log(Platform.OS, "registerNotificationReceivedForeground", notification.payload)
+
 	try {
 		await onForegroundNotification(notification.payload, completion)
 	} catch (e) {
@@ -533,6 +537,8 @@ Notifications.events().registerNotificationOpened((notification, completion, act
 })
 
 Notifications.events().registerNotificationReceivedBackground(async (notification, completion) => {
+	console.log(Platform.OS, "registerNotificationReceivedBackground", notification.payload)
+
 	try {
 		await onBackgroundNotification(notification.payload, completion)
 	} catch (e) {
@@ -553,15 +559,17 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(err => {
 if (Platform.OS === "ios") {
 	Notifications.ios.registerRemoteNotifications({
 		carPlay: false,
+		alert: true,
+		badge: true,
+		sound: true,
 		criticalAlert: false,
-		providesAppNotificationSettings: false,
 		provisional: false,
 		announcement: false
 	})
 }
 
 const initPushNotifications = async () => {
-	const permissions = await hasNotifyPermissions(true)
+	const permissions = await hasNotificationPermissions(true)
 
 	if (!permissions) {
 		return
@@ -570,8 +578,10 @@ const initPushNotifications = async () => {
 	try {
 		Notifications.registerRemoteNotifications({
 			carPlay: false,
+			alert: true,
+			badge: true,
+			sound: true,
 			criticalAlert: false,
-			providesAppNotificationSettings: false,
 			provisional: false,
 			announcement: false
 		})
