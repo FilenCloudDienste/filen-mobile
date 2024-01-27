@@ -143,14 +143,6 @@ const handleForegroundService = async progress => {
 				onlyAlertOnce: false,
 				loopSound: false,
 				autoCancel: false,
-				actions: [
-					{
-						title: i18n(lang, "stop"),
-						pressAction: {
-							id: "stop"
-						}
-					}
-				],
 				progress: {
 					max: 100,
 					current: progress,

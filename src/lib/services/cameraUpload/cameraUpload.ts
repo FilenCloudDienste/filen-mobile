@@ -341,8 +341,7 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 
 	const items: CameraUploadItems = {}
 	const parentFolderNames: Record<string, string> = {}
-
-	/*const sorted = response.data.files.sort((a: any, b: any) => a.timestamp - b.timestamp)
+	const sorted = response.data.files.sort((a: any, b: any) => a.timestamp - b.timestamp)
 	const last = sorted[sorted.length - 1]
 	const cameraUploadLastLoadRemote = (await db.dbFs.get("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID)) as {
 		uuid: string
@@ -354,7 +353,7 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 		if (cameraUploadLastLoadRemote.count === sorted.length && cameraUploadLastLoadRemote.uuid === last.uuid) {
 			return cameraUploadLastLoadRemote.items
 		}
-	}*/
+	}
 
 	for (const folder of response.data.folders) {
 		if (folder.parent === "base") {
@@ -386,11 +385,11 @@ export const loadRemote = async (): Promise<CameraUploadItems> => {
 		}
 	}
 
-	/*await db.dbFs.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, {
+	await db.dbFs.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, {
 		uuid: last.uuid,
 		count: response.data.files.length,
 		items
-	})*/
+	})
 
 	return items
 }
@@ -431,6 +430,30 @@ export const getDeltas = async (local: CameraUploadItems, remote: CameraUploadIt
 		} else {
 			if (typeof lastModified[assetId] === "number") {
 				if (convertTimestampToMs(lastModified[assetId]) !== convertTimestampToMs(local[name].lastModified)) {
+					const [lastModified, lastModifiedStat, lastSize, assetURI] = await Promise.all([
+						db.cameraUpload.getLastModified(local[name].asset),
+						db.cameraUpload.getLastModifiedStat(local[name].asset),
+						db.cameraUpload.getLastSize(local[name].asset),
+						getAssetURI(local[name].asset)
+					])
+
+					const stat = await fs.stat(assetURI)
+
+					if (
+						stat.exists &&
+						(convertTimestampToMs(stat.modificationTime) === convertTimestampToMs(lastModifiedStat) ||
+							convertTimestampToMs(lastModified) === convertTimestampToMs(local[name].lastModified) ||
+							lastSize === stat.size)
+					) {
+						await Promise.all([
+							db.cameraUpload.setLastModified(local[name].asset, convertTimestampToMs(local[name].lastModified)),
+							db.cameraUpload.setLastModifiedStat(local[name].asset, convertTimestampToMs(stat.modificationTime)),
+							db.cameraUpload.setLastSize(local[name].asset, stat.size)
+						])
+
+						continue
+					}
+
 					deltas.push({
 						type: "UPDATE",
 						item: local[name]
@@ -981,8 +1004,8 @@ export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean
 				if (stat.exists) {
 					await Promise.all([
 						db.cameraUpload.setLastModified(asset, convertTimestampToMs(delta.item.lastModified)),
-						db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime || delta.item.lastModified)),
-						db.cameraUpload.setLastSize(asset, stat.size || 0)
+						db.cameraUpload.setLastModifiedStat(asset, convertTimestampToMs(stat.modificationTime)),
+						db.cameraUpload.setLastSize(asset, stat.size)
 					])
 				}
 
