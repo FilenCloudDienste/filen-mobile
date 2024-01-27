@@ -532,5 +532,7 @@ export const zh: {
 	appearOffline: "显示为离线",
 	muteAllChats: "静音所有聊天",
 	transferringFile: "正在传输一个文件",
-	transferringDots: "传输中..."
+	transferringDots: "传输中...",
+	notificationPermissionsNeededAndroid:
+		"Filen 需要获取所有通知权限才能正常运行。没有它们，后台传输和社交通知将无法工作。"
 }
