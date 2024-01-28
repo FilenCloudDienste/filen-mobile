@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Pressable } from "react-native"
 import { getColor } from "../../style"
 import { ChatConversation, ChatMessage, BlockedContact } from "../../lib/api"
 import { i18n } from "../../i18n"
-import { generateAvatarColorCode } from "../../lib/helpers"
+import { generateAvatarColorCode, getRandomArbitrary } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { Image } from "expo-image"
@@ -496,7 +496,7 @@ export const Message = memo(
 
 			clearInterval(dateInterval.current)
 
-			dateInterval.current = setInterval(updateDate, 15000)
+			dateInterval.current = setInterval(updateDate, getRandomArbitrary(15000, 60000))
 
 			setDate(formatMessageDate(message.sentTimestamp, lang))
 		}
@@ -597,7 +597,7 @@ export const Message = memo(
 		useEffect(() => {
 			clearInterval(dateInterval.current)
 
-			dateInterval.current = setInterval(updateDate, 15000)
+			dateInterval.current = setInterval(updateDate, getRandomArbitrary(15000, 60000))
 
 			return () => {
 				clearInterval(dateInterval.current)
