@@ -2,5 +2,5 @@
 <resources>
     <color name="primary_dark">#000000</color>
     <color name="bootsplash_background">#263179</color>
-    <color name="colorAccent">#C60C30</color>
+    <color name="colorAccent">#ffffff</color>
 </resources>

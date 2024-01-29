@@ -32,7 +32,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 
 	const [showHome, showCloud, isPhotosScreen, showSettings, isNotesScreen, isChatsScreen, isContactsScreen, currentScreenName] =
 		useMemo(() => {
-			const parent = getParent()
 			const routeURL = getRouteURL()
 			const baseName = defaultDriveOnly && defaultDriveUUID ? defaultDriveUUID : "base"
 
@@ -66,7 +65,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 						isBaseScreen = routeURL.indexOf(baseName) !== -1
 						isOfflineScreen = routeURL.indexOf("offline") !== -1
 						isNotesScreen = currentScreenName.indexOf("Note") !== -1
-						isChatsScreen = currentScreenName.indexOf("Chat") !== -1
+						isChatsScreen = currentScreenName.indexOf("Chat") !== -1 && currentScreenName !== "SettingsChatsScreen"
 						isContactsScreen = currentScreenName.indexOf("Contact") !== -1
 					}
 				}

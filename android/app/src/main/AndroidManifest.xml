@@ -28,7 +28,7 @@
 
     <meta-data
       android:name="com.google.firebase.messaging.default_notification_icon"
-      android:resource="@mipmap/ic_launcher" />
+      android:resource="@drawable/ic_small_icon" />
     <meta-data
       android:name="com.google.firebase.messaging.default_notification_color"
       android:resource="@color/colorAccent" />

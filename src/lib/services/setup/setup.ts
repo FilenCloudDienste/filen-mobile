@@ -121,18 +121,34 @@ export const checkOfflineItems = async (): Promise<void> => {
 	await promiseAllSettled(deletePromises)
 }
 
-export const clearCacheDirectories = async (): Promise<void> => {
+export const clearCacheDirectories = async (age: number = 300000): Promise<void> => {
 	Image.clearDiskCache().catch(console.error)
 	Image.clearMemoryCache().catch(console.error)
 
-	const deletePromises = []
+	const deletePromises: Promise<void>[] = []
 	const cachedDownloadsPath = (await fs.getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
 	const cacheDownloadsItems = await fs.readDirectory(cachedDownloadsPath)
 
 	for (let i = 0; i < cacheDownloadsItems.length; i++) {
 		if (CACHE_CLEARING_ENABLED) {
 			if (canDelete(cacheDownloadsItems[i])) {
-				deletePromises.push(fs.unlink(cachedDownloadsPath + "/" + cacheDownloadsItems[i]))
+				deletePromises.push(
+					new Promise((resolve, reject) => {
+						fs.stat(cachedDownloadsPath + "/" + cacheDownloadsItems[i])
+							.then(stat => {
+								if (!stat.exists || stat.modificationTime + age > Date.now()) {
+									resolve()
+
+									return
+								}
+
+								fs.unlink(cachedDownloadsPath + "/" + cacheDownloadsItems[i])
+									.then(resolve)
+									.catch(reject)
+							})
+							.catch(reject)
+					})
+				)
 			}
 		}
 	}
@@ -144,7 +160,23 @@ export const clearCacheDirectories = async (): Promise<void> => {
 		for (let i = 0; i < cacheItems.length; i++) {
 			if (CACHE_CLEARING_ENABLED) {
 				if (canDelete(cacheItems[i])) {
-					deletePromises.push(fs.unlink(cachePath + "/" + cacheItems[i]))
+					deletePromises.push(
+						new Promise((resolve, reject) => {
+							fs.stat(cachePath + "/" + cacheItems[i])
+								.then(stat => {
+									if (!stat.exists || stat.modificationTime + age > Date.now()) {
+										resolve()
+
+										return
+									}
+
+									fs.unlink(cachePath + "/" + cacheItems[i])
+										.then(resolve)
+										.catch(reject)
+								})
+								.catch(reject)
+						})
+					)
 				}
 			}
 		}
@@ -156,7 +188,23 @@ export const clearCacheDirectories = async (): Promise<void> => {
 	for (let i = 0; i < tempItems.length; i++) {
 		if (CACHE_CLEARING_ENABLED) {
 			if (canDelete(tempItems[i])) {
-				deletePromises.push(fs.unlink(tempPath + "/" + tempItems[i]))
+				deletePromises.push(
+					new Promise((resolve, reject) => {
+						fs.stat(tempPath + "/" + tempItems[i])
+							.then(stat => {
+								if (!stat.exists || stat.modificationTime + age > Date.now()) {
+									resolve()
+
+									return
+								}
+
+								fs.unlink(tempPath + "/" + tempItems[i])
+									.then(resolve)
+									.catch(reject)
+							})
+							.catch(reject)
+					})
+				)
 			}
 		}
 	}
@@ -169,7 +217,7 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 		.then(() =>
 			checkOfflineItems()
 				.then(() =>
-					clearCacheDirectories()
+					clearCacheDirectories(300000)
 						.then(() => {
 							if (Platform.OS === "ios") {
 								fs.deleteOldIOSDocumentDirs().catch(console.error)
