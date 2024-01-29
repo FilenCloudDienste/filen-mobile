@@ -34,7 +34,7 @@ const DONT_DELETE: string[] = [
 ]
 
 export const canDelete = (name: string): boolean => {
-	return DONT_DELETE.filter(d => name.toLowerCase().indexOf(d.toLowerCase()) !== -1).length == 0
+	return DONT_DELETE.filter(d => name.toLowerCase().indexOf(d.toLowerCase()) !== -1).length === 0
 }
 
 export const checkOfflineItems = async (): Promise<void> => {
@@ -49,7 +49,7 @@ export const checkOfflineItems = async (): Promise<void> => {
 
 	const inDir: string[] = items
 		.filter(item => {
-			if (item.indexOf("_") == -1) {
+			if (item.indexOf("_") === -1) {
 				return false
 			}
 
@@ -92,7 +92,7 @@ export const checkOfflineItems = async (): Promise<void> => {
 		let found = false
 
 		for (let x = 0; x < inDir.length; x++) {
-			if (inList[i] == inDir[x]) {
+			if (inList[i] === inDir[x]) {
 				found = true
 			}
 		}
@@ -125,6 +125,7 @@ export const clearCacheDirectories = async (age: number = 300000): Promise<void>
 	Image.clearDiskCache().catch(console.error)
 	Image.clearMemoryCache().catch(console.error)
 
+	const now = Date.now()
 	const deletePromises: Promise<void>[] = []
 	const cachedDownloadsPath = (await fs.getDownloadPath({ type: "cachedDownloads" })).slice(0, -1)
 	const cacheDownloadsItems = await fs.readDirectory(cachedDownloadsPath)
@@ -136,7 +137,7 @@ export const clearCacheDirectories = async (age: number = 300000): Promise<void>
 					new Promise((resolve, reject) => {
 						fs.stat(cachedDownloadsPath + "/" + cacheDownloadsItems[i])
 							.then(stat => {
-								if (!stat.exists || stat.modificationTime + age > Date.now()) {
+								if (!stat.exists || stat.modificationTime + age > now) {
 									resolve()
 
 									return
@@ -154,7 +155,7 @@ export const clearCacheDirectories = async (age: number = 300000): Promise<void>
 	}
 
 	if (fs.cacheDirectory) {
-		const cachePath = fs.cacheDirectory().indexOf("file://") == -1 ? "file://" + fs.cacheDirectory() : fs.cacheDirectory()
+		const cachePath = fs.cacheDirectory().indexOf("file://") === -1 ? "file://" + fs.cacheDirectory() : fs.cacheDirectory()
 		const cacheItems = await fs.readDirectory(cachePath)
 
 		for (let i = 0; i < cacheItems.length; i++) {
@@ -164,7 +165,7 @@ export const clearCacheDirectories = async (age: number = 300000): Promise<void>
 						new Promise((resolve, reject) => {
 							fs.stat(cachePath + "/" + cacheItems[i])
 								.then(stat => {
-									if (!stat.exists || stat.modificationTime + age > Date.now()) {
+									if (!stat.exists || stat.modificationTime + age > now) {
 										resolve()
 
 										return
@@ -192,7 +193,7 @@ export const clearCacheDirectories = async (age: number = 300000): Promise<void>
 					new Promise((resolve, reject) => {
 						fs.stat(tempPath + "/" + tempItems[i])
 							.then(stat => {
-								if (!stat.exists || stat.modificationTime + age > Date.now()) {
+								if (!stat.exists || stat.modificationTime + age > now) {
 									resolve()
 
 									return
