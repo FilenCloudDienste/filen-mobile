@@ -402,7 +402,7 @@ const Instance = memo(() => {
 							convertTimestampToMs(assets[i].asset.creationTime || assets[i].asset.modificationTime || Date.now())
 						)
 
-						if (stat.exists && stat.size) {
+						if (stat.exists && stat.size && stat.size > 0) {
 							let filePath = tmpPath
 							let fileName = assets[i].asset.filename
 

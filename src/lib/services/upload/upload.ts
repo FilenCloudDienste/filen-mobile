@@ -491,7 +491,7 @@ export const uploadFolder = async ({
 			const fileParent = baseDir === "." || baseDir.length <= 0 ? parent : pathsToUUIDs[baseDir] || ""
 			const tempPath = pathModule.join(tempDir, await global.nodeThread.uuidv4())
 
-			if (fileParent.length <= 16 || tempPath.length <= 0) {
+			if (fileParent.length <= 16 || tempPath.length <= 0 || file.size <= 0) {
 				continue
 			}
 
