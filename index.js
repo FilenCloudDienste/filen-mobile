@@ -548,18 +548,6 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(err => {
 	storage.delete("pushToken")
 })
 
-if (Platform.OS === "ios") {
-	Notifications.ios.registerRemoteNotifications({
-		carPlay: false,
-		alert: true,
-		badge: true,
-		sound: true,
-		criticalAlert: false,
-		provisional: false,
-		announcement: false
-	})
-}
-
 const initPushNotifications = async () => {
 	const permissions = await hasNotificationPermissions(true)
 
@@ -577,6 +565,21 @@ const initPushNotifications = async () => {
 			provisional: false,
 			announcement: false
 		})
+
+		Notifications.setNotificationChannel({
+			channelId: "notifications",
+			name: "Notifications",
+			importance: 5,
+			description: "Notifications",
+			enableVibration: false,
+			groupId: "notifications",
+			groupName: "Notifications",
+			showBadge: true,
+			soundFile: undefined,
+			vibrationPattern: undefined
+		})
+
+		normalNotificationsChannelId = "notifications"
 	} catch (e) {
 		throw e
 	}
