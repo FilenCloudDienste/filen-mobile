@@ -556,15 +556,19 @@ const initPushNotifications = async () => {
 	}
 
 	try {
-		Notifications.registerRemoteNotifications({
-			carPlay: false,
-			alert: true,
-			badge: true,
-			sound: true,
-			criticalAlert: false,
-			provisional: false,
-			announcement: false
-		})
+		if (Platform.OS === "ios") {
+			Notifications.ios.registerRemoteNotifications({
+				carPlay: false,
+				alert: true,
+				badge: true,
+				sound: true,
+				criticalAlert: false,
+				provisional: false,
+				announcement: false
+			})
+		} else {
+			Notifications.registerRemoteNotifications()
+		}
 
 		Notifications.setNotificationChannel({
 			channelId: "notifications",
