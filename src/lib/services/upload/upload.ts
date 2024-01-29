@@ -51,6 +51,10 @@ export const queueFileUpload = async ({
 	includeFileHash?: boolean | string
 	isCameraUpload?: boolean
 }): Promise<any> => {
+	if (file.size <= 0) {
+		return
+	}
+
 	const masterKeys = getMasterKeys()
 
 	if (!Array.isArray(masterKeys) || masterKeys.length <= 0) {

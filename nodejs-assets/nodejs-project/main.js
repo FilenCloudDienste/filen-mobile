@@ -1524,6 +1524,12 @@ const uploadFile = async ({ uuid, file, includeFileHash, masterKeys, apiKey, ver
 		})
 	})
 
+	if (stat.size <= 0) {
+		reject(new Error("Invalid file size"))
+
+		return
+	}
+
 	let now = Date.now()
 
 	delete currentUploads[uuid]
