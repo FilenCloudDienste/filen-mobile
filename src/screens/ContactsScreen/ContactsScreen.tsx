@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from "react"
 import {
 	View,
-	AppState,
 	TouchableOpacity,
 	Text,
 	RefreshControl,
@@ -14,7 +13,7 @@ import {
 import { TopBar } from "../../components/TopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, useIsFocused } from "@react-navigation/native"
+import { NavigationContainerRef, useFocusEffect } from "@react-navigation/native"
 import { fetchContacts, FetchContactsResult } from "./utils"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { dbFs } from "../../lib/db"
@@ -28,6 +27,7 @@ import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import eventListener from "../../lib/eventListener"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useAppState from "../../lib/hooks/useAppState"
 
 const Item = memo(
 	({
@@ -184,13 +184,13 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 	const [requestsIn, setRequestsIn] = useState<ContactRequest[]>([])
 	const [requestsOut, setRequestsOut] = useState<ContactRequest[]>([])
 	const [blockedContacts, setBlockedContacts] = useState<BlockedContact[]>([])
-	const isFocused = useIsFocused()
 	const dimensions = useWindowDimensions()
 	const lang = useLang()
 	const [activeTab, setActiveTab] = useState<ContactTab>("all")
 	const insets = useSafeAreaInsets()
 	const scrollRef = useRef<ScrollView>()
 	const [tabSize, setTabSize] = useState<number>(Math.floor(dimensions.width - insets.left - insets.right))
+	const appState = useAppState()
 
 	const contactsSorted = useMemo(() => {
 		const sorted = contacts
@@ -446,11 +446,17 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 		setActiveTab("all")
 	}, [])
 
+	useFocusEffect(
+		useCallback(() => {
+			loadContacts(true)
+		}, [])
+	)
+
 	useEffect(() => {
-		if (isFocused) {
+		if (appState.state === "active" && appState.didChangeSinceInit) {
 			loadContacts(true)
 		}
-	}, [isFocused])
+	}, [appState])
 
 	useEffect(() => {
 		loadContacts()
@@ -458,12 +464,6 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 		const refreshInterval = setInterval(() => {
 			loadContacts(true)
 		}, 5000)
-
-		const appStateListener = AppState.addEventListener("change", nextState => {
-			if (nextState === "active") {
-				loadContacts(true)
-			}
-		})
 
 		const updateContactsListListener = eventListener.on("updateContactsList", () => {
 			loadContacts(true)
@@ -483,7 +483,6 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 		return () => {
 			clearInterval(refreshInterval)
 
-			appStateListener.remove()
 			updateContactsListListener.remove()
 			removeContactRequestListener.remove()
 			showContactsPendingListener.remove()

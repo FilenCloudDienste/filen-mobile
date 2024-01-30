@@ -107,6 +107,7 @@ import ConfirmRemoveChatParticipantDialog from "./components/Dialogs/ConfirmRemo
 import ConfirmRemoveNoteParticipantDialog from "./components/Dialogs/ConfirmRemoveNoteParticipantDialog"
 import { Notifications } from "react-native-notifications"
 import ChatNickNameDialog from "./components/Dialogs/ChatNickNameDialog"
+import useAppState from "./lib/hooks/useAppState"
 
 enableScreens(true)
 
@@ -136,23 +137,23 @@ const Instance = memo(() => {
 	const [userId] = useMMKVNumber("userId", storage)
 	const setBiometricAuthScreenState = useStore(state => state.setBiometricAuthScreenState)
 	const setCurrentShareItems = useStore(state => state.setCurrentShareItems)
-	const setAppState = useStore(state => state.setAppState)
 	const lang = useLang()
 	const setContentHeight = useStore(state => state.setContentHeight)
 	const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
 	const [setupDone, setSetupDone] = useMMKVBoolean("setupDone", storage)
 	const [keepAppAwake] = useMMKVBoolean("keepAppAwake", storage)
 	const [cfg, setCFG] = useState<ICFG | undefined>(undefined)
+	const appState = useAppState()
 
 	const handleShare = useCallback(async (items: ShareMenuItems) => {
 		if (!items || !items.data) {
 			return
 		}
 
-		await new Promise(resolve => {
-			const wait = setInterval(() => {
+		await new Promise<void>(resolve => {
+			const wait = setInterval(async () => {
 				if (
-					isNavReady(navigationRef) &&
+					(await isNavReady(navigationRef)) &&
 					!isRouteInStack(navigationRef, [
 						"SetupScreen",
 						"BiometricAuthScreen",
@@ -165,7 +166,7 @@ const Instance = memo(() => {
 				) {
 					clearInterval(wait)
 
-					return resolve(true)
+					resolve()
 				}
 			}, 100)
 		})
@@ -224,7 +225,7 @@ const Instance = memo(() => {
 			if (
 				storage.getBoolean("biometricPinAuth:" + userId) &&
 				Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
-				isNavReady(navigationRef) &&
+				(await isNavReady(navigationRef)) &&
 				!isRouteInStack(navigationRef, ["BiometricAuthScreen"])
 			) {
 				setBiometricAuthScreenState("auth")
@@ -313,11 +314,9 @@ const Instance = memo(() => {
 	}, [isLoggedIn])
 
 	useEffect(() => {
-		const appStateListener = AppState.addEventListener("change", async (nextAppState: AppStateStatus) => {
-			setAppState(nextAppState)
-
-			if (nextAppState === "background") {
-				if (isNavReady(navigationRef) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
+		if (appState.state === "background") {
+			;(async () => {
+				if ((await isNavReady(navigationRef)) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
 					let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
 
 					if (lockAppAfter === 0) {
@@ -332,14 +331,16 @@ const Instance = memo(() => {
 					) {
 						setBiometricAuthScreenState("auth")
 
-						navigationRef.current.dispatch(StackActions.push("BiometricAuthScreen"))
+						navigationRef.dispatch(StackActions.push("BiometricAuthScreen"))
 					}
 				}
-			} else if (nextAppState === "active") {
-				resetNotifications()
-			}
-		})
+			})()
+		} else if (appState.state === "active") {
+			resetNotifications()
+		}
+	}, [appState])
 
+	useEffect(() => {
 		const navigationRefListener = navigationRef.addListener("state", event => {
 			if (event.data && event.data.state && Array.isArray(event.data.state.routes)) {
 				setCurrentScreenName(event.data.state.routes[event.data.state.routes.length - 1].name)
@@ -358,17 +359,13 @@ const Instance = memo(() => {
 
 		const appearanceListener = Appearance.addChangeListener(() => setAppearance(1000))
 
-		storage.set("setupDone", false)
-		storage.set("cameraUploadUploaded", 0)
-		storage.set("cameraUploadTotal", 0)
-
 		const openSelectMediaScreenListener = DeviceEventEmitter.addListener("openSelectMediaScreen", async () => {
 			await navigationAnimation({ enable: true })
 
-			if (navigationRef && navigationRef.current && typeof navigationRef.current.dispatch === "function") {
+			if (await isNavReady(navigationRef)) {
 				const currentNavState = navigationRef.current.getState()
 
-				navigationRef.current.dispatch(
+				navigationRef.dispatch(
 					StackActions.push("SelectMediaScreen", {
 						prevNavigationState: currentNavState,
 						album: undefined
@@ -452,31 +449,12 @@ const Instance = memo(() => {
 			}
 		)
 
-		const notifeeOnForegroundListener = notifee.onForegroundEvent(async event => {
-			if (event.type === EventType.PRESS && event.detail && event.detail.notification) {
-				if (
-					event.detail.notification.data &&
-					event.detail.notification.data.type &&
-					event.detail.notification.data.type === "foregroundService" &&
-					navigationRef &&
-					navigationRef.current &&
-					typeof navigationRef.current.dispatch === "function"
-				) {
-					await navigationAnimation({ enable: true })
-
-					navigationRef.current.dispatch(StackActions.push("TransfersScreen"))
-				}
-			}
-		})
-
 		return () => {
 			shareMenuListener.remove()
-			appStateListener.remove()
 			appearanceListener.remove()
 			openSelectMediaScreenListener.remove()
 			selectMediaScreenUploadListener.remove()
 
-			notifeeOnForegroundListener()
 			navigationRefListener()
 		}
 	}, [])

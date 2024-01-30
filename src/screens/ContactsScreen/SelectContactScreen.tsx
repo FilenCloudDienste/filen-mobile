@@ -1,17 +1,8 @@
 import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "react"
-import {
-	View,
-	Text,
-	TouchableHighlight,
-	TouchableOpacity,
-	useWindowDimensions,
-	RefreshControl,
-	ActivityIndicator,
-	AppState
-} from "react-native"
+import { View, Text, TouchableHighlight, TouchableOpacity, useWindowDimensions, RefreshControl, ActivityIndicator } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, StackActions, useIsFocused } from "@react-navigation/native"
+import { NavigationContainerRef, StackActions, useFocusEffect } from "@react-navigation/native"
 import { Contact } from "../../lib/api"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
@@ -27,6 +18,7 @@ import { showToast } from "../../components/Toasts"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { TopBar } from "../../components/TopBar"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
+import useAppState from "../../lib/hooks/useAppState"
 
 export interface SelectedContact extends Contact {
 	selected: boolean
@@ -241,7 +233,7 @@ const SelectContactScreen = memo(
 		const didSendResponse = useRef<boolean>(false)
 		const requestId = useRef<string>(route.params.requestId).current
 		const hiddenUserIds = useRef<number[]>(route.params.hiddenUserIds).current
-		const isFocused = useIsFocused()
+		const appState = useAppState()
 
 		const contactsSorted = useMemo(() => {
 			return sortContacts(contacts, searchTerm).filter(c => !hiddenUserIds.includes(c.userId))
@@ -314,11 +306,17 @@ const SelectContactScreen = memo(
 			[darkMode, contactsSorted, setContacts]
 		)
 
+		useFocusEffect(
+			useCallback(() => {
+				loadContacts(true)
+			}, [])
+		)
+
 		useEffect(() => {
-			if (isFocused) {
+			if (appState.state === "active" && appState.didChangeSinceInit) {
 				loadContacts(true)
 			}
-		}, [isFocused])
+		}, [appState])
 
 		useEffect(() => {
 			loadContacts()
@@ -327,16 +325,8 @@ const SelectContactScreen = memo(
 				loadContacts(true)
 			}, 5000)
 
-			const appStateListener = AppState.addEventListener("change", nextState => {
-				if (nextState === "active") {
-					loadContacts(true)
-				}
-			})
-
 			return () => {
 				clearInterval(refreshInterval)
-
-				appStateListener.remove()
 
 				if (!didSendResponse.current) {
 					didSendResponse.current = true

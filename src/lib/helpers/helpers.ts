@@ -1000,7 +1000,7 @@ export const isRouteInStack = (
 	routeNames: string[]
 ): boolean => {
 	try {
-		if (!isNavReady(navigationRef)) {
+		if (!isNavReadySync(navigationRef)) {
 			return false
 		}
 
@@ -1046,6 +1046,27 @@ export const isBetween = (num: number, start: number, end: number) => {
 	}
 
 	return false
+}
+
+export const isNavReadySync = (navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>): boolean => {
+	try {
+		if (
+			navigationRef &&
+			typeof navigationRef.isReady === "function" &&
+			navigationRef.current &&
+			typeof navigationRef.current.isReady === "function" &&
+			navigationRef.isReady() &&
+			navigationRef.current.isReady()
+		) {
+			return true
+		}
+
+		return false
+	} catch (e) {
+		console.error(e)
+
+		return
+	}
 }
 
 export const isNavReady = (navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>): Promise<boolean> => {

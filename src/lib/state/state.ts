@@ -53,8 +53,6 @@ export interface State {
 	setCreateTextFileDialogName: (createTextFileDialogName: string) => void
 	textEditorParent: string
 	setTextEditorParent: (textEditorParent: string) => void
-	appState: string
-	setAppState: (appState: string) => void
 	isAuthing: boolean
 	setIsAuthing: (isAuthing: boolean) => void
 	topBarHeight: number
@@ -127,8 +125,6 @@ export const useStore = create<State>()(
 		setCreateTextFileDialogName: createTextFileDialogName => set({ createTextFileDialogName }),
 		textEditorParent: "",
 		setTextEditorParent: textEditorParent => set({ textEditorParent }),
-		appState: "active",
-		setAppState: appState => set({ appState }),
 		isAuthing: false,
 		setIsAuthing: isAuthing => set({ isAuthing }),
 		topBarHeight: 115.27,

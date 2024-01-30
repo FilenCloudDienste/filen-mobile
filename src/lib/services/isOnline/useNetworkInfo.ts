@@ -1,8 +1,8 @@
 import * as Network from "expo-network"
 import { networkState } from "./isOnline"
 import { useState, useEffect, useCallback } from "react"
-import { AppState } from "react-native"
 import NetInfo, { NetInfoStateType } from "@react-native-community/netinfo"
+import useAppState from "../../../lib/hooks/useAppState"
 
 export type NetworkInfo = {
 	online: boolean
@@ -11,6 +11,7 @@ export type NetworkInfo = {
 
 export const useNetworkInfo = () => {
 	const [state, setState] = useState<NetworkInfo>({ online: true, wifi: true })
+	const appState = useAppState()
 
 	const update = useCallback(async () => {
 		try {
@@ -36,13 +37,13 @@ export const useNetworkInfo = () => {
 	}, [])
 
 	useEffect(() => {
-		update()
+		if (appState.state === "active" && appState.didChangeSinceInit) {
+			update()
+		}
+	}, [appState])
 
-		const appStateListener = AppState.addEventListener("change", s => {
-			if (s === "active") {
-				update()
-			}
-		})
+	useEffect(() => {
+		update()
 
 		const removeNetInfoListener = NetInfo.addEventListener(s => {
 			setState({
@@ -58,8 +59,6 @@ export const useNetworkInfo = () => {
 
 		return () => {
 			removeNetInfoListener()
-
-			appStateListener.remove()
 		}
 	}, [])
 

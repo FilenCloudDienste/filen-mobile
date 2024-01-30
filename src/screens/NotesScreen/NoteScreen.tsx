@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from "react"
-import { View, KeyboardAvoidingView, Keyboard, TouchableOpacity, ActivityIndicator, AppState, Platform } from "react-native"
+import { View, KeyboardAvoidingView, TouchableOpacity, ActivityIndicator, Platform } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, CommonActions, useIsFocused } from "@react-navigation/native"
+import { NavigationContainerRef, CommonActions, useFocusEffect } from "@react-navigation/native"
 import { NoteType, Note, editNoteContent, noteHistoryRestore } from "../../lib/api"
 import { fetchNoteContent, quillStyle, createNotePreviewFromContentText, fetchNotesAndTags } from "./utils"
 import { dbFs } from "../../lib/db"
@@ -31,6 +31,7 @@ import {
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 import { SocketEvent } from "../../lib/services/socket"
 import useDimensions from "../../lib/hooks/useDimensions"
+import useAppState from "../../lib/hooks/useAppState"
 
 const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -56,9 +57,9 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const historyContent = useRef<string>(route.params.historyContent).current
 	const historyType = useRef<NoteType | "">(route.params.historyType).current
 	const loadNoteTimeout = useRef<number>(0)
-	const isFocused = useIsFocused()
 	const keyboardOffset = useKeyboardOffset()
 	const dimensions = useDimensions()
+	const appState = useAppState()
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!currentNoteRef.current) {
@@ -246,11 +247,17 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		debouncedSave()
 	}, [editedContent])
 
+	useFocusEffect(
+		useCallback(() => {
+			loadNote(true)
+		}, [])
+	)
+
 	useEffect(() => {
-		if (isFocused) {
+		if (appState.state === "active" && appState.didChangeSinceInit) {
 			loadNote(true)
 		}
-	}, [isFocused])
+	}, [appState])
 
 	useEffect(() => {
 		loadNote()
@@ -258,12 +265,6 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		const noteTitleEditedListener = eventListener.on("noteTitleEdited", ({ uuid, title }: { uuid: string; title: string }) => {
 			if (uuid === currentNoteRef.current.uuid) {
 				setTitle(title)
-			}
-		})
-
-		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
-			if (nextAppState === "active") {
-				loadNote(true)
 			}
 		})
 
@@ -301,7 +302,6 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 
 		return () => {
 			noteTitleEditedListener.remove()
-			appStateChangeListener.remove()
 			socketAuthedListener.remove()
 			socketEventListener.remove()
 

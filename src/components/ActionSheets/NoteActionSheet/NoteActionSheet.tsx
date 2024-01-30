@@ -21,10 +21,9 @@ import {
 	archiveNote,
 	notePinned,
 	editNoteContent,
-	NoteTag,
-	noteParticipantsRemove
+	NoteTag
 } from "../../../lib/api"
-import { generateRandomString, getMasterKeys, getFileExt, isRouteInStack, isNavReady } from "../../../lib/helpers"
+import { generateRandomString, getMasterKeys, getFileExt, isRouteInStack, isNavReadySync } from "../../../lib/helpers"
 import storage from "../../../lib/storage"
 import { encryptMetadata, encryptMetadataPublicKey, encryptNoteTitle, encryptNoteContent, encryptNotePreview } from "../../../lib/crypto"
 import { showToast } from "../../../components/Toasts"
@@ -53,7 +52,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 	const isInsideNote = useMemo(() => {
 		return (
 			selectedNote &&
-			isNavReady(navigation as NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>) &&
+			isNavReadySync(navigation as NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>) &&
 			isRouteInStack(navigation as NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>, ["NoteScreen"])
 		)
 	}, [navigation, selectedNote])

@@ -1,11 +1,11 @@
 import React, { memo, useMemo, useCallback, useEffect, useState } from "react"
-import { Text, View, Pressable, useWindowDimensions, AppState } from "react-native"
+import { Text, View, Pressable, useWindowDimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { useStore, navigationAnimation } from "../../lib/state"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { i18n } from "../../i18n"
-import { getParent, getRouteURL } from "../../lib/helpers"
+import { getRouteURL } from "../../lib/helpers"
 import { CommonActions } from "@react-navigation/native"
 import { getColor } from "../../style/colors"
 import useDarkMode from "../../lib/hooks/useDarkMode"
@@ -14,6 +14,7 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import { chatUnread as getChatUnread } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
+import useAppState from "../../lib/hooks/useAppState"
 
 export const BottomBar = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
@@ -25,6 +26,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 	const [defaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
 	const dimensions = useWindowDimensions()
 	const [chatUnread, setChatUnread] = useState<number>(0)
+	const appState = useAppState()
 
 	const iconTextMaxWidth: number = useMemo(() => {
 		return dimensions.width / 5 - 25
@@ -197,6 +199,12 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 	}, [])
 
 	useEffect(() => {
+		if (appState.state === "active" && appState.didChangeSinceInit) {
+			updateChatUnread()
+		}
+	}, [appState])
+
+	useEffect(() => {
 		updateChatUnread()
 
 		const updateChatUnreadInterval = setInterval(updateChatUnread, 5000)
@@ -217,19 +225,12 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 			updateChatUnread()
 		})
 
-		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
-			if (nextAppState === "active") {
-				updateChatUnread()
-			}
-		})
-
 		return () => {
 			clearInterval(updateChatUnreadInterval)
 
 			chatConversationReadListener.remove()
 			socketEventListener.remove()
 			socketAuthedListener.remove()
-			appStateChangeListener.remove()
 		}
 	}, [])
 

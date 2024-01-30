@@ -1,4 +1,4 @@
-import React, { useEffect, memo, useState, useCallback } from "react"
+import React, { useEffect, memo, useState, useCallback, useRef } from "react"
 import {
 	View,
 	TouchableHighlight,
@@ -9,15 +9,14 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
-	Alert,
-	AppState
+	Alert
 } from "react-native"
 import storage, { sharedStorage } from "../../lib/storage/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVObject, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { formatBytes, getFilenameFromPath, safeAwait } from "../../lib/helpers"
 import { i18n } from "../../i18n"
-import { StackActions, useIsFocused } from "@react-navigation/native"
+import { StackActions, useFocusEffect } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
 import { waitForStateUpdate } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
@@ -36,6 +35,7 @@ import { contactsRequestsInCount } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
 import { hasNotificationPermissions } from "../../lib/permissions"
 import notifee from "@notifee/react-native"
+import useAppState from "../../lib/hooks/useAppState"
 
 export const SettingsButtonLinkHighlight = memo(
 	({
@@ -554,8 +554,9 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	const [dontFollowSystemTheme, setDontFollowSystemTheme] = useMMKVBoolean("dontFollowSystemTheme", storage)
 	const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 	const [contactRequestInCount, setContactRequestsInCount] = useState<number>(0)
-	const isFocused = useIsFocused()
 	const [notificationPermissions, setNotificationPermissions] = useState<boolean | undefined>(undefined)
+	const nextLoadNotificationAuthorization = useRef<number>(0)
+	const appState = useAppState()
 
 	const loadContactRequestsInCount = useCallback(async () => {
 		try {
@@ -568,8 +569,20 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	}, [])
 
 	const loadNotificationAuthorization = useCallback(async () => {
+		if (Platform.OS === "ios") {
+			return
+		}
+
+		const now = Date.now()
+
+		if (nextLoadNotificationAuthorization.current > now) {
+			return
+		}
+
+		nextLoadNotificationAuthorization.current = now + 5000
+
 		try {
-			const has = await hasNotificationPermissions(true)
+			const has = await hasNotificationPermissions(false)
 
 			setNotificationPermissions(has)
 		} catch (e) {
@@ -578,11 +591,18 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	}, [])
 
 	useEffect(() => {
-		if (isFocused) {
+		if (appState.state === "active" && appState.didChangeSinceInit) {
 			loadContactRequestsInCount()
 			loadNotificationAuthorization()
 		}
-	}, [isFocused])
+	}, [appState])
+
+	useFocusEffect(
+		useCallback(() => {
+			loadContactRequestsInCount()
+			loadNotificationAuthorization()
+		}, [])
+	)
 
 	useEffect(() => {
 		loadContactRequestsInCount()
@@ -592,13 +612,6 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 			loadContactRequestsInCount()
 		}, 5000)
 
-		const appStateListener = AppState.addEventListener("change", nextAppState => {
-			if (nextAppState === "active") {
-				loadContactRequestsInCount()
-				loadNotificationAuthorization()
-			}
-		})
-
 		const updateContactsListListener = eventListener.on("updateContactsList", () => {
 			loadContactRequestsInCount()
 		})
@@ -606,7 +619,6 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 		return () => {
 			clearInterval(loadContactRequestsInCountInterval)
 
-			appStateListener.remove()
 			updateContactsListListener.remove()
 		}
 	}, [])

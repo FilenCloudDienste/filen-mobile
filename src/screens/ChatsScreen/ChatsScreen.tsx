@@ -1,8 +1,8 @@
 import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "react"
-import { View, Text, TouchableOpacity, useWindowDimensions, AppState, ActivityIndicator, RefreshControl } from "react-native"
+import { View, Text, TouchableOpacity, useWindowDimensions, ActivityIndicator, RefreshControl } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, useIsFocused, StackActions } from "@react-navigation/native"
+import { NavigationContainerRef, useFocusEffect, StackActions } from "@react-navigation/native"
 import {
 	ChatConversation,
 	chatConversationsUnread,
@@ -40,6 +40,7 @@ import { showToast } from "../../components/Toasts"
 import notifee from "@notifee/react-native"
 import { Notifications } from "react-native-notifications"
 import { SheetManager } from "react-native-actions-sheet"
+import useAppState from "../../lib/hooks/useAppState"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -417,9 +418,9 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const networkInfo = useNetworkInfo()
 	const [unreadConversationsMessages, setUnreadConversationsMessages] = useState<Record<string, number>>({})
-	const isFocused = useIsFocused()
 	const conversationsRef = useRef<ChatConversation[]>(conversations)
 	const isPortrait = useIsPortrait()
+	const appState = useAppState()
 
 	const conversationsSorted = useMemo(() => {
 		return sortAndFilterConversations(conversations, searchTerm, userId)
@@ -590,12 +591,19 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 		[darkMode, conversations, lang, userId, unreadConversationsMessages, navigation]
 	)
 
+	useFocusEffect(
+		useCallback(() => {
+			loadConversations(true)
+			resetNotifications()
+		}, [])
+	)
+
 	useEffect(() => {
-		if (isFocused) {
+		if (appState.state === "active" && appState.didChangeSinceInit) {
 			loadConversations(true)
 			resetNotifications()
 		}
-	}, [isFocused])
+	}, [appState])
 
 	useEffect(() => {
 		conversationsRef.current = conversations
@@ -604,13 +612,6 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	useEffect(() => {
 		loadConversations()
 		resetNotifications()
-
-		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
-			if (nextAppState === "active") {
-				loadConversations(true)
-				resetNotifications()
-			}
-		})
 
 		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
 			if (event.type === "chatMessageNew") {
@@ -785,7 +786,6 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 		})
 
 		return () => {
-			appStateChangeListener.remove()
 			socketEventListener.remove()
 			updateChatConversationsListener.remove()
 			socketAuthedListener.remove()

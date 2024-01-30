@@ -1,9 +1,9 @@
 import React, { useState, useEffect, memo, useMemo, useCallback, useRef } from "react"
-import { View, Text, TouchableOpacity, RefreshControl, useWindowDimensions, AppState, ActivityIndicator } from "react-native"
+import { View, Text, TouchableOpacity, RefreshControl, useWindowDimensions, ActivityIndicator } from "react-native"
 import { TopBar } from "../../components/TopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, useIsFocused } from "@react-navigation/native"
+import { NavigationContainerRef, useFocusEffect } from "@react-navigation/native"
 import { Note, NoteTag } from "../../lib/api"
 import { fetchNotesAndTags, sortAndFilterNotes, getUserNameFromNoteParticipant } from "./utils"
 import { dbFs } from "../../lib/db"
@@ -24,6 +24,7 @@ import { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { SocketEvent } from "../../lib/services/socket"
+import useAppState from "../../lib/hooks/useAppState"
 
 const Item = memo(
 	({
@@ -413,8 +414,8 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const [userId] = useMMKVNumber("userId", storage)
 	const dimensions = useWindowDimensions()
 	const lang = useLang()
-	const isFocused = useIsFocused()
 	const loadNotesAndTagsTimeout = useRef<number>(0)
+	const appState = useAppState()
 
 	const notesSorted = useMemo(() => {
 		return sortAndFilterNotes(notes, searchTerm, "")
@@ -487,11 +488,17 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 		[darkMode, notesSorted, navigation, userId, tags]
 	)
 
+	useFocusEffect(
+		useCallback(() => {
+			loadNotesAndTags(true)
+		}, [])
+	)
+
 	useEffect(() => {
-		if (isFocused) {
+		if (appState.state === "active" && appState.didChangeSinceInit) {
 			loadNotesAndTags(true)
 		}
-	}, [isFocused])
+	}, [appState])
 
 	useEffect(() => {
 		loadNotesAndTags()
@@ -506,12 +513,6 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 
 		const notesTagsUpdateListener = eventListener.on("notesTagsUpdate", (t: NoteTag[]) => {
 			setTags(t)
-		})
-
-		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
-			if (nextAppState === "active") {
-				loadNotesAndTags(true)
-			}
 		})
 
 		const socketAuthedListener = eventListener.on("socketAuthed", () => {
@@ -538,7 +539,6 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			notesUpdateListener.remove()
 			refreshNotesListener.remove()
 			notesTagsUpdateListener.remove()
-			appStateChangeListener.remove()
 			socketEventListener.remove()
 			socketAuthedListener.remove()
 		}

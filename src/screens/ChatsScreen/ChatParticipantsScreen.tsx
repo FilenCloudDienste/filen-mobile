@@ -1,8 +1,8 @@
 import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "react"
-import { View, Text, TouchableOpacity, useWindowDimensions, RefreshControl, ActivityIndicator, AppState } from "react-native"
+import { View, Text, TouchableOpacity, useWindowDimensions, RefreshControl, ActivityIndicator } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, CommonActions, useIsFocused } from "@react-navigation/native"
+import { NavigationContainerRef, CommonActions, useFocusEffect } from "@react-navigation/native"
 import {
 	Contact,
 	ChatConversation,
@@ -35,6 +35,7 @@ import { throttle } from "lodash"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { SocketEvent } from "../../lib/services/socket"
+import useAppState from "../../lib/hooks/useAppState"
 
 export type OnlineUsers = Record<string, ChatConversationsOnline>
 
@@ -214,7 +215,7 @@ const ChatParticipantsScreen = memo(
 		const [conversation, setConversation] = useState<ChatConversation>(route.params.conversation)
 		const conversationMe = useRef<ChatConversationParticipant>(conversation.participants.filter(p => p.userId === userId)[0]).current
 		const [onlineUsers, setOnlineUsers] = useState<Record<string, OnlineUsers>>({})
-		const isFocused = useIsFocused()
+		const appState = useAppState()
 
 		const participants = useMemo(() => {
 			return conversation.participants
@@ -401,12 +402,19 @@ const ChatParticipantsScreen = memo(
 			[darkMode, participantsSorted, onlineUsers, userId, conversation]
 		)
 
+		useFocusEffect(
+			useCallback(() => {
+				loadConversation()
+				updateOnlineUsers()
+			}, [])
+		)
+
 		useEffect(() => {
-			if (isFocused) {
+			if (appState.state === "active" && appState.didChangeSinceInit) {
 				loadConversation()
 				updateOnlineUsers()
 			}
-		}, [isFocused])
+		}, [appState])
 
 		useEffect(() => {
 			loadConversation()
@@ -432,13 +440,6 @@ const ChatParticipantsScreen = memo(
 			const socketAuthedListener = eventListener.on("socketAuthed", () => {
 				loadConversation()
 				updateOnlineUsers()
-			})
-
-			const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
-				if (nextAppState === "active") {
-					loadConversation()
-					updateOnlineUsers()
-				}
 			})
 
 			const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
@@ -479,7 +480,6 @@ const ChatParticipantsScreen = memo(
 
 				chatConversationParticipantRemovedListener.remove()
 				socketAuthedListener.remove()
-				appStateChangeListener.remove()
 				socketEventListener.remove()
 				chatConversationNameEditedListener.remove()
 			}

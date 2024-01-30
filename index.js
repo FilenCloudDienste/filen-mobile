@@ -548,14 +548,34 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(err => {
 	storage.delete("pushToken")
 })
 
-const initPushNotifications = async () => {
-	const permissions = await hasNotificationPermissions(true)
+const init = async () => {
+	setTimeout(() => {
+		runCameraUpload()
 
-	if (!permissions) {
-		return
-	}
+		global.nodeThread.getCurrentTransfers().catch(console.error)
+	}, 5000)
 
 	try {
+		storage.set("setupDone", false)
+		storage.set("cameraUploadUploaded", 0)
+		storage.set("cameraUploadTotal", 0)
+
+		await new Promise(resolve => {
+			const interval = setInterval(() => {
+				if (storage.getBoolean("setupDone")) {
+					clearInterval(interval)
+
+					resolve()
+				}
+			}, 100)
+		})
+
+		const permissions = await hasNotificationPermissions(true)
+
+		if (!permissions) {
+			return
+		}
+
 		if (Platform.OS === "ios") {
 			Notifications.ios.registerRemoteNotifications({
 				carPlay: false,
@@ -589,12 +609,6 @@ const initPushNotifications = async () => {
 	}
 }
 
-initPushNotifications().catch(console.error)
-
-setTimeout(() => {
-	runCameraUpload()
-
-	global.nodeThread.getCurrentTransfers().catch(console.error)
-}, 5000)
+init().catch(console.error)
 
 AppRegistry.registerComponent(appName, () => App)

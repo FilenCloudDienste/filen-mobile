@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, memo, useMemo, useCallback } from "react"
-import { View, DeviceEventEmitter, Platform, AppState } from "react-native"
+import { View, DeviceEventEmitter, Platform } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVNumber, useMMKVString } from "react-native-mmkv"
 import { TopBar } from "../../components/TopBar"
@@ -10,7 +10,7 @@ import { useStore } from "../../lib/state"
 import { SheetManager } from "react-native-actions-sheet"
 import { previewItem } from "../../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { StackActions, useIsFocused } from "@react-navigation/native"
+import { StackActions, useFocusEffect, useIsFocused } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
 import { Item } from "../../types"
 import { getColor } from "../../style"
@@ -20,6 +20,7 @@ import * as db from "../../lib/db"
 import memoryCache from "../../lib/memoryCache"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import useDimensions from "../../lib/hooks/useDimensions"
+import useAppState from "../../lib/hooks/useAppState"
 
 export const MainScreen = memo(
 	({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
@@ -45,11 +46,12 @@ export const MainScreen = memo(
 		const contentHeight = useStore(state => state.contentHeight)
 		const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
 		const [initialized, setInitialized] = useState<boolean>(false)
-		const isFocused = useIsFocused()
 		const [sortByDb] = useMMKVString("sortBy", storage)
 		const dimensions = useDimensions()
 		const populateListTimeout = useRef<number>(0)
 		const networkInfo = useNetworkInfo()
+		const appState = useAppState()
+		const isFocused = useIsFocused()
 
 		const sortBy: string | undefined = useMemo(() => {
 			const parsed = JSON.parse(sortByDb || "{}")
@@ -251,11 +253,17 @@ export const MainScreen = memo(
 			}
 		}, [initialized])
 
+		useFocusEffect(
+			useCallback(() => {
+				populateList(true).catch(console.error)
+			}, [])
+		)
+
 		useEffect(() => {
-			if (isFocused) {
+			if (appState.state === "active" && appState.didChangeSinceInit) {
 				populateList(true).catch(console.error)
 			}
-		}, [isFocused])
+		}, [appState])
 
 		useEffect(() => {
 			if (isFocused) {
@@ -378,18 +386,11 @@ export const MainScreen = memo(
 				}
 			})
 
-			const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
-				if (nextAppState === "active") {
-					populateList(true).catch(console.error)
-				}
-			})
-
 			setIsDeviceReady(true)
 			setInitialized(true)
 
 			return () => {
 				deviceListener.remove()
-				appStateChangeListener.remove()
 
 				setPhotosRange("all")
 			}

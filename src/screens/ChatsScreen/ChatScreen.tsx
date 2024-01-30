@@ -4,7 +4,6 @@ import {
 	Text,
 	TouchableOpacity,
 	useWindowDimensions,
-	AppState,
 	ActivityIndicator,
 	KeyboardAvoidingView,
 	NativeSyntheticEvent,
@@ -13,7 +12,7 @@ import {
 } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, useIsFocused, StackActions, CommonActions } from "@react-navigation/native"
+import { NavigationContainerRef, useIsFocused, StackActions, CommonActions, useFocusEffect } from "@react-navigation/native"
 import {
 	ChatConversation,
 	ChatConversationParticipant,
@@ -46,6 +45,7 @@ import Input from "./Input"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 import { ChatInfo } from "./Message"
 import { navigationAnimation } from "../../lib/state"
+import useAppState from "../../lib/hooks/useAppState"
 
 const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -78,6 +78,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const [showScrollDownButton, setShowScrollDownButton] = useState<boolean>(false)
 	const listRef = useRef<FlashList<ChatMessage>>()
 	const canLoadPreviousMessages = useRef<boolean>(true)
+	const appState = useAppState()
 
 	const conversationParticipantsFilteredWithoutMe = useMemo(() => {
 		const filtered = conversation.participants.filter(participant => participant.userId !== userId)
@@ -324,13 +325,21 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		}
 	}, [JSON.stringify(lastFocusTimestamp), conversation])
 
+	useFocusEffect(
+		useCallback(() => {
+			loadMessages(true)
+			fetchBlockedContacts()
+			loadConversation()
+		}, [])
+	)
+
 	useEffect(() => {
-		if (isFocused) {
+		if (appState.state === "active" && appState.didChangeSinceInit) {
 			loadMessages(true)
 			fetchBlockedContacts()
 			loadConversation()
 		}
-	}, [isFocused])
+	}, [appState])
 
 	useEffect(() => {
 		if (sortedMessages.length > 0) {
@@ -355,14 +364,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			fetchBlockedContacts()
 			loadConversation()
 		}
-
-		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
-			if (nextAppState === "active") {
-				loadMessages(true)
-				fetchBlockedContacts()
-				loadConversation()
-			}
-		})
 
 		const socketAuthedListener = eventListener.on("socketAuthed", () => {
 			loadMessages(true)
@@ -502,7 +503,6 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 		})
 
 		return () => {
-			appStateChangeListener.remove()
 			socketAuthedListener.remove()
 			chatMessageDeleteListener.remove()
 			chatMessageEmbedDisabledListener.remove()
