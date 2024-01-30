@@ -432,7 +432,7 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 					return
 				}
 
-				loadNotesAndTagsTimeout.current = Date.now() + 1000
+				loadNotesAndTagsTimeout.current = Date.now() + 100
 			}
 
 			try {

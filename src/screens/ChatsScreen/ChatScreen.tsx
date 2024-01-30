@@ -79,6 +79,9 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const listRef = useRef<FlashList<ChatMessage>>()
 	const canLoadPreviousMessages = useRef<boolean>(true)
 	const appState = useAppState()
+	const loadMessagesTimeout = useRef<number>(0)
+	const fetchBlockedContactsTimeout = useRef<number>(0)
+	const loadConversationTimeout = useRef<number>(0)
 
 	const conversationParticipantsFilteredWithoutMe = useMemo(() => {
 		const filtered = conversation.participants.filter(participant => participant.userId !== userId)
@@ -133,6 +136,12 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	)
 
 	const fetchBlockedContacts = useCallback(async () => {
+		if (fetchBlockedContactsTimeout.current > Date.now()) {
+			return
+		}
+
+		fetchBlockedContactsTimeout.current = Date.now() + 100
+
 		try {
 			const res = await contactsBlocked()
 
@@ -143,6 +152,12 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	}, [])
 
 	const loadConversation = useCallback(async () => {
+		if (loadConversationTimeout.current > Date.now()) {
+			return
+		}
+
+		loadConversationTimeout.current = Date.now() + 100
+
 		try {
 			if (!networkInfo.online) {
 				return
@@ -185,6 +200,14 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 			try {
 				if (skipCache && !networkInfo.online) {
 					return
+				}
+
+				if (skipCache) {
+					if (loadMessagesTimeout.current > Date.now()) {
+						return
+					}
+
+					loadMessagesTimeout.current = Date.now() + 100
 				}
 
 				const cache = await dbFs.get("chatMessages:" + conversation.uuid)

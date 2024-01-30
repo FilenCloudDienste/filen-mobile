@@ -216,6 +216,7 @@ const ChatParticipantsScreen = memo(
 		const conversationMe = useRef<ChatConversationParticipant>(conversation.participants.filter(p => p.userId === userId)[0]).current
 		const [onlineUsers, setOnlineUsers] = useState<Record<string, OnlineUsers>>({})
 		const appState = useAppState()
+		const loadConversationTimeout = useRef<number>(0)
 
 		const participants = useMemo(() => {
 			return conversation.participants
@@ -276,6 +277,12 @@ const ChatParticipantsScreen = memo(
 		}, [participants, searchTerm, (onlineUsers || {})[conversation.uuid || ""]])
 
 		const loadConversation = useCallback(async () => {
+			if (loadConversationTimeout.current > Date.now()) {
+				return
+			}
+
+			loadConversationTimeout.current = Date.now() + 100
+
 			try {
 				if (!networkInfo.online) {
 					return

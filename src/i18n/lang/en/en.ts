@@ -539,5 +539,6 @@ export const en: {
 	transferringFile: "Transferring one file",
 	transferringDots: "Transferring...",
 	notificationPermissionsNeededAndroid:
-		"Filen requires all notification permissions to function correctly. Background transfers and social notifications will not work without them."
+		"Filen requires all notification permissions to function correctly. Background transfers and social notifications will not work without them.",
+	noChatsYet: "No chats yet"
 }

@@ -555,10 +555,17 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	const [hideRecents, setHideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 	const [contactRequestInCount, setContactRequestsInCount] = useState<number>(0)
 	const [notificationPermissions, setNotificationPermissions] = useState<boolean | undefined>(undefined)
-	const nextLoadNotificationAuthorization = useRef<number>(0)
+	const loadNotificationAuthorizationTimeout = useRef<number>(0)
 	const appState = useAppState()
+	const loadContactRequestsInCountTimeout = useRef<number>(0)
 
 	const loadContactRequestsInCount = useCallback(async () => {
+		if (loadContactRequestsInCountTimeout.current > Date.now()) {
+			return
+		}
+
+		loadContactRequestsInCountTimeout.current = Date.now() + 100
+
 		try {
 			const count = await contactsRequestsInCount()
 
@@ -575,11 +582,11 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 
 		const now = Date.now()
 
-		if (nextLoadNotificationAuthorization.current > now) {
+		if (loadNotificationAuthorizationTimeout.current > now) {
 			return
 		}
 
-		nextLoadNotificationAuthorization.current = now + 5000
+		loadNotificationAuthorizationTimeout.current = now + 5000
 
 		try {
 			const has = await hasNotificationPermissions(false)

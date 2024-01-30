@@ -540,5 +540,6 @@ export const de: {
 	transferringFile: "Übertrage eine Datei",
 	transferringDots: "Übertrage...",
 	notificationPermissionsNeededAndroid:
-		"Filen benötigt alle Benachrichtigungsberechtigungen, um ordnungsgemäß zu funktionieren. Hintergrundübertragungen und soziale Benachrichtigungen funktionieren ohne sie nicht."
+		"Filen benötigt alle Benachrichtigungsberechtigungen, um ordnungsgemäß zu funktionieren. Hintergrundübertragungen und soziale Benachrichtigungen funktionieren ohne sie nicht.",
+	noChatsYet: "Noch keine Chats"
 }

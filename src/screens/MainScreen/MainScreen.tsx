@@ -51,6 +51,7 @@ export const MainScreen = memo(
 		const networkInfo = useNetworkInfo()
 		const appState = useAppState()
 		const isFocused = useIsFocused()
+		const populateListTimeout = useRef<number>(0)
 
 		const sortBy: string | undefined = useMemo(() => {
 			const parsed = JSON.parse(sortByDb || "{}")
@@ -185,6 +186,14 @@ export const MainScreen = memo(
 			async (skipCache: boolean = false, passedURL: string | null = null) => {
 				if (skipCache && !networkInfo.online) {
 					return
+				}
+
+				if (skipCache) {
+					if (populateListTimeout.current > Date.now()) {
+						return
+					}
+
+					populateListTimeout.current = Date.now() + 1000
 				}
 
 				try {

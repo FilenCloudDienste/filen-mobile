@@ -234,6 +234,7 @@ const SelectContactScreen = memo(
 		const requestId = useRef<string>(route.params.requestId).current
 		const hiddenUserIds = useRef<number[]>(route.params.hiddenUserIds).current
 		const appState = useAppState()
+		const loadContactsTimeout = useRef<number>(0)
 
 		const contactsSorted = useMemo(() => {
 			return sortContacts(contacts, searchTerm).filter(c => !hiddenUserIds.includes(c.userId))
@@ -247,6 +248,14 @@ const SelectContactScreen = memo(
 			async (skipCache: boolean = false) => {
 				if (skipCache && !networkInfo.online) {
 					return
+				}
+
+				if (skipCache) {
+					if (loadContactsTimeout.current > Date.now()) {
+						return
+					}
+
+					loadContactsTimeout.current = Date.now() + 100
 				}
 
 				try {

@@ -421,6 +421,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const conversationsRef = useRef<ChatConversation[]>(conversations)
 	const isPortrait = useIsPortrait()
 	const appState = useAppState()
+	const loadConversationsTimeout = useRef<number>(0)
 
 	const conversationsSorted = useMemo(() => {
 		return sortAndFilterConversations(conversations, searchTerm, userId)
@@ -431,6 +432,14 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 			try {
 				if (skipCache && !networkInfo.online) {
 					return
+				}
+
+				if (skipCache) {
+					if (loadConversationsTimeout.current > Date.now()) {
+						return
+					}
+
+					loadConversationsTimeout.current = Date.now() + 100
 				}
 
 				const cache = await dbFs.get<ChatConversation[]>("chatConversations")

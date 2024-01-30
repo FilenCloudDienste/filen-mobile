@@ -191,6 +191,7 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 	const scrollRef = useRef<ScrollView>()
 	const [tabSize, setTabSize] = useState<number>(Math.floor(dimensions.width - insets.left - insets.right))
 	const appState = useAppState()
+	const loadContactsTimeout = useRef<number>(0)
 
 	const contactsSorted = useMemo(() => {
 		const sorted = contacts
@@ -285,6 +286,14 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 		async (skipCache: boolean = false) => {
 			if (skipCache && !networkInfo.online) {
 				return
+			}
+
+			if (skipCache) {
+				if (loadContactsTimeout.current > Date.now()) {
+					return
+				}
+
+				loadContactsTimeout.current = Date.now() + 100
 			}
 
 			try {

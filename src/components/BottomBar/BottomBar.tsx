@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback, useEffect, useState } from "react"
+import React, { memo, useMemo, useCallback, useEffect, useState, useRef } from "react"
 import { Text, View, Pressable, useWindowDimensions } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVBoolean, useMMKVString, useMMKVNumber } from "react-native-mmkv"
@@ -27,6 +27,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 	const dimensions = useWindowDimensions()
 	const [chatUnread, setChatUnread] = useState<number>(0)
 	const appState = useAppState()
+	const updateChatUnreadTimeout = useRef<number>(0)
 
 	const iconTextMaxWidth: number = useMemo(() => {
 		return dimensions.width / 5 - 25
@@ -189,6 +190,12 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 	)
 
 	const updateChatUnread = useCallback(async () => {
+		if (updateChatUnreadTimeout.current > Date.now()) {
+			return
+		}
+
+		updateChatUnreadTimeout.current = Date.now() + 100
+
 		try {
 			const unread = await getChatUnread()
 

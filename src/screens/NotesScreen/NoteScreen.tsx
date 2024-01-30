@@ -93,7 +93,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					return
 				}
 
-				loadNoteTimeout.current = Date.now() + 1000
+				loadNoteTimeout.current = Date.now() + 100
 			}
 
 			try {
