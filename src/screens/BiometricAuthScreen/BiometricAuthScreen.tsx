@@ -1,5 +1,5 @@
-import React, { useEffect, useState, memo, useCallback, useMemo } from "react"
-import { View, Text, TouchableOpacity, useWindowDimensions, Animated, Platform } from "react-native"
+import React, { useEffect, useState, memo, useCallback, useMemo, useRef } from "react"
+import { View, Text, TouchableOpacity, useWindowDimensions, Animated, Platform, AppStateStatus } from "react-native"
 import storage, { sharedStorage } from "../../lib/storage/storage"
 import { useMMKVBoolean, useMMKVNumber } from "react-native-mmkv"
 import Ionicon from "@expo/vector-icons/Ionicons"
@@ -21,14 +21,14 @@ export const PINCodeRow = memo(
 	({
 		numbers,
 		updatePinCode,
-		promptBiometrics
+		promptBiometrics,
+		darkMode
 	}: {
 		numbers?: number[]
 		updatePinCode: (number: number) => void
 		promptBiometrics: () => void
+		darkMode: boolean
 	}) => {
-		const darkMode = useDarkMode()
-
 		const [buttonWidthHeight, buttonFontSize, buttonColor, buttonFontColor] = useMemo(() => {
 			const buttonWidthHeight: number = 70
 			const buttonFontSize: number = 22
@@ -86,14 +86,14 @@ export const PINCodeRow = memo(
 								alignItems: "center"
 							}}
 							onPress={() => {
-								if (Platform.OS == "android" && Platform.constants.Version <= 22) {
+								if (Platform.OS === "android" && Platform.constants.Version <= 22) {
 									return
 								}
 
 								promptBiometrics()
 							}}
 						>
-							{Platform.OS == "android" && Platform.constants.Version <= 22 ? (
+							{Platform.OS === "android" && Platform.constants.Version <= 22 ? (
 								<></>
 							) : (
 								<Text
@@ -176,6 +176,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 	const setBiometricAuthScreenVisible = useStore(state => state.setBiometricAuthScreenVisible)
 	const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
 	const dimensions = useWindowDimensions()
+	const appStateRef = useRef<AppStateStatus>(appState.state)
 
 	const startShake = useCallback(() => {
 		Animated.sequence([
@@ -203,14 +204,14 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 		navigationAnimation({ enable: false }).then(() => {
 			let wasSetupScreen = false
 
-			if (typeof navigation !== "undefined" && typeof navigation.getState == "function") {
+			if (typeof navigation !== "undefined" && typeof navigation.getState === "function") {
 				const navState = navigation.getState()
 
 				if (navState && typeof navState.routes !== "undefined" && Array.isArray(navState.routes)) {
 					const routes = navState.routes
 
 					for (let i = 0; i < routes.length; i++) {
-						if (routes[i].name == "SetupScreen") {
+						if (routes[i].name === "SetupScreen") {
 							wasSetupScreen = true
 						}
 					}
@@ -252,7 +253,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 		(num: number) => {
 			setDotColor(headerTextColor)
 
-			if (num == -1) {
+			if (num === -1) {
 				if (pinCode.length > 0) {
 					setPinCode(code => code.substring(0, code.length - 1))
 				}
@@ -268,7 +269,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 
 			if (newCode.length >= 4) {
 				if (confirmPinCodeVisible) {
-					if (newCode == confirmPinCode) {
+					if (newCode === confirmPinCode) {
 						storage.set("pinCode:" + userId, confirmPinCode)
 						storage.set("biometricPinAuth:" + userId, true)
 						sharedStorage.set("biometricPinAuth:" + userId, true)
@@ -282,14 +283,14 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 						setConfirmPinCodeVisible(false)
 					}
 				} else {
-					if (biometricAuthScreenState == "setup") {
+					if (biometricAuthScreenState === "setup") {
 						setConfirmPinCode(newCode)
 						setPinCode("")
 						setConfirmPinCodeVisible(true)
 					} else {
 						const storedPinCode = storage.getString("pinCode:" + userId) || "1234567890"
 
-						if (newCode == storedPinCode) {
+						if (newCode === storedPinCode) {
 							authed()
 						} else {
 							setPinCode("")
@@ -305,7 +306,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 
 	const promptBiometrics = useCallback(async () => {
 		if (
-			biometricAuthScreenState == "setup" ||
+			biometricAuthScreenState === "setup" ||
 			showingBiometrics ||
 			storage.getBoolean("onlyUsePINCode:" + userId) ||
 			(Platform.OS === "android" && Platform.constants.Version <= 22)
@@ -315,7 +316,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 
 		await new Promise<void>(resolve => {
 			const wait = setInterval(() => {
-				if (appState.state === "active") {
+				if (appStateRef.current === "active") {
 					clearInterval(wait)
 
 					resolve()
@@ -341,10 +342,12 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 		}
 
 		setShowingBiometrics(false)
-	}, [biometricAuthScreenState, showingBiometrics, lang, userId, appState])
+	}, [biometricAuthScreenState, showingBiometrics, lang, userId])
 
 	useEffect(() => {
-		if (appState.state === "active") {
+		appStateRef.current = appState.state
+
+		if (appState.state === "active" && appState.didChangeSinceInit) {
 			hideAllActionSheets().catch(console.error)
 		}
 	}, [appState])
@@ -365,7 +368,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 
 		navigation.addListener("beforeRemove", removeListener)
 
-		setTimeout(promptBiometrics, 250)
+		setTimeout(promptBiometrics, 300)
 
 		return () => {
 			navigation.removeListener("beforeRemove", removeListener)
@@ -389,7 +392,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 					marginBottom: 100
 				}}
 			>
-				{biometricAuthScreenState == "setup" ? (
+				{biometricAuthScreenState === "setup" ? (
 					<Text
 						style={{
 							color: headerTextColor,
@@ -439,20 +442,24 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 				numbers={[1, 2, 3]}
 				updatePinCode={updatePinCode}
 				promptBiometrics={promptBiometrics}
+				darkMode={darkMode}
 			/>
 			<PINCodeRow
 				numbers={[4, 5, 6]}
 				updatePinCode={updatePinCode}
 				promptBiometrics={promptBiometrics}
+				darkMode={darkMode}
 			/>
 			<PINCodeRow
 				numbers={[7, 8, 9]}
 				updatePinCode={updatePinCode}
 				promptBiometrics={promptBiometrics}
+				darkMode={darkMode}
 			/>
 			<PINCodeRow
 				updatePinCode={updatePinCode}
 				promptBiometrics={promptBiometrics}
+				darkMode={darkMode}
 			/>
 		</View>
 	)
