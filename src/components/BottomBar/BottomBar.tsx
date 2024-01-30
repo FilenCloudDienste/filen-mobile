@@ -14,7 +14,7 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import { chatUnread as getChatUnread } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 export const BottomBar = memo(({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }) => {
 	const darkMode = useDarkMode()
@@ -199,7 +199,7 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 	}, [])
 
 	useEffect(() => {
-		if (appState.state === "active" && appState.didChangeSinceInit) {
+		if (appState === "active") {
 			updateChatUnread()
 		}
 	}, [appState])

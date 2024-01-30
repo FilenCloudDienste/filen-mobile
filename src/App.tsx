@@ -107,7 +107,7 @@ import ConfirmRemoveChatParticipantDialog from "./components/Dialogs/ConfirmRemo
 import ConfirmRemoveNoteParticipantDialog from "./components/Dialogs/ConfirmRemoveNoteParticipantDialog"
 import { Notifications } from "react-native-notifications"
 import ChatNickNameDialog from "./components/Dialogs/ChatNickNameDialog"
-import useAppState from "./lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 enableScreens(true)
 
@@ -314,28 +314,30 @@ const Instance = memo(() => {
 	}, [isLoggedIn])
 
 	useEffect(() => {
-		if (appState.state === "background") {
-			;(async () => {
-				if ((await isNavReady(navigationRef)) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
-					let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
+		if (appState === "background") {
+			if (!global.isRequestingPermissions) {
+				;(async () => {
+					if ((await isNavReady(navigationRef)) && !isRouteInStack(navigationRef, ["BiometricAuthScreen"])) {
+						let lockAppAfter = storage.getNumber("lockAppAfter:" + userId)
 
-					if (lockAppAfter === 0) {
-						lockAppAfter = 300
+						if (lockAppAfter === 0) {
+							lockAppAfter = 300
+						}
+
+						lockAppAfter = Math.floor(lockAppAfter * 1000)
+
+						if (
+							Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
+							storage.getBoolean("biometricPinAuth:" + userId)
+						) {
+							setBiometricAuthScreenState("auth")
+
+							navigationRef.dispatch(StackActions.push("BiometricAuthScreen"))
+						}
 					}
-
-					lockAppAfter = Math.floor(lockAppAfter * 1000)
-
-					if (
-						Date.now() >= storage.getNumber("lastBiometricScreen:" + userId) + lockAppAfter &&
-						storage.getBoolean("biometricPinAuth:" + userId)
-					) {
-						setBiometricAuthScreenState("auth")
-
-						navigationRef.dispatch(StackActions.push("BiometricAuthScreen"))
-					}
-				}
-			})()
-		} else if (appState.state === "active") {
+				})()
+			}
+		} else if (appState === "active") {
 			resetNotifications()
 		}
 	}, [appState])

@@ -13,7 +13,7 @@ import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { safeAwait } from "../../lib/helpers"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 let canGoBack = false
 
@@ -176,7 +176,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 	const setBiometricAuthScreenVisible = useStore(state => state.setBiometricAuthScreenVisible)
 	const [startOnCloudScreen] = useMMKVBoolean("startOnCloudScreen:" + userId, storage)
 	const dimensions = useWindowDimensions()
-	const appStateRef = useRef<AppStateStatus>(appState.state)
+	const appStateRef = useRef<AppStateStatus>(appState)
 
 	const startShake = useCallback(() => {
 		Animated.sequence([
@@ -345,11 +345,7 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 	}, [biometricAuthScreenState, showingBiometrics, lang, userId])
 
 	useEffect(() => {
-		appStateRef.current = appState.state
-
-		if (appState.state === "active" && appState.didChangeSinceInit) {
-			hideAllActionSheets().catch(console.error)
-		}
+		appStateRef.current = appState
 	}, [appState])
 
 	useEffect(() => {

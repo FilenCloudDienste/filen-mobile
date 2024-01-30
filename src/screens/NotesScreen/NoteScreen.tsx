@@ -31,7 +31,7 @@ import {
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 import { SocketEvent } from "../../lib/services/socket"
 import useDimensions from "../../lib/hooks/useDimensions"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -254,7 +254,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	)
 
 	useEffect(() => {
-		if (appState.state === "active" && appState.didChangeSinceInit) {
+		if (appState === "active") {
 			loadNote(true)
 		}
 	}, [appState])

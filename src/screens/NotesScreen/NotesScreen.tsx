@@ -24,7 +24,7 @@ import { SheetManager } from "react-native-actions-sheet"
 import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import { SocketEvent } from "../../lib/services/socket"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 const Item = memo(
 	({
@@ -495,7 +495,7 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	)
 
 	useEffect(() => {
-		if (appState.state === "active" && appState.didChangeSinceInit) {
+		if (appState === "active") {
 			loadNotesAndTags(true)
 		}
 	}, [appState])

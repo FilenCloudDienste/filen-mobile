@@ -40,7 +40,7 @@ import { showToast } from "../../components/Toasts"
 import notifee from "@notifee/react-native"
 import { Notifications } from "react-native-notifications"
 import { SheetManager } from "react-native-actions-sheet"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -599,7 +599,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	)
 
 	useEffect(() => {
-		if (appState.state === "active" && appState.didChangeSinceInit) {
+		if (appState === "active") {
 			loadConversations(true)
 			resetNotifications()
 		}

@@ -45,7 +45,7 @@ import Input from "./Input"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 import { ChatInfo } from "./Message"
 import { navigationAnimation } from "../../lib/state"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -334,7 +334,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	)
 
 	useEffect(() => {
-		if (appState.state === "active" && appState.didChangeSinceInit) {
+		if (appState === "active") {
 			loadMessages(true)
 			fetchBlockedContacts()
 			loadConversation()

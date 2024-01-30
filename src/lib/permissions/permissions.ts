@@ -5,7 +5,11 @@ import storage from "../storage"
 import { i18n } from "../../i18n"
 import notifee, { AuthorizationStatus } from "@notifee/react-native"
 
+let isRequestingPermissionsTimer: ReturnType<typeof setTimeout> = null
+
 export const hasWritePermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	clearTimeout(isRequestingPermissionsTimer)
+
 	global.isRequestingPermissions = true
 
 	try {
@@ -43,11 +47,17 @@ export const hasWritePermissions = async (requestPermissions: boolean): Promise<
 	} catch (e) {
 		throw e
 	} finally {
-		global.isRequestingPermissions = false
+		clearTimeout(isRequestingPermissionsTimer)
+
+		isRequestingPermissionsTimer = setTimeout(() => {
+			global.isRequestingPermissions = false
+		}, 3000)
 	}
 }
 
 export const hasReadPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	clearTimeout(isRequestingPermissionsTimer)
+
 	global.isRequestingPermissions = true
 
 	try {
@@ -85,11 +95,17 @@ export const hasReadPermissions = async (requestPermissions: boolean): Promise<b
 	} catch (e) {
 		throw e
 	} finally {
-		global.isRequestingPermissions = false
+		clearTimeout(isRequestingPermissionsTimer)
+
+		isRequestingPermissionsTimer = setTimeout(() => {
+			global.isRequestingPermissions = false
+		}, 3000)
 	}
 }
 
 export const hasCameraPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	clearTimeout(isRequestingPermissionsTimer)
+
 	global.isRequestingPermissions = true
 
 	try {
@@ -137,11 +153,17 @@ export const hasCameraPermissions = async (requestPermissions: boolean): Promise
 	} catch (e) {
 		throw e
 	} finally {
-		global.isRequestingPermissions = false
+		clearTimeout(isRequestingPermissionsTimer)
+
+		isRequestingPermissionsTimer = setTimeout(() => {
+			global.isRequestingPermissions = false
+		}, 3000)
 	}
 }
 
 export const hasBiometricPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	clearTimeout(isRequestingPermissionsTimer)
+
 	global.isRequestingPermissions = true
 
 	try {
@@ -172,6 +194,8 @@ export const hasBiometricPermissions = async (requestPermissions: boolean): Prom
 }
 
 export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	clearTimeout(isRequestingPermissionsTimer)
+
 	global.isRequestingPermissions = true
 
 	try {
@@ -240,11 +264,17 @@ export const hasPhotoLibraryPermissions = async (requestPermissions: boolean): P
 	} catch (e) {
 		throw e
 	} finally {
-		global.isRequestingPermissions = false
+		clearTimeout(isRequestingPermissionsTimer)
+
+		isRequestingPermissionsTimer = setTimeout(() => {
+			global.isRequestingPermissions = false
+		}, 3000)
 	}
 }
 
 export const hasStoragePermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	clearTimeout(isRequestingPermissionsTimer)
+
 	global.isRequestingPermissions = true
 
 	try {
@@ -266,11 +296,17 @@ export const hasStoragePermissions = async (requestPermissions: boolean): Promis
 	} catch (e) {
 		throw e
 	} finally {
-		global.isRequestingPermissions = false
+		clearTimeout(isRequestingPermissionsTimer)
+
+		isRequestingPermissionsTimer = setTimeout(() => {
+			global.isRequestingPermissions = false
+		}, 3000)
 	}
 }
 
 export const hasNotificationPermissions = async (requestPermissions: boolean): Promise<boolean> => {
+	clearTimeout(isRequestingPermissionsTimer)
+
 	global.isRequestingPermissions = true
 
 	try {
@@ -308,6 +344,10 @@ export const hasNotificationPermissions = async (requestPermissions: boolean): P
 	} catch (e) {
 		throw e
 	} finally {
-		global.isRequestingPermissions = false
+		clearTimeout(isRequestingPermissionsTimer)
+
+		isRequestingPermissionsTimer = setTimeout(() => {
+			global.isRequestingPermissions = false
+		}, 3000)
 	}
 }

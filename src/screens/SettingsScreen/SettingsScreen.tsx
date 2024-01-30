@@ -35,7 +35,7 @@ import { contactsRequestsInCount } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
 import { hasNotificationPermissions } from "../../lib/permissions"
 import notifee from "@notifee/react-native"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 export const SettingsButtonLinkHighlight = memo(
 	({
@@ -591,7 +591,7 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	}, [])
 
 	useEffect(() => {
-		if (appState.state === "active" && appState.didChangeSinceInit) {
+		if (appState === "active") {
 			loadContactRequestsInCount()
 			loadNotificationAuthorization()
 		}

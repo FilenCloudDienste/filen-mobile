@@ -20,7 +20,7 @@ import * as db from "../../lib/db"
 import memoryCache from "../../lib/memoryCache"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import useDimensions from "../../lib/hooks/useDimensions"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 export const MainScreen = memo(
 	({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
@@ -48,7 +48,6 @@ export const MainScreen = memo(
 		const [initialized, setInitialized] = useState<boolean>(false)
 		const [sortByDb] = useMMKVString("sortBy", storage)
 		const dimensions = useDimensions()
-		const populateListTimeout = useRef<number>(0)
 		const networkInfo = useNetworkInfo()
 		const appState = useAppState()
 		const isFocused = useIsFocused()
@@ -188,14 +187,6 @@ export const MainScreen = memo(
 					return
 				}
 
-				if (skipCache) {
-					if (populateListTimeout.current > Date.now()) {
-						return
-					}
-
-					populateListTimeout.current = Date.now() + 1000
-				}
-
 				try {
 					const startingURL = passedURL ? passedURL : getRouteURL(route)
 					const hasItemsInDb = await db.dbFs.has("loadItems:" + startingURL)
@@ -260,7 +251,7 @@ export const MainScreen = memo(
 		)
 
 		useEffect(() => {
-			if (appState.state === "active" && appState.didChangeSinceInit) {
+			if (appState === "active") {
 				populateList(true).catch(console.error)
 			}
 		}, [appState])

@@ -35,7 +35,7 @@ import { throttle } from "lodash"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { SocketEvent } from "../../lib/services/socket"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 export type OnlineUsers = Record<string, ChatConversationsOnline>
 
@@ -410,7 +410,7 @@ const ChatParticipantsScreen = memo(
 		)
 
 		useEffect(() => {
-			if (appState.state === "active" && appState.didChangeSinceInit) {
+			if (appState === "active") {
 				loadConversation()
 				updateOnlineUsers()
 			}

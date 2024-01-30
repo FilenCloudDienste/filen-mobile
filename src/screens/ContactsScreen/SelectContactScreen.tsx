@@ -18,7 +18,7 @@ import { showToast } from "../../components/Toasts"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { TopBar } from "../../components/TopBar"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 export interface SelectedContact extends Contact {
 	selected: boolean
@@ -313,7 +313,7 @@ const SelectContactScreen = memo(
 		)
 
 		useEffect(() => {
-			if (appState.state === "active" && appState.didChangeSinceInit) {
+			if (appState === "active") {
 				loadContacts(true)
 			}
 		}, [appState])

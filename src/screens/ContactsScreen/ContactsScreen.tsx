@@ -27,7 +27,7 @@ import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import eventListener from "../../lib/eventListener"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import useAppState from "../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 const Item = memo(
 	({
@@ -453,7 +453,7 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 	)
 
 	useEffect(() => {
-		if (appState.state === "active" && appState.didChangeSinceInit) {
+		if (appState === "active") {
 			loadContacts(true)
 		}
 	}, [appState])

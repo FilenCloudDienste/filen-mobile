@@ -2,7 +2,7 @@ import * as Network from "expo-network"
 import { networkState } from "./isOnline"
 import { useState, useEffect, useCallback } from "react"
 import NetInfo, { NetInfoStateType } from "@react-native-community/netinfo"
-import useAppState from "../../../lib/hooks/useAppState"
+import { useAppState } from "@react-native-community/hooks"
 
 export type NetworkInfo = {
 	online: boolean
@@ -37,7 +37,7 @@ export const useNetworkInfo = () => {
 	}, [])
 
 	useEffect(() => {
-		if (appState.state === "active" && appState.didChangeSinceInit) {
+		if (appState === "active") {
 			update()
 		}
 	}, [appState])
