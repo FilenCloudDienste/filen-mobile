@@ -586,7 +586,7 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 			return
 		}
 
-		loadNotificationAuthorizationTimeout.current = now + 5000
+		loadNotificationAuthorizationTimeout.current = now + 3000
 
 		try {
 			const has = await hasNotificationPermissions(false)

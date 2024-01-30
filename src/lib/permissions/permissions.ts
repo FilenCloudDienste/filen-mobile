@@ -310,20 +310,24 @@ export const hasNotificationPermissions = async (requestPermissions: boolean): P
 	global.isRequestingPermissions = true
 
 	try {
-		if (Platform.OS === "android") {
-			const has = await check(PERMISSIONS.ANDROID.POST_NOTIFICATIONS)
+		if (!requestPermissions) {
+			const has = await notifee.getNotificationSettings()
 
-			if (has !== RESULTS.GRANTED) {
-				if (!requestPermissions) {
-					return false
-				}
-
-				const get = await request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS)
-
-				if (get !== RESULTS.GRANTED) {
-					return false
-				}
+			if (![AuthorizationStatus.AUTHORIZED, AuthorizationStatus.PROVISIONAL].includes(has.authorizationStatus)) {
+				return false
 			}
+
+			return true
+		}
+
+		if (Platform.OS === "android") {
+			const notifeePermissions = await notifee.requestPermission()
+
+			if (![AuthorizationStatus.AUTHORIZED, AuthorizationStatus.PROVISIONAL].includes(notifeePermissions.authorizationStatus)) {
+				return false
+			}
+
+			return true
 		} else {
 			const notifeePermissions = await notifee.requestPermission({
 				carPlay: false,
