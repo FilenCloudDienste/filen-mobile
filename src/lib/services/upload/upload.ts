@@ -436,46 +436,27 @@ export const uploadFolder = async ({
 		const foldersToCreate = items
 			.sort((a, b) => a.path.split("/").length - b.path.split("/").length)
 			.filter(item => item.type === "directory")
-		const folderPromises: Promise<void>[] = []
 
 		for (const folder of foldersToCreate) {
-			folderPromises.push(
-				new Promise(async (resolve, reject) => {
-					await createFolderSemaphore.acquire()
+			const baseDir = pathModule.dirname(folder.path)
+			const folderParent = baseDir === "." || baseDir.length <= 0 ? parent : pathsToUUIDs[baseDir] || ""
 
-					try {
-						const baseDir = pathModule.dirname(folder.path)
-						const folderParent = baseDir === "." || baseDir.length <= 0 ? parent : pathsToUUIDs[baseDir] || ""
+			if (folderParent.length <= 16) {
+				continue
+			}
 
-						if (folderParent.length <= 16) {
-							resolve()
+			const exists = await folderExists({ name: folder.name, parent: folderParent })
 
-							return
-						}
+			if (exists.exists) {
+				pathsToUUIDs[folder.path] = exists.existsUUID
 
-						const exists = await folderExists({ name: folder.name, parent: folderParent })
+				continue
+			}
 
-						if (exists.exists) {
-							pathsToUUIDs[folder.path] = exists.existsUUID
+			const uuid = await createFolder(folder.name, folderParent, pathsToUUIDs[folder.path])
 
-							resolve()
-
-							return
-						}
-
-						await createFolder(folder.name, folderParent, pathsToUUIDs[folder.path])
-
-						resolve()
-					} catch (e) {
-						reject(e)
-					} finally {
-						createFolderSemaphore.release()
-					}
-				})
-			)
+			pathsToUUIDs[folder.path] = uuid
 		}
-
-		await Promise.all(folderPromises)
 
 		const filesToUpload = items.sort((a, b) => a.path.split("/").length - b.path.split("/").length).filter(item => item.type === "file")
 		const tempDir = await fs.getDownloadPath({ type: "temp" })
