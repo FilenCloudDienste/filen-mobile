@@ -489,9 +489,9 @@ export const ru: {
 	copyId: "Копировать ID",
 	replyingTo: "Ответ на",
 	selectContacts: "Выбрать контакты",
-	editName: "Редактировать имя",
+	editName: "Редактировать название",
 	chatConversationName: "Название чата",
-	name: "Имя",
+	name: "Название",
 	contactsTab_all: "Все",
 	contactsTab_pending: "В ожидании",
 	contactsTab_requests: "Запросы",
@@ -532,5 +532,6 @@ export const ru: {
 	transferringFile: "Передача одного файла",
 	transferringDots: "Передача...",
 	notificationPermissionsNeededAndroid:
-		"Для корректной работы Filen необходимы все разрешения на уведомления. Фоновые передачи и социальные уведомления не будут работать без них."
+		"Для корректной работы Filen необходимы все разрешения на уведомления. Фоновые передачи и социальные уведомления не будут работать без них.",
+	noChatsYet: "Чатов пока нет"
 }
