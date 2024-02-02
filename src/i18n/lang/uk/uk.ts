@@ -533,5 +533,6 @@ export const uk: {
 	transferringDots: "Передача...",
 	notificationPermissionsNeededAndroid:
 		"Для коректної роботи Filen потрібні всі дозволи на повідомлення. Без них фонові передачі та соціальні повідомлення не працюватимуть.",
-	noChatsYet: "Чатів ще немає"
+	noChatsYet: "Чатів ще немає",
+	hideChats: "Приховати чати"
 }
