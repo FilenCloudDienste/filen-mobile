@@ -558,6 +558,7 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	const loadNotificationAuthorizationTimeout = useRef<number>(0)
 	const appState = useAppState()
 	const loadContactRequestsInCountTimeout = useRef<number>(0)
+	const [hideChats, setHideChats] = useMMKVBoolean("hideChats:" + userId, storage)
 
 	const loadContactRequestsInCount = useCallback(async () => {
 		if (loadContactRequestsInCountTimeout.current > Date.now()) {
@@ -939,6 +940,23 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 							ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
 							onValueChange={() => setHideRecents(!hideRecents)}
 							value={hideRecents}
+						/>
+					}
+				/>
+				<SettingsButtonLinkHighlight
+					title={i18n(lang, "hideChats")}
+					withBottomBorder={true}
+					iconBackgroundColor={getColor(darkMode, "blue")}
+					iconName="chatbubble-outline"
+					rightComponent={
+						<Switch
+							trackColor={getColor(darkMode, "switchTrackColor")}
+							thumbColor={
+								hideChats ? getColor(darkMode, "switchThumbColorEnabled") : getColor(darkMode, "switchThumbColorDisabled")
+							}
+							ios_backgroundColor={getColor(darkMode, "switchIOSBackgroundColor")}
+							onValueChange={() => setHideChats(!hideChats)}
+							value={hideChats}
 						/>
 					}
 				/>

@@ -419,7 +419,7 @@ export const de: {
 	cameraUploadAfterEnabled: "Nur nach Aktivierungszeit hochladen",
 	keepAppAwake: "Display Abschaltung verhindern",
 	followSystemTheme: "Geräteeinstellungen verwenden",
-	hideRecents: "Kürzlich verstecken",
+	hideRecents: "Kürzlich ausblenden",
 	videos: "Videos",
 	cameraUploadOnlyUploadOriginal: "Nur das originale Foto hochladen",
 	cameraUploadConvertLiveAndBurst: "Live und Burst konvertieren",
@@ -541,5 +541,6 @@ export const de: {
 	transferringDots: "Übertrage...",
 	notificationPermissionsNeededAndroid:
 		"Filen benötigt alle Benachrichtigungsberechtigungen, um ordnungsgemäß zu funktionieren. Hintergrundübertragungen und soziale Benachrichtigungen funktionieren ohne sie nicht.",
-	noChatsYet: "Noch keine Chats"
+	noChatsYet: "Noch keine Chats",
+	hideChats: "Chats ausblenden"
 }

@@ -540,5 +540,6 @@ export const en: {
 	transferringDots: "Transferring...",
 	notificationPermissionsNeededAndroid:
 		"Filen requires all notification permissions to function correctly. Background transfers and social notifications will not work without them.",
-	noChatsYet: "No chats yet"
+	noChatsYet: "No chats yet",
+	hideChats: "Hide chats"
 }
