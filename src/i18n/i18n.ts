@@ -16,6 +16,7 @@ import { es } from "./lang/es"
 import { ko } from "./lang/ko"
 import { pt } from "./lang/pt"
 import { sk } from "./lang/sk"
+import { bg } from "./lang/bg"
 
 export const translations: Record<string, Record<string, string>> = {
 	cs,
@@ -35,7 +36,8 @@ export const translations: Record<string, Record<string, string>> = {
 	es,
 	ko,
 	pt,
-	sk
+	sk,
+	bg
 }
 
 export const i18n = (
