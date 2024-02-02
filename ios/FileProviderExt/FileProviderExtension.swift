@@ -340,10 +340,10 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
     
     return FileProviderItem(
       identifier: itemIdentifier,
-      parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: itemJSON.parent),
+      parentIdentifier: FileProviderUtils.shared.getIdentifierFromUUID(id: "trash"),
       item: Item(
         uuid: itemJSON.uuid,
-        parent: itemJSON.parent,
+        parent: "trash",
         name: itemJSON.name,
         type: itemJSON.type == "folder" ? .folder : .file,
         mime: itemJSON.mime,

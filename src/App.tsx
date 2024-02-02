@@ -113,7 +113,7 @@ enableScreens(true)
 
 if (!__DEV__) {
 	Sentry.init({
-		dsn: "https://1aa0cbb262634a27a5887e91381e4251@o4504039703314432.ingest.sentry.io/4504039705804800",
+		dsn: "https://2f913d547c32512a3cf66b6129a4a35b@o4504039703314432.ingest.sentry.io/4506676611579904",
 		enableNative: true,
 		enabled: true,
 		enableAppHangTracking: true,
