@@ -1030,6 +1030,15 @@ export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean
 		for (const delta of deltas) {
 			const assetId = getAssetId(delta.item.asset)
 
+			if (
+				runOnce &&
+				!["jpg", "jpeg", "png", "gif", "heic", "heif", "webp", "bmp", "avif", "tiff", "dib", "ico", "cur", "xbm", "jxl"].includes(
+					pathModule.parse(delta.item.name).ext
+				)
+			) {
+				continue
+			}
+
 			if (maxQueue > currentQueue && (typeof FAILED[assetId] !== "number" ? 0 : FAILED[assetId]) < MAX_FAILED) {
 				currentQueue += 1
 

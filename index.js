@@ -14,6 +14,8 @@ import { hasNotificationPermissions } from "./src/lib/permissions"
 import { Semaphore } from "./src/lib/helpers"
 import { decryptChatMessage } from "./src/lib/crypto"
 import { dbFs } from "./src/lib/db"
+import * as BackgroundFetch from "expo-background-fetch"
+import * as TaskManager from "expo-task-manager"
 
 if (!__DEV__) {
 	console.log = () => {}
@@ -23,6 +25,7 @@ if (!__DEV__) {
 	LogBox.ignoreLogs(["new NativeEventEmitter", "Module AssetExporter", "DEPRECATED", "messaging()"])
 }
 
+const BACKGROUND_FETCH_TASK = "background-fetch"
 let foregroundServiceRegistered = false
 let foregroundServiceRegisteredMutex = new Semaphore(1)
 let transfersNotificationMutex = new Semaphore(1)
@@ -448,7 +451,7 @@ const onBackgroundNotification = async (payload, completion) => {
 
 	if (payload.type === "cameraUpload") {
 		try {
-			onCameraUploadNotification().catch(console.error)
+			await onCameraUploadNotification().catch(console.error)
 		} catch (e) {
 			console.error(e)
 		}
@@ -548,12 +551,30 @@ Notifications.events().registerRemoteNotificationsRegistrationFailed(err => {
 	storage.delete("pushToken")
 })
 
+TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
+	try {
+		await onCameraUploadNotification().catch(console.error)
+	} catch (e) {
+		console.error(e)
+	}
+
+	return BackgroundFetch.BackgroundFetchResult.NewData
+})
+
 const init = async () => {
 	setTimeout(() => {
 		runCameraUpload()
 
 		global.nodeThread.getCurrentTransfers().catch(console.error)
 	}, 5000)
+
+	BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+		minimumInterval: 60 * 15,
+		stopOnTerminate: false,
+		startOnBoot: true
+	})
+		.then(() => console.log("Background fetch registered"))
+		.catch(console.error)
 
 	try {
 		storage.set("setupDone", false)

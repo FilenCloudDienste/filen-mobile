@@ -2,7 +2,7 @@ import React, { useEffect, useState, memo, useMemo, useCallback } from "react"
 import { View, DeviceEventEmitter, Platform, Alert } from "react-native"
 import ActionSheet, { SheetManager } from "react-native-actions-sheet"
 import storage from "../../../lib/storage"
-import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
+import { useMMKVString, useMMKVNumber, useMMKVBoolean } from "react-native-mmkv"
 import { useStore } from "../../../lib/state"
 import { queueFileDownload, downloadFolder } from "../../../lib/services/download/download"
 import { getFileExt, getRouteURL, calcPhotosGridSize, toExpoFsPath, safeAwait } from "../../../lib/helpers"
@@ -58,9 +58,11 @@ const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContaine
 	const [canDownload, setCanDownload] = useState<boolean>(false)
 	const [bulkItems, setBulkItems] = useState<Item[]>([])
 	const dimensions = useDimensions()
+	const [userId] = useMMKVNumber("userId", storage)
+	const [hideChats] = useMMKVBoolean("hideChats:" + userId, storage)
 
-	const maxBulkActionsItemsCount: number = 10000
-	const minBulkActionsItemCount: number = 2
+	const maxBulkActionsItemsCount = 10000
+	const minBulkActionsItemCount = 2
 
 	const viewModeParsed = useMemo(() => {
 		if (!viewMode) {
@@ -1034,6 +1036,27 @@ const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContaine
 									/>
 								)}
 							</>
+						)}
+						{hideChats && (
+							<ActionButton
+								onPress={async () => {
+									await SheetManager.hide("TopBarActionSheet")
+									await navigationAnimation({ enable: true })
+
+									navigation.dispatch(
+										CommonActions.reset({
+											index: 0,
+											routes: [
+												{
+													name: "ChatsScreen"
+												}
+											]
+										})
+									)
+								}}
+								icon="chatbubble-outline"
+								text={i18n(lang, "chats")}
+							/>
 						)}
 						<ActionButton
 							onPress={async () => {

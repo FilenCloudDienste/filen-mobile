@@ -15,6 +15,8 @@ PODS:
     - React-Core
   - Expo (48.0.10):
     - ExpoModulesCore
+  - ExpoBackgroundFetch (11.8.1):
+    - ExpoModulesCore
   - ExpoClipboard (4.1.2):
     - ExpoModulesCore
   - ExpoImage (1.5.1):
@@ -35,6 +37,9 @@ PODS:
     - ExpoModulesCore
   - ExpoVideoThumbnails (7.2.1):
     - ExpoModulesCore
+  - EXTaskManager (11.7.2):
+    - ExpoModulesCore
+    - UMAppLoader
   - FBLazyVector (0.71.13)
   - FBReactNativeSpec (0.71.13):
     - RCT-Folly (= 2021.07.22.00)
@@ -494,6 +499,7 @@ PODS:
   - SwiftyRSA (1.7.0):
     - SwiftyRSA/ObjC (= 1.7.0)
   - SwiftyRSA/ObjC (1.7.0)
+  - UMAppLoader (4.5.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -506,6 +512,7 @@ DEPENDENCIES:
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - Expo (from `../node_modules/expo`)
+  - ExpoBackgroundFetch (from `../node_modules/expo-background-fetch/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
@@ -513,6 +520,7 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoNetwork (from `../node_modules/expo-network/ios`)
   - ExpoVideoThumbnails (from `../node_modules/expo-video-thumbnails/ios`)
+  - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -576,6 +584,7 @@ DEPENDENCIES:
   - RNShareMenu (from `../node_modules/react-native-share-menu`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - SwiftyRSA
+  - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -616,6 +625,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-media-library/ios"
   Expo:
     :path: "../node_modules/expo"
+  ExpoBackgroundFetch:
+    :path: "../node_modules/expo-background-fetch/ios"
   ExpoClipboard:
     :path: "../node_modules/expo-clipboard/ios"
   ExpoImage:
@@ -630,6 +641,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-network/ios"
   ExpoVideoThumbnails:
     :path: "../node_modules/expo-video-thumbnails/ios"
+  EXTaskManager:
+    :path: "../node_modules/expo-task-manager/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
@@ -746,6 +759,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-share-menu"
   RNSVG:
     :path: "../node_modules/react-native-svg"
+  UMAppLoader:
+    :path: "../node_modules/unimodules-app-loader/ios"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -759,6 +774,7 @@ SPEC CHECKSUMS:
   EXFont: 6ea3800df746be7233208d80fe379b8ed74f4272
   EXMediaLibrary: 587cd8aad27a6fc8d7c38b950bc75bc1845a7480
   Expo: b04d142a2b477a391b47c62d179c1a9e1140e6ad
+  ExpoBackgroundFetch: 80d41ec15c6cce0bafb5d2326b8e85f42152eba7
   ExpoClipboard: 9b87df0ad145e3aa841614fab6aea54b7a604850
   ExpoImage: bbd451559f49f78d858592fe1d4d74aedb3d900b
   ExpoKeepAwake: 69f5f627670d62318410392d03e0b5db0f85759a
@@ -766,6 +782,7 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 6e0259511f4c4341b6b8357db393624df2280828
   ExpoNetwork: 242fe1bd68bfe744a2f69fccfe4bfe1d89d1e790
   ExpoVideoThumbnails: 0021303b614a89fcc5df8b59d9d37ddf14a7d4cf
+  EXTaskManager: 3e446dbf75cd662aa6e7d6828be5bc26265241c3
   FBLazyVector: 24e08bf294faea0abc0278abb2fcad7f3e446f6f
   FBReactNativeSpec: c949e4b726d8cf9e19b73be60ecfa26355deceb3
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
@@ -841,8 +858,9 @@ SPEC CHECKSUMS:
   Sentry: d9f99f9cc13777c5d938650c1e1c85047bb4f0d1
   SentryPrivate: 839b1e58addf58624087a80b2628e543193fa8ef
   SwiftyRSA: 8c6dd1ea7db1b8dc4fb517a202f88bb1354bc2c6
+  UMAppLoader: 5df85360d65cabaef544be5424ac64672e648482
   Yoga: 135109c9b8c5d1a8af3a58d21cd4c7aa7f3bf555
 
-PODFILE CHECKSUM: 3f2dd9799a06da324fe11e9cbf705c69146847b1
+PODFILE CHECKSUM: 1318a5f8332f646e9dc69ba28e126144b84e2deb
 
 COCOAPODS: 1.11.2

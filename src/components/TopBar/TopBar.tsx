@@ -15,7 +15,6 @@ import useLang from "../../lib/hooks/useLang"
 import memoryCache from "../../lib/memoryCache"
 import { Feather } from "@expo/vector-icons"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
-import useDimensions from "../../lib/hooks/useDimensions"
 
 export const TopBar = memo(
 	({
@@ -116,7 +115,6 @@ export const TopBar = memo(
 		const setTopBarHeight = useStore(state => state.setTopBarHeight)
 		const [publicKey] = useMMKVString("publicKey", storage)
 		const [privateKey] = useMMKVString("privateKey", storage)
-		const dimensions = useDimensions()
 		const [userId] = useMMKVNumber("userId", storage)
 		const [hideRecents] = useMMKVBoolean("hideRecents:" + userId, storage)
 		const networkInfo = useNetworkInfo()
