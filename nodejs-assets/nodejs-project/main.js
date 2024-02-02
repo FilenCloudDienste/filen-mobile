@@ -1540,6 +1540,7 @@ const uploadFile = async ({ uuid, file, includeFileHash, masterKeys, apiKey, ver
 	if (showProgress) {
 		currentUploads[uuid] = {
 			...file,
+			uuid,
 			started: now,
 			bytes: 0,
 			percent: 0,
