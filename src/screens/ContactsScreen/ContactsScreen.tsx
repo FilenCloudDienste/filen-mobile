@@ -13,7 +13,7 @@ import {
 import { TopBar } from "../../components/TopBar"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, useFocusEffect } from "@react-navigation/native"
+import { NavigationContainerRef } from "@react-navigation/native"
 import { fetchContacts, FetchContactsResult } from "./utils"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { dbFs } from "../../lib/db"
@@ -27,7 +27,6 @@ import useLang from "../../lib/hooks/useLang"
 import { i18n } from "../../i18n"
 import eventListener from "../../lib/eventListener"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { useAppState } from "@react-native-community/hooks"
 
 const Item = memo(
 	({
@@ -190,7 +189,6 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 	const insets = useSafeAreaInsets()
 	const scrollRef = useRef<ScrollView>()
 	const [tabSize, setTabSize] = useState<number>(Math.floor(dimensions.width - insets.left - insets.right))
-	const appState = useAppState()
 	const loadContactsTimeout = useRef<number>(0)
 
 	const contactsSorted = useMemo(() => {
@@ -454,18 +452,6 @@ const ContactsScreen = memo(({ navigation, route }: { navigation: NavigationCont
 
 		setActiveTab("all")
 	}, [])
-
-	useFocusEffect(
-		useCallback(() => {
-			loadContacts(true)
-		}, [])
-	)
-
-	useEffect(() => {
-		if (appState === "active") {
-			loadContacts(true)
-		}
-	}, [appState])
 
 	useEffect(() => {
 		loadContacts()

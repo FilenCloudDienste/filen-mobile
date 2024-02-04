@@ -559,6 +559,7 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	const appState = useAppState()
 	const loadContactRequestsInCountTimeout = useRef<number>(0)
 	const [hideChats, setHideChats] = useMMKVBoolean("hideChats:" + userId, storage)
+	const didInitialLoad = useRef<boolean>(false)
 
 	const loadContactRequestsInCount = useCallback(async () => {
 		if (loadContactRequestsInCountTimeout.current > Date.now()) {
@@ -599,7 +600,7 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 	}, [])
 
 	useEffect(() => {
-		if (appState === "active") {
+		if (appState === "active" && didInitialLoad.current) {
 			loadContactRequestsInCount()
 			loadNotificationAuthorization()
 		}
@@ -607,14 +608,20 @@ export const SettingsScreen = memo(({ navigation }: { navigation: any }) => {
 
 	useFocusEffect(
 		useCallback(() => {
-			loadContactRequestsInCount()
-			loadNotificationAuthorization()
+			if (didInitialLoad.current) {
+				loadContactRequestsInCount()
+				loadNotificationAuthorization()
+			}
 		}, [])
 	)
 
 	useEffect(() => {
-		loadContactRequestsInCount()
-		loadNotificationAuthorization()
+		if (!didInitialLoad.current) {
+			didInitialLoad.current = true
+
+			loadContactRequestsInCount()
+			loadNotificationAuthorization()
+		}
 
 		const loadContactRequestsInCountInterval = setInterval(() => {
 			loadContactRequestsInCount()

@@ -60,6 +60,7 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 	const keyboardOffset = useKeyboardOffset()
 	const dimensions = useDimensions()
 	const appState = useAppState()
+	const didInitialLoad = useRef<boolean>(false)
 
 	const userHasWritePermissions = useMemo(() => {
 		if (!currentNoteRef.current) {
@@ -249,18 +250,24 @@ const NoteScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 
 	useFocusEffect(
 		useCallback(() => {
-			loadNote(true)
+			if (didInitialLoad.current) {
+				loadNote(true)
+			}
 		}, [])
 	)
 
 	useEffect(() => {
-		if (appState === "active") {
+		if (appState === "active" && didInitialLoad.current) {
 			loadNote(true)
 		}
 	}, [appState])
 
 	useEffect(() => {
-		loadNote()
+		if (!didInitialLoad.current) {
+			didInitialLoad.current = true
+
+			loadNote()
+		}
 
 		const noteTitleEditedListener = eventListener.on("noteTitleEdited", ({ uuid, title }: { uuid: string; title: string }) => {
 			if (uuid === currentNoteRef.current.uuid) {

@@ -350,14 +350,16 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 
 	useFocusEffect(
 		useCallback(() => {
-			loadMessages(true)
-			fetchBlockedContacts()
-			loadConversation()
+			if (didInitialLoad.current) {
+				loadMessages(true)
+				fetchBlockedContacts()
+				loadConversation()
+			}
 		}, [])
 	)
 
 	useEffect(() => {
-		if (appState === "active") {
+		if (appState === "active" && didInitialLoad.current) {
 			loadMessages(true)
 			fetchBlockedContacts()
 			loadConversation()

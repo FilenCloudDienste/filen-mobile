@@ -2,7 +2,7 @@ import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "
 import { View, Text, TouchableHighlight, TouchableOpacity, useWindowDimensions, RefreshControl, ActivityIndicator } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, StackActions, useFocusEffect } from "@react-navigation/native"
+import { NavigationContainerRef, StackActions } from "@react-navigation/native"
 import { Contact } from "../../lib/api"
 import { i18n } from "../../i18n"
 import useLang from "../../lib/hooks/useLang"
@@ -18,7 +18,6 @@ import { showToast } from "../../components/Toasts"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { TopBar } from "../../components/TopBar"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
-import { useAppState } from "@react-native-community/hooks"
 
 export interface SelectedContact extends Contact {
 	selected: boolean
@@ -233,7 +232,6 @@ const SelectContactScreen = memo(
 		const didSendResponse = useRef<boolean>(false)
 		const requestId = useRef<string>(route.params.requestId).current
 		const hiddenUserIds = useRef<number[]>(route.params.hiddenUserIds).current
-		const appState = useAppState()
 		const loadContactsTimeout = useRef<number>(0)
 
 		const contactsSorted = useMemo(() => {
@@ -314,18 +312,6 @@ const SelectContactScreen = memo(
 			},
 			[darkMode, contactsSorted, setContacts]
 		)
-
-		useFocusEffect(
-			useCallback(() => {
-				loadContacts(true)
-			}, [])
-		)
-
-		useEffect(() => {
-			if (appState === "active") {
-				loadContacts(true)
-			}
-		}, [appState])
 
 		useEffect(() => {
 			loadContacts()

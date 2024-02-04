@@ -422,6 +422,7 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const isPortrait = useIsPortrait()
 	const appState = useAppState()
 	const loadConversationsTimeout = useRef<number>(0)
+	const didInitialLoad = useRef<boolean>(false)
 
 	const conversationsSorted = useMemo(() => {
 		return sortAndFilterConversations(conversations, searchTerm, userId)
@@ -602,13 +603,15 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 
 	useFocusEffect(
 		useCallback(() => {
-			loadConversations(true)
-			resetNotifications()
+			if (didInitialLoad.current) {
+				loadConversations(true)
+				resetNotifications()
+			}
 		}, [])
 	)
 
 	useEffect(() => {
-		if (appState === "active") {
+		if (appState === "active" && didInitialLoad.current) {
 			loadConversations(true)
 			resetNotifications()
 		}
@@ -619,8 +622,12 @@ const ChatsScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	}, [conversations])
 
 	useEffect(() => {
-		loadConversations()
-		resetNotifications()
+		if (!didInitialLoad.current) {
+			didInitialLoad.current = true
+
+			loadConversations()
+			resetNotifications()
+		}
 
 		const socketEventListener = eventListener.on("socketEvent", async (event: SocketEvent) => {
 			if (event.type === "chatMessageNew") {

@@ -2,7 +2,7 @@ import React, { useState, memo, useCallback, useMemo, useEffect, useRef } from "
 import { View, Text, TouchableOpacity, useWindowDimensions, RefreshControl, ActivityIndicator } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { NavigationContainerRef, CommonActions, useFocusEffect } from "@react-navigation/native"
+import { NavigationContainerRef, CommonActions } from "@react-navigation/native"
 import {
 	Contact,
 	ChatConversation,
@@ -35,7 +35,6 @@ import { throttle } from "lodash"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { SocketEvent } from "../../lib/services/socket"
-import { useAppState } from "@react-native-community/hooks"
 
 export type OnlineUsers = Record<string, ChatConversationsOnline>
 
@@ -215,7 +214,6 @@ const ChatParticipantsScreen = memo(
 		const [conversation, setConversation] = useState<ChatConversation>(route.params.conversation)
 		const conversationMe = useRef<ChatConversationParticipant>(conversation.participants.filter(p => p.userId === userId)[0]).current
 		const [onlineUsers, setOnlineUsers] = useState<Record<string, OnlineUsers>>({})
-		const appState = useAppState()
 		const loadConversationTimeout = useRef<number>(0)
 
 		const participants = useMemo(() => {
@@ -408,20 +406,6 @@ const ChatParticipantsScreen = memo(
 			},
 			[darkMode, participantsSorted, onlineUsers, userId, conversation]
 		)
-
-		useFocusEffect(
-			useCallback(() => {
-				loadConversation()
-				updateOnlineUsers()
-			}, [])
-		)
-
-		useEffect(() => {
-			if (appState === "active") {
-				loadConversation()
-				updateOnlineUsers()
-			}
-		}, [appState])
 
 		useEffect(() => {
 			loadConversation()

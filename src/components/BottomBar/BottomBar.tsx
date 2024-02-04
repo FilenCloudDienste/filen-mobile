@@ -14,7 +14,6 @@ import { NavigationContainerRef } from "@react-navigation/native"
 import { chatUnread as getChatUnread } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
 import { SocketEvent } from "../../lib/services/socket"
-import { useAppState } from "@react-native-community/hooks"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { SheetManager } from "react-native-actions-sheet"
 
@@ -28,7 +27,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 	const [defaultDriveUUID] = useMMKVString("defaultDriveUUID:" + userId, storage)
 	const dimensions = useWindowDimensions()
 	const [chatUnread, setChatUnread] = useState<number>(0)
-	const appState = useAppState()
 	const updateChatUnreadTimeout = useRef<number>(0)
 	const networkInfo = useNetworkInfo()
 	const [hideChats] = useMMKVBoolean("hideChats:" + userId, storage)
@@ -243,12 +241,6 @@ export const BottomBar = memo(({ navigation }: { navigation: NavigationContainer
 			console.error(e)
 		}
 	}, [hideChats])
-
-	useEffect(() => {
-		if (appState === "active") {
-			updateChatUnread()
-		}
-	}, [appState])
 
 	useEffect(() => {
 		updateChatUnread()

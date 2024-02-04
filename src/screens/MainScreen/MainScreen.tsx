@@ -10,7 +10,7 @@ import { useStore } from "../../lib/state"
 import { SheetManager } from "react-native-actions-sheet"
 import { previewItem } from "../../lib/services/items"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { StackActions, useFocusEffect, useIsFocused } from "@react-navigation/native"
+import { StackActions, useIsFocused } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
 import { Item } from "../../types"
 import { getColor } from "../../style"
@@ -20,7 +20,6 @@ import * as db from "../../lib/db"
 import memoryCache from "../../lib/memoryCache"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import useDimensions from "../../lib/hooks/useDimensions"
-import { useAppState } from "@react-native-community/hooks"
 
 export const MainScreen = memo(
 	({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
@@ -49,9 +48,9 @@ export const MainScreen = memo(
 		const [sortByDb] = useMMKVString("sortBy", storage)
 		const dimensions = useDimensions()
 		const networkInfo = useNetworkInfo()
-		const appState = useAppState()
 		const isFocused = useIsFocused()
 		const populateListTimeout = useRef<number>(0)
+		const didInitialLoad = useRef<boolean>(false)
 
 		const sortBy: string | undefined = useMemo(() => {
 			const parsed = JSON.parse(sortByDb || "{}")
@@ -253,18 +252,6 @@ export const MainScreen = memo(
 			}
 		}, [initialized])
 
-		useFocusEffect(
-			useCallback(() => {
-				populateList(true).catch(console.error)
-			}, [])
-		)
-
-		useEffect(() => {
-			if (appState === "active") {
-				populateList(true).catch(console.error)
-			}
-		}, [appState])
-
 		useEffect(() => {
 			if (isFocused) {
 				if (Array.isArray(items) && items.length > 0) {
@@ -288,6 +275,12 @@ export const MainScreen = memo(
 		}, [items, isFocused])
 
 		useEffect(() => {
+			if (!didInitialLoad.current) {
+				didInitialLoad.current = true
+
+				populateList().catch(console.error)
+			}
+
 			setNavigation(navigation)
 			setRoute(route)
 			setInsets(insets)

@@ -416,6 +416,7 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 	const lang = useLang()
 	const loadNotesAndTagsTimeout = useRef<number>(0)
 	const appState = useAppState()
+	const didInitialLoad = useRef<boolean>(false)
 
 	const notesSorted = useMemo(() => {
 		return sortAndFilterNotes(notes, searchTerm, "")
@@ -490,18 +491,24 @@ const NotesScreen = memo(({ navigation, route }: { navigation: NavigationContain
 
 	useFocusEffect(
 		useCallback(() => {
-			loadNotesAndTags(true)
+			if (didInitialLoad.current) {
+				loadNotesAndTags(true)
+			}
 		}, [])
 	)
 
 	useEffect(() => {
-		if (appState === "active") {
+		if (appState === "active" && didInitialLoad.current) {
 			loadNotesAndTags(true)
 		}
 	}, [appState])
 
 	useEffect(() => {
-		loadNotesAndTags()
+		if (!didInitialLoad.current) {
+			didInitialLoad.current = true
+
+			loadNotesAndTags()
+		}
 
 		const notesUpdateListener = eventListener.on("notesUpdate", (notes: Note[]) => {
 			setNotes(notes)
