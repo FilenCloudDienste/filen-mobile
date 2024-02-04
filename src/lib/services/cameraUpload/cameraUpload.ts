@@ -636,6 +636,7 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 		const tmp = fs.cacheDirectory() + tmpPrefix + asset.filename
 		const files: UploadFile[] = []
 		let originalKept = false
+		const baseAssetDeltaName = getAssetDeltaName(asset.filename)
 
 		if (
 			cameraUploadOnlyUploadOriginal ||
@@ -788,6 +789,10 @@ export const getFiles = async (asset: MediaLibrary.Asset, assetURI: string): Pro
 			}
 
 			await promiseAllSettled(filesToUploadPromises)
+
+			if (files.filter(file => getAssetDeltaName(file.name) === baseAssetDeltaName).length === 0) {
+				files.push(await copyFile(asset, assetURI, tmp, cameraUploadEnableHeic))
+			}
 		}
 
 		if (cameraUploadCompressImages) {
