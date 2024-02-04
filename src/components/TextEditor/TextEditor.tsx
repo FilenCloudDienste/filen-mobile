@@ -1,14 +1,13 @@
 import React, { useState, useEffect, memo, useRef, useCallback } from "react"
 import {
 	TextInput,
-	ScrollView,
+	TextInputScrollEventData,
 	Platform,
 	NativeSyntheticEvent,
 	TextInputSelectionChangeEventData,
 	TextInputKeyPressEventData
 } from "react-native"
 import { getColor } from "../../style"
-import useDimensions from "../../lib/hooks/useDimensions"
 
 export type TextSelection = { start: number; end: number }
 
@@ -28,12 +27,23 @@ const TextEditor = memo(
 	}) => {
 		const [text, setText] = useState<string>(value)
 		const ref = useRef<TextInput>()
-		const scrollRef = useRef<ScrollView>()
 		const intitialValue = useRef<string>(value).current
 		const didInitialAdjustments = useRef<boolean>(Platform.OS === "ios")
 		const [selection, setSelection] = useState<TextSelection>(Platform.OS === "android" ? { end: 0, start: 0 } : null)
-		const dimensions = useDimensions()
 		const [editorEnabled, setEditorEnabled] = useState<boolean>(true)
+		const onScrollTimeout = useRef<ReturnType<typeof setTimeout>>()
+
+		const onScroll = useCallback((e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+			if (Platform.OS !== "ios") {
+				return
+			}
+
+			setEditorEnabled(false)
+
+			clearTimeout(onScrollTimeout.current)
+
+			onScrollTimeout.current = setTimeout(() => setEditorEnabled(true), 100)
+		}, [])
 
 		const onKeyPress = useCallback((e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
 			if (e.nativeEvent.key === "Enter") {
@@ -74,49 +84,37 @@ const TextEditor = memo(
 		}, [])
 
 		return (
-			<ScrollView
-				ref={scrollRef}
-				scrollEventThrottle={100}
-				showsHorizontalScrollIndicator={false}
-				keyboardDismissMode="on-drag"
+			<TextInput
+				ref={ref}
+				value={text}
+				onChangeText={setText}
+				multiline={true}
+				//autoCapitalize="none"
+				//autoComplete="off"
+				//autoCorrect={false}
+				autoFocus={intitialValue.length === 0}
+				scrollEnabled={true}
+				inputMode="text"
+				onScroll={onScroll}
+				maxFontSizeMultiplier={0}
+				allowFontScaling={false}
+				selection={selection}
+				onKeyPress={onKeyPress}
+				onSelectionChange={onSelectionChange}
+				editable={!readOnly && editorEnabled}
+				placeholder={placeholder}
+				textAlign="left"
+				textAlignVertical="top"
 				style={{
 					height: "100%",
 					width: "100%",
-					backgroundColor: getColor(darkMode, "backgroundPrimary")
+					backgroundColor: getColor(darkMode, "backgroundPrimary"),
+					color: getColor(darkMode, "textPrimary"),
+					paddingLeft: 15,
+					paddingRight: 15,
+					fontSize: 16
 				}}
-				onScrollBeginDrag={() => setEditorEnabled(false)}
-				onScrollEndDrag={() => setEditorEnabled(true)}
-			>
-				<TextInput
-					ref={ref}
-					value={text}
-					onChangeText={setText}
-					multiline={true}
-					//autoCapitalize="none"
-					//autoComplete="off"
-					//autoCorrect={false}
-					autoFocus={intitialValue.length === 0}
-					scrollEnabled={false}
-					inputMode="text"
-					maxFontSizeMultiplier={0}
-					allowFontScaling={false}
-					selection={selection}
-					onKeyPress={onKeyPress}
-					onSelectionChange={onSelectionChange}
-					editable={!readOnly && editorEnabled}
-					placeholder={placeholder}
-					style={{
-						height: "100%",
-						width: "100%",
-						backgroundColor: getColor(darkMode, "backgroundPrimary"),
-						color: getColor(darkMode, "textPrimary"),
-						paddingBottom: dimensions.realHeight / 2,
-						paddingLeft: 15,
-						paddingRight: 15,
-						fontSize: 16
-					}}
-				/>
-			</ScrollView>
+			/>
 		)
 	}
 )
