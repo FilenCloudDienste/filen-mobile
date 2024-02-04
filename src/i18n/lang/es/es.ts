@@ -534,5 +534,18 @@ export const es: {
 	confirmLeaveNotePermanently: "¿Estás seguro de que quieres abandonar esta nota?",
 	confirmRemoveContact: "¿Estás seguro de que quieres eliminar a __NAME__ de tus contactos?",
 	confirmRemoveChatParticipant: "¿Estás seguro de que quieres eliminar a __NAME__ de este chat?",
-	confirmRemoveNoteParticipant: "¿Estás seguro de que quieres eliminar a __NAME__ de esta nota?"
+	confirmRemoveNoteParticipant: "¿Estás seguro de que quieres eliminar a __NAME__ de esta nota?",
+    blockedUserMessageHidden: "El mensaje del usuario que se ha bloqueado está oculto",
+	mute: "Silenciar",
+	unmute: "No silenciar",
+	chatSettings: "Ajustes del chat",
+	nickname: "Alias",
+	appearOffline: "Aparecer desconectado",
+	muteAllChats: "Silenciar todos los chat",
+	transferringFile: "Transfiriendo un archivo",
+	transferringDots: "Transfiriendo...",
+	notificationPermissionsNeededAndroid:
+		"Filen requiere todos los permisos de notificación para funcionar correctamente. Las transferencias en segundo plano y las notificaciones sociales no funcionarán sin ellos.",
+	noChatsYet: "Aún no hay chats",
+	hideChats: "Ocultar los chats"
 }
