@@ -308,7 +308,8 @@ const BottomBarAddActionSheet = memo(() => {
 
 		RNDocumentPicker.pick({
 			type: [RNDocumentPicker.types.allFiles],
-			copyTo: "cachesDirectory"
+			copyTo: "cachesDirectory",
+			allowMultiSelection: true
 		})
 			.then(async result => {
 				storage.set("lastBiometricScreen:" + storage.getNumber("userId"), Date.now() + 5000)
