@@ -225,7 +225,7 @@ const UploadToast = memo(() => {
 								)
 							) {
 								try {
-									const tempPath = pathModule.join(fs.cacheDirectory(), i18n(lang, "sharedTextFile") + ".txt")
+									const tempPath = pathModule.join(fs.cacheDirectory(), "Text.txt")
 
 									if ((await fs.stat(tempPath)).exists) {
 										await fs.unlink(tempPath)
@@ -257,7 +257,7 @@ const UploadToast = memo(() => {
 								)
 							) {
 								try {
-									const tempPath = pathModule.join(fs.cacheDirectory(), i18n(lang, "sharedTextFile") + ".txt")
+									const tempPath = pathModule.join(fs.cacheDirectory(), "Text.txt")
 
 									if ((await fs.stat(tempPath)).exists) {
 										await fs.unlink(tempPath)

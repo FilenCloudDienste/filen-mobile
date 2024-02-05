@@ -297,7 +297,7 @@ const NoteActionSheet = memo(({ navigation }: { navigation: NavigationContainerR
 				content = list.join("\n")
 			}
 
-			const fileName = selectedNote.title.slice(0, 64) + (ext.length === 0 ? ".txt" : ext)
+			const fileName = (await global.nodeThread.uuidv4()) + (ext.length === 0 ? ".txt" : ext)
 			const path = (await fs.getDownloadPath({ type: "temp" })) + fileName
 			const stat = await fs.stat(path)
 
