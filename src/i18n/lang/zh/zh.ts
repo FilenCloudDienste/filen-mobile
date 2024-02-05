@@ -536,5 +536,6 @@ export const zh: {
 	notificationPermissionsNeededAndroid:
 		"Filen 需要获取所有通知权限才能正常运行。没有它们，后台传输和社交通知将无法工作。",
 	noChatsYet: "还没有聊天",
-	hideChats: "隐藏聊天"
+	hideChats: "隐藏聊天",
+	sharedTextFile: "已共享的文本"
 }
