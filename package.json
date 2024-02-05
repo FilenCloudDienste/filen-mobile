@@ -20,7 +20,8 @@
 		"install-release-apk-emulator": "adb -s emulator-5554 install android/app/build/outputs/apk/release/app-release.apk",
 		"android-release": "react-native run-android --variant=release --deviceId=RZCW20AMCBB",
 		"check-dependencies": "rnx-align-deps",
-		"fix-dependencies": "rnx-align-deps --write"
+		"fix-dependencies": "rnx-align-deps --write",
+		"postinstall": "patch-package"
 	},
 	"dependencies": {
 		"@notifee/react-native": "^7.8.0",

@@ -199,55 +199,93 @@ const UploadToast = memo(() => {
 		setURIs([])
 
 		if (currentShareItems) {
-			if (
-				!Array.isArray(currentShareItems.data) &&
-				typeof currentShareItems.data === "string" &&
-				(currentShareItems.data.startsWith("file:") ||
-					currentShareItems.data.startsWith("content:") ||
-					currentShareItems.data.startsWith("asset:") ||
-					currentShareItems.data.startsWith("ph:") ||
-					currentShareItems.data.startsWith("assets-library:"))
-			) {
-				setURIs([currentShareItems.data])
-			} else {
-				const uriArray: string[] = []
+			;(async () => {
+				if (
+					!Array.isArray(currentShareItems.data) &&
+					typeof currentShareItems.data === "string" &&
+					(currentShareItems.data.startsWith("file:") ||
+						currentShareItems.data.startsWith("content:") ||
+						currentShareItems.data.startsWith("asset:") ||
+						currentShareItems.data.startsWith("ph:") ||
+						currentShareItems.data.startsWith("assets-library:"))
+				) {
+					setURIs([currentShareItems.data])
+				} else {
+					const uriArray: string[] = []
 
-				for (const item of currentShareItems.data) {
-					if (typeof item === "string") {
-						if (
-							!(
-								item.startsWith("file:") ||
-								item.startsWith("content:") ||
-								item.startsWith("asset:") ||
-								item.startsWith("ph:") ||
-								item.startsWith("assets-library:")
-							)
-						) {
-							continue
+					for (const item of currentShareItems.data) {
+						if (typeof item === "string") {
+							if (
+								!(
+									item.startsWith("file:") ||
+									item.startsWith("content:") ||
+									item.startsWith("asset:") ||
+									item.startsWith("ph:") ||
+									item.startsWith("assets-library:")
+								)
+							) {
+								try {
+									const tempPath = pathModule.join(fs.cacheDirectory(), i18n(lang, "sharedTextFile") + ".txt")
+
+									if ((await fs.stat(tempPath)).exists) {
+										await fs.unlink(tempPath)
+									}
+
+									await fs.writeAsString(tempPath, item, {
+										encoding: "utf8"
+									})
+
+									uriArray.push(tempPath)
+								} catch (e) {
+									console.error(e)
+
+									continue
+								}
+
+								continue
+							}
+
+							uriArray.push(item)
+						} else {
+							if (
+								!(
+									item.data.startsWith("file:") ||
+									item.data.startsWith("content:") ||
+									item.data.startsWith("asset:") ||
+									item.data.startsWith("ph:") ||
+									item.data.startsWith("assets-library:")
+								)
+							) {
+								try {
+									const tempPath = pathModule.join(fs.cacheDirectory(), i18n(lang, "sharedTextFile") + ".txt")
+
+									if ((await fs.stat(tempPath)).exists) {
+										await fs.unlink(tempPath)
+									}
+
+									await fs.writeAsString(tempPath, item.data, {
+										encoding: "utf8"
+									})
+
+									uriArray.push(tempPath)
+								} catch (e) {
+									console.error(e)
+
+									continue
+								}
+
+								continue
+							}
+
+							uriArray.push(item.data)
 						}
-
-						uriArray.push(item)
-					} else {
-						if (
-							!(
-								item.data.startsWith("file:") ||
-								item.data.startsWith("content:") ||
-								item.data.startsWith("asset:") ||
-								item.data.startsWith("ph:") ||
-								item.data.startsWith("assets-library:")
-							)
-						) {
-							continue
-						}
-
-						uriArray.push(item.data)
 					}
-				}
 
-				setURIs(uriArray)
-			}
+					setURIs(uriArray)
+				}
+			})()
 		}
-	}, [currentShareItems])
+	}, [currentShareItems, lang])
 
 	if (uris.length === 0) {
 		return null

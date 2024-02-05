@@ -542,5 +542,6 @@ export const de: {
 	notificationPermissionsNeededAndroid:
 		"Filen benötigt alle Benachrichtigungsberechtigungen, um ordnungsgemäß zu funktionieren. Hintergrundübertragungen und soziale Benachrichtigungen funktionieren ohne sie nicht.",
 	noChatsYet: "Noch keine Chats",
-	hideChats: "Chats ausblenden"
+	hideChats: "Chats ausblenden",
+	sharedTextFile: "Geteilter Text"
 }
