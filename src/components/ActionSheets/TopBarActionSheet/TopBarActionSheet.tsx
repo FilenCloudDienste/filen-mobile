@@ -1065,6 +1065,31 @@ const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContaine
 
 								navigation.dispatch(
 									CommonActions.reset({
+										index: 1,
+										routes: [
+											{
+												name: "SettingsScreen"
+											},
+											{
+												name: "MainScreen",
+												params: {
+													parent: "trash"
+												}
+											}
+										]
+									})
+								)
+							}}
+							icon="trash-outline"
+							text={i18n(lang, "trash")}
+						/>
+						<ActionButton
+							onPress={async () => {
+								await SheetManager.hide("TopBarActionSheet")
+								await navigationAnimation({ enable: true })
+
+								navigation.dispatch(
+									CommonActions.reset({
 										index: 0,
 										routes: [
 											{
