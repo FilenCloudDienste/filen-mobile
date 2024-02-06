@@ -935,10 +935,10 @@ export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean
 		const deltas = await getDeltas(local, remote)
 		const currentlyUploadedCount = Object.keys(local).length - deltas.length
 
+		eventListener.emit("cameraUploadStatus", deltas.length > 0 ? "active" : "inactive")
+
 		storage.set("cameraUploadTotal", Object.keys(local).length)
 		storage.set("cameraUploadUploaded", currentlyUploadedCount)
-
-		eventListener.emit("cameraUploadStatus", deltas.length > 0 ? "active" : "inactive")
 
 		let currentQueue = 0
 		const uploads: Promise<void>[] = []

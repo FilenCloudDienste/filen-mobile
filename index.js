@@ -283,7 +283,7 @@ const onCameraUploadNotification = async () => {
 	await cameraUploadNotificationMutex.acquire()
 
 	try {
-		eventListener.emit("cameraUploadStatus", "active")
+		//eventListener.emit("cameraUploadStatus", "active")
 
 		const now = Date.now()
 
@@ -299,7 +299,7 @@ const onCameraUploadNotification = async () => {
 	} finally {
 		cameraUploadNotificationMutex.release()
 
-		eventListener.emit("cameraUploadStatus", "inactive")
+		//eventListener.emit("cameraUploadStatus", "inactive")
 	}
 }
 
