@@ -534,5 +534,6 @@ export const uk: {
 	notificationPermissionsNeededAndroid:
 		"Для коректної роботи Filen потрібні всі дозволи на повідомлення. Без них фонові передачі та соціальні повідомлення не працюватимуть.",
 	noChatsYet: "Чатів ще немає",
-	hideChats: "Приховати чати"
+	hideChats: "Приховати чати",
+	sharedTextFile: "Отриманий текст"
 }
