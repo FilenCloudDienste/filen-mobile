@@ -534,5 +534,6 @@ export const ru: {
 	notificationPermissionsNeededAndroid:
 		"Для корректной работы Filen необходимы все разрешения на уведомления. Фоновые передачи и социальные уведомления не будут работать без них.",
 	noChatsYet: "Чатов пока нет",
-	hideChats: "Скрыть чаты"
+	hideChats: "Скрыть чаты",
+	sharedTextFile: "Полученный текст"
 }
