@@ -547,5 +547,6 @@ export const es: {
 	notificationPermissionsNeededAndroid:
 		"Filen requiere todos los permisos de notificación para funcionar correctamente. Las transferencias en segundo plano y las notificaciones sociales no funcionarán sin ellos.",
 	noChatsYet: "Aún no hay chats",
-	hideChats: "Ocultar los chats"
+	hideChats: "Ocultar los chats",
+    sharedTextFile: "Texto compartido"
 }
