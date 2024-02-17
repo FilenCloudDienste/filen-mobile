@@ -1021,7 +1021,7 @@ class FileProviderUtils {
               
             try await self.renameItemInPublicLink(
               uuid: uuid,
-              linkUUID: link.linkKey,
+              linkUUID: link.linkUUID,
               metadata: encryptedMetadata
             )
           }
@@ -1042,10 +1042,10 @@ class FileProviderUtils {
       return
     }
     
-    var filesToShare: [ItemToShareFile] = []
-    var foldersToShare: [ItemToShareFolder] = []
-    
     if isSharingParent.data!.sharing {
+      var filesToShare: [ItemToShareFile] = []
+      var foldersToShare: [ItemToShareFolder] = []
+
       if type == "file" {
         filesToShare.append(
           ItemToShareFile(
@@ -1134,6 +1134,9 @@ class FileProviderUtils {
     }
     
     if isLinkingParent.data!.link {
+      var filesToShare: [ItemToShareFile] = []
+      var foldersToShare: [ItemToShareFolder] = []
+
       if type == "file" {
         filesToShare.append(
           ItemToShareFile(

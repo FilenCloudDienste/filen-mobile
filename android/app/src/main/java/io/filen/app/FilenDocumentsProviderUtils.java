@@ -1977,7 +1977,7 @@ public class FilenDocumentsProviderUtils {
                 if (linkKey.length() > 16) {
                     final String encryptedMetadata = FilenCrypto.encryptMetadata(metadata, linkKey);
 
-                    renameItemInPublicLink(uuid, link.getString("linkKey"), encryptedMetadata);
+                    renameItemInPublicLink(uuid, link.getString("linkUUID"), encryptedMetadata);
                 }
             }
         }
@@ -1993,10 +1993,10 @@ public class FilenDocumentsProviderUtils {
             return;
         }
 
-        final List<ItemToShareFile> filesToShare = new ArrayList<>();
-        final List<ItemToShareFolder> foldersToShare = new ArrayList<>();
-
         if (isSharingItem.getBoolean("sharing")) {
+            final List<ItemToShareFile> filesToShare = new ArrayList<>();
+            final List<ItemToShareFolder> foldersToShare = new ArrayList<>();
+
             if (type.equals("file")) {
                 filesToShare.add(new ItemToShareFile(
                         itemMetadata.uuid,
@@ -2093,6 +2093,9 @@ public class FilenDocumentsProviderUtils {
         }
 
         if (isLinkingItem.getBoolean("link")) {
+            final List<ItemToShareFile> filesToShare = new ArrayList<>();
+            final List<ItemToShareFolder> foldersToShare = new ArrayList<>();
+
             if (type.equals("file")) {
                 filesToShare.add(new ItemToShareFile(
                         itemMetadata.uuid,
