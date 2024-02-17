@@ -634,7 +634,7 @@ class FileProviderUtils {
   func encryptAndUploadChunk (url: String, chunkSize: Int, uuid: String, index: Int, uploadKey: String, parent: String, key: String) async throws -> (region: String, bucket: String) {
     let fileURL = try self.getTempPath().appendingPathComponent(UUID().uuidString.lowercased() + "." + uuid + "." + String(index), isDirectory: false)
     
-    guard let inputURL = URL(string: url) else {
+    guard let inputURL = URL(string: url.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? url) else {
       throw NSError(domain: "encryptAndUploadChunk", code: 1, userInfo: nil)
     }
     
@@ -675,7 +675,7 @@ class FileProviderUtils {
     
     let stat = try FileManager.default.attributesOfItem(atPath: url)
     
-    guard let fileSize = stat[.size] as? Int, let fileURL = URL(string: url), let lastModified = stat[.modificationDate] as? Date else {
+    guard let fileSize = stat[.size] as? Int, let fileURL = URL(string: url.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? url), let lastModified = stat[.modificationDate] as? Date else {
       throw NSFileProviderError(.noSuchItem)
     }
     
@@ -1261,7 +1261,7 @@ class FileProviderUtils {
       return (didDownload: false, url: "")
     }
     
-    guard let itemJSON = self.getItemFromUUID(uuid: uuid), let destinationURL = URL(string: url) else {
+    guard let itemJSON = self.getItemFromUUID(uuid: uuid), let destinationURL = URL(string: url.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? url) else {
       throw NSFileProviderError(.noSuchItem)
     }
     
