@@ -32,30 +32,10 @@ class APIRequest {
 
     public APIRequest () {
         client = new OkHttpClient.Builder()
-                .addInterceptor(chain -> {
-                    final Request request = chain.request();
-                    Response response = null;
-                    int tryCount = 0;
-                    int maxLimit = 32;
-
-                    while (tryCount < maxLimit) {
-                        try {
-                            response = chain.proceed(request);
-                            if (response.isSuccessful()) {
-                                return response;
-                            }
-                        } catch (IOException e) {
-                            tryCount++;
-                        }
-                    }
-
-                    assert response != null;
-
-                    return response;
-                })
                 .connectTimeout(180, TimeUnit.SECONDS)
                 .readTimeout(900, TimeUnit.SECONDS)
                 .writeTimeout(900, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
                 .build();
     }
 
