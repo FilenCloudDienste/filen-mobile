@@ -10,7 +10,7 @@ import { randomIdUnsafe, generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { navigationAnimation } from "../../lib/state"
 import { dbFs } from "../../lib/db"
 import { FetchContactsResult, fetchContacts, sortContacts } from "./utils"
@@ -145,12 +145,11 @@ const Item = memo(
 						{typeof contact.avatar === "string" && contact.avatar.indexOf("https://") !== -1 ? (
 							<Image
 								source={{
-									uri: contact.avatar
+									uri: contact.avatar,
+									priority: "high"
 								}}
-								cachePolicy="memory-disk"
-								placeholder={require("../../assets/images/avatar_placeholder.jpg")}
-								placeholderContentFit="contain"
-								contentFit="contain"
+								defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
+								resizeMode="contain"
 								style={{
 									width: 34,
 									height: 34,

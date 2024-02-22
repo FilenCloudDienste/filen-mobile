@@ -44,7 +44,6 @@ export const MainScreen = memo(
 		const topBarHeight = useStore(state => state.topBarHeight)
 		const contentHeight = useStore(state => state.contentHeight)
 		const [photosRange, setPhotosRange] = useMMKVString("photosRange:" + userId, storage)
-		const [initialized, setInitialized] = useState<boolean>(false)
 		const [sortByDb] = useMMKVString("sortBy", storage)
 		const dimensions = useDimensions()
 		const networkInfo = useNetworkInfo()
@@ -57,6 +56,8 @@ export const MainScreen = memo(
 
 			return parsed[routeURL]
 		}, [sortByDb, routeURL])
+
+		const currentSortBy = useRef<string | undefined>(sortBy)
 
 		const updateItemThumbnail = useCallback((item: Item, path: string) => {
 			if (typeof path !== "string") {
@@ -205,8 +206,9 @@ export const MainScreen = memo(
 					}
 
 					const { cached, items } = await loadItems(route, skipCache)
+					const currentRouteURL = getRouteURL()
 
-					if (getRouteURL() !== startingURL) {
+					if (currentRouteURL !== startingURL) {
 						return
 					}
 
@@ -245,12 +247,12 @@ export const MainScreen = memo(
 		}, [searchTerm, items, routeURL])
 
 		useEffect(() => {
-			if (initialized) {
-				const sorted = sortItems({ items, passedRoute: route })
+			if (sortBy !== currentSortBy.current) {
+				currentSortBy.current = sortBy
 
-				setItems(sorted)
+				setItems(sortItems({ items, passedRoute: route }))
 			}
-		}, [initialized])
+		}, [sortBy])
 
 		useEffect(() => {
 			if (isFocused) {
@@ -380,7 +382,6 @@ export const MainScreen = memo(
 			})
 
 			setIsDeviceReady(true)
-			setInitialized(true)
 
 			return () => {
 				deviceListener.remove()

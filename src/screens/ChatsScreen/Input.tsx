@@ -43,7 +43,7 @@ import RNDocumentPicker, { DocumentPickerResponse } from "react-native-document-
 import * as fs from "../../lib/fs"
 import mimeTypes from "mime-types"
 import { getLastModified } from "../../lib/services/cameraUpload"
-import { Image as ExpoImage } from "expo-image"
+import FastImage from "react-native-fast-image"
 import useDimensions from "../../lib/hooks/useDimensions"
 
 const Input = memo(
@@ -813,14 +813,13 @@ const Input = memo(
 											{p.email !== "everyone" && (
 												<View>
 													{typeof p.avatar === "string" && p.avatar.indexOf("https://") !== -1 ? (
-														<ExpoImage
+														<FastImage
 															source={{
-																uri: p.avatar
+																uri: p.avatar,
+																priority: "high"
 															}}
-															cachePolicy="memory-disk"
-															placeholder={require("../../assets/images/avatar_placeholder.jpg")}
-															placeholderContentFit="contain"
-															contentFit="contain"
+															defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
+															resizeMode="contain"
 															style={{
 																width: 24,
 																height: 24,

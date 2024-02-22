@@ -2,7 +2,7 @@ import React, { memo } from "react"
 import { View } from "react-native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../style"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 
 export const SetupScreen = memo(() => {
 	const darkMode = useDarkMode()
@@ -19,7 +19,6 @@ export const SetupScreen = memo(() => {
 		>
 			<Image
 				source={require("../../assets/images/logo_animated.gif")}
-				cachePolicy="memory-disk"
 				style={{
 					width: 100,
 					height: 100

@@ -9,11 +9,12 @@ import {
 	simpleDate,
 	convertTimestampToMs,
 	getMasterKeys,
-	getParent
+	getParent,
+	promiseAllChunked
 } from "../../helpers"
 import { queueFileDownload } from "../download/download"
 import * as fs from "../../fs"
-import { DeviceEventEmitter } from "react-native"
+import { DeviceEventEmitter, Platform } from "react-native"
 import { useStore } from "../../state"
 import FileViewer from "react-native-file-viewer"
 import { getOfflineList, removeFromOfflineStorage, checkOfflineItems, getItemOfflinePath } from "../offline"
@@ -243,141 +244,55 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 	const uuid: string = getParent(route)
 	const url: string = getRouteURL(route)
 	const userId = storage.getNumber("userId")
-	const masterKeys = getMasterKeys()
-	const privateKey = storage.getString("privateKey")
+	const sortBy = JSON.parse(storage.getString("sortBy") || "{}")
 
-	if (userId === 0 || masterKeys.length <= 0) {
-		throw new Error("Invalid user data")
-	}
+	const [offlinePath, thumbnailPath] = await Promise.all([
+		fs.getDownloadPath({ type: "offline" }),
+		fs.getDownloadPath({ type: "thumbnail" })
+	])
+	const offlinePathPosix = offlinePath.split("file://").join("").split("file:/").join("").split("file:").join("")
+	const thumbnailPathPosix = thumbnailPath.split("file://").join("").split("file:/").join("").split("file:").join("")
 
 	const refresh = async (): Promise<{ cached: boolean; items: Item[] }> => {
 		if (!(await isOnline())) {
 			throw new Error("Device offline")
 		}
 
-		const promises: Promise<Item>[] = []
+		let items: Item[] = []
 
 		if (url.indexOf("recent") !== -1) {
-			const response = await apiRequest({
-				method: "POST",
-				endpoint: "/v3/dir/content",
-				data: {
-					uuid: "recents"
-				}
+			items = await global.nodeThread.loadItems({
+				url,
+				offlinePath: offlinePathPosix.startsWith("/") ? offlinePathPosix : "/" + offlinePathPosix,
+				thumbnailPath: thumbnailPathPosix.startsWith("/") ? thumbnailPathPosix : "/" + thumbnailPathPosix,
+				uuid,
+				receiverId: 0,
+				sortBy: sortBy[url],
+				platform: Platform.OS,
+				platformVersion: Platform.OS === "android" ? Platform.constants.Version : 0
 			})
-
-			if (!response.status) {
-				throw new Error(response.message + ": " + response.code)
-			}
-
-			for (const file of response.data.uploads) {
-				promises.push(
-					new Promise((resolve, reject) => {
-						buildFile({ file, masterKeys, userId })
-							.then(item => {
-								resolve(item)
-							})
-							.catch(err => {
-								reject(err)
-							})
-					})
-				)
-			}
 		} else if (url.indexOf("shared-in") !== -1) {
-			if (typeof privateKey !== "string") {
-				throw new Error("Invalid user data")
-			}
-
-			const response = await apiRequest({
-				method: "POST",
-				endpoint: "/v3/shared/in",
-				data: {
-					uuid
-				}
+			items = await global.nodeThread.loadItems({
+				url,
+				offlinePath: offlinePathPosix.startsWith("/") ? offlinePathPosix : "/" + offlinePathPosix,
+				thumbnailPath: thumbnailPathPosix.startsWith("/") ? thumbnailPathPosix : "/" + thumbnailPathPosix,
+				uuid,
+				receiverId: 0,
+				sortBy: sortBy[url],
+				platform: Platform.OS,
+				platformVersion: Platform.OS === "android" ? Platform.constants.Version : 0
 			})
-
-			if (!response.status) {
-				throw new Error(response.message + ": " + response.code)
-			}
-
-			for (const folder of response.data.folders) {
-				promises.push(
-					new Promise(async (resolve, reject) => {
-						try {
-							const item = await buildFolder({ folder, masterKeys, sharedIn: true, privateKey })
-
-							await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
-
-							memoryCache.set("itemCache:folder:" + folder.uuid, item)
-
-							resolve(item)
-						} catch (e) {
-							reject(e)
-						}
-					})
-				)
-			}
-
-			for (const file of response.data.uploads) {
-				promises.push(
-					new Promise((resolve, reject) => {
-						buildFile({ file, masterKeys, sharedIn: true, privateKey, userId })
-							.then(item => {
-								resolve(item)
-							})
-							.catch(err => {
-								reject(err)
-							})
-					})
-				)
-			}
 		} else if (url.indexOf("shared-out") !== -1) {
-			const response = await apiRequest({
-				method: "POST",
-				endpoint: "/v3/shared/out",
-				data: {
-					uuid,
-					receiverId: global.currentReceiverId
-				}
+			items = await global.nodeThread.loadItems({
+				url,
+				offlinePath: offlinePathPosix.startsWith("/") ? offlinePathPosix : "/" + offlinePathPosix,
+				thumbnailPath: thumbnailPathPosix.startsWith("/") ? thumbnailPathPosix : "/" + thumbnailPathPosix,
+				uuid,
+				receiverId: global.currentReceiverId ? global.currentReceiverId : 0,
+				sortBy: sortBy[url],
+				platform: Platform.OS,
+				platformVersion: Platform.OS === "android" ? Platform.constants.Version : 0
 			})
-
-			if (!response.status) {
-				throw new Error(response.message + ": " + response.code)
-			}
-
-			for (let folder of response.data.folders) {
-				promises.push(
-					new Promise(async (resolve, reject) => {
-						try {
-							folder.name = folder.metadata
-
-							const item = await buildFolder({ folder, masterKeys })
-
-							await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
-
-							memoryCache.set("itemCache:folder:" + folder.uuid, item)
-
-							resolve(item)
-						} catch (e) {
-							reject(e)
-						}
-					})
-				)
-			}
-
-			for (const file of response.data.uploads) {
-				promises.push(
-					new Promise((resolve, reject) => {
-						buildFile({ file, masterKeys, userId })
-							.then(item => {
-								resolve(item)
-							})
-							.catch(err => {
-								reject(err)
-							})
-					})
-				)
-			}
 		} else if (url.indexOf("photos") !== -1) {
 			const cameraUploadParent = storage.getString("cameraUploadFolderUUID:" + userId)
 
@@ -405,35 +320,16 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 				}
 			}
 
-			const response = await apiRequest({
-				method: "POST",
-				endpoint: "/v3/dir/download",
-				data: {
-					uuid: cameraUploadParent
-				}
+			items = await global.nodeThread.loadItems({
+				url,
+				offlinePath: offlinePathPosix.startsWith("/") ? offlinePathPosix : "/" + offlinePathPosix,
+				thumbnailPath: thumbnailPathPosix.startsWith("/") ? thumbnailPathPosix : "/" + thumbnailPathPosix,
+				uuid: cameraUploadParent,
+				receiverId: global.currentReceiverId ? global.currentReceiverId : 0,
+				sortBy: sortBy[url],
+				platform: Platform.OS,
+				platformVersion: Platform.OS === "android" ? Platform.constants.Version : 0
 			})
-
-			if (!response.status) {
-				throw new Error(response.message + ": " + response.code)
-			}
-
-			for (const file of response.data.files) {
-				promises.push(
-					new Promise(async (resolve, reject) => {
-						try {
-							const item = await buildFile({ file, masterKeys, userId })
-
-							if (canCompressThumbnail(getFileExt(item.name))) {
-								return resolve(item)
-							}
-
-							return resolve(null)
-						} catch (e) {
-							return reject(e)
-						}
-					})
-				)
-			}
 		} else if (url.indexOf("offline") !== -1) {
 			const [list, offlinePath] = await Promise.all([getOfflineList(), fs.getDownloadPath({ type: "offline" })])
 
@@ -452,106 +348,55 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 						}).catch(console.error)
 					}
 				} else {
-					promises.push(Promise.resolve(file))
-				}
-			}
-		} else {
-			const response = await apiRequest({
-				method: "POST",
-				endpoint: "/v3/dir/content",
-				data: {
-					uuid
-				}
-			})
-
-			if (!response.status) {
-				throw new Error(response.message + ": " + response.code)
-			}
-
-			for (const folder of response.data.folders) {
-				promises.push(
-					new Promise(async (resolve, reject) => {
-						try {
-							const item = await buildFolder({ folder, masterKeys })
-
-							await db.set("itemCache:folder:" + folder.uuid, item).catch(console.error)
-
-							memoryCache.set("itemCache:folder:" + folder.uuid, item)
-
-							resolve(item)
-						} catch (e) {
-							reject(e)
-						}
-					})
-				)
-			}
-
-			for (const file of response.data.uploads) {
-				promises.push(
-					new Promise((resolve, reject) => {
-						buildFile({ file, masterKeys, userId })
-							.then(item => {
-								resolve(item)
-							})
-							.catch(err => {
-								reject(err)
-							})
-					})
-				)
-			}
-		}
-
-		let items = (await Promise.all(promises)).filter(item => item !== null && typeof item.uuid === "string")
-
-		if (url.indexOf("shared-out") !== -1) {
-			const groups: Item[] = []
-			const sharedTo: Record<string, ItemReceiver[]> = {}
-			const added: Record<string, boolean> = {}
-
-			for (let i = 0; i < items.length; i++) {
-				if (Array.isArray(sharedTo[items[i].uuid])) {
-					sharedTo[items[i].uuid].push({
-						id: items[i].receiverId,
-						email: items[i].receiverEmail
-					})
-				} else {
-					sharedTo[items[i].uuid] = [
-						{
-							id: items[i].receiverId,
-							email: items[i].receiverEmail
-						}
-					]
+					items.push(file)
 				}
 			}
 
-			for (let i = 0; i < items.length; i++) {
-				if (Array.isArray(sharedTo[items[i].uuid])) {
-					items[i].receivers = sharedTo[items[i].uuid]
-				}
+			items = sortItems({ items, passedRoute: route })
 
-				if (!added[items[i].uuid]) {
-					added[items[i].uuid] = true
-
-					groups.push(items[i])
-				}
-			}
-
-			items = groups
-		}
-
-		items = sortItems({ items, passedRoute: route }).filter(item => item.name.length > 0)
-
-		await db.dbFs.set("loadItems:" + url, items)
-
-		memoryCache.set("loadItems:" + url, items)
-
-		if (url.indexOf("offline") !== -1) {
 			checkOfflineItems(items).catch(console.error)
+		} else {
+			items = await global.nodeThread.loadItems({
+				url,
+				offlinePath: offlinePathPosix.startsWith("/") ? offlinePathPosix : "/" + offlinePathPosix,
+				thumbnailPath: thumbnailPathPosix.startsWith("/") ? thumbnailPathPosix : "/" + thumbnailPathPosix,
+				uuid,
+				receiverId: global.currentReceiverId ? global.currentReceiverId : 0,
+				sortBy: sortBy[url],
+				platform: Platform.OS,
+				platformVersion: Platform.OS === "android" ? Platform.constants.Version : 0
+			})
 		}
+
+		for (const item of items) {
+			if (item.type !== "folder") {
+				continue
+			}
+
+			memoryCache.set("itemCache:folder:" + item.uuid, item)
+		}
+
+		for (let i = 0; i < items.length; i++) {
+			if (items[i].type === "folder") {
+				const cachedSize: number | undefined | null = memoryCache.has("folderSizeCache:" + items[i].uuid)
+					? memoryCache.get("folderSizeCache:" + items[i].uuid)
+					: storage.getNumber("folderSizeCache:" + items[i].uuid)
+
+				if (typeof cachedSize === "number") {
+					items[i].size = cachedSize
+				}
+			}
+		}
+
+		const sorted = sortItems({ items, passedRoute: route })
+
+		await db.dbFs.set("loadItems:" + url, sorted)
+
+		memoryCache.set("loadItems:" + url, sorted)
 
 		return {
 			cached: false,
-			items
+			items: sorted
 		}
 	}
 
@@ -559,15 +404,13 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 
 	if (!(await isOnline())) {
 		if (cached && Array.isArray(cached)) {
-			const sorted = sortItems({ items: cached, passedRoute: route }).filter(
-				item => item !== null && typeof item.uuid === "string" && item.name.length > 0
-			)
+			const sorted = sortItems({ items: cached, passedRoute: route })
 
 			memoryCache.set("loadItems:" + url, sorted)
 
 			return {
 				cached: true,
-				items: sorted as Item[]
+				items: sorted
 			}
 		}
 
@@ -578,15 +421,13 @@ export const loadItems = async (route: any, skipCache: boolean = false): Promise
 	}
 
 	if (cached && Array.isArray(cached) && !skipCache) {
-		const sorted = sortItems({ items: cached, passedRoute: route }).filter(
-			item => item !== null && typeof item.uuid === "string" && item.name.length > 0
-		)
+		const sorted = sortItems({ items: cached, passedRoute: route })
 
 		memoryCache.set("loadItems:" + url, sorted)
 
 		return {
 			cached: true,
-			items: sorted as Item[]
+			items: sorted
 		}
 	}
 

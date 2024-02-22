@@ -1058,31 +1058,33 @@ const TopBarActionSheet = memo(({ navigation }: { navigation: NavigationContaine
 								text={i18n(lang, "chats")}
 							/>
 						)}
-						<ActionButton
-							onPress={async () => {
-								await SheetManager.hide("TopBarActionSheet")
-								await navigationAnimation({ enable: true })
+						{itemsSelectedCount <= 1 && !routeURL.toLowerCase().includes("trash") && (
+							<ActionButton
+								onPress={async () => {
+									await SheetManager.hide("TopBarActionSheet")
+									await navigationAnimation({ enable: true })
 
-								navigation.dispatch(
-									CommonActions.reset({
-										index: 1,
-										routes: [
-											{
-												name: "SettingsScreen"
-											},
-											{
-												name: "MainScreen",
-												params: {
-													parent: "trash"
+									navigation.dispatch(
+										CommonActions.reset({
+											index: 1,
+											routes: [
+												{
+													name: "SettingsScreen"
+												},
+												{
+													name: "MainScreen",
+													params: {
+														parent: "trash"
+													}
 												}
-											}
-										]
-									})
-								)
-							}}
-							icon="trash-outline"
-							text={i18n(lang, "trash")}
-						/>
+											]
+										})
+									)
+								}}
+								icon="trash-outline"
+								text={i18n(lang, "trash")}
+							/>
+						)}
 						<ActionButton
 							onPress={async () => {
 								await SheetManager.hide("TopBarActionSheet")

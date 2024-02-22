@@ -6,7 +6,7 @@ import { i18n } from "../../i18n"
 import { generateAvatarColorCode, getRandomArbitrary } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import {
 	getUserNameFromMessage,
 	getUserNameFromReplyTo,
@@ -282,12 +282,11 @@ export const ReplyTo = memo(
 				{typeof message.replyTo.senderAvatar === "string" && message.replyTo.senderAvatar.indexOf("https://") !== -1 ? (
 					<Image
 						source={{
-							uri: message.replyTo.senderAvatar
+							uri: message.replyTo.senderAvatar,
+							priority: "high"
 						}}
-						placeholder={require("../../assets/images/avatar_placeholder.jpg")}
-						cachePolicy="memory-disk"
-						placeholderContentFit="contain"
-						contentFit="contain"
+						defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
+						resizeMode="contain"
 						style={{
 							width: 13,
 							height: 13,
@@ -720,12 +719,11 @@ export const Message = memo(
 							{message.senderAvatar && message.senderAvatar.indexOf("https://") !== -1 ? (
 								<Image
 									source={{
-										uri: message.senderAvatar
+										uri: message.senderAvatar,
+										priority: "high"
 									}}
-									placeholder={require("../../assets/images/avatar_placeholder.jpg")}
-									cachePolicy="memory-disk"
-									placeholderContentFit="contain"
-									contentFit="contain"
+									defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
+									resizeMode="contain"
 									style={{
 										width: 32,
 										height: 32,

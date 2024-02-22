@@ -1381,3 +1381,15 @@ export const hexToRgb = (hex: string) => {
 
 	return r + "," + g + "," + b
 }
+
+export async function promiseAllChunked<T>(promises: Promise<T>[], chunkSize = 100000): Promise<T[]> {
+	const results: T[] = []
+
+	for (let i = 0; i < promises.length; i += chunkSize) {
+		const chunkResults = await Promise.all(promises.slice(i, i + chunkSize))
+
+		results.push(...chunkResults)
+	}
+
+	return results
+}

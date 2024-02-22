@@ -8,9 +8,9 @@ import storage, { sharedStorage } from "../../lib/storage/storage"
 import regexifyString from "regexify-string"
 import EMOJI_REGEX from "emojibase-regex"
 import { View, Text, Linking, TextInput, TouchableHighlight, Platform } from "react-native"
-import { getColor, blurhashes } from "../../style"
+import { getColor } from "../../style"
 import { customEmojis } from "./customEmojis"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import EmojiConvertor from "emoji-js"
 import axios, { AxiosResponse } from "axios"
 import { memoize } from "lodash"
@@ -638,10 +638,9 @@ export const ReplaceMessageWithComponents = memo(
 							>
 								<Image
 									source={{
-										uri: customEmojisListRecord[customEmoji]
+										uri: customEmojisListRecord[customEmoji],
+										priority: "high"
 									}}
-									cachePolicy="memory-disk"
-									placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 									style={{
 										width: size,
 										height: size,
@@ -870,10 +869,9 @@ export const ReplaceInlineMessageWithComponents = memo(
 							<Image
 								key={index}
 								source={{
-									uri: customEmojisListRecord[customEmoji]
+									uri: customEmojisListRecord[customEmoji],
+									priority: "high"
 								}}
-								cachePolicy="memory-disk"
-								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 								style={{
 									width: size,
 									height: size,

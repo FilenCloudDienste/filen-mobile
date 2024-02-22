@@ -219,7 +219,12 @@ const Item = memo(
 
 						if (e.nativeEvent.key === "Backspace" && item.text.length <= 0 && items.length - 1 > 0) {
 							const indexToRemove = items.findIndex(i => i.id === item.id)
-							const newId = items[indexToRemove - 1].id || ""
+
+							if (indexToRemove === -1 || !items[indexToRemove - 1]) {
+								return
+							}
+
+							const newId = items[indexToRemove - 1]?.id ?? ""
 
 							setItems(prev => {
 								const copied = [...prev]

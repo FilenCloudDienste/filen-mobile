@@ -108,6 +108,7 @@ import ConfirmRemoveNoteParticipantDialog from "./components/Dialogs/ConfirmRemo
 import { Notifications } from "react-native-notifications"
 import ChatNickNameDialog from "./components/Dialogs/ChatNickNameDialog"
 import { useAppState } from "@react-native-community/hooks"
+import BootSplash from "react-native-bootsplash"
 
 enableScreens(true)
 
@@ -314,6 +315,32 @@ const Instance = memo(() => {
 	}, [isLoggedIn])
 
 	useEffect(() => {
+		;(async () => {
+			try {
+				const visible = await BootSplash.isVisible()
+
+				if (visible) {
+					await navigationAnimation({ enable: false })
+					await new Promise<void>(resolve => {
+						const wait = setInterval(() => {
+							if (!isRouteInStack(navigationRef, ["SetupScreen"])) {
+								clearInterval(wait)
+								resolve()
+							}
+						}, 100)
+					})
+
+					if (!isLoggedIn || (isLoggedIn && setupDone)) {
+						await BootSplash.hide({ fade: true })
+					}
+				}
+			} catch (e) {
+				console.error(e)
+			}
+		})()
+	}, [isLoggedIn, setupDone])
+
+	useEffect(() => {
 		if (appState === "background") {
 			if (!global.isRequestingPermissions) {
 				;(async () => {
@@ -508,7 +535,7 @@ const Instance = memo(() => {
 											component={SetupScreen}
 											options={{
 												title: "SetupScreen",
-												animation: showNavigationAnimation ? "default" : "none"
+												animation: "none"
 											}}
 										/>
 										<Stack.Screen

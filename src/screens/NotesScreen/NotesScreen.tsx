@@ -17,7 +17,7 @@ import { FlashList } from "@shopify/flash-list"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import eventListener from "../../lib/eventListener"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { generateAvatarColorCode } from "../../lib/helpers"
 import { Feather } from "@expo/vector-icons"
 import { SheetManager } from "react-native-actions-sheet"
@@ -340,12 +340,11 @@ const Item = memo(
 										<Image
 											key={participant.userId}
 											source={{
-												uri: participant.avatar
+												uri: participant.avatar,
+												priority: "high"
 											}}
-											cachePolicy="memory-disk"
-											placeholder={require("../../assets/images/avatar_placeholder.jpg")}
-											placeholderContentFit="contain"
-											contentFit="contain"
+											defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
+											resizeMode="contain"
 											style={{
 												width: 24,
 												height: 24,

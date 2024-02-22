@@ -9,9 +9,11 @@ import { validate } from "uuid"
 import { Item } from "../../../types"
 import * as fs from "../../fs"
 import { init as initDb, dbFs } from "../../db"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { sharedStorage } from "../../storage/storage"
 import { Platform } from "react-native"
+import { getMasterKeys } from "../../helpers"
+import pathModule from "path"
 
 const CACHE_CLEARING_ENABLED = true
 
@@ -30,7 +32,10 @@ const DONT_DELETE: string[] = [
 	"http-cache",
 	"a document being saved by",
 	"io.",
-	"com."
+	"com.",
+	"documentsProvider",
+	"fileProvider",
+	"File Provider Storage"
 ]
 
 export const canDelete = (name: string): boolean => {
@@ -213,6 +218,32 @@ export const clearCacheDirectories = async (age: number = 300000): Promise<void>
 	await promiseAllSettled(deletePromises)
 }
 
+export async function setupSDK({ userId, baseFolderUUID }: { userId: number; baseFolderUUID: string }): Promise<void> {
+	const sdkTmpPath = pathModule.join(fs.cacheDirectory(), "sdk")
+	const sdkTmpPathPosix = sdkTmpPath.split("file://").join("").split("file:/").join("").split("file:").join("")
+
+	await fs.mkdir(sdkTmpPath, true)
+
+	await global.nodeThread.initSDK({
+		email: storage.getString("email") ?? "",
+		password: "",
+		twoFactorCode: "XXXXXX",
+		masterKeys: getMasterKeys(),
+		apiKey: storage.getString("apiKey") ?? "",
+		publicKey: storage.getString("publicKey") ?? "",
+		privateKey: storage.getString("privateKey") ?? "",
+		authVersion: (storage.getNumber("authVersion") as 1 | 2) ?? 2,
+		baseFolderUUID,
+		userId,
+		metadataCache: true,
+		tmpPath: sdkTmpPathPosix.startsWith("/") ? sdkTmpPathPosix : "/" + sdkTmpPathPosix
+	})
+
+	storage.set("sdkInit", true)
+
+	console.log("SDK initialized.")
+}
+
 export const setup = async ({ navigation }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList> }): Promise<void> => {
 	dbFs.warmUp()
 		.then(() =>
@@ -249,17 +280,19 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 		throw new Error(response.message)
 	}
 
-	const userId = storage.getNumber("userId") || 0
+	const userId = storage.getNumber("userId") ?? 0
 
 	storage.set("defaultDriveUUID:" + userId, response.data.uuid)
 	storage.set("defaultDriveOnly:" + userId, true)
 
-	sharedStorage.set("apiKey", storage.getString("apiKey") || "")
-	sharedStorage.set("masterKeys", storage.getString("masterKeys") || "[]")
+	sharedStorage.set("apiKey", storage.getString("apiKey") ?? "")
+	sharedStorage.set("masterKeys", storage.getString("masterKeys") ?? "[]")
 	sharedStorage.set("isLoggedIn", storage.getBoolean("isLoggedIn"))
 	sharedStorage.set("defaultDriveUUID:" + userId, response.data.uuid)
 	sharedStorage.set("userId", userId)
 	sharedStorage.set("biometricPinAuth:" + userId, storage.getBoolean("biometricPinAuth:" + userId))
+
+	await setupSDK({ userId, baseFolderUUID: response.data.uuid })
 
 	const pushToken = storage.getString("pushToken")
 

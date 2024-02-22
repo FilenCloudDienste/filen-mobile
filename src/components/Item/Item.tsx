@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useRef } from "react"
+import React, { memo, useEffect, useMemo, useRef, useState } from "react"
 import {
 	Text,
 	View,
@@ -19,10 +19,9 @@ import { Item } from "../../types"
 import { fetchFolderSize } from "../../lib/api"
 import memoryCache from "../../lib/memoryCache"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import * as db from "../../lib/db"
 import { checkItemThumbnail } from "../../lib/services/thumbnails"
-import { blurhashes } from "../../style/colors"
 
 export interface ItemBaseProps {
 	item: Item
@@ -48,6 +47,7 @@ export interface ListItemProps extends ItemBaseProps {
 
 export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
 	const fetched = useRef<boolean>(false)
+	const [size, setSize] = useState<number>(item.size)
 
 	useEffect(() => {
 		if (item.type == "folder" && !fetched.current) {
@@ -62,6 +62,8 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 							size: fetchedSize
 						}
 					})
+
+					setSize(fetchedSize)
 
 					memoryCache.set("folderSizeCache:" + item.uuid, fetchedSize)
 					db.set("folderSizeCache:" + item.uuid, fetchedSize).catch(console.error)
@@ -118,11 +120,9 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 								hideThumbnails
 									? getImageForItem(item)
 									: typeof item.thumbnail !== "undefined"
-									? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
+									? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail, priority: "high" }
 									: getImageForItem(item)
 							}
-							cachePolicy="memory-disk"
-							placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 							style={{
 								width: 40,
 								height: 40,
@@ -196,7 +196,7 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 							) : (
 								<></>
 							)}
-							{hideSizes ? formatBytes(0) : formatBytes(item.size)}
+							{hideSizes ? formatBytes(0) : formatBytes(size)}
 							{typeof item.sharerEmail == "string" && item.sharerEmail.length > 0 && getParent(route).length < 32 && (
 								<>
 									<Text>&nbsp;&#8226;&nbsp;</Text>
@@ -261,6 +261,7 @@ export const GridItem = memo(
 	({ insets, item, index, darkMode, hideFileNames, hideThumbnails, lang, itemsPerRow, hideSizes, route }: GridItemProps) => {
 		const dimensions = useWindowDimensions()
 		const fetched = useRef<boolean>(false)
+		const [size, setSize] = useState<number>(item.size)
 
 		const windowWidth: number = useMemo(() => {
 			return dimensions.width - (insets.left + insets.right) - 40
@@ -279,6 +280,8 @@ export const GridItem = memo(
 								size: fetchedSize
 							}
 						})
+
+						setSize(fetchedSize)
 
 						memoryCache.set("folderSizeCache:" + item.uuid, fetchedSize)
 						db.set("folderSizeCache:" + item.uuid, fetchedSize).catch(console.error)
@@ -339,11 +342,9 @@ export const GridItem = memo(
 										hideThumbnails
 											? getImageForItem(item)
 											: typeof item.thumbnail !== "undefined"
-											? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
+											? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail, priority: "high" }
 											: getImageForItem(item)
 									}
-									cachePolicy="memory-disk"
-									placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 									style={{
 										width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
 										height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? 75 : 50,
@@ -430,7 +431,7 @@ export const GridItem = memo(
 							}}
 							numberOfLines={1}
 						>
-							{hideSizes ? formatBytes(0) : formatBytes(item.size)}
+							{hideSizes ? formatBytes(0) : formatBytes(size)}
 						</Text>
 					</Pressable>
 				</View>
@@ -481,11 +482,9 @@ export const PhotosItem = memo(({ item, index, darkMode, photosGridSize, insets,
 					hideThumbnails
 						? getImageForItem(item)
 						: typeof item.thumbnail !== "undefined"
-						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
+						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail, priority: "high" }
 						: getImageForItem(item)
 				}
-				cachePolicy="memory-disk"
-				placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 				style={{
 					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
 					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
@@ -634,11 +633,9 @@ export const PhotosRangeItem = memo(({ item, index, darkMode, hideThumbnails, ph
 					hideThumbnails
 						? getImageForItem(item)
 						: typeof item.thumbnail !== "undefined"
-						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail }
+						? { uri: "file://" + THUMBNAIL_BASE_PATH + item.thumbnail, priority: "high" }
 						: getImageForItem(item)
 				}
-				cachePolicy="memory-disk"
-				placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 				style={{
 					width: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,
 					height: typeof item.thumbnail !== "undefined" && !hideThumbnails ? imageWidthAndHeight : 40,

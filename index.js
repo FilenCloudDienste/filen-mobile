@@ -562,10 +562,12 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
 })
 
 const init = async () => {
+	storage.set("sdkInit", false)
+
 	setTimeout(() => {
 		runCameraUpload()
 
-		global.nodeThread.getCurrentTransfers().catch(console.error)
+		globalThis.nodeThread.getCurrentTransfers().catch(console.error)
 	}, 5000)
 
 	BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {

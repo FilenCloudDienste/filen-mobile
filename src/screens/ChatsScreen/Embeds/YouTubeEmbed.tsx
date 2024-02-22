@@ -1,7 +1,7 @@
 import { memo, useRef, useState, useEffect } from "react"
 import { getColor } from "../../../style"
 import { Text, Linking, Pressable, View } from "react-native"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { getURL, parseYouTubeVideoId } from "../utils"
 
 export interface YouTubeInfo {
@@ -105,11 +105,10 @@ const YouTubeEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string
 						height: "100%",
 						borderRadius: 5
 					}}
-					contentFit="contain"
 					source={{
-						uri: "https://img.youtube.com/vi/" + parseYouTubeVideoId(link) + "/hqdefault.jpg"
+						uri: "https://img.youtube.com/vi/" + parseYouTubeVideoId(link) + "/hqdefault.jpg",
+						priority: "high"
 					}}
-					cachePolicy="none"
 				/>
 			</View>
 		</Pressable>

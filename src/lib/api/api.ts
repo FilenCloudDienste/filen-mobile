@@ -1155,19 +1155,9 @@ export const renameFolder = async (folder: Item, name: string): Promise<void> =>
 		}
 	})
 
-	const folderCache = await db.get("itemCache:folder:" + folder.uuid)
-
-	if (folderCache && typeof folderCache.name === "string") {
-		await db.set("itemCache:folder:" + folder.uuid, {
-			...folderCache,
-			name
-		})
-
-		memoryCache.set("itemCache:folder:" + folder.uuid, {
-			...folderCache,
-			name
-		})
-	}
+	memoryCache.set("itemCache:folder:" + folder.uuid, {
+		name
+	})
 }
 
 export const createFolder = async (name: string, parent: string, passedUUID?: string): Promise<string> => {

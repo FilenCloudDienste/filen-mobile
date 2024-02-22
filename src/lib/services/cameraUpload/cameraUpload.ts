@@ -54,7 +54,6 @@ export const disableCameraUpload = (resetFolder: boolean = false): void => {
 
 	if (resetFolder) {
 		db.dbFs.remove("loadItems:photos").catch(console.error)
-		db.dbFs.remove("cameraUploadLastLoadRemoteCache:" + storage.getString("cameraUploadFolderUUID:" + userId)).catch(console.error)
 
 		storage.delete("cameraUploadFolderUUID:" + userId)
 		storage.delete("cameraUploadFolderName:" + userId)
@@ -322,76 +321,10 @@ export const loadLocal = async (): Promise<CameraUploadItems> => {
 }
 
 export const loadRemote = async (): Promise<CameraUploadItems> => {
-	const masterKeys = getMasterKeys()
 	const userId = storage.getNumber("userId")
 	const cameraUploadFolderUUID = storage.getString("cameraUploadFolderUUID:" + userId) || ""
 
-	const response = await apiRequest({
-		method: "POST",
-		endpoint: "/v3/dir/download",
-		data: {
-			uuid: cameraUploadFolderUUID,
-			skipCache: true
-		}
-	})
-
-	if (response.data.files.length === 0 || response.data.folders.length === 0) {
-		return {}
-	}
-
-	const items: CameraUploadItems = {}
-	const parentFolderNames: Record<string, string> = {}
-	const sorted = response.data.files.sort((a: any, b: any) => a.timestamp - b.timestamp)
-	const last = sorted[sorted.length - 1]
-	const cameraUploadLastLoadRemote = (await db.dbFs.get("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID)) as {
-		uuid: string
-		count: number
-		items: CameraUploadItems
-	}
-
-	if (cameraUploadLastLoadRemote) {
-		if (cameraUploadLastLoadRemote.count === sorted.length && cameraUploadLastLoadRemote.uuid === last.uuid) {
-			return cameraUploadLastLoadRemote.items
-		}
-	}
-
-	for (const folder of response.data.folders) {
-		if (folder.parent === "base") {
-			continue
-		}
-
-		const decrypted = await decryptFolderName(masterKeys, folder.name)
-
-		if (typeof decrypted === "string" && decrypted.length > 0) {
-			parentFolderNames[folder.uuid] = decrypted
-		}
-	}
-
-	for (const file of response.data.files) {
-		const decrypted = await decryptFileMetadata(masterKeys, file.metadata)
-
-		if (typeof decrypted.name === "string" && decrypted.name.length > 0) {
-			const path = parentFolderNames[file.parent] ? pathModule.join(parentFolderNames[file.parent], decrypted.name) : decrypted.name
-
-			items[getAssetDeltaName(decrypted.name)] = {
-				name: decrypted.name,
-				lastModified: convertTimestampToMs(decrypted.lastModified),
-				creation: convertTimestampToMs(decrypted.lastModified),
-				id: file.uuid,
-				type: "remote",
-				asset: undefined as MediaAsset,
-				path
-			}
-		}
-	}
-
-	await db.dbFs.set("cameraUploadLastLoadRemoteCache:" + cameraUploadFolderUUID, {
-		uuid: last.uuid,
-		count: response.data.files.length,
-		items
-	})
-
-	return items
+	return await global.nodeThread.getCameraUploadRemote({ uuid: cameraUploadFolderUUID })
 }
 
 export type DeltaType = "UPLOAD" | "UPDATE"
@@ -409,7 +342,7 @@ export const getDeltas = async (local: CameraUploadItems, remote: CameraUploadIt
 		const assetId = getAssetId(local[name].asset)
 
 		if (!remote[name]) {
-			/*if (typeof lastModified[assetId] === "number") {
+			if (typeof lastModified[assetId] === "number") {
 				if (convertTimestampToMs(lastModified[assetId]) !== convertTimestampToMs(local[name].lastModified)) {
 					deltas.push({
 						type: "UPLOAD",
@@ -421,12 +354,7 @@ export const getDeltas = async (local: CameraUploadItems, remote: CameraUploadIt
 					type: "UPLOAD",
 					item: local[name]
 				})
-			}*/
-
-			deltas.push({
-				type: "UPLOAD",
-				item: local[name]
-			})
+			}
 		} else {
 			if (typeof lastModified[assetId] === "number") {
 				if (convertTimestampToMs(lastModified[assetId]) !== convertTimestampToMs(local[name].lastModified)) {
@@ -961,7 +889,7 @@ export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean
 				const assetURI = await getAssetURI(asset)
 				const stat = await fs.stat(assetURI)
 
-				/*const [lastModified, lastModifiedStat, lastSize] = await Promise.all([
+				const [lastModified, lastModifiedStat, lastSize] = await Promise.all([
 					db.cameraUpload.getLastModified(asset),
 					db.cameraUpload.getLastModifiedStat(asset),
 					db.cameraUpload.getLastSize(asset)
@@ -984,7 +912,7 @@ export const runCameraUpload = async (maxQueue: number = 65535, runOnce: boolean
 					])
 
 					return
-				}*/
+				}
 
 				const files = await getFiles(asset, assetURI)
 				const parentFolderName = pathModule.dirname(delta.item.path)

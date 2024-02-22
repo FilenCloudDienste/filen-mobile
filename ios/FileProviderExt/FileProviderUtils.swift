@@ -317,7 +317,7 @@ class FileProviderUtils {
     }
     
     do {
-      if let row = try self.openDb().run("SELECT uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version FROM items WHERE uuid = ?", [uuid == NSFileProviderItemIdentifier.rootContainer.rawValue ? rootFolderUUID : uuid]).makeIterator().next() {
+      if let row = try self.openDb().run("SELECT uuid, parent, name, type, mime, size, timestamp, lastModified, key, chunks, region, bucket, version FROM items WHERE uuid = ?", [uuid]).makeIterator().next() {
         if let uuid = row[0] as? String, let parent = row[1] as? String, let name = row[2] as? String, let type = row[3] as? String, let mime = row[4] as? String, let size = row[5] as? Int64, let timestamp = row[6] as? Int64, let lastModified = row[7] as? Int64, let key = row[8] as? String, let chunks = row[9] as? Int64, let region = row[10] as? String, let bucket = row[11] as? String, let version = row[12] as? Int64 {
           return ItemJSON(
             uuid: uuid,
@@ -1372,7 +1372,7 @@ class FileProviderUtils {
   }
   
   func cleanupTempDir () -> Void {
-    let interval: TimeInterval = 3600 * 72
+    let now: TimeInterval = Date().timeIntervalSince1970
     
     do {
       let tempDir = try self.getTempPath()
@@ -1380,9 +1380,9 @@ class FileProviderUtils {
         
       for file in files {
         if let attributes = try? FileManager.default.attributesOfItem(atPath: file.path), let creationDate = attributes[.creationDate] as? Date {
-          let timeSinceCreation = Date().timeIntervalSince(creationDate)
+          let timeSinceCreation = creationDate.timeIntervalSince1970 + (3600 * 3)
           
-          if timeSinceCreation > interval {
+          if now > timeSinceCreation {
             try FileManager.default.removeItem(at: file)
           }
         }

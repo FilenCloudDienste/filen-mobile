@@ -1,3 +1,5 @@
+// ALL OF THIS NEEDS TO BE REWRITTEN ASAP
+
 delete process.env["http_proxy"]
 delete process.env["HTTP_PROXY"]
 delete process.env["https_proxy"]
@@ -37,11 +39,12 @@ const CryptoApi = require("crypto-api-v1")
 const { uuid: uuidv4 } = require("uuidv4")
 const https = require("https")
 const http = require("http")
-const fs = require("fs")
+const fs = require("fs-extra")
 const pathModule = require("path")
 const { Readable } = require("stream")
 const heicConvert = require("heic-convert")
 const progress = require("progress-stream")
+const FilenSDK = require("@filen/filen-sdk")
 
 const axiosClient = axios.create({
 	timeout: 3600000,
@@ -157,6 +160,13 @@ const showUploadProgress = {}
 let transfersProgress = 0
 let nextTransfersUpdate = 0
 const transfersUpdateTimeout = 500
+const loadItemsSemaphore = new Semaphore(32)
+
+/**
+ * @type {FilenSDK.default}
+ * @const
+ */
+let filen = new FilenSDK({})
 
 const buildTransfers = () => {
 	try {
@@ -776,11 +786,17 @@ const apiRequest = (method, url, timeout, data) => {
 							return reject(e)
 						}
 					})
+
+					response.on("error", reject)
 				}
 			)
 
 			req.on("error", err => {
 				return reject(err)
+			})
+
+			req.on("timeout", () => {
+				reject(new Error("Timed out"))
 			})
 
 			req.write(JSON.stringify(data))
@@ -1773,6 +1789,808 @@ const uploadFile = async ({ uuid, file, includeFileHash, masterKeys, apiKey, ver
 	}
 }
 
+const convertTimestampToMs = timestamp => {
+	const now = Date.now()
+
+	if (Math.abs(now - timestamp) < Math.abs(now - timestamp * 1000)) {
+		return timestamp
+	}
+
+	return Math.floor(timestamp * 1000)
+}
+
+const simpleDate = timestamp => {
+	try {
+		return new Date(convertTimestampToMs(timestamp)).toString().split(" ").slice(0, 5).join(" ")
+	} catch (e) {
+		return new Date().toString().split(" ").slice(0, 5).join(" ")
+	}
+}
+
+async function promiseAllChunked(promises, chunkSize = 100000) {
+	const results = []
+
+	for (let i = 0; i < promises.length; i += chunkSize) {
+		const chunkResults = await Promise.all(promises.slice(i, i + chunkSize))
+
+		results.push(...chunkResults)
+	}
+
+	return results
+}
+
+const orderItemsByType = (items, type) => {
+	let files = []
+	let folders = []
+
+	for (let i = 0; i < items.length; i++) {
+		if (items[i].type == "file") {
+			files.push(items[i])
+		} else {
+			folders.push(items[i])
+		}
+	}
+
+	if (type == "nameAsc") {
+		let sortedFiles = files.sort((a, b) => {
+			return a.name.localeCompare(b.name, "en", { numeric: true })
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return a.name.localeCompare(b.name, "en", { numeric: true })
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "sizeAsc") {
+		let sortedFiles = files.sort((a, b) => {
+			return a.size - b.size
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "dateAsc") {
+		let sortedFiles = files.sort((a, b) => {
+			return a.lastModifiedSort - b.lastModifiedSort
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return a.timestamp - b.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "dateDesc") {
+		let sortedFiles = files.sort((a, b) => {
+			return b.lastModifiedSort - a.lastModifiedSort
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "typeAsc") {
+		let sortedFiles = files.sort((a, b) => {
+			if (typeof a.mime == "undefined") {
+				a.mime = "_"
+			}
+
+			if (typeof b.mime == "undefined") {
+				b.mime = "_"
+			}
+
+			if (a.mime.length <= 1) {
+				a.mime = "_"
+			}
+
+			if (b.mime.length <= 1) {
+				b.mime = "_"
+			}
+
+			return a.mime.localeCompare(b.mime, "en", { numeric: true })
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "nameDesc") {
+		let sortedFiles = files.sort((a, b) => {
+			return b.name.localeCompare(a.name, "en", { numeric: true })
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.name.localeCompare(a.name, "en", { numeric: true })
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "sizeDesc") {
+		let sortedFiles = files.sort((a, b) => {
+			return b.size - a.size
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "typeDesc") {
+		let sortedFiles = files.sort((a, b) => {
+			if (typeof a.mime == "undefined") {
+				a.mime = "_"
+			}
+
+			if (typeof b.mime == "undefined") {
+				b.mime = "_"
+			}
+
+			if (a.mime.length <= 1) {
+				a.mime = "_"
+			}
+
+			if (b.mime.length <= 1) {
+				b.mime = "_"
+			}
+
+			return b.mime.localeCompare(a.mime, "en", { numeric: true })
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "lastModifiedAsc") {
+		let sortedFiles = files.sort((a, b) => {
+			return a.lastModifiedSort - b.lastModifiedSort
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return a.timestamp - b.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "lastModifiedDesc") {
+		let sortedFiles = files.sort((a, b) => {
+			return b.lastModifiedSort - a.lastModifiedSort
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "uploadDateAsc") {
+		let sortedFiles = files.sort((a, b) => {
+			return a.timestamp - b.timestamp
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return a.timestamp - b.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else if (type == "uploadDateDesc") {
+		let sortedFiles = files.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		let sortedFolders = folders.sort((a, b) => {
+			return b.timestamp - a.timestamp
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	} else {
+		//default, nameAsc
+
+		const sortedFiles = files.sort((a, b) => {
+			return a.name.localeCompare(b.name, "en", { numeric: true })
+		})
+
+		const sortedFolders = folders.sort((a, b) => {
+			return a.name.localeCompare(b.name, "en", { numeric: true })
+		})
+
+		return sortedFolders.concat(sortedFiles)
+	}
+}
+
+const canCompressThumbnail = (ext, platform, platformVersion) => {
+	if (platform === "android") {
+		switch (ext.toLowerCase()) {
+			case "heif":
+			case "heic":
+				return platformVersion >= 30
+				break
+			case "jpeg":
+			case "jpg":
+			case "png":
+			case "gif":
+			case "mp4":
+			case "webm":
+			case "webp":
+				return true
+				break
+			default:
+				return false
+				break
+		}
+	} else {
+		switch (ext.toLowerCase()) {
+			case "jpeg":
+			case "jpg":
+			case "png":
+			case "gif":
+			case "heif":
+			case "heic":
+			case "mp4":
+			case "mov":
+			case "avi":
+			case "webm":
+			case "webp":
+				return true
+				break
+			default:
+				return false
+				break
+		}
+	}
+}
+
+const loadItems = async ({ url, offlinePath, thumbnailPath, uuid, receiverId, sortBy, platform, platformVersion }) => {
+	if (!sortBy) {
+		sortBy = {}
+	}
+
+	let items = []
+
+	if (url.includes("recent")) {
+		const response = await filen.cloud().listRecents()
+		const promises = []
+
+		for (const item of response) {
+			if (item.type !== "file") {
+				continue
+			}
+
+			promises.push(
+				new Promise((resolve, reject) => {
+					loadItemsSemaphore
+						.acquire()
+						.then(() => {
+							const nameParsed = pathModule.parse(item.name)
+
+							Promise.all([
+								fs.exists(pathModule.join(thumbnailPath, item.uuid + ".jpg")),
+								fs.exists(
+									pathModule.join(
+										offlinePath,
+										item.uuid + item.name + "_" + item.uuid + "." + nameParsed.ext.split(".").join("").toLowerCase()
+									)
+								)
+							])
+								.then(([thumbnailExists, offlineExists]) => {
+									items.push({
+										id: item.uuid,
+										type: item.type === "directory" ? "folder" : "file",
+										uuid: item.uuid,
+										name: item.name,
+										mime: item.mime,
+										size: item.size,
+										key: item.key,
+										lastModified: item.lastModified,
+										lastModifiedSort: parseFloat(item.lastModified + "." + item.uuid.replace(/\D/g, "")),
+										bucket: item.bucket,
+										region: item.region,
+										parent: item.parent,
+										rm: item.rm,
+										chunks: item.chunks,
+										date: simpleDate(item.lastModified),
+										timestamp: item.timestamp,
+										receiverId: 0,
+										receiverEmail: undefined,
+										sharerId: 0,
+										sharerEmail: undefined,
+										offline: offlineExists,
+										version: item.version,
+										favorited: item.favorited,
+										thumbnail: thumbnailExists ? item.uuid + ".jpg" : undefined,
+										selected: false,
+										color: null,
+										isBase: false,
+										isSync: false,
+										isDefault: false,
+										hash: item.hash
+									})
+
+									loadItemsSemaphore.release()
+
+									resolve()
+								})
+								.catch(err => {
+									loadItemsSemaphore.release()
+
+									reject(err)
+								})
+						})
+						.catch(reject)
+				})
+			)
+		}
+
+		await promiseAllChunked(promises)
+	} else if (url.includes("shared-in")) {
+		const response = await filen.cloud().listDirectorySharedIn({ uuid })
+		const promises = []
+
+		for (const item of response) {
+			promises.push(
+				new Promise((resolve, reject) => {
+					loadItemsSemaphore
+						.acquire()
+						.then(() => {
+							if (item.type === "directory") {
+								items.push({
+									id: item.uuid,
+									type: item.type === "directory" ? "folder" : "file",
+									uuid: item.uuid,
+									name: item.name,
+									date: simpleDate(item.lastModified),
+									timestamp: item.timestamp,
+									lastModified: item.lastModified,
+									lastModifiedSort: parseFloat(item.lastModified + "." + item.uuid.replace(/\D/g, "")),
+									parent: item.parent,
+									receiverId: item.receiverId,
+									receiverEmail: item.receiverEmail,
+									sharerId: item.sharerId,
+									sharerEmail: item.sharerEmail,
+									color: item.color,
+									favorited: false,
+									isBase: false,
+									isSync: false,
+									isDefault: false,
+									size: 0,
+									selected: false,
+									mime: "",
+									key: "",
+									offline: false,
+									bucket: "",
+									region: "",
+									rm: "",
+									chunks: 0,
+									thumbnail: undefined,
+									version: 0,
+									hash: ""
+								})
+
+								loadItemsSemaphore.release()
+
+								resolve()
+							} else {
+								const nameParsed = pathModule.parse(item.name)
+
+								Promise.all([
+									fs.exists(pathModule.join(thumbnailPath, item.uuid + ".jpg")),
+									fs.exists(
+										pathModule.join(
+											offlinePath,
+											item.uuid + item.name + "_" + item.uuid + "." + nameParsed.ext.split(".").join("").toLowerCase()
+										)
+									)
+								])
+									.then(([thumbnailExists, offlineExists]) => {
+										items.push({
+											id: item.uuid,
+											type: item.type === "directory" ? "folder" : "file",
+											uuid: item.uuid,
+											name: item.name,
+											mime: item.mime,
+											size: item.size,
+											key: item.key,
+											lastModified: item.lastModified,
+											lastModifiedSort: parseFloat(item.lastModified + "." + item.uuid.replace(/\D/g, "")),
+											bucket: item.bucket,
+											region: item.region,
+											parent: item.parent,
+											rm: item.rm,
+											chunks: item.chunks,
+											date: simpleDate(item.lastModified),
+											timestamp: item.timestamp,
+											receiverId: item.receiverId,
+											receiverEmail: item.receiverEmail,
+											sharerId: item.sharerId,
+											sharerEmail: item.sharerEmail,
+											offline: offlineExists,
+											version: item.version,
+											favorited: item.favorited,
+											thumbnail: thumbnailExists ? item.uuid + ".jpg" : undefined,
+											selected: false,
+											color: null,
+											isBase: false,
+											isSync: false,
+											isDefault: false,
+											hash: item.hash
+										})
+
+										loadItemsSemaphore.release()
+
+										resolve()
+									})
+									.catch(err => {
+										loadItemsSemaphore.release()
+
+										reject(err)
+									})
+							}
+						})
+						.catch(reject)
+				})
+			)
+		}
+
+		await promiseAllChunked(promises)
+	} else if (url.includes("shared-out")) {
+		const response = await filen.cloud().listDirectorySharedOut({ uuid, receiverId })
+		const promises = []
+
+		for (const item of response) {
+			promises.push(
+				new Promise((resolve, reject) => {
+					loadItemsSemaphore
+						.acquire()
+						.then(() => {
+							if (item.type === "directory") {
+								items.push({
+									id: item.uuid,
+									type: item.type === "directory" ? "folder" : "file",
+									uuid: item.uuid,
+									name: item.name,
+									date: simpleDate(item.lastModified),
+									timestamp: item.timestamp,
+									lastModified: item.lastModified,
+									lastModifiedSort: parseFloat(item.lastModified + "." + item.uuid.replace(/\D/g, "")),
+									parent: item.parent,
+									receiverId: item.receiverId,
+									receiverEmail: item.receiverEmail,
+									sharerId: item.sharerId,
+									sharerEmail: item.sharerEmail,
+									color: item.color,
+									favorited: false,
+									isBase: false,
+									isSync: false,
+									isDefault: false,
+									size: 0,
+									selected: false,
+									mime: "",
+									key: "",
+									offline: false,
+									bucket: "",
+									region: "",
+									rm: "",
+									chunks: 0,
+									thumbnail: undefined,
+									version: 0,
+									hash: ""
+								})
+
+								loadItemsSemaphore.release()
+
+								resolve()
+							} else {
+								const nameParsed = pathModule.parse(item.name)
+
+								Promise.all([
+									fs.exists(pathModule.join(thumbnailPath, item.uuid + ".jpg")),
+									fs.exists(
+										pathModule.join(
+											offlinePath,
+											item.uuid + item.name + "_" + item.uuid + "." + nameParsed.ext.split(".").join("").toLowerCase()
+										)
+									)
+								])
+									.then(([thumbnailExists, offlineExists]) => {
+										items.push({
+											id: item.uuid,
+											type: item.type === "directory" ? "folder" : "file",
+											uuid: item.uuid,
+											name: item.name,
+											mime: item.mime,
+											size: item.size,
+											key: item.key,
+											lastModified: item.lastModified,
+											lastModifiedSort: parseFloat(item.lastModified + "." + item.uuid.replace(/\D/g, "")),
+											bucket: item.bucket,
+											region: item.region,
+											parent: item.parent,
+											rm: item.rm,
+											chunks: item.chunks,
+											date: simpleDate(item.lastModified),
+											timestamp: item.timestamp,
+											receiverId: item.receiverId,
+											receiverEmail: item.receiverEmail,
+											sharerId: item.sharerId,
+											sharerEmail: item.sharerEmail,
+											offline: offlineExists,
+											version: item.version,
+											favorited: item.favorited,
+											thumbnail: thumbnailExists ? item.uuid + ".jpg" : undefined,
+											selected: false,
+											color: null,
+											isBase: false,
+											isSync: false,
+											isDefault: false,
+											hash: item.hash
+										})
+
+										loadItemsSemaphore.release()
+
+										resolve()
+									})
+									.catch(err => {
+										loadItemsSemaphore.release()
+
+										reject(err)
+									})
+							}
+						})
+						.catch(reject)
+				})
+			)
+		}
+
+		await promiseAllChunked(promises)
+	} else if (url.includes("photos")) {
+		const tree = await filen.cloud().getDirectoryTree({ uuid })
+		const promises = []
+
+		for (const entry in tree) {
+			const item = tree[entry]
+
+			if (item.type !== "file") {
+				continue
+			}
+
+			promises.push(
+				new Promise((resolve, reject) => {
+					loadItemsSemaphore
+						.acquire()
+						.then(() => {
+							const nameParsed = pathModule.parse(item.name)
+							const ext = nameParsed.ext.split(".").join("").toLowerCase()
+
+							if (!canCompressThumbnail(ext, platform, platformVersion)) {
+								loadItemsSemaphore.release()
+
+								resolve()
+
+								return
+							}
+
+							Promise.all([
+								fs.exists(pathModule.join(thumbnailPath, item.uuid + ".jpg")),
+								fs.exists(pathModule.join(offlinePath, item.uuid + item.name + "_" + item.uuid + "." + ext))
+							])
+								.then(([thumbnailExists, offlineExists]) => {
+									items.push({
+										id: item.uuid,
+										type: item.type === "directory" ? "folder" : "file",
+										uuid: item.uuid,
+										name: item.name,
+										mime: item.mime,
+										size: item.size,
+										key: item.key,
+										lastModified: item.lastModified,
+										lastModifiedSort: parseFloat(item.lastModified + "." + item.uuid.replace(/\D/g, "")),
+										bucket: item.bucket,
+										region: item.region,
+										parent: item.parent,
+										rm: "",
+										chunks: item.chunks,
+										date: simpleDate(item.lastModified),
+										timestamp: item.lastModified,
+										receiverId: 0,
+										receiverEmail: undefined,
+										sharerId: 0,
+										sharerEmail: undefined,
+										offline: offlineExists,
+										version: item.version,
+										favorited: false,
+										thumbnail: thumbnailExists ? item.uuid + ".jpg" : undefined,
+										selected: false,
+										color: null,
+										isBase: false,
+										isSync: false,
+										isDefault: false,
+										hash: item.hash
+									})
+
+									loadItemsSemaphore.release()
+
+									resolve()
+								})
+								.catch(err => {
+									loadItemsSemaphore.release()
+
+									reject(err)
+								})
+						})
+						.catch(reject)
+				})
+			)
+		}
+
+		await promiseAllChunked(promises)
+	} else {
+		const response = await filen.cloud().listDirectory({ uuid })
+		const promises = []
+
+		for (const item of response) {
+			promises.push(
+				new Promise((resolve, reject) => {
+					loadItemsSemaphore
+						.acquire()
+						.then(() => {
+							if (item.type === "directory") {
+								items.push({
+									id: item.uuid,
+									type: item.type === "directory" ? "folder" : "file",
+									uuid: item.uuid,
+									name: item.name,
+									date: simpleDate(item.lastModified),
+									timestamp: item.timestamp,
+									lastModified: item.lastModified,
+									lastModifiedSort: parseFloat(item.lastModified + "." + item.uuid.replace(/\D/g, "")),
+									parent: item.parent,
+									receiverId: 0,
+									receiverEmail: "",
+									sharerId: 0,
+									sharerEmail: "",
+									color: item.color,
+									favorited: false,
+									isBase: false,
+									isSync: false,
+									isDefault: false,
+									size: 0,
+									selected: false,
+									mime: "",
+									key: "",
+									offline: false,
+									bucket: "",
+									region: "",
+									rm: "",
+									chunks: 0,
+									thumbnail: undefined,
+									version: 0,
+									hash: ""
+								})
+
+								loadItemsSemaphore.release()
+
+								resolve()
+							} else {
+								const nameParsed = pathModule.parse(item.name)
+
+								Promise.all([
+									fs.exists(pathModule.join(thumbnailPath, item.uuid + ".jpg")),
+									fs.exists(
+										pathModule.join(
+											offlinePath,
+											item.uuid + item.name + "_" + item.uuid + "." + nameParsed.ext.split(".").join("").toLowerCase()
+										)
+									)
+								])
+									.then(([thumbnailExists, offlineExists]) => {
+										items.push({
+											id: item.uuid,
+											type: item.type === "directory" ? "folder" : "file",
+											uuid: item.uuid,
+											name: item.name,
+											mime: item.mime,
+											size: item.size,
+											key: item.key,
+											lastModified: item.lastModified,
+											lastModifiedSort: parseFloat(item.lastModified + "." + item.uuid.replace(/\D/g, "")),
+											bucket: item.bucket,
+											region: item.region,
+											parent: item.parent,
+											rm: item.rm,
+											chunks: item.chunks,
+											date: simpleDate(item.lastModified),
+											timestamp: item.timestamp,
+											receiverId: 0,
+											receiverEmail: "",
+											sharerId: 0,
+											sharerEmail: "",
+											offline: offlineExists,
+											version: item.version,
+											favorited: item.favorited,
+											thumbnail: thumbnailExists ? item.uuid + ".jpg" : undefined,
+											selected: false,
+											color: null,
+											isBase: false,
+											isSync: false,
+											isDefault: false,
+											hash: item.hash
+										})
+
+										loadItemsSemaphore.release()
+
+										resolve()
+									})
+									.catch(err => {
+										loadItemsSemaphore.release()
+
+										reject(err)
+									})
+							}
+						})
+						.catch(reject)
+				})
+			)
+		}
+
+		await promiseAllChunked(promises)
+	}
+
+	/*let didSort = false
+
+	if (url.includes("photos")) {
+		items = items.sort((a, b) => b.lastModifiedSort - a.lastModifiedSort)
+		didSort = true
+	}
+
+	if (url.includes("recent")) {
+		items = items.sort((a, b) => b.timestamp - a.timestamp)
+		didSort = true
+	}
+
+	if (!didSort) {
+		items = orderItemsByType(items, sortBy[url])
+	}*/
+
+	return items
+}
+
+const getAssetDeltaName = path => {
+	const lowercased = path.toLowerCase()
+	const parsed = pathModule.parse(lowercased)
+	const dir = !parsed.dir || parsed.dir === "." || parsed.dir === "/" || parsed.dir.length <= 0 ? "" : parsed.dir + "/"
+
+	if (!parsed.name || parsed.name.length <= 0 || parsed.name === ".") {
+		return lowercased
+	}
+
+	return parsed.name
+}
+
+const getCameraUploadRemote = async ({ uuid }) => {
+	const tree = await filen.cloud().getDirectoryTree({ uuid, skipCache: true })
+	const items = {}
+
+	for (const entry in tree) {
+		const item = tree[entry]
+
+		if (item.type !== "file") {
+			continue
+		}
+
+		items[getAssetDeltaName(item.name)] = {
+			name: item.name,
+			lastModified: item.lastModified,
+			creation: item.lastModified,
+			id: item.uuid,
+			type: "remote",
+			asset: undefined,
+			path: entry.startsWith("/") ? entry.slice(1) : entry
+		}
+	}
+
+	return items
+}
+
 /*rn_bridge.app.on("pause", (pauseLock) => {
     new Promise((resolve) => {
         const wait = setInterval(() => {
@@ -1792,667 +2610,751 @@ rn_bridge.channel.on("message", message => {
 
 	const request = message
 
-	if (request.type == "encryptData") {
-		encryptData(request.base64, request.key)
-			.then(encrypted => {
+	try {
+		if (request.type == "encryptData") {
+			encryptData(request.base64, request.key)
+				.then(encrypted => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: encrypted
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "decryptData") {
+			decryptData(request.base64, request.key, request.version)
+				.then(decrypted => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: decrypted
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "downloadAndDecryptChunk") {
+			downloadAndDecryptChunk(request.url, request.timeout, request.key, request.version)
+				.then(decrypted => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: decrypted
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "deriveKeyFromPassword") {
+			deriveKeyFromPassword(request.password, request.salt, request.iterations, request.hash, request.bitLength, request.returnHex)
+				.then(key => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: key
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "encryptMetadata") {
+			encryptMetadata(request.data, request.key)
+				.then(encrypted => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: encrypted
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "decryptMetadata") {
+			decryptMetadata(request.data, request.key)
+				.then(decrypted => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: decrypted
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "encryptMetadataPublicKey") {
+			encryptMetadataPublicKey(request.data, request.publicKey)
+				.then(encrypted => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: encrypted
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "decryptMetadataPrivateKey") {
+			decryptMetadataPrivateKey(request.data, request.privateKey)
+				.then(decrypted => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: decrypted
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "generateKeypair") {
+			generateKeypair()
+				.then(keyPair => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: keyPair
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "hashPassword") {
+			try {
 				rn_bridge.channel.send({
 					id: request.id,
 					type: request.type,
-					response: encrypted
+					response: hashPassword(request.string)
 				})
 
 				tasksRunning -= 1
-			})
-			.catch(err => {
+			} catch (e) {
 				rn_bridge.channel.send({
 					id: request.id,
 					type: request.type,
-					err: err.toString()
+					err: e.toString()
 				})
 
 				tasksRunning -= 1
-			})
-	} else if (request.type == "decryptData") {
-		decryptData(request.base64, request.key, request.version)
-			.then(decrypted => {
+			}
+		} else if (request.type == "hashFn") {
+			try {
 				rn_bridge.channel.send({
 					id: request.id,
 					type: request.type,
-					response: decrypted
+					response: hashFn(request.string)
 				})
 
 				tasksRunning -= 1
-			})
-			.catch(err => {
+			} catch (e) {
 				rn_bridge.channel.send({
 					id: request.id,
 					type: request.type,
-					err: err.toString()
+					err: e.toString()
 				})
 
 				tasksRunning -= 1
-			})
-	} else if (request.type == "downloadAndDecryptChunk") {
-		downloadAndDecryptChunk(request.url, request.timeout, request.key, request.version)
-			.then(decrypted => {
+			}
+		} else if (request.type == "apiRequest") {
+			apiRequest(request.method, request.url, request.timeout, request.data)
+				.then(res => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: res
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "encryptAndUploadChunk") {
+			encryptAndUploadChunk(request.base64, request.key, request.url, request.timeout)
+				.then(res => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: res
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "generateRandomString") {
+			try {
 				rn_bridge.channel.send({
 					id: request.id,
 					type: request.type,
-					response: decrypted
+					response: randomString(request.charLength)
 				})
 
 				tasksRunning -= 1
-			})
-			.catch(err => {
+			} catch (e) {
 				rn_bridge.channel.send({
 					id: request.id,
 					type: request.type,
-					err: err.toString()
+					err: e.toString()
 				})
 
 				tasksRunning -= 1
-			})
-	} else if (request.type == "deriveKeyFromPassword") {
-		deriveKeyFromPassword(request.password, request.salt, request.iterations, request.hash, request.bitLength, request.returnHex)
-			.then(key => {
+			}
+		} else if (request.type == "uuidv4") {
+			try {
 				rn_bridge.channel.send({
 					id: request.id,
 					type: request.type,
-					response: key
+					response: uuidv4()
 				})
 
 				tasksRunning -= 1
-			})
-			.catch(err => {
+			} catch (e) {
 				rn_bridge.channel.send({
 					id: request.id,
 					type: request.type,
-					err: err.toString()
+					err: e.toString()
 				})
 
 				tasksRunning -= 1
-			})
-	} else if (request.type == "encryptMetadata") {
-		encryptMetadata(request.data, request.key)
-			.then(encrypted => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: encrypted
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "decryptMetadata") {
-		decryptMetadata(request.data, request.key)
-			.then(decrypted => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: decrypted
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "encryptMetadataPublicKey") {
-		encryptMetadataPublicKey(request.data, request.publicKey)
-			.then(encrypted => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: encrypted
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "decryptMetadataPrivateKey") {
-		decryptMetadataPrivateKey(request.data, request.privateKey)
-			.then(decrypted => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: decrypted
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "generateKeypair") {
-		generateKeypair()
-			.then(keyPair => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: keyPair
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "hashPassword") {
-		try {
+			}
+		} else if (request.type == "ping") {
 			rn_bridge.channel.send({
 				id: request.id,
 				type: request.type,
-				response: hashPassword(request.string)
+				response: "pong"
 			})
 
 			tasksRunning -= 1
-		} catch (e) {
+		} else if (request.type == "uploadAvatar") {
+			uploadAvatar(request.base64, request.url, request.timeout)
+				.then(res => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: res
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "getFileHash") {
+			getFileHash(request.path, request.hashName)
+				.then(res => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: res
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "encryptAndUploadFileChunk") {
+			encryptAndUploadFileChunk(request.path, request.key, request.queryParams, request.chunkIndex, request.chunkSize, request.apiKey)
+				.then(res => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: res
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "getDataDir") {
+			try {
+				rn_bridge.channel.send({
+					id: request.id,
+					type: request.type,
+					response: rn_bridge.app.datadir()
+				})
+			} catch (e) {
+				rn_bridge.channel.send({
+					id: request.id,
+					type: request.type,
+					err: e.toString()
+				})
+			}
+		} else if (request.type == "appendFileToFile") {
+			appendFileToFile(request.first, request.second)
+				.then(res => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: res
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "downloadDecryptAndWriteFileChunk") {
+			downloadDecryptAndWriteFileChunk(
+				request.destPath,
+				request.uuid,
+				request.region,
+				request.bucket,
+				request.index,
+				request.key,
+				request.version
+			)
+				.then(res => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: res
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "convertHeic") {
+			convertHeic(request.input, request.output, request.format)
+				.then(res => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: res
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type == "createHashHexFromString") {
+			try {
+				rn_bridge.channel.send({
+					id: request.id,
+					type: request.type,
+					response: crypto.createHash(request.name).update(request.data).digest("hex")
+				})
+
+				tasksRunning -= 1
+			} catch (e) {
+				rn_bridge.channel.send({
+					id: request.id,
+					type: request.type,
+					err: e.toString()
+				})
+
+				tasksRunning -= 1
+			}
+		} else if (request.type === "downloadFile") {
+			downloadFile({
+				destination: request.destination,
+				tempDir: request.tempDir,
+				file: request.file,
+				showProgress: request.showProgress,
+				maxChunks: request.maxChunks
+			})
+				.then(result => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: result
+					})
+
+					updateTransfersProgress()
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					updateTransfersProgress()
+
+					tasksRunning -= 1
+				})
+		} else if (request.type === "uploadFile") {
+			uploadFile({
+				uuid: request.uuid,
+				file: request.file,
+				includeFileHash: request.includeFileHash,
+				masterKeys: request.masterKeys,
+				apiKey: request.apiKey,
+				version: request.version,
+				showProgress: request.showProgress,
+				parent: request.parent
+			})
+				.then(result => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: result
+					})
+
+					updateTransfersProgress()
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					updateTransfersProgress()
+
+					tasksRunning -= 1
+				})
+		} else if (request.type === "uploadDone") {
+			if (currentUploads[request.uuid]) {
+				finishedTransfers.push({
+					...currentUploads[request.uuid],
+					transferType: "upload",
+					doneTimestamp: Date.now()
+				})
+			}
+
+			delete currentUploads[request.uuid]
+			delete failedTransfers[request.uuid]
+			delete stoppedTransfers[request.uuid]
+			delete pausedTransfers[request.uuid]
+
+			updateTransfersProgress()
+
 			rn_bridge.channel.send({
 				id: request.id,
 				type: request.type,
-				err: e.toString()
+				response: true
 			})
 
 			tasksRunning -= 1
-		}
-	} else if (request.type == "hashFn") {
-		try {
+		} else if (request.type === "uploadFailed") {
+			if (currentUploads[request.uuid]) {
+				if (currentUploads[request.uuid].size && allBytes >= currentUploads[request.uuid].size) {
+					allBytes -= currentUploads[request.uuid].size
+				}
+
+				failedTransfers[request.uuid] = {
+					...currentUploads[request.uuid],
+					transferType: "upload",
+					reason: request.reason,
+					doneTimestamp: Date.now()
+				}
+			}
+
+			delete currentUploads[request.uuid]
+			delete stoppedTransfers[request.uuid]
+			delete pausedTransfers[request.uuid]
+
+			updateTransfersProgress()
+
 			rn_bridge.channel.send({
 				id: request.id,
 				type: request.type,
-				response: hashFn(request.string)
+				response: true
 			})
 
 			tasksRunning -= 1
-		} catch (e) {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				err: e.toString()
-			})
-
-			tasksRunning -= 1
-		}
-	} else if (request.type == "apiRequest") {
-		apiRequest(request.method, request.url, request.timeout, request.data)
-			.then(res => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: res
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "encryptAndUploadChunk") {
-		encryptAndUploadChunk(request.base64, request.key, request.url, request.timeout)
-			.then(res => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: res
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "generateRandomString") {
-		try {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				response: randomString(request.charLength)
-			})
-
-			tasksRunning -= 1
-		} catch (e) {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				err: e.toString()
-			})
-
-			tasksRunning -= 1
-		}
-	} else if (request.type == "uuidv4") {
-		try {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				response: uuidv4()
-			})
-
-			tasksRunning -= 1
-		} catch (e) {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				err: e.toString()
-			})
-
-			tasksRunning -= 1
-		}
-	} else if (request.type == "ping") {
-		rn_bridge.channel.send({
-			id: request.id,
-			type: request.type,
-			response: "pong"
-		})
-
-		tasksRunning -= 1
-	} else if (request.type == "uploadAvatar") {
-		uploadAvatar(request.base64, request.url, request.timeout)
-			.then(res => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: res
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "getFileHash") {
-		getFileHash(request.path, request.hashName)
-			.then(res => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: res
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "encryptAndUploadFileChunk") {
-		encryptAndUploadFileChunk(request.path, request.key, request.queryParams, request.chunkIndex, request.chunkSize, request.apiKey)
-			.then(res => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: res
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "getDataDir") {
-		try {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				response: rn_bridge.app.datadir()
-			})
-		} catch (e) {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				err: e.toString()
-			})
-		}
-	} else if (request.type == "appendFileToFile") {
-		appendFileToFile(request.first, request.second)
-			.then(res => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: res
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "downloadDecryptAndWriteFileChunk") {
-		downloadDecryptAndWriteFileChunk(
-			request.destPath,
-			request.uuid,
-			request.region,
-			request.bucket,
-			request.index,
-			request.key,
-			request.version
-		)
-			.then(res => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: res
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "convertHeic") {
-		convertHeic(request.input, request.output, request.format)
-			.then(res => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: res
-				})
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				tasksRunning -= 1
-			})
-	} else if (request.type == "createHashHexFromString") {
-		try {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				response: crypto.createHash(request.name).update(request.data).digest("hex")
-			})
-
-			tasksRunning -= 1
-		} catch (e) {
-			rn_bridge.channel.send({
-				id: request.id,
-				type: request.type,
-				err: e.toString()
-			})
-
-			tasksRunning -= 1
-		}
-	} else if (request.type === "downloadFile") {
-		downloadFile({
-			destination: request.destination,
-			tempDir: request.tempDir,
-			file: request.file,
-			showProgress: request.showProgress,
-			maxChunks: request.maxChunks
-		})
-			.then(result => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: result
-				})
-
-				updateTransfersProgress()
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				updateTransfersProgress()
-
-				tasksRunning -= 1
-			})
-	} else if (request.type === "uploadFile") {
-		uploadFile({
-			uuid: request.uuid,
-			file: request.file,
-			includeFileHash: request.includeFileHash,
-			masterKeys: request.masterKeys,
-			apiKey: request.apiKey,
-			version: request.version,
-			showProgress: request.showProgress,
-			parent: request.parent
-		})
-			.then(result => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					response: result
-				})
-
-				updateTransfersProgress()
-
-				tasksRunning -= 1
-			})
-			.catch(err => {
-				rn_bridge.channel.send({
-					id: request.id,
-					type: request.type,
-					err: err.toString()
-				})
-
-				updateTransfersProgress()
-
-				tasksRunning -= 1
-			})
-	} else if (request.type === "uploadDone") {
-		if (currentUploads[request.uuid]) {
-			finishedTransfers.push({
-				...currentUploads[request.uuid],
-				transferType: "upload",
-				doneTimestamp: Date.now()
-			})
-		}
-
-		delete currentUploads[request.uuid]
-		delete failedTransfers[request.uuid]
-		delete stoppedTransfers[request.uuid]
-		delete pausedTransfers[request.uuid]
-
-		updateTransfersProgress()
-
-		rn_bridge.channel.send({
-			id: request.id,
-			type: request.type,
-			response: true
-		})
-
-		tasksRunning -= 1
-	} else if (request.type === "uploadFailed") {
-		if (currentUploads[request.uuid]) {
-			if (currentUploads[request.uuid].size && allBytes >= currentUploads[request.uuid].size) {
+		} else if (request.type === "removeTransfer") {
+			if (currentUploads[request.uuid] && currentUploads[request.uuid].size && allBytes >= currentUploads[request.uuid].size) {
 				allBytes -= currentUploads[request.uuid].size
 			}
 
-			failedTransfers[request.uuid] = {
-				...currentUploads[request.uuid],
-				transferType: "upload",
-				reason: request.reason,
-				doneTimestamp: Date.now()
+			if (currentDownloads[request.uuid] && currentDownloads[request.uuid].size && allBytes >= currentDownloads[request.uuid].size) {
+				allBytes -= currentDownloads[request.uuid].size
 			}
+
+			delete currentUploads[request.uuid]
+			delete currentDownloads[request.uuid]
+			delete stoppedTransfers[request.uuid]
+			delete pausedTransfers[request.uuid]
+			delete failedTransfers[request.uuid]
+
+			updateTransfersProgress()
+
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				response: true
+			})
+
+			tasksRunning -= 1
+		} else if (request.type === "stopTransfer") {
+			stoppedTransfers[request.uuid] = true
+
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				response: true
+			})
+
+			updateTransfersProgress()
+
+			tasksRunning -= 1
+		} else if (request.type === "pauseTransfer") {
+			pausedTransfers[request.uuid] = true
+
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				response: true
+			})
+
+			updateTransfersProgress()
+
+			tasksRunning -= 1
+		} else if (request.type === "resumeTransfer") {
+			delete pausedTransfers[request.uuid]
+
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				response: true
+			})
+
+			updateTransfersProgress()
+
+			tasksRunning -= 1
+		} else if (request.type === "getCurrentTransfers") {
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				response: {
+					transfers: buildTransfers(),
+					currentDownloadsCount: Object.keys(currentDownloads).length,
+					currentUploadsCount: Object.keys(currentUploads).length,
+					progress: transfersProgress,
+					currentUploads,
+					currentDownloads
+				}
+			})
+
+			updateTransfersProgress()
+
+			tasksRunning -= 1
+		} else if (request.type === "initSDK") {
+			filen = new FilenSDK({
+				email: request.email,
+				password: request.password,
+				twoFactorCode: request.twoFactorCode,
+				masterKeys: request.masterKeys,
+				apiKey: request.apiKey,
+				publicKey: request.publicKey,
+				privateKey: request.privateKey,
+				authVersion: request.authVersion,
+				baseFolderUUID: request.baseFolderUUID,
+				userId: request.userId,
+				metadataCache: request.metadataCache,
+				tmpPath: request.tmpPath
+			})
+
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				response: true
+			})
+
+			tasksRunning -= 1
+		} else if (request.type === "loadItems") {
+			loadItems({
+				url: request.url,
+				offlinePath: request.offlinePath,
+				thumbnailPath: request.thumbnailPath,
+				uuid: request.uuid,
+				receiverId: request.receiverId,
+				sortBy: request.sortBy,
+				platform: request.platform,
+				platformVersion: request.platformVersion
+			})
+				.then(result => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: result
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else if (request.type === "getCameraUploadRemote") {
+			getCameraUploadRemote({
+				uuid: request.uuid
+			})
+				.then(result => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						response: result
+					})
+
+					tasksRunning -= 1
+				})
+				.catch(err => {
+					rn_bridge.channel.send({
+						id: request.id,
+						type: request.type,
+						err: err.toString()
+					})
+
+					tasksRunning -= 1
+				})
+		} else {
+			rn_bridge.channel.send({
+				id: request.id,
+				type: request.type,
+				err: "Invalid request type: " + request.type
+			})
+
+			tasksRunning -= 1
 		}
+	} catch (e) {
+		console.error(e)
 
-		delete currentUploads[request.uuid]
-		delete stoppedTransfers[request.uuid]
-		delete pausedTransfers[request.uuid]
-
-		updateTransfersProgress()
+		tasksRunning -= 1
 
 		rn_bridge.channel.send({
 			id: request.id,
 			type: request.type,
-			response: true
+			err: e.toString()
 		})
-
-		tasksRunning -= 1
-	} else if (request.type === "removeTransfer") {
-		if (currentUploads[request.uuid] && currentUploads[request.uuid].size && allBytes >= currentUploads[request.uuid].size) {
-			allBytes -= currentUploads[request.uuid].size
-		}
-
-		if (currentDownloads[request.uuid] && currentDownloads[request.uuid].size && allBytes >= currentDownloads[request.uuid].size) {
-			allBytes -= currentDownloads[request.uuid].size
-		}
-
-		delete currentUploads[request.uuid]
-		delete currentDownloads[request.uuid]
-		delete stoppedTransfers[request.uuid]
-		delete pausedTransfers[request.uuid]
-		delete failedTransfers[request.uuid]
-
-		updateTransfersProgress()
-
-		rn_bridge.channel.send({
-			id: request.id,
-			type: request.type,
-			response: true
-		})
-
-		tasksRunning -= 1
-	} else if (request.type === "stopTransfer") {
-		stoppedTransfers[request.uuid] = true
-
-		rn_bridge.channel.send({
-			id: request.id,
-			type: request.type,
-			response: true
-		})
-
-		updateTransfersProgress()
-
-		tasksRunning -= 1
-	} else if (request.type === "pauseTransfer") {
-		pausedTransfers[request.uuid] = true
-
-		rn_bridge.channel.send({
-			id: request.id,
-			type: request.type,
-			response: true
-		})
-
-		updateTransfersProgress()
-
-		tasksRunning -= 1
-	} else if (request.type === "resumeTransfer") {
-		delete pausedTransfers[request.uuid]
-
-		rn_bridge.channel.send({
-			id: request.id,
-			type: request.type,
-			response: true
-		})
-
-		updateTransfersProgress()
-
-		tasksRunning -= 1
-	} else if (request.type === "getCurrentTransfers") {
-		rn_bridge.channel.send({
-			id: request.id,
-			type: request.type,
-			response: {
-				transfers: buildTransfers(),
-				currentDownloadsCount: Object.keys(currentDownloads).length,
-				currentUploadsCount: Object.keys(currentUploads).length,
-				progress: transfersProgress,
-				currentUploads,
-				currentDownloads
-			}
-		})
-
-		updateTransfersProgress()
-
-		tasksRunning -= 1
-	} else {
-		rn_bridge.channel.send({
-			id: request.id,
-			type: request.type,
-			err: "Invalid request type: " + request.type
-		})
-
-		tasksRunning -= 1
 	}
-
-	return true
 })
 
 rn_bridge.channel.send("ready")

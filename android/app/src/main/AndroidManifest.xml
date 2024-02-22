@@ -51,7 +51,8 @@
         android:exported="true"
         android:documentLaunchMode="never"
         android:hardwareAccelerated="true"
-        android:screenOrientation="unspecified">
+        android:screenOrientation="unspecified"
+        android:theme="@style/BootTheme">
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

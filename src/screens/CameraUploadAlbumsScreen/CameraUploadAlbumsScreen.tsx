@@ -14,8 +14,7 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
-import { Image } from "expo-image"
-import { blurhashes } from "../../style/colors"
+import Image from "react-native-fast-image"
 
 const fetchAssetsSemaphore = new Semaphore(3)
 
@@ -69,10 +68,9 @@ export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, exclude
 						{image.length > 0 ? (
 							<Image
 								source={{
-									uri: image
+									uri: image,
+									priority: "high"
 								}}
-								cachePolicy="memory-disk"
-								placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 								style={{
 									width: 30,
 									height: 30,

@@ -1,7 +1,7 @@
 import { memo, useRef } from "react"
 import { getColor } from "../../../style"
 import { Text, Linking, Pressable, View } from "react-native"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { isMessageLink } from "../utils"
 
 const ImageEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string }) => {
@@ -60,11 +60,11 @@ const ImageEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string }
 						height: "100%",
 						borderRadius: 5
 					}}
-					contentFit="contain"
+					resizeMode="contain"
 					source={{
-						uri: image
+						uri: image,
+						priority: "high"
 					}}
-					cachePolicy="none"
 				/>
 			</View>
 		</Pressable>

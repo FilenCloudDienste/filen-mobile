@@ -13,8 +13,7 @@ import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import * as db from "../../lib/db"
-import { Image } from "expo-image"
-import { blurhashes } from "../../style/colors"
+import Image from "react-native-fast-image"
 
 export const ActionButton = memo(
 	({
@@ -192,11 +191,9 @@ export const ItemActionSheetItemHeader = memo(() => {
 						hideThumbnails
 							? getImageForItem(currentActionSheetItem)
 							: typeof currentActionSheetItem.thumbnail !== "undefined"
-							? { uri: "file://" + THUMBNAIL_BASE_PATH + currentActionSheetItem.uuid + ".jpg" }
+							? { uri: "file://" + THUMBNAIL_BASE_PATH + currentActionSheetItem.uuid + ".jpg", priority: "high" }
 							: getImageForItem(currentActionSheetItem)
 					}
-					cachePolicy="memory-disk"
-					placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 					style={{
 						width: 40,
 						height: 40,

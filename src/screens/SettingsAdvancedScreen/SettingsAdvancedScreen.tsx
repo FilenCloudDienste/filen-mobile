@@ -12,7 +12,7 @@ import memoryCache from "../../lib/memoryCache"
 import * as fs from "../../lib/fs"
 import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { clearCacheDirectories } from "../../lib/services/setup"
 import { getColor } from "../../style"
 

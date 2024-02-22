@@ -2,7 +2,7 @@ import { memo, useRef } from "react"
 import { getColor } from "../../../style"
 import { Text, Linking, Pressable, View } from "react-native"
 import { i18n } from "../../../i18n"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { MessageDisplayType } from "../utils"
 
 const OGEmbed = memo(
@@ -111,11 +111,11 @@ const OGEmbed = memo(
 								width: "100%",
 								height: "100%"
 							}}
-							contentFit="contain"
+							resizeMode="contain"
 							source={{
-								uri: image
+								uri: image,
+								priority: "high"
 							}}
-							cachePolicy="none"
 						/>
 					</View>
 				)}

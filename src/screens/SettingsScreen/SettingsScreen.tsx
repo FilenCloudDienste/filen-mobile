@@ -20,7 +20,7 @@ import { StackActions, useFocusEffect } from "@react-navigation/native"
 import { navigationAnimation } from "../../lib/state"
 import { waitForStateUpdate } from "../../lib/state"
 import { showToast } from "../../components/Toasts"
-import { getColor, blurhashes } from "../../style/colors"
+import { getColor } from "../../style/colors"
 import { updateUserInfo } from "../../lib/services/user/info"
 import * as fs from "../../lib/fs"
 import { hasStoragePermissions, hasPhotoLibraryPermissions } from "../../lib/permissions"
@@ -30,7 +30,7 @@ import { isOnline } from "../../lib/services/isOnline"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { MISC_BASE_PATH } from "../../lib/constants"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { contactsRequestsInCount } from "../../lib/api"
 import eventListener from "../../lib/eventListener"
 import { hasNotificationPermissions } from "../../lib/permissions"
@@ -138,10 +138,9 @@ export const SettingsButtonLinkHighlight = memo(
 								{imageSrc.length > 0 ? (
 									<Image
 										source={{
-											uri: imageSrc
+											uri: imageSrc,
+											priority: "high"
 										}}
-										cachePolicy="memory-disk"
-										placeholder={darkMode ? blurhashes.dark.backgroundSecondary : blurhashes.light.backgroundSecondary}
 										style={{
 											width: 30,
 											height: 30,
@@ -431,17 +430,15 @@ export const SettingsHeader = memo(({ navigation, navigationEnabled = true }: { 
 						userAvatarCached.length > 4 &&
 						typeof userInfo !== "undefined" &&
 						typeof userInfo.avatarURL === "string"
-							? { uri: "file://" + MISC_BASE_PATH + userAvatarCached }
+							? { uri: "file://" + MISC_BASE_PATH + userAvatarCached, priority: "high" }
 							: typeof userInfo !== "undefined" &&
 							  typeof userInfo.avatarURL === "string" &&
-							  userInfo.avatarURL.indexOf("https://egest.") !== -1
-							? { uri: userInfo.avatarURL }
+							  (userInfo.avatarURL.indexOf("https://egest.") !== -1 || userInfo.avatarURL.indexOf("https://down.") !== -1)
+							? { uri: userInfo.avatarURL, priority: "high" }
 							: require("../../assets/images/appstore.png")
 					}
-					cachePolicy="memory-disk"
-					placeholder={require("../../assets/images/avatar_placeholder.jpg")}
-					placeholderContentFit="contain"
-					contentFit="contain"
+					defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
+					resizeMode="contain"
 					style={{
 						width: 60,
 						height: 60,

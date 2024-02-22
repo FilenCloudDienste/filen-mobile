@@ -2244,7 +2244,7 @@ public class FilenDocumentsProviderUtils {
             return;
         }
 
-        final long oneHourAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1) * 6;
+        final long now = System.currentTimeMillis();
 
         for (final String fileName: files) {
             final File file = new File(directory, fileName);
@@ -2254,9 +2254,9 @@ public class FilenDocumentsProviderUtils {
                     cleanupDirectory(file, true);
                 } else {
                     final BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-                    final long creationTime = attrs.creationTime().toMillis();
+                    final long creationTime = attrs.creationTime().toMillis() + (3600000 * 3);
 
-                    if (creationTime < oneHourAgo) {
+                    if (now > creationTime) {
                         file.delete();
                     }
                 }
@@ -2269,7 +2269,7 @@ public class FilenDocumentsProviderUtils {
             return;
         }
 
-        nextDirectoryCleanup = System.currentTimeMillis() + 3600000 * 72;
+        nextDirectoryCleanup = System.currentTimeMillis() + 60000;
 
         try {
             final File filesDir = context.getFilesDir();

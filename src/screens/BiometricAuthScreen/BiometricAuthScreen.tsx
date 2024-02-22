@@ -14,6 +14,8 @@ import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { safeAwait } from "../../lib/helpers"
 import { useAppState } from "@react-native-community/hooks"
+import BootSplash from "react-native-bootsplash"
+import { isRouteInStack } from "../../lib/helpers"
 
 let canGoBack = false
 
@@ -349,6 +351,28 @@ export const BiometricAuthScreen = memo(({ navigation }: { navigation: any }) =>
 	}, [appState])
 
 	useEffect(() => {
+		;(async () => {
+			try {
+				const visible = await BootSplash.isVisible()
+
+				if (visible) {
+					await navigationAnimation({ enable: false })
+					await new Promise<void>(resolve => {
+						const wait = setInterval(() => {
+							if (!isRouteInStack(navigation, ["SetupScreen"])) {
+								clearInterval(wait)
+								resolve()
+							}
+						}, 100)
+					})
+
+					await BootSplash.hide({ fade: true })
+				}
+			} catch (e) {
+				console.error(e)
+			}
+		})()
+
 		setIsAuthing(true)
 		setBiometricAuthScreenVisible(true)
 

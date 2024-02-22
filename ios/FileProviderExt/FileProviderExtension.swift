@@ -11,6 +11,8 @@ import UIKit
 import AVFoundation
 
 class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction {
+  private var nextTempDirectoryCleanup: TimeInterval = 0
+  
   func performAction(identifier actionIdentifier: NSFileProviderExtensionActionIdentifier, onItemsWithIdentifiers itemIdentifiers: [NSFileProviderItemIdentifier], completionHandler: @escaping (Error?) -> Void) -> Progress {
     if (actionIdentifier.rawValue == "io.filen.FileProviderExt.evict") {
       let progress = Progress(totalUnitCount: Int64(itemIdentifiers.count))
@@ -53,6 +55,16 @@ class FileProviderExtension: NSFileProviderExtension, NSFileProviderCustomAction
   }
 
   override func item (for identifier: NSFileProviderItemIdentifier) throws -> NSFileProviderItem {
+    defer {
+      let now = Date().timeIntervalSince1970
+      
+      if now > self.nextTempDirectoryCleanup {
+        self.nextTempDirectoryCleanup = now + 60000
+        
+        FileProviderUtils.shared.cleanupTempDir()
+      }
+    }
+    
     guard let rootFolderUUID = FileProviderUtils.shared.rootFolderUUID() else {
       throw NSFileProviderError(.noSuchItem)
     }

@@ -43,8 +43,6 @@ const CameraUploadChooseFolderToast = memo(
 
 			const userId = storage.getNumber("userId")
 
-			db.dbFs.remove("cameraUploadLastLoadRemoteCache:" + storage.getString("cameraUploadFolderUUID:" + userId)).catch(console.error)
-
 			storage.set("cameraUploadFolderUUID:" + userId, parent)
 			storage.set("cameraUploadFolderName:" + userId, folderName)
 			storage.set("cameraUploadUploaded", 0)

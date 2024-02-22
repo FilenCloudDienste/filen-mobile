@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity, FlatList, Pressable, Platform } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, FlatList, Pressable, Platform, ImageBackground } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { downloadFile } from "../../lib/services/download/download"
 import { navigationAnimation } from "../../lib/state"
@@ -13,10 +13,10 @@ import { getItemOfflinePath } from "../../lib/services/offline"
 import * as fs from "../../lib/fs"
 import { Item } from "../../types"
 import { useStore } from "../../lib/state"
-import { Image, ImageBackground } from "expo-image"
 import useDimensions from "../../lib/hooks/useDimensions"
 import { FlashList } from "@shopify/flash-list"
 import Zoom from "react-native-zoom-reanimated"
+import Image from "react-native-fast-image"
 
 const Zoomer = Zoom as any
 
@@ -234,8 +234,7 @@ const ImageViewerScreen = memo(
 								source={{
 									uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
 								}}
-								cachePolicy="none"
-								contentFit="contain"
+								resizeMode="contain"
 								style={{
 									width: dimensions.realWidth,
 									height: dimensions.realHeight
@@ -248,10 +247,10 @@ const ImageViewerScreen = memo(
 												images[image.uuid].startsWith("file://")
 													? images[image.uuid]
 													: "file://" + images[image.uuid]
-											)
+											),
+											priority: "high"
 										}}
-										cachePolicy="none"
-										contentFit="contain"
+										resizeMode="contain"
 										style={{
 											width: dimensions.realWidth,
 											height: dimensions.realHeight
@@ -324,8 +323,7 @@ const ImageViewerScreen = memo(
 							{typeof image.thumbnail !== "string" ? (
 								<Image
 									source={getImageForItem(image.file)}
-									contentFit="cover"
-									cachePolicy="none"
+									resizeMode="cover"
 									style={{
 										width: 18,
 										height: 25
@@ -334,10 +332,10 @@ const ImageViewerScreen = memo(
 							) : (
 								<Image
 									source={{
-										uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
+										uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail),
+										priority: "high"
 									}}
-									contentFit="cover"
-									cachePolicy="none"
+									resizeMode="cover"
 									style={{
 										width: "100%",
 										height: 35

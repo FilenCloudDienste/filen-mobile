@@ -21,7 +21,7 @@ import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
 import { sortAndFilterConversations, fetchChatConversations, getUserNameFromParticipant, ReplaceInlineMessageWithComponents } from "./utils"
 import { dbFs } from "../../lib/db"
@@ -202,12 +202,11 @@ const Item = memo(
 						<>
 							<Image
 								source={{
-									uri: conversationParticipantsFilteredWithoutMe[0].avatar
+									uri: conversationParticipantsFilteredWithoutMe[0].avatar,
+									priority: "high"
 								}}
-								cachePolicy="memory-disk"
-								placeholder={require("../../assets/images/avatar_placeholder.jpg")}
-								placeholderContentFit="contain"
-								contentFit="contain"
+								defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
+								resizeMode="contain"
 								style={{
 									width: 34,
 									height: 34,

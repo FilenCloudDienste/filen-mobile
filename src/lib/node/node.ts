@@ -3,6 +3,7 @@ import { Item } from "../../types"
 import eventListener from "../eventListener"
 import { UploadFile } from "../services/upload"
 import { CurrentDownloads, CurrentUploads, TransferItem } from "../../screens/TransfersScreen"
+import type { CameraUploadItems } from "../services/cameraUpload"
 
 nodejs.start("main.js")
 
@@ -14,8 +15,8 @@ declare global {
 	var nodeThread: {
 		ready: boolean
 		pingPong: (callback: (status: boolean) => boolean) => void
-		encryptData: (params: { base64: string; key: string }) => Promise<any>
-		decryptData: (params: { base64: string; key: string; version: number }) => Promise<any>
+		encryptData: (params: { base64: string; key: string }) => Promise<string>
+		decryptData: (params: { base64: string; key: string; version: number }) => Promise<string>
 		downloadAndDecryptChunk: (params: { url: string; timeout: number; key: string; version: number }) => Promise<any>
 		deriveKeyFromPassword: (params: {
 			password: string
@@ -99,6 +100,31 @@ declare global {
 			currentDownloadsCount: number
 			progress: number
 		}>
+		initSDK: (params: {
+			email: string
+			password: string
+			twoFactorCode: string
+			masterKeys: string[]
+			apiKey: string
+			publicKey: string
+			privateKey: string
+			authVersion: 1 | 2
+			baseFolderUUID: string
+			userId: number
+			metadataCache: boolean
+			tmpPath: string
+		}) => Promise<void>
+		loadItems: (params: {
+			url: string
+			offlinePath: string
+			thumbnailPath: string
+			uuid: string
+			receiverId: number
+			sortBy?: Record<string, string>
+			platform: string
+			platformVersion: number
+		}) => Promise<Item[]>
+		getCameraUploadRemote: (params: { uuid: string }) => Promise<CameraUploadItems>
 	}
 }
 
@@ -718,6 +744,85 @@ global.nodeThread = {
 				return nodejs.channel.send({
 					id,
 					type: "getCurrentTransfers"
+				})
+			})
+		})
+	},
+	initSDK: ({
+		email,
+		password,
+		twoFactorCode,
+		masterKeys,
+		apiKey,
+		publicKey,
+		privateKey,
+		authVersion,
+		baseFolderUUID,
+		userId,
+		metadataCache,
+		tmpPath
+	}) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "initSDK",
+					email,
+					password,
+					twoFactorCode,
+					masterKeys,
+					apiKey,
+					publicKey,
+					privateKey,
+					authVersion,
+					baseFolderUUID,
+					userId,
+					metadataCache,
+					tmpPath
+				})
+			})
+		})
+	},
+	loadItems: ({ url, offlinePath, thumbnailPath, uuid, receiverId, sortBy, platform, platformVersion }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "loadItems",
+					url,
+					offlinePath,
+					thumbnailPath,
+					uuid,
+					receiverId,
+					sortBy,
+					platform,
+					platformVersion
+				})
+			})
+		})
+	},
+	getCameraUploadRemote: ({ uuid }) => {
+		const id = (currentId += 1)
+
+		return new Promise((resolve, reject) => {
+			isNodeInitialized().then(() => {
+				resolves[id] = resolve
+				rejects[id] = reject
+
+				return nodejs.channel.send({
+					id,
+					type: "getCameraUploadRemote",
+					uuid
 				})
 			})
 		})

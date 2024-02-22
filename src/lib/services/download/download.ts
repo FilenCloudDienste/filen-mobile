@@ -184,7 +184,7 @@ export const queueFileDownload = async ({
 						.then(() => {
 							fs.unlink(path)
 								.then(() => {
-									if (showNotification || useStore.getState().imagePreviewModalVisible) {
+									if (showNotification) {
 										showToast({
 											message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name])
 										})
@@ -218,7 +218,7 @@ export const queueFileDownload = async ({
 
 					fs.move(path, filePath)
 						.then(() => {
-							if (showNotification || useStore.getState().imagePreviewModalVisible) {
+							if (showNotification) {
 								showToast({
 									message: i18n(storage.getString("lang"), "fileDownloaded", true, ["__NAME__"], [file.name])
 								})

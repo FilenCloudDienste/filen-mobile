@@ -14,7 +14,7 @@ import { generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 import { selectContacts } from "../ContactsScreen/SelectContactScreen"
 import { showToast } from "../../components/Toasts"
 import {
@@ -66,12 +66,11 @@ const Item = memo(
 					{typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1 ? (
 						<Image
 							source={{
-								uri: participant.avatar
+								uri: participant.avatar,
+								priority: "high"
 							}}
-							cachePolicy="memory-disk"
-							placeholder={require("../../assets/images/avatar_placeholder.jpg")}
-							placeholderContentFit="contain"
-							contentFit="contain"
+							defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
+							resizeMode="contain"
 							style={{
 								width: 34,
 								height: 34,

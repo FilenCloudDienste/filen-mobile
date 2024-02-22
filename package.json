@@ -21,9 +21,11 @@
 		"android-release": "react-native run-android --variant=release --deviceId=RZCW20AMCBB",
 		"check-dependencies": "rnx-align-deps",
 		"fix-dependencies": "rnx-align-deps --write",
-		"postinstall": "patch-package"
+		"postinstall": "patch-package",
+		"tsc:check": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@filen/filen-sdk": "^1.0.8",
 		"@notifee/react-native": "^7.8.0",
 		"@openspacelabs/react-native-zoomable-view": "^2.1.5",
 		"@react-native-community/hooks": "^3.0.0",
@@ -42,7 +44,6 @@
 		"expo-clipboard": "^4.1.2",
 		"expo-file-system": "^15.2.2",
 		"expo-font": "^11.1.1",
-		"expo-image": "^1.5.1",
 		"expo-keep-awake": "^12.0.1",
 		"expo-local-authentication": "^13.2.1",
 		"expo-media-library": "^15.2.3",
@@ -61,10 +62,12 @@
 		"react-native": "^0.71.13",
 		"react-native-actions-sheet": "^0.9.0-alpha.24",
 		"react-native-blob-util": "^0.19.6",
+		"react-native-bootsplash": "^5.4.0",
 		"react-native-cn-quill": "^0.7.18",
 		"react-native-device-info": "^10.12.0",
 		"react-native-dialog": "^9.3.0",
 		"react-native-document-picker": "^9.1.0",
+		"react-native-fast-image": "github:nReality/react-native-fast-image",
 		"react-native-file-viewer": "^2.1.5",
 		"react-native-gesture-handler": "^2.14.1",
 		"react-native-heic-converter": "^1.3.2",

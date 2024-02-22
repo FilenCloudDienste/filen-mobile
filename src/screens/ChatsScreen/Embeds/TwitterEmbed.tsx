@@ -1,7 +1,7 @@
 import { memo } from "react"
 import { getColor } from "../../../style"
 import { Text, Linking, Pressable } from "react-native"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 
 const TwitterEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string }) => {
 	return (
@@ -22,9 +22,8 @@ const TwitterEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string
 					height: 45,
 					borderRadius: 45
 				}}
-				contentFit="contain"
+				resizeMode="contain"
 				source={require("../../../assets/images/x.png")}
-				cachePolicy="memory-disk"
 			/>
 			<Text
 				style={{

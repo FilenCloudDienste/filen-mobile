@@ -29,7 +29,7 @@ import { getAssetURI } from "../../lib/services/cameraUpload"
 import * as fs from "../../lib/fs"
 import { FlashList } from "@shopify/flash-list"
 import storage, { sharedStorage } from "../../lib/storage/storage"
-import { Image } from "expo-image"
+import Image from "react-native-fast-image"
 
 const videoThumbnailSemaphore = new Semaphore(8)
 const ALBUM_ROW_HEIGHT = 70
@@ -228,9 +228,9 @@ export const AssetItem = memo(
 				) : (
 					<Image
 						source={{
-							uri: encodeURI(item.asset.uri)
+							uri: encodeURI(item.asset.uri),
+							priority: "high"
 						}}
-						cachePolicy="none"
 						style={{
 							width: size,
 							height: size
@@ -360,9 +360,9 @@ export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItem
 					{image.length > 0 ? (
 						<Image
 							source={{
-								uri: encodeURI(image)
+								uri: encodeURI(image),
+								priority: "high"
 							}}
-							cachePolicy="none"
 							style={{
 								width: 50,
 								height: 50,
