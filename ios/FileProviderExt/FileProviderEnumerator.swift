@@ -17,6 +17,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
   private let commaData = ",".data(using: .utf8)!
   private let endData = "]}}".data(using: .utf8)!
   private let statusFalseData = "\"status\":false".data(using: .utf8)!
+  private let max_page = 50
       
   init (identifier: NSFileProviderItemIdentifier) {
     self.identifier = identifier
@@ -281,18 +282,31 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           )
         }
         
-        let folderUUID = self.identifier == NSFileProviderItemIdentifier.rootContainer || self.identifier.rawValue == "root" || self.identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue ? rootFolderUUID : self.identifier.rawValue
-        let tempJSONFileURL = try await FileProviderUtils.shared.sessionManager.download(url, method: .post, parameters: ["uuid": folderUUID], encoding: JSONEncoding.default, headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
+        var pagedURL: String? = nil
+        var accumulatedData = Data()
         
-        defer {
-          do {
-            if FileManager.default.fileExists(atPath: tempJSONFileURL.path) {
-              try FileManager.default.removeItem(atPath: tempJSONFileURL.path)
-            }
-          } catch {
-            print("[enumerateItems] error:", error)
+        var pageNum:Int32 = 0
+        if page.rawValue != NSFileProviderPage.initialPageSortedByDate as Data && page.rawValue != NSFileProviderPage.initialPageSortedByName as Data && !page.rawValue.isEmpty{
+          accumulatedData = page.rawValue
+          
+          let urlCount = accumulatedData.suffix(4).withUnsafeBytes{
+            $0.loadUnaligned(fromByteOffset: 0, as: Int32.self).littleEndian
           }
+          accumulatedData.removeLast(4)
+          
+          pagedURL = String(data: accumulatedData.suffix(Int(urlCount)), encoding: .ascii)!
+          accumulatedData.removeLast(Int(urlCount))
+          
+          pageNum = accumulatedData.suffix(4).withUnsafeBytes{
+            $0.loadUnaligned(fromByteOffset: 0, as: Int32.self).littleEndian
+          }
+          accumulatedData.removeLast(4)
+          
+          // What's remaining should be the Accumulated Data from before
         }
+        
+        let folderUUID = self.identifier == NSFileProviderItemIdentifier.rootContainer || self.identifier.rawValue == "root" || self.identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue ? rootFolderUUID : self.identifier.rawValue
+        let tempJSONFileURL = pagedURL != nil ? URL(string: pagedURL!)! : try await FileProviderUtils.shared.sessionManager.download(url, method: .post, parameters: ["uuid": folderUUID], encoding: JSONEncoding.default, headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
         
         guard let inputStream = InputStream(url: tempJSONFileURL) else {
           throw NSError(domain: "enumerateItems", code: 1, userInfo: nil)
@@ -300,18 +314,27 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         
         inputStream.open()
         
-        defer {
-          inputStream.close()
-        }
-        
         let bufferSize = 1024
+        _ = (try inputStream.skip(n: bufferSize * Int(pageNum)))
         var buffer = [UInt8](repeating: 0, count: bufferSize)
-        var accumulatedData = Data()
-        var currentState: FetchFolderContentJSONParseState = .lookingForData
+        var currentState: FetchFolderContentJSONParseState = page.rawValue.isEmpty ? .lookingForData : .parsingData
         var didParseFiles = false
         var didEnumerate = false
+        var curr_num = 0
+        
+        defer {
+          do {
+            if FileManager.default.fileExists(atPath: tempJSONFileURL.path) && !(inputStream.hasBytesAvailable || accumulatedData.count > 0) {
+              try FileManager.default.removeItem(atPath: tempJSONFileURL.path)
+            }
+            
+            inputStream.close()
+          } catch {
+            print("[enumerateItems] error:", error)
+          }
+        }
 
-        while inputStream.hasBytesAvailable || accumulatedData.count > 0 {
+        while (inputStream.hasBytesAvailable || accumulatedData.count > 0) && curr_num < max_page {
           autoreleasepool {
             let bytesRead = inputStream.read(&buffer, maxLength: bufferSize)
             
@@ -322,7 +345,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                 
               switch currentState {
               case .lookingForData:
-                if let dataRange = accumulatedData.range(of: self.statusFalseData) {
+                if accumulatedData.range(of: self.statusFalseData) != nil {
                   break
                 }
                 
@@ -376,6 +399,8 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
                             }
                           }
                         }
+                        
+                        curr_num += 1
                       } catch {
                         print("[enumerateItems] error:", error)
                       }
@@ -393,7 +418,18 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
           observer.didEnumerate([])
         }
         
-        observer.finishEnumerating(upTo: nil)
+        if inputStream.hasBytesAvailable || accumulatedData.count > 0 {
+          // Set the page to the current accumulated data
+          // + 4 bytes tracking the page count
+          // + string of tempJSON url
+          // + size of url
+          accumulatedData.append( withUnsafeBytes(of: (pageNum + 1).littleEndian) { Data($0) })
+          accumulatedData.append(tempJSONFileURL.absoluteString.data(using: .ascii)!)
+          accumulatedData.append(withUnsafeBytes(of: Int32(tempJSONFileURL.absoluteString.count).littleEndian) { Data($0) })
+          observer.finishEnumerating(upTo: NSFileProviderPage(accumulatedData))
+        } else {
+          observer.finishEnumerating(upTo: nil)
+        }
       } catch {
         print("[enumerateItems] error:", error)
         
@@ -406,4 +442,37 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
 enum FetchFolderContentJSONParseState {
   case lookingForData
   case parsingData
+}
+
+extension InputStream {
+  func skip(n: Int) throws-> Int {
+    var remaining = n
+    var nr = 0
+    if n <= 0 {
+      return 0
+    }
+    let maxSkipBufferSize = 2048
+    let  size = min(maxSkipBufferSize, remaining)
+    var skipBuffer = [UInt8](repeating: 0, count: size)
+    while remaining > 0 {
+      nr = self.read(&skipBuffer, maxLength: min(size, remaining))
+      if (nr < 0) {
+        break
+      }
+      remaining -= nr
+    }
+    return n - remaining
+  }
+}
+
+extension UnsafeRawBufferPointer {
+    func loadUnaligned<T>(fromByteOffset offset: Int, as: T.Type) -> T {
+        // Allocate correctly aligned memory and copy bytes there
+        let alignedPointer = UnsafeMutableRawPointer.allocate(byteCount: MemoryLayout<T>.stride, alignment: MemoryLayout<T>.alignment)
+        defer {
+            alignedPointer.deallocate()
+        }
+        alignedPointer.copyMemory(from: baseAddress!.advanced(by: offset), byteCount: MemoryLayout<T>.size)
+        return alignedPointer.load(as: T.self)
+    }
 }
