@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo, useCallback } from "react"
-import { View, Text, Switch, Platform, ScrollView, ActivityIndicator } from "react-native"
+import { View, Text, Switch, Platform, ScrollView, ActivityIndicator, Image } from "react-native"
 import storage from "../../lib/storage"
 import { useMMKVString, useMMKVNumber } from "react-native-mmkv"
 import { i18n } from "../../i18n"
@@ -14,9 +14,8 @@ import DefaultTopBar from "../../components/TopBar/DefaultTopBar"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import useLang from "../../lib/hooks/useLang"
 import { getLastImageOfAlbum } from "../SelectMediaScreen/SelectMediaScreen"
-import Image from "react-native-fast-image"
 
-const fetchAssetsSemaphore = new Semaphore(3)
+const fetchAssetsSemaphore = new Semaphore(5)
 
 export interface CameraUploadAlbumsScreenProps {
 	navigation: any
@@ -68,8 +67,7 @@ export const AlbumItem = memo(({ index, darkMode, album, hasPermissions, exclude
 						{image.length > 0 ? (
 							<Image
 								source={{
-									uri: image,
-									priority: "high"
+									uri: image
 								}}
 								style={{
 									width: 30,

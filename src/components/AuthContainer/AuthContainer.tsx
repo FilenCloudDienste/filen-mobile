@@ -1,9 +1,8 @@
 import React, { memo } from "react"
-import { TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native"
+import { TouchableOpacity, KeyboardAvoidingView, Platform, Image } from "react-native"
 import { getColor } from "../../style"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import storage from "../../lib/storage"
-import Image from "react-native-fast-image"
 import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 
 const AuthContainer = memo(({ children }: { children: React.ReactNode[] }) => {

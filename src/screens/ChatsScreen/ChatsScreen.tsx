@@ -21,7 +21,6 @@ import { generateAvatarColorCode, Semaphore } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import Image from "react-native-fast-image"
 import { decryptChatMessage, decryptChatConversationName } from "../../lib/crypto"
 import { sortAndFilterConversations, fetchChatConversations, getUserNameFromParticipant, ReplaceInlineMessageWithComponents } from "./utils"
 import { dbFs } from "../../lib/db"
@@ -41,6 +40,7 @@ import notifee from "@notifee/react-native"
 import { Notifications } from "react-native-notifications"
 import { SheetManager } from "react-native-actions-sheet"
 import { useAppState } from "@react-native-community/hooks"
+import Image from "react-native-fast-image"
 
 const ITEM_HEIGHT = 61
 const AVATAR_HEIGHT = 36
@@ -202,8 +202,7 @@ const Item = memo(
 						<>
 							<Image
 								source={{
-									uri: conversationParticipantsFilteredWithoutMe[0].avatar,
-									priority: "high"
+									uri: conversationParticipantsFilteredWithoutMe[0].avatar
 								}}
 								defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
 								resizeMode="contain"

@@ -32,7 +32,6 @@ import { generateAvatarColorCode, Semaphore, SemaphoreInterface } from "../../li
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import Image from "react-native-fast-image"
 import { decryptChatMessage } from "../../lib/crypto"
 import { getUserNameFromParticipant, fetchChatMessages } from "./utils"
 import { dbFs } from "../../lib/db"
@@ -46,6 +45,7 @@ import useKeyboardOffset from "../../lib/hooks/useKeyboardOffset"
 import { ChatInfo } from "./Message"
 import { navigationAnimation } from "../../lib/state"
 import { useAppState } from "@react-native-community/hooks"
+import Image from "react-native-fast-image"
 
 const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContainerRef<ReactNavigation.RootParamList>; route: any }) => {
 	const darkMode = useDarkMode()
@@ -621,8 +621,7 @@ const ChatScreen = memo(({ navigation, route }: { navigation: NavigationContaine
 					  conversationParticipantsFilteredWithoutMe[0].avatar.indexOf("https://") !== -1 ? (
 						<Image
 							source={{
-								uri: conversationParticipantsFilteredWithoutMe[0].avatar,
-								priority: "high"
+								uri: conversationParticipantsFilteredWithoutMe[0].avatar
 							}}
 							defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
 							resizeMode="contain"

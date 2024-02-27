@@ -223,7 +223,7 @@ export const SettingsAdvancedScreen = memo(({ navigation }: SettingsAdvancedScre
 														onPress: async () => {
 															useStore.setState({ fullscreenLoadingModalVisible: true })
 
-															await clearCacheDirectories(300000).catch(console.error)
+															await clearCacheDirectories(60000).catch(console.error)
 
 															showToast({
 																message: i18n(lang, "clearCachesDirectoryCleared")

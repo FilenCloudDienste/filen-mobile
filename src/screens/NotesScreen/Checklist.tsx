@@ -52,7 +52,7 @@ const Item = memo(
 					width: "100%",
 					flexDirection: "row",
 					alignItems: "center",
-					marginBottom: index + 1 >= items.length ? 250 : 12,
+					marginBottom: index + 1 >= items.length ? 250 : Platform.OS === "ios" ? 15 : 3,
 					paddingLeft: 25,
 					paddingRight: 25
 				}}
@@ -189,9 +189,6 @@ const Item = memo(
 					multiline={true}
 					scrollEnabled={false}
 					autoFocus={false}
-					//autoCapitalize="none"
-					//autoComplete="off"
-					//autoCorrect={false}
 					editable={!readOnly && editorEnabled}
 					style={{
 						color: getColor(darkMode, "textPrimary"),
@@ -199,7 +196,8 @@ const Item = memo(
 						fontSize: 16,
 						paddingRight: 50,
 						alignSelf: "flex-start",
-						width: "100%"
+						width: "100%",
+						marginTop: Platform.OS === "ios" ? 1 : -9
 					}}
 					onChangeText={text => {
 						if (readOnly) {
@@ -208,7 +206,7 @@ const Item = memo(
 
 						setItems(prev =>
 							prev.map(prevItem =>
-								prevItem.id === item.id ? { ...prevItem, text: text.split("\n").join("").split("\r").join("") } : prevItem
+								prevItem.id === item.id ? { ...prevItem, text: text.replace(/\r|\n/g, "").trim() } : prevItem
 							)
 						)
 					}}
@@ -218,6 +216,9 @@ const Item = memo(
 						}
 
 						if (e.nativeEvent.key === "Backspace" && item.text.length <= 0 && items.length - 1 > 0) {
+							e.preventDefault()
+							e.stopPropagation()
+
 							const indexToRemove = items.findIndex(i => i.id === item.id)
 
 							if (indexToRemove === -1 || !items[indexToRemove - 1]) {
@@ -234,17 +235,15 @@ const Item = memo(
 								return copied
 							})
 
-							setTimeout(() => setIdToFocus(newId), 250)
-						}
-					}}
-					blurOnSubmit={true}
-					returnKeyType="next"
-					onSubmitEditing={e => {
-						if (readOnly) {
+							if (newId.length > 0) {
+								setIdToFocus(newId)
+							}
+
 							return
 						}
-
-						if (item.text.length > 0) {
+					}}
+					onSubmitEditing={e => {
+						if (item.text.length > 0 && itemIndex !== -1) {
 							e.preventDefault()
 							e.stopPropagation()
 
@@ -262,9 +261,11 @@ const Item = memo(
 								return copied
 							})
 
-							setTimeout(() => setIdToFocus(newId), 250)
+							setIdToFocus(newId)
 						}
 					}}
+					blurOnSubmit={true}
+					returnKeyType="next"
 					onFocus={() => eventListener.emit("scrollToChecklistIndex", index)}
 					hitSlop={{
 						top: 15,
@@ -346,7 +347,7 @@ const Checklist = memo(
 
 					const index = items.findIndex(item => item.id === id)
 
-					if (index !== 1) {
+					if (index !== 1 && index !== -1) {
 						eventListener.emit("scrollToChecklistIndex", index)
 					}
 				}

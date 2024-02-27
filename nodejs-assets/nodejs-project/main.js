@@ -44,7 +44,7 @@ const pathModule = require("path")
 const { Readable } = require("stream")
 const heicConvert = require("heic-convert")
 const progress = require("progress-stream")
-const FilenSDK = require("@filen/filen-sdk")
+const FilenSDK = require("@filen/sdk")
 
 const axiosClient = axios.create({
 	timeout: 3600000,

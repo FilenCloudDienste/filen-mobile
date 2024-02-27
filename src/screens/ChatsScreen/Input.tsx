@@ -8,7 +8,6 @@ import {
 	TextInputSelectionChangeEventData,
 	Text,
 	ScrollView,
-	Image,
 	Keyboard,
 	Platform
 } from "react-native"
@@ -45,6 +44,7 @@ import mimeTypes from "mime-types"
 import { getLastModified } from "../../lib/services/cameraUpload"
 import FastImage from "react-native-fast-image"
 import useDimensions from "../../lib/hooks/useDimensions"
+import Image from "react-native-fast-image"
 
 const Input = memo(
 	({
@@ -734,7 +734,8 @@ const Input = memo(
 										>
 											<Image
 												source={{
-													uri: emoji.src
+													uri: emoji.src,
+													priority: "high"
 												}}
 												style={{
 													width: 24,

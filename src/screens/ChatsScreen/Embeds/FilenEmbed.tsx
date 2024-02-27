@@ -1,7 +1,6 @@
 import { memo } from "react"
 import { getColor } from "../../../style"
-import { Text, Linking, Pressable } from "react-native"
-import Image from "react-native-fast-image"
+import { Text, Linking, Pressable, Image } from "react-native"
 
 const FilenEmbed = memo(({ darkMode, link }: { darkMode: boolean; link: string }) => {
 	return (

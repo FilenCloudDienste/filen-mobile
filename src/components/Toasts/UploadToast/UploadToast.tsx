@@ -111,9 +111,9 @@ const UploadToast = memo(() => {
 								if (stat.isDirectory) {
 									foldersToUpload.push(uri)
 								} else {
-									const fileName = pathModule.parse(uri).name
+									const fileName = pathModule.basename(uri)
 
-									if (!fileName || fileName.length <= 0) {
+									if (!fileName || fileName.length <= 0 || fileName === "." || fileName === "/") {
 										resolve()
 
 										return

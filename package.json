@@ -1,6 +1,6 @@
 {
 	"name": "filen-mobile",
-	"version": "2.0.70",
+	"version": "2.0.72",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
@@ -25,7 +25,6 @@
 		"tsc:check": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@filen/filen-sdk": "^1.0.8",
 		"@notifee/react-native": "^7.8.0",
 		"@openspacelabs/react-native-zoomable-view": "^2.1.5",
 		"@react-native-community/hooks": "^3.0.0",

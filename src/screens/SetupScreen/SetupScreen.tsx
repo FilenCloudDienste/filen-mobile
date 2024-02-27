@@ -1,8 +1,7 @@
 import React, { memo } from "react"
-import { View } from "react-native"
+import { View, Image } from "react-native"
 import useDarkMode from "../../lib/hooks/useDarkMode"
 import { getColor } from "../../style"
-import Image from "react-native-fast-image"
 
 export const SetupScreen = memo(() => {
 	const darkMode = useDarkMode()

@@ -19,9 +19,9 @@ import { Item } from "../../types"
 import { fetchFolderSize } from "../../lib/api"
 import memoryCache from "../../lib/memoryCache"
 import { THUMBNAIL_BASE_PATH } from "../../lib/constants"
-import Image from "react-native-fast-image"
 import * as db from "../../lib/db"
 import { checkItemThumbnail } from "../../lib/services/thumbnails"
+import Image from "react-native-fast-image"
 
 export interface ItemBaseProps {
 	item: Item

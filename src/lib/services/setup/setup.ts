@@ -249,7 +249,7 @@ export const setup = async ({ navigation }: { navigation: NavigationContainerRef
 		.then(() =>
 			checkOfflineItems()
 				.then(() =>
-					clearCacheDirectories(300000)
+					clearCacheDirectories(60000)
 						.then(() => {
 							if (Platform.OS === "ios") {
 								fs.deleteOldIOSDocumentDirs().catch(console.error)

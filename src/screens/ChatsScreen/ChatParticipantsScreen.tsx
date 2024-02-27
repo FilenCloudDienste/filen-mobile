@@ -18,7 +18,6 @@ import { generateAvatarColorCode } from "../../lib/helpers"
 import eventListener from "../../lib/eventListener"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { FlashList } from "@shopify/flash-list"
-import Image from "react-native-fast-image"
 import { showToast } from "../../components/Toasts"
 import useNetworkInfo from "../../lib/services/isOnline/useNetworkInfo"
 import { TopBar } from "../../components/TopBar"
@@ -35,6 +34,7 @@ import { throttle } from "lodash"
 import { ONLINE_TIMEOUT } from "../../lib/constants"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { SocketEvent } from "../../lib/services/socket"
+import Image from "react-native-fast-image"
 
 export type OnlineUsers = Record<string, ChatConversationsOnline>
 
@@ -112,8 +112,7 @@ const Item = memo(
 						{typeof participant.avatar === "string" && participant.avatar.indexOf("https://") !== -1 ? (
 							<Image
 								source={{
-									uri: participant.avatar,
-									priority: "high"
+									uri: participant.avatar
 								}}
 								defaultSource={require("../../assets/images/avatar_placeholder.jpg")}
 								resizeMode="contain"

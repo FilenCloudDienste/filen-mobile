@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useRef, useCallback } from "react"
-import { ActivityIndicator, Text, View, TouchableOpacity, FlatList, Pressable, Platform, ImageBackground } from "react-native"
+import { ActivityIndicator, Text, View, TouchableOpacity, FlatList, Pressable, Platform, ImageBackground, Image } from "react-native"
 import Ionicon from "@expo/vector-icons/Ionicons"
 import { downloadFile } from "../../lib/services/download/download"
 import { navigationAnimation } from "../../lib/state"
@@ -16,7 +16,6 @@ import { useStore } from "../../lib/state"
 import useDimensions from "../../lib/hooks/useDimensions"
 import { FlashList } from "@shopify/flash-list"
 import Zoom from "react-native-zoom-reanimated"
-import Image from "react-native-fast-image"
 
 const Zoomer = Zoom as any
 
@@ -247,8 +246,7 @@ const ImageViewerScreen = memo(
 												images[image.uuid].startsWith("file://")
 													? images[image.uuid]
 													: "file://" + images[image.uuid]
-											),
-											priority: "high"
+											)
 										}}
 										resizeMode="contain"
 										style={{
@@ -332,8 +330,7 @@ const ImageViewerScreen = memo(
 							) : (
 								<Image
 									source={{
-										uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail),
-										priority: "high"
+										uri: decodeURIComponent("file://" + THUMBNAIL_BASE_PATH + image.thumbnail)
 									}}
 									resizeMode="cover"
 									style={{

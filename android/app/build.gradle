@@ -119,8 +119,8 @@ android {
         applicationId "io.filen.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2071
-        versionName "2.0.70"
+        versionCode 2072
+        versionName "2.0.72"
     }
 
     splits {

@@ -29,9 +29,9 @@ import { getAssetURI } from "../../lib/services/cameraUpload"
 import * as fs from "../../lib/fs"
 import { FlashList } from "@shopify/flash-list"
 import storage, { sharedStorage } from "../../lib/storage/storage"
-import Image from "react-native-fast-image"
+import { ActivityIndicator, Image } from "react-native"
 
-const videoThumbnailSemaphore = new Semaphore(8)
+const videoThumbnailSemaphore = new Semaphore(10)
 const ALBUM_ROW_HEIGHT = 70
 const FETCH_ASSETS_LIMIT = 256
 
@@ -228,8 +228,7 @@ export const AssetItem = memo(
 				) : (
 					<Image
 						source={{
-							uri: encodeURI(item.asset.uri),
-							priority: "high"
+							uri: item.asset.uri
 						}}
 						style={{
 							width: size,
@@ -360,8 +359,7 @@ export const AlbumItem = memo(({ darkMode, item, params, navigation }: AlbumItem
 					{image.length > 0 ? (
 						<Image
 							source={{
-								uri: encodeURI(image),
-								priority: "high"
+								uri: image
 							}}
 							style={{
 								width: 50,
@@ -461,6 +459,7 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 	const onEndReachedCalledDuringMomentum = useRef<boolean>(false)
 	const canPaginate = useRef<boolean>(true)
 	const [containerWidth, setContainerWidth] = useState<number>(dimensions.width - insets.left - insets.right)
+	const [loading, setLoading] = useState<boolean>(true)
 
 	const [selectedAssets, photoCount, videoCount] = useMemo(() => {
 		const selectedAssets = assets.filter(asset => asset.selected)
@@ -487,7 +486,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 		[containerWidth]
 	)
 
-	useEffect(() => {
+	const fetchItems = useCallback(() => {
+		setLoading(true)
+
 		if (typeof params !== "undefined" && isFocused) {
 			if (typeof params.album == "undefined") {
 				fetchAlbums()
@@ -498,6 +499,9 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 						console.error(err)
 
 						showToast({ message: err.toString() })
+					})
+					.finally(() => {
+						setLoading(false)
 					})
 			} else {
 				fetchAssets(params.album, FETCH_ASSETS_LIMIT, currentAssetsAfter.current)
@@ -517,8 +521,15 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 
 						showToast({ message: err.toString() })
 					})
+					.finally(() => {
+						setLoading(false)
+					})
 			}
 		}
+	}, [params])
+
+	useEffect(() => {
+		fetchItems()
 
 		return () => {
 			if (typeof params.album == "undefined") {
@@ -809,27 +820,47 @@ const SelectMediaScreen = memo(({ route, navigation }: SelectMediaScreenProps) =
 								}
 							}}
 							numColumns={4}
-							ListFooterComponent={
-								<View
-									style={{
-										flexDirection: "row",
-										alignItems: "center",
-										justifyContent: "center",
-										width: "100%",
-										height: "auto",
-										marginTop: 10
-									}}
-								>
-									<Text
+							ListEmptyComponent={
+								loading ? (
+									<View
 										style={{
-											color: getColor(darkMode, "textSecondary"),
-											fontSize: 15,
-											fontWeight: "400"
+											width: "100%",
+											height: dimensions.height - 200,
+											flexDirection: "column",
+											justifyContent: "center",
+											alignItems: "center"
 										}}
 									>
-										{photoCount} {i18n(lang, "photos")}, {videoCount} {i18n(lang, "videos")}
-									</Text>
-								</View>
+										<ActivityIndicator
+											color={getColor(darkMode, "textPrimary")}
+											size="small"
+										/>
+									</View>
+								) : null
+							}
+							ListFooterComponent={
+								loading || assets.length === 0 ? null : (
+									<View
+										style={{
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "center",
+											width: "100%",
+											height: "auto",
+											marginTop: 10
+										}}
+									>
+										<Text
+											style={{
+												color: getColor(darkMode, "textSecondary"),
+												fontSize: 15,
+												fontWeight: "400"
+											}}
+										>
+											{photoCount} {i18n(lang, "photos")}, {videoCount} {i18n(lang, "videos")}
+										</Text>
+									</View>
+								)
 							}
 						/>
 					</View>
