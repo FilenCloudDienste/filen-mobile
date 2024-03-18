@@ -1,45 +1,47 @@
+import { bg } from "./lang/bg"
 import { cs } from "./lang/cs"
-import { en } from "./lang/en"
-import { ja } from "./lang/ja"
-import { fr } from "./lang/fr"
-import { it } from "./lang/it"
-import { ru } from "./lang/ru"
-import { uk } from "./lang/uk"
-import { nl } from "./lang/nl"
-import { nb } from "./lang/nb"
-import { pl } from "./lang/pl"
-import { zh } from "./lang/zh"
-import { tr } from "./lang/tr"
 import { de } from "./lang/de"
 import { el } from "./lang/el"
+import { en } from "./lang/en"
 import { es } from "./lang/es"
-import { ko } from "./lang/ko"
-import { pt } from "./lang/pt"
-import { sk } from "./lang/sk"
-import { bg } from "./lang/bg"
+import { fr } from "./lang/fr"
 import { hu } from "./lang/hu"
+import { it } from "./lang/it"
+import { ja } from "./lang/ja"
+import { ko } from "./lang/ko"
+import { nb } from "./lang/nb"
+import { nl } from "./lang/nl"
+import { pl } from "./lang/pl"
+import { pt } from "./lang/pt"
+import { ru } from "./lang/ru"
+import { tr } from "./lang/tr"
+import { sk } from "./lang/sk"
+import { sr } from "./lang/sr"
+import { uk } from "./lang/uk"
+import { zh } from "./lang/zh"
 
 export const translations: Record<string, Record<string, string>> = {
+	bg,
 	cs,
-	en,
-	ja,
-	fr,
-	it,
-	ru,
-	uk,
-	nl,
-	nb,
-	pl,
-	zh,
-	tr,
 	de,
 	el,
+	en,
 	es,
+	fr,
+	hu,
+	it,
+	ja,
 	ko,
+	nb,
+	nl,
+	pl,
 	pt,
+	ru,
+	tr,
 	sk,
-	bg,
-	hu
+	sr,
+	uk,
+	zh
 }
 
 export const i18n = (
