@@ -102,7 +102,7 @@ export const fr: {
 	publicLinks: "Liens",
 	stopSharing: "Arrêter le partage",
 	stopSharingConfirmation:
-		"Voulez-vous vraiment arrêter de partager __NAME__? Les autres personnes ne seront plus en mesure d'accéder à l'élément partagé !",
+		"Voulez-vous vraiment arrêter de partager __NAME__ ? Les autres personnes ne seront plus en mesure d'accéder à l'élément partagé !",
 	removeFromSharedIn: "Retirer",
 	removeFromSharedInConfirmation: "Voulez-vous vraiment retirer __NAME__ ? Vous ne serez plus en mesure d'accéder à l'élément partagé !",
 	stoppedSharingItem: "__NAME__ n'est plus partagé",
@@ -255,7 +255,7 @@ export const fr: {
 	back: "Retour",
 	sendRecoveryEmailBtn: "Envoyer un lien de récupération",
 	forgotPasswordWarning:
-		"En réinitialisant votre mot de passe vous reconnaissez que vous perdrez accès à toutes les données actuellement stockées dans votre compte, en raison de comment le chiffrement de bout en bout à connaissance zéro fonctionne. Réinitialiser votre mot de passe régénèrera un nouvelle clé de chiffrement.",
+		"En réinitialisant votre mot de passe vous reconnaissez perdre l'accès à toutes les données actuellement stockées dans votre compte, en raison du fonctionnement du chiffrement zero-knowledge de bout en bout. Réinitialiser votre mot de passe régénèrera un nouvelle clé de chiffrement.",
 	forgotPasswordSent: "Un e-mail contenant un lien de récupération a été envoyé à __EMAIL__",
 	resendConfirmationSent: "E-mail de confirmation envoyé à __EMAIL__",
 	noImagesUploadedYet: "Aucune photo chargée pour l'instant",
@@ -304,7 +304,7 @@ export const fr: {
 	inviteInfo:
 		"Invitez vos amis et votre famille sur Filen ! Vous et la/les personne(s) que vous aurez invitée(s) recevront 10GB de stockage en plus à vie. Cela s'applique à chaque personne que vous invitez.",
 	inviteInfo2:
-		"Lorsque quelqu'un clique sur votre lin d'affiliation, Filen enregistre un cookie sur son navigateur qui y reste pour 30 jours. Ce qui signifie que vous pourrez toujours obtenir le bonus même si la personne ne s'inscrit pas immédiatement.",
+		"Lorsque quelqu'un clique sur votre lien d'affiliation, Filen enregistre un cookie sur son navigateur qui y reste pour 30 jours. Ce qui signifie que vous pourrez toujours obtenir le bonus même si la personne ne s'inscrit pas immédiatement.",
 	shareRefLinkMessage:
 		"Venez vous inscrire sur Filen, le stockage Cloud entièrement chiffré de bout en bout grâce à mon lien et obtenez 10GB de stockage gratuitement !",
 	disable2FAInfo: "Désactiver l'Authentification à Deux Facteurs est déconseillé car cela rendra votre compte plus vulnérable.",
@@ -395,7 +395,7 @@ export const fr: {
 	stopAllTransfers: "Arrêter tous les transferts",
 	pauseAllTransfers: "Suspendre tous les transferts",
 	resumeAllTransfers: "Reprendre tous les transferts",
-	cannotMoveItemsHere: "Impossible de déplacer les élémets ici",
+	cannotMoveItemsHere: "Impossible de déplacer les éléments ici",
 	invalidTwoFactorKey: "Clé de Double Authentification invalide",
 	startOnCloudScreen: "Afficher l'onglet Cloud au démarrage",
 	appSetupNotPossible: "Impossible d'initialiser l'application. Merci de vérifier votre connexion Internet.",
@@ -433,11 +433,11 @@ export const fr: {
 	permissionsWriteMessage: "Filen à besoin de permissions en écriture pour fonctionner correctement.",
 	permissionsAskMeLater: "Me redemander plus tard",
 	permissionsReadTitle: "Permissions en lecture",
-	permissionsReadMessage: "Filen à besoin de permissions en lecture pour fonctionner correctement.",
+	permissionsReadMessage: "Filen a besoin de permissions en lecture pour fonctionner correctement.",
 	permissionsCameraTitle: "Permissions de la caméra",
-	permissionsCameraMessage: "Filen à besoin de permissions à la caméra pour fonctionner correctement.",
+	permissionsCameraMessage: "Filen a besoin de permissions à la caméra pour fonctionner correctement.",
 	permissionsMediaLocationTitle: "Permissions de localisation",
-	permissionsMediaLocationMessage: "Filen à besoin de permissions de la localisation pour fonctionner correctement.",
+	permissionsMediaLocationMessage: "Filen a besoin de permissions de la localisation pour fonctionner correctement.",
 	hideTextEditorLineNumbers: "Masquer le chiffre des lignes dans l'éditeur",
 	sortByUploadDate: "Date de chargement",
 	cameraUploadCompressImages: "Compresser les images"
