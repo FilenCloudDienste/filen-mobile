@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@filen/sdk": "^0.1.12",
+    "@filen/sdk": "^0.1.115",
     "await-semaphore": "^0.1.3",
     "axios": "^0.26.0",
     "crypto-api-v1": "^1.0.0",

@@ -10,13 +10,6 @@ import Alamofire
 
 class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
   private let identifier: NSFileProviderItemIdentifier
-  private let uploadsRangeData = "\"data\":{\"uploads\":[".data(using: .utf8)!
-  private let foldersRangeData = "],\"folders\":[".data(using: .utf8)!
-  private let closingRangeData = "}".data(using: .utf8)!
-  private let openingRangeData = "{".data(using: .utf8)!
-  private let commaData = ",".data(using: .utf8)!
-  private let endData = "]}}".data(using: .utf8)!
-  private let statusFalseData = "\"status\":false".data(using: .utf8)!
       
   init (identifier: NSFileProviderItemIdentifier) {
     self.identifier = identifier
@@ -223,17 +216,11 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
   func enumerateItems(for observer: NSFileProviderEnumerationObserver, startingAt page: NSFileProviderPage) {
     Task {
       do {
-        guard let rootFolderUUID = FileProviderUtils.shared.rootFolderUUID(), let masterKeys = FileProviderUtils.shared.masterKeys(), let apiKey = MMKVInstance.shared.instance?.string(forKey: "apiKey", defaultValue: nil), let url = URL(string: "https://gateway.filen.io/v3/dir/content") else {
+        guard let rootFolderUUID = FileProviderUtils.shared.rootFolderUUID(), let masterKeys = FileProviderUtils.shared.masterKeys() else {
           observer.finishEnumeratingWithError(NSFileProviderError(.notAuthenticated))
           
           return
         }
-        
-        let headers: HTTPHeaders = [
-          "Authorization": "Bearer \(apiKey)",
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        ]
         
         if FileProviderUtils.shared.needsFaceID() {
           observer.finishEnumeratingWithError(NSFileProviderError(.notAuthenticated))
@@ -282,109 +269,52 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
         }
         
         let folderUUID = self.identifier == NSFileProviderItemIdentifier.rootContainer || self.identifier.rawValue == "root" || self.identifier.rawValue == NSFileProviderItemIdentifier.rootContainer.rawValue ? rootFolderUUID : self.identifier.rawValue
-        let tempJSONFileURL = try await FileProviderUtils.shared.sessionManager.download(url, method: .post, parameters: ["uuid": folderUUID], encoding: JSONEncoding.default, headers: headers){ $0.timeoutInterval = 3600 }.validate().serializingDownloadedFileURL().value
+        var didEnumerate = false
         
-        defer {
-          do {
-            if FileManager.default.fileExists(atPath: tempJSONFileURL.path) {
-              try FileManager.default.removeItem(atPath: tempJSONFileURL.path)
+        let content = try await FileProviderUtils.shared.fetchFolderContents(uuid: folderUUID)
+        
+        if !content.status {
+          observer.finishEnumeratingWithError(NSFileProviderError(.serverUnreachable))
+          
+          return
+        }
+        
+        if content.data == nil {
+          observer.finishEnumeratingWithError(NSFileProviderError(.serverUnreachable))
+          
+          return
+        }
+        
+        var existingNames: [String: Bool] = [:]
+        
+        for folder in content.data!.folders {
+          let processed = try self.processFolder(folder: folder, masterKeys: masterKeys)
+          
+          if (processed.item.name.count > 0) {
+            let lowercaseName = processed.item.name.lowercased()
+            
+            if (existingNames[lowercaseName] == nil) {
+              existingNames[lowercaseName] = true
+              
+              observer.didEnumerate([processed])
+              
+              didEnumerate = true
             }
-          } catch {
-            print("[enumerateItems] error:", error)
           }
         }
         
-        guard let inputStream = InputStream(url: tempJSONFileURL) else {
-          throw NSError(domain: "enumerateItems", code: 1, userInfo: nil)
-        }
-        
-        inputStream.open()
-        
-        defer {
-          inputStream.close()
-        }
-        
-        let bufferSize = 1024
-        var buffer = [UInt8](repeating: 0, count: bufferSize)
-        var accumulatedData = Data()
-        var currentState: FetchFolderContentJSONParseState = .lookingForData
-        var didParseFiles = false
-        var didEnumerate = false
-
-        while inputStream.hasBytesAvailable || accumulatedData.count > 0 {
-          autoreleasepool {
-            let bytesRead = inputStream.read(&buffer, maxLength: bufferSize)
+        for file in content.data!.uploads {
+          let processed = try self.processFile(file: file, masterKeys: masterKeys)
+                                    
+          if (processed.item.name.count > 0) {
+            let lowercaseName = processed.item.name.lowercased()
             
-            if bytesRead > 0 || accumulatedData.count > 0 {
-              if bytesRead > 0 {
-                accumulatedData.append(contentsOf: buffer[0..<bytesRead])
-              }
-                
-              switch currentState {
-              case .lookingForData:
-                if let dataRange = accumulatedData.range(of: self.statusFalseData) {
-                  break
-                }
-                
-                if let dataRange = accumulatedData.range(of: self.uploadsRangeData) {
-                  accumulatedData.removeSubrange(0..<dataRange.endIndex)
-                  
-                  currentState = .parsingData
-                } else {
-                  break
-                }
-                
-              case .parsingData:
-                if let foldersRange = accumulatedData.range(of: self.foldersRangeData) {
-                  accumulatedData.removeSubrange(foldersRange.startIndex..<foldersRange.endIndex)
-                }
-                
-                if let endRange = accumulatedData.range(of: self.endData) {
-                  accumulatedData.removeSubrange(endRange.startIndex..<endRange.endIndex)
-                }
-                
-                while let endIndex = accumulatedData.range(of: self.closingRangeData) {
-                  autoreleasepool {
-                    var data = accumulatedData[0..<endIndex.endIndex]
-                    
-                    if data.prefix(1) == self.commaData {
-                      data.remove(at: 0)
-                    }
-                    
-                    if data.prefix(1) != self.openingRangeData && data.suffix(1) != self.closingRangeData {
-                      accumulatedData.removeSubrange(0..<endIndex.endIndex)
-                    } else {
-                      do {
-                        if !didParseFiles, let file = try? FileProviderUtils.shared.jsonDecoder.decode(FetchFolderContentsFile.self, from: data) {
-                          let processed = try self.processFile(file: file, masterKeys: masterKeys)
-                          
-                          if (processed.item.name.count > 0) {
-                            observer.didEnumerate([processed])
-                            
-                            didEnumerate = true
-                          }
-                        } else {
-                          if let folder = try? FileProviderUtils.shared.jsonDecoder.decode(FetchFolderContentsFolder.self, from: data) {
-                            didParseFiles = true
-                            
-                            let processed = try self.processFolder(folder: folder, masterKeys: masterKeys)
-                            
-                            if (processed.item.name.count > 0) {
-                              observer.didEnumerate([processed])
-                              
-                              didEnumerate = true
-                            }
-                          }
-                        }
-                      } catch {
-                        print("[enumerateItems] error:", error)
-                      }
-                      
-                      accumulatedData.removeSubrange(0..<endIndex.endIndex)
-                    }
-                  }
-                }
-              }
+            if (existingNames[lowercaseName] == nil) {
+              existingNames[lowercaseName] = true
+              
+              observer.didEnumerate([processed])
+              
+              didEnumerate = true
             }
           }
         }

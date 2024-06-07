@@ -113,6 +113,7 @@ declare global {
 			userId: number
 			metadataCache: boolean
 			tmpPath: string
+			connectToSocket: boolean
 		}) => Promise<void>
 		loadItems: (params: {
 			url: string

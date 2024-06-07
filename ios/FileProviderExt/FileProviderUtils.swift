@@ -158,7 +158,7 @@ class FileProviderUtils {
     autoreleasepool {
       let userId = self.userId()
       
-      guard let loggedIn = MMKVInstance.shared.instance?.bool(forKey: "isLoggedIn", defaultValue: false), let lockAppAfterVal = MMKVInstance.shared.instance?.double(forKey: "lockAppAfter:" + String(userId), defaultValue: 0), let lastBiometricScreen = MMKVInstance.shared.instance?.double(forKey: "lastBiometricScreen:" + String(userId), defaultValue: 0), let biometricPinAuth = MMKVInstance.shared.instance?.bool(forKey: "biometricPinAuth" + String(userId), defaultValue: false) else {
+      guard let loggedIn = MMKVInstance.shared.instance?.bool(forKey: "isLoggedIn", defaultValue: false), let lockAppAfterVal = MMKVInstance.shared.instance?.double(forKey: "lockAppAfter:" + String(userId), defaultValue: 0), let lastBiometricScreen = MMKVInstance.shared.instance?.double(forKey: "lastBiometricScreen:" + String(userId), defaultValue: 0), let biometricPinAuth = MMKVInstance.shared.instance?.bool(forKey: "biometricPinAuth:" + String(userId), defaultValue: false) else {
         return false
       }
 
@@ -586,6 +586,10 @@ class FileProviderUtils {
   func signalEnumeratorForIdentifier (for identifier: NSFileProviderItemIdentifier) -> Void {
     Task {
       do {
+        guard FunctionRateLimiter.shared.shouldAllowExecution(for: identifier) else {
+            return
+        }
+        
         guard let rootFolderUUID = self.rootFolderUUID() else {
           throw NSFileProviderError(.notAuthenticated)
         }
@@ -1400,6 +1404,32 @@ class FileProviderUtils {
       }
 
       return timestamp * 1000
+  }
+}
+
+class FunctionRateLimiter {
+  private var lastExecutionTimes: [NSFileProviderItemIdentifier: Date] = [:]
+  private let queue = DispatchQueue(label: "io.filen.app.functionRatelimiter")
+  
+  public static let shared: FunctionRateLimiter = {
+    let instance = FunctionRateLimiter()
+    
+    return instance
+  }()
+
+  func shouldAllowExecution(for identifier: NSFileProviderItemIdentifier) -> Bool {
+    let now = Date()
+    let oneSecond: TimeInterval = 1.0
+    
+    return queue.sync {
+      if let lastExecutionTime = lastExecutionTimes[identifier], now.timeIntervalSince(lastExecutionTime) < oneSecond {
+        return false
+      } else {
+        lastExecutionTimes[identifier] = now
+        
+        return true
+      }
+    }
   }
 }
 

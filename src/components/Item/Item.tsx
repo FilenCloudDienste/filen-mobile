@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useRef, useState } from "react"
+import React, { memo, useEffect, useMemo, useRef, useState, useCallback } from "react"
 import {
 	Text,
 	View,
@@ -48,8 +48,9 @@ export interface ListItemProps extends ItemBaseProps {
 export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes, hideThumbnails, lang, route }: ListItemProps) => {
 	const fetched = useRef<boolean>(false)
 	const [size, setSize] = useState<number>(item.size)
+	const currentItemUUID = useRef<string>(item.uuid)
 
-	useEffect(() => {
+	const folderSize = useCallback(() => {
 		if (item.type == "folder" && !fetched.current) {
 			fetched.current = true
 
@@ -71,6 +72,17 @@ export const ListItem = memo(({ item, index, darkMode, hideFileNames, hideSizes,
 				.catch(console.error)
 		}
 	}, [item.uuid, item.name, index, route])
+
+	if (currentItemUUID.current !== item.uuid) {
+		fetched.current = false
+		currentItemUUID.current = item.uuid
+
+		setSize(item.size)
+	}
+
+	useEffect(() => {
+		folderSize()
+	}, [folderSize])
 
 	return (
 		<TouchableHighlight
@@ -262,12 +274,13 @@ export const GridItem = memo(
 		const dimensions = useWindowDimensions()
 		const fetched = useRef<boolean>(false)
 		const [size, setSize] = useState<number>(item.size)
+		const currentItemUUID = useRef<string>(item.uuid)
 
 		const windowWidth: number = useMemo(() => {
 			return dimensions.width - (insets.left + insets.right) - 40
 		}, [dimensions, insets])
 
-		useEffect(() => {
+		const folderSize = useCallback(() => {
 			if (item.type == "folder" && !fetched.current) {
 				fetched.current = true
 
@@ -289,6 +302,17 @@ export const GridItem = memo(
 					.catch(console.error)
 			}
 		}, [item.uuid, item.name, index, route])
+
+		if (currentItemUUID.current !== item.uuid) {
+			fetched.current = false
+			currentItemUUID.current = item.uuid
+
+			setSize(item.size)
+		}
+
+		useEffect(() => {
+			folderSize()
+		}, [folderSize])
 
 		return (
 			<Pressable

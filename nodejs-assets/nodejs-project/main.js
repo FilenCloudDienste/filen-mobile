@@ -44,7 +44,7 @@ const pathModule = require("path")
 const { Readable } = require("stream")
 const heicConvert = require("heic-convert")
 const progress = require("progress-stream")
-const FilenSDK = require("@filen/sdk")
+const { FilenSDK } = require("@filen/sdk")
 
 const axiosClient = axios.create({
 	timeout: 3600000,
@@ -166,7 +166,7 @@ const loadItemsSemaphore = new Semaphore(32)
  * @type {FilenSDK.default}
  * @const
  */
-let filen = new FilenSDK({})
+let filen = new FilenSDK()
 
 const buildTransfers = () => {
 	try {
@@ -2110,10 +2110,10 @@ const loadItems = async ({ url, offlinePath, thumbnailPath, uuid, receiverId, so
 
 									resolve()
 								})
-								.catch(err => {
+								.catch(() => {
 									loadItemsSemaphore.release()
 
-									reject(err)
+									resolve()
 								})
 						})
 						.catch(reject)
@@ -2219,10 +2219,10 @@ const loadItems = async ({ url, offlinePath, thumbnailPath, uuid, receiverId, so
 
 										resolve()
 									})
-									.catch(err => {
+									.catch(() => {
 										loadItemsSemaphore.release()
 
-										reject(err)
+										resolve()
 									})
 							}
 						})
@@ -2329,10 +2329,10 @@ const loadItems = async ({ url, offlinePath, thumbnailPath, uuid, receiverId, so
 
 										resolve()
 									})
-									.catch(err => {
+									.catch(() => {
 										loadItemsSemaphore.release()
 
-										reject(err)
+										resolve()
 									})
 							}
 						})
@@ -2411,10 +2411,10 @@ const loadItems = async ({ url, offlinePath, thumbnailPath, uuid, receiverId, so
 
 									resolve()
 								})
-								.catch(err => {
+								.catch(() => {
 									loadItemsSemaphore.release()
 
-									reject(err)
+									resolve()
 								})
 						})
 						.catch(reject)
@@ -2520,10 +2520,10 @@ const loadItems = async ({ url, offlinePath, thumbnailPath, uuid, receiverId, so
 
 										resolve()
 									})
-									.catch(err => {
+									.catch(() => {
 										loadItemsSemaphore.release()
 
-										reject(err)
+										resolve()
 									})
 							}
 						})

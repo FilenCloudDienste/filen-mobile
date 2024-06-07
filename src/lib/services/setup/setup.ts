@@ -225,18 +225,19 @@ export async function setupSDK({ userId, baseFolderUUID }: { userId: number; bas
 	await fs.mkdir(sdkTmpPath, true)
 
 	await global.nodeThread.initSDK({
-		email: storage.getString("email") ?? "",
-		password: "",
+		email: storage.getString("email") ?? "anonymous",
+		password: "anonymous",
 		twoFactorCode: "XXXXXX",
-		masterKeys: getMasterKeys(),
-		apiKey: storage.getString("apiKey") ?? "",
-		publicKey: storage.getString("publicKey") ?? "",
-		privateKey: storage.getString("privateKey") ?? "",
+		masterKeys: getMasterKeys() ?? ["anonymous"],
+		apiKey: storage.getString("apiKey") ?? "anonymous",
+		publicKey: storage.getString("publicKey") ?? "anonymous",
+		privateKey: storage.getString("privateKey") ?? "anonymous",
 		authVersion: (storage.getNumber("authVersion") as 1 | 2) ?? 2,
 		baseFolderUUID,
 		userId,
 		metadataCache: true,
-		tmpPath: sdkTmpPathPosix.startsWith("/") ? sdkTmpPathPosix : "/" + sdkTmpPathPosix
+		tmpPath: sdkTmpPathPosix.startsWith("/") ? sdkTmpPathPosix : "/" + sdkTmpPathPosix,
+		connectToSocket: false
 	})
 
 	storage.set("sdkInit", true)
