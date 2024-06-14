@@ -16,6 +16,18 @@ import { decryptChatMessage } from "./src/lib/crypto"
 import { dbFs } from "./src/lib/db"
 import * as BackgroundFetch from "expo-background-fetch"
 import * as TaskManager from "expo-task-manager"
+import NetInfo from "@react-native-community/netinfo"
+
+NetInfo.configure({
+	reachabilityLongTimeout: 60000,
+	reachabilityShortTimeout: 15000,
+	reachabilityMethod: "GET",
+	reachabilityRequestTimeout: 30000,
+	reachabilityShouldRun: () => true,
+	reachabilityTest: async response => response.status === 200,
+	reachabilityUrl: "https://gateway.filen.io",
+	useNativeReachability: false
+})
 
 if (!__DEV__) {
 	console.log = () => {}

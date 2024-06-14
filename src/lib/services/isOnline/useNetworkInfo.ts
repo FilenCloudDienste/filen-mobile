@@ -8,7 +8,7 @@ export type NetworkInfo = {
 	wifi: boolean
 }
 
-export const useNetworkInfo = () => {
+export const useNetworkInfo = (): NetworkInfo => {
 	const [state, setState] = useState<NetworkInfo>({ online: true, wifi: true })
 
 	const update = useCallback(async () => {
@@ -16,7 +16,7 @@ export const useNetworkInfo = () => {
 			const s = await networkState()
 
 			setState({
-				online: s.isConnected && s.isInternetReachable,
+				online: s.isInternetReachable,
 				wifi:
 					s.type === Network.NetworkStateType.WIFI ||
 					s.type === Network.NetworkStateType.VPN ||
@@ -39,7 +39,7 @@ export const useNetworkInfo = () => {
 
 		const removeNetInfoListener = NetInfo.addEventListener(s => {
 			setState({
-				online: s.isConnected && s.isInternetReachable,
+				online: s.isInternetReachable,
 				wifi:
 					s.type === NetInfoStateType.wifi ||
 					s.type === NetInfoStateType.vpn ||
