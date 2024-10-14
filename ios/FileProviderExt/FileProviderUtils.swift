@@ -41,7 +41,7 @@ class FileProviderUtils {
   private var dbInitialized = false
   private let downloadSemaphore = Semaphore(max: 3)
   private let uploadSemaphore = Semaphore(max: 3)
-  private let transferSemaphore = Semaphore(max: 10)
+  private let transferSemaphore = Semaphore(max: 30)
   
   internal lazy var sessionConfiguration: URLSessionConfiguration = {
     let configuration = URLSessionConfiguration.af.default
@@ -1296,37 +1296,31 @@ class FileProviderUtils {
     }
     
     let chunksToDownload = maxChunks >= itemJSON.chunks ? itemJSON.chunks : maxChunks
-    let currentWriteIndex = DownloadFileCurrentWriteIndex()
-    
-    @Sendable
-    func waitForWriteSlot (index: Int) async throws -> Void {
-      let currentIndex = await currentWriteIndex.index
-      
-      if (currentIndex != index) {
-        try await Task.sleep(nanoseconds: UInt64(FilenUtils.shared.millisecondsToNanoseconds(milliseconds: 10)))
-        
-        return try await waitForWriteSlot(index: index)
-      }
+    var status = 0
+    let dIo = DispatchIO(type: .random, path: tempFileURL.path, oflag: O_CREAT | O_WRONLY, mode: S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH, queue: DispatchQueue(label: "io.filenSDK"), cleanupHandler: { (err) in
+      status = Int(err)
+    })
+    if status != 0 {
+      return (didDownload: false, url: url)
     }
     
     try await withThrowingTaskGroup(of: Void.self) { group in
+      print(chunksToDownload)
       for index in 0..<chunksToDownload {
         autoreleasepool {
           group.addTask {
             try await self.transferSemaphore.acquire()
             
-            defer {
-              self.transferSemaphore.release()
-            }
-            
             let decryptedChunkURL = try await self.downloadAndDecryptChunk(
-              uuid: uuid,
+              uuid: itemJSON.uuid,
               region: itemJSON.region,
               bucket: itemJSON.bucket,
               index: index,
               key: itemJSON.key,
               version: itemJSON.version
             )
+            
+            self.transferSemaphore.release()
             
             defer {
               do {
@@ -1338,21 +1332,44 @@ class FileProviderUtils {
               }
             }
             
-            try await waitForWriteSlot(index: index)
-            
-            if index == 0 {
-              try FileManager.default.moveItem(atPath: decryptedChunkURL.path, toPath: tempFileURL.path)
-            } else {
-              try FilenUtils.shared.appendFile(from: decryptedChunkURL, to: tempFileURL)
+            guard let readStream = InputStream(fileAtPath: decryptedChunkURL.path) else {
+              throw NSError(domain: "Could not open read stream", code: 1, userInfo: nil)
             }
-          
-            await currentWriteIndex.increase()
+            defer {
+              readStream.close()
+            }
+            readStream.open()
+            
+            let bufferSize = 1024
+            var buffer = [UInt8](repeating: 0, count: bufferSize)
+            var tmpOffset: Int64 = 0
+            
+            while readStream.hasBytesAvailable {
+              autoreleasepool {
+                let bytesRead:Int64 = Int64(readStream.read(&buffer, maxLength: bufferSize))
+                
+                if bytesRead > 0 {
+                  let data1 = Data(buffer)
+                  data1.withUnsafeBytes {
+                    dIo?.write(offset: 1024 * 1024 * Int64(index) + tmpOffset, data: DispatchData(bytes: UnsafeRawBufferPointer(start: $0, count: data1.count)), queue: DispatchQueue(label: "io.filenSDK"), ioHandler: { (done, data, err) in
+                      if (done){
+                        //                                            print("Finished with \(1024 * 1024 * Int64(index) + tmpOffset)")
+                      } else if (err != 0) {
+                        print("ERROR \(err) at \(1024 * 1024 * Int64(index) + tmpOffset)")
+                      }
+                    })
+                    tmpOffset += bytesRead
+                  }
+                }
+              }
+            }
           }
         }
-        
-        for try await _ in group {}
       }
+      for try await _ in group {}
     }
+    
+    dIo?.close()
     
     /*for index in 0..<chunksToDownload  {
       try await self.downloadAndDecryptChunk(
