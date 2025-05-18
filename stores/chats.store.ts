@@ -18,6 +18,10 @@ export type ChatsStore = {
 	emojisSuggestions: Record<string, CustomEmoji[]>
 	mentionSuggestions: Record<string, ChatConversationParticipant[]>
 	replyToMessage: Record<string, ChatMessage | null>
+	editMessage: Record<string, ChatMessage | null>
+	setEditMessage: (
+		fn: Record<string, ChatMessage | null> | ((prev: Record<string, ChatMessage | null>) => Record<string, ChatMessage | null>)
+	) => void
 	setReplyToMessage: (
 		fn: Record<string, ChatMessage | null> | ((prev: Record<string, ChatMessage | null>) => Record<string, ChatMessage | null>)
 	) => void
@@ -48,6 +52,12 @@ export const useChatsStore = create<ChatsStore>(set => ({
 	emojisSuggestions: {},
 	mentionSuggestions: {},
 	replyToMessage: {},
+	editMessage: {},
+	setEditMessage(fn) {
+		set(state => ({
+			editMessage: typeof fn === "function" ? fn(state.editMessage) : fn
+		}))
+	},
 	setReplyToMessage(fn) {
 		set(state => ({
 			replyToMessage: typeof fn === "function" ? fn(state.replyToMessage) : fn

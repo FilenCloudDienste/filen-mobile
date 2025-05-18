@@ -28,6 +28,8 @@ import { useShallow } from "zustand/shallow"
 import ReplyTo from "./replyTo"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import * as Haptics from "expo-haptics"
+import { useMMKVString } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
 
 export const Message = memo(
 	({
@@ -59,6 +61,9 @@ export const Message = memo(
 		const translateX = useSharedValue<number>(0)
 		const contextX = useSharedValue<number>(0)
 		const replyToMessageUUID = useChatsStore(useShallow(state => state.replyToMessage[chat.uuid]?.uuid))
+		const editMessageUUID = useChatsStore(useShallow(state => state.editMessage[chat.uuid]?.uuid))
+		const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
+		const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
 
 		const actionSheetOptions = useMemo(() => {
 			const options =
@@ -157,6 +162,32 @@ export const Message = memo(
 			}
 		}, [chat.uuid, info.item.uuid])
 
+		const reply = useCallback(() => {
+			setReplyToMessage(prev => ({
+				...prev,
+				[chat.uuid]: info.item
+			}))
+
+			setEditMessage(prev => ({
+				...prev,
+				[chat.uuid]: null
+			}))
+		}, [info.item, setReplyToMessage, chat.uuid, setEditMessage])
+
+		const edit = useCallback(() => {
+			setChatInputValue(info.item.message)
+
+			setEditMessage(prev => ({
+				...prev,
+				[chat.uuid]: info.item
+			}))
+
+			setReplyToMessage(prev => ({
+				...prev,
+				[chat.uuid]: null
+			}))
+		}, [info.item, setEditMessage, chat.uuid, setReplyToMessage, setChatInputValue])
+
 		const onPress = useCallback(() => {
 			showActionSheetWithOptions(
 				{
@@ -181,10 +212,7 @@ export const Message = memo(
 					try {
 						switch (type) {
 							case "reply": {
-								setReplyToMessage(prev => ({
-									...prev,
-									[chat.uuid]: info.item
-								}))
+								reply()
 
 								break
 							}
@@ -206,10 +234,7 @@ export const Message = memo(
 							}
 
 							case "edit": {
-								setReplyToMessage(prev => ({
-									...prev,
-									[chat.uuid]: info.item
-								}))
+								edit()
 
 								break
 							}
@@ -241,11 +266,11 @@ export const Message = memo(
 			colors.foreground,
 			showActionSheetWithOptions,
 			actionSheetOptions,
-			setReplyToMessage,
 			info.item,
 			deleteMessage,
-			chat.uuid,
-			disableEmbeds
+			disableEmbeds,
+			reply,
+			edit
 		])
 
 		const animateOnEnter = useMemo(() => {
@@ -499,7 +524,7 @@ export const Message = memo(
 								className={cn(
 									"justify-start flex-1 flex-col px-4 active:opacity-70",
 									!groupWithPreviousMessage && !groupWithNextMessage ? "py-1.5" : "py-1",
-									replyToMessageUUID === info.item.uuid
+									replyToMessageUUID === info.item.uuid || editMessageUUID === info.item.uuid
 										? "bg-card/30 border-l-2 border-l-card"
 										: pendingState && pendingState === "failed"
 										? "bg-red-500/5 border-l-2 border-l-red-500"
@@ -560,16 +585,9 @@ export const Message = memo(
 												message={info.item}
 												chat={chat}
 												embedsDisabled={info.item.embedDisabled}
+												edited={info.item.edited}
 											/>
 										</View>
-										{info.item.edited && (
-											<Text
-												variant="caption2"
-												className={cn("text-muted-foreground pt-1", groupWithPreviousMessage && "pl-[52px]")}
-											>
-												(edited)
-											</Text>
-										)}
 										{pendingState && pendingState === "failed" && (
 											<MaterialCommunityIcons
 												name="signal-off"

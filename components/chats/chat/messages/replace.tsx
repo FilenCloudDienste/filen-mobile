@@ -142,12 +142,14 @@ export const ReplacedMessageContent = memo(
 		chat,
 		message,
 		emojiSize,
-		embedsDisabled
+		embedsDisabled,
+		edited
 	}: {
 		chat: ChatConversation
 		message: ChatMessage
 		emojiSize?: number
 		embedsDisabled: boolean
+		edited: boolean
 	}) => {
 		const replaced = useMemo(() => {
 			const emojiCount = message.message.match(emojiRegexWithSkinTones)
@@ -229,10 +231,21 @@ export const ReplacedMessageContent = memo(
 					return match
 				},
 				input: message.message
-			})
+			}) satisfies React.ReactNode[]
+
+			if (edited) {
+				regexed.push(
+					<Text
+						variant="caption2"
+						className={cn("text-muted-foreground flex-1 basis-full pt-1")}
+					>
+						(edited)
+					</Text>
+				)
+			}
 
 			return regexed
-		}, [message.message, chat.participants, emojiSize, embedsDisabled])
+		}, [message.message, chat.participants, emojiSize, embedsDisabled, edited])
 
 		return (
 			<View className="flex-1 flex-row flex-wrap text-wrap justify-start break-all items-center">

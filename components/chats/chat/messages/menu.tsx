@@ -14,11 +14,15 @@ import * as Clipboard from "expo-clipboard"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { useChatsStore } from "@/stores/chats.store"
 import { useShallow } from "zustand/shallow"
+import { useMMKVString } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
 
 export const Menu = memo(({ chat, message, children }: { chat: ChatConversation; message: ChatMessage; children: React.ReactNode }) => {
 	const [{ userId }] = useSDKConfig()
 	const { t } = useTranslation()
 	const setReplyToMessage = useChatsStore(useShallow(state => state.setReplyToMessage))
+	const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
+	const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
 
 	const menuItems = useMemo(() => {
 		const items: (ContextItem | ContextSubMenu)[] = []
@@ -153,7 +157,26 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 			...prev,
 			[chat.uuid]: message
 		}))
-	}, [message, setReplyToMessage, chat.uuid])
+
+		setEditMessage(prev => ({
+			...prev,
+			[chat.uuid]: null
+		}))
+	}, [message, setReplyToMessage, chat.uuid, setEditMessage])
+
+	const edit = useCallback(() => {
+		setChatInputValue(message.message)
+
+		setEditMessage(prev => ({
+			...prev,
+			[chat.uuid]: message
+		}))
+
+		setReplyToMessage(prev => ({
+			...prev,
+			[chat.uuid]: null
+		}))
+	}, [message, setEditMessage, chat.uuid, setReplyToMessage, setChatInputValue])
 
 	const onItemPress = useCallback(
 		async (item: Omit<ContextItem, "icon">, _?: boolean) => {
@@ -180,7 +203,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 						break
 
 					case "edit":
-						// TODO
+						edit()
 
 						break
 
@@ -195,7 +218,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 				}
 			}
 		},
-		[copyText, deleteMessage, reply, disableEmbeds]
+		[copyText, deleteMessage, reply, disableEmbeds, edit]
 	)
 
 	return (

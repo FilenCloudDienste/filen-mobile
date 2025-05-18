@@ -57,14 +57,17 @@ export const Input = memo(
 		const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 		const textInputRef = useRef<TextInput>(null)
 		const isProUser = useIsProUser()
+		const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
+		const editMessage = useChatsStore(useShallow(state => state.editMessage[chat.uuid] ?? null))
 
-		const suggestionsVisible = useMemo(() => {
+		const suggestionsOrReplyOrEditVisible = useMemo(() => {
 			return (
 				replyToMessage ||
+				editMessage ||
 				(showEmojis && emojisSuggestions.length > 0 && emojisText.length > 0) ||
 				(showMention && mentionSuggestions.length > 0 && mentionText.length > 0)
 			)
-		}, [showEmojis, emojisText, emojisSuggestions, showMention, mentionText, mentionSuggestions, replyToMessage])
+		}, [showEmojis, emojisText, emojisSuggestions, showMention, mentionText, mentionSuggestions, replyToMessage, editMessage])
 
 		const resetSuggestions = useCallback(() => {
 			useChatsStore.getState().resetSuggestions(chat.uuid)
@@ -110,6 +113,11 @@ export const Input = memo(
 
 				if (text.length === 0) {
 					resetSuggestions()
+
+					setEditMessage(prev => ({
+						...prev,
+						[chat.uuid]: null
+					}))
 
 					return
 				}
@@ -196,7 +204,8 @@ export const Input = memo(
 				setEmojisSuggestions,
 				setMentionSuggestions,
 				setEmojisText,
-				setMentionText
+				setMentionText,
+				setEditMessage
 			]
 		)
 
@@ -259,14 +268,20 @@ export const Input = memo(
 			}
 
 			const replyToMessageCopied: ChatMessage | null = replyToMessage ? JSON.parse(JSON.stringify(replyToMessage)) : null
+			const editMessageCopied: ChatMessage | null = editMessage ? JSON.parse(JSON.stringify(editMessage)) : null
 
 			setValue("")
+			resetSuggestions()
 			setReplyToMessage(prev => ({
 				...prev,
 				[chat.uuid]: null
 			}))
+			setEditMessage(prev => ({
+				...prev,
+				[chat.uuid]: null
+			}))
 
-			const uuid = randomUUID()
+			const uuid = editMessageCopied ? editMessageCopied.uuid : randomUUID()
 
 			await sendMutex.current.acquire()
 
@@ -279,53 +294,70 @@ export const Input = memo(
 					}
 				}))
 
-				queryUtils.useChatMessagesQuerySet({
-					uuid: chat.uuid,
-					updater: prev => [
-						...prev.filter(m => m.uuid !== uuid),
-						{
-							uuid,
-							conversation: chat.uuid,
-							message: valueCopied,
-							senderId: userId,
-							sentTimestamp: Date.now(),
-							senderEmail: email,
-							senderNickName: accountQuery.data?.account?.nickName ?? "",
-							senderAvatar: accountQuery.data?.account?.avatarURL ?? "",
-							embedDisabled: false,
-							edited: false,
-							editedTimestamp: 0,
-							replyTo: replyToMessageCopied
-								? {
-										uuid: replyToMessageCopied.uuid,
-										senderId: replyToMessageCopied.senderId,
-										senderEmail: replyToMessageCopied.senderEmail,
-										senderAvatar: replyToMessageCopied.senderAvatar ?? "",
-										senderNickName: replyToMessageCopied.senderNickName ?? "",
-										message: replyToMessageCopied.message
-								  }
-								: {
-										uuid: "",
-										senderId: 0,
-										senderEmail: "",
-										senderAvatar: "",
-										senderNickName: "",
-										message: ""
-								  }
-						} satisfies ChatMessage
-					]
-				})
+				if (editMessageCopied) {
+					queryUtils.useChatMessagesQuerySet({
+						uuid: chat.uuid,
+						updater: prev =>
+							prev.map(m =>
+								m.uuid === editMessageCopied.uuid
+									? ({
+											...m,
+											message: valueCopied,
+											edited: true,
+											editedTimestamp: Date.now()
+									  } satisfies ChatMessage)
+									: m
+							)
+					})
+				} else {
+					queryUtils.useChatMessagesQuerySet({
+						uuid: chat.uuid,
+						updater: prev => [
+							...prev.filter(m => m.uuid !== uuid),
+							{
+								uuid,
+								conversation: chat.uuid,
+								message: valueCopied,
+								senderId: userId,
+								sentTimestamp: Date.now(),
+								senderEmail: email,
+								senderNickName: accountQuery.data?.account?.nickName ?? "",
+								senderAvatar: accountQuery.data?.account?.avatarURL ?? "",
+								embedDisabled: false,
+								edited: false,
+								editedTimestamp: 0,
+								replyTo: replyToMessageCopied
+									? {
+											uuid: replyToMessageCopied.uuid,
+											senderId: replyToMessageCopied.senderId,
+											senderEmail: replyToMessageCopied.senderEmail,
+											senderAvatar: replyToMessageCopied.senderAvatar ?? "",
+											senderNickName: replyToMessageCopied.senderNickName ?? "",
+											message: replyToMessageCopied.message
+									  }
+									: {
+											uuid: "",
+											senderId: 0,
+											senderEmail: "",
+											senderAvatar: "",
+											senderNickName: "",
+											message: ""
+									  }
+							} satisfies ChatMessage
+						]
+					})
 
-				queryUtils.useChatUnreadCountQuerySet({
-					uuid: chat.uuid,
-					updater: count => {
-						queryUtils.useChatUnreadQuerySet({
-							updater: prev => (prev - count >= 0 ? prev - count : 0)
-						})
+					queryUtils.useChatUnreadCountQuerySet({
+						uuid: chat.uuid,
+						updater: count => {
+							queryUtils.useChatUnreadQuerySet({
+								updater: prev => (prev - count >= 0 ? prev - count : 0)
+							})
 
-						return 0
-					}
-				})
+							return 0
+						}
+					})
+				}
 
 				const lastFocusTimestamp = Date.now()
 
@@ -341,12 +373,20 @@ export const Input = memo(
 						)
 				})
 
-				await nodeWorker.proxy("sendChatMessage", {
-					uuid,
-					conversation: chat.uuid,
-					message: valueCopied,
-					replyTo: replyToMessageCopied ? replyToMessageCopied.uuid : ""
-				})
+				if (editMessageCopied) {
+					await nodeWorker.proxy("editChatMessage", {
+						uuid,
+						conversation: chat.uuid,
+						message: valueCopied
+					})
+				} else {
+					await nodeWorker.proxy("sendChatMessage", {
+						uuid,
+						conversation: chat.uuid,
+						message: valueCopied,
+						replyTo: replyToMessageCopied ? replyToMessageCopied.uuid : ""
+					})
+				}
 
 				await Promise.all([
 					sendTypingEvent("up"),
@@ -405,14 +445,17 @@ export const Input = memo(
 			lastFocus,
 			chatUnreadQuery,
 			chatUnreadCountQuery,
-			setValue
+			setValue,
+			setEditMessage,
+			editMessage,
+			resetSuggestions
 		])
 
 		useEffect(() => {
-			if (suggestionsVisible && textInputRef.current && !textInputRef.current.isFocused()) {
+			if (suggestionsOrReplyOrEditVisible && textInputRef.current && !textInputRef.current.isFocused()) {
 				textInputRef.current.focus()
 			}
-		}, [suggestionsVisible, value])
+		}, [suggestionsOrReplyOrEditVisible, value])
 
 		useEffect(() => {
 			if (didTriggerValueEffectOnMount.current) {
@@ -436,9 +479,12 @@ export const Input = memo(
 			>
 				<BlurView
 					onLayout={onLayout}
-					className={cn("flex-1 absolute bottom-0 flex-row", (Platform.OS === "android" || suggestionsVisible) && "bg-card")}
-					intensity={Platform.OS === "ios" && !suggestionsVisible ? 100 : 0}
-					tint={Platform.OS === "ios" && !suggestionsVisible ? "systemChromeMaterial" : undefined}
+					className={cn(
+						"flex-1 absolute bottom-0 flex-row",
+						(Platform.OS === "android" || suggestionsOrReplyOrEditVisible) && "bg-card"
+					)}
+					intensity={Platform.OS === "ios" && !suggestionsOrReplyOrEditVisible ? 100 : 0}
+					tint={Platform.OS === "ios" && !suggestionsOrReplyOrEditVisible ? "systemChromeMaterial" : undefined}
 					style={{
 						paddingBottom: insets.bottom
 					}}
