@@ -1,0 +1,247 @@
+import { useCallback, useState, useMemo, Fragment, useEffect, memo } from "react"
+import events from "@/lib/events"
+import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import { List, ESTIMATED_ITEM_HEIGHT, type ListDataItem } from "@/components/nativewindui/List"
+import { RefreshControl, View, Platform } from "react-native"
+import { Text } from "@/components/nativewindui/Text"
+import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { useLocalSearchParams, useRouter } from "expo-router"
+import Container from "@/components/Container"
+import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
+import { simpleDate, formatBytes, orderItemsByType } from "@/lib/utils"
+import useSDKConfig from "@/hooks/useSDKConfig"
+import { AdaptiveSearchHeader } from "../nativewindui/AdaptiveSearchHeader"
+import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
+import cache from "@/lib/cache"
+import Item from "./item"
+import { Button } from "../nativewindui/Button"
+import { useShallow } from "zustand/shallow"
+
+export type ListItemInfo = {
+	title: string
+	subTitle: string
+	id: string
+	item: DriveCloudItem
+}
+
+export const SelectDriveItems = memo(() => {
+	const { colors } = useColorScheme()
+	const { id, type, max, parent, dismissHref, toMove } = useLocalSearchParams()
+	const [refreshing, setRefreshing] = useState<boolean>(false)
+	const [searchTerm, setSearchTerm] = useState<string>("")
+	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
+	const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
+	const [{ baseFolderUUID }] = useSDKConfig()
+
+	const maxParsed = useMemo(() => {
+		return typeof max === "string" ? parseInt(max) : 1
+	}, [max])
+
+	const typeParsed = useMemo(() => {
+		return typeof type === "string" ? (type as "file" | "directory") : "directory"
+	}, [type])
+
+	const toMoveParsed = useMemo(() => {
+		return typeof toMove === "string" ? (JSON.parse(toMove) as string[]) : []
+	}, [toMove])
+
+	const queryParams = useMemo(
+		(): FetchCloudItemsParams => ({
+			parent: typeof parent === "string" ? parent : baseFolderUUID,
+			of: "drive",
+			receiverId: 0
+		}),
+		[parent, baseFolderUUID]
+	)
+
+	const query = useCloudItemsQuery(queryParams)
+
+	const items = useMemo((): ListItemInfo[] => {
+		if (!query.isSuccess) {
+			return []
+		}
+
+		let queryItems = orderItemsByType({
+			items: query.data,
+			type: "nameAsc"
+		}).map(item => ({
+			id: item.uuid,
+			title: `${item.favorited ? "(F) " : ""}${item.name}`,
+			subTitle:
+				item.type === "directory"
+					? simpleDate(item.lastModified)
+					: `${simpleDate(item.lastModified)}  -  ${formatBytes(item.size)}`,
+			item
+		}))
+
+		if (searchTerm.length > 0) {
+			const searchTermLowerCase = searchTerm.toLowerCase()
+
+			queryItems = queryItems.filter(
+				item => item.title.toLowerCase().includes(searchTermLowerCase) || item.subTitle.toLowerCase().includes(searchTermLowerCase)
+			)
+		}
+
+		return queryItems
+	}, [query.isSuccess, query.data, searchTerm])
+
+	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
+		return typeof item === "string" ? item : item.id
+	}, [])
+
+	const renderItem = useCallback(
+		(info: ListRenderItemInfo<ListItemInfo>) => {
+			return (
+				<Item
+					info={info}
+					max={maxParsed}
+					type={typeParsed}
+					toMove={toMoveParsed}
+					queryParams={queryParams}
+				/>
+			)
+		},
+		[maxParsed, typeParsed, toMoveParsed, queryParams]
+	)
+
+	const headerTitle = useMemo(() => {
+		return typeof parent !== "string" || !cache.directoryUUIDToName.has(parent)
+			? "Drive"
+			: cache.directoryUUIDToName.get(parent) ?? "Drive"
+	}, [parent])
+
+	const cancel = useCallback(() => {
+		if (!routerCanGoBack()) {
+			return
+		}
+
+		events.emit("selectDriveItems", {
+			type: "response",
+			data: {
+				id: typeof id === "string" ? id : "none",
+				cancelled: true
+			}
+		})
+
+		routerDismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
+	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
+
+	useEffect(() => {
+		setSelectedItems([])
+
+		return () => {
+			if (typeof parent === "string" && parent === baseFolderUUID) {
+				events.emit("selectDriveItems", {
+					type: "response",
+					data: {
+						id: typeof id === "string" ? id : "none",
+						cancelled: true
+					}
+				})
+			}
+		}
+	}, [id, setSelectedItems, parent, baseFolderUUID])
+
+	return (
+		<Fragment>
+			{Platform.OS === "ios" ? (
+				<AdaptiveSearchHeader
+					iosTitle={headerTitle}
+					iosIsLargeTitle={false}
+					iosBackButtonMenuEnabled={true}
+					rightView={() => {
+						return (
+							<Button
+								variant="plain"
+								onPress={cancel}
+							>
+								<Text className="text-blue-500">Cancel</Text>
+							</Button>
+						)
+					}}
+					searchBar={{
+						iosHideWhenScrolling: false,
+						onChangeText: text => setSearchTerm(text),
+						contentTransparent: true,
+						persistBlur: true,
+						iosCancelButtonText: "Abort"
+					}}
+				/>
+			) : (
+				<LargeTitleHeader
+					title={headerTitle}
+					materialPreset="inline"
+					backVisible={parent !== baseFolderUUID}
+					rightView={() => {
+						return (
+							<Button
+								variant="plain"
+								onPress={cancel}
+							>
+								<Text className="text-blue-500">Cancel</Text>
+							</Button>
+						)
+					}}
+					searchBar={{
+						onChangeText: text => setSearchTerm(text),
+						contentTransparent: true,
+						persistBlur: true
+					}}
+				/>
+			)}
+			<View className="flex-1">
+				<Container>
+					<View className="flex-1">
+						<List
+							variant="full-width"
+							data={items}
+							estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+							renderItem={renderItem}
+							keyExtractor={keyExtractor}
+							refreshing={refreshing}
+							contentInsetAdjustmentBehavior="automatic"
+							contentContainerClassName="pb-16"
+							drawDistance={ESTIMATED_ITEM_HEIGHT.withSubTitle * 3}
+							ListEmptyComponent={
+								<View className="flex-1 items-center justify-center">
+									{query.isSuccess ? (
+										searchTerm.length > 0 ? (
+											<Text>Nothing found</Text>
+										) : (
+											<Text>No contacts</Text>
+										)
+									) : (
+										<ActivityIndicator color={colors.foreground} />
+									)}
+								</View>
+							}
+							ListFooterComponent={
+								<View className="flex flex-row items-center justify-center h-16 p-4">
+									<Text className="text-sm">{items.length} items</Text>
+								</View>
+							}
+							refreshControl={
+								<RefreshControl
+									refreshing={refreshing}
+									onRefresh={async () => {
+										setRefreshing(true)
+
+										await query.refetch().catch(() => {})
+
+										setRefreshing(false)
+									}}
+								/>
+							}
+						/>
+					</View>
+				</Container>
+			</View>
+		</Fragment>
+	)
+})
+
+SelectDriveItems.displayName = "SelectDriveItems"
+
+export default SelectDriveItems

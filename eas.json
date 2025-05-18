@@ -1,0 +1,33 @@
+{
+	"cli": {
+		"version": ">= 12.5.4",
+		"appVersionSource": "remote"
+	},
+	"build": {
+		"development": {
+			"developmentClient": true,
+			"distribution": "internal",
+			"env": {
+				"APP_ENV": "development",
+				"NODE_ENV": "development"
+			}
+		},
+		"preview": {
+			"distribution": "internal",
+			"env": {
+				"APP_ENV": "production",
+				"NODE_ENV": "production"
+			}
+		},
+		"production": {
+			"autoIncrement": true,
+			"env": {
+				"APP_ENV": "production",
+				"NODE_ENV": "production"
+			}
+		}
+	},
+	"submit": {
+		"production": {}
+	}
+}

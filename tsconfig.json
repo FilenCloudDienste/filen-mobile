@@ -1,0 +1,25 @@
+{
+	"extends": "expo/tsconfig.base",
+	"compilerOptions": {
+		"strict": true,
+		"noEmitOnError": true,
+		"jsx": "react-native",
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"noEmit": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitAny": true,
+		"esModuleInterop": true,
+		"paths": {
+			"@/*": ["./*"],
+			"~/*": ["./*"],
+			"nodeWorker": ["./nodejs-assets/nodejs-project/src/index.ts"]
+		}
+	},
+	"include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "lib/**/*.d.ts", "nativewind-env.d.ts", "index.d.ts"],
+	"exclude": ["nodejs-assets/**/*", "android/**/*", "ios/**/*", ".vscode/**/*", ".expo/**/*"]
+}

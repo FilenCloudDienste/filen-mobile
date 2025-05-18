@@ -1,0 +1,249 @@
+{
+	"drive": {
+		"header": {
+			"title": {
+				"drive": "Drive",
+				"selected": "{{count}} selected",
+				"recents": "Recents",
+				"favorites": "Favorites",
+				"sharedIn": "Shared with you",
+				"sharedOut": "Shared with others",
+				"offline": "Available offline",
+				"links": "Public links",
+				"trash": "Trash"
+			},
+			"rightView": {
+				"actionSheet": {
+					"upload": {
+						"files": "Upload files",
+						"directory": "Upload directory",
+						"media": "Upload media",
+						"uploaded": "{{name}} uploaded"
+					},
+					"create": {
+						"textFile": "Create text file",
+						"directory": "Create directory",
+						"photo": "Take photo",
+						"created": "{{name}} created"
+					},
+					"cancel": "Cancel",
+					"noMediaPermissions": "You need to grant media permissions to upload photos or videos.",
+					"itemsUploaded": "{{count}} items uploaded",
+					"directoryNamePlaceholder": "Directory name",
+					"textFileNamePlaceholder": "Text file name"
+				},
+				"dropdown": {
+					"sortBy": {
+						"sortBy": "Sort by",
+						"ascending": "Ascending",
+						"descending": "Descending",
+						"name": "Name",
+						"uploadDate": "Upload date",
+						"lastModified": "Last modified",
+						"type": "Type",
+						"size": "Size"
+					}
+				},
+				"selectAll": "Select all",
+				"deselectAll": "Deselect all"
+			}
+		},
+		"list": {
+			"item": {
+				"menu": {
+					"select": "Select",
+					"deselect": "Deselect",
+					"download": "Download",
+					"publicLink": "Public link",
+					"share": "Share",
+					"export": "Export",
+					"favorite": "Favorite",
+					"unfavorite": "Unfavorite",
+					"info": "Info",
+					"rename": "Rename",
+					"move": "Move",
+					"copyId": "Copy ID",
+					"delete": "Delete",
+					"trash": "Trash",
+					"restore": "Restore",
+					"preview": "Preview",
+					"deletePermanently": "Delete permanently",
+					"open": "Open",
+					"color": "Color",
+					"copyPath": "Copy path",
+					"makeAvailableOffline": "Make available offline",
+					"removeOffline": "Remove offline file",
+					"downloadFolder": "Download folder",
+					"saveToGallery": "Save to gallery",
+					"copy": "Copy",
+					"id": "ID",
+					"path": "Path",
+					"location": "Location",
+					"versionHistory": "Version history",
+					"properties": "Properties",
+					"clipboard": "Clipboard",
+					"withUser": "With user",
+					"removeSharedIn": "Remove",
+					"removeSharedOut": "Stop sharing"
+				}
+			}
+		}
+	},
+	"sheets": {
+		"itemInfo": {
+			"name": "Name",
+			"size": "Size",
+			"type": "Type",
+			"location": "Location",
+			"modified": "Modified",
+			"uploaded": "Uploaded",
+			"directories": "Directories",
+			"files": "Files"
+		}
+	},
+	"fileVersionHistory": {
+		"header": {
+			"title": "Version history"
+		},
+		"list": {
+			"item": {
+				"current": "Current",
+				"delete": "Delete",
+				"restore": "Restore"
+			}
+		},
+		"alerts": {
+			"delete": {
+				"title": "Delete version",
+				"message": "Are you sure you want to delete this version? This action cannot be undone!",
+				"confirm": "Delete",
+				"cancel": "Cancel"
+			},
+			"restore": {
+				"title": "Restore version",
+				"message": "Are you sure you want to restore this version?",
+				"confirm": "Restore",
+				"cancel": "Cancel"
+			}
+		}
+	},
+	"home": {
+		"container": {
+			"recents": {
+				"title": "Recents"
+			},
+			"favorites": {
+				"title": "Favorites"
+			},
+			"sharedIn": {
+				"title": "Shared with you"
+			},
+			"sharedOut": {
+				"title": "Shared with others"
+			},
+			"offline": {
+				"title": "Available offline"
+			},
+			"links": {
+				"title": "Public links"
+			},
+			"trash": {
+				"title": "Trash"
+			}
+		}
+	},
+	"chats": {
+		"messages": {
+			"menu": {
+				"copyText": "Copy text",
+				"copyId": "Copy ID",
+				"reply": "Reply",
+				"edit": "Edit",
+				"delete": "Delete"
+			},
+			"time": {
+				"now": "Now",
+				"todayAt": "Today at {{date}}",
+				"yesterdayAt": "Yesterday at {{date}}",
+				"secondAgo": "{{seconds}} second ago",
+				"secondsAgo": "{{seconds}} seconds ago",
+				"minuteAgo": "{{minutes}} minute ago",
+				"minutesAgo": "{{minutes}} minutes ago",
+				"hourAgo": "{{hours}} hour ago",
+				"hoursAgo": "{{hours}} hours ago"
+			}
+		},
+		"menu": {
+			"leave": "Leave",
+			"delete": "Delete",
+			"rename": "Rename",
+			"mute": "Mute",
+			"unmute": "Unmute",
+			"archive": "Archive",
+			"unarchive": "Unarchive",
+			"pin": "Pin",
+			"unpin": "Unpin",
+			"favorite": "Favorite",
+			"unfavorite": "Unfavorite",
+			"markAsRead": "Mark as read"
+		},
+		"participants": {
+			"menu": {
+				"remove": "Remove"
+			}
+		}
+	},
+	"notes": {
+		"menu": {
+			"history": "History",
+			"participants": "Participants",
+			"type": "Type",
+			"types": {
+				"text": "Text",
+				"checklist": "Checklist",
+				"rich": "Rich text",
+				"md": "Markdown",
+				"code": "Code"
+			},
+			"pin": "Pin",
+			"unpin": "Unpin",
+			"favorite": "Favorite",
+			"unfavorite": "Unfavorite",
+			"tags": "Tags",
+			"duplicate": "Duplicate",
+			"export": "Export",
+			"clipboard": "Clipboard",
+			"copyId": "Copy ID",
+			"archive": "Archive",
+			"trash": "Trash",
+			"restore": "Restore",
+			"delete": "Delete",
+			"pinned": "Pinned",
+			"favorited": "Favorited",
+			"leave": "Leave",
+			"preview": "Preview",
+			"rename": "Rename"
+		},
+		"participants": {
+			"menu": {
+				"remove": "Remove",
+				"permissionsWrite": "Write permissions"
+			}
+		},
+		"tags": {
+			"names": {
+				"all": "All",
+				"favorited": "Favorited",
+				"archived": "Archived",
+				"pinned": "Pinned",
+				"shared": "Shared",
+				"trash": "Trash"
+			},
+			"menu": {
+				"rename": "Rename",
+				"delete": "Delete",
+				"favorited": "Favorited"
+			}
+		}
+	}
+}

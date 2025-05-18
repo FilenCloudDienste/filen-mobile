@@ -1,0 +1,141 @@
+import { memo, useMemo, useCallback } from "react"
+import { parseYouTubeVideoId } from "@/lib/utils"
+import { Text } from "@/components/nativewindui/Text"
+import { View } from "react-native"
+import axios from "axios"
+import { useQuery } from "@tanstack/react-query"
+import { Image } from "expo-image"
+import { Button } from "@/components/nativewindui/Button"
+import * as Linking from "expo-linking"
+import alerts from "@/lib/alerts"
+import { Icon } from "@roninoss/icons"
+import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
+
+export type YouTubeInfo = {
+	title?: string
+	author_name?: string
+	author_url?: string
+	type?: string
+	height?: number
+	width?: number
+	version?: string
+	provider_name?: string
+	provider_url?: string
+	thumbnail_height?: number
+	thumbnail_width?: number
+	thumbnail_url?: string
+	html?: string
+}
+
+export const YouTube = memo(({ link }: { link: string }) => {
+	const videoId = useMemo(() => {
+		return parseYouTubeVideoId(link)
+	}, [link])
+
+	const query = useQuery({
+		queryKey: ["chatEmbedYouTube", videoId],
+		enabled: videoId !== null,
+		queryFn: async () => {
+			if (!videoId) {
+				throw new Error("No videoId provided.")
+			}
+
+			const request = await axios.get(`https://www.youtube.com/oembed?url=https://youtube.com/watch?v=${videoId}&format=json`, {
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json"
+				},
+				timeout: 60000
+			})
+
+			if (
+				request.status !== 200 ||
+				!request.data ||
+				!request.data.title ||
+				!request.data.thumbnail_url ||
+				!request.data.author_name
+			) {
+				throw new Error("Failed to fetch YouTube data.")
+			}
+
+			return request.data as YouTubeInfo
+		},
+		refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
+		refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
+		refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,
+		staleTime: DEFAULT_QUERY_OPTIONS.staleTime,
+		gcTime: DEFAULT_QUERY_OPTIONS.gcTime,
+		refetchInterval: false
+	})
+
+	const onPress = useCallback(async () => {
+		try {
+			if (!(await Linking.canOpenURL(link))) {
+				throw new Error("Cannot open URL.")
+			}
+
+			await Linking.openURL(link)
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
+	}, [link])
+
+	if (!videoId || query.status !== "success") {
+		return null
+	}
+
+	return (
+		<Button
+			variant="plain"
+			size="none"
+			unstable_pressDelay={100}
+			onPress={onPress}
+			className="flex-1 active:opacity-70"
+		>
+			<View className="flex-1 flex-col bg-card rounded-md p-2 mt-2 gap-2 border-l-red-500 border-l-2">
+				<Text
+					className="text-blue-500 font-normal text-xs"
+					numberOfLines={1}
+					ellipsizeMode="middle"
+				>
+					YouTube
+				</Text>
+				<Text
+					numberOfLines={2}
+					ellipsizeMode="tail"
+				>
+					{query.data.title} - {query.data.author_name}
+				</Text>
+				<View className="flex-1 bg-background rounded-md aspect-video overflow-hidden">
+					<View className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+						<Icon
+							name="play-circle-outline"
+							size={32}
+							color="white"
+						/>
+					</View>
+					<Image
+						source={{
+							uri: query.data.thumbnail_url
+						}}
+						priority="low"
+						cachePolicy="disk"
+						contentFit="contain"
+						style={{
+							width: "100%",
+							height: "100%"
+						}}
+					/>
+				</View>
+			</View>
+		</Button>
+	)
+})
+
+YouTube.displayName = "YouTube"
+
+export default YouTube

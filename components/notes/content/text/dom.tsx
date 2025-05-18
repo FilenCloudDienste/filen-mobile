@@ -1,0 +1,166 @@
+"use dom"
+
+import CodeMirror, { EditorView } from "@uiw/react-codemirror"
+import { useState, useCallback, memo, useMemo } from "react"
+import { loadLanguage } from "@/components/textEditor/dom/langs"
+import { xcodeLight, xcodeDark } from "@uiw/codemirror-theme-xcode"
+import { materialDark, materialLight } from "@uiw/codemirror-theme-material"
+import MDEditor from "@uiw/react-md-editor"
+import { type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import { createTextThemes } from "./textThemes"
+import "@uiw/react-md-editor/dist/mdeditor.min.css"
+
+const TextEditor = memo(
+	({
+		initialValue,
+		onValueChange,
+		type,
+		darkMode,
+		platformOS,
+		markdownPreview,
+		title,
+		backgroundColor,
+		textForegroundColor,
+		readOnly,
+		placeholder,
+		onDidType
+	}: {
+		initialValue: string
+		onValueChange: (value: string) => void
+		type: NoteType
+		darkMode: boolean
+		platformOS: "ios" | "android" | "macos" | "windows" | "web"
+		dom: import("expo/dom").DOMProps
+		markdownPreview: boolean
+		title: string
+		backgroundColor: string
+		textForegroundColor: string
+		readOnly: boolean
+		placeholder: string
+		onDidType: (value: string) => void
+	}) => {
+		const [value, setValue] = useState<string>(initialValue)
+
+		const onChange = useCallback(
+			(value: string) => {
+				setValue(value)
+				onValueChange(value)
+				onDidType(value)
+			},
+			[onValueChange, onDidType]
+		)
+
+		const textThemes = useMemo(() => {
+			return createTextThemes({
+				backgroundColor,
+				textForegroundColor
+			})
+		}, [backgroundColor, textForegroundColor])
+
+		const theme = useMemo(() => {
+			if (type === "text") {
+				return platformOS === "android"
+					? darkMode
+						? textThemes.android.dark
+						: textThemes.android.light
+					: darkMode
+					? textThemes.ios.dark
+					: textThemes.ios.light
+			}
+
+			return platformOS === "android" ? (darkMode ? materialDark : materialLight) : darkMode ? xcodeDark : xcodeLight
+		}, [darkMode, platformOS, type, textThemes])
+
+		const extensions = useMemo(() => {
+			const base = [
+				EditorView.lineWrapping,
+				EditorView.theme({
+					"&": {
+						outline: "none !important",
+						...(type === "text"
+							? {
+									fontSize: "17px"
+							  }
+							: {})
+					},
+					"&.cm-focused": {
+						outline: "none !important",
+						border: "none !important",
+						boxShadow: "none !important"
+					},
+					"&:focus-visible": {
+						outline: "none !important"
+					},
+					".cm-line": {
+						...(type === "text"
+							? {
+									lineHeight: "1.5"
+							  }
+							: {})
+					}
+				})
+			]
+
+			if (type === "text") {
+				return [
+					...base,
+					EditorView.theme({
+						".cm-gutters": {
+							display: "none"
+						}
+					})
+				]
+			}
+
+			const lang = loadLanguage(
+				type === "md" ? `${title}.md` : type === "code" ? `${title}${title.includes(".") ? "" : ".tsx"}` : title
+			)
+
+			if (!lang) {
+				return [...base]
+			}
+
+			return [...base, lang]
+		}, [title, type])
+
+		if (type === "md" && markdownPreview) {
+			return (
+				<MDEditor.Markdown
+					source={value}
+					wrapperElement={{
+						"data-color-mode": darkMode ? "dark" : "light",
+						style: {
+							maxWidth: "100vw",
+							width: "100vw"
+						}
+					}}
+					style={{
+						padding: 16,
+						maxWidth: "100vw",
+						width: "100vw"
+					}}
+				/>
+			)
+		}
+
+		return (
+			<CodeMirror
+				value={value}
+				width="100vw"
+				onChange={onChange}
+				extensions={extensions}
+				theme={theme}
+				editable={!readOnly}
+				placeholder={placeholder}
+				style={{
+					width: "100vw",
+					padding: type === "text" ? 16 : 0
+				}}
+			/>
+		)
+	}
+)
+
+TextEditor.displayName = "TextEditor"
+
+export default TextEditor

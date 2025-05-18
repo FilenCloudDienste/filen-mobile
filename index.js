@@ -1,0 +1,5 @@
+import "node-libs-expo/globals"
+import "react-native-reanimated"
+import "intl-pluralrules"
+import "@/lib/backgroundTask"
+import "expo-router/entry"

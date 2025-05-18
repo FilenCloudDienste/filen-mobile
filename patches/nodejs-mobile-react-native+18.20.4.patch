@@ -1,0 +1,46 @@
+diff --git a/node_modules/nodejs-mobile-react-native/react-native.config.js b/node_modules/nodejs-mobile-react-native/react-native.config.js
+index 468ef4c..c1fce59 100644
+--- a/node_modules/nodejs-mobile-react-native/react-native.config.js
++++ b/node_modules/nodejs-mobile-react-native/react-native.config.js
+@@ -10,15 +10,18 @@ module.exports = {
+             name: '[NODEJS MOBILE] Copy Node.js Project files',
+             path: './scripts/ios-copy-nodejs-project.sh',
+             execution_position: 'after_compile'
+-          }, {
++          }, 
++          /*{
+             name: '[NODEJS MOBILE] Build Native Modules',
+             path: './scripts/ios-build-native-modules.sh',
+             execution_position: 'after_compile'
+-          }, {
++          }, 
++          {
+             name: '[NODEJS MOBILE] Sign Native Modules',
+             path: './scripts/ios-sign-native-modules.sh',
+             execution_position: 'after_compile'
+-          }, {
++          },*/
++          {
+             name: '[NODEJS MOBILE] Remove Simulator Strip',
+             path: './scripts/ios-remove-framework-simulator-strips.sh',
+             execution_position: 'after_compile'
+diff --git a/node_modules/nodejs-mobile-react-native/scripts/create-node-structure.js b/node_modules/nodejs-mobile-react-native/scripts/create-node-structure.js
+index ca8eb32..c315c0d 100644
+--- a/node_modules/nodejs-mobile-react-native/scripts/create-node-structure.js
++++ b/node_modules/nodejs-mobile-react-native/scripts/create-node-structure.js
+@@ -1,6 +1,8 @@
+ //Adapted from the www.npmjs.com/package/install-files project
+ 
+-const path = require('path');
++console.log("[NODEJSMOBILERN] Not creating sample files")
++
++/*const path = require('path');
+ const fs = require('fs');
+ const ncp = require('ncp');
+ const mkdirp = require('mkdirp');
+@@ -120,4 +122,4 @@ function installFiles(done) {
+ 
+ installFiles(function (err) {
+   if (err) console.error(err);
+-});
++});*/

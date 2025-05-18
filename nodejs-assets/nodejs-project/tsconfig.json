@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"rootDir": "src",
+		"outDir": "dist",
+		"lib": ["ES2017", "DOM"],
+		"module": "commonjs",
+		"target": "ES2017",
+		"strict": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"moduleResolution": "node",
+		"sourceMap": false,
+		"skipDefaultLibCheck": true,
+		"skipLibCheck": true,
+		"declaration": false,
+		"resolveJsonModule": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitAny": true
+	},
+	"include": ["src", "types.d.ts", "../../**/*.d.ts"],
+	"exclude": ["node_modules", "dist", "__tests__", "docs", ".github", "dev", ".vscode"]
+}

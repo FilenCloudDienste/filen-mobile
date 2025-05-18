@@ -1,0 +1,77 @@
+import { create } from "zustand"
+import { type PublicLinkInfo } from "@/components/chats/chat/messages/embeds/filen"
+
+export type PreviewType = "image" | "video" | "unknown" | "pdf" | "text" | "code" | "audio" | "docx"
+
+export type GalleryItem =
+	| {
+			itemType: "cloudItem"
+			previewType: PreviewType
+			data: DriveCloudItem
+	  }
+	| {
+			itemType: "chatItem"
+			previewType: PreviewType
+			data: {
+				info: PublicLinkInfo
+				link: string
+				parsedLink: {
+					uuid: string
+					key: string
+					type: "file" | "directory"
+				}
+			}
+	  }
+	| {
+			itemType: "remoteItem"
+			previewType: PreviewType
+			data: {
+				uri: string
+			}
+	  }
+
+export type GalleryStore = {
+	visible: boolean
+	initialUUID: string | null
+	items: GalleryItem[]
+	currentVisibleIndex: number | null
+	zoomedIn: boolean
+	setVisible: (fn: boolean | ((prev: boolean) => boolean)) => void
+	setInitialUUID: (fn: string | null | ((prev: string | null) => string | null)) => void
+	setItems: (fn: GalleryItem[] | ((prev: GalleryItem[]) => GalleryItem[])) => void
+	setCurrentVisibleIndex: (fn: (number | null) | ((prev: number | null) => number | null)) => void
+	setZoomedIn: (fn: boolean | ((prev: boolean) => boolean)) => void
+}
+
+export const useGalleryStore = create<GalleryStore>(set => ({
+	visible: false,
+	initialUUID: null,
+	items: [],
+	currentVisibleIndex: -1,
+	zoomedIn: false,
+	setVisible(fn) {
+		set(state => ({
+			visible: typeof fn === "function" ? fn(state.visible) : fn
+		}))
+	},
+	setInitialUUID(fn) {
+		set(state => ({
+			initialUUID: typeof fn === "function" ? fn(state.initialUUID) : fn
+		}))
+	},
+	setItems(fn) {
+		set(state => ({
+			items: typeof fn === "function" ? fn(state.items) : fn
+		}))
+	},
+	setCurrentVisibleIndex(fn) {
+		set(state => ({
+			currentVisibleIndex: typeof fn === "function" ? fn(state.currentVisibleIndex) : fn
+		}))
+	},
+	setZoomedIn(fn) {
+		set(state => ({
+			zoomedIn: typeof fn === "function" ? fn(state.zoomedIn) : fn
+		}))
+	}
+}))
