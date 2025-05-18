@@ -537,6 +537,7 @@ export const Input = memo(
 										className="ios:rounded-full rounded-full h-7 w-7"
 										disabled={(value ?? "").length === 0}
 										onPress={send}
+										hitSlop={15}
 									>
 										<Icon
 											name="arrow-up"

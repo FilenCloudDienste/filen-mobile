@@ -4,6 +4,7 @@ import { BackHandler } from "react-native"
 import { useGalleryStore } from "@/stores/gallery.store"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { useShallow } from "zustand/shallow"
+import { Portal } from "@rn-primitives/portal"
 
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
@@ -71,28 +72,30 @@ export const GalleryModal = memo(() => {
 	}
 
 	return (
-		<Animated.View
-			entering={FadeIn}
-			exiting={FadeOut}
-			style={{
-				flex: 1,
-				backgroundColor: "transparent",
-				position: "absolute",
-				top: 0,
-				left: 0,
-				right: 0,
-				bottom: 0
-			}}
-		>
-			<GalleryComponent
-				initialScrollIndex={initialScrollIndex}
-				panEnabled={true}
-				pinchEnabled={true}
-				doubleTapEnabled={true}
-				swipeToCloseEnabled={true}
-				items={items}
-			/>
-		</Animated.View>
+		<Portal name="gallery-modal">
+			<Animated.View
+				entering={FadeIn}
+				exiting={FadeOut}
+				style={{
+					flex: 1,
+					backgroundColor: "transparent",
+					position: "absolute",
+					top: 0,
+					left: 0,
+					right: 0,
+					bottom: 0
+				}}
+			>
+				<GalleryComponent
+					initialScrollIndex={initialScrollIndex}
+					panEnabled={true}
+					pinchEnabled={true}
+					doubleTapEnabled={true}
+					swipeToCloseEnabled={true}
+					items={items}
+				/>
+			</Animated.View>
+		</Portal>
 	)
 })
 
