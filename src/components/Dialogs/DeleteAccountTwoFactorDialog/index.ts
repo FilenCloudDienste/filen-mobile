@@ -1,3 +1,0 @@
-import DeleteAccountTwoFactorDialog from "./DeleteAccountTwoFactorDialog"
-
-export default DeleteAccountTwoFactorDialog
