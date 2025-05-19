@@ -1,4 +1,4 @@
-import { memo, useCallback, useState, useMemo, useRef, useEffect } from "react"
+import { memo, useCallback, useState, useMemo, useRef } from "react"
 import { type GestureResponderEvent, View } from "react-native"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
@@ -8,18 +8,18 @@ import { Button } from "@/components/nativewindui/Button"
 import useDimensions from "@/hooks/useDimensions"
 import useViewLayout from "@/hooks/useViewLayout"
 import Fallback from "./fallback"
+import { useMMKVObject } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
 
 export type ImageDimensions = {
 	width: number
 	height: number
 }
 
-const imageDimensionsCache = new Map<string, ImageDimensions>()
-
 export const Image = memo(({ source, link }: { source: string; link: string }) => {
 	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
 	const { screen } = useDimensions()
-	const [dimensions, setDimensions] = useState<ImageDimensions | null>(imageDimensionsCache.get(source) ?? null)
+	const [dimensions, setDimensions] = useMMKVObject<ImageDimensions>(`chatEmbedImageDimensions:${source}`, mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { onLayout, layout } = useViewLayout(viewRef)
 	const [error, setError] = useState<string | null>(null)
@@ -63,10 +63,17 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 		[link, loadSuccess, source]
 	)
 
-	const onLoad = useCallback((e: ImageLoadEventData) => {
-		setLoadSuccess(true)
-		setDimensions(e.source)
-	}, [])
+	const onLoad = useCallback(
+		(e: ImageLoadEventData) => {
+			setLoadSuccess(true)
+
+			setDimensions({
+				width: e.source.width,
+				height: e.source.height
+			})
+		},
+		[setDimensions]
+	)
 
 	const onError = useCallback((e: ImageErrorEventData) => {
 		setLoadSuccess(false)
@@ -94,14 +101,6 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 			width: calculatedWidth
 		}
 	}, [dimensions, screen.height, layout.width])
-
-	useEffect(() => {
-		if (!dimensions) {
-			return
-		}
-
-		imageDimensionsCache.set(source, dimensions)
-	}, [dimensions, source])
 
 	if (error) {
 		return <Fallback link={link} />

@@ -1,5 +1,4 @@
 import { create } from "zustand"
-import { type PublicLinkInfo } from "@/components/chats/chat/messages/embeds/filen"
 
 export type PreviewType = "image" | "video" | "unknown" | "pdf" | "text" | "code" | "audio" | "docx"
 
@@ -8,19 +7,6 @@ export type GalleryItem =
 			itemType: "cloudItem"
 			previewType: PreviewType
 			data: DriveCloudItem
-	  }
-	| {
-			itemType: "chatItem"
-			previewType: PreviewType
-			data: {
-				info: PublicLinkInfo
-				link: string
-				parsedLink: {
-					uuid: string
-					key: string
-					type: "file" | "directory"
-				}
-			}
 	  }
 	| {
 			itemType: "remoteItem"

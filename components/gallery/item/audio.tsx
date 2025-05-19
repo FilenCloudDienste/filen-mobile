@@ -49,24 +49,6 @@ export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 			)}`
 		}
 
-		if (item.itemType === "chatItem" && item.data.parsedLink.type === "file" && item.data.info && item.data.info.type === "file") {
-			return `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
-				btoa(
-					JSON.stringify({
-						name: item.data.info.data.info.name,
-						mime: item.data.info.data.info.mime,
-						size: item.data.info.data.info.size,
-						uuid: item.data.info.data.info.uuid,
-						bucket: item.data.info.data.info.bucket,
-						key: item.data.parsedLink.key,
-						version: item.data.info.data.info.version,
-						chunks: item.data.info.data.info.chunks,
-						region: item.data.info.data.info.region
-					})
-				)
-			)}`
-		}
-
 		return null
 	}, [item])
 
