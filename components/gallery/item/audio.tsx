@@ -9,8 +9,11 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import Animated, { FadeOut } from "react-native-reanimated"
+import useSetAudioMode from "@/hooks/useSetAudioMode"
 
 export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
+	useSetAudioMode()
+
 	const { colors } = useColorScheme()
 	const [loading, setLoading] = useState<boolean>(true)
 	const [playing, setPlaying] = useState<boolean>(false)

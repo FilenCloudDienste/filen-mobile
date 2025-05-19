@@ -8,8 +8,11 @@ import { Slider } from "@/components/nativewindui/Slider"
 import { Text } from "@/components/nativewindui/Text"
 import { formatSecondsToMMSS } from "@/lib/utils"
 import Fallback from "./fallback"
+import useSetAudioMode from "@/hooks/useSetAudioMode"
 
 export const Audio = memo(({ source, name, link }: { source: string; name: string; link: string }) => {
+	useSetAudioMode()
+
 	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const player = useAudioPlayer(source, 100)

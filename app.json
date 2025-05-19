@@ -25,6 +25,9 @@
 			},
 			"config": {
 				"usesNonExemptEncryption": false
+			},
+			"infoPlist": {
+				"UIBackgroundModes": ["audio"]
 			}
 		},
 		"android": {
