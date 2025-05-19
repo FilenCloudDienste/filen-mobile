@@ -2,7 +2,7 @@ import { useRouter, usePathname } from "expo-router"
 import { memo, useCallback, useMemo } from "react"
 import { ListItem as ListItemComponent } from "@/components/nativewindui/List"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
-import ContextMenu from "./menus/contextMenu"
+import Menu from "./menu"
 import RightView from "./rightView"
 import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
@@ -289,10 +289,12 @@ export const ListItem = memo(
 		}
 
 		return (
-			<ContextMenu
+			<Menu
+				type="context"
 				item={info.item.item}
 				queryParams={queryParams}
 				isAvailableOffline={isAvailableOffline}
+				insidePreview={false}
 			>
 				<ListItemComponent
 					{...info}
@@ -309,7 +311,7 @@ export const ListItem = memo(
 					removeSeparator={Platform.OS === "android"}
 					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
 				/>
-			</ContextMenu>
+			</Menu>
 		)
 	}
 )

@@ -7,7 +7,7 @@ import { Icon } from "@roninoss/icons"
 import { formatBytes, simpleDateNoTime } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
-import ContextMenu from "./menus/contextMenu"
+import Menu from "./menu"
 
 export const Grid = memo(
 	({
@@ -41,10 +41,12 @@ export const Grid = memo(
 
 		return (
 			<View className="rounded-md overflow-hidden flex-1 bg-background">
-				<ContextMenu
+				<Menu
+					type="context"
 					item={item}
 					queryParams={queryParams}
 					isAvailableOffline={isAvailableOffline}
+					insidePreview={false}
 				>
 					<Button
 						className="flex-1 flex-col items-center justify-center p-2 gap-0 bg-background"
@@ -135,7 +137,7 @@ export const Grid = memo(
 							{formatBytes(item.type === "directory" ? (directorySize ? directorySize.size : 0) : item.size)}
 						</Text>
 					</Button>
-				</ContextMenu>
+				</Menu>
 			</View>
 		)
 	}

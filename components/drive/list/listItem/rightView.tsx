@@ -3,7 +3,7 @@ import { memo } from "react"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
-import DropdownMenu from "./menus/dropdownMenu"
+import Menu from "./menu"
 
 export const RightView = memo(
 	({
@@ -19,10 +19,12 @@ export const RightView = memo(
 
 		return (
 			<View className="flex-1 justify-center px-4">
-				<DropdownMenu
+				<Menu
+					type="dropdown"
 					item={item}
 					queryParams={queryParams}
 					isAvailableOffline={isAvailableOffline}
+					insidePreview={false}
 				>
 					<Button
 						variant="plain"
@@ -34,7 +36,7 @@ export const RightView = memo(
 							color={colors.foreground}
 						/>
 					</Button>
-				</DropdownMenu>
+				</Menu>
 			</View>
 		)
 	}

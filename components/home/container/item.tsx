@@ -12,8 +12,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useGalleryStore } from "@/stores/gallery.store"
 import Thumbnail from "@/components/thumbnail/item"
-import ContextMenu from "@/components/drive/list/listItem/menus/contextMenu"
-import DropdownMenu from "@/components/drive/list/listItem/menus/dropdownMenu"
+import Menu from "@/components/drive/list/listItem/menu"
 import { ListItem } from "@/components/nativewindui/List"
 import { type TextEditorItem } from "@/components/textEditor/editor"
 import { type PDFPreviewItem } from "@/components/pdfPreview"
@@ -170,7 +169,9 @@ export const Item = memo(
 		}, [routerPush, item, hasInternet, isAvailableOffline, fileOfflineStatus.data, items, type])
 
 		return (
-			<ContextMenu
+			<Menu
+				type="context"
+				insidePreview={false}
 				item={item}
 				queryParams={{
 					of: type,
@@ -208,7 +209,9 @@ export const Item = memo(
 					rightView={
 						Platform.OS === "android" ? (
 							<View className="flex-1 justify-center px-4">
-								<DropdownMenu
+								<Menu
+									type="dropdown"
+									insidePreview={false}
 									item={item}
 									queryParams={{
 										of: type,
@@ -227,7 +230,7 @@ export const Item = memo(
 											color={colors.foreground}
 										/>
 									</Button>
-								</DropdownMenu>
+								</Menu>
 							</View>
 						) : undefined
 					}
@@ -241,7 +244,7 @@ export const Item = memo(
 					removeSeparator={Platform.OS === "android"}
 					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
 				/>
-			</ContextMenu>
+			</Menu>
 		)
 	}
 )
