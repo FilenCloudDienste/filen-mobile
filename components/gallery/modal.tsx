@@ -1,10 +1,12 @@
 import GalleryComponent from "@/components/gallery"
-import { useEffect, useMemo, memo } from "react"
+import { useEffect, useMemo, memo, useRef } from "react"
 import { BackHandler } from "react-native"
 import { useGalleryStore } from "@/stores/gallery.store"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { useShallow } from "zustand/shallow"
 import { Portal } from "@rn-primitives/portal"
+import * as ScreenOrientation from "expo-screen-orientation"
+import Semaphore from "@/lib/semaphore"
 
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
@@ -12,6 +14,8 @@ export const GalleryModal = memo(() => {
 	const items = useGalleryStore(useShallow(state => state.items))
 	const initialUUID = useGalleryStore(useShallow(state => state.initialUUID))
 	const setCurrentVisibleIndex = useGalleryStore(useShallow(state => state.setCurrentVisibleIndex))
+	const beforeOrientationRef = useRef<ScreenOrientation.OrientationLock | null>(null)
+	const orientationMutex = useRef<Semaphore>(new Semaphore(1))
 
 	const initialScrollIndex = useMemo((): number => {
 		if (!visible || items.length === 0) {
@@ -50,6 +54,34 @@ export const GalleryModal = memo(() => {
 			setVisible(false)
 		}
 	}, [items, visible, setVisible])
+
+	useEffect(() => {
+		;(async () => {
+			await orientationMutex.current.acquire()
+
+			try {
+				if (visible) {
+					beforeOrientationRef.current = await ScreenOrientation.getOrientationLockAsync()
+
+					await ScreenOrientation.unlockAsync()
+
+					return
+				}
+
+				if (!beforeOrientationRef.current) {
+					return
+				}
+
+				await ScreenOrientation.lockAsync(beforeOrientationRef.current)
+
+				beforeOrientationRef.current = null
+			} catch (e) {
+				console.error(e)
+			} finally {
+				orientationMutex.current.release()
+			}
+		})()
+	}, [visible])
 
 	useEffect(() => {
 		const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
