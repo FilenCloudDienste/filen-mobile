@@ -3,7 +3,7 @@ import { setAudioModeAsync } from "expo-audio"
 
 let audioModeSet = false
 
-export default function useSetAudioMode() {
+export default function useSetExpoAudioMode() {
 	useEffect(() => {
 		if (audioModeSet) {
 			return

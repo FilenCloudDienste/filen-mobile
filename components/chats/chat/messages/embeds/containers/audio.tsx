@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useCallback } from "react"
 import { View } from "react-native"
-import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
+import { useAudioPlayer } from "expo-audio"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "@/components/nativewindui/Button"
@@ -8,15 +8,16 @@ import { Slider } from "@/components/nativewindui/Slider"
 import { Text } from "@/components/nativewindui/Text"
 import { formatSecondsToMMSS } from "@/lib/utils"
 import Fallback from "./fallback"
-import useSetAudioMode from "@/hooks/useSetAudioMode"
+import useSetExpoAudioMode from "@/hooks/useSetExpoAudioMode"
+import { useTrackPlayer } from "@/lib/trackPlayer"
 
 export const Audio = memo(({ source, name, link }: { source: string; name: string; link: string }) => {
-	useSetAudioMode()
+	useSetExpoAudioMode()
 
 	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const player = useAudioPlayer(source, 100)
-	const status = useAudioPlayerStatus(player)
+	const trackPlayer = useTrackPlayer()
 
 	const togglePlay = useCallback(() => {
 		if (player.currentTime >= player.duration - 1) {
@@ -42,8 +43,16 @@ export const Audio = memo(({ source, name, link }: { source: string; name: strin
 	useEffect(() => {
 		player.loop = true
 
-		setLoadSuccess(status.isLoaded)
-	}, [status, player])
+		setLoadSuccess(player.isLoaded)
+	}, [player])
+
+	useEffect(() => {
+		trackPlayer?.stop().catch(console.error)
+
+		return () => {
+			trackPlayer?.play().catch(console.error)
+		}
+	}, [trackPlayer])
 
 	if (!loadSuccess) {
 		return <Fallback link={link} />
