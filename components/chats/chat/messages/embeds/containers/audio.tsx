@@ -1,62 +1,60 @@
 import { memo, useState, useEffect, useCallback } from "react"
-import { View } from "react-native"
-import { useAudioPlayer } from "expo-audio"
+import { View, ActivityIndicator } from "react-native"
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "@/components/nativewindui/Button"
 import { Slider } from "@/components/nativewindui/Slider"
 import { Text } from "@/components/nativewindui/Text"
 import { formatSecondsToMMSS } from "@/lib/utils"
-import Fallback from "./fallback"
 import useSetExpoAudioMode from "@/hooks/useSetExpoAudioMode"
 import { useTrackPlayer } from "@/lib/trackPlayer"
 
-export const Audio = memo(({ source, name, link }: { source: string; name: string; link: string }) => {
+export const Audio = memo(({ source, name }: { source: string; name: string; link: string }) => {
 	useSetExpoAudioMode()
 
 	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const player = useAudioPlayer(source, 100)
+	const playerStatus = useAudioPlayerStatus(player)
 	const trackPlayer = useTrackPlayer()
 
 	const togglePlay = useCallback(() => {
-		if (player.currentTime >= player.duration - 1) {
+		if (!loadSuccess) {
+			return
+		}
+
+		if (playerStatus.currentTime >= playerStatus.duration - 1) {
 			player.seekTo(0)
 		}
 
-		if (player.playing) {
+		if (playerStatus.playing) {
 			player.pause()
 
 			return
 		}
 
 		player.play()
-	}, [player])
+	}, [player, loadSuccess, playerStatus.playing, playerStatus.currentTime, playerStatus.duration])
 
 	const seek = useCallback(
 		(value: number) => {
-			player.seekTo((value / 100) * player.duration)
+			player.seekTo((value / 100) * playerStatus.duration)
 		},
-		[player]
+		[player, playerStatus.duration]
 	)
 
 	useEffect(() => {
 		player.loop = true
 
-		setLoadSuccess(player.isLoaded)
-	}, [player])
+		setLoadSuccess(playerStatus.isLoaded)
+	}, [player, playerStatus.isLoaded])
 
 	useEffect(() => {
-		trackPlayer?.stop().catch(console.error)
-
-		return () => {
-			trackPlayer?.play().catch(console.error)
+		if (playerStatus.isLoaded && playerStatus.playing) {
+			trackPlayer?.stop().catch(console.error)
 		}
-	}, [trackPlayer])
-
-	if (!loadSuccess) {
-		return <Fallback link={link} />
-	}
+	}, [trackPlayer, playerStatus.isLoaded, playerStatus.playing])
 
 	return (
 		<View className="flex-1 bg-background border border-border rounded-md flex-col">
@@ -78,11 +76,18 @@ export const Audio = memo(({ source, name, link }: { source: string; name: strin
 					onPress={togglePlay}
 					unstable_pressDelay={100}
 				>
-					<Icon
-						name={player.playing ? "pause-circle-outline" : "play-circle-outline"}
-						size={32}
-						color={colors.foreground}
-					/>
+					{loadSuccess ? (
+						<Icon
+							name={playerStatus.playing ? "pause-circle-outline" : "play-circle-outline"}
+							size={32}
+							color={colors.foreground}
+						/>
+					) : (
+						<ActivityIndicator
+							color={colors.foreground}
+							size="small"
+						/>
+					)}
 				</Button>
 				<View className="flex-row items-center justify-between flex-1 gap-1.5">
 					<Text
@@ -91,10 +96,10 @@ export const Audio = memo(({ source, name, link }: { source: string; name: strin
 							fontVariant: ["tabular-nums"]
 						}}
 					>
-						{formatSecondsToMMSS(player.currentTime)}
+						{formatSecondsToMMSS(playerStatus.currentTime)}
 					</Text>
 					<Slider
-						value={(player.currentTime / player.duration) * 100}
+						value={(playerStatus.currentTime / playerStatus.duration) * 100}
 						minimumValue={0}
 						maximumValue={100}
 						tapToSeek={true}
@@ -110,7 +115,7 @@ export const Audio = memo(({ source, name, link }: { source: string; name: strin
 							fontVariant: ["tabular-nums"]
 						}}
 					>
-						{formatSecondsToMMSS(player.duration)}
+						{formatSecondsToMMSS(playerStatus.duration)}
 					</Text>
 				</View>
 			</View>
