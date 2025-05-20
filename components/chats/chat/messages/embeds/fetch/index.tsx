@@ -1,7 +1,7 @@
 import { memo, useCallback } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
-import { WebpageMetadataParser } from "./utils"
+import { WebpageMetadataParser } from "./parser"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import { Image as ExpoImage } from "expo-image"
