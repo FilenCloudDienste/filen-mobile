@@ -1,6 +1,5 @@
 import axios, { type AxiosResponse } from "axios"
 import { getPreviewTypeFromMime } from "@/lib/utils"
-import DOMPurify from "dompurify"
 
 export class WebpageMetadata {
 	public title: string = ""
@@ -36,10 +35,8 @@ export class WebpageMetadata {
 	public articleTags: string[] = []
 	public publisherName: string = ""
 	public publisherLogo: string = ""
-	public jsonLdData: string = ""
 	public robots: string = ""
 	public keywords: string = ""
-	public contentPreview: string = ""
 	public appleMobileWebAppCapable: string = ""
 	public msapplicationTileImage: string = ""
 	public msapplicationTileColor: string = ""
@@ -98,6 +95,7 @@ export class UrlUtils {
 export class HtmlParser {
 	public static extractMetaContent(html: string, pattern: RegExp): string {
 		const match = pattern.exec(html)
+
 		return match && match[1] ? match[1].trim() : ""
 	}
 
@@ -113,70 +111,6 @@ export class HtmlParser {
 		}
 
 		return matches
-	}
-
-	public static extractContentPreview(html: string): string {
-		const cleanHtml = DOMPurify.sanitize(html, {
-			ALLOWED_TAGS: [
-				"article",
-				"main",
-				"div",
-				"span",
-				"p",
-				"a",
-				"img",
-				"h1",
-				"h2",
-				"h3",
-				"h4",
-				"h5",
-				"h6",
-				"body",
-				"head",
-				"html",
-				"footer",
-				"header",
-				"section",
-				"nav"
-			],
-			ALLOWED_ATTR: ["href", "src", "alt", "title", "class", "id", "style", "lang", "dir", "content"]
-		})
-
-		const mainContentMatch =
-			/<article\b[^>]*>([\s\S]*?)<\/article>|<main\b[^>]*>([\s\S]*?)<\/main>|<div\b[^>]*class=["'][^"']*content[^"']*["'][^>]*>([\s\S]*?)<\/div>/i.exec(
-				cleanHtml
-			)
-
-		let contentText = ""
-
-		if (mainContentMatch) {
-			for (let i = 1; i < mainContentMatch.length; i++) {
-				if (mainContentMatch[i]) {
-					contentText = mainContentMatch[i] ?? ""
-
-					break
-				}
-			}
-		} else {
-			const bodyMatch = /<body\b[^>]*>([\s\S]*?)<\/body>/i.exec(cleanHtml)
-
-			contentText = bodyMatch && bodyMatch[1] ? bodyMatch[1] : cleanHtml
-		}
-
-		contentText = contentText.replace(/<[^>]*>/g, " ")
-		contentText = contentText.replace(/\s+/g, " ").trim()
-
-		if (contentText.length > 256) {
-			contentText = contentText.substring(0, 256) + "..."
-		}
-
-		return contentText
-	}
-
-	public static extractJsonLdData(html: string): string {
-		const match = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i.exec(html)
-
-		return match && match[1] ? match[1].trim() : ""
 	}
 }
 
@@ -380,10 +314,8 @@ export class WebpageMetadataParser {
 					html,
 					/<meta[^>]*property=["']og:publisher:logo["'][^>]*content=["'](.*?)["'][^>]*>/i
 				)
-				metadata.jsonLdData = HtmlParser.extractJsonLdData(html)
 				metadata.robots = HtmlParser.extractMetaContent(html, /<meta[^>]*name=["']robots["'][^>]*content=["'](.*?)["'][^>]*>/i)
 				metadata.keywords = HtmlParser.extractMetaContent(html, /<meta[^>]*name=["']keywords["'][^>]*content=["'](.*?)["'][^>]*>/i)
-				metadata.contentPreview = HtmlParser.extractContentPreview(html)
 				metadata.appleMobileWebAppCapable = HtmlParser.extractMetaContent(
 					html,
 					/<meta[^>]*name=["']apple-mobile-web-app-capable["'][^>]*content=["'](.*?)["'][^>]*>/i
@@ -433,7 +365,7 @@ export class WebpageMetadataParser {
 						image: metadata.ogImage || metadata.twitterImage || metadata.msapplicationTileImage || "",
 						url: metadata.ogUrl || metadata.canonicalUrl || "",
 						siteName: metadata.ogSiteName || metadata.publisherName || "",
-						contentPreview: metadata.contentPreview || metadata.description || "",
+						contentPreview: metadata.description || "",
 						publishDate: metadata.articlePublishedTime || "",
 						themeColor: metadata.themeColor || metadata.backgroundColor || ""
 					}
