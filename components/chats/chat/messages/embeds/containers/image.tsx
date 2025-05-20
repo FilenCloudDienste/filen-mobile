@@ -10,6 +10,7 @@ import useViewLayout from "@/hooks/useViewLayout"
 import Fallback from "./fallback"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
+import { xxHash32 } from "js-xxhash"
 
 export type ImageDimensions = {
 	width: number
@@ -19,7 +20,10 @@ export type ImageDimensions = {
 export const Image = memo(({ source, link }: { source: string; link: string }) => {
 	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
 	const { screen } = useDimensions()
-	const [dimensions, setDimensions] = useMMKVObject<ImageDimensions>(`chatEmbedImageDimensions:${source}`, mmkvInstance)
+	const [dimensions, setDimensions] = useMMKVObject<ImageDimensions>(
+		`chatEmbedImageDimensions:${xxHash32(`${source}:${link}`).toString(16)}`,
+		mmkvInstance
+	)
 	const viewRef = useRef<View>(null)
 	const { onLayout, layout } = useViewLayout(viewRef)
 	const [error, setError] = useState<string | null>(null)
