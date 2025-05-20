@@ -1,5 +1,6 @@
 import axios, { type AxiosResponse } from "axios"
 import { getPreviewTypeFromMime } from "@/lib/utils"
+import DOMPurify from "dompurify"
 
 export class WebpageMetadata {
 	public title: string = ""
@@ -115,14 +116,31 @@ export class HtmlParser {
 	}
 
 	public static extractContentPreview(html: string): string {
-		const cleanHtml = html
-			.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-			.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-			.replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, "")
-			.replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, "")
-			.replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, "")
-			.replace(/<aside\b[^<]*(?:(?!<\/aside>)<[^<]*)*<\/aside>/gi, "")
-			.replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, "")
+		const cleanHtml = DOMPurify.sanitize(html, {
+			ALLOWED_TAGS: [
+				"article",
+				"main",
+				"div",
+				"span",
+				"p",
+				"a",
+				"img",
+				"h1",
+				"h2",
+				"h3",
+				"h4",
+				"h5",
+				"h6",
+				"body",
+				"head",
+				"html",
+				"footer",
+				"header",
+				"section",
+				"nav"
+			],
+			ALLOWED_ATTR: ["href", "src", "alt", "title", "class", "id", "style", "lang", "dir", "content"]
+		})
 
 		const mainContentMatch =
 			/<article\b[^>]*>([\s\S]*?)<\/article>|<main\b[^>]*>([\s\S]*?)<\/main>|<div\b[^>]*class=["'][^"']*content[^"']*["'][^>]*>([\s\S]*?)<\/div>/i.exec(
