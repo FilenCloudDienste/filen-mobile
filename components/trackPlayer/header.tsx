@@ -1,0 +1,311 @@
+import { Platform, View } from "react-native"
+import { type Playlist, usePlaylistsQuery, updatePlaylist } from "@/queries/usePlaylistsQuery"
+import { Fragment, useCallback, memo, useMemo } from "react"
+import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
+import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
+import { Icon } from "@roninoss/icons"
+import { Button } from "@/components/nativewindui/Button"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { inputPrompt } from "@/components/prompts/inputPrompt"
+import { useTranslation } from "react-i18next"
+import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
+import alerts from "@/lib/alerts"
+import { randomUUID } from "expo-crypto"
+import queryUtils from "@/queries/utils"
+import { useLocalSearchParams } from "expo-router"
+import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
+import { useTrackPlayer, type TrackMetadata } from "@/lib/trackPlayer"
+import assets from "@/lib/assets"
+import mmkvInstance from "@/lib/mmkv"
+import { useShallow } from "zustand/shallow"
+import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
+
+export const Header = memo(() => {
+	const { t } = useTranslation()
+	const { colors } = useColorScheme()
+	const { playlist: passedPlaylist } = useLocalSearchParams()
+	const trackPlayer = useTrackPlayer()
+	const setPlaylistsSearchTerm = useTrackPlayerStore(useShallow(state => state.setPlaylistsSearchTerm))
+	const setPlaylistSearchTerm = useTrackPlayerStore(useShallow(state => state.setPlaylistSearchTerm))
+
+	const playlistsQuery = usePlaylistsQuery({
+		enabled: false
+	})
+
+	const playlists = useMemo(() => {
+		if (playlistsQuery.status !== "success") {
+			return []
+		}
+
+		return playlistsQuery.data
+	}, [playlistsQuery.data, playlistsQuery.status])
+
+	const playlist = useMemo(() => {
+		if (playlistsQuery.status !== "success") {
+			return null
+		}
+
+		return playlistsQuery.data.find(p => p.uuid === passedPlaylist) ?? null
+	}, [playlistsQuery.data, playlistsQuery.status, passedPlaylist])
+
+	const createPlaylist = useCallback(async () => {
+		const inputPromptResponse = await inputPrompt({
+			title: t("drive.header.rightView.actionSheet.create.directory"),
+			materialIcon: {
+				name: "folder-plus-outline"
+			},
+			prompt: {
+				type: "plain-text",
+				keyboardType: "default",
+				defaultValue: "",
+				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+			}
+		})
+
+		if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
+			return
+		}
+
+		const title = inputPromptResponse.text.trim()
+
+		if (
+			title.length === 0 ||
+			title.length > 255 ||
+			playlists.some(playlist => playlist.name.toLowerCase().trim() === title.trim().toLowerCase())
+		) {
+			return
+		}
+
+		const uuid = randomUUID()
+		const date = Date.now()
+		const newPlaylist = {
+			name: title,
+			uuid,
+			created: date,
+			updated: date,
+			files: []
+		} satisfies Playlist
+
+		fullScreenLoadingModal.show()
+
+		try {
+			await updatePlaylist(newPlaylist)
+
+			queryUtils.usePlaylistsQuerySet({
+				updater: prev => [...prev.filter(p => p.uuid !== uuid), newPlaylist]
+			})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			fullScreenLoadingModal.hide()
+		}
+	}, [t, playlists])
+
+	const addTrackToPlaylist = useCallback(async () => {
+		const playlist = playlists.find(playlist => playlist.uuid === passedPlaylist)
+
+		if (!playlist) {
+			return
+		}
+
+		const selectDriveItemsResponse = await selectDriveItems({
+			type: "file",
+			max: 9999,
+			dismissHref: "/trackPlayer/",
+			previewTypes: ["audio"],
+			toMove: playlist.files.map(file => file.uuid)
+		})
+
+		if (selectDriveItemsResponse.cancelled || selectDriveItemsResponse.items.length === 0) {
+			return
+		}
+
+		const newPlaylist = {
+			...playlist,
+			updated: Date.now(),
+			files: [
+				...playlist.files.filter(file => !selectDriveItemsResponse.items.some(item => item.uuid === file.uuid)),
+				...selectDriveItemsResponse.items.map(item => ({
+					uuid: item.uuid,
+					name: item.name,
+					mime: item.type === "file" ? item.mime : "",
+					size: item.size,
+					bucket: item.type === "file" ? item.bucket : "",
+					key: item.type === "file" ? item.key : "",
+					version: item.type === "file" ? item.version : 0,
+					chunks: item.type === "file" ? item.chunks : 0,
+					region: item.type === "file" ? item.region : "",
+					playlist: playlist.uuid
+				}))
+			]
+		} satisfies Playlist
+
+		fullScreenLoadingModal.show()
+
+		try {
+			await updatePlaylist(newPlaylist)
+
+			queryUtils.usePlaylistsQuerySet({
+				updater: prev => [...prev.filter(p => p.uuid !== playlist.uuid), newPlaylist]
+			})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			fullScreenLoadingModal.hide()
+		}
+	}, [passedPlaylist, playlists])
+
+	const playPlaylist = useCallback(async () => {
+		if (!playlist || playlist.files.length === 0 || !trackPlayer) {
+			return
+		}
+
+		try {
+			const silentSoundURI = assets.uri.audio.silent_1h()
+
+			if (!silentSoundURI) {
+				return
+			}
+
+			await trackPlayer.setQueue(
+				playlist.files.map(file => {
+					const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
+					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
+
+					return {
+						url: silentSoundURI,
+						title: metadataParsed?.title ?? file.name,
+						artist: metadataParsed?.artist,
+						album: metadataParsed?.album,
+						artwork: metadataParsed?.picture,
+						description: JSON.stringify(file)
+					}
+				})
+			)
+
+			await trackPlayer.play()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
+	}, [playlist, trackPlayer])
+
+	return (
+		<Fragment>
+			{Platform.OS === "ios" ? (
+				<AdaptiveSearchHeader
+					iosTitle={playlist ? playlist.name : "Playlists"}
+					iosIsLargeTitle={false}
+					iosBackButtonMenuEnabled={false}
+					backVisible={playlist !== null}
+					iosBackVisible={playlist !== null}
+					iosBackButtonTitleVisible={false}
+					backgroundColor={colors.card}
+					rightView={() => {
+						if (playlist) {
+							return (
+								<View className="flex-row items-center">
+									<Button
+										variant="plain"
+										size="icon"
+										onPress={playPlaylist}
+									>
+										<Icon
+											name="play-circle-outline"
+											size={24}
+											color={colors.primary}
+										/>
+									</Button>
+									<Button
+										variant="plain"
+										size="icon"
+										onPress={addTrackToPlaylist}
+									>
+										<Icon
+											name="plus"
+											size={24}
+											color={colors.primary}
+										/>
+									</Button>
+								</View>
+							)
+						}
+
+						return (
+							<Button
+								variant="plain"
+								onPress={createPlaylist}
+							>
+								<Icon
+									name="plus"
+									size={24}
+									color={colors.primary}
+								/>
+							</Button>
+						)
+					}}
+					searchBar={{
+						iosHideWhenScrolling: false,
+						onChangeText: text => {
+							if (playlist) {
+								setPlaylistSearchTerm(text)
+							} else {
+								setPlaylistsSearchTerm(text)
+							}
+						},
+						contentTransparent: true,
+						persistBlur: true
+					}}
+				/>
+			) : (
+				<LargeTitleHeader
+					title={playlist ? playlist.name : "Playlists"}
+					materialPreset="inline"
+					backVisible={playlist !== null}
+					backgroundColor={colors.card}
+					rightView={() => {
+						return (
+							<Button
+								variant="plain"
+								onPress={() => {}}
+							>
+								<Icon
+									name="dots-horizontal-circle-outline"
+									size={24}
+									color={colors.primary}
+								/>
+							</Button>
+						)
+					}}
+					searchBar={{
+						iosHideWhenScrolling: false,
+						onChangeText: text => {
+							if (playlist) {
+								setPlaylistSearchTerm(text)
+							} else {
+								setPlaylistsSearchTerm(text)
+							}
+						},
+						contentTransparent: true,
+						persistBlur: true
+					}}
+				/>
+			)}
+		</Fragment>
+	)
+})
+
+Header.displayName = "Header"
+
+export default Header

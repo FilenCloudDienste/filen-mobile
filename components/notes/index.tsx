@@ -2,9 +2,8 @@ import { Fragment, useMemo, useCallback, useState, useEffect, useRef, memo } fro
 import Container from "@/components/Container"
 import ListHeader from "./listHeader"
 import useNotesQuery from "@/queries/useNotesQuery"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
-import { View, RefreshControl, ActivityIndicator } from "react-native"
+import { View, RefreshControl, ActivityIndicator, FlatList, type ListRenderItemInfo } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import { useNotesStore } from "@/stores/notes.store"
@@ -16,6 +15,7 @@ import Item from "./item"
 import Header from "./header"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useShallow } from "zustand/shallow"
+import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 export const Notes = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
@@ -24,7 +24,7 @@ export const Notes = memo(() => {
 	const bottomListContainerPadding = useBottomListContainerPadding()
 	const setNotes = useNotesStore(useShallow(state => state.setNotes))
 	const { colors } = useColorScheme()
-	const listRef = useRef<FlashList<Note>>(null)
+	const listRef = useRef<FlatList<Note>>(null)
 
 	const notesQuery = useNotesQuery({})
 	const notesTagsQuery = useNotesTagsQuery({})
@@ -186,14 +186,13 @@ export const Notes = memo(() => {
 		<Fragment>
 			<Header setSearchTerm={setSearchTerm} />
 			<Container>
-				<FlashList
+				<FlatList
+					{...FLATLIST_BASE_PROPS}
 					ref={listRef}
 					data={notes}
 					contentInsetAdjustmentBehavior="automatic"
 					renderItem={renderItem}
 					refreshing={refreshing}
-					estimatedItemSize={100}
-					drawDistance={100}
 					contentContainerStyle={{
 						paddingBottom: bottomListContainerPadding
 					}}

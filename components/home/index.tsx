@@ -15,6 +15,8 @@ import { useRouter } from "expo-router"
 import ContainerComponent from "./container"
 import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
+import * as BackgroundTask from "expo-background-task"
+import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
@@ -206,6 +208,14 @@ export const Home = memo(() => {
 									actionKey: "first",
 									title: "Item 1"
 								}),
+								createDropdownItem({
+									actionKey: "item2",
+									title: "Item 1"
+								}),
+								createDropdownItem({
+									actionKey: "trackPlayer",
+									title: "trackPlayer"
+								}),
 								createDropdownSubMenu(
 									{
 										title: "Submenu 1",
@@ -228,6 +238,14 @@ export const Home = memo(() => {
 
 								if (item.actionKey === "first") {
 									router.push("/_sitemap")
+								}
+
+								if (item.actionKey === "trackPlayer") {
+									router.push("/trackPlayer")
+								}
+
+								if (item.actionKey === "item2") {
+									BackgroundTask.triggerTaskWorkerForTestingAsync().then(console.log).catch(console.error)
 								}
 							}}
 						>
@@ -253,6 +271,7 @@ export const Home = memo(() => {
 					</View>
 				) : (
 					<FlatList
+						{...FLATLIST_BASE_PROPS}
 						data={["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", "trash", "bottom"] as const}
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}

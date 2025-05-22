@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import axios from "axios"
+import { Buffer } from "buffer"
 
 export type UseTextEditorItemContentQuery = {
 	item: DriveCloudItem
@@ -30,18 +31,15 @@ export default function useTextEditorItemContentQuery({
 		queryKey: ["useTextEditorItemContentQuery", uri],
 		queryFn: async () => {
 			const request = await axios.get(uri, {
-				timeout: 60000
+				timeout: 60000,
+				responseType: "arraybuffer"
 			})
 
 			if (request.status !== 200) {
 				throw new Error("Failed to fetch YouTube data.")
 			}
 
-			if (typeof request.data !== "string") {
-				throw new Error("Invalid data type.")
-			}
-
-			return request.data
+			return Buffer.from(request.data).toString("utf-8")
 		},
 		notifyOnChangeProps,
 		enabled: typeof enabled === "boolean" ? enabled : isFocused,

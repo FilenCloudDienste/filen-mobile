@@ -6,6 +6,7 @@ import { type Note, type NoteTag, type NoteType } from "@filen/sdk/dist/types/ap
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { type ChatLastFocusValues } from "@filen/sdk/dist/types/api/v3/chat/lastFocusUpdate"
+import { type Playlist } from "./usePlaylistsQuery"
 
 export type NoteContentResult = {
 	content: string
@@ -175,6 +176,14 @@ export class QueryUtils {
 	}): void {
 		this.set<ChatLastFocusValues[]>(["useChatsLastFocusQuery"], prev => {
 			const currentData = prev ?? ([] satisfies ChatLastFocusValues[])
+
+			return typeof updater === "function" ? updater(currentData) : updater
+		})
+	}
+
+	public usePlaylistsQuerySet({ updater }: { updater: Playlist[] | ((prev: Playlist[]) => Playlist[]) }): void {
+		this.set<Playlist[]>(["usePlaylistsQuery"], prev => {
+			const currentData = prev ?? ([] satisfies Playlist[])
 
 			return typeof updater === "function" ? updater(currentData) : updater
 		})

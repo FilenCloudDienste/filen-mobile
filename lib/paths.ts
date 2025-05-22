@@ -8,6 +8,9 @@ export const THUMBNAILS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "com
 export const DB_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "databases")
 export const EXPORTS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "exportedFiles")
 export const OFFLINE_FILES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "offlineAvailableFiles")
+export const ASSETS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "assets")
+export const TRACK_PLAYER_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "trackPlayer")
+export const TRACK_PLAYER_PICTURES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "trackPlayerPictures")
 
 export class Paths {
 	private readonly created = {
@@ -16,7 +19,10 @@ export class Paths {
 		thumbnails: false,
 		db: false,
 		exports: false,
-		offlineFiles: false
+		offlineFiles: false,
+		assets: false,
+		trackPlayer: false,
+		trackPlayerPictures: false
 	}
 
 	public clearTempDirectories(): void {
@@ -139,6 +145,54 @@ export class Paths {
 		this.created.offlineFiles = true
 
 		return OFFLINE_FILES_BASE_PATH
+	}
+
+	public assets(): string {
+		if (this.created.assets) {
+			return ASSETS_BASE_PATH
+		}
+
+		const dir = new FileSystem.Directory(ASSETS_BASE_PATH)
+
+		if (!dir.exists) {
+			dir.create()
+		}
+
+		this.created.assets = true
+
+		return ASSETS_BASE_PATH
+	}
+
+	public trackPlayer(): string {
+		if (this.created.trackPlayer) {
+			return TRACK_PLAYER_BASE_PATH
+		}
+
+		const dir = new FileSystem.Directory(TRACK_PLAYER_BASE_PATH)
+
+		if (!dir.exists) {
+			dir.create()
+		}
+
+		this.created.trackPlayer = true
+
+		return TRACK_PLAYER_BASE_PATH
+	}
+
+	public trackPlayerPictures(): string {
+		if (this.created.trackPlayerPictures) {
+			return TRACK_PLAYER_PICTURES_BASE_PATH
+		}
+
+		const dir = new FileSystem.Directory(TRACK_PLAYER_PICTURES_BASE_PATH)
+
+		if (!dir.exists) {
+			dir.create()
+		}
+
+		this.created.trackPlayerPictures = true
+
+		return TRACK_PLAYER_PICTURES_BASE_PATH
 	}
 }
 

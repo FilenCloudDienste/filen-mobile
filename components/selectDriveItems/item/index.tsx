@@ -1,12 +1,14 @@
 import { useRouter } from "expo-router"
 import { memo, useCallback, useMemo } from "react"
 import { ListItem as ListItemComponent } from "@/components/nativewindui/List"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
 import { useDirectorySizeQueryNoFocusRefetch } from "@/queries/useDirectorySizeQuery"
-import { formatBytes } from "@/lib/utils"
+import { formatBytes, getPreviewType } from "@/lib/utils"
 import LeftView from "./leftView"
 import { useShallow } from "zustand/shallow"
+import { type PreviewType } from "@/stores/gallery.store"
+import { Paths } from "expo-file-system/next"
+import { type ListRenderItemInfo } from "react-native"
 
 export type ListItemInfo = {
 	title: string
@@ -21,13 +23,17 @@ export const Item = memo(
 		max,
 		type,
 		toMove,
-		queryParams
+		queryParams,
+		previewTypes,
+		extensions
 	}: {
 		info: ListRenderItemInfo<ListItemInfo>
 		max: number
 		type: "file" | "directory"
 		toMove: string[]
 		queryParams: FetchCloudItemsParams
+		previewTypes: PreviewType[]
+		extensions: string[]
 	}) => {
 		const { push: routerPush } = useRouter()
 		const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
@@ -43,12 +49,31 @@ export const Item = memo(
 				return true
 			}
 
+			if (previewTypes.length > 0 && !previewTypes.includes(getPreviewType(info.item.item.name))) {
+				return false
+			}
+
+			if (extensions.length > 0 && !extensions.includes(Paths.extname(info.item.item.name))) {
+				return false
+			}
+
 			if (selectedItemsCount >= max || info.item.item.type !== type || toMove.includes(info.item.item.uuid)) {
 				return false
 			}
 
 			return true
-		}, [selectedItemsCount, info.item.item.type, max, type, isSelected, info.item.item.uuid, toMove])
+		}, [
+			selectedItemsCount,
+			info.item.item.type,
+			max,
+			type,
+			isSelected,
+			info.item.item.uuid,
+			toMove,
+			previewTypes,
+			extensions,
+			info.item.item.name
+		])
 
 		const item = useMemo(() => {
 			if (info.item.item.type !== "directory" || !directorySize.isSuccess) {
@@ -117,7 +142,7 @@ export const Item = memo(
 				isFirstInSection={false}
 				isLastInSection={false}
 				onPress={onPress}
-				disabled={!canSelect}
+				disabled={type === "file" && info.item.item.type === "directory" ? false : !canSelect}
 			/>
 		)
 	}

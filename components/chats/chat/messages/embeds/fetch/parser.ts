@@ -165,7 +165,8 @@ export class WebpageMetadataParser {
 			if (contentType.includes("text/html")) {
 				const get: AxiosResponse<string> = await axios.get(this.url, {
 					timeout: 15000,
-					maxRedirects: 5
+					maxRedirects: 5,
+					responseType: "text"
 				})
 
 				if (get.status !== 200) {

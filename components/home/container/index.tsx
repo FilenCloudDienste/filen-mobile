@@ -7,6 +7,7 @@ import { Icon } from "@roninoss/icons"
 import { useTranslation } from "react-i18next"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useRouter } from "expo-router"
+import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 export const Container = memo(
 	({
@@ -159,6 +160,7 @@ export const Container = memo(
 					</View>
 				</TouchableOpacity>
 				<FlatList
+					{...FLATLIST_BASE_PROPS}
 					data={chunkArray(items, 3)}
 					className="flex-1"
 					horizontal={true}

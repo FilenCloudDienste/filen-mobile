@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, Fragment } from "react"
+import { memo, useMemo, useState, Fragment, useEffect } from "react"
 import { btoa } from "react-native-quick-base64"
 import nodeWorker from "@/lib/nodeWorker"
 import { type GalleryItem } from "@/stores/gallery.store"
@@ -9,12 +9,14 @@ import { useVideoPlayer, VideoView } from "expo-video"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { useTrackPlayerControls } from "@/lib/trackPlayer"
 
 export const Video = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	const [loading, setLoading] = useState<boolean>(true)
 	const [error, setError] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const insets = useSafeAreaInsets()
+	const trackPlayerControls = useTrackPlayerControls()
 
 	const style = useMemo(() => {
 		return {
@@ -64,6 +66,10 @@ export const Video = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 	useEventListener(player, "playingChange", e => {
 		//setPlaying(e.isPlaying)
 	})
+
+	useEffect(() => {
+		trackPlayerControls.stop().catch(console.error)
+	}, [trackPlayerControls])
 
 	return (
 		<View

@@ -1,6 +1,7 @@
 import events from "@/lib/events"
 import { randomUUID } from "expo-crypto"
 import SelectDriveItemsComponent from "@/components/selectDriveItems"
+import { type PreviewType } from "@/stores/gallery.store"
 
 export type SelectDriveItemsResponse =
 	| {
@@ -16,6 +17,9 @@ export type SelectDriveItemsParams = {
 	max: number
 	dismissHref: string
 	toMove?: string[]
+	extensions?: string[]
+	previewTypes?: PreviewType[]
+	multiScreen?: boolean
 }
 
 export type SelectDriveItemsEvent =

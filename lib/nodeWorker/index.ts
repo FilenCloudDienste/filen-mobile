@@ -22,7 +22,6 @@ export class NodeWorker {
 	private readonly startMutex: Semaphore = new Semaphore(1)
 	public httpServerPort: number | null = null
 	public httpAuthToken: string | null = null
-	private currentStartType: "background" | "foreground" | null = null
 	private readonly setTransfers = useTransfersStore.getState().setTransfers
 	private readonly setFinishedTransfers = useTransfersStore.getState().setFinishedTransfers
 	private readonly setProgress = useTransfersStore.getState().setProgress
@@ -94,7 +93,7 @@ export class NodeWorker {
 		})
 	}
 
-	private async waitForReady(): Promise<void> {
+	public async waitForReady(): Promise<void> {
 		if (this.ready) {
 			return
 		}
@@ -133,15 +132,40 @@ export class NodeWorker {
 		})
 	}
 
+	public buildStreamURL(file: {
+		name: string
+		mime: string
+		size: number
+		uuid: string
+		bucket: string
+		key: string
+		version: number
+		chunks: number
+		region: string
+	}): string | null {
+		if (!this.httpServerPort || !this.httpAuthToken || !this.ready || this.httpAuthToken.length === 0 || this.httpServerPort <= 0) {
+			return null
+		}
+
+		return `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+			btoa(
+				JSON.stringify({
+					name: file.name,
+					mime: file.mime,
+					size: file.size,
+					uuid: file.uuid,
+					bucket: file.bucket,
+					key: file.key,
+					version: file.version,
+					chunks: file.chunks,
+					region: file.region
+				})
+			)
+		)}`
+	}
+
 	public async httpServerAlive(): Promise<boolean> {
-		if (
-			!this.httpServerPort ||
-			!this.httpAuthToken ||
-			!this.ready ||
-			this.currentStartType === "background" ||
-			this.httpAuthToken.length === 0 ||
-			this.httpServerPort <= 0
-		) {
+		if (!this.httpServerPort || !this.httpAuthToken || !this.ready || this.httpAuthToken.length === 0 || this.httpServerPort <= 0) {
 			return false
 		}
 
@@ -156,11 +180,11 @@ export class NodeWorker {
 		})
 	}
 
-	public async start(type: "background" | "foreground"): Promise<void> {
+	public async start(): Promise<void> {
 		await this.startMutex.acquire()
 
 		try {
-			if (this.ready && this.currentStartType === type) {
+			if (this.ready) {
 				return
 			}
 
@@ -182,13 +206,12 @@ export class NodeWorker {
 					}
 				})
 
-				nodejs.startWithArgs(`main.js --type=${type}`, {
+				nodejs.start("main.js", {
 					redirectOutputToLogcat: true
 				})
 			})
 
 			this.ready = true
-			this.currentStartType = type
 		} finally {
 			this.startMutex.release()
 		}
@@ -205,7 +228,6 @@ export class NodeWorker {
 			await this.proxy("exit", undefined)
 
 			this.ready = false
-			this.currentStartType = null
 			this.httpServerPort = null
 			this.httpAuthToken = null
 

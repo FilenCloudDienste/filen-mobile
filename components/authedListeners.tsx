@@ -65,7 +65,10 @@ export const AuthedListeners = memo(() => {
 						max: e.data.max,
 						type: e.data.type,
 						dismissHref: e.data.dismissHref,
-						toMove: JSON.stringify(e.data.toMove ?? [])
+						toMove: JSON.stringify(e.data.toMove ?? []),
+						previewTypes: JSON.stringify(e.data.previewTypes ?? []),
+						extensions: JSON.stringify(e.data.extensions ?? []),
+						multiScreen: e.data.multiScreen ? 1 : 0
 					}
 				})
 			}

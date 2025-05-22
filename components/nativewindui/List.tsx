@@ -1,15 +1,27 @@
-import { FlashList, type FlashListProps, type ListRenderItem as FlashListRenderItem, type ListRenderItemInfo } from "@shopify/flash-list"
 import { cva } from "class-variance-authority"
 import { cssInterop } from "nativewind"
 import * as React from "react"
-import { Platform, PressableProps, StyleProp, ScrollView, TextStyle, View, ViewProps, ViewStyle } from "react-native"
+import {
+	Platform,
+	PressableProps,
+	StyleProp,
+	TextStyle,
+	View,
+	ViewProps,
+	ViewStyle,
+	FlatList,
+	type ListRenderItemInfo,
+	type ListRenderItem as FlatListRenderItem,
+	type FlatListProps
+} from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 import { Text, TextClassContext } from "~/components/nativewindui/Text"
 import { Button } from "~/components/nativewindui/Button"
 import { cn } from "~/lib/cn"
 
-cssInterop(FlashList, {
+cssInterop(FlatList, {
 	className: "style",
 	contentContainerClassName: "contentContainerStyle"
 })
@@ -17,7 +29,7 @@ cssInterop(FlashList, {
 type ListDataItem = string | { title: string; subTitle?: string }
 type ListVariant = "insets" | "full-width"
 
-type ListRef<T extends ListDataItem> = React.Ref<FlashList<T>>
+type ListRef<T extends ListDataItem> = React.Ref<FlatList<T>>
 
 type ListRenderItemProps<T extends ListDataItem> = ListRenderItemInfo<T> & {
 	variant?: ListVariant
@@ -26,14 +38,14 @@ type ListRenderItemProps<T extends ListDataItem> = ListRenderItemInfo<T> & {
 	sectionHeaderAsGap?: boolean
 }
 
-type ListProps<T extends ListDataItem> = Omit<FlashListProps<T>, "renderItem"> & {
+type ListProps<T extends ListDataItem> = Omit<FlatListProps<T>, "renderItem"> & {
 	renderItem?: ListRenderItem<T>
 	variant?: ListVariant
 	sectionHeaderAsGap?: boolean
 	rootClassName?: string
 	rootStyle?: StyleProp<ViewStyle>
 }
-type ListRenderItem<T extends ListDataItem> = (props: ListRenderItemProps<T>) => ReturnType<FlashListRenderItem<T>>
+type ListRenderItem<T extends ListDataItem> = (props: ListRenderItemProps<T>) => ReturnType<FlatListRenderItem<T>>
 
 const rootVariants = cva("min-h-2 flex-1", {
 	variants: {
@@ -76,7 +88,9 @@ function ListComponent<T extends ListDataItem>(
 	const insets = useSafeAreaInsets()
 
 	return (
-		<ScrollView
+		<FlatList
+			{...FLATLIST_BASE_PROPS}
+			data={data}
 			className={cn(
 				"flex-1",
 				rootVariants({
@@ -86,34 +100,27 @@ function ListComponent<T extends ListDataItem>(
 				rootClassName
 			)}
 			style={rootStyle}
-			contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
 			refreshControl={props.refreshControl}
-		>
-			<FlashList
-				data={data}
-				contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
-				renderItem={renderItemWithVariant(renderItem, variant, data, sectionHeaderAsGap)}
-				contentContainerClassName={cn(
-					variant === "insets" && (!data || (typeof data?.[0] !== "string" && "pt-4")),
-					contentContainerClassName
-				)}
-				contentContainerStyle={{
-					paddingBottom: Platform.select({
-						ios: !contentInsetAdjustmentBehavior || contentInsetAdjustmentBehavior === "never" ? insets.bottom + 16 : 0,
-						default: insets.bottom
-					})
-				}}
-				getItemType={getItemType}
-				showsVerticalScrollIndicator={false}
-				{...props}
-				refreshControl={undefined}
-				ref={ref}
-			/>
-		</ScrollView>
+			contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
+			renderItem={renderItemWithVariant(renderItem, variant, data as T[] | undefined | null, sectionHeaderAsGap)}
+			contentContainerClassName={cn(
+				variant === "insets" && (!data || (typeof data?.[0] !== "string" && "pt-4")),
+				contentContainerClassName
+			)}
+			contentContainerStyle={{
+				paddingBottom: Platform.select({
+					ios: !contentInsetAdjustmentBehavior || contentInsetAdjustmentBehavior === "never" ? insets.bottom + 16 : 0,
+					default: insets.bottom
+				})
+			}}
+			showsVerticalScrollIndicator={false}
+			{...props}
+			ref={ref}
+		/>
 	)
 }
 
-function getItemType<T>(item: T) {
+export function getItemType<T>(item: T) {
 	return typeof item === "string" ? "sectioHeader" : "row"
 }
 

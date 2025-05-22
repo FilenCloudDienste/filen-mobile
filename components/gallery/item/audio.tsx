@@ -4,13 +4,13 @@ import nodeWorker from "@/lib/nodeWorker"
 import { type GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator } from "react-native"
 import { type WH } from "."
-import { useAudioPlayer } from "expo-audio"
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import Animated, { FadeOut } from "react-native-reanimated"
 import useSetExpoAudioMode from "@/hooks/useSetExpoAudioMode"
-import { useTrackPlayer } from "@/lib/trackPlayer"
+import { useTrackPlayerControls } from "@/lib/trackPlayer"
 
 export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	useSetExpoAudioMode()
@@ -18,7 +18,7 @@ export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 	const { colors } = useColorScheme()
 	const [loading, setLoading] = useState<boolean>(true)
 	const [playing, setPlaying] = useState<boolean>(false)
-	const trackPlayer = useTrackPlayer()
+	const trackPlayerControls = useTrackPlayerControls()
 
 	const style = useMemo(() => {
 		return {
@@ -54,20 +54,17 @@ export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 		return null
 	}, [item])
 
-	const player = useAudioPlayer(source)
+	const player = useAudioPlayer(source, 100)
+	const status = useAudioPlayerStatus(player)
 
 	useEffect(() => {
-		setLoading(!player.isLoaded)
-		setPlaying(player.playing && player.isLoaded && !player.isBuffering)
-	}, [player])
+		setLoading(!status.isLoaded)
+		setPlaying(status.playing)
+	}, [status])
 
 	useEffect(() => {
-		trackPlayer?.stop().catch(console.error)
-
-		return () => {
-			trackPlayer?.play().catch(console.error)
-		}
-	}, [trackPlayer])
+		trackPlayerControls.stop().catch(console.error)
+	}, [trackPlayerControls])
 
 	return (
 		<View

@@ -11,7 +11,8 @@ esbuild
 		format: "cjs", // CommonJS format for Node.js
 		sourcemap: false, // Enable source maps
 		minify: true, // Optional: minify the output
-		tsconfig: "./tsconfig.json" // Path to your TypeScript config file (if using TypeScript)
+		tsconfig: "./tsconfig.json", // Path to your TypeScript config file (if using TypeScript),
+		external: ["react-native-fs"]
 	})
 	.then(() => {
 		console.log("Build success!")

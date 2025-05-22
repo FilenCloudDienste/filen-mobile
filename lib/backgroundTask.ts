@@ -1,12 +1,12 @@
 import * as ExpoBackgroundTask from "expo-background-task"
 import * as ExpoTaskManager from "expo-task-manager"
-import { backgroundCameraUpload } from "./cameraUpload"
+//import { backgroundCameraUpload } from "./cameraUpload"
 import { BACKGROUND_TASK_IDENTIFIER } from "./constants"
-import nodeWorker from "./nodeWorker"
+//import setup from "./setup"
 
 ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 	try {
-		const abortController = new AbortController()
+		/*const abortController = new AbortController()
 
 		const abortTimeout = setTimeout(() => {
 			if (!abortController.signal.aborted) {
@@ -15,20 +15,20 @@ ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 		}, 1000 * 20)
 
 		try {
-			await nodeWorker.start("background")
+			await setup({
+				background: true
+			})
 
 			await backgroundCameraUpload.run({
 				abortSignal: abortController.signal
 			})
-
-			await nodeWorker.stop()
 		} finally {
 			if (!abortController.signal.aborted) {
 				abortController.abort()
 			}
 
 			clearTimeout(abortTimeout)
-		}
+		}*/
 	} catch (e) {
 		console.error(e)
 	}

@@ -14,3 +14,5 @@ export function initSDK(config: FilenSDKConfig): void {
 export function reinitSDK(config?: FilenSDKConfig): void {
 	sdk = new FilenSDK(config ? config : ANONYMOUS_SDK_CONFIG)
 }
+
+export default sdk

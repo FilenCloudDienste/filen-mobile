@@ -6,6 +6,7 @@ import { type GalleryItem, useGalleryStore } from "@/stores/gallery.store"
 import useDimensions from "@/hooks/useDimensions"
 import Header from "./header"
 import { useShallow } from "zustand/shallow"
+import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 export const Gallery = memo(
 	({
@@ -99,6 +100,18 @@ export const Gallery = memo(
 			}
 		}, [screen.width, screen.height])
 
+		const onScrollBeginDrag = useCallback(() => {
+			setScrolling(true)
+		}, [])
+
+		const onScrollEndDrag = useCallback(() => {
+			setScrolling(false)
+		}, [])
+
+		const key = useMemo(() => {
+			return isPortrait ? "portrait" : "landscape"
+		}, [isPortrait])
+
 		useEffect(() => {
 			if (initialVisibleIndexSet.current) {
 				return
@@ -129,17 +142,14 @@ export const Gallery = memo(
 					show={showHeader}
 				/>
 				<FlatList
-					key={isPortrait ? "portrait" : "landscape"}
+					{...FLATLIST_BASE_PROPS}
+					key={key}
 					data={items}
 					pagingEnabled={true}
 					horizontal={true}
 					initialScrollIndex={validInitialScrollIndex}
-					onScrollBeginDrag={() => {
-						setScrolling(true)
-					}}
-					onScrollEndDrag={() => {
-						setScrolling(false)
-					}}
+					onScrollBeginDrag={onScrollBeginDrag}
+					onScrollEndDrag={onScrollEndDrag}
 					showsHorizontalScrollIndicator={false}
 					showsVerticalScrollIndicator={false}
 					scrollEnabled={scrollEnabled}
@@ -148,9 +158,9 @@ export const Gallery = memo(
 					overScrollMode="never"
 					bounces={false}
 					contentInsetAdjustmentBehavior="never"
-					initialNumToRender={5}
-					windowSize={5}
-					maxToRenderPerBatch={5}
+					initialNumToRender={3}
+					windowSize={3}
+					maxToRenderPerBatch={3}
 					getItemLayout={getItemLayout}
 					viewabilityConfig={viewabilityConfig}
 					onViewableItemsChanged={onViewableItemsChanged}

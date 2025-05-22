@@ -530,7 +530,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	}, [itemsCount, setSelectedItems, selectedItemsCount])
 
 	return (
-		<View className="flex flex-row items-center">
+		<View className="flex-row items-center">
 			{selectedItemsCount === 0 ? (
 				<Fragment>
 					<Transfers />

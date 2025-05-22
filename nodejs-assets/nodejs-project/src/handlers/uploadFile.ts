@@ -17,6 +17,7 @@ export type UploadFileParams = {
 	creation?: number
 	dontEmitProgress?: boolean
 	deleteAfterUpload?: boolean
+	uuid?: string
 } & (
 	| {
 			isShared: false
@@ -53,6 +54,7 @@ export default async function uploadFile(this: NodeWorker, params: UploadFilePar
 			source: normalizeFilePathForNode(params.localPath),
 			parent: params.parent,
 			name: params.name,
+			uuid: params.uuid,
 			abortSignal: this.transfersAbortControllers[params.id]?.signal,
 			pauseSignal: this.transfersPauseSignals[params.id],
 			onQueued: () => {

@@ -1,11 +1,10 @@
 import { useCallback, useState, useMemo, Fragment, useEffect, memo } from "react"
 import events from "@/lib/events"
 import useContactsQuery from "@/queries/useContactsQuery"
-import { List, ESTIMATED_ITEM_HEIGHT, type ListDataItem } from "@/components/nativewindui/List"
-import { RefreshControl, View } from "react-native"
+import { List, type ListDataItem } from "@/components/nativewindui/List"
+import { RefreshControl, View, type ListRenderItemInfo } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { useLocalSearchParams, useRouter } from "expo-router"
@@ -141,6 +140,7 @@ export const SelectContacts = memo(() => {
 				iosBackButtonTitle="Cancel"
 				iosTitle="Select contacts"
 				iosIsLargeTitle={false}
+				backgroundColor={colors.card}
 				searchBar={{
 					iosHideWhenScrolling: false,
 					onChangeText: text => setSearchTerm(text),
@@ -153,11 +153,11 @@ export const SelectContacts = memo(() => {
 					<List
 						variant="full-width"
 						data={contacts}
-						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
 						refreshing={refreshing || query.status === "pending"}
-						drawDistance={ESTIMATED_ITEM_HEIGHT.withSubTitle * 3}
+						windowSize={3}
+						removeClippedSubviews={true}
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName="pb-16"
 						ListEmptyComponent={

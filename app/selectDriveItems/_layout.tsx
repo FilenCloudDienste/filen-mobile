@@ -1,7 +1,9 @@
 import { Stack, Redirect } from "expo-router"
-import { View } from "react-native"
 import useIsAuthed from "@/hooks/useIsAuthed"
 import Toolbar from "@/components/selectDriveItems/toolbar"
+import { Fragment } from "react"
+import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
+import { Platform } from "react-native"
 
 export default function SelectDriveItemsLayout() {
 	const [isAuthed] = useIsAuthed()
@@ -11,7 +13,7 @@ export default function SelectDriveItemsLayout() {
 	}
 
 	return (
-		<View className="flex-1">
+		<Fragment>
 			<Stack
 				screenOptions={{
 					headerShown: false,
@@ -19,6 +21,7 @@ export default function SelectDriveItemsLayout() {
 				}}
 			/>
 			<Toolbar />
-		</View>
+			{Platform.OS === "ios" && <FullScreenLoadingModal />}
+		</Fragment>
 	)
 }

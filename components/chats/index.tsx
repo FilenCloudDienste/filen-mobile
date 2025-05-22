@@ -2,19 +2,19 @@ import { memo, useMemo, useState, Fragment, useRef, useCallback } from "react"
 import useChatsQuery from "@/queries/useChatsQuery"
 import Header from "./header"
 import Container from "../Container"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
-import { View, RefreshControl, ActivityIndicator } from "react-native"
+import { View, RefreshControl, ActivityIndicator, FlatList, type ListRenderItemInfo } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import alerts from "@/lib/alerts"
 import Item from "./item"
+import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const listRef = useRef<FlashList<ChatConversation>>(null)
+	const listRef = useRef<FlatList<ChatConversation>>(null)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const bottomListContainerPadding = useBottomListContainerPadding()
 	const { colors } = useColorScheme()
@@ -130,21 +130,22 @@ export const Chats = memo(() => {
 		<Fragment>
 			<Header setSearchTerm={setSearchTerm} />
 			<Container>
-				<FlashList
+				<FlatList
+					{...FLATLIST_BASE_PROPS}
 					ref={listRef}
 					data={chats}
 					contentInsetAdjustmentBehavior="automatic"
 					keyExtractor={keyExtractor}
 					renderItem={renderItem}
 					refreshing={refreshing || chatsQuery.status === "pending"}
-					estimatedItemSize={100}
-					drawDistance={100}
 					contentContainerStyle={{
 						paddingBottom: bottomListContainerPadding
 					}}
 					ListEmptyComponent={ListEmpty}
 					ListFooterComponent={ListFooter}
 					refreshControl={refreshControl}
+					windowSize={3}
+					removeClippedSubviews={true}
 				/>
 			</Container>
 		</Fragment>

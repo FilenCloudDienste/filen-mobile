@@ -1,11 +1,10 @@
 import { useCallback, useState, useMemo, Fragment, useEffect, memo } from "react"
 import events from "@/lib/events"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
-import { List, ESTIMATED_ITEM_HEIGHT, type ListDataItem } from "@/components/nativewindui/List"
-import { RefreshControl, View, Platform } from "react-native"
+import { List, type ListDataItem } from "@/components/nativewindui/List"
+import { RefreshControl, View, Platform, type ListRenderItemInfo } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import Container from "@/components/Container"
@@ -18,6 +17,7 @@ import cache from "@/lib/cache"
 import Item from "./item"
 import { Button } from "../nativewindui/Button"
 import { useShallow } from "zustand/shallow"
+import { type PreviewType } from "@/stores/gallery.store"
 
 export type ListItemInfo = {
 	title: string
@@ -28,7 +28,7 @@ export type ListItemInfo = {
 
 export const SelectDriveItems = memo(() => {
 	const { colors } = useColorScheme()
-	const { id, type, max, parent, dismissHref, toMove } = useLocalSearchParams()
+	const { id, type, max, parent, dismissHref, toMove, previewTypes, extensions, multiScreen } = useLocalSearchParams()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
@@ -46,6 +46,18 @@ export const SelectDriveItems = memo(() => {
 	const toMoveParsed = useMemo(() => {
 		return typeof toMove === "string" ? (JSON.parse(toMove) as string[]) : []
 	}, [toMove])
+
+	const previewTypesParsed = useMemo(() => {
+		return typeof previewTypes === "string" ? (JSON.parse(previewTypes) as PreviewType[]) : []
+	}, [previewTypes])
+
+	const extensionsParsed = useMemo(() => {
+		return typeof extensions === "string" ? (JSON.parse(extensions) as string[]) : []
+	}, [extensions])
+
+	const multiScreenParsed = useMemo(() => {
+		return typeof multiScreen === "string" ? parseInt(multiScreen) === 1 : false
+	}, [multiScreen])
 
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
@@ -100,10 +112,12 @@ export const SelectDriveItems = memo(() => {
 					type={typeParsed}
 					toMove={toMoveParsed}
 					queryParams={queryParams}
+					previewTypes={previewTypesParsed}
+					extensions={extensionsParsed}
 				/>
 			)
 		},
-		[maxParsed, typeParsed, toMoveParsed, queryParams]
+		[maxParsed, typeParsed, toMoveParsed, queryParams, previewTypesParsed, extensionsParsed]
 	)
 
 	const headerTitle = useMemo(() => {
@@ -129,7 +143,9 @@ export const SelectDriveItems = memo(() => {
 	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
 
 	useEffect(() => {
-		setSelectedItems([])
+		if (!multiScreenParsed) {
+			setSelectedItems([])
+		}
 
 		return () => {
 			if (typeof parent === "string" && parent === baseFolderUUID) {
@@ -142,7 +158,7 @@ export const SelectDriveItems = memo(() => {
 				})
 			}
 		}
-	}, [id, setSelectedItems, parent, baseFolderUUID])
+	}, [id, setSelectedItems, parent, baseFolderUUID, multiScreenParsed])
 
 	return (
 		<Fragment>
@@ -151,6 +167,7 @@ export const SelectDriveItems = memo(() => {
 					iosTitle={headerTitle}
 					iosIsLargeTitle={false}
 					iosBackButtonMenuEnabled={true}
+					backgroundColor={colors.card}
 					rightView={() => {
 						return (
 							<Button
@@ -165,8 +182,7 @@ export const SelectDriveItems = memo(() => {
 						iosHideWhenScrolling: false,
 						onChangeText: text => setSearchTerm(text),
 						contentTransparent: true,
-						persistBlur: true,
-						iosCancelButtonText: "Abort"
+						persistBlur: true
 					}}
 				/>
 			) : (
@@ -174,6 +190,7 @@ export const SelectDriveItems = memo(() => {
 					title={headerTitle}
 					materialPreset="inline"
 					backVisible={parent !== baseFolderUUID}
+					backgroundColor={colors.card}
 					rightView={() => {
 						return (
 							<Button
@@ -193,49 +210,47 @@ export const SelectDriveItems = memo(() => {
 			)}
 			<View className="flex-1">
 				<Container>
-					<View className="flex-1">
-						<List
-							variant="full-width"
-							data={items}
-							estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-							renderItem={renderItem}
-							keyExtractor={keyExtractor}
-							refreshing={refreshing}
-							contentInsetAdjustmentBehavior="automatic"
-							contentContainerClassName="pb-16"
-							drawDistance={ESTIMATED_ITEM_HEIGHT.withSubTitle * 3}
-							ListEmptyComponent={
-								<View className="flex-1 items-center justify-center">
-									{query.isSuccess ? (
-										searchTerm.length > 0 ? (
-											<Text>Nothing found</Text>
-										) : (
-											<Text>No contacts</Text>
-										)
+					<List
+						variant="full-width"
+						data={items}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						refreshing={refreshing}
+						contentInsetAdjustmentBehavior="automatic"
+						contentContainerClassName="pb-16"
+						windowSize={3}
+						removeClippedSubviews={true}
+						ListEmptyComponent={
+							<View className="flex-1 items-center justify-center">
+								{query.isSuccess ? (
+									searchTerm.length > 0 ? (
+										<Text>Nothing found</Text>
 									) : (
-										<ActivityIndicator color={colors.foreground} />
-									)}
-								</View>
-							}
-							ListFooterComponent={
-								<View className="flex flex-row items-center justify-center h-16 p-4">
-									<Text className="text-sm">{items.length} items</Text>
-								</View>
-							}
-							refreshControl={
-								<RefreshControl
-									refreshing={refreshing}
-									onRefresh={async () => {
-										setRefreshing(true)
+										<Text>No items</Text>
+									)
+								) : (
+									<ActivityIndicator color={colors.foreground} />
+								)}
+							</View>
+						}
+						ListFooterComponent={
+							<View className="flex flex-row items-center justify-center h-16 p-4">
+								<Text className="text-sm">{items.length} items</Text>
+							</View>
+						}
+						refreshControl={
+							<RefreshControl
+								refreshing={refreshing}
+								onRefresh={async () => {
+									setRefreshing(true)
 
-										await query.refetch().catch(() => {})
+									await query.refetch().catch(() => {})
 
-										setRefreshing(false)
-									}}
-								/>
-							}
-						/>
-					</View>
+									setRefreshing(false)
+								}}
+							/>
+						}
+					/>
 				</Container>
 			</View>
 		</Fragment>

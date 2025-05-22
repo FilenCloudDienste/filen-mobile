@@ -99,6 +99,10 @@ import {
 
 import { filePublicLinkHasPassword, filePublicLinkInfo, directoryPublicLinkInfo, directorySizePublicLink } from "./cloud"
 
+import { readFileAsString, writeFileAsString } from "./fs"
+
+import { doNotPauseOrResumeTransfersOnAppStateChange, parseAudioMetadata } from "./utils"
+
 export {
 	ping,
 	login,
@@ -198,5 +202,9 @@ export {
 	filePublicLinkHasPassword,
 	filePublicLinkInfo,
 	directoryPublicLinkInfo,
-	directorySizePublicLink
+	directorySizePublicLink,
+	readFileAsString,
+	writeFileAsString,
+	doNotPauseOrResumeTransfersOnAppStateChange,
+	parseAudioMetadata
 }

@@ -1,12 +1,11 @@
-import { View, RefreshControl } from "react-native"
+import { View, RefreshControl, FlatList, type ListRenderItemInfo } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
-import { ESTIMATED_ITEM_HEIGHT, List, ListDataItem } from "@/components/nativewindui/List"
+import { List, ListDataItem } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
-import { type ListRenderItemInfo, FlashList } from "@shopify/flash-list"
 import { Container } from "@/components/Container"
 import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import ListItem, { type ListItemInfo } from "./listItem"
@@ -18,6 +17,7 @@ import mmkvInstance from "@/lib/mmkv"
 import useViewLayout from "@/hooks/useViewLayout"
 import useDimensions from "@/hooks/useDimensions"
 import { useShallow } from "zustand/shallow"
+import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()
@@ -27,7 +27,7 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
 	const { hasInternet } = useNetInfo()
 	const [orderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
-	const listRef = useRef<FlashList<ListItemInfo>>(null)
+	const listRef = useRef<FlatList<ListItemInfo>>(null)
 	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
@@ -153,7 +153,8 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const list = useMemo(() => {
 		if (gridModeEnabled) {
 			return (
-				<FlashList
+				<FlatList
+					{...FLATLIST_BASE_PROPS}
 					ref={listRef}
 					data={items}
 					numColumns={numColumns}
@@ -161,7 +162,6 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 					keyExtractor={keyExtractor}
 					refreshing={refreshing || cloudItemsQuery.status === "pending"}
 					contentInsetAdjustmentBehavior="automatic"
-					estimatedItemSize={141}
 					contentContainerStyle={{
 						paddingBottom: bottomListContainerPadding
 					}}
@@ -169,21 +169,22 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 					ListEmptyComponent={ListEmptyComponent}
 					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
+					windowSize={3}
+					removeClippedSubviews={true}
 				/>
 			)
 		}
 
 		return (
 			<List
+				{...FLATLIST_BASE_PROPS}
 				ref={listRef}
 				variant="full-width"
 				data={items}
-				estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				refreshing={refreshing || cloudItemsQuery.status === "pending"}
 				contentInsetAdjustmentBehavior="automatic"
-				drawDistance={ESTIMATED_ITEM_HEIGHT.withSubTitle * 3}
 				contentContainerStyle={{
 					paddingBottom: bottomListContainerPadding
 				}}
@@ -191,6 +192,8 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 				ListEmptyComponent={ListEmptyComponent}
 				ListFooterComponent={ListFooterComponent}
 				refreshControl={refreshControl}
+				windowSize={3}
+				removeClippedSubviews={true}
 			/>
 		)
 	}, [

@@ -10,6 +10,7 @@ import { type TextEditorItem } from "@/components/textEditor/editor"
 import { useRouter } from "expo-router"
 import Outer from "./outer"
 import Fallback from "./fallback"
+import { Buffer } from "buffer"
 
 export const Code = memo(({ name, source, link }: { name: string; source: string; link: string }) => {
 	const { screen } = useDimensions()
@@ -24,18 +25,15 @@ export const Code = memo(({ name, source, link }: { name: string; source: string
 			}
 
 			const request = await axios.get(source, {
-				timeout: 60000
+				timeout: 60000,
+				responseType: "arraybuffer"
 			})
 
 			if (request.status !== 200) {
 				throw new Error("Failed to fetch data.")
 			}
 
-			if (typeof request.data !== "string") {
-				throw new Error("Invalid data type.")
-			}
-
-			return request.data.slice(0, 2048)
+			return Buffer.from(request.data).toString("utf-8")
 		},
 		refetchOnMount: false,
 		refetchOnReconnect: false,

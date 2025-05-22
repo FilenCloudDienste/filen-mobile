@@ -1,8 +1,9 @@
 {
 	"expo": {
-		"name": "filen-mobile",
+		"name": "Filen",
 		"slug": "filen-mobile",
-		"version": "1.0.0",
+		"version": "3.0.0",
+		"buildNumber": 301,
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"scheme": "iofilenapp",
@@ -20,14 +21,13 @@
 			"requireFullScreen": true,
 			"usesIcloudStorage": true,
 			"entitlements": {
-				"com.apple.developer.kernel.increased-memory-limit": true,
 				"com.apple.security.application-groups": ["group.io.filen.app"]
 			},
 			"config": {
 				"usesNonExemptEncryption": false
 			},
 			"infoPlist": {
-				"UIBackgroundModes": ["audio"]
+				"UIBackgroundModes": ["audio", "fetch", "processing"]
 			}
 		},
 		"android": {
@@ -133,7 +133,7 @@
 			[
 				"expo-asset",
 				{
-					"assets": ["./assets/images/avatar_fallback.png"]
+					"assets": ["./assets/images/avatar_fallback.png", "./assets/audio/silent_1h.mp3"]
 				}
 			]
 		],

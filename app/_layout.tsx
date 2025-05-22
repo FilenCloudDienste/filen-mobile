@@ -82,28 +82,36 @@ export default function RootLayout() {
 													name="selectContacts"
 													options={{
 														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
+														headerBlurEffect: "systemChromeMaterial",
+														presentation: "modal",
+														animation: "slide_from_bottom"
 													}}
 												/>
 												<Stack.Screen
 													name="selectDriveItems"
 													options={{
 														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
+														headerBlurEffect: "systemChromeMaterial",
+														presentation: "modal",
+														animation: "slide_from_bottom"
 													}}
 												/>
 												<Stack.Screen
 													name="editPublicLink"
 													options={{
 														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
+														headerBlurEffect: "systemChromeMaterial",
+														presentation: "modal",
+														animation: "slide_from_bottom"
 													}}
 												/>
 												<Stack.Screen
 													name="fileVersionHistory"
 													options={{
 														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
+														headerBlurEffect: "systemChromeMaterial",
+														presentation: "modal",
+														animation: "slide_from_bottom"
 													}}
 												/>
 												<Stack.Screen
@@ -131,7 +139,9 @@ export default function RootLayout() {
 													name="transfers"
 													options={{
 														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
+														headerBlurEffect: "systemChromeMaterial",
+														presentation: "modal",
+														animation: "slide_from_bottom"
 													}}
 												/>
 												<Stack.Screen
@@ -146,6 +156,14 @@ export default function RootLayout() {
 													options={{
 														headerShown: false,
 														headerBlurEffect: "systemChromeMaterial"
+													}}
+												/>
+												<Stack.Screen
+													name="trackPlayer"
+													options={{
+														headerShown: false,
+														presentation: "modal",
+														animation: "slide_from_bottom"
 													}}
 												/>
 											</Stack>

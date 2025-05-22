@@ -4,10 +4,8 @@ import { PauseSignal } from "@filen/sdk"
 import transfersStore from "./stores/transfers.store"
 import { Semaphore } from "./lib/semaphore"
 import HTTP from "./lib/http"
-import sdk from "./lib/sdk"
 
 export class NodeWorker {
-	private readonly type: "background" | "foreground"
 	public readonly bridge: NodeBridge
 	public readonly transfersAbortControllers: Record<string, AbortController> = {}
 	public readonly transfersPauseSignals: Record<string, PauseSignal> = {}
@@ -18,10 +16,10 @@ export class NodeWorker {
 	private readonly pauseMutex = new Semaphore(1)
 	public readonly http: HTTP
 	private state: "paused" | "running" = "running"
+	public doNotPauseOrResumeTransfersOnAppStateChange: boolean = false
 
-	public constructor(bridge: NodeBridge, type: "background" | "foreground") {
+	public constructor(bridge: NodeBridge) {
 		this.bridge = bridge
-		this.type = type
 		this.http = new HTTP()
 
 		this.initialize().catch(console.error)
@@ -33,104 +31,93 @@ export class NodeWorker {
 				this.handleMessage(message)
 			})
 
-			if (this.type === "background") {
-				this.bridge.channel.send({
-					type: "ready",
-					data: {
-						success: true,
-						httpPort: -1,
-						httpAuthToken: ""
-					}
-				})
-			} else {
-				this.bridge.app.on("pause", async pauseLock => {
-					if (!pauseLock || !pauseLock.release || typeof pauseLock.release !== "function") {
-						return
-					}
+			this.bridge.app.on("pause", async pauseLock => {
+				if (!pauseLock || !pauseLock.release || typeof pauseLock.release !== "function") {
+					return
+				}
 
-					try {
-						await this.pause()
-					} catch (e) {
-						console.error(e)
-					}
+				try {
+					await this.pause()
+				} catch (e) {
+					console.error(e)
+				}
 
-					pauseLock.release()
-				})
+				pauseLock.release()
+			})
 
-				this.bridge.app.on("resume", async () => {
-					try {
-						await this.resume()
-					} catch (e) {
-						console.error(e)
-					}
-				})
+			this.bridge.app.on("resume", async () => {
+				try {
+					await this.resume()
+				} catch (e) {
+					console.error(e)
+				}
+			})
 
-				transfersStore.subscribe(
-					state => ({
-						transfers: state.transfers,
-						finishedTransfers: state.finishedTransfers
-					}),
-					({ transfers, finishedTransfers }) => {
-						const ongoingTransfers = transfers.filter(
-							transfer => transfer.state === "queued" || transfer.state === "started" || transfer.state === "paused"
-						)
+			transfersStore.subscribe(
+				state => ({
+					transfers: state.transfers,
+					finishedTransfers: state.finishedTransfers
+				}),
+				({ transfers, finishedTransfers }) => {
+					const ongoingTransfers = transfers.filter(
+						transfer => transfer.state === "queued" || transfer.state === "started" || transfer.state === "paused"
+					)
 
-						if (ongoingTransfers.length === 0) {
-							this.transfersProgressStarted = -1
-							this.transfersAllBytes = 0
-							this.transfersBytesSent = 0
-
-							this.bridge.channel.send({
-								type: "transfers",
-								data: {
-									transfers,
-									finishedTransfers,
-									speed: 0,
-									remaining: 0,
-									progress: 0
-								}
-							})
-
-							return
-						}
-
-						const now = Date.now()
-						let remaining =
-							ongoingTransfers.length > 0 ? calcTimeLeft(now, this.transfersProgressStarted, this.transfersBytesSent) : 0
-
-						if (ongoingTransfers.length > 0) {
-							// TODO
-							// Quick "hack" to better calculate remaining time when a lot of small files are being transferred (not really accurate, needs better solution)
-							remaining = remaining + Math.floor(ongoingTransfers.length / 2)
-						}
-
-						const progress = normalizeTransferProgress(this.transfersAllBytes, this.transfersBytesSent)
-						const speed = calcSpeed(now, this.transfersProgressStarted, this.transfersBytesSent)
+					if (ongoingTransfers.length === 0) {
+						this.transfersProgressStarted = -1
+						this.transfersAllBytes = 0
+						this.transfersBytesSent = 0
 
 						this.bridge.channel.send({
 							type: "transfers",
 							data: {
 								transfers,
 								finishedTransfers,
-								speed,
-								remaining,
-								progress
+								speed: 0,
+								remaining: 0,
+								progress: 0
 							}
 						})
-					}
-				)
 
-				const http = await this.http.start()
-
-				this.bridge.channel.send({
-					type: "ready",
-					data: {
-						success: true,
-						httpPort: http.port,
-						httpAuthToken: http.authToken
+						return
 					}
-				})
-			}
+
+					const now = Date.now()
+					let remaining =
+						ongoingTransfers.length > 0 ? calcTimeLeft(now, this.transfersProgressStarted, this.transfersBytesSent) : 0
+
+					if (ongoingTransfers.length > 0) {
+						// TODO
+						// Quick "hack" to better calculate remaining time when a lot of small files are being transferred (not really accurate, needs better solution)
+						remaining = remaining + Math.floor(ongoingTransfers.length / 2)
+					}
+
+					const progress = normalizeTransferProgress(this.transfersAllBytes, this.transfersBytesSent)
+					const speed = calcSpeed(now, this.transfersProgressStarted, this.transfersBytesSent)
+
+					this.bridge.channel.send({
+						type: "transfers",
+						data: {
+							transfers,
+							finishedTransfers,
+							speed,
+							remaining,
+							progress
+						}
+					})
+				}
+			)
+
+			const http = await this.http.start()
+
+			this.bridge.channel.send({
+				type: "ready",
+				data: {
+					success: true,
+					httpPort: http.port,
+					httpAuthToken: http.authToken
+				}
+			})
 		} catch (e) {
 			this.bridge.channel.send({
 				type: "ready",
@@ -151,31 +138,32 @@ export class NodeWorker {
 			}
 
 			const start = Date.now()
-
-			this.transfersPausedOnLock = []
-
 			const promises: Promise<void>[] = []
 
 			promises.push(this.http.stop(true))
 
-			for (const id in this.transfersPauseSignals) {
-				promises.push(
-					new Promise<void>((resolve, reject) => {
-						this.handlers
-							.transferAction({
-								action: "pause",
-								id
-							})
-							.then(paused => {
-								if (paused) {
-									this.transfersPausedOnLock.push(id)
-								}
+			if (!this.doNotPauseOrResumeTransfersOnAppStateChange) {
+				this.transfersPausedOnLock = []
 
-								resolve()
-							})
-							.catch(reject)
-					})
-				)
+				for (const id in this.transfersPauseSignals) {
+					promises.push(
+						new Promise<void>((resolve, reject) => {
+							this.handlers
+								.transferAction({
+									action: "pause",
+									id
+								})
+								.then(paused => {
+									if (paused) {
+										this.transfersPausedOnLock.push(id)
+									}
+
+									resolve()
+								})
+								.catch(reject)
+						})
+					)
+				}
 			}
 
 			await promiseAllChunked(promises)
@@ -221,19 +209,22 @@ export class NodeWorker {
 				})()
 			)
 
-			for (const id in this.transfersPausedOnLock) {
-				promises.push(
-					this.handlers.transferAction({
-						action: "resume",
-						id
-					})
-				)
+			if (!this.doNotPauseOrResumeTransfersOnAppStateChange) {
+				for (const id in this.transfersPausedOnLock) {
+					promises.push(
+						this.handlers.transferAction({
+							action: "resume",
+							id
+						})
+					)
+				}
+
+				this.transfersPausedOnLock = []
 			}
 
 			await promiseAllChunked(promises)
 
 			this.state = "running"
-			this.transfersPausedOnLock = []
 		} finally {
 			this.pauseMutex.release()
 		}
@@ -405,7 +396,11 @@ export class NodeWorker {
 		filePublicLinkInfo: handlers.filePublicLinkInfo.bind(this),
 		filePublicLinkHasPassword: handlers.filePublicLinkHasPassword.bind(this),
 		directoryPublicLinkInfo: handlers.directoryPublicLinkInfo.bind(this),
-		directorySizePublicLink: handlers.directorySizePublicLink.bind(this)
+		directorySizePublicLink: handlers.directorySizePublicLink.bind(this),
+		readFileAsString: handlers.readFileAsString.bind(this),
+		writeFileAsString: handlers.writeFileAsString.bind(this),
+		doNotPauseOrResumeTransfersOnAppStateChange: handlers.doNotPauseOrResumeTransfersOnAppStateChange.bind(this),
+		parseAudioMetadata: handlers.parseAudioMetadata.bind(this)
 	}
 }
 

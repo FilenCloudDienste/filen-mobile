@@ -5,6 +5,7 @@ import { Paths } from "expo-file-system/next"
 import { t } from "@/lib/i18n"
 import { validate as validateUUID } from "uuid"
 import { Buffer } from "buffer"
+import { getRandomValues } from "expo-crypto"
 
 export function serializeError(error: Error): SerializedError {
 	return {
@@ -847,4 +848,38 @@ export function formatSecondsToMMSS(seconds: number): string {
 	const formattedSeconds: string = remainingSeconds.toString().padStart(2, "0")
 
 	return `${formattedMinutes}:${formattedSeconds}`
+}
+
+export function shuffleArray<T>(array: T[]): T[] {
+	if (array.length <= 1) {
+		return [...array]
+	}
+
+	const shuffled = [...array]
+
+	const getRandomValue = (): number => {
+		const randomArray = new Uint32Array(1)
+
+		getRandomValues(randomArray)
+
+		if (!randomArray[0]) {
+			return 0
+		}
+
+		return randomArray[0] / (0xffffffff + 1)
+	}
+
+	for (let i = shuffled.length - 1; i > 0; i--) {
+		const randomIndex = Math.floor(getRandomValue() * (i + 1))
+		const temp = shuffled[i]
+
+		if (!shuffled[randomIndex] || !temp) {
+			continue
+		}
+
+		shuffled[i] = shuffled[randomIndex]
+		shuffled[randomIndex] = temp
+	}
+
+	return shuffled
 }

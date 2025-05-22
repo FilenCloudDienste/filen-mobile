@@ -1,7 +1,6 @@
 import { memo, useMemo, useCallback, useRef, Fragment, useState } from "react"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import useChatMessagesQuery from "@/queries/useChatMessagesQuery"
-import { FlashList, type ListRenderItemInfo, type ViewToken } from "@shopify/flash-list"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import Message from "./message"
 import queryUtils from "@/queries/utils"
@@ -12,7 +11,15 @@ import useHeaderHeight from "@/hooks/useHeaderHeight"
 import useChatsLastFocusQuery from "@/queries/useChatsLastFocusQuery"
 import Top from "./top"
 import useDimensions from "@/hooks/useDimensions"
-import { type ViewabilityConfig, View, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native"
+import {
+	type ViewabilityConfig,
+	View,
+	type NativeSyntheticEvent,
+	type NativeScrollEvent,
+	type ListRenderItemInfo,
+	type ViewToken,
+	FlatList
+} from "react-native"
 import Animated, { useAnimatedStyle, interpolate, FadeIn, FadeOut } from "react-native-reanimated"
 import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller"
 import Emojis from "../input/suggestions/emojis"
@@ -23,6 +30,7 @@ import { useShallow } from "zustand/shallow"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
+import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
@@ -52,7 +60,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const emojisSuggestions = useChatsStore(useShallow(state => state.emojisSuggestions[chat.uuid] ?? []))
 	const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 	const replyToMessage = useChatsStore(useShallow(state => state.replyToMessage[chat.uuid] ?? null))
-	const listRef = useRef<FlashList<ChatMessage>>(null)
+	const listRef = useRef<FlatList<ChatMessage>>(null)
 	const { colors } = useColorScheme()
 	const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false)
 
@@ -195,7 +203,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const scrollToBottom = useCallback(() => {
 		listRef.current?.scrollToOffset({
 			offset: 0,
-			animated: false
+			animated: true
 		})
 
 		setShowScrollToBottom(false)
@@ -230,16 +238,15 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 					/>
 				</Button>
 			</Animated.View>
-			<FlashList
+			<FlatList
+				{...FLATLIST_BASE_PROPS}
 				ref={listRef}
 				onScroll={onScroll}
 				onEndReached={fetchMoreMessages}
 				data={messages}
 				keyExtractor={keyExtractor}
 				renderItem={renderItem}
-				estimatedItemSize={100}
 				inverted={true}
-				drawDistance={isPreview ? 0 : screen.height}
 				initialScrollIndex={initialScrollIndex}
 				keyboardDismissMode={suggestionsVisible ? "none" : "on-drag"}
 				keyboardShouldPersistTaps={suggestionsVisible ? "always" : "never"}
