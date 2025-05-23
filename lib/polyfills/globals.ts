@@ -2,39 +2,63 @@ import { Buffer } from "buffer"
 import process from "process"
 import { btoa, atob } from "react-native-quick-base64"
 import BlobPolyfill from "./blob"
+import RNQuickCrypto from "react-native-quick-crypto"
+import { URL, URLSearchParams } from "react-native-url-polyfill"
 
 // @ts-expect-error For the TS SDK
 global.IS_EXPO_REACT_NATIVE = true
 // @ts-expect-error For the TS SDK
 globalThis.IS_EXPO_REACT_NATIVE = true
 
+// @ts-expect-error For the TS SDK
+global.IS_REACT_NATIVE = true
+// @ts-expect-error For the TS SDK
+globalThis.IS_REACT_NATIVE = true
+
 global.Buffer = Buffer
 globalThis.Buffer = Buffer
 global.process = process
 globalThis.process = process
 
+global.atob = atob
+global.btoa = btoa
+globalThis.atob = atob
+globalThis.btoa = btoa
+
+global.Blob = BlobPolyfill
+globalThis.Blob = BlobPolyfill
+
+// @ts-expect-error Polyfills
+global.URL = URL
+// @ts-expect-error Polyfills
+global.URL = URL
+// @ts-expect-error Polyfills
+globalThis.URLSearchParams = URLSearchParams
+// @ts-expect-error Polyfills
+globalThis.URLSearchParams = URLSearchParams
+
 // @ts-expect-error Polyfills
 global.location = {
-	protocol: "file:",
-	href: "",
+	protocol: "http:",
+	href: "http://localhost",
 	hash: "",
 	host: "",
-	hostname: "",
-	pathname: "",
-	port: "",
+	hostname: "localhost",
+	pathname: "/",
+	port: "80",
 	search: "",
 	origin: ""
 }
 
 // @ts-expect-error Polyfills
 globalThis.location = {
-	protocol: "file:",
-	href: "",
+	protocol: "http:",
+	href: "http://localhost",
 	hash: "",
 	host: "",
-	hostname: "",
-	pathname: "",
-	port: "",
+	hostname: "localhost",
+	pathname: "/",
+	port: "80",
 	search: "",
 	origin: ""
 }
@@ -44,10 +68,20 @@ global.navigator.userAgent =
 globalThis.navigator.userAgent =
 	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 
-global.atob = atob
-global.btoa = btoa
-globalThis.atob = atob
-globalThis.btoa = btoa
+global.crypto = {
+	...global.crypto,
+	// @ts-expect-error Polyfills
+	getRandomValues: RNQuickCrypto.getRandomValues,
+	// @ts-expect-error Polyfills
+	randomUUID: RNQuickCrypto.randomUUID,
+	randomBytes: RNQuickCrypto.randomBytes
+}
 
-global.Blob = BlobPolyfill
-globalThis.Blob = BlobPolyfill
+globalThis.crypto = {
+	...global.crypto,
+	// @ts-expect-error Polyfills
+	getRandomValues: RNQuickCrypto.getRandomValues,
+	// @ts-expect-error Polyfills
+	randomUUID: RNQuickCrypto.randomUUID,
+	randomBytes: RNQuickCrypto.randomBytes
+}

@@ -26,3 +26,6 @@ expo-env.d.ts
 # nodeWorker
 nodejs-assets/build-native-modules-MacOS-helper-script-npm.sh
 nodejs-assets/build-native-modules-MacOS-helper-script-node.sh
+
+yalc.lock
+.yalc/

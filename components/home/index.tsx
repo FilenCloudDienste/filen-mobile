@@ -17,6 +17,7 @@ import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import * as BackgroundTask from "expo-background-task"
 import { FLATLIST_BASE_PROPS } from "@/lib/constants"
+import { getSDK } from "@/lib/sdk"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
@@ -216,6 +217,10 @@ export const Home = memo(() => {
 									actionKey: "trackPlayer",
 									title: "trackPlayer"
 								}),
+								createDropdownItem({
+									actionKey: "testSDK",
+									title: "testSDK"
+								}),
 								createDropdownSubMenu(
 									{
 										title: "Submenu 1",
@@ -233,7 +238,7 @@ export const Home = memo(() => {
 									]
 								)
 							]}
-							onItemPress={item => {
+							onItemPress={async item => {
 								console.log("Item Pressed", item)
 
 								if (item.actionKey === "first") {
@@ -246,6 +251,19 @@ export const Home = memo(() => {
 
 								if (item.actionKey === "item2") {
 									BackgroundTask.triggerTaskWorkerForTestingAsync().then(console.log).catch(console.error)
+								}
+
+								if (item.actionKey === "testSDK") {
+									console.log("testSDK")
+									const now = Date.now()
+									console.log(
+										(
+											await getSDK().fs().readFile({
+												path: "/sample2.mp3"
+											})
+										).byteLength
+									)
+									console.log("testsdk done", Date.now() - now, "ms")
 								}
 							}}
 						>
