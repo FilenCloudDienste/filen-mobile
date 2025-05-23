@@ -32,8 +32,6 @@ export class NodeWorker {
 		nodejs.channel.addListener("message", (message: NodeBridgeMessage) => {
 			switch (message.type) {
 				case "response":
-					console.log("Node worker response", message.data.function, message.data.success)
-
 					if (message.data.success) {
 						const fn = this.resolves.get(message.id)
 
@@ -78,15 +76,15 @@ export class NodeWorker {
 					break
 
 				case "httpServer":
-					console.log("[MSGGG] Node worker http server", message.data)
-
 					this.httpServerPort = message.data.port
 					this.httpAuthToken = message.data.authToken
 
 					break
 
 				case "debug":
-					console.log("[DEBUG] Node worker debug", message.data)
+					if (__DEV__) {
+						console.log("[DEBUG] Node worker debug", message.data)
+					}
 
 					break
 			}

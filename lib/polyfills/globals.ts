@@ -4,6 +4,10 @@ import { btoa, atob } from "react-native-quick-base64"
 import BlobPolyfill from "./blob"
 import RNQuickCrypto from "react-native-quick-crypto"
 import { URL, URLSearchParams } from "react-native-url-polyfill"
+// @ts-expect-error Polyfills
+import { TextDecoder, TextEncoder } from "text-encoding"
+
+import "web-streams-polyfill/polyfill"
 
 // @ts-expect-error For the TS SDK
 global.IS_EXPO_REACT_NATIVE = true
@@ -36,6 +40,21 @@ global.URL = URL
 globalThis.URLSearchParams = URLSearchParams
 // @ts-expect-error Polyfills
 globalThis.URLSearchParams = URLSearchParams
+
+global.TextDecoder = TextDecoder
+globalThis.TextDecoder = TextDecoder
+global.TextEncoder = TextEncoder
+globalThis.TextEncoder = TextEncoder
+
+if (typeof EventTarget === "undefined") {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	require("event-target-polyfill")
+}
+
+if (!global.structuredClone) {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	global.structuredClone = require("realistic-structured-clone")
+}
 
 // @ts-expect-error Polyfills
 global.location = {

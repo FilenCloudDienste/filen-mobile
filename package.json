@@ -42,11 +42,12 @@
 		"zustand": "^5.0.4"
 	},
 	"dependencies": {
+		"@azure/core-asynciterator-polyfill": "^1.0.2",
 		"@config-plugins/react-native-blob-util": "^9.0.0",
 		"@config-plugins/react-native-pdf": "^9.0.0",
 		"@expo/react-native-action-sheet": "^4.1.1",
 		"@expo/vector-icons": "^14.1.0",
-		"@filen/sdk": "^0.3.0",
+		"@filen/sdk": "^0.3.1",
 		"@gorhom/bottom-sheet": "^5.1.4",
 		"@legendapp/list": "^1.0.12",
 		"@react-native-community/datetimepicker": "8.3.0",
@@ -85,6 +86,7 @@
 		"docx-preview": "^0.3.5",
 		"dompurify": "^3.2.5",
 		"emojibase-regex": "^16.0.0",
+		"event-target-polyfill": "^0.0.4",
 		"eventemitter3": "^5.0.1",
 		"expo": "^53.0.9",
 		"expo-application": "~6.1.4",
@@ -165,13 +167,16 @@
 		"react-native-web": "~0.20.0",
 		"react-native-webview": "13.13.5",
 		"react-native-worklets-core": "^1.5.0",
+		"realistic-structured-clone": "^3.0.0",
 		"reanimated-color-picker": "^4.0.1",
 		"regexify-string": "^1.0.19",
 		"striptags": "^3.2.0",
 		"tailwind-merge": "^3.3.0",
 		"tailwindcss": "^3.4.17",
+		"text-encoding": "^0.7.0",
 		"use-debounce": "^10.0.4",
 		"uuid": "^11.1.0",
+		"web-streams-polyfill": "^4.1.0",
 		"zustand": "^5.0.4"
 	},
 	"devDependencies": {
@@ -206,6 +211,7 @@
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"react-native-svg-transformer": "^1.5.1",
 		"react-test-renderer": "19.1.0",
+		"readable-stream": "^4.7.0",
 		"typescript": "~5.8.3",
 		"util": "^0.12.5"
 	}

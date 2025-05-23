@@ -24,8 +24,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 			.filter(participant => participant.userId !== userId && participant.avatar?.startsWith("https"))
 			.sort((a, b) => contactName(a.email, a.nickName).localeCompare(contactName(b.email, b.nickName)))
 
-		console.log("participants", participants.length)
-
 		if (participants.length === 0 || participants.length >= 2) {
 			return {
 				uri: "avatar_fallback"

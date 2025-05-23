@@ -255,14 +255,17 @@ export const Home = memo(() => {
 
 								if (item.actionKey === "testSDK") {
 									console.log("testSDK")
+
 									const now = Date.now()
-									console.log(
-										(
-											await getSDK().fs().readFile({
-												path: "/sample2.mp3"
-											})
-										).byteLength
-									)
+
+									await getSDK()
+										.fs()
+										.writeFile({
+											path: "/polyfilltest2.txt",
+											content: Buffer.from("test", "utf-8")
+										})
+										.catch(console.error)
+
 									console.log("testsdk done", Date.now() - now, "ms")
 								}
 							}}

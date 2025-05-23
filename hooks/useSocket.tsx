@@ -73,8 +73,6 @@ export class Socket {
 		const packetType = data.charAt(0)
 		const payload = data.substring(1)
 
-		console.log("Socket message received:", data)
-
 		switch (packetType) {
 			case "0":
 				try {
