@@ -14,11 +14,12 @@ import { randomUUID } from "expo-crypto"
 import queryUtils from "@/queries/utils"
 import { useLocalSearchParams } from "expo-router"
 import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
-import { type TrackMetadata, useTrackPlayerControls, trackPlayerService } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
 import assets from "@/lib/assets"
 import mmkvInstance from "@/lib/mmkv"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
+import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 
 export const Header = memo(() => {
 	const { t } = useTranslation()
@@ -170,8 +171,9 @@ export const Header = memo(() => {
 
 		try {
 			const silentSoundURI = assets.uri.audio.silent_1h()
+			const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
-			if (!silentSoundURI) {
+			if (!silentSoundURI || !audioImageFallbackURI) {
 				return
 			}
 
@@ -186,7 +188,7 @@ export const Header = memo(() => {
 						title: metadataParsed?.title ?? file.name,
 						artist: metadataParsed?.artist,
 						album: metadataParsed?.album,
-						artwork: metadataParsed?.picture ?? "",
+						artwork: metadataParsed?.picture ?? audioImageFallbackURI,
 						file,
 						playlist: playlist.uuid
 					}

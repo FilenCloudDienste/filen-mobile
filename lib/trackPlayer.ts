@@ -1,7 +1,5 @@
-import { AudioPro, AudioProEventType, type AudioProTrack, useAudioPro, AudioProState } from "react-native-audio-pro"
-import { useCallback, useRef, useMemo } from "react"
+import { AudioProEventType, type AudioProTrack, AudioProContentType, AudioProState } from "react-native-audio-pro"
 import Semaphore from "./semaphore"
-import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "./mmkv"
 import nodeWorker from "./nodeWorker"
 import * as FileSystem from "expo-file-system/next"
@@ -11,6 +9,9 @@ import { type FileEncryptionVersion } from "@filen/sdk"
 import { normalizeFilePathForNode, normalizeFilePathForExpo, shuffleArray } from "./utils"
 import { SILENT_1H_AUDIO_FILE } from "@/lib/constants"
 import mimeTypes from "mime-types"
+import { AudioPro } from "./audioPro"
+import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
+import assets from "./assets"
 
 export type AudioProTrackExtended = AudioProTrack & {
 	file: {
@@ -43,6 +44,7 @@ export const TRACK_PLAYER_VOLUME_KEY = "trackPlayerState_Volume"
 
 export class TrackPlayerService {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)
+	private readonly controlsMutex: Semaphore = new Semaphore(1)
 
 	public saveState(): void {
 		const playingTrack = AudioPro.getPlayingTrack() as AudioProTrackExtended
@@ -73,7 +75,7 @@ export class TrackPlayerService {
 		}
 	}
 
-	public getCurrentTrack(): AudioProTrackExtended | null {
+	public getCurrentTrackInQueue(): AudioProTrackExtended | null {
 		const queue = this.getQueue()
 		const playingTrack = AudioPro.getPlayingTrack() as AudioProTrackExtended | null
 
@@ -136,7 +138,7 @@ export class TrackPlayerService {
 			if (!file.isDirectory) {
 				const entry = new FileSystem.File(file.uri)
 
-				return acc + (entry.exists ? (entry.size ?? 0) : 0)
+				return acc + (entry.exists ? entry.size ?? 0 : 0)
 			}
 
 			return acc
@@ -189,20 +191,306 @@ export class TrackPlayerService {
 		return `trackPlayerFileMetadata:${uuid}`
 	}
 
-	public async loadFileForTrack(track: AudioProTrackExtended, autoPlay: boolean = true): Promise<void> {
-		await this.loadFileForTrackMutex.acquire()
+	public async togglePlay(): Promise<void> {
+		await this.controlsMutex.acquire()
 
 		try {
-			const queue = this.getQueue()
+			const state = AudioPro.getState()
 
-			if (queue.length === 0) {
+			if (state === AudioProState.PLAYING) {
+				AudioPro.pause()
+			} else {
+				const currentTrack = this.getCurrentTrackInQueue()
+
+				if (!currentTrack) {
+					const queue = this.getQueue()
+
+					if (queue.length === 0) {
+						return
+					}
+
+					const trackToPlay = queue.at(0)
+
+					if (!trackToPlay) {
+						return
+					}
+
+					await this.playTrack({
+						track: trackToPlay,
+						autoPlay: true
+					})
+				}
+
+				AudioPro.resume()
+			}
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async skipToNext(loopQueue: boolean = true): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			let nextTrack = this.getNextTrackInQueue()
+
+			if (!nextTrack) {
+				if (!loopQueue) {
+					return
+				}
+
+				const queue = this.getQueue()
+
+				if (queue.length === 0) {
+					return
+				}
+
+				const firstTrackInQueue = queue.at(0)
+
+				if (!firstTrackInQueue) {
+					return
+				}
+
+				nextTrack = firstTrackInQueue
+			}
+
+			await trackPlayerService.playTrack({
+				track: nextTrack,
+				autoPlay: true
+			})
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async skipToPrevious(loopQueue: boolean = true): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			let previousTrack = this.getPreviousTrackInQueue()
+
+			if (!previousTrack) {
+				if (!loopQueue) {
+					return
+				}
+
+				const queue = this.getQueue()
+
+				if (queue.length === 0) {
+					return
+				}
+
+				const lastTrackInQueue = queue.at(-1)
+
+				if (!lastTrackInQueue) {
+					return
+				}
+
+				previousTrack = lastTrackInQueue
+			}
+
+			await trackPlayerService.playTrack({
+				track: previousTrack,
+				autoPlay: true
+			})
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async seek(seconds: number): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			const state = AudioPro.getState()
+
+			if (state !== AudioProState.PLAYING) {
 				return
 			}
 
-			const trackIndex = queue.findIndex(track => track.file.uuid === track.file.uuid)
+			AudioPro.seekTo(Math.round(seconds * 1000))
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
 
-			if (trackIndex === -1) {
+	public async play(): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			const state = AudioPro.getState()
+
+			if (state === AudioProState.PLAYING) {
 				return
+			}
+
+			AudioPro.resume()
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async pause(): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			const state = AudioPro.getState()
+
+			if (
+				state === AudioProState.PAUSED ||
+				state === AudioProState.STOPPED ||
+				state === AudioProState.IDLE ||
+				state === AudioProState.ERROR
+			) {
+				return
+			}
+
+			AudioPro.pause()
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async clear(): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify([]))
+			mmkvInstance.delete(TRACK_PLAYER_PLAYING_TRACK_KEY)
+
+			AudioPro.clear()
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async stop(): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			const state = AudioPro.getState()
+
+			if (
+				state === AudioProState.PAUSED ||
+				state === AudioProState.STOPPED ||
+				state === AudioProState.IDLE ||
+				state === AudioProState.ERROR
+			) {
+				return
+			}
+
+			AudioPro.stop()
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async setPlaybackSpeed(speed: number): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			AudioPro.setPlaybackSpeed(speed)
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async setVolume(volume: number): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			AudioPro.setVolume(volume)
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async shuffle(): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(shuffleArray(this.getQueue())))
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async setQueue({
+		queue,
+		startingTrackIndex,
+		autoPlay,
+		startingTrackStartTimeMs
+	}: {
+		queue: AudioProTrackExtended[]
+		startingTrackIndex?: number
+		autoPlay?: boolean
+		startingTrackStartTimeMs?: number
+	}): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			const silentSoundURI = assets.uri.audio.silent_1h()
+			const audioImageFallbackURI = assets.uri.images.audio_fallback()
+
+			if (!silentSoundURI || !audioImageFallbackURI) {
+				return
+			}
+
+			mmkvInstance.set(
+				TRACK_PLAYER_QUEUE_KEY,
+				JSON.stringify(
+					queue.map(track => ({
+						...track,
+						artwork: audioImageFallbackURI,
+						url: silentSoundURI
+					}))
+				)
+			)
+
+			if (autoPlay) {
+				const autoPlayTrack = startingTrackIndex ? queue.at(startingTrackIndex) : null
+
+				if (autoPlayTrack) {
+					await trackPlayerService.playTrack({
+						track: autoPlayTrack,
+						autoPlay: true,
+						startTimeMs: startingTrackStartTimeMs
+					})
+				}
+			}
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async playTrack({
+		track,
+		autoPlay,
+		startTimeMs
+	}: {
+		track: AudioProTrackExtended
+		autoPlay?: boolean
+		startTimeMs?: number
+	}): Promise<void> {
+		const loadedTrack = await this.loadFileForTrack(track)
+		const newQueue = this.getQueue().map(t => (t.file.uuid === loadedTrack.file.uuid ? loadedTrack : t))
+
+		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(newQueue))
+
+		AudioPro.play(loadedTrack, {
+			autoPlay,
+			startTimeMs
+		})
+	}
+
+	public async loadFileForTrack(track: AudioProTrackExtended): Promise<AudioProTrackExtended> {
+		await this.loadFileForTrackMutex.acquire()
+
+		useTrackPlayerStore.getState().setLoadingTrack(true)
+
+		try {
+			if (typeof track.url === "string" && !track.url.endsWith(SILENT_1H_AUDIO_FILE)) {
+				return track
 			}
 
 			const destination = new FileSystem.File(
@@ -286,62 +574,33 @@ export class TrackPlayerService {
 									title: undefined
 								})
 							})
-					})
-
-			let didChange = false
-			const newQueue = queue.map(queueTrack => {
-				if (typeof queueTrack.url !== "string") {
-					return queueTrack
-				}
-
-				if (!queueTrack.url.endsWith(SILENT_1H_AUDIO_FILE)) {
-					return queueTrack
-				}
-
-				if (queueTrack.file.uuid === track.file.uuid) {
-					didChange = true
-
-					return {
-						...queueTrack,
-						url: normalizeFilePathForExpo(destination.uri),
-						title: metadata.title ?? queueTrack.title,
-						artist: metadata.artist ?? queueTrack.artist,
-						album: metadata.album ?? queueTrack.album,
-						artwork: metadata.picture ? normalizeFilePathForExpo(metadata.picture) : queueTrack.artwork
-					}
-				}
-
-				return queueTrack
-			})
-
-			if (didChange) {
-				mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(newQueue))
-
-				const trackToPlay = newQueue.at(trackIndex)
-
-				if (trackToPlay && autoPlay) {
-					AudioPro.play(trackToPlay, {
-						autoPlay: true
-					})
-				}
-			}
+				  })
 
 			await this.clearActiveStorage()
 
-			this.saveState()
+			return {
+				...track,
+				url: normalizeFilePathForExpo(destination.uri),
+				title: metadata.title ?? track.title,
+				artist: metadata.artist ?? track.artist,
+				album: metadata.album ?? track.album,
+				artwork: track.artwork
+			}
 		} finally {
 			this.loadFileForTrackMutex.release()
+
+			useTrackPlayerStore.getState().setLoadingTrack(false)
 		}
 	}
 
 	public init(): void {
-		/*AudioPro.configure({
+		AudioPro.configure({
 			contentType: AudioProContentType.MUSIC,
 			debug: __DEV__,
 			debugIncludesProgress: false,
-			progressIntervalMs: 100,
+			progressIntervalMs: 1000,
 			showNextPrevControls: true
-		})*/
+		})
 
 		AudioPro.addEventListener(async event => {
 			switch (event.type) {
@@ -351,8 +610,6 @@ export class TrackPlayerService {
 					}
 
 					try {
-						await this.loadFileForTrack(event.track as AudioProTrackExtended, true)
-
 						this.saveState()
 					} catch (e) {
 						console.error(e)
@@ -363,7 +620,7 @@ export class TrackPlayerService {
 
 				case AudioProEventType.REMOTE_NEXT: {
 					try {
-						console.log("Remote next track", event)
+						await this.skipToNext()
 					} catch (e) {
 						console.error(e)
 					}
@@ -373,27 +630,7 @@ export class TrackPlayerService {
 
 				case AudioProEventType.REMOTE_PREV: {
 					try {
-						console.log("Remote prev track", event)
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
-				case AudioProEventType.PROGRESS: {
-					try {
-						console.log("Progress event", event)
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
-				case AudioProEventType.SEEK_COMPLETE: {
-					try {
-						console.log("SEEK_COMPLETE event", event)
+						await this.skipToPrevious()
 					} catch (e) {
 						console.error(e)
 					}
@@ -411,19 +648,9 @@ export class TrackPlayerService {
 					break
 				}
 
-				case AudioProEventType.PLAYBACK_SPEED_CHANGED: {
-					try {
-						console.log("PLAYBACK_SPEED_CHANGED event", event)
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
 				case AudioProEventType.TRACK_ENDED: {
 					try {
-						console.log("TRACK_ENDED event", event)
+						await this.skipToNext()
 					} catch (e) {
 						console.error(e)
 					}
@@ -436,379 +663,5 @@ export class TrackPlayerService {
 }
 
 export const trackPlayerService = new TrackPlayerService()
-
-export function useTrackPlayerState() {
-	const trackPlayerState = useAudioPro()
-	const [trackPlayerQueueMMKV] = useMMKVObject<AudioProTrackExtended[]>(TRACK_PLAYER_QUEUE_KEY, mmkvInstance)
-	const [playingTrackMMKV] = useMMKVObject<AudioProTrackExtended>(TRACK_PLAYER_PLAYING_TRACK_KEY, mmkvInstance)
-
-	const isPlaying = useMemo(() => {
-		return trackPlayerState.state === AudioProState.PLAYING
-	}, [trackPlayerState.state])
-
-	const isLoading = useMemo(() => {
-		return trackPlayerState.state === AudioProState.LOADING
-	}, [trackPlayerState.state])
-
-	const isError = useMemo(() => {
-		if (trackPlayerState.error) {
-			return true
-		}
-
-		return trackPlayerState.state === AudioProState.ERROR
-	}, [trackPlayerState.state, trackPlayerState.error])
-
-	const isIdle = useMemo(() => {
-		return trackPlayerState.state === AudioProState.IDLE
-	}, [trackPlayerState.state])
-
-	const isPaused = useMemo(() => {
-		return trackPlayerState.state === AudioProState.PAUSED
-	}, [trackPlayerState.state])
-
-	const isStopped = useMemo(() => {
-		return trackPlayerState.state === AudioProState.STOPPED
-	}, [trackPlayerState.state])
-
-	const queue = useMemo(() => {
-		if (!trackPlayerQueueMMKV) {
-			return []
-		}
-
-		return trackPlayerQueueMMKV
-	}, [trackPlayerQueueMMKV])
-
-	const playingTrack = useMemo(() => {
-		if (!playingTrackMMKV) {
-			return null
-		}
-
-		return playingTrackMMKV
-	}, [playingTrackMMKV])
-
-	const playingTrackIndex = useMemo(() => {
-		if (!playingTrack) {
-			return -1
-		}
-
-		return queue.findIndex(track => track.file.uuid === playingTrack.file.uuid)
-	}, [queue, playingTrack])
-
-	const progressNormalized = useMemo(() => {
-		if (trackPlayerState.duration === 0 || trackPlayerState.position === 0 || isLoading) {
-			return 0
-		}
-
-		if (trackPlayerState.position >= trackPlayerState.duration) {
-			return 100
-		}
-
-		const normalized = Math.round((trackPlayerState.position / trackPlayerState.duration) * 100)
-
-		if (normalized >= 100) {
-			return 100
-		}
-
-		if (normalized <= 0) {
-			return 0
-		}
-
-		return normalized
-	}, [trackPlayerState.position, trackPlayerState.duration, isLoading])
-
-	return {
-		isError,
-		isIdle,
-		isPaused,
-		isStopped,
-		isPlaying,
-		queue,
-		progressNormalized,
-		isLoading,
-		playingTrack,
-		playingTrackIndex,
-		volume: trackPlayerState.volume,
-		playbackSpeed: trackPlayerState.playbackSpeed,
-		duration: trackPlayerState.duration,
-		position: trackPlayerState.position
-	}
-}
-
-export function useTrackPlayerControls() {
-	const trackPlayerState = useTrackPlayerState()
-	const mutex = useRef<Semaphore>(new Semaphore(1))
-
-	const seek = useCallback(async (ms: number) => {
-		await mutex.current.acquire()
-
-		try {
-			AudioPro.seekTo(ms)
-			AudioPro.resume()
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const skipToPrevious = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			const nextTrack = trackPlayerService.getNextTrackInQueue()
-
-			if (!nextTrack) {
-				return
-			}
-
-			AudioPro.play(nextTrack, {
-				autoPlay: true
-			})
-
-			AudioPro.resume()
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const skipToNext = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			const previousTrack = trackPlayerService.getNextTrackInQueue()
-
-			if (!previousTrack) {
-				return
-			}
-
-			AudioPro.play(previousTrack, {
-				autoPlay: true
-			})
-
-			AudioPro.resume()
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const togglePlay = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			const currentTrack = trackPlayerService.getCurrentTrack()
-
-			if (trackPlayerState.isPlaying) {
-				AudioPro.pause()
-			} else {
-				if (!currentTrack) {
-					const queue = trackPlayerService.getQueue()
-
-					if (queue.length === 0) {
-						return
-					}
-
-					const trackToPlay = queue.at(0)
-
-					if (!trackToPlay) {
-						return
-					}
-
-					AudioPro.play(trackToPlay, {
-						autoPlay: true
-					})
-				} else {
-					if (trackPlayerState.position >= trackPlayerState.duration - 1000) {
-						AudioPro.seekTo(0)
-					}
-				}
-
-				AudioPro.resume()
-			}
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [trackPlayerState.isPlaying, trackPlayerState.position, trackPlayerState.duration])
-
-	const play = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			const currentTrack = trackPlayerService.getCurrentTrack()
-
-			if (!currentTrack) {
-				const queue = trackPlayerService.getQueue()
-
-				if (queue.length === 0) {
-					return
-				}
-
-				const trackToPlay = queue.at(0)
-
-				if (!trackToPlay) {
-					return
-				}
-
-				AudioPro.play(trackToPlay, {
-					autoPlay: true
-				})
-			}
-
-			AudioPro.resume()
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const pause = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			AudioPro.pause()
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const stop = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			AudioPro.stop()
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const clear = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			AudioPro.clear()
-
-			mmkvInstance.delete(TRACK_PLAYER_QUEUE_KEY)
-			mmkvInstance.delete(TRACK_PLAYER_PLAYING_TRACK_KEY)
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const setPlaybackSpeed = useCallback(async (speed: number) => {
-		await mutex.current.acquire()
-
-		try {
-			AudioPro.setPlaybackSpeed(speed)
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const setVolume = useCallback(async (volume: number) => {
-		await mutex.current.acquire()
-
-		try {
-			AudioPro.setVolume(volume)
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	const shuffle = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(shuffleArray(trackPlayerState.queue)))
-		} catch (e) {
-			console.error(e)
-		} finally {
-			mutex.current.release()
-		}
-	}, [trackPlayerState.queue])
-
-	const setQueue = useCallback(
-		async ({
-			queue,
-			startingTrackIndex,
-			autoPlay,
-			startingTrackStartTimeMs
-		}: {
-			queue: AudioProTrackExtended[]
-			startingTrackIndex?: number
-			autoPlay?: boolean
-			startingTrackStartTimeMs?: number
-		}) => {
-			if (queue.length === 0) {
-				return
-			}
-
-			await mutex.current.acquire()
-
-			try {
-				mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(queue))
-
-				if (autoPlay) {
-					const autoPlayTrack = startingTrackIndex ? queue.at(startingTrackIndex) : 0
-
-					if (autoPlayTrack) {
-						AudioPro.play(autoPlayTrack, {
-							autoPlay: true,
-							startTimeMs: startingTrackStartTimeMs
-						})
-					}
-				}
-			} catch (e) {
-				console.error(e)
-			} finally {
-				mutex.current.release()
-			}
-		},
-		[]
-	)
-
-	const getQueue = useCallback(async () => {
-		await mutex.current.acquire()
-
-		try {
-			return trackPlayerService.getQueue()
-		} catch {
-			return []
-		} finally {
-			mutex.current.release()
-		}
-	}, [])
-
-	return {
-		seek,
-		skipToPrevious,
-		skipToNext,
-		play,
-		pause,
-		stop,
-		setVolume,
-		togglePlay,
-		shuffle,
-		setPlaybackSpeed,
-		clear,
-		setQueue,
-		getQueue
-	}
-}
 
 export default trackPlayerService

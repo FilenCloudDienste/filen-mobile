@@ -8,7 +8,7 @@ import { Slider } from "@/components/nativewindui/Slider"
 import { Text } from "@/components/nativewindui/Text"
 import { formatSecondsToMMSS } from "@/lib/utils"
 import useSetExpoAudioMode from "@/hooks/useSetExpoAudioMode"
-import { useTrackPlayerControls } from "@/lib/trackPlayer"
+import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 
 export const Audio = memo(({ source, name }: { source: string; name: string; link: string }) => {
 	useSetExpoAudioMode()
@@ -107,7 +107,7 @@ export const Audio = memo(({ source, name }: { source: string; name: string; lin
 						style={{
 							flex: 1
 						}}
-						onValueChange={seek}
+						onSlidingComplete={seek}
 					/>
 					<Text
 						className="text-xs font-normal text-muted-foreground"

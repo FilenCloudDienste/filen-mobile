@@ -3,10 +3,16 @@ import * as FileSystem from "expo-file-system/next"
 import { Asset } from "expo-asset"
 
 export class Assets {
-	private readonly copied: Record<string, { uri: string; name: string }> = {}
+	private readonly copied: Record<
+		string,
+		{
+			uri: string
+			name: string
+		}
+	> = {}
 
 	public async copy(): Promise<void> {
-		const assets = [require("../assets/audio/silent_1h.mp3")]
+		const assets = [require("../assets/audio/silent_1h.mp3"), require("../assets/images/audio_fallback.png")]
 
 		await Promise.all(
 			assets.map(async asset => {
@@ -56,6 +62,11 @@ export class Assets {
 		audio: {
 			silent_1h: () => {
 				return this.copied["silent_1h"]?.uri ?? null
+			}
+		},
+		images: {
+			audio_fallback: () => {
+				return this.copied["audio_fallback"]?.uri ?? null
 			}
 		}
 	}

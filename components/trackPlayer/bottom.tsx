@@ -1,10 +1,10 @@
 import { memo, useMemo } from "react"
-import { useTrackPlayerState, useTrackPlayerControls } from "@/lib/trackPlayer"
+import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import { BlurView } from "expo-blur"
 import { Text } from "../nativewindui/Text"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs"
-import { View, ActivityIndicator } from "react-native"
+import { View, ActivityIndicator, Platform } from "react-native"
 import { ProgressIndicator } from "../nativewindui/ProgressIndicator"
 import { Image } from "expo-image"
 import { Icon } from "@roninoss/icons"
@@ -12,6 +12,8 @@ import { useRouter } from "expo-router"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "../nativewindui/Button"
 import { formatBytes } from "@/lib/utils"
+import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
+import { cn } from "@/lib/cn"
 
 export const Bottom = memo(() => {
 	const trackPlayerState = useTrackPlayerState()
@@ -59,9 +61,9 @@ export const Bottom = memo(() => {
 				}}
 			>
 				<BlurView
-					intensity={100}
-					tint="systemChromeMaterial"
-					className="flex-1 flex-col"
+					intensity={Platform.OS === "android" ? 0 : 100}
+					tint={Platform.OS === "android" ? undefined : "systemChromeMaterial"}
+					className={cn("flex-1 flex-col", Platform.OS === "android" && "bg-card")}
 				>
 					<View className="flex-row gap-4 p-2 justify-between items-center">
 						<View className="flex-1 flex-row gap-3 items-center">
@@ -102,7 +104,7 @@ export const Bottom = memo(() => {
 									{trackPlayerState.playingTrack?.title
 										? `${trackPlayerState.playingTrack.title}${
 												trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
-											}`
+										  }`
 										: "Unknown title"}
 								</Text>
 								<Text

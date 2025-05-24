@@ -133,7 +133,7 @@
 			[
 				"expo-asset",
 				{
-					"assets": ["./assets/images/avatar_fallback.png", "./assets/audio/silent_1h.mp3"]
+					"assets": ["./assets/images/avatar_fallback.png", "./assets/audio/silent_1h.mp3", "./assets/images/audio_fallback.png"]
 				}
 			]
 		],

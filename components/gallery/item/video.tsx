@@ -9,7 +9,7 @@ import { useVideoPlayer, VideoView } from "expo-video"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { useTrackPlayerControls } from "@/lib/trackPlayer"
+import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 
 export const Video = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	const [loading, setLoading] = useState<boolean>(true)

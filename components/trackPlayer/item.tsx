@@ -7,7 +7,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { formatMessageDate } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Button } from "@/components/nativewindui/Button"
-import { useTrackPlayerState, type TrackMetadata, useTrackPlayerControls, trackPlayerService } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
 import { Image } from "expo-image"
 import { cn } from "@/lib/cn"
@@ -18,6 +18,8 @@ import assets from "@/lib/assets"
 import fullScreenLoadingModal from "../modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import { alertPrompt } from "../prompts/alertPrompt"
+import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
+import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 
 const IMAGE_SIZE = 42
 
@@ -80,8 +82,9 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 
 		try {
 			const silentSoundURI = assets.uri.audio.silent_1h()
+			const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
-			if (!silentSoundURI) {
+			if (!silentSoundURI || !audioImageFallbackURI) {
 				return
 			}
 
@@ -96,7 +99,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 						title: metadataParsed?.title ?? file.name,
 						artist: metadataParsed?.artist,
 						album: metadataParsed?.album,
-						artwork: metadataParsed?.picture ?? "",
+						artwork: metadataParsed?.picture ?? audioImageFallbackURI,
 						file,
 						playlist: playlist.uuid
 					}
@@ -122,8 +125,9 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 
 		try {
 			const silentSoundURI = assets.uri.audio.silent_1h()
+			const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
-			if (!silentSoundURI) {
+			if (!silentSoundURI || !audioImageFallbackURI) {
 				return
 			}
 
@@ -140,7 +144,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 							title: metadataParsed?.title ?? file.name,
 							artist: metadataParsed?.artist,
 							album: metadataParsed?.album,
-							artwork: metadataParsed?.picture ?? "",
+							artwork: metadataParsed?.picture ?? audioImageFallbackURI,
 							file,
 							playlist: playlist.uuid
 						}
@@ -206,7 +210,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 							textStyle: {
 								color: colors.foreground
 							}
-						}
+					  }
 					: {})
 			},
 			async (selectedIndex?: number) => {

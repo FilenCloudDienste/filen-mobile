@@ -10,7 +10,7 @@ import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import Animated, { FadeOut } from "react-native-reanimated"
 import useSetExpoAudioMode from "@/hooks/useSetExpoAudioMode"
-import { useTrackPlayerControls } from "@/lib/trackPlayer"
+import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 
 export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	useSetExpoAudioMode()

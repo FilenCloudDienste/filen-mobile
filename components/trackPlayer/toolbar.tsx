@@ -4,7 +4,6 @@ import { Text } from "@/components/nativewindui/Text"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTrackPlayerState, useTrackPlayerControls } from "@/lib/trackPlayer"
 import { Slider } from "@/components/nativewindui/Slider"
 import { Image } from "expo-image"
 import { BlurView } from "expo-blur"
@@ -14,6 +13,8 @@ import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { formatSecondsToMMSS, formatBytes } from "@/lib/utils"
 import { cn } from "@/lib/cn"
+import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
+import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 
 export const Toolbar = memo(() => {
 	const { colors } = useColorScheme()
@@ -88,10 +89,10 @@ export const Toolbar = memo(() => {
 							{!active
 								? "No track queued"
 								: trackPlayerState.playingTrack?.title
-									? `${trackPlayerState.playingTrack.title}${
-											trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
-										}`
-									: "Unknown title"}
+								? `${trackPlayerState.playingTrack.title}${
+										trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
+								  }`
+								: "Unknown title"}
 						</Text>
 						<Text
 							className="text-xs text-muted-foreground"
@@ -100,7 +101,7 @@ export const Toolbar = memo(() => {
 						>
 							{!active
 								? "N/A"
-								: (trackPlayerState.playingTrack?.artist ?? formatBytes(trackPlayerState.playingTrack?.file.size ?? 0))}
+								: trackPlayerState.playingTrack?.artist ?? formatBytes(trackPlayerState.playingTrack?.file.size ?? 0)}
 						</Text>
 					</View>
 					<Button
@@ -129,24 +130,26 @@ export const Toolbar = memo(() => {
 							flex: 1,
 							width: "100%"
 						}}
-						onValueChange={value => {
+						onSlidingComplete={value => {
 							if (!active || trackPlayerState.isLoading) {
 								return
 							}
 
-							trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.duration)).catch(console.error)
+							console.log("Seeking to:", Math.round((value / 100) * trackPlayerState.durationSeconds))
+
+							trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.durationSeconds)).catch(console.error)
 						}}
 					/>
 					<View className="flex-row items-center justify-between w-full">
 						<Text className="text-xs text-muted-foreground font-normal">
 							{!active || trackPlayerState.isLoading
 								? formatSecondsToMMSS(0)
-								: formatSecondsToMMSS(trackPlayerState.position)}
+								: formatSecondsToMMSS(trackPlayerState.positionSeconds)}
 						</Text>
 						<Text className="text-xs text-muted-foreground font-normal">
 							{!active || trackPlayerState.isLoading
 								? formatSecondsToMMSS(0)
-								: formatSecondsToMMSS(trackPlayerState.duration)}
+								: formatSecondsToMMSS(trackPlayerState.durationSeconds)}
 						</Text>
 					</View>
 				</View>
@@ -156,6 +159,8 @@ export const Toolbar = memo(() => {
 						size="none"
 						unstable_pressDelay={100}
 						disabled={!active}
+						android_ripple={null}
+						className="active:opacity-70"
 					>
 						<Icon
 							name="shuffle"
@@ -168,6 +173,8 @@ export const Toolbar = memo(() => {
 						size="none"
 						unstable_pressDelay={100}
 						disabled={!active}
+						android_ripple={null}
+						className="active:opacity-70"
 						onPress={() => {
 							trackPlayerControls.skipToPrevious().catch(console.error)
 						}}
@@ -182,8 +189,9 @@ export const Toolbar = memo(() => {
 						variant="plain"
 						size="none"
 						unstable_pressDelay={100}
-						className="bg-foreground rounded-full p-4"
+						className="bg-foreground rounded-full p-4 active:opacity-70"
 						disabled={!active}
+						android_ripple={null}
 						onPress={() => {
 							if (trackPlayerState.isLoading) {
 								return
@@ -210,6 +218,8 @@ export const Toolbar = memo(() => {
 						size="none"
 						unstable_pressDelay={100}
 						disabled={!active}
+						android_ripple={null}
+						className="active:opacity-70"
 						onPress={() => {
 							trackPlayerControls.skipToNext()
 						}}
@@ -224,6 +234,8 @@ export const Toolbar = memo(() => {
 						variant="plain"
 						size="none"
 						unstable_pressDelay={100}
+						android_ripple={null}
+						className="active:opacity-70"
 						disabled={!active}
 						onPress={() => {
 							// TODO
