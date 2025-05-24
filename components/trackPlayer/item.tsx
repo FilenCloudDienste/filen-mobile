@@ -7,7 +7,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { formatMessageDate } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Button } from "@/components/nativewindui/Button"
-import { useTrackPlayerState, type TrackMetadata, useTrackPlayer } from "@/lib/trackPlayer"
+import { useTrackPlayerState, type TrackMetadata, useTrackPlayerControls, trackPlayerService } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
 import { Image } from "expo-image"
 import { cn } from "@/lib/cn"
@@ -24,20 +24,20 @@ const IMAGE_SIZE = 42
 export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 	const { colors } = useColorScheme()
 	const router = useRouter()
-	const { activeTrackFile } = useTrackPlayerState()
+	const { playingTrack } = useTrackPlayerState()
 	const { showActionSheetWithOptions } = useActionSheet()
 	const {
 		insets: { bottom: bottomInsets }
 	} = useDimensions()
-	const trackPlayer = useTrackPlayer()
+	const trackPlayerControls = useTrackPlayerControls()
 
 	const playing = useMemo(() => {
-		if (!activeTrackFile) {
+		if (!playingTrack) {
 			return false
 		}
 
-		return activeTrackFile.playlist === playlist.uuid
-	}, [activeTrackFile, playlist.uuid])
+		return playingTrack.playlist === playlist.uuid
+	}, [playingTrack, playlist.uuid])
 
 	const playlistPictures = useMemo(() => {
 		const pictures: string[] = []
@@ -74,7 +74,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 	}, [])
 
 	const play = useCallback(async () => {
-		if (!trackPlayer || !playlist) {
+		if (!playlist) {
 			return
 		}
 
@@ -85,23 +85,27 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 				return
 			}
 
-			await trackPlayer.setQueue(
-				playlist.files.map(file => {
-					const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
+			await trackPlayerControls.setQueue({
+				queue: playlist.files.map(file => {
+					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					return {
+						id: file.uuid,
 						url: silentSoundURI,
 						title: metadataParsed?.title ?? file.name,
 						artist: metadataParsed?.artist,
 						album: metadataParsed?.album,
-						artwork: metadataParsed?.picture,
-						description: JSON.stringify(file)
+						artwork: metadataParsed?.picture ?? "",
+						file,
+						playlist: playlist.uuid
 					}
-				})
-			)
+				}),
+				autoPlay: true,
+				startingTrackIndex: 0
+			})
 
-			await trackPlayer.play()
+			await trackPlayerControls.play()
 		} catch (e) {
 			console.error(e)
 
@@ -109,10 +113,10 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 				alerts.error(e.message)
 			}
 		}
-	}, [trackPlayer, playlist])
+	}, [trackPlayerControls, playlist])
 
 	const addToQueue = useCallback(async () => {
-		if (!trackPlayer || !playlist) {
+		if (!playlist) {
 			return
 		}
 
@@ -123,21 +127,27 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 				return
 			}
 
-			await trackPlayer.add(
-				playlist.files.map(file => {
-					const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
-					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
+			await trackPlayerControls.setQueue({
+				queue: [
+					...(await trackPlayerControls.getQueue()),
+					...playlist.files.map(file => {
+						const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+						const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
-					return {
-						url: silentSoundURI,
-						title: metadataParsed?.title ?? file.name,
-						artist: metadataParsed?.artist,
-						album: metadataParsed?.album,
-						artwork: metadataParsed?.picture,
-						description: JSON.stringify(file)
-					}
-				})
-			)
+						return {
+							id: file.uuid,
+							url: silentSoundURI,
+							title: metadataParsed?.title ?? file.name,
+							artist: metadataParsed?.artist,
+							album: metadataParsed?.album,
+							artwork: metadataParsed?.picture ?? "",
+							file,
+							playlist: playlist.uuid
+						}
+					})
+				],
+				autoPlay: false
+			})
 		} catch (e) {
 			console.error(e)
 
@@ -145,7 +155,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 				alerts.error(e.message)
 			}
 		}
-	}, [trackPlayer, playlist])
+	}, [trackPlayerControls, playlist])
 
 	const deletePlaylist = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -196,7 +206,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 							textStyle: {
 								color: colors.foreground
 							}
-					  }
+						}
 					: {})
 			},
 			async (selectedIndex?: number) => {

@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useMemo } from "react"
-import { View, ActivityIndicator } from "react-native"
+import { View, ActivityIndicator, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
@@ -13,7 +13,7 @@ import useViewLayout from "@/hooks/useViewLayout"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { formatSecondsToMMSS, formatBytes } from "@/lib/utils"
-import { RepeatMode } from "react-native-track-player"
+import { cn } from "@/lib/cn"
 
 export const Toolbar = memo(() => {
 	const { colors } = useColorScheme()
@@ -25,12 +25,12 @@ export const Toolbar = memo(() => {
 	const trackPlayerControls = useTrackPlayerControls()
 
 	const active = useMemo(() => {
-		if (trackPlayerState.activeTrack && trackPlayerState.queue.length > 0) {
+		if (trackPlayerState.playingTrack && trackPlayerState.queue.length > 0) {
 			return true
 		}
 
 		return false
-	}, [trackPlayerState.activeTrack, trackPlayerState.queue.length])
+	}, [trackPlayerState.playingTrack, trackPlayerState.queue.length])
 
 	useEffect(() => {
 		setTrackPlayerToolbarHeight(layout.height - insets.bottom)
@@ -43,18 +43,18 @@ export const Toolbar = memo(() => {
 			className="rounded-t-lg overflow-hidden absolute bottom-0 left-0 right-0 flex-1"
 		>
 			<BlurView
-				className="flex-col px-4 pt-4"
-				intensity={100}
-				tint="systemChromeMaterial"
+				className={cn("flex-col px-4 pt-4", Platform.OS === "android" && "bg-card")}
+				intensity={Platform.OS === "android" ? 0 : 100}
+				tint={Platform.OS === "android" ? undefined : "systemChromeMaterial"}
 				style={{
 					paddingBottom: insets.bottom + 16
 				}}
 			>
 				<View className="flex-row gap-3">
-					{active && trackPlayerState.activeTrack?.artwork ? (
+					{active && typeof trackPlayerState.playingTrack?.artwork === "string" ? (
 						<Image
 							source={{
-								uri: trackPlayerState.activeTrack.artwork
+								uri: trackPlayerState.playingTrack.artwork
 							}}
 							contentFit="cover"
 							style={{
@@ -87,11 +87,11 @@ export const Toolbar = memo(() => {
 						>
 							{!active
 								? "No track queued"
-								: trackPlayerState.activeTrack?.title
-								? `${trackPlayerState.activeTrack.title}${
-										trackPlayerState.activeTrack.album ? ` - ${trackPlayerState.activeTrack.album}` : ""
-								  }`
-								: "Unknown title"}
+								: trackPlayerState.playingTrack?.title
+									? `${trackPlayerState.playingTrack.title}${
+											trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
+										}`
+									: "Unknown title"}
 						</Text>
 						<Text
 							className="text-xs text-muted-foreground"
@@ -100,7 +100,7 @@ export const Toolbar = memo(() => {
 						>
 							{!active
 								? "N/A"
-								: trackPlayerState.activeTrack?.artist ?? formatBytes(trackPlayerState.activeTrackFile?.size ?? 0)}
+								: (trackPlayerState.playingTrack?.artist ?? formatBytes(trackPlayerState.playingTrack?.file.size ?? 0))}
 						</Text>
 					</View>
 					<Button
@@ -108,7 +108,7 @@ export const Toolbar = memo(() => {
 						size="icon"
 						disabled={!active}
 						onPress={() => {
-							trackPlayerControls.reset()
+							trackPlayerControls.clear().catch(console.error)
 						}}
 					>
 						<Icon
@@ -124,29 +124,29 @@ export const Toolbar = memo(() => {
 						minimumValue={0}
 						maximumValue={100}
 						minimumTrackTintColor="white"
-						disabled={!active || trackPlayerState.isLoading || trackPlayerState.isBuffering}
+						disabled={!active || trackPlayerState.isLoading}
 						style={{
 							flex: 1,
 							width: "100%"
 						}}
 						onValueChange={value => {
-							if (!active || trackPlayerState.isLoading || trackPlayerState.isBuffering) {
+							if (!active || trackPlayerState.isLoading) {
 								return
 							}
 
-							trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.progress.duration))
+							trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.duration)).catch(console.error)
 						}}
 					/>
 					<View className="flex-row items-center justify-between w-full">
 						<Text className="text-xs text-muted-foreground font-normal">
 							{!active || trackPlayerState.isLoading
 								? formatSecondsToMMSS(0)
-								: formatSecondsToMMSS(trackPlayerState.progress.position)}
+								: formatSecondsToMMSS(trackPlayerState.position)}
 						</Text>
 						<Text className="text-xs text-muted-foreground font-normal">
 							{!active || trackPlayerState.isLoading
 								? formatSecondsToMMSS(0)
-								: formatSecondsToMMSS(trackPlayerState.progress.duration)}
+								: formatSecondsToMMSS(trackPlayerState.duration)}
 						</Text>
 					</View>
 				</View>
@@ -169,7 +169,7 @@ export const Toolbar = memo(() => {
 						unstable_pressDelay={100}
 						disabled={!active}
 						onPress={() => {
-							trackPlayerControls.skipToPrevious()
+							trackPlayerControls.skipToPrevious().catch(console.error)
 						}}
 					>
 						<Icon
@@ -185,14 +185,14 @@ export const Toolbar = memo(() => {
 						className="bg-foreground rounded-full p-4"
 						disabled={!active}
 						onPress={() => {
-							if (trackPlayerState.isLoading || trackPlayerState.isBuffering) {
+							if (trackPlayerState.isLoading) {
 								return
 							}
 
-							trackPlayerControls.togglePlay()
+							trackPlayerControls.togglePlay().catch(console.error)
 						}}
 					>
-						{trackPlayerState.isLoading || trackPlayerState.isBuffering ? (
+						{trackPlayerState.isLoading ? (
 							<ActivityIndicator
 								size="small"
 								color={colors.background}
@@ -226,7 +226,7 @@ export const Toolbar = memo(() => {
 						unstable_pressDelay={100}
 						disabled={!active}
 						onPress={() => {
-							trackPlayerControls.setRepeatMode(RepeatMode.Track)
+							// TODO
 						}}
 					>
 						<Icon

@@ -48,8 +48,6 @@ export const TrackPlayer = memo(() => {
 				keyExtractor={keyExtractor}
 				showsVerticalScrollIndicator={true}
 				showsHorizontalScrollIndicator={false}
-				directionalLockEnabled={true}
-				scrollEnabled={true}
 				contentInsetAdjustmentBehavior="automatic"
 				scrollIndicatorInsets={{
 					top: 0,

@@ -122,8 +122,6 @@ export const Playlist = memo(() => {
 				}}
 				showsVerticalScrollIndicator={true}
 				showsHorizontalScrollIndicator={false}
-				directionalLockEnabled={true}
-				scrollEnabled={true}
 				contentInsetAdjustmentBehavior="automatic"
 				scrollIndicatorInsets={{
 					top: 0,

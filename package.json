@@ -38,9 +38,6 @@
 	"jest": {
 		"preset": "jest-expo"
 	},
-	"overrides": {
-		"zustand": "^5.0.4"
-	},
 	"dependencies": {
 		"@azure/core-asynciterator-polyfill": "^1.0.2",
 		"@config-plugins/react-native-blob-util": "^9.0.0",
@@ -145,6 +142,7 @@
 		"react-dom": "19.0.0",
 		"react-i18next": "^15.5.1",
 		"react-native": "0.79.2",
+		"react-native-audio-pro": "^9.9.1",
 		"react-native-blob-util": "^0.21.2",
 		"react-native-gesture-handler": "~2.24.0",
 		"react-native-ios-context-menu": "^3.1.2",
@@ -161,7 +159,6 @@
 		"react-native-safe-area-context": "5.4.0",
 		"react-native-screens": "~4.10.0",
 		"react-native-svg": "15.11.2",
-		"react-native-track-player": "^4.1.1",
 		"react-native-uitextview": "^2.0.3",
 		"react-native-url-polyfill": "^2.0.0",
 		"react-native-web": "~0.20.0",
@@ -177,7 +174,7 @@
 		"use-debounce": "^10.0.4",
 		"uuid": "^11.1.0",
 		"web-streams-polyfill": "^4.1.0",
-		"zustand": "^5.0.4"
+		"zustand": "^5.0.5"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.27.1",

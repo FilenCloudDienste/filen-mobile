@@ -21,12 +21,12 @@ export const Bottom = memo(() => {
 	const trackPlayerControls = useTrackPlayerControls()
 
 	const show = useMemo(() => {
-		if (trackPlayerState.activeTrack && trackPlayerState.queue.length > 0) {
+		if (trackPlayerState.playingTrack && trackPlayerState.queue.length > 0) {
 			return true
 		}
 
 		return false
-	}, [trackPlayerState.activeTrack, trackPlayerState.queue.length])
+	}, [trackPlayerState.playingTrack, trackPlayerState.queue.length])
 
 	if (!show) {
 		return null
@@ -65,10 +65,10 @@ export const Bottom = memo(() => {
 				>
 					<View className="flex-row gap-4 p-2 justify-between items-center">
 						<View className="flex-1 flex-row gap-3 items-center">
-							{trackPlayerState.activeTrack?.artwork ? (
+							{typeof trackPlayerState.playingTrack?.artwork === "string" ? (
 								<Image
 									source={{
-										uri: trackPlayerState.activeTrack.artwork
+										uri: trackPlayerState.playingTrack.artwork
 									}}
 									contentFit="cover"
 									style={{
@@ -99,10 +99,10 @@ export const Bottom = memo(() => {
 									numberOfLines={1}
 									ellipsizeMode="middle"
 								>
-									{trackPlayerState.activeTrack?.title
-										? `${trackPlayerState.activeTrack.title}${
-												trackPlayerState.activeTrack.album ? ` - ${trackPlayerState.activeTrack.album}` : ""
-										  }`
+									{trackPlayerState.playingTrack?.title
+										? `${trackPlayerState.playingTrack.title}${
+												trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
+											}`
 										: "Unknown title"}
 								</Text>
 								<Text
@@ -110,7 +110,7 @@ export const Bottom = memo(() => {
 									numberOfLines={1}
 									ellipsizeMode="middle"
 								>
-									{trackPlayerState.activeTrack?.artist ?? formatBytes(trackPlayerState.activeTrackFile?.size ?? 0)}
+									{trackPlayerState.playingTrack?.artist ?? formatBytes(trackPlayerState.playingTrack?.file.size ?? 0)}
 								</Text>
 							</View>
 						</View>
@@ -118,7 +118,7 @@ export const Bottom = memo(() => {
 							variant="plain"
 							size="icon"
 							onPress={() => {
-								if (trackPlayerState.isLoading || trackPlayerState.isBuffering) {
+								if (trackPlayerState.isLoading) {
 									return
 								}
 
@@ -126,7 +126,7 @@ export const Bottom = memo(() => {
 							}}
 							className="shrink-0"
 						>
-							{trackPlayerState.isLoading || trackPlayerState.isBuffering ? (
+							{trackPlayerState.isLoading ? (
 								<ActivityIndicator
 									size="small"
 									color={colors.foreground}

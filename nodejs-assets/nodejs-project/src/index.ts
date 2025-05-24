@@ -16,7 +16,6 @@ export class NodeWorker {
 	private readonly pauseMutex = new Semaphore(1)
 	public readonly http: HTTP
 	private state: "paused" | "running" = "running"
-	public doNotPauseOrResumeTransfersOnAppStateChange: boolean = false
 
 	public constructor(bridge: NodeBridge) {
 		this.bridge = bridge
@@ -142,28 +141,26 @@ export class NodeWorker {
 
 			promises.push(this.http.stop(true))
 
-			if (!this.doNotPauseOrResumeTransfersOnAppStateChange) {
-				this.transfersPausedOnLock = []
+			this.transfersPausedOnLock = []
 
-				for (const id in this.transfersPauseSignals) {
-					promises.push(
-						new Promise<void>((resolve, reject) => {
-							this.handlers
-								.transferAction({
-									action: "pause",
-									id
-								})
-								.then(paused => {
-									if (paused) {
-										this.transfersPausedOnLock.push(id)
-									}
+			for (const id in this.transfersPauseSignals) {
+				promises.push(
+					new Promise<void>((resolve, reject) => {
+						this.handlers
+							.transferAction({
+								action: "pause",
+								id
+							})
+							.then(paused => {
+								if (paused) {
+									this.transfersPausedOnLock.push(id)
+								}
 
-									resolve()
-								})
-								.catch(reject)
-						})
-					)
-				}
+								resolve()
+							})
+							.catch(reject)
+					})
+				)
 			}
 
 			await promiseAllChunked(promises)
@@ -209,18 +206,16 @@ export class NodeWorker {
 				})()
 			)
 
-			if (!this.doNotPauseOrResumeTransfersOnAppStateChange) {
-				for (const id in this.transfersPausedOnLock) {
-					promises.push(
-						this.handlers.transferAction({
-							action: "resume",
-							id
-						})
-					)
-				}
-
-				this.transfersPausedOnLock = []
+			for (const id in this.transfersPausedOnLock) {
+				promises.push(
+					this.handlers.transferAction({
+						action: "resume",
+						id
+					})
+				)
 			}
+
+			this.transfersPausedOnLock = []
 
 			await promiseAllChunked(promises)
 
@@ -399,7 +394,6 @@ export class NodeWorker {
 		directorySizePublicLink: handlers.directorySizePublicLink.bind(this),
 		readFileAsString: handlers.readFileAsString.bind(this),
 		writeFileAsString: handlers.writeFileAsString.bind(this),
-		doNotPauseOrResumeTransfersOnAppStateChange: handlers.doNotPauseOrResumeTransfersOnAppStateChange.bind(this),
 		parseAudioMetadata: handlers.parseAudioMetadata.bind(this)
 	}
 }

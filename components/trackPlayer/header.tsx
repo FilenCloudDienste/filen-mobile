@@ -14,7 +14,7 @@ import { randomUUID } from "expo-crypto"
 import queryUtils from "@/queries/utils"
 import { useLocalSearchParams } from "expo-router"
 import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
-import { useTrackPlayer, type TrackMetadata } from "@/lib/trackPlayer"
+import { type TrackMetadata, useTrackPlayerControls, trackPlayerService } from "@/lib/trackPlayer"
 import assets from "@/lib/assets"
 import mmkvInstance from "@/lib/mmkv"
 import { useShallow } from "zustand/shallow"
@@ -24,9 +24,9 @@ export const Header = memo(() => {
 	const { t } = useTranslation()
 	const { colors } = useColorScheme()
 	const { playlist: passedPlaylist } = useLocalSearchParams()
-	const trackPlayer = useTrackPlayer()
 	const setPlaylistsSearchTerm = useTrackPlayerStore(useShallow(state => state.setPlaylistsSearchTerm))
 	const setPlaylistSearchTerm = useTrackPlayerStore(useShallow(state => state.setPlaylistSearchTerm))
+	const trackPlayerControls = useTrackPlayerControls()
 
 	const playlistsQuery = usePlaylistsQuery({
 		enabled: false
@@ -164,7 +164,7 @@ export const Header = memo(() => {
 	}, [passedPlaylist, playlists])
 
 	const playPlaylist = useCallback(async () => {
-		if (!playlist || playlist.files.length === 0 || !trackPlayer) {
+		if (!playlist || playlist.files.length === 0) {
 			return
 		}
 
@@ -175,23 +175,27 @@ export const Header = memo(() => {
 				return
 			}
 
-			await trackPlayer.setQueue(
-				playlist.files.map(file => {
-					const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
+			await trackPlayerControls.setQueue({
+				queue: playlist.files.map(file => {
+					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					return {
+						id: file.uuid,
 						url: silentSoundURI,
 						title: metadataParsed?.title ?? file.name,
 						artist: metadataParsed?.artist,
 						album: metadataParsed?.album,
-						artwork: metadataParsed?.picture,
-						description: JSON.stringify(file)
+						artwork: metadataParsed?.picture ?? "",
+						file,
+						playlist: playlist.uuid
 					}
-				})
-			)
+				}),
+				autoPlay: true,
+				startingTrackIndex: 0
+			})
 
-			await trackPlayer.play()
+			await trackPlayerControls.play()
 		} catch (e) {
 			console.error(e)
 
@@ -199,7 +203,7 @@ export const Header = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [playlist, trackPlayer])
+	}, [playlist, trackPlayerControls])
 
 	return (
 		<Fragment>
@@ -272,7 +276,7 @@ export const Header = memo(() => {
 				<LargeTitleHeader
 					title={playlist ? playlist.name : "Playlists"}
 					materialPreset="inline"
-					backVisible={playlist !== null}
+					backVisible={true}
 					backgroundColor={colors.card}
 					rightView={() => {
 						return (

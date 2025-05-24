@@ -6,7 +6,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { formatBytes } from "@/lib/utils"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTrackPlayer, type TrackMetadata, useTrackPlayerState } from "@/lib/trackPlayer"
+import { type TrackMetadata, useTrackPlayerState, useTrackPlayerControls, trackPlayerService } from "@/lib/trackPlayer"
 import alerts from "@/lib/alerts"
 import assets from "@/lib/assets"
 import { useMMKVObject } from "react-native-mmkv"
@@ -22,7 +22,6 @@ import { cn } from "@/lib/cn"
 
 export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index: number; playlist: Playlist }) => {
 	const { colors } = useColorScheme()
-	const trackPlayer = useTrackPlayer()
 	const [trackPlayerFileMetadata] = useMMKVObject<TrackMetadata>(`trackPlayerFileMetadata:${file.uuid}`, mmkvInstance)
 	const drag = useReorderableDrag()
 	const { showActionSheetWithOptions } = useActionSheet()
@@ -30,10 +29,11 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 		insets: { bottom: bottomInsets }
 	} = useDimensions()
 	const updatePlaylistRemoteMutex = useRef<Semaphore>(new Semaphore(1))
-	const { activeTrackFile } = useTrackPlayerState()
+	const { playingTrack } = useTrackPlayerState()
+	const trackPlayerControls = useTrackPlayerControls()
 
 	const onPress = useCallback(async () => {
-		if (!trackPlayer || !playlist) {
+		if (!playlist) {
 			return
 		}
 
@@ -44,24 +44,30 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 				return
 			}
 
-			await trackPlayer.setQueue(
-				playlist.files.map(file => {
-					const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
-					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
+			await trackPlayerControls.setQueue({
+				queue: [
+					...(await trackPlayerControls.getQueue()),
+					...playlist.files.map(file => {
+						const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+						const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
-					return {
-						url: silentSoundURI,
-						title: metadataParsed?.title ?? file.name,
-						artist: metadataParsed?.artist,
-						album: metadataParsed?.album,
-						artwork: metadataParsed?.picture,
-						description: JSON.stringify(file)
-					}
-				})
-			)
+						return {
+							id: file.uuid,
+							url: silentSoundURI,
+							title: metadataParsed?.title ?? file.name,
+							artist: metadataParsed?.artist,
+							album: metadataParsed?.album,
+							artwork: metadataParsed?.picture ?? "",
+							file,
+							playlist: playlist.uuid
+						}
+					})
+				],
+				autoPlay: true,
+				startingTrackIndex: index
+			})
 
-			await trackPlayer.skip(index)
-			await trackPlayer.play()
+			await trackPlayerControls.play()
 		} catch (e) {
 			console.error(e)
 
@@ -69,7 +75,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 				alerts.error(e.message)
 			}
 		}
-	}, [index, trackPlayer, playlist])
+	}, [trackPlayerControls, playlist, index])
 
 	const actionSheetOptions = useMemo(() => {
 		const options = ["Play", "Add to playlist", "Add to queue", "Remove from playlist", "Cancel"]
@@ -118,28 +124,34 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 	}, [playlist, file.uuid])
 
 	const addToQueue = useCallback(async () => {
-		if (!trackPlayer) {
-			return
-		}
-
 		const silentSoundURI = assets.uri.audio.silent_1h()
 
 		if (!silentSoundURI) {
 			return
 		}
 
-		const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
+		const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
 		const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
-		await trackPlayer.add({
-			url: silentSoundURI,
-			title: metadataParsed?.title ?? file.name,
-			artist: metadataParsed?.artist,
-			album: metadataParsed?.album,
-			artwork: metadataParsed?.picture,
-			description: JSON.stringify(file)
+		await trackPlayerControls.setQueue({
+			queue: [
+				...(await trackPlayerControls.getQueue()),
+				...[
+					{
+						id: file.uuid,
+						url: silentSoundURI,
+						title: metadataParsed?.title ?? file.name,
+						artist: metadataParsed?.artist,
+						album: metadataParsed?.album,
+						artwork: metadataParsed?.picture ?? "",
+						file,
+						playlist: file.playlist
+					}
+				]
+			],
+			autoPlay: false
 		})
-	}, [trackPlayer, file])
+	}, [file, trackPlayerControls])
 
 	const onDotsPress = useCallback(() => {
 		showActionSheetWithOptions(
@@ -156,7 +168,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 							textStyle: {
 								color: colors.foreground
 							}
-					  }
+						}
 					: {})
 			},
 			async (selectedIndex?: number) => {
@@ -200,12 +212,12 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 	}, [actionSheetOptions, colors, showActionSheetWithOptions, bottomInsets, play, remove, addToQueue])
 
 	const playing = useMemo(() => {
-		if (!activeTrackFile) {
+		if (!playingTrack) {
 			return false
 		}
 
-		return activeTrackFile.uuid === file.uuid
-	}, [activeTrackFile, file.uuid])
+		return playingTrack.file.uuid === file.uuid
+	}, [playingTrack, file.uuid])
 
 	return (
 		<Button

@@ -8,7 +8,7 @@ import { Slider } from "@/components/nativewindui/Slider"
 import { Text } from "@/components/nativewindui/Text"
 import { formatSecondsToMMSS } from "@/lib/utils"
 import useSetExpoAudioMode from "@/hooks/useSetExpoAudioMode"
-import { useTrackPlayer } from "@/lib/trackPlayer"
+import { useTrackPlayerControls } from "@/lib/trackPlayer"
 
 export const Audio = memo(({ source, name }: { source: string; name: string; link: string }) => {
 	useSetExpoAudioMode()
@@ -17,7 +17,7 @@ export const Audio = memo(({ source, name }: { source: string; name: string; lin
 	const { colors } = useColorScheme()
 	const player = useAudioPlayer(source, 100)
 	const playerStatus = useAudioPlayerStatus(player)
-	const trackPlayer = useTrackPlayer()
+	const trackPlayerControls = useTrackPlayerControls()
 
 	const togglePlay = useCallback(() => {
 		if (!loadSuccess) {
@@ -52,9 +52,9 @@ export const Audio = memo(({ source, name }: { source: string; name: string; lin
 
 	useEffect(() => {
 		if (playerStatus.isLoaded && playerStatus.playing) {
-			trackPlayer?.stop().catch(console.error)
+			trackPlayerControls.stop().catch(console.error)
 		}
-	}, [trackPlayer, playerStatus.isLoaded, playerStatus.playing])
+	}, [trackPlayerControls, playerStatus.isLoaded, playerStatus.playing])
 
 	return (
 		<View className="flex-1 bg-background border border-border rounded-md flex-col">
