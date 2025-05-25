@@ -1,4 +1,4 @@
-import { memo, useMemo, useCallback, Fragment } from "react"
+import { memo, useMemo, useCallback, Fragment, useRef, useLayoutEffect } from "react"
 import regexifyString from "regexify-string"
 import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
@@ -13,6 +13,10 @@ import { Image } from "expo-image"
 import * as Clipboard from "expo-clipboard"
 import { cn } from "@/lib/cn"
 import { Embed } from "./embeds"
+import useViewLayout from "@/hooks/useViewLayout"
+import { useChatsStore } from "@/stores/chats.store"
+import { useShallow } from "zustand/shallow"
+import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 
 export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
@@ -60,6 +64,8 @@ export const Mention = memo(({ name, participant }: { name: string; participant?
 Mention.displayName = "Mention"
 
 export const CodeBlock = memo(({ match }: { match: string }) => {
+	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+
 	const code = useMemo(() => {
 		let code = match.split("```").join("").trim()
 
@@ -95,7 +101,10 @@ export const CodeBlock = memo(({ match }: { match: string }) => {
 	)
 
 	return (
-		<View className="flex-1 rounded-md bg-card basis-full">
+		<View
+			className="flex-1 rounded-md bg-card basis-full"
+			style={chatEmbedContainerStyle}
+		>
 			<Button
 				variant="plain"
 				size="none"
@@ -113,6 +122,10 @@ export const CodeBlock = memo(({ match }: { match: string }) => {
 CodeBlock.displayName = "CodeBlock"
 
 export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisabled: boolean }) => {
+	const viewRef = useRef<View>(null)
+	const setEmbedContainerWidth = useChatsStore(useShallow(state => state.setEmbedContainerWidth))
+	const { onLayout, layout } = useViewLayout(viewRef)
+
 	const url = useMemo(() => {
 		return match.trim()
 	}, [match])
@@ -121,12 +134,24 @@ export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisa
 		return getMessageLinkType(url)
 	}, [url])
 
+	useLayoutEffect(() => {
+		if (!viewRef.current) {
+			return
+		}
+
+		setEmbedContainerWidth(layout.width)
+	}, [layout.width, setEmbedContainerWidth])
+
 	if (embedsDisabled) {
 		return <Fallback link={url} />
 	}
 
 	return (
-		<View className="flex-1 basis-full flex-row pt-1">
+		<View
+			ref={viewRef}
+			onLayout={onLayout}
+			className="flex-1 basis-full flex-row pt-1 w-full"
+		>
 			<Embed
 				type={type}
 				link={url}
@@ -215,7 +240,7 @@ export const ReplacedMessageContent = memo(
 						return (
 							<Image
 								cachePolicy="disk"
-								priority="high"
+								priority="low"
 								style={{
 									width: size ? size : 24,
 									height: size ? size : 24
@@ -344,7 +369,7 @@ export const ReplacedMessageContentInline = memo(
 						return (
 							<Image
 								cachePolicy="disk"
-								priority="high"
+								priority="low"
 								style={{
 									width: typeof emojiSize === "number" ? emojiSize : 14,
 									height: typeof emojiSize === "number" ? emojiSize : 14

@@ -100,6 +100,28 @@ export const Filen = memo(({ link }: { link: string }) => {
 		refetchOnWindowFocus: false
 	})
 
+	const source = useMemo(() => {
+		if (!publicLink || query.status !== "success" || !query.data || query.data.type === "directory") {
+			return ""
+		}
+
+		return `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+			btoa(
+				JSON.stringify({
+					name: query.data.data.info.name,
+					mime: query.data.data.info.mime,
+					size: query.data.data.info.size,
+					uuid: query.data.data.info.uuid,
+					bucket: query.data.data.info.bucket,
+					key: publicLink.key,
+					version: query.data.data.info.version,
+					chunks: query.data.data.info.chunks,
+					region: query.data.data.info.region
+				})
+			)
+		)}`
+	}, [query.data, query.status, publicLink])
+
 	if (!publicLink || query.status !== "success" || !query.data) {
 		return <Fallback link={link} />
 	}
@@ -118,21 +140,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 		return (
 			<Image
 				link={link}
-				source={`http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
-					btoa(
-						JSON.stringify({
-							name: query.data.data.info.name,
-							mime: query.data.data.info.mime,
-							size: query.data.data.info.size,
-							uuid: query.data.data.info.uuid,
-							bucket: query.data.data.info.bucket,
-							key: publicLink.key,
-							version: query.data.data.info.version,
-							chunks: query.data.data.info.chunks,
-							region: query.data.data.info.region
-						})
-					)
-				)}`}
+				source={source}
 			/>
 		)
 	}
@@ -142,21 +150,8 @@ export const Filen = memo(({ link }: { link: string }) => {
 			<Code
 				link={link}
 				name={query.data.data.info.name}
-				source={`http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
-					btoa(
-						JSON.stringify({
-							name: query.data.data.info.name,
-							mime: query.data.data.info.mime,
-							size: query.data.data.info.size,
-							uuid: query.data.data.info.uuid,
-							bucket: query.data.data.info.bucket,
-							key: publicLink.key,
-							version: query.data.data.info.version,
-							chunks: query.data.data.info.chunks,
-							region: query.data.data.info.region
-						})
-					)
-				)}`}
+				size={query.data.data.info.size}
+				source={source}
 			/>
 		)
 	}
@@ -166,21 +161,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 			<Video
 				link={link}
 				name={query.data.data.info.name}
-				source={`http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
-					btoa(
-						JSON.stringify({
-							name: query.data.data.info.name,
-							mime: query.data.data.info.mime,
-							size: query.data.data.info.size,
-							uuid: query.data.data.info.uuid,
-							bucket: query.data.data.info.bucket,
-							key: publicLink.key,
-							version: query.data.data.info.version,
-							chunks: query.data.data.info.chunks,
-							region: query.data.data.info.region
-						})
-					)
-				)}`}
+				source={source}
 			/>
 		)
 	}
@@ -190,21 +171,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 			<Audio
 				link={link}
 				name={query.data.data.info.name}
-				source={`http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
-					btoa(
-						JSON.stringify({
-							name: query.data.data.info.name,
-							mime: query.data.data.info.mime,
-							size: query.data.data.info.size,
-							uuid: query.data.data.info.uuid,
-							bucket: query.data.data.info.bucket,
-							key: publicLink.key,
-							version: query.data.data.info.version,
-							chunks: query.data.data.info.chunks,
-							region: query.data.data.info.region
-						})
-					)
-				)}`}
+				source={source}
 			/>
 		)
 	}
@@ -214,21 +181,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 			<PDF
 				size={query.data.data.info.size}
 				name={query.data.data.info.name}
-				source={`http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
-					btoa(
-						JSON.stringify({
-							name: query.data.data.info.name,
-							mime: query.data.data.info.mime,
-							size: query.data.data.info.size,
-							uuid: query.data.data.info.uuid,
-							bucket: query.data.data.info.bucket,
-							key: publicLink.key,
-							version: query.data.data.info.version,
-							chunks: query.data.data.info.chunks,
-							region: query.data.data.info.region
-						})
-					)
-				)}`}
+				source={source}
 			/>
 		)
 	}
@@ -238,21 +191,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 			<DOCX
 				size={query.data.data.info.size}
 				name={query.data.data.info.name}
-				source={`http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
-					btoa(
-						JSON.stringify({
-							name: query.data.data.info.name,
-							mime: query.data.data.info.mime,
-							size: query.data.data.info.size,
-							uuid: query.data.data.info.uuid,
-							bucket: query.data.data.info.bucket,
-							key: publicLink.key,
-							version: query.data.data.info.version,
-							chunks: query.data.data.info.chunks,
-							region: query.data.data.info.region
-						})
-					)
-				)}`}
+				source={source}
 			/>
 		)
 	}

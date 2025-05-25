@@ -4,17 +4,17 @@ import Header from "./header"
 import Container from "../Container"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
-import { View, RefreshControl, ActivityIndicator, FlatList, type ListRenderItemInfo } from "react-native"
+import { View, RefreshControl, ActivityIndicator } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import alerts from "@/lib/alerts"
 import Item from "./item"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
+import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const listRef = useRef<FlatList<ChatConversation>>(null)
+	const listRef = useRef<FlashList<ChatConversation>>(null)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const bottomListContainerPadding = useBottomListContainerPadding()
 	const { colors } = useColorScheme()
@@ -130,8 +130,7 @@ export const Chats = memo(() => {
 		<Fragment>
 			<Header setSearchTerm={setSearchTerm} />
 			<Container>
-				<FlatList
-					{...FLATLIST_BASE_PROPS}
+				<FlashList
 					ref={listRef}
 					data={chats}
 					contentInsetAdjustmentBehavior="automatic"
@@ -144,8 +143,6 @@ export const Chats = memo(() => {
 					ListEmptyComponent={ListEmpty}
 					ListFooterComponent={ListFooter}
 					refreshControl={refreshControl}
-					windowSize={3}
-					removeClippedSubviews={true}
 				/>
 			</Container>
 		</Fragment>

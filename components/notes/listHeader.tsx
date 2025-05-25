@@ -1,11 +1,11 @@
 import { memo, useRef, useMemo, useEffect, useCallback } from "react"
-import { View, type ListRenderItemInfo, FlatList } from "react-native"
+import { View } from "react-native"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
+import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
 	const { t } = useTranslation()
@@ -50,7 +50,7 @@ export const Item = memo((info: ListRenderItemInfo<string>) => {
 Item.displayName = "Item"
 
 export const ListHeader = memo(() => {
-	const tagsListRef = useRef<FlatList<string>>(null)
+	const tagsListRef = useRef<FlashList<string>>(null)
 	const [selectedTag] = useMMKVString("selectedTag", mmkvInstance)
 
 	const notesTagsQuery = useNotesTagsQuery({
@@ -91,8 +91,7 @@ export const ListHeader = memo(() => {
 
 	return (
 		<View className="px-4 h-10 py-2">
-			<FlatList
-				{...FLATLIST_BASE_PROPS}
+			<FlashList
 				ref={tagsListRef}
 				horizontal={true}
 				showsHorizontalScrollIndicator={false}

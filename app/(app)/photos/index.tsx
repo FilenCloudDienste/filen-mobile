@@ -5,7 +5,7 @@ import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem, createDropdownSubMenu } from "@/components/nativewindui/DropdownMenu/utils"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
+import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator } from "react-native"
 import Thumbnail from "@/components/thumbnail/item"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextItem, createContextSubMenu } from "@/components/nativewindui/ContextMenu/utils"
@@ -28,7 +28,7 @@ import { Image } from "expo-image"
 import useDimensions from "@/hooks/useDimensions"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
+import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Photos = memo(() => {
 	const { colors } = useColorScheme()
@@ -316,8 +316,7 @@ export const Photos = memo(() => {
 					onLayout={onLayout}
 					className="flex-1"
 				>
-					<FlatList
-						{...FLATLIST_BASE_PROPS}
+					<FlashList
 						key={`list:${numColumns}:${itemSize}`}
 						data={items}
 						renderItem={renderItem}
@@ -325,6 +324,7 @@ export const Photos = memo(() => {
 						keyExtractor={keyExtractor}
 						contentInsetAdjustmentBehavior="automatic"
 						showsVerticalScrollIndicator={true}
+						estimatedItemSize={itemSize}
 						ListHeaderComponent={
 							!hasInternet ? (
 								<View className="flex-row items-center justify-center bg-red-500 p-2">

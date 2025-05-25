@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import { WebpageMetadataParser } from "./parser"
@@ -13,6 +13,7 @@ import Audio from "../containers/audio"
 import Code from "../containers/code"
 import Outer from "../containers/outer"
 import Fallback from "../containers/fallback"
+import * as FileSystem from "expo-file-system/next"
 
 export const Fetch = memo(({ link }: { link: string }) => {
 	const query = useQuery({
@@ -25,6 +26,10 @@ export const Fetch = memo(({ link }: { link: string }) => {
 		gcTime: DEFAULT_QUERY_OPTIONS.gcTime,
 		refetchInterval: false
 	})
+
+	const name = useMemo(() => {
+		return FileSystem.Paths.basename(link)
+	}, [link])
 
 	const onPress = useCallback(async () => {
 		try {
@@ -60,7 +65,7 @@ export const Fetch = memo(({ link }: { link: string }) => {
 			<Video
 				link={link}
 				source={query.data.uri}
-				name={query.data.uri}
+				name={name}
 			/>
 		)
 	}
@@ -70,7 +75,7 @@ export const Fetch = memo(({ link }: { link: string }) => {
 			<Audio
 				link={link}
 				source={query.data.uri}
-				name={query.data.uri}
+				name={name}
 			/>
 		)
 	}
@@ -79,7 +84,7 @@ export const Fetch = memo(({ link }: { link: string }) => {
 		return (
 			<DOCX
 				source={query.data.uri}
-				name={query.data.uri}
+				name={name}
 			/>
 		)
 	}
@@ -88,7 +93,7 @@ export const Fetch = memo(({ link }: { link: string }) => {
 		return (
 			<PDF
 				source={query.data.uri}
-				name={query.data.uri}
+				name={name}
 			/>
 		)
 	}
@@ -98,7 +103,7 @@ export const Fetch = memo(({ link }: { link: string }) => {
 			<Code
 				link={link}
 				source={query.data.uri}
-				name={query.data.uri}
+				name={name}
 			/>
 		)
 	}

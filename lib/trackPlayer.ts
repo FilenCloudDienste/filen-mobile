@@ -219,6 +219,8 @@ export class TrackPlayerService {
 						track: trackToPlay,
 						autoPlay: true
 					})
+
+					return
 				}
 
 				AudioPro.resume()
@@ -318,6 +320,29 @@ export class TrackPlayerService {
 		await this.controlsMutex.acquire()
 
 		try {
+			const currentTrack = this.getCurrentTrackInQueue()
+
+			if (!currentTrack) {
+				const queue = this.getQueue()
+
+				if (queue.length === 0) {
+					return
+				}
+
+				const trackToPlay = queue.at(0)
+
+				if (!trackToPlay) {
+					return
+				}
+
+				await this.playTrack({
+					track: trackToPlay,
+					autoPlay: true
+				})
+
+				return
+			}
+
 			const state = AudioPro.getState()
 
 			if (state === AudioProState.PLAYING) {
@@ -476,6 +501,7 @@ export class TrackPlayerService {
 		const newQueue = this.getQueue().map(t => (t.file.uuid === loadedTrack.file.uuid ? loadedTrack : t))
 
 		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(newQueue))
+		mmkvInstance.set(TRACK_PLAYER_PLAYING_TRACK_KEY, JSON.stringify(track))
 
 		AudioPro.play(loadedTrack, {
 			autoPlay,

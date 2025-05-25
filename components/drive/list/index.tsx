@@ -1,4 +1,4 @@
-import { View, RefreshControl, FlatList, type ListRenderItemInfo } from "react-native"
+import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
@@ -17,7 +17,7 @@ import mmkvInstance from "@/lib/mmkv"
 import useViewLayout from "@/hooks/useViewLayout"
 import useDimensions from "@/hooks/useDimensions"
 import { useShallow } from "zustand/shallow"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
+import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()
@@ -27,7 +27,7 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
 	const { hasInternet } = useNetInfo()
 	const [orderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
-	const listRef = useRef<FlatList<ListItemInfo>>(null)
+	const listRef = useRef<FlashList<ListItemInfo>>(null)
 	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
@@ -95,46 +95,6 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 		[queryParams, driveItems, itemSize, spacing]
 	)
 
-	const ListHeaderComponent = useMemo(() => {
-		if (hasInternet) {
-			return undefined
-		}
-
-		return (
-			<View className="flex-row items-center justify-center bg-red-500 p-2">
-				<Text>Offline mode</Text>
-			</View>
-		)
-	}, [hasInternet])
-
-	const ListEmptyComponent = useMemo(() => {
-		return (
-			<View className="flex-1 flex-row items-center justify-center">
-				{cloudItemsQuery.isSuccess ? (
-					searchTerm.length > 0 ? (
-						<Text>Nothing found</Text>
-					) : (
-						<Text>Directory is empty</Text>
-					)
-				) : (
-					<ActivityIndicator color={colors.foreground} />
-				)}
-			</View>
-		)
-	}, [searchTerm.length, cloudItemsQuery.isSuccess, colors.foreground])
-
-	const ListFooterComponent = useMemo(() => {
-		if (items.length === 0) {
-			return undefined
-		}
-
-		return (
-			<View className="h-16 flex-1 flex-row items-center justify-center">
-				<Text className="text-sm">{items.length} items</Text>
-			</View>
-		)
-	}, [items.length])
-
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
@@ -153,8 +113,7 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const list = useMemo(() => {
 		if (gridModeEnabled) {
 			return (
-				<FlatList
-					{...FLATLIST_BASE_PROPS}
+				<FlashList
 					ref={listRef}
 					data={items}
 					numColumns={numColumns}
@@ -165,19 +124,50 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 					contentContainerStyle={{
 						paddingBottom: bottomListContainerPadding
 					}}
-					ListHeaderComponent={ListHeaderComponent}
-					ListEmptyComponent={ListEmptyComponent}
-					ListFooterComponent={ListFooterComponent}
+					ListHeaderComponent={() => {
+						if (hasInternet) {
+							return undefined
+						}
+
+						return (
+							<View className="flex-row items-center justify-center bg-red-500 p-2">
+								<Text>Offline mode</Text>
+							</View>
+						)
+					}}
+					ListEmptyComponent={() => {
+						return (
+							<View className="flex-1 flex-row items-center justify-center">
+								{cloudItemsQuery.isSuccess ? (
+									searchTerm.length > 0 ? (
+										<Text>Nothing found</Text>
+									) : (
+										<Text>Directory is empty</Text>
+									)
+								) : (
+									<ActivityIndicator color={colors.foreground} />
+								)}
+							</View>
+						)
+					}}
+					ListFooterComponent={() => {
+						if (items.length === 0) {
+							return undefined
+						}
+
+						return (
+							<View className="h-16 flex-1 flex-row items-center justify-center">
+								<Text className="text-sm">{items.length} items</Text>
+							</View>
+						)
+					}}
 					refreshControl={refreshControl}
-					windowSize={3}
-					removeClippedSubviews={true}
 				/>
 			)
 		}
 
 		return (
 			<List
-				{...FLATLIST_BASE_PROPS}
 				ref={listRef}
 				variant="full-width"
 				data={items}
@@ -188,12 +178,44 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 				contentContainerStyle={{
 					paddingBottom: bottomListContainerPadding
 				}}
-				ListHeaderComponent={ListHeaderComponent}
-				ListEmptyComponent={ListEmptyComponent}
-				ListFooterComponent={ListFooterComponent}
+				ListHeaderComponent={() => {
+					if (hasInternet) {
+						return undefined
+					}
+
+					return (
+						<View className="flex-row items-center justify-center bg-red-500 p-2">
+							<Text>Offline mode</Text>
+						</View>
+					)
+				}}
+				ListEmptyComponent={() => {
+					return (
+						<View className="flex-1 flex-row items-center justify-center">
+							{cloudItemsQuery.isSuccess ? (
+								searchTerm.length > 0 ? (
+									<Text>Nothing found</Text>
+								) : (
+									<Text>Directory is empty</Text>
+								)
+							) : (
+								<ActivityIndicator color={colors.foreground} />
+							)}
+						</View>
+					)
+				}}
+				ListFooterComponent={() => {
+					if (items.length === 0) {
+						return undefined
+					}
+
+					return (
+						<View className="h-16 flex-1 flex-row items-center justify-center">
+							<Text className="text-sm">{items.length} items</Text>
+						</View>
+					)
+				}}
 				refreshControl={refreshControl}
-				windowSize={3}
-				removeClippedSubviews={true}
 			/>
 		)
 	}, [
@@ -204,11 +226,12 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 		refreshing,
 		cloudItemsQuery.status,
 		gridModeEnabled,
-		ListHeaderComponent,
-		ListEmptyComponent,
-		ListFooterComponent,
 		refreshControl,
-		numColumns
+		numColumns,
+		hasInternet,
+		colors.foreground,
+		searchTerm.length,
+		cloudItemsQuery.isSuccess
 	])
 
 	useLayoutEffect(() => {

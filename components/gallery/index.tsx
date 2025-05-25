@@ -6,7 +6,6 @@ import { type GalleryItem, useGalleryStore } from "@/stores/gallery.store"
 import useDimensions from "@/hooks/useDimensions"
 import Header from "./header"
 import { useShallow } from "zustand/shallow"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 
 export const Gallery = memo(
 	({
@@ -142,7 +141,6 @@ export const Gallery = memo(
 					show={showHeader}
 				/>
 				<FlatList
-					{...FLATLIST_BASE_PROPS}
 					key={key}
 					data={items}
 					pagingEnabled={true}

@@ -5,7 +5,7 @@ import Menu from "./menu"
 import RightView from "./rightView"
 import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
-import { Platform, type ListRenderItemInfo } from "react-native"
+import { Platform } from "react-native"
 import { useDirectorySizeQueryNoFocusRefetch } from "@/queries/useDirectorySizeQuery"
 import { formatBytes, getPreviewType } from "@/lib/utils"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
@@ -21,6 +21,7 @@ import { useShallow } from "zustand/shallow"
 import { type TextEditorItem } from "@/components/textEditor/editor"
 import { type PDFPreviewItem } from "@/components/pdfPreview"
 import { type DOCXPreviewItem } from "@/components/docxPreview"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export type ListItemInfo = {
 	title: string

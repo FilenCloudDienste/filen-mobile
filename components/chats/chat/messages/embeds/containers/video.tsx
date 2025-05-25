@@ -1,26 +1,65 @@
-import { memo, useState, useCallback } from "react"
-import { View, type GestureResponderEvent, ActivityIndicator } from "react-native"
+import { memo, useCallback } from "react"
+import { View, type GestureResponderEvent } from "react-native"
 import { Icon } from "@roninoss/icons"
-import { VideoView, useVideoPlayer, type PlayerError } from "expo-video"
-import { useColorScheme } from "@/lib/useColorScheme"
 import Outer from "./outer"
 import { useGalleryStore } from "@/stores/gallery.store"
-import { useEventListener } from "expo"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import Fallback from "./fallback"
+import { useQuery } from "@tanstack/react-query"
+import * as VideoThumbnails from "expo-video-thumbnails"
+import * as FileSystem from "expo-file-system/next"
+import { xxHash32 } from "js-xxhash"
+import { Image } from "expo-image"
+import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 
 export const Video = memo(({ source, link, name }: { source: string; link: string; name: string }) => {
-	const { colors } = useColorScheme()
-	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
-	const [error, setError] = useState<PlayerError | undefined>(undefined)
+	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+
+	const query = useQuery({
+		queryKey: ["chatEmbedVideoThumbnail", source, link, name],
+		enabled: source !== null,
+		queryFn: async () => {
+			const destination = new FileSystem.File(
+				FileSystem.Paths.join(
+					FileSystem.Paths.cache,
+					`chat-embed-video-thumbnail-${xxHash32(`${source}:${link}`).toString(16)}${FileSystem.Paths.extname(name)}`
+				)
+			)
+
+			if (!destination.exists) {
+				const videoThumbnail = await VideoThumbnails.getThumbnailAsync(source, {
+					quality: 0.7,
+					time: 500
+				})
+
+				const videoThumbnailFile = new FileSystem.File(videoThumbnail.uri)
+
+				if (!videoThumbnailFile.exists) {
+					throw new Error("Failed to generate video thumbnail.")
+				}
+
+				videoThumbnailFile.move(destination)
+
+				if (!destination.exists) {
+					throw new Error(`Generated thumbnail at ${destination.uri} does not exist.`)
+				}
+			}
+
+			return destination.uri
+		},
+		refetchOnMount: false,
+		refetchOnReconnect: false,
+		refetchIntervalInBackground: false,
+		refetchOnWindowFocus: false
+	})
 
 	const onPress = useCallback(
 		async (e: GestureResponderEvent) => {
 			e.preventDefault()
 			e.stopPropagation()
 
-			if (!loadSuccess || error) {
+			if (query.status !== "success") {
 				try {
 					if (!(await Linking.canOpenURL(link))) {
 						throw new Error("Cannot open URL.")
@@ -49,21 +88,10 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 			useGalleryStore.getState().setInitialUUID(source)
 			useGalleryStore.getState().setVisible(true)
 		},
-		[link, loadSuccess, error, source]
+		[link, source, query.status]
 	)
 
-	const player = useVideoPlayer(source, player => {
-		player.loop = true
-
-		player.pause()
-	})
-
-	useEventListener(player, "statusChange", e => {
-		setError(e.error)
-		setLoadSuccess(e.status === "readyToPlay")
-	})
-
-	if (error) {
+	if (query.status !== "success") {
 		return <Fallback link={link} />
 	}
 
@@ -73,7 +101,10 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 			title={name}
 			titleClassName="text-foreground"
 		>
-			{!error && loadSuccess && (
+			<View
+				className="flex-1 items-center justify-center flex-row aspect-video bg-background"
+				style={chatEmbedContainerStyle}
+			>
 				<View className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
 					<Icon
 						name="play-circle-outline"
@@ -81,32 +112,19 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 						color="white"
 					/>
 				</View>
-			)}
-			{!error && !loadSuccess && (
-				<View className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
-					<ActivityIndicator
-						size="small"
-						color={colors.foreground}
-					/>
-				</View>
-			)}
-			{!error && loadSuccess && (
-				<VideoView
-					player={player}
-					allowsFullscreen={false}
-					allowsPictureInPicture={false}
-					nativeControls={false}
-					startsPictureInPictureAutomatically={false}
-					showsTimecodes={false}
-					allowsVideoFrameAnalysis={false}
-					useExoShutter={false}
+				<Image
+					source={{
+						uri: query.data
+					}}
+					cachePolicy="disk"
+					priority="low"
 					contentFit="contain"
 					style={{
 						width: "100%",
 						height: "100%"
 					}}
 				/>
-			)}
+			</View>
 		</Outer>
 	)
 })

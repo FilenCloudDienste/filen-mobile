@@ -4,10 +4,10 @@ import Header from "@/components/trackPlayer/header"
 import Item from "./item"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { RefreshControl, type ListRenderItemInfo, FlatList } from "react-native"
+import { RefreshControl } from "react-native"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
+import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const TrackPlayer = memo(() => {
 	const [trackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
@@ -41,8 +41,7 @@ export const TrackPlayer = memo(() => {
 	return (
 		<Fragment>
 			<Header />
-			<FlatList
-				{...FLATLIST_BASE_PROPS}
+			<FlashList
 				data={playlists}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}

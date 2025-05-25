@@ -10,6 +10,7 @@ import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import { Icon } from "@roninoss/icons"
 import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
+import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 
 export type YouTubeInfo = {
 	title?: string
@@ -28,6 +29,8 @@ export type YouTubeInfo = {
 }
 
 export const YouTube = memo(({ link }: { link: string }) => {
+	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+
 	const videoId = useMemo(() => {
 		return parseYouTubeVideoId(link)
 	}, [link])
@@ -94,9 +97,13 @@ export const YouTube = memo(({ link }: { link: string }) => {
 			size="none"
 			unstable_pressDelay={100}
 			onPress={onPress}
-			className="flex-1 active:opacity-70"
+			className="flex-1 active:opacity-70 basis-full w-full"
+			style={chatEmbedContainerStyle}
 		>
-			<View className="flex-1 flex-col bg-card rounded-md p-2 mt-2 gap-2 border-l-red-500 border-l-2">
+			<View
+				className="flex-1 flex-col bg-card rounded-md p-2 mt-2 gap-2 border-l-red-500 border-l-2"
+				style={chatEmbedContainerStyle}
+			>
 				<Text
 					className="text-blue-500 font-normal text-xs"
 					numberOfLines={1}

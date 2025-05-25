@@ -6,12 +6,12 @@ import { Toolbar, ToolbarIcon } from "../nativewindui/Toolbar"
 import { List, ESTIMATED_ITEM_HEIGHT, type ListDataItem } from "@/components/nativewindui/List"
 import Container from "../Container"
 import { Text } from "../nativewindui/Text"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import Transfer, { type ListItemInfo } from "./transfer"
 import { formatBytes, promiseAllChunked, normalizeTransferProgress, bpsToReadable } from "@/lib/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
+import { type LegendListRenderItemProps } from "@legendapp/list"
 
 export const Transfers = memo(() => {
 	const transfers = useTransfersStore(useShallow(state => state.transfers))
@@ -53,7 +53,7 @@ export const Transfers = memo(() => {
 		return typeof item === "string" ? item : item.id
 	}, [])
 
-	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
+	const renderItem = useCallback((info: LegendListRenderItemProps<ListItemInfo>) => {
 		return <Transfer info={info} />
 	}, [])
 

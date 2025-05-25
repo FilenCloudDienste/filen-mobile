@@ -1,5 +1,4 @@
 import { type FilenSDKConfig } from "@filen/sdk"
-import { type FlatListProps } from "react-native"
 
 export const AUTHED_VERSION: number = 1
 export const SDK_CONFIG_VERSION: number = 1
@@ -41,12 +40,3 @@ export const BACKGROUND_TASK_IDENTIFIER: string = "background-task"
 export const CAMERA_UPLOAD_INTERVAL: number = 60 * 1000
 
 export const SILENT_1H_AUDIO_FILE: string = "silent_1h.mp3"
-
-export const FLATLIST_BASE_PROPS = {
-	removeClippedSubviews: true,
-	windowSize: 2,
-	maxToRenderPerBatch: 2,
-	updateCellsBatchingPeriod: 100,
-	initialNumToRender: 10
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-} satisfies Partial<FlatListProps<any>>

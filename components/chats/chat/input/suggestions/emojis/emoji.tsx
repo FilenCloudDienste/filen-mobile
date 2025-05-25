@@ -56,7 +56,7 @@ export const Emoji = memo(({ emoji, chat }: { emoji: CustomEmoji; chat: ChatConv
 						width: 20,
 						height: 20
 					}}
-					priority="high"
+					priority="low"
 					cachePolicy="disk"
 					className="shrink-0"
 				/>

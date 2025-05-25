@@ -3,6 +3,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { cn } from "@/lib/cn"
 import { Text } from "@/components/nativewindui/Text"
 import { View, type GestureResponderEvent } from "react-native"
+import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 
 export const Outer = memo(
 	({
@@ -28,13 +29,17 @@ export const Outer = memo(
 		innerClassName?: string
 		childrenClassName?: string
 	}) => {
+		const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+
 		return (
 			<Button
 				variant="plain"
 				size="none"
 				unstable_pressDelay={100}
 				onPress={onPress}
-				className={cn("flex-1 active:opacity-70", className)}
+				className={cn("flex-1 active:opacity-70 basis-full", className)}
+				android_ripple={null}
+				style={chatEmbedContainerStyle}
 			>
 				<View
 					className={cn(
@@ -42,6 +47,7 @@ export const Outer = memo(
 						leftBorderColor ? `border-l-[${leftBorderColor}]` : "border-l-gray-500",
 						innerClassName
 					)}
+					style={chatEmbedContainerStyle}
 				>
 					{title && (
 						<Text

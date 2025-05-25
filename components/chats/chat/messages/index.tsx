@@ -11,15 +11,7 @@ import useHeaderHeight from "@/hooks/useHeaderHeight"
 import useChatsLastFocusQuery from "@/queries/useChatsLastFocusQuery"
 import Top from "./top"
 import useDimensions from "@/hooks/useDimensions"
-import {
-	type ViewabilityConfig,
-	View,
-	type NativeSyntheticEvent,
-	type NativeScrollEvent,
-	type ListRenderItemInfo,
-	type ViewToken,
-	FlatList
-} from "react-native"
+import { type ViewabilityConfig, View, type NativeSyntheticEvent, type NativeScrollEvent, type ViewToken } from "react-native"
 import Animated, { useAnimatedStyle, interpolate, FadeIn, FadeOut } from "react-native-reanimated"
 import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller"
 import Emojis from "../input/suggestions/emojis"
@@ -30,7 +22,7 @@ import { useShallow } from "zustand/shallow"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
+import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
@@ -60,7 +52,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const emojisSuggestions = useChatsStore(useShallow(state => state.emojisSuggestions[chat.uuid] ?? []))
 	const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 	const replyToMessage = useChatsStore(useShallow(state => state.replyToMessage[chat.uuid] ?? null))
-	const listRef = useRef<FlatList<ChatMessage>>(null)
+	const listRef = useRef<FlashList<ChatMessage>>(null)
 	const { colors } = useColorScheme()
 	const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false)
 
@@ -203,7 +195,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const scrollToBottom = useCallback(() => {
 		listRef.current?.scrollToOffset({
 			offset: 0,
-			animated: true
+			animated: false
 		})
 
 		setShowScrollToBottom(false)
@@ -227,7 +219,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 					onPress={scrollToBottom}
 					size="none"
 					variant="plain"
-					className="rounded-full bg-card p-1.5"
+					className="rounded-full bg-card p-2"
 					hitSlop={15}
 					unstable_pressDelay={100}
 				>
@@ -238,8 +230,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 					/>
 				</Button>
 			</Animated.View>
-			<FlatList
-				{...FLATLIST_BASE_PROPS}
+			<FlashList
 				ref={listRef}
 				onScroll={onScroll}
 				onEndReached={fetchMoreMessages}
@@ -253,6 +244,8 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 				extraData={lastFocus}
+				estimatedItemSize={150}
+				drawDistance={screen.height}
 				ListFooterComponent={
 					isPreview ? undefined : (
 						<View

@@ -4,7 +4,7 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem, createDropdownSubMenu } from "@/components/nativewindui/DropdownMenu/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { Platform, RefreshControl, View, FlatList, ActivityIndicator } from "react-native"
+import { Platform, RefreshControl, View, ActivityIndicator, FlatList } from "react-native"
 import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
@@ -16,7 +16,6 @@ import ContainerComponent from "./container"
 import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import * as BackgroundTask from "expo-background-task"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 import { getSDK } from "@/lib/sdk"
 
 export const Home = memo(() => {
@@ -292,7 +291,6 @@ export const Home = memo(() => {
 					</View>
 				) : (
 					<FlatList
-						{...FLATLIST_BASE_PROPS}
 						data={["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", "trash", "bottom"] as const}
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}

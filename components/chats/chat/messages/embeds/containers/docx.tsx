@@ -6,9 +6,14 @@ import { FileNameToSVGIcon } from "@/assets/fileIcons"
 import { Button } from "@/components/nativewindui/Button"
 import { type DOCXPreviewItem } from "@/components/docxPreview"
 import { formatBytes } from "@/lib/utils"
+import { Icon } from "@roninoss/icons"
+import { useColorScheme } from "@/lib/useColorScheme"
+import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 
 export const DOCX = memo(({ name, source, size }: { name: string; source: string; size?: number }) => {
 	const { push: routerPush } = useRouter()
+	const { colors } = useColorScheme()
+	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
 
 	const onPress = useCallback(() => {
 		routerPush({
@@ -27,9 +32,10 @@ export const DOCX = memo(({ name, source, size }: { name: string; source: string
 		<Button
 			variant="plain"
 			size="none"
-			className="flex-1 bg-background border border-border rounded-md flex-col justify-start items-start p-3 active:opacity-70"
+			className="flex-1 bg-background border border-border rounded-md flex-col justify-start items-start p-3 active:opacity-70 basis-full w-full"
 			onPress={onPress}
 			unstable_pressDelay={100}
+			style={chatEmbedContainerStyle}
 		>
 			<View className="flex-1 flex-row items-center gap-2 justify-between">
 				<View className="flex-1 flex-row items-center gap-2">
@@ -54,6 +60,11 @@ export const DOCX = memo(({ name, source, size }: { name: string; source: string
 						{formatBytes(size)}
 					</Text>
 				)}
+				<Icon
+					name="chevron-right"
+					size={16}
+					color={colors.grey}
+				/>
 			</View>
 		</Button>
 	)

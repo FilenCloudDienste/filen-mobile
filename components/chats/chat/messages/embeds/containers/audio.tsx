@@ -9,8 +9,9 @@ import { Text } from "@/components/nativewindui/Text"
 import { formatSecondsToMMSS } from "@/lib/utils"
 import useSetExpoAudioMode from "@/hooks/useSetExpoAudioMode"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
+import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 
-export const Audio = memo(({ source, name }: { source: string; name: string; link: string }) => {
+export const WithAudioPlayer = memo(({ source, name }: { source: string; name: string; link: string }) => {
 	useSetExpoAudioMode()
 
 	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
@@ -18,6 +19,7 @@ export const Audio = memo(({ source, name }: { source: string; name: string; lin
 	const player = useAudioPlayer(source, 100)
 	const playerStatus = useAudioPlayerStatus(player)
 	const trackPlayerControls = useTrackPlayerControls()
+	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
 
 	const togglePlay = useCallback(() => {
 		if (!loadSuccess) {
@@ -57,7 +59,10 @@ export const Audio = memo(({ source, name }: { source: string; name: string; lin
 	}, [trackPlayerControls, playerStatus.isLoaded, playerStatus.playing])
 
 	return (
-		<View className="flex-1 bg-background border border-border rounded-md flex-col">
+		<View
+			className="flex-1 bg-background border border-border rounded-md flex-col basis-full w-full"
+			style={chatEmbedContainerStyle}
+		>
 			<View className="flex-row items-center px-2 pt-2">
 				<Text
 					numberOfLines={1}
@@ -119,6 +124,57 @@ export const Audio = memo(({ source, name }: { source: string; name: string; lin
 					</Text>
 				</View>
 			</View>
+		</View>
+	)
+})
+
+WithAudioPlayer.displayName = "WithAudioPlayer"
+
+export const Audio = memo(({ source, name, link }: { source: string; name: string; link: string }) => {
+	const [play, setPlay] = useState<boolean>(false)
+	const { colors } = useColorScheme()
+	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+
+	const togglePlay = useCallback(() => {
+		setPlay(prev => !prev)
+	}, [])
+
+	if (play) {
+		return (
+			<WithAudioPlayer
+				source={source}
+				name={name}
+				link={link}
+			/>
+		)
+	}
+
+	return (
+		<View
+			className="flex-1 bg-background border border-border rounded-md flex-row items-center px-2 gap-2 py-1 basis-full w-full"
+			style={chatEmbedContainerStyle}
+		>
+			<Button
+				variant="plain"
+				size="none"
+				className="shrink-0 active:opacity-70"
+				hitSlop={15}
+				onPress={togglePlay}
+				unstable_pressDelay={100}
+			>
+				<Icon
+					name="play-circle-outline"
+					size={32}
+					color={colors.foreground}
+				/>
+			</Button>
+			<Text
+				numberOfLines={1}
+				ellipsizeMode="middle"
+				className="shrink text-sm font-normal text-foreground"
+			>
+				{name}
+			</Text>
 		</View>
 	)
 })

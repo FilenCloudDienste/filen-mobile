@@ -10,6 +10,9 @@ import alerts from "@/lib/alerts"
 import { useQuery } from "@tanstack/react-query"
 import nodeWorker from "@/lib/nodeWorker"
 import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
+import { Icon } from "@roninoss/icons"
+import { useColorScheme } from "@/lib/useColorScheme"
+import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 
 export const Directory = memo(
 	({
@@ -25,6 +28,9 @@ export const Directory = memo(
 			type: "file" | "directory"
 		}
 	}) => {
+		const { colors } = useColorScheme()
+		const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+
 		const query = useQuery({
 			queryKey: ["chatEmbedFilenPublicLinkDirectorySize", [info, parsedLink]],
 			enabled: info !== null && info.type === "directory" && parsedLink.type === "directory",
@@ -76,9 +82,10 @@ export const Directory = memo(
 			<Button
 				variant="plain"
 				size="none"
-				className="flex-1 bg-background border border-border rounded-md flex-col justify-start items-start p-3 active:opacity-70"
+				className="flex-1 bg-background border border-border rounded-md flex-col justify-start items-start p-3 active:opacity-70 basis-full w-full"
 				onPress={onPress}
 				unstable_pressDelay={100}
+				style={chatEmbedContainerStyle}
 			>
 				<View className="flex-1 flex-row items-center gap-2 justify-between">
 					<View className="flex-1 flex-row items-center gap-2">
@@ -100,6 +107,11 @@ export const Directory = memo(
 					>
 						{formatBytes(query.data.size)}
 					</Text>
+					<Icon
+						name="chevron-right"
+						size={16}
+						color={colors.grey}
+					/>
 				</View>
 			</Button>
 		)

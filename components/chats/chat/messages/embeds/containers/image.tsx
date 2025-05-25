@@ -11,6 +11,7 @@ import Fallback from "./fallback"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { xxHash32 } from "js-xxhash"
+import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 
 export type ImageDimensions = {
 	width: number
@@ -27,6 +28,7 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 	const viewRef = useRef<View>(null)
 	const { onLayout, layout } = useViewLayout(viewRef)
 	const [error, setError] = useState<string | null>(null)
+	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
 
 	const onPress = useCallback(
 		async (e: GestureResponderEvent) => {
@@ -86,9 +88,17 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 
 	const { height, width } = useMemo(() => {
 		if (!dimensions) {
+			const defaultMaxHeight = 100
+			const defaultMaxWidth = layout.width
+			const aspectRatio = defaultMaxWidth / defaultMaxHeight
+			const maxHeight = Math.min(defaultMaxHeight, defaultMaxHeight)
+			const maxWidth = Math.min(defaultMaxWidth, defaultMaxWidth)
+			const calculatedHeight = Math.min(maxHeight, maxWidth / aspectRatio)
+			const calculatedWidth = Math.min(maxWidth, maxHeight * aspectRatio)
+
 			return {
-				height: 1,
-				width: 1
+				height: calculatedHeight,
+				width: calculatedWidth
 			}
 		}
 
@@ -116,7 +126,8 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 			size="none"
 			unstable_pressDelay={100}
 			onPress={onPress}
-			className="flex-1 active:opacity-70 basis-full"
+			className="flex-1 active:opacity-70 basis-full w-full"
+			style={chatEmbedContainerStyle}
 		>
 			<View
 				ref={viewRef}
@@ -124,8 +135,7 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 				style={{
 					width,
 					height,
-					flex: 1,
-					opacity: loadSuccess && dimensions ? 1 : 0
+					flex: 1
 				}}
 			>
 				<ExpoImage
@@ -141,8 +151,7 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 					style={{
 						width,
 						height,
-						borderRadius: 6,
-						opacity: loadSuccess && dimensions ? 1 : 0
+						borderRadius: 6
 					}}
 				/>
 			</View>

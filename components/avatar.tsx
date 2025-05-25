@@ -40,7 +40,7 @@ export const Avatar = memo(({ source, style, className }: { source: ImageSource;
 			onError={fallback ? undefined : onError}
 			style={styleMemo}
 			cachePolicy="disk"
-			priority="high"
+			priority="low"
 		/>
 	)
 })

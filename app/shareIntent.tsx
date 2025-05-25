@@ -1,4 +1,4 @@
-import { View, Platform, FlatList } from "react-native"
+import { View, Platform } from "react-native"
 import { Stack } from "expo-router"
 import { useShareIntentContext } from "expo-share-intent"
 import { Fragment, useMemo } from "react"
@@ -11,8 +11,8 @@ import nodeWorker from "@/lib/nodeWorker"
 import { randomUUID } from "expo-crypto"
 import * as FileSystem from "expo-file-system/next"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { FLATLIST_BASE_PROPS } from "@/lib/constants"
 import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
+import { FlashList } from "@shopify/flash-list"
 
 export default function ShareIntent() {
 	const { shareIntent, resetShareIntent } = useShareIntentContext()
@@ -52,9 +52,8 @@ export default function ShareIntent() {
 				<View className="flex-1 flex-col pt-2">
 					<Text className="px-4">{shareIntent.files?.length} files</Text>
 					<View className="flex-row flex-1 h-16 mt-4">
-						<FlatList
-							{...FLATLIST_BASE_PROPS}
-							data={shareIntent.files}
+						<FlashList
+							data={shareIntent.files ?? []}
 							horizontal={true}
 							showsHorizontalScrollIndicator={false}
 							showsVerticalScrollIndicator={false}

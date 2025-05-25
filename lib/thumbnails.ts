@@ -151,7 +151,7 @@ export class Thumbnails {
 									? {
 											...prevItem,
 											thumbnail: thumbnailDestination
-										}
+									  }
 									: prevItem
 							)
 					})
@@ -225,7 +225,8 @@ export class Thumbnails {
 							headers: {
 								Authorization: `Bearer ${nodeWorker.httpAuthToken}`
 							},
-							quality: THUMBNAILS_COMPRESSION
+							quality: THUMBNAILS_COMPRESSION,
+							time: 500
 						}
 					)
 
@@ -281,7 +282,7 @@ export class Thumbnails {
 									? {
 											...prevItem,
 											thumbnail: thumbnailDestination
-										}
+									  }
 									: prevItem
 							)
 					})

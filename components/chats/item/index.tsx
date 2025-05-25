@@ -1,5 +1,5 @@
 import { memo, useMemo, useCallback } from "react"
-import { View, type ListRenderItemInfo } from "react-native"
+import { View } from "react-native"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
@@ -14,6 +14,7 @@ import queryUtils from "@/queries/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import LastMessage from "./lastMessage"
 import Date from "../chat/messages/date"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()

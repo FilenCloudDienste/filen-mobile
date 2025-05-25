@@ -1,6 +1,5 @@
 import { memo, Fragment, useCallback } from "react"
 import { ListItem } from "@/components/nativewindui/List"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { View, ActivityIndicator } from "react-native"
 import { ColoredFolderSVGIcon, FileNameToSVGIcon } from "@/assets/fileIcons"
 import { Text } from "@/components/nativewindui/Text"
@@ -10,6 +9,7 @@ import { Icon } from "@roninoss/icons"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
+import { type LegendListRenderItemProps } from "@legendapp/list"
 
 export type ListItemInfo = {
 	title: string
@@ -20,7 +20,7 @@ export type ListItemInfo = {
 
 export const ICON_HEIGHT: number = 42
 
-export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
+export const Transfer = memo(({ info }: { info: LegendListRenderItemProps<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
 	const { showActionSheetWithOptions } = useActionSheet()
 

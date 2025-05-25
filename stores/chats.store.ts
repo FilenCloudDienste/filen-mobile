@@ -19,6 +19,8 @@ export type ChatsStore = {
 	mentionSuggestions: Record<string, ChatConversationParticipant[]>
 	replyToMessage: Record<string, ChatMessage | null>
 	editMessage: Record<string, ChatMessage | null>
+	embedContainerWidth: number
+	setEmbedContainerWidth: (fn: number | ((prev: number) => number)) => void
 	setEditMessage: (
 		fn: Record<string, ChatMessage | null> | ((prev: Record<string, ChatMessage | null>) => Record<string, ChatMessage | null>)
 	) => void
@@ -53,6 +55,12 @@ export const useChatsStore = create<ChatsStore>(set => ({
 	mentionSuggestions: {},
 	replyToMessage: {},
 	editMessage: {},
+	embedContainerWidth: 0,
+	setEmbedContainerWidth(fn) {
+		set(state => ({
+			embedContainerWidth: typeof fn === "function" ? fn(state.embedContainerWidth) : fn
+		}))
+	},
 	setEditMessage(fn) {
 		set(state => ({
 			editMessage: typeof fn === "function" ? fn(state.editMessage) : fn
