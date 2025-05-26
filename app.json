@@ -108,6 +108,12 @@
 			["./plugins/withAndroidNetworkSecurityConfig"],
 			["./plugins/withAndroidLargeHeapAndHardwareAcceleration"],
 			[
+				"./plugins/withAndroidForegroundService",
+				{
+					"serviceType": "dataSync"
+				}
+			],
+			[
 				"./plugins/withAndroidArchitectures",
 				{
 					"architectures": "armeabi-v7a,arm64-v8a,x86_64"
