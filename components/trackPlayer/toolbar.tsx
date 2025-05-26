@@ -153,7 +153,7 @@ export const Toolbar = memo(() => {
 						</Text>
 					</View>
 				</View>
-				<View className="flex-row items-center justify-between gap-4">
+				<View className="flex-row items-center justify-between gap-4 px-2">
 					<Button
 						variant="plain"
 						size="none"

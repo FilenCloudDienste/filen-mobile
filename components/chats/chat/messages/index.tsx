@@ -22,7 +22,7 @@ import { useShallow } from "zustand/shallow"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import { type ListRenderItemInfo, FlashList } from "@shopify/flash-list"
 
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
@@ -245,6 +245,10 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				showsVerticalScrollIndicator={false}
 				extraData={lastFocus}
 				estimatedItemSize={150}
+				estimatedListSize={{
+					width: screen.width,
+					height: screen.height
+				}}
 				drawDistance={screen.height}
 				ListFooterComponent={
 					isPreview ? undefined : (

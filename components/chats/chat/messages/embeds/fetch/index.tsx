@@ -121,6 +121,7 @@ export const Fetch = memo(({ link }: { link: string }) => {
 						? query.data.metadata.description
 						: "No description available"
 				}
+				above={<Fallback link={link} />}
 			>
 				{query.data.metadata.image && query.data.metadata.image.length > 0 ? (
 					<ExpoImage
