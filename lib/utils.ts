@@ -883,3 +883,51 @@ export function shuffleArray<T>(array: T[]): T[] {
 
 	return shuffled
 }
+
+export async function readStreamToBuffer(stream: ReadableStream<Uint8Array>, maxBytes: number = Infinity): Promise<Buffer> {
+	const reader = stream.getReader()
+	const chunks: Uint8Array[] = []
+	let totalBytes = 0
+
+	try {
+		while (true) {
+			const { done, value } = await reader.read()
+
+			if (done) {
+				break
+			}
+
+			if (value) {
+				if (totalBytes + value.length > maxBytes) {
+					const remainingBytes = maxBytes - totalBytes
+					const truncatedChunk = value.slice(0, remainingBytes)
+
+					chunks.push(truncatedChunk)
+
+					totalBytes += truncatedChunk.length
+
+					break
+				}
+
+				chunks.push(value)
+
+				totalBytes += value.length
+			}
+		}
+	} finally {
+		reader.releaseLock()
+
+		await stream.cancel().catch(() => {})
+	}
+
+	const result = Buffer.from(new Uint8Array(totalBytes))
+	let offset = 0
+
+	for (const chunk of chunks) {
+		result.set(chunk, offset)
+
+		offset += chunk.length
+	}
+
+	return result
+}

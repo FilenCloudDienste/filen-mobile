@@ -13,17 +13,21 @@ import { reinitSDK } from "./sdk"
 
 const mutex = new Semaphore(1)
 
-export default async function setup(params?: {
-	isAuthed?: boolean
-	sdkConfig?: Required<FilenSDKConfig>
-	background?: boolean
-}): Promise<void> {
+export default async function setup(params?: { isAuthed?: boolean; sdkConfig?: Required<FilenSDKConfig>; background?: boolean }): Promise<
+	| {
+			isAuthed: false
+	  }
+	| {
+			isAuthed: true
+			sdkConfig: Required<FilenSDKConfig>
+	  }
+> {
 	await mutex.acquire()
 
 	try {
-		await nodeWorker.start()
-
 		if (!params?.background) {
+			await nodeWorker.start()
+
 			paths.clearTempDirectories()
 		}
 
@@ -38,7 +42,9 @@ export default async function setup(params?: {
 
 			console.log("setup done, not authed")
 
-			return
+			return {
+				isAuthed: false
+			}
 		}
 
 		const tmpPath = normalizeFilePathForNode(FileSystem.Paths.cache.uri)
@@ -52,10 +58,12 @@ export default async function setup(params?: {
 		})
 
 		await Promise.all([
-			nodeWorker.proxy("reinitSDK", {
-				sdkConfig,
-				tmpPath
-			}),
+			params?.background
+				? Promise.resolve()
+				: nodeWorker.proxy("reinitSDK", {
+						sdkConfig,
+						tmpPath
+				  }),
 			thumbnailWarmup,
 			verifyOfflineFiles,
 			i18n,
@@ -63,6 +71,11 @@ export default async function setup(params?: {
 		])
 
 		console.log("setup done, authed")
+
+		return {
+			isAuthed: true,
+			sdkConfig: sdkConfig
+		}
 	} finally {
 		mutex.release()
 	}

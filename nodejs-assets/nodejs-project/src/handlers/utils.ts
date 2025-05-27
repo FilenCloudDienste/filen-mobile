@@ -22,3 +22,7 @@ export async function parseAudioMetadata(this: NodeWorker, params: { path: strin
 			})
 	})
 }
+
+export async function foregroundServiceActive(this: NodeWorker, params: { active: boolean }) {
+	this.foregroundServiceActive = params.active
+}

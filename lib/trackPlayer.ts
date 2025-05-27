@@ -1,17 +1,44 @@
 import { AudioProEventType, type AudioProTrack, AudioProContentType, AudioProState } from "react-native-audio-pro"
 import Semaphore from "./semaphore"
 import mmkvInstance from "./mmkv"
-import nodeWorker from "./nodeWorker"
+import downloadService from "./services/download"
 import * as FileSystem from "expo-file-system/next"
 import paths from "./paths"
-import { randomUUID } from "expo-crypto"
 import { type FileEncryptionVersion } from "@filen/sdk"
-import { normalizeFilePathForNode, normalizeFilePathForExpo, shuffleArray } from "./utils"
+import { normalizeFilePathForExpo, shuffleArray, readStreamToBuffer } from "./utils"
 import { SILENT_1H_AUDIO_FILE } from "@/lib/constants"
 import mimeTypes from "mime-types"
 import { AudioPro } from "./audioPro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
+// @ts-expect-error Workaround
+import * as jsMediaTags from "jsmediatags/dist/jsmediatags.min"
+
+export type TagType = {
+	type: string
+	tags: {
+		title?: string
+		artist?: string
+		album?: string
+		year?: string
+		comment?: string
+		track?: string
+		genre?: string
+		picture?: {
+			format: string
+			data: number[]
+		}
+		lyrics?: string
+	} & {
+		[key: string]: {
+			id: string
+			size: number
+			description: string
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			data: any
+		}
+	}
+}
 
 export type AudioProTrackExtended = AudioProTrack & {
 	file: {
@@ -509,6 +536,27 @@ export class TrackPlayerService {
 		})
 	}
 
+	public async parseTrackMetadata(uri: string): Promise<TagType> {
+		const file = new FileSystem.File(uri)
+
+		if (!file.exists || !file.size || file.size === 0) {
+			throw new Error("File does not exist.")
+		}
+
+		const buffer = await readStreamToBuffer(file.readableStream(), 1 * 1024 * 1024)
+
+		return await new Promise<TagType>((resolve, reject) => {
+			new jsMediaTags.Reader(buffer).setTagsToRead(["title", "artist", "album", "year", "track", "genre", "picture"]).read({
+				onSuccess(data: TagType) {
+					resolve(data)
+				},
+				onError(error: Error) {
+					reject(error)
+				}
+			})
+		})
+	}
+
 	public async loadFileForTrack(track: AudioProTrackExtended): Promise<AudioProTrackExtended> {
 		await this.loadFileForTrackMutex.acquire()
 
@@ -524,15 +572,15 @@ export class TrackPlayerService {
 			)
 
 			if (!destination.exists) {
-				await nodeWorker.proxy("downloadFile", {
-					id: randomUUID(),
+				await downloadService.background({
+					type: "file",
 					uuid: track.file.uuid,
 					bucket: track.file.bucket,
 					region: track.file.region,
 					chunks: track.file.chunks,
 					version: track.file.version as FileEncryptionVersion,
 					key: track.file.key,
-					destination: destination.uri,
+					destinationURI: destination.uri,
 					size: track.file.size,
 					name: track.file.name,
 					dontEmitProgress: true
@@ -544,10 +592,7 @@ export class TrackPlayerService {
 			const metadata = meta
 				? (JSON.parse(meta) as TrackMetadata)
 				: await new Promise<TrackMetadata>(resolve => {
-						nodeWorker
-							.proxy("parseAudioMetadata", {
-								path: normalizeFilePathForNode(destination.uri)
-							})
+						this.parseTrackMetadata(destination.uri)
 							.then(result => {
 								if (result && (result.tags.title || result.tags.artist || result.tags.album || result.tags.picture)) {
 									const meta: TrackMetadata = {
@@ -622,7 +667,7 @@ export class TrackPlayerService {
 	public init(): void {
 		AudioPro.configure({
 			contentType: AudioProContentType.MUSIC,
-			debug: __DEV__,
+			debug: false,
 			debugIncludesProgress: false,
 			progressIntervalMs: 1000,
 			showNextPrevControls: true

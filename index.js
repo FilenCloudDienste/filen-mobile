@@ -4,8 +4,11 @@ import "intl-pluralrules"
 
 import "expo-router/entry"
 
-import "@/lib/backgroundTask"
-
+import { registerBackgroundTask } from "@/lib/backgroundTask"
+import foregroundService from "@/lib/services/foreground"
 import { trackPlayerService } from "@/lib/trackPlayer"
 
+registerBackgroundTask()
+
+foregroundService.register()
 trackPlayerService.init()

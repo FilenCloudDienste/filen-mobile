@@ -17,6 +17,7 @@ import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import * as BackgroundTask from "expo-background-task"
 import { getSDK } from "@/lib/sdk"
+import foregroundService from "@/lib/services/foreground"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
@@ -220,6 +221,10 @@ export const Home = memo(() => {
 									actionKey: "testSDK",
 									title: "testSDK"
 								}),
+								createDropdownItem({
+									actionKey: "testForegroundService",
+									title: "testForegroundService"
+								}),
 								createDropdownSubMenu(
 									{
 										title: "Submenu 1",
@@ -266,6 +271,18 @@ export const Home = memo(() => {
 										.catch(console.error)
 
 									console.log("testsdk done", Date.now() - now, "ms")
+								}
+
+								if (item.actionKey === "testForegroundService") {
+									console.log("testForegroundService")
+
+									await foregroundService.start()
+
+									await new Promise<void>(resolve => setTimeout(resolve, 120000))
+
+									await foregroundService.stop()
+
+									console.log("testForegroundService done")
 								}
 							}}
 						>

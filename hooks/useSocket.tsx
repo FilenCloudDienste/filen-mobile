@@ -18,6 +18,17 @@ export class Socket {
 		socketEvent: SocketEvent
 		state: "connected" | "disconnected"
 	}> = new TypedEventEmitter()
+	private appState: AppStateStatus = "active"
+
+	public constructor() {
+		AppState.addEventListener("change", (nextAppState: AppStateStatus) => {
+			if (this.appState === nextAppState) {
+				return
+			}
+
+			this.appState = nextAppState
+		})
+	}
 
 	private getAPIKey(): string | null {
 		const sdkConfig = mmkvInstance.getString(SDK_CONFIG_STORAGE_KEY)
@@ -42,15 +53,23 @@ export class Socket {
 
 		if (this.connection && this.connection.readyState === WebSocket.OPEN) {
 			this.pingInterval = setInterval(() => {
-				if (this.connection?.readyState === WebSocket.OPEN) {
-					this.connection?.send("2")
-					this.connection?.send(`42${JSON.stringify(["authed", Date.now()])}`)
+				if (this.connection && this.connection.readyState === WebSocket.OPEN) {
+					this.connection.send("2")
+					this.connection.send(`42${JSON.stringify(["authed", Date.now()])}`)
+				} else {
+					this.clearPingInterval()
+
+					if (this.appState === "active") {
+						this.connect().catch(console.error)
+					}
 				}
 			}, interval)
 		} else {
 			this.clearPingInterval()
 
-			this.connect().catch(console.error)
+			if (this.appState === "active") {
+				this.connect().catch(console.error)
+			}
 		}
 	}
 	private clearPingInterval(): void {
@@ -150,57 +169,78 @@ export class Socket {
 				return
 			}
 
-			await new Promise<void>((resolve, reject) => {
-				const url = new URL(SOCKET_URL)
-				const isSecure = url.protocol === "https:" || url.protocol === "wss:"
-				const wsProtocol = isSecure ? "wss:" : "ws:"
-				const params = new URLSearchParams({
-					EIO: "3",
-					transport: "websocket",
-					t: Date.now().toString()
-				})
-				const socketPath = "/socket.io"
-				const wsUrl = `${wsProtocol}//${url.host}${socketPath}/?${params.toString()}`
-				const ws = new WebSocket(wsUrl)
+			let tries = 0
 
-				this.connection = ws
+			while (true) {
+				if (tries >= 10) {
+					throw new Error("Failed to connect to WebSocket after multiple attempts.")
+				}
 
-				this.connection.addEventListener("message", e => {
-					const { authed } = this.parseMessage(e.data)
+				if (tries >= 1 && this.appState !== "active") {
+					throw new Error("Socket connection attempt aborted due to app state change.")
+				}
 
-					if (authed) {
-						resolve()
-					}
-				})
+				tries++
 
-				this.connection.addEventListener(
-					"error",
-					() => {
-						reject(new Error("WebSocket connection error."))
-					},
-					{
-						once: true
-					}
-				)
+				try {
+					await new Promise<void>((resolve, reject) => {
+						const url = new URL(SOCKET_URL)
+						const isSecure = url.protocol === "https:" || url.protocol === "wss:"
+						const wsProtocol = isSecure ? "wss:" : "ws:"
+						const params = new URLSearchParams({
+							EIO: "3",
+							transport: "websocket",
+							t: Date.now().toString()
+						})
+						const socketPath = "/socket.io"
+						const wsUrl = `${wsProtocol}//${url.host}${socketPath}/?${params.toString()}`
+						const ws = new WebSocket(wsUrl)
 
-				this.connection.addEventListener(
-					"close",
-					() => {
-						this.connected = false
-						this.connection = null
+						this.connection = ws
 
-						this.eventEmitter.emit("state", "disconnected")
+						this.connection.addEventListener("message", e => {
+							const { authed } = this.parseMessage(e.data)
 
-						reject(new Error("WebSocket connection closed."))
-					},
-					{
-						once: true
-					}
-				)
-			})
+							if (authed) {
+								resolve()
+							}
+						})
 
-			this.eventEmitter.emit("state", "connected")
-			this.connected = true
+						this.connection.addEventListener(
+							"error",
+							() => {
+								reject(new Error("WebSocket connection error."))
+							},
+							{
+								once: true
+							}
+						)
+
+						this.connection.addEventListener(
+							"close",
+							() => {
+								this.connected = false
+								this.connection = null
+
+								this.eventEmitter.emit("state", "disconnected")
+
+								reject(new Error("WebSocket connection closed."))
+							},
+							{
+								once: true
+							}
+						)
+					})
+
+					this.connected = true
+
+					this.eventEmitter.emit("state", "connected")
+
+					break
+				} catch {
+					await new Promise(resolve => setTimeout(resolve, 1000))
+				}
+			}
 		} finally {
 			this.mutex.release()
 		}
