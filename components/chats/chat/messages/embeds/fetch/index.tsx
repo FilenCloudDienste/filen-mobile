@@ -123,6 +123,7 @@ export const Fetch = memo(({ link }: { link: string }) => {
 				title={query.data.metadata.title}
 				onPress={onPress}
 				description={query.data.metadata.description}
+				above={<Fallback link={link} />}
 			>
 				{query.data.metadata.image && query.data.metadata.image.length > 0 ? (
 					<ExpoImage

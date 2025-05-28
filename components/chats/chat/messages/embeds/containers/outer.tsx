@@ -16,7 +16,8 @@ export const Outer = memo(
 		descriptionClassName,
 		className,
 		innerClassName,
-		childrenClassName
+		childrenClassName,
+		above
 	}: {
 		children?: React.ReactNode
 		onPress?: ((e: GestureResponderEvent) => void) | ((e: GestureResponderEvent) => Promise<void>)
@@ -28,6 +29,7 @@ export const Outer = memo(
 		className?: string
 		innerClassName?: string
 		childrenClassName?: string
+		above?: React.ReactNode
 	}) => {
 		const chatEmbedContainerStyle = useChatEmbedContainerStyle()
 
@@ -37,13 +39,21 @@ export const Outer = memo(
 				size="none"
 				unstable_pressDelay={100}
 				onPress={onPress}
-				className={cn("flex-1 active:opacity-70 basis-full", className)}
+				className={cn("flex-1 flex-col active:opacity-70 basis-full", className)}
 				android_ripple={null}
 				style={chatEmbedContainerStyle}
 			>
+				{above && (
+					<View
+						className="flex-row flex-1 w-full"
+						style={chatEmbedContainerStyle}
+					>
+						{above}
+					</View>
+				)}
 				<View
 					className={cn(
-						"flex-1 flex-col bg-card rounded-md p-2 mt-2 gap-2 border-l-2",
+						"flex-1 flex-col bg-card rounded-md p-2 mt-1 gap-2 border-l-2",
 						leftBorderColor ? `border-l-[${leftBorderColor}]` : "border-l-gray-500",
 						innerClassName
 					)}
