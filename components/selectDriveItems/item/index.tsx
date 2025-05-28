@@ -8,7 +8,7 @@ import LeftView from "./leftView"
 import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
 import { Paths } from "expo-file-system/next"
-import { type ListRenderItemInfo } from "react-native"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export type ListItemInfo = {
 	title: string

@@ -162,6 +162,7 @@ export default function RootLayout() {
 													name="trackPlayer"
 													options={{
 														headerShown: false,
+														headerBlurEffect: "systemChromeMaterial",
 														presentation: "modal",
 														animation: "slide_from_bottom"
 													}}

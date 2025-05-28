@@ -1,4 +1,4 @@
-import { type ListRenderItemInfo, RefreshControl } from "react-native"
+import { type ListRenderItemInfo, RefreshControl, View } from "react-native"
 import { usePlaylistsQuery, type PlaylistFile, updatePlaylist, type Playlist as PlaylistType } from "@/queries/usePlaylistsQuery"
 import { useMemo, Fragment, memo, useCallback, useRef, useState } from "react"
 import Header from "@/components/trackPlayer/header"
@@ -12,6 +12,7 @@ import Semaphore from "@/lib/semaphore"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
+import Container from "@/components/Container"
 
 export const Playlist = memo(() => {
 	const { playlist: passedPlaylist } = useLocalSearchParams()
@@ -110,42 +111,49 @@ export const Playlist = memo(() => {
 	return (
 		<Fragment>
 			<Header />
-			<ReorderableList
-				data={files}
-				onReorder={handleReorder}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				style={{
-					flex: 1,
-					paddingHorizontal: 16,
-					paddingTop: 16
-				}}
-				showsVerticalScrollIndicator={true}
-				showsHorizontalScrollIndicator={false}
-				contentInsetAdjustmentBehavior="automatic"
-				scrollIndicatorInsets={{
-					top: 0,
-					left: 0,
-					bottom: trackPlayerToolbarHeight ?? 0,
-					right: 0
-				}}
-				contentContainerStyle={{
-					paddingBottom: (trackPlayerToolbarHeight ?? 0) + 16
-				}}
-				refreshing={refreshing}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={async () => {
-							setRefreshing(true)
+			<Container>
+				<ReorderableList
+					data={files}
+					onReorder={handleReorder}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					style={{
+						flex: 1,
+						paddingHorizontal: 16,
+						paddingTop: 16
+					}}
+					showsVerticalScrollIndicator={true}
+					showsHorizontalScrollIndicator={false}
+					contentInsetAdjustmentBehavior="automatic"
+					scrollIndicatorInsets={{
+						top: 0,
+						left: 0,
+						bottom: trackPlayerToolbarHeight ?? 0,
+						right: 0
+					}}
+					ListFooterComponent={
+						<View
+							style={{
+								flex: 1,
+								height: (trackPlayerToolbarHeight ?? 0) + 16
+							}}
+						/>
+					}
+					refreshing={refreshing}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={async () => {
+								setRefreshing(true)
 
-							await playlistsQuery.refetch().catch(console.error)
+								await playlistsQuery.refetch().catch(console.error)
 
-							setRefreshing(false)
-						}}
-					/>
-				}
-			/>
+								setRefreshing(false)
+							}}
+						/>
+					}
+				/>
+			</Container>
 		</Fragment>
 	)
 })

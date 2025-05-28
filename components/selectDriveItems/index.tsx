@@ -2,7 +2,7 @@ import { useCallback, useState, useMemo, Fragment, useEffect, memo } from "react
 import events from "@/lib/events"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { List, type ListDataItem } from "@/components/nativewindui/List"
-import { RefreshControl, View, Platform, type ListRenderItemInfo } from "react-native"
+import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -18,6 +18,7 @@ import Item from "./item"
 import { Button } from "../nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export type ListItemInfo = {
 	title: string
@@ -218,7 +219,6 @@ export const SelectDriveItems = memo(() => {
 						refreshing={refreshing}
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName="pb-16"
-						windowSize={3}
 						removeClippedSubviews={true}
 						ListEmptyComponent={
 							<View className="flex-1 items-center justify-center">

@@ -360,7 +360,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 					</Text>
 				</View>
 				<Button
-					className="flex-row items-center shrink-0 justify-center h-full"
+					className="flex-row items-center shrink-0 justify-center"
 					size="icon"
 					variant="plain"
 					unstable_pressDelay={100}

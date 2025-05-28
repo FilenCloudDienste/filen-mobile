@@ -4,10 +4,11 @@ import Header from "@/components/trackPlayer/header"
 import Item from "./item"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { RefreshControl } from "react-native"
+import { RefreshControl, View } from "react-native"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import Container from "../Container"
 
 export const TrackPlayer = memo(() => {
 	const [trackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
@@ -41,38 +42,47 @@ export const TrackPlayer = memo(() => {
 	return (
 		<Fragment>
 			<Header />
-			<FlashList
-				data={playlists}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				showsVerticalScrollIndicator={true}
-				showsHorizontalScrollIndicator={false}
-				contentInsetAdjustmentBehavior="automatic"
-				scrollIndicatorInsets={{
-					top: 0,
-					left: 0,
-					bottom: trackPlayerToolbarHeight ?? 0,
-					right: 0
-				}}
-				contentContainerStyle={{
-					paddingBottom: (trackPlayerToolbarHeight ?? 0) + 16,
-					paddingHorizontal: 16,
-					paddingTop: 16
-				}}
-				refreshing={refreshing}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={async () => {
-							setRefreshing(true)
+			<Container>
+				<FlashList
+					data={playlists}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					showsVerticalScrollIndicator={true}
+					showsHorizontalScrollIndicator={false}
+					contentInsetAdjustmentBehavior="automatic"
+					scrollIndicatorInsets={{
+						top: 0,
+						left: 0,
+						bottom: trackPlayerToolbarHeight ?? 0,
+						right: 0
+					}}
+					contentContainerStyle={{
+						paddingHorizontal: 16,
+						paddingTop: 16
+					}}
+					ListFooterComponent={
+						<View
+							style={{
+								flex: 1,
+								height: (trackPlayerToolbarHeight ?? 0) + 16
+							}}
+						/>
+					}
+					refreshing={refreshing}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={async () => {
+								setRefreshing(true)
 
-							await playlistsQuery.refetch().catch(console.error)
+								await playlistsQuery.refetch().catch(console.error)
 
-							setRefreshing(false)
-						}}
-					/>
-				}
-			/>
+								setRefreshing(false)
+							}}
+						/>
+					}
+				/>
+			</Container>
 		</Fragment>
 	)
 })

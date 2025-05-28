@@ -15,6 +15,7 @@ import { formatSecondsToMMSS, formatBytes } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
+import Container from "../Container"
 
 export const Toolbar = memo(() => {
 	const { colors } = useColorScheme()
@@ -51,203 +52,205 @@ export const Toolbar = memo(() => {
 					paddingBottom: insets.bottom + 16
 				}}
 			>
-				<View className="flex-row gap-3">
-					{active && typeof trackPlayerState.playingTrack?.artwork === "string" ? (
-						<Image
-							source={{
-								uri: trackPlayerState.playingTrack.artwork
-							}}
-							contentFit="cover"
-							style={{
-								width: 42,
-								height: 42,
-								borderRadius: 6,
-								backgroundColor: colors.card
-							}}
-						/>
-					) : (
-						<View
-							className="bg-muted rounded-md items-center justify-center"
-							style={{
-								width: 42,
-								height: 42
-							}}
-						>
-							<Icon
-								name="music-note"
-								size={20}
-								color={colors.foreground}
-							/>
-						</View>
-					)}
-					<View className="flex-col flex-1 gap-0.5">
-						<Text
-							className="font-bold"
-							numberOfLines={1}
-							ellipsizeMode="middle"
-						>
-							{!active
-								? "No track queued"
-								: trackPlayerState.playingTrack?.title
-								? `${trackPlayerState.playingTrack.title}${
-										trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
-								  }`
-								: "Unknown title"}
-						</Text>
-						<Text
-							className="text-xs text-muted-foreground"
-							numberOfLines={1}
-							ellipsizeMode="middle"
-						>
-							{!active
-								? "N/A"
-								: trackPlayerState.playingTrack?.artist ?? formatBytes(trackPlayerState.playingTrack?.file.size ?? 0)}
-						</Text>
-					</View>
-					<Button
-						variant="plain"
-						size="icon"
-						disabled={!active}
-						onPress={() => {
-							trackPlayerControls.clear().catch(console.error)
-						}}
-					>
-						<Icon
-							name="close"
-							size={24}
-							color={colors.foreground}
-						/>
-					</Button>
-				</View>
-				<View className="flex-col items-center flex-1 py-4">
-					<Slider
-						value={trackPlayerState.progressNormalized}
-						minimumValue={0}
-						maximumValue={100}
-						minimumTrackTintColor="white"
-						disabled={!active || trackPlayerState.isLoading}
-						style={{
-							flex: 1,
-							width: "100%"
-						}}
-						onSlidingComplete={value => {
-							if (!active || trackPlayerState.isLoading) {
-								return
-							}
-
-							console.log("Seeking to:", Math.round((value / 100) * trackPlayerState.durationSeconds))
-
-							trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.durationSeconds)).catch(console.error)
-						}}
-					/>
-					<View className="flex-row items-center justify-between w-full">
-						<Text className="text-xs text-muted-foreground font-normal">
-							{!active || trackPlayerState.isLoading
-								? formatSecondsToMMSS(0)
-								: formatSecondsToMMSS(trackPlayerState.positionSeconds)}
-						</Text>
-						<Text className="text-xs text-muted-foreground font-normal">
-							{!active || trackPlayerState.isLoading
-								? formatSecondsToMMSS(0)
-								: formatSecondsToMMSS(trackPlayerState.durationSeconds)}
-						</Text>
-					</View>
-				</View>
-				<View className="flex-row items-center justify-between gap-4">
-					<Button
-						variant="plain"
-						size="none"
-						unstable_pressDelay={100}
-						disabled={!active}
-						android_ripple={null}
-						className="active:opacity-70"
-					>
-						<Icon
-							name="shuffle"
-							size={32}
-							color={colors.foreground}
-						/>
-					</Button>
-					<Button
-						variant="plain"
-						size="none"
-						unstable_pressDelay={100}
-						disabled={!active}
-						android_ripple={null}
-						className="active:opacity-70"
-						onPress={() => {
-							trackPlayerControls.skipToPrevious().catch(console.error)
-						}}
-					>
-						<Icon
-							name="skip-backward"
-							size={32}
-							color={colors.foreground}
-						/>
-					</Button>
-					<Button
-						variant="plain"
-						size="none"
-						unstable_pressDelay={100}
-						className="bg-foreground rounded-full p-4 active:opacity-70"
-						disabled={!active}
-						android_ripple={null}
-						onPress={() => {
-							if (trackPlayerState.isLoading) {
-								return
-							}
-
-							trackPlayerControls.togglePlay().catch(console.error)
-						}}
-					>
-						{trackPlayerState.isLoading ? (
-							<ActivityIndicator
-								size="small"
-								color={colors.background}
+				<Container>
+					<View className="flex-row gap-3">
+						{active && typeof trackPlayerState.playingTrack?.artwork === "string" ? (
+							<Image
+								source={{
+									uri: trackPlayerState.playingTrack.artwork
+								}}
+								contentFit="cover"
+								style={{
+									width: 42,
+									height: 42,
+									borderRadius: 6,
+									backgroundColor: colors.card
+								}}
 							/>
 						) : (
-							<Icon
-								name={trackPlayerState.isPlaying ? "pause" : "play"}
-								size={20}
-								color={colors.background}
-							/>
+							<View
+								className="bg-muted rounded-md items-center justify-center"
+								style={{
+									width: 42,
+									height: 42
+								}}
+							>
+								<Icon
+									name="music-note"
+									size={20}
+									color={colors.foreground}
+								/>
+							</View>
 						)}
-					</Button>
-					<Button
-						variant="plain"
-						size="none"
-						unstable_pressDelay={100}
-						disabled={!active}
-						android_ripple={null}
-						className="active:opacity-70"
-						onPress={() => {
-							trackPlayerControls.skipToNext()
-						}}
-					>
-						<Icon
-							name="skip-forward"
-							size={32}
-							color={colors.foreground}
+						<View className="flex-col flex-1 gap-0.5">
+							<Text
+								className="font-bold"
+								numberOfLines={1}
+								ellipsizeMode="middle"
+							>
+								{!active
+									? "No track queued"
+									: trackPlayerState.playingTrack?.title
+									? `${trackPlayerState.playingTrack.title}${
+											trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
+									  }`
+									: "Unknown title"}
+							</Text>
+							<Text
+								className="text-xs text-muted-foreground"
+								numberOfLines={1}
+								ellipsizeMode="middle"
+							>
+								{!active
+									? "N/A"
+									: trackPlayerState.playingTrack?.artist ?? formatBytes(trackPlayerState.playingTrack?.file.size ?? 0)}
+							</Text>
+						</View>
+						<Button
+							variant="plain"
+							size="icon"
+							disabled={!active}
+							onPress={() => {
+								trackPlayerControls.clear().catch(console.error)
+							}}
+						>
+							<Icon
+								name="close"
+								size={24}
+								color={colors.foreground}
+							/>
+						</Button>
+					</View>
+					<View className="flex-col items-center flex-1 py-4">
+						<Slider
+							value={trackPlayerState.progressNormalized}
+							minimumValue={0}
+							maximumValue={100}
+							minimumTrackTintColor="white"
+							disabled={!active || trackPlayerState.isLoading}
+							style={{
+								flex: 1,
+								width: "100%"
+							}}
+							onSlidingComplete={value => {
+								if (!active || trackPlayerState.isLoading) {
+									return
+								}
+
+								console.log("Seeking to:", Math.round((value / 100) * trackPlayerState.durationSeconds))
+
+								trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.durationSeconds)).catch(console.error)
+							}}
 						/>
-					</Button>
-					<Button
-						variant="plain"
-						size="none"
-						unstable_pressDelay={100}
-						android_ripple={null}
-						className="active:opacity-70"
-						disabled={!active}
-						onPress={() => {
-							// TODO
-						}}
-					>
-						<Icon
-							name="repeat"
-							size={32}
-							color={colors.foreground}
-						/>
-					</Button>
-				</View>
+						<View className="flex-row items-center justify-between w-full">
+							<Text className="text-xs text-muted-foreground font-normal">
+								{!active || trackPlayerState.isLoading
+									? formatSecondsToMMSS(0)
+									: formatSecondsToMMSS(trackPlayerState.positionSeconds)}
+							</Text>
+							<Text className="text-xs text-muted-foreground font-normal">
+								{!active || trackPlayerState.isLoading
+									? formatSecondsToMMSS(0)
+									: formatSecondsToMMSS(trackPlayerState.durationSeconds)}
+							</Text>
+						</View>
+					</View>
+					<View className="flex-row items-center justify-between gap-4">
+						<Button
+							variant="plain"
+							size="none"
+							unstable_pressDelay={100}
+							disabled={!active}
+							android_ripple={null}
+							className="active:opacity-70"
+						>
+							<Icon
+								name="shuffle"
+								size={32}
+								color={colors.foreground}
+							/>
+						</Button>
+						<Button
+							variant="plain"
+							size="none"
+							unstable_pressDelay={100}
+							disabled={!active}
+							android_ripple={null}
+							className="active:opacity-70"
+							onPress={() => {
+								trackPlayerControls.skipToPrevious().catch(console.error)
+							}}
+						>
+							<Icon
+								name="skip-backward"
+								size={32}
+								color={colors.foreground}
+							/>
+						</Button>
+						<Button
+							variant="plain"
+							size="none"
+							unstable_pressDelay={100}
+							className="bg-foreground rounded-full p-4 active:opacity-70"
+							disabled={!active}
+							android_ripple={null}
+							onPress={() => {
+								if (trackPlayerState.isLoading) {
+									return
+								}
+
+								trackPlayerControls.togglePlay().catch(console.error)
+							}}
+						>
+							{trackPlayerState.isLoading ? (
+								<ActivityIndicator
+									size="small"
+									color={colors.background}
+								/>
+							) : (
+								<Icon
+									name={trackPlayerState.isPlaying ? "pause" : "play"}
+									size={20}
+									color={colors.background}
+								/>
+							)}
+						</Button>
+						<Button
+							variant="plain"
+							size="none"
+							unstable_pressDelay={100}
+							disabled={!active}
+							android_ripple={null}
+							className="active:opacity-70"
+							onPress={() => {
+								trackPlayerControls.skipToNext()
+							}}
+						>
+							<Icon
+								name="skip-forward"
+								size={32}
+								color={colors.foreground}
+							/>
+						</Button>
+						<Button
+							variant="plain"
+							size="none"
+							unstable_pressDelay={100}
+							android_ripple={null}
+							className="active:opacity-70"
+							disabled={!active}
+							onPress={() => {
+								// TODO
+							}}
+						>
+							<Icon
+								name="repeat"
+								size={32}
+								color={colors.foreground}
+							/>
+						</Button>
+					</View>
+				</Container>
 			</BlurView>
 		</View>
 	)

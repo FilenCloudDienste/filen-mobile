@@ -288,19 +288,21 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 					{formatBytes(file.size)}
 				</Text>
 			</View>
-			<Button
-				className="flex-row items-center shrink-0 justify-center h-full"
-				size="icon"
-				variant="plain"
-				unstable_pressDelay={100}
-				onPress={onDotsPress}
-			>
-				<Icon
-					name="dots-horizontal"
-					size={24}
-					color={colors.foreground}
-				/>
-			</Button>
+			<View className="flex-row items-center shrink-0 h-full">
+				<Button
+					className="flex-row items-center  justify-center"
+					size="icon"
+					variant="plain"
+					unstable_pressDelay={100}
+					onPress={onDotsPress}
+				>
+					<Icon
+						name="dots-horizontal"
+						size={24}
+						color={colors.foreground}
+					/>
+				</Button>
+			</View>
 		</Button>
 	)
 })
