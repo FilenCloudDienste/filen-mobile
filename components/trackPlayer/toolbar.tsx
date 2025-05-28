@@ -34,6 +34,10 @@ export const Toolbar = memo(() => {
 		return false
 	}, [trackPlayerState.playingTrack, trackPlayerState.queue.length])
 
+	const buttonsDisabled = useMemo(() => {
+		return trackPlayerState.isLoading || !active
+	}, [trackPlayerState.isLoading, active])
+
 	useEffect(() => {
 		setTrackPlayerToolbarHeight(layout.height - insets.bottom)
 	}, [layout.height, setTrackPlayerToolbarHeight, insets.bottom])
@@ -109,7 +113,7 @@ export const Toolbar = memo(() => {
 						<Button
 							variant="plain"
 							size="icon"
-							disabled={!active}
+							disabled={buttonsDisabled}
 							onPress={() => {
 								trackPlayerControls.clear().catch(console.error)
 							}}
@@ -127,31 +131,21 @@ export const Toolbar = memo(() => {
 							minimumValue={0}
 							maximumValue={100}
 							minimumTrackTintColor="white"
-							disabled={!active || trackPlayerState.isLoading}
+							disabled={buttonsDisabled}
 							style={{
 								flex: 1,
 								width: "100%"
 							}}
 							onSlidingComplete={value => {
-								if (!active || trackPlayerState.isLoading) {
-									return
-								}
-
-								console.log("Seeking to:", Math.round((value / 100) * trackPlayerState.durationSeconds))
-
 								trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.durationSeconds)).catch(console.error)
 							}}
 						/>
 						<View className="flex-row items-center justify-between w-full">
 							<Text className="text-xs text-muted-foreground font-normal">
-								{!active || trackPlayerState.isLoading
-									? formatSecondsToMMSS(0)
-									: formatSecondsToMMSS(trackPlayerState.positionSeconds)}
+								{buttonsDisabled ? formatSecondsToMMSS(0) : formatSecondsToMMSS(trackPlayerState.positionSeconds)}
 							</Text>
 							<Text className="text-xs text-muted-foreground font-normal">
-								{!active || trackPlayerState.isLoading
-									? formatSecondsToMMSS(0)
-									: formatSecondsToMMSS(trackPlayerState.durationSeconds)}
+								{buttonsDisabled ? formatSecondsToMMSS(0) : formatSecondsToMMSS(trackPlayerState.durationSeconds)}
 							</Text>
 						</View>
 					</View>
@@ -160,7 +154,7 @@ export const Toolbar = memo(() => {
 							variant="plain"
 							size="none"
 							unstable_pressDelay={100}
-							disabled={!active}
+							disabled={buttonsDisabled}
 							android_ripple={null}
 							className="active:opacity-70"
 						>
@@ -174,7 +168,7 @@ export const Toolbar = memo(() => {
 							variant="plain"
 							size="none"
 							unstable_pressDelay={100}
-							disabled={!active}
+							disabled={buttonsDisabled}
 							android_ripple={null}
 							className="active:opacity-70"
 							onPress={() => {
@@ -192,7 +186,7 @@ export const Toolbar = memo(() => {
 							size="none"
 							unstable_pressDelay={100}
 							className="bg-foreground rounded-full p-4 active:opacity-70"
-							disabled={!active}
+							disabled={buttonsDisabled}
 							android_ripple={null}
 							onPress={() => {
 								if (trackPlayerState.isLoading) {
@@ -219,7 +213,7 @@ export const Toolbar = memo(() => {
 							variant="plain"
 							size="none"
 							unstable_pressDelay={100}
-							disabled={!active}
+							disabled={buttonsDisabled}
 							android_ripple={null}
 							className="active:opacity-70"
 							onPress={() => {
@@ -238,7 +232,7 @@ export const Toolbar = memo(() => {
 							unstable_pressDelay={100}
 							android_ripple={null}
 							className="active:opacity-70"
-							disabled={!active}
+							disabled={buttonsDisabled}
 							onPress={() => {
 								// TODO
 							}}

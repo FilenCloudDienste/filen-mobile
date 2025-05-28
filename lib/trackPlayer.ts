@@ -6,7 +6,6 @@ import paths from "./paths"
 import { randomUUID } from "expo-crypto"
 import { type FileEncryptionVersion } from "@filen/sdk"
 import { normalizeFilePathForExpo, shuffleArray } from "./utils"
-import { SILENT_1H_AUDIO_FILE } from "@/lib/constants"
 import mimeTypes from "mime-types"
 import { AudioPro } from "./audioPro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
@@ -37,12 +36,13 @@ export type TrackMetadata = {
 	year?: number
 }
 
-export const TRACK_PLAYER_QUEUE_KEY = "trackPlayerState_Queue"
-export const TRACK_PLAYER_PLAYING_TRACK_KEY = "trackPlayerState_PlayingTrack"
-export const TRACK_PLAYER_TIMINGS_KEY = "trackPlayerState_Timings"
-export const TRACK_PLAYER_REPEAT_MODE_KEY = "trackPlayerState_RepeatMode"
-export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = "trackPlayerState_PlaybackSpeed"
-export const TRACK_PLAYER_VOLUME_KEY = "trackPlayerState_Volume"
+export const TRACK_PLAYER_STATE_PREFIX = "trackPlayerState_v1_"
+export const TRACK_PLAYER_QUEUE_KEY = `${TRACK_PLAYER_STATE_PREFIX}Queue`
+export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_STATE_PREFIX}PlayingTrack`
+export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_STATE_PREFIX}Timings`
+export const TRACK_PLAYER_REPEAT_MODE_KEY = `${TRACK_PLAYER_STATE_PREFIX}RepeatMode`
+export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = `${TRACK_PLAYER_STATE_PREFIX}PlaybackSpeed`
+export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_STATE_PREFIX}>Volume`
 
 export class TrackPlayerService {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)
@@ -118,7 +118,7 @@ export class TrackPlayerService {
 		}
 
 		const playingTrackIndex = queue.findIndex(track => track.file.uuid === playingTrack.file.uuid)
-		const previousTrack = queue.at(playingTrackIndex + 1)
+		const previousTrack = queue.at(playingTrackIndex - 1)
 
 		return previousTrack ?? null
 	}
@@ -185,10 +185,6 @@ export class TrackPlayerService {
 		}
 	}
 
-	public getTrackMetadataKey(track: AudioProTrackExtended): string {
-		return `trackPlayerFileMetadata:${track.file.uuid}`
-	}
-
 	public getTrackMetadataKeyFromUUID(uuid: string): string {
 		return `trackPlayerFileMetadata:${uuid}`
 	}
@@ -232,33 +228,17 @@ export class TrackPlayerService {
 		}
 	}
 
-	public async skipToNext(loopQueue: boolean = true): Promise<void> {
+	public async skipToNext(): Promise<void> {
 		await this.controlsMutex.acquire()
 
 		try {
-			let nextTrack = this.getNextTrackInQueue()
+			const nextTrack = this.getNextTrackInQueue()
 
 			if (!nextTrack) {
-				if (!loopQueue) {
-					return
-				}
-
-				const queue = this.getQueue()
-
-				if (queue.length === 0) {
-					return
-				}
-
-				const firstTrackInQueue = queue.at(0)
-
-				if (!firstTrackInQueue) {
-					return
-				}
-
-				nextTrack = firstTrackInQueue
+				return
 			}
 
-			await trackPlayerService.playTrack({
+			await this.playTrack({
 				track: nextTrack,
 				autoPlay: true
 			})
@@ -267,33 +247,17 @@ export class TrackPlayerService {
 		}
 	}
 
-	public async skipToPrevious(loopQueue: boolean = true): Promise<void> {
+	public async skipToPrevious(): Promise<void> {
 		await this.controlsMutex.acquire()
 
 		try {
-			let previousTrack = this.getPreviousTrackInQueue()
+			const previousTrack = this.getPreviousTrackInQueue()
 
 			if (!previousTrack) {
-				if (!loopQueue) {
-					return
-				}
-
-				const queue = this.getQueue()
-
-				if (queue.length === 0) {
-					return
-				}
-
-				const lastTrackInQueue = queue.at(-1)
-
-				if (!lastTrackInQueue) {
-					return
-				}
-
-				previousTrack = lastTrackInQueue
+				return
 			}
 
-			await trackPlayerService.playTrack({
+			await this.playTrack({
 				track: previousTrack,
 				autoPlay: true
 			})
@@ -478,7 +442,7 @@ export class TrackPlayerService {
 				const autoPlayTrack = startingTrackIndex ? queue.at(startingTrackIndex) : null
 
 				if (autoPlayTrack) {
-					await trackPlayerService.playTrack({
+					await this.playTrack({
 						track: autoPlayTrack,
 						autoPlay: true,
 						startTimeMs: startingTrackStartTimeMs
@@ -517,10 +481,6 @@ export class TrackPlayerService {
 		useTrackPlayerStore.getState().setLoadingTrack(true)
 
 		try {
-			if (typeof track.url === "string" && !track.url.endsWith(SILENT_1H_AUDIO_FILE)) {
-				return track
-			}
-
 			const destination = new FileSystem.File(
 				FileSystem.Paths.join(paths.trackPlayer(), `${track.file.uuid}${FileSystem.Paths.extname(track.file.name)}`)
 			)
@@ -541,8 +501,7 @@ export class TrackPlayerService {
 				})
 			}
 
-			const meta = undefined //mmkvInstance.getString(this.getTrackMetadataKey(track))
-
+			const meta = mmkvInstance.getString(this.getTrackMetadataKeyFromUUID(track.file.uuid))
 			const metadata = meta
 				? (JSON.parse(meta) as TrackMetadata)
 				: await new Promise<TrackMetadata>(resolve => {
@@ -555,7 +514,7 @@ export class TrackPlayerService {
 										title: result.metadata.name,
 										year: result.metadata.year,
 										picture: undefined
-									}
+									} satisfies TrackMetadata
 
 									if (result.metadata.artwork) {
 										const [header, base64String] = result.metadata.artwork.split(",")
@@ -585,7 +544,7 @@ export class TrackPlayerService {
 										}
 									}
 
-									mmkvInstance.set(this.getTrackMetadataKey(track), JSON.stringify(meta))
+									mmkvInstance.set(this.getTrackMetadataKeyFromUUID(track.file.uuid), JSON.stringify(meta))
 
 									resolve(meta)
 
@@ -595,8 +554,10 @@ export class TrackPlayerService {
 								resolve({
 									artist: undefined,
 									album: undefined,
-									title: undefined
-								})
+									title: undefined,
+									year: undefined,
+									picture: undefined
+								} satisfies TrackMetadata)
 							})
 							.catch(err => {
 								console.error(err)
@@ -604,12 +565,21 @@ export class TrackPlayerService {
 								resolve({
 									artist: undefined,
 									album: undefined,
-									title: undefined
-								})
+									title: undefined,
+									year: undefined,
+									picture: undefined
+								} satisfies TrackMetadata)
 							})
 				  })
 
 			await this.clearActiveStorage()
+
+			const artwork =
+				metadata.picture && new FileSystem.File(metadata.picture).exists ? metadata.picture : assets.uri.images.audio_fallback()
+
+			if (artwork && metadata.picture && artwork !== metadata.picture) {
+				mmkvInstance.delete(this.getTrackMetadataKeyFromUUID(track.file.uuid))
+			}
 
 			return {
 				...track,
@@ -617,62 +587,13 @@ export class TrackPlayerService {
 				title: metadata.title ?? track.title,
 				artist: metadata.artist ?? track.artist,
 				album: metadata.album ?? track.album,
-				artwork: track.artwork
-			}
+				artwork: artwork ? normalizeFilePathForExpo(artwork) : track.artwork
+			} satisfies AudioProTrackExtended
 		} finally {
 			this.loadFileForTrackMutex.release()
 
 			useTrackPlayerStore.getState().setLoadingTrack(false)
 		}
-	}
-
-	public restoreState(): void {
-		const silentSoundURI = assets.uri.audio.silent_1h()
-		const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-		if (!silentSoundURI || !audioImageFallbackURI) {
-			return
-		}
-
-		const queue = this.getQueue()
-
-		if (queue.length > 0) {
-			console.log({
-				queue: queue.map(track => ({
-					...track,
-					artwork: audioImageFallbackURI,
-					url: silentSoundURI
-				}))
-			})
-
-			mmkvInstance.set(
-				TRACK_PLAYER_QUEUE_KEY,
-				JSON.stringify(
-					queue.map(track => ({
-						...track,
-						artwork: audioImageFallbackURI,
-						url: silentSoundURI
-					}))
-				)
-			)
-		}
-
-		const playingTrack = mmkvInstance.getString(TRACK_PLAYER_PLAYING_TRACK_KEY)
-
-		if (playingTrack) {
-			const playingTrackParsed = JSON.parse(playingTrack) as AudioProTrackExtended
-
-			mmkvInstance.set(
-				TRACK_PLAYER_PLAYING_TRACK_KEY,
-				JSON.stringify({
-					...playingTrackParsed,
-					url: silentSoundURI,
-					artwork: audioImageFallbackURI
-				} satisfies AudioProTrackExtended)
-			)
-		}
-
-		console.log("Track player state restored")
 	}
 
 	public init(): void {
@@ -684,24 +605,8 @@ export class TrackPlayerService {
 			showNextPrevControls: true
 		})
 
-		this.restoreState()
-
 		AudioPro.addEventListener(async event => {
 			switch (event.type) {
-				case AudioProEventType.STATE_CHANGED: {
-					if (!event.track) {
-						return
-					}
-
-					try {
-						this.saveState()
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
 				case AudioProEventType.REMOTE_NEXT: {
 					try {
 						await this.skipToNext()
@@ -715,16 +620,6 @@ export class TrackPlayerService {
 				case AudioProEventType.REMOTE_PREV: {
 					try {
 						await this.skipToPrevious()
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
-				case AudioProEventType.PLAYBACK_ERROR: {
-					try {
-						console.log("PLAYBACK_ERROR event", event)
 					} catch (e) {
 						console.error(e)
 					}

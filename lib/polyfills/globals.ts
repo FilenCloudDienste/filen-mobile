@@ -9,6 +9,34 @@ import { TextDecoder, TextEncoder } from "text-encoding"
 
 import "web-streams-polyfill/polyfill"
 
+if (!__DEV__) {
+	globalThis.console = {
+		...globalThis.console,
+		log: () => {},
+		info: () => {},
+		warn: () => {},
+		error: () => {},
+		debug: () => {},
+		trace: () => {},
+		group: () => {},
+		groupCollapsed: () => {},
+		groupEnd: () => {},
+		time: () => {},
+		timeEnd: () => {},
+		timeLog: () => {},
+		assert: () => {},
+		clear: () => {},
+		count: () => {},
+		countReset: () => {},
+		table: () => {},
+		dir: () => {},
+		dirxml: () => {},
+		profile: () => {},
+		profileEnd: () => {},
+		timeStamp: () => {}
+	}
+}
+
 // @ts-expect-error For the TS SDK
 global.IS_EXPO_REACT_NATIVE = true
 // @ts-expect-error For the TS SDK
