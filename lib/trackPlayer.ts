@@ -626,6 +626,55 @@ export class TrackPlayerService {
 		}
 	}
 
+	public restoreState(): void {
+		const silentSoundURI = assets.uri.audio.silent_1h()
+		const audioImageFallbackURI = assets.uri.images.audio_fallback()
+
+		if (!silentSoundURI || !audioImageFallbackURI) {
+			return
+		}
+
+		const queue = this.getQueue()
+
+		if (queue.length > 0) {
+			console.log({
+				queue: queue.map(track => ({
+					...track,
+					artwork: audioImageFallbackURI,
+					url: silentSoundURI
+				}))
+			})
+
+			mmkvInstance.set(
+				TRACK_PLAYER_QUEUE_KEY,
+				JSON.stringify(
+					queue.map(track => ({
+						...track,
+						artwork: audioImageFallbackURI,
+						url: silentSoundURI
+					}))
+				)
+			)
+		}
+
+		const playingTrack = mmkvInstance.getString(TRACK_PLAYER_PLAYING_TRACK_KEY)
+
+		if (playingTrack) {
+			const playingTrackParsed = JSON.parse(playingTrack) as AudioProTrackExtended
+
+			mmkvInstance.set(
+				TRACK_PLAYER_PLAYING_TRACK_KEY,
+				JSON.stringify({
+					...playingTrackParsed,
+					url: silentSoundURI,
+					artwork: audioImageFallbackURI
+				} satisfies AudioProTrackExtended)
+			)
+		}
+
+		console.log("Track player state restored")
+	}
+
 	public init(): void {
 		AudioPro.configure({
 			contentType: AudioProContentType.MUSIC,
@@ -634,6 +683,8 @@ export class TrackPlayerService {
 			progressIntervalMs: 1000,
 			showNextPrevControls: true
 		})
+
+		this.restoreState()
 
 		AudioPro.addEventListener(async event => {
 			switch (event.type) {

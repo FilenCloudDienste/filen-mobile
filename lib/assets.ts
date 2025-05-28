@@ -3,14 +3,6 @@ import * as FileSystem from "expo-file-system/next"
 import { Asset } from "expo-asset"
 
 export class Assets {
-	private readonly copied: Record<
-		string,
-		{
-			uri: string
-			name: string
-		}
-	> = {}
-
 	public async copy(): Promise<void> {
 		const assets = [require("../assets/audio/silent_1h.mp3"), require("../assets/images/audio_fallback.png")]
 
@@ -20,11 +12,6 @@ export class Assets {
 				const destination = new FileSystem.File(FileSystem.Paths.join(paths.assets(), `${assetPath.name}.${assetPath.type}`))
 
 				if (destination.exists) {
-					this.copied[assetPath.name] = {
-						name: assetPath.name,
-						uri: destination.uri
-					}
-
 					return
 				}
 
@@ -47,11 +34,6 @@ export class Assets {
 				if (!destination.exists) {
 					throw new Error("Asset destination does not exist.")
 				}
-
-				this.copied[assetPath.name] = {
-					name: assetPath.name,
-					uri: destination.uri
-				}
 			})
 		)
 
@@ -61,12 +43,16 @@ export class Assets {
 	public uri = {
 		audio: {
 			silent_1h: () => {
-				return this.copied["silent_1h"]?.uri ?? null
+				const file = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "silent_1h.mp3"))
+
+				return file.exists ? file.uri : null
 			}
 		},
 		images: {
 			audio_fallback: () => {
-				return this.copied["audio_fallback"]?.uri ?? null
+				const file = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "audio_fallback.png"))
+
+				return file.exists ? file.uri : null
 			}
 		}
 	}
