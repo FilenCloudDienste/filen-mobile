@@ -25,6 +25,8 @@
 		"ios:release": "expo run:ios --configuration Release",
 		"ios:eas:dev": "eas build --platform ios --profile development",
 		"ios:eas:release": "eas build --platform ios --profile production",
+		"ios:device": "expo run:ios --device",
+		"ios:device:release": "expo run:ios --device --configuration Release",
 		"web": "expo start --web",
 		"test": "jest --watchAll",
 		"lint": "eslint . --ext ts,tsx,js,jsx --report-unused-disable-directives --max-warnings 0",
