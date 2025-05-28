@@ -14,6 +14,7 @@ import * as Battery from "expo-battery"
 import { THUMBNAILS_SUPPORTED_IMAGE_FORMATS } from "./thumbnails"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
+import { getSDK } from "./sdk"
 
 export type TreeItem = (
 	| {
@@ -68,6 +69,12 @@ export class CameraUpload {
 		this.maxSize = maxSize
 	}
 
+	private isAuthed(): boolean {
+		const apiKey = getSDK().config.apiKey
+
+		return typeof apiKey === "string" && apiKey.length > 0 && apiKey !== "anonymous"
+	}
+
 	public async canRun({
 		checkPermissions,
 		checkBattery,
@@ -79,6 +86,10 @@ export class CameraUpload {
 		checkNetwork: boolean
 		checkAppState: boolean
 	}): Promise<boolean> {
+		if (!this.isAuthed()) {
+			return false
+		}
+
 		if (this.type === "background") {
 			// Background tasks will only run if these conditions are met anyways, so we can safely skip
 			checkAppState = false
