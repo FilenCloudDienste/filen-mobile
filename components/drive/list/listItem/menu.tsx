@@ -33,7 +33,6 @@ import ReactNativeBlobUtil from "react-native-blob-util"
 import sqlite from "@/lib/sqlite"
 import * as MediaLibrary from "expo-media-library"
 import { Image } from "expo-image"
-import downloadService from "@/lib/services/download"
 
 export const Menu = memo(
 	({
@@ -613,8 +612,7 @@ export const Menu = memo(
 					tempLocation.delete()
 				}
 
-				await downloadService.foreground({
-					type: "file",
+				await nodeWorker.proxy("downloadFile", {
 					id: randomUUID(),
 					uuid: item.uuid,
 					bucket: item.bucket,
@@ -622,7 +620,7 @@ export const Menu = memo(
 					chunks: item.chunks,
 					version: item.version,
 					key: item.key,
-					destinationURI: tempLocation.uri,
+					destination: tempLocation.uri,
 					size: item.size,
 					name: item.name,
 					dontEmitProgress: true
@@ -770,10 +768,9 @@ export const Menu = memo(
 
 					fullScreenLoadingModal.hide()
 
-					await downloadService.foreground({
-						type: "directory",
+					await nodeWorker.proxy("downloadDirectory", {
 						uuid: item.uuid,
-						destinationURI: tmpDir.uri,
+						destination: tmpDir.uri,
 						size,
 						name: item.name,
 						id: randomUUID()
@@ -861,8 +858,7 @@ export const Menu = memo(
 				fullScreenLoadingModal.show()
 
 				try {
-					await downloadService.foreground({
-						type: "file",
+					await nodeWorker.proxy("downloadFile", {
 						id: randomUUID(),
 						uuid: item.uuid,
 						bucket: item.bucket,
@@ -870,7 +866,7 @@ export const Menu = memo(
 						chunks: item.chunks,
 						version: item.version,
 						key: item.key,
-						destinationURI: tmpFile.uri,
+						destination: tmpFile.uri,
 						size: item.size,
 						name: item.name
 					})
@@ -911,8 +907,7 @@ export const Menu = memo(
 
 			const offlineFileDestination = new FileSystem.File(FileSystem.Paths.join(paths.offlineFiles(), item.uuid))
 
-			await downloadService.foreground({
-				type: "file",
+			await nodeWorker.proxy("downloadFile", {
 				id: randomUUID(),
 				uuid: item.uuid,
 				bucket: item.bucket,
@@ -920,7 +915,7 @@ export const Menu = memo(
 				chunks: item.chunks,
 				version: item.version,
 				key: item.key,
-				destinationURI: offlineFileDestination.uri,
+				destination: offlineFileDestination.uri,
 				size: item.size,
 				name: item.name,
 				dontEmitProgress: false
@@ -988,8 +983,7 @@ export const Menu = memo(
 					tmpFile.parentDirectory.create()
 				}
 
-				await downloadService.foreground({
-					type: "file",
+				await nodeWorker.proxy("downloadFile", {
 					id: randomUUID(),
 					uuid: item.uuid,
 					bucket: item.bucket,
@@ -997,7 +991,7 @@ export const Menu = memo(
 					chunks: item.chunks,
 					version: item.version,
 					key: item.key,
-					destinationURI: tmpFile.uri,
+					destination: tmpFile.uri,
 					size: item.size,
 					name: item.name
 				})

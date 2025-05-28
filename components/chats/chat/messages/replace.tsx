@@ -1,4 +1,4 @@
-import { memo, useMemo, useCallback, Fragment, useRef, useEffect } from "react"
+import { memo, useMemo, useCallback, Fragment, useRef, useLayoutEffect } from "react"
 import regexifyString from "regexify-string"
 import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
@@ -134,7 +134,7 @@ export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisa
 		return getMessageLinkType(url)
 	}, [url])
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!viewRef.current) {
 			return
 		}

@@ -94,7 +94,7 @@ function ListComponent<T extends ListDataItem>(
 			<FlashList
 				data={data}
 				contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
-				renderItem={renderItemWithVariant(renderItem, variant, data, sectionHeaderAsGap)}
+				renderItem={renderItemWithVariant(renderItem, variant, data as T[] | undefined | null, sectionHeaderAsGap)}
 				contentContainerClassName={cn(
 					variant === "insets" && (!data || (typeof data?.[0] !== "string" && "pt-4")),
 					contentContainerClassName

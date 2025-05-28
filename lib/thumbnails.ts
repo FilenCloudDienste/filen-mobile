@@ -10,7 +10,6 @@ import sqlite from "./sqlite"
 import queryUtils from "@/queries/utils"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { Platform } from "react-native"
-import downloadService from "./services/download"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
 export const THUMBNAILS_SIZE: number = 256
@@ -172,8 +171,7 @@ export class Thumbnails {
 
 			try {
 				if (THUMBNAILS_SUPPORTED_IMAGE_FORMATS.includes(extname)) {
-					await downloadService.foreground({
-						type: "file",
+					await nodeWorker.proxy("downloadFile", {
 						id,
 						uuid: item.uuid,
 						bucket: item.bucket,
@@ -181,7 +179,7 @@ export class Thumbnails {
 						chunks: item.chunks,
 						version: item.version,
 						key: item.key,
-						destinationURI: tempDestinationFile.uri,
+						destination: tempDestinationFile.uri,
 						size: item.size,
 						name: item.name,
 						dontEmitProgress: true

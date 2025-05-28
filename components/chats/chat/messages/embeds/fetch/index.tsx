@@ -108,22 +108,19 @@ export const Fetch = memo(({ link }: { link: string }) => {
 		)
 	}
 
-	if (
-		query.data.type === "html" &&
-		query.data.metadata.title &&
-		query.data.metadata.title.length > 0 &&
-		query.data.metadata.description &&
-		query.data.metadata.description.length > 0
-	) {
+	if (query.data.type === "html") {
 		return (
 			<Outer
 				leftBorderColor={
 					query.data.metadata.themeColor && query.data.metadata.themeColor.length > 0 ? query.data.metadata.themeColor : undefined
 				}
-				title={query.data.metadata.title}
+				title={query.data.metadata.title && query.data.metadata.title.length > 0 ? query.data.metadata.title : "No title available"}
 				onPress={onPress}
-				description={query.data.metadata.description}
-				above={<Fallback link={link} />}
+				description={
+					query.data.metadata.description && query.data.metadata.description.length > 0
+						? query.data.metadata.description
+						: "No description available"
+				}
 			>
 				{query.data.metadata.image && query.data.metadata.image.length > 0 ? (
 					<ExpoImage

@@ -132,7 +132,7 @@ export class NodeWorker {
 		await this.pauseMutex.acquire()
 
 		try {
-			if (this.state !== "running") {
+			if (this.state === "paused") {
 				return
 			}
 
@@ -184,7 +184,7 @@ export class NodeWorker {
 		await this.pauseMutex.acquire()
 
 		try {
-			if (this.state !== "paused") {
+			if (this.state === "running") {
 				return
 			}
 

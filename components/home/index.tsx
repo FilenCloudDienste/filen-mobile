@@ -209,8 +209,8 @@ export const Home = memo(() => {
 									title: "Item 1"
 								}),
 								createDropdownItem({
-									actionKey: "testBackgroundTask",
-									title: "testBackgroundTask"
+									actionKey: "item2",
+									title: "Item 1"
 								}),
 								createDropdownItem({
 									actionKey: "trackPlayer",
@@ -248,7 +248,7 @@ export const Home = memo(() => {
 									router.push("/trackPlayer")
 								}
 
-								if (item.actionKey === "testBackgroundTask") {
+								if (item.actionKey === "item2") {
 									BackgroundTask.triggerTaskWorkerForTestingAsync().then(console.log).catch(console.error)
 								}
 

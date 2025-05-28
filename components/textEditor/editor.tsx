@@ -193,7 +193,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				id: randomUUID(),
 				size: tmpFile.size,
 				isShared: false,
-				deleteAfterUpload: true
+				deleteAfterUpload: true,
+				dontEmitProgress: true
 			})
 
 			setDidChange(false)

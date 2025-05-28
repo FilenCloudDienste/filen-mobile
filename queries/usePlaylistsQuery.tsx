@@ -12,7 +12,6 @@ import { getSDKConfig } from "@/lib/auth"
 import * as FileSystem from "expo-file-system/next"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
-import downloadService from "@/lib/services/download"
 
 export const PlaylistFileSchema = Type.Object({
 	uuid: Type.String(),
@@ -174,8 +173,7 @@ export async function fetchPlaylists(): Promise<(Playlist & { fileUUID: string }
 							tmpFile.delete()
 						}
 
-						await downloadService.foreground({
-							type: "file",
+						await nodeWorker.proxy("downloadFile", {
 							id: randomUUID(),
 							uuid: item.uuid,
 							bucket: item.type === "file" ? item.bucket : "",
@@ -183,7 +181,7 @@ export async function fetchPlaylists(): Promise<(Playlist & { fileUUID: string }
 							chunks: item.type === "file" ? item.chunks : 0,
 							version: item.type === "file" ? item.version : 1,
 							key: item.type === "file" ? item.key : "",
-							destinationURI: tmpFile.uri,
+							destination: tmpFile.uri,
 							size: item.size,
 							name: item.name,
 							dontEmitProgress: true

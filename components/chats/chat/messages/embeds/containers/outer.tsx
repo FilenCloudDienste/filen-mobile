@@ -16,20 +16,18 @@ export const Outer = memo(
 		descriptionClassName,
 		className,
 		innerClassName,
-		childrenClassName,
-		above
+		childrenClassName
 	}: {
 		children?: React.ReactNode
 		onPress?: ((e: GestureResponderEvent) => void) | ((e: GestureResponderEvent) => Promise<void>)
 		leftBorderColor?: string
-		title?: string | React.ReactNode
+		title?: string
 		titleClassName?: string
-		description?: string | React.ReactNode
+		description?: string
 		descriptionClassName?: string
 		className?: string
 		innerClassName?: string
 		childrenClassName?: string
-		above?: React.ReactNode
 	}) => {
 		const chatEmbedContainerStyle = useChatEmbedContainerStyle()
 
@@ -39,28 +37,19 @@ export const Outer = memo(
 				size="none"
 				unstable_pressDelay={100}
 				onPress={onPress}
-				className={cn("flex-1 flex-col active:opacity-70 basis-full", className)}
+				className={cn("flex-1 active:opacity-70 basis-full", className)}
 				android_ripple={null}
 				style={chatEmbedContainerStyle}
 			>
-				{above && (
-					<View
-						className="flex-row flex-1 w-full"
-						style={chatEmbedContainerStyle}
-					>
-						{above}
-					</View>
-				)}
 				<View
 					className={cn(
-						"flex-1 flex-col bg-card rounded-md p-2 gap-2 border-l-2",
+						"flex-1 flex-col bg-card rounded-md p-2 mt-2 gap-2 border-l-2",
 						leftBorderColor ? `border-l-[${leftBorderColor}]` : "border-l-gray-500",
-						innerClassName,
-						above && "mt-1"
+						innerClassName
 					)}
 					style={chatEmbedContainerStyle}
 				>
-					{title && typeof title === "string" ? (
+					{title && (
 						<Text
 							className={cn("text-blue-500 font-normal text-xs", titleClassName)}
 							numberOfLines={1}
@@ -68,10 +57,8 @@ export const Outer = memo(
 						>
 							{title}
 						</Text>
-					) : (
-						title
 					)}
-					{description && typeof description === "string" ? (
+					{description && (
 						<Text
 							numberOfLines={4}
 							ellipsizeMode="tail"
@@ -79,8 +66,6 @@ export const Outer = memo(
 						>
 							{description}
 						</Text>
-					) : (
-						description
 					)}
 					{children && (
 						<View className={cn("flex-1 bg-background rounded-md aspect-video overflow-hidden", childrenClassName)}>

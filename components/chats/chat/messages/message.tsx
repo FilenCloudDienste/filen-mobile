@@ -511,100 +511,94 @@ export const Message = memo(
 					<GestureDetector gesture={panGesture}>
 						<Animated.View
 							entering={animateOnEnter ? FadeInDown : undefined}
-							style={{
-								flex: 1
-							}}
+							style={[
+								{
+									flex: 1,
+									flexDirection: "column",
+									backgroundColor: colors.background
+								},
+								panStyle
+							]}
 						>
-							<Animated.View
-								style={[
-									{
-										flex: 1,
-										flexDirection: "column",
-										backgroundColor: colors.background
-									},
-									panStyle
-								]}
+							<Button
+								className={cn(
+									"justify-start flex-1 flex-col px-4 active:opacity-70",
+									!groupWithPreviousMessage && !groupWithNextMessage ? "py-1.5" : "py-1",
+									replyToMessageUUID === info.item.uuid || editMessageUUID === info.item.uuid
+										? "bg-card/30 border-l-2 border-l-card"
+										: pendingState && pendingState === "failed"
+										? "bg-red-500/5 border-l-2 border-l-red-500"
+										: mentioningMe
+										? "bg-yellow-500/5 border-l-2 border-l-yellow-500"
+										: ""
+								)}
+								variant="plain"
+								size="none"
+								unstable_pressDelay={100}
+								onPress={onPress}
 							>
-								<Button
-									className={cn(
-										"justify-start flex-1 flex-col px-4 active:opacity-70",
-										!groupWithPreviousMessage && !groupWithNextMessage ? "py-1.5" : "py-1",
-										replyToMessageUUID === info.item.uuid || editMessageUUID === info.item.uuid
-											? "bg-card/30 border-l-2 border-l-card"
-											: pendingState && pendingState === "failed"
-											? "bg-red-500/5 border-l-2 border-l-red-500"
-											: mentioningMe
-											? "bg-yellow-500/5 border-l-2 border-l-yellow-500"
-											: ""
+								{info.item.replyTo && info.item.replyTo.uuid && info.item.replyTo.uuid.length > 0 && (
+									<View className="flex-1 flex-row items-center">
+										<ReplyTo
+											message={info.item}
+											chat={chat}
+										/>
+									</View>
+								)}
+								<View className="flex-row gap-4 flex-1">
+									{!groupWithPreviousMessage && (
+										<Avatar
+											source={avatarSource}
+											style={{
+												width: 36,
+												height: 36
+											}}
+										/>
 									)}
-									variant="plain"
-									size="none"
-									unstable_pressDelay={100}
-									onPress={onPress}
-								>
-									{info.item.replyTo && info.item.replyTo.uuid && info.item.replyTo.uuid.length > 0 && (
-										<View className="flex-1 flex-row items-center">
-											<ReplyTo
+									<View className="flex-col flex-1">
+										{!groupWithPreviousMessage && (
+											<View className="flex-row items-center gap-2">
+												<Text
+													numberOfLines={1}
+													ellipsizeMode="middle"
+													className="items-center"
+												>
+													<Text variant="heading">{name}</Text>
+													<Text>{"  "}</Text>
+													<Text
+														variant="caption1"
+														className="text-muted-foreground"
+													>
+														<Date timestamp={info.item.sentTimestamp} />
+													</Text>
+												</Text>
+											</View>
+										)}
+										<View
+											className={cn(
+												"flex-1",
+												!groupWithPreviousMessage ? "pt-1" : "pl-[52px]",
+												pendingState && pendingState !== "sent" && "opacity-70"
+											)}
+										>
+											<ReplacedMessageContent
 												message={info.item}
 												chat={chat}
+												embedsDisabled={info.item.embedDisabled}
+												edited={info.item.edited}
 											/>
 										</View>
-									)}
-									<View className="flex-row gap-4 flex-1">
-										{!groupWithPreviousMessage && (
-											<Avatar
-												source={avatarSource}
-												style={{
-													width: 36,
-													height: 36
-												}}
+										{pendingState && pendingState === "failed" && (
+											<MaterialCommunityIcons
+												name="signal-off"
+												size={17}
+												color="#ef4444"
+												className={cn("pt-1", groupWithPreviousMessage && "pl-[52px]")}
 											/>
 										)}
-										<View className="flex-col flex-1">
-											{!groupWithPreviousMessage && (
-												<View className="flex-row items-center gap-2">
-													<Text
-														numberOfLines={1}
-														ellipsizeMode="middle"
-														className="items-center"
-													>
-														<Text variant="heading">{name}</Text>
-														<Text>{"  "}</Text>
-														<Text
-															variant="caption1"
-															className="text-muted-foreground"
-														>
-															<Date timestamp={info.item.sentTimestamp} />
-														</Text>
-													</Text>
-												</View>
-											)}
-											<View
-												className={cn(
-													"flex-1",
-													!groupWithPreviousMessage ? "pt-1" : "pl-[52px]",
-													pendingState && pendingState !== "sent" && "opacity-70"
-												)}
-											>
-												<ReplacedMessageContent
-													message={info.item}
-													chat={chat}
-													embedsDisabled={info.item.embedDisabled}
-													edited={info.item.edited}
-												/>
-											</View>
-											{pendingState && pendingState === "failed" && (
-												<MaterialCommunityIcons
-													name="signal-off"
-													size={17}
-													color="#ef4444"
-													className={cn("pt-1", groupWithPreviousMessage && "pl-[52px]")}
-												/>
-											)}
-										</View>
 									</View>
-								</Button>
-							</Animated.View>
+								</View>
+							</Button>
 						</Animated.View>
 					</GestureDetector>
 				</Menu>

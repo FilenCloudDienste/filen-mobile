@@ -7,12 +7,12 @@ import { Image } from "expo-image"
 import { getPreviewType } from "@/lib/utils"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import { selectDriveItems } from "./selectDriveItems/[parent]"
+import nodeWorker from "@/lib/nodeWorker"
 import { randomUUID } from "expo-crypto"
 import * as FileSystem from "expo-file-system/next"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import { FlashList } from "@shopify/flash-list"
-import nodeWorker from "@/lib/nodeWorker"
 
 export default function ShareIntent() {
 	const { shareIntent, resetShareIntent } = useShareIntentContext()

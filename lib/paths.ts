@@ -1,30 +1,16 @@
 import * as FileSystem from "expo-file-system/next"
 
-export const PREFIX: string = "filenv3_"
 export const THUMBNAILS_VERSION: number = 1
 export const BASE_DIR: string = FileSystem.Paths.document.uri // TODO: FileSystem.Paths.appleSharedContainers["group.io.filen.app"]?.uri
-export const TEMPORARY_DOWNLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryDownloads`)
-export const TEMPORARY_UPLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryUploads`)
-export const THUMBNAILS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}compressedThumbnails`, `v${THUMBNAILS_VERSION}`)
-export const DB_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}databases`)
-export const EXPORTS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}exportedFiles`)
-export const OFFLINE_FILES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}offlineAvailableFiles`)
-export const ASSETS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}assets`)
-export const TRACK_PLAYER_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}trackPlayer`)
-export const TRACK_PLAYER_PICTURES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}trackPlayerPictures`)
-
-if (__DEV__) {
-	console.log("Base directory:", BASE_DIR)
-	console.log("Temporary downloads path:", TEMPORARY_DOWNLOADS_BASE_PATH)
-	console.log("Temporary uploads path:", TEMPORARY_UPLOADS_BASE_PATH)
-	console.log("Thumbnails path:", THUMBNAILS_BASE_PATH)
-	console.log("Database path:", DB_BASE_PATH)
-	console.log("Exports path:", EXPORTS_BASE_PATH)
-	console.log("Offline files path:", OFFLINE_FILES_BASE_PATH)
-	console.log("Assets path:", ASSETS_BASE_PATH)
-	console.log("Track player path:", TRACK_PLAYER_BASE_PATH)
-	console.log("Track player pictures path:", TRACK_PLAYER_PICTURES_BASE_PATH)
-}
+export const TEMPORARY_DOWNLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "temporaryDownloads")
+export const TEMPORARY_UPLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "temporaryUploads")
+export const THUMBNAILS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "compressedThumbnails", `v${THUMBNAILS_VERSION}`)
+export const DB_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "databases")
+export const EXPORTS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "exportedFiles")
+export const OFFLINE_FILES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "offlineAvailableFiles")
+export const ASSETS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "assets")
+export const TRACK_PLAYER_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "trackPlayer")
+export const TRACK_PLAYER_PICTURES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, "trackPlayerPictures")
 
 export class Paths {
 	private readonly created = {

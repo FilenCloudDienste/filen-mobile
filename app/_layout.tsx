@@ -24,6 +24,7 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import AlertPrompt from "@/components/prompts/alertPrompt"
 import ShareIntentProvider from "@/providers/shareIntentProvider"
 import GalleryModal from "@/components/gallery/modal"
+import Background from "@/components/background"
 import SocketEvents from "@/components/socketEvents"
 
 export default function RootLayout() {
@@ -167,11 +168,12 @@ export default function RootLayout() {
 												/>
 											</Stack>
 											<Listeners />
-											{isAuthed && (
+											{setupDone && isAuthed && (
 												<Fragment>
 													<ItemInfoSheet />
 													<AuthedListeners />
 													<SocketEvents />
+													<Background />
 												</Fragment>
 											)}
 											<InputPrompt />
