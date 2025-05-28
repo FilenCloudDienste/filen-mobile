@@ -2,7 +2,7 @@ import useIsAuthed from "@/hooks/useIsAuthed"
 import { Redirect, Tabs } from "expo-router"
 import { type BottomTabBarProps, type BottomTabNavigationOptions } from "@react-navigation/bottom-tabs"
 import { Icon, IconProps } from "@roninoss/icons"
-import { memo, useCallback, useMemo } from "react"
+import { memo, useCallback, useMemo, useRef, useLayoutEffect } from "react"
 import { Platform, Pressable, PressableProps, View, StyleSheet } from "react-native"
 import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -12,6 +12,9 @@ import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { BlurView } from "expo-blur"
 import useChatUnreadQuery from "@/queries/useChatUnreadQuery"
+import { useShallow } from "zustand/shallow"
+import { useBottomTabsStore } from "@/stores/bottomTabs.store"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export default function TabsLayout() {
 	const [isAuthed] = useIsAuthed()
@@ -173,9 +176,18 @@ export const TAB_ICON_ACTIVE: Record<string, IconProps<"material">["name"]> = {
 export const MaterialTabBar = memo(({ state, descriptors, navigation }: BottomTabBarProps) => {
 	const { colors } = useColorScheme()
 	const insets = useSafeAreaInsets()
+	const viewRef = useRef<View>(null)
+	const { onLayout, layout } = useViewLayout(viewRef)
+	const setHeight = useBottomTabsStore(useShallow(state => state.setHeight))
+
+	useLayoutEffect(() => {
+		setHeight(layout.height)
+	}, [layout.height, setHeight])
 
 	return (
 		<View
+			ref={viewRef}
+			onLayout={onLayout}
 			style={{
 				paddingBottom: insets.bottom + 12
 			}}

@@ -1,14 +1,23 @@
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs"
+import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import useHeaderHeight from "@/hooks/useHeaderHeight"
 import { useWindowDimensions } from "react-native"
 import { useMemo } from "react"
 
 export default function useContentDimensions(
-	{ includeHeader, includeTabBar }: { includeHeader: boolean; includeTabBar: boolean } = { includeHeader: true, includeTabBar: true }
+	{
+		includeHeader,
+		includeTabBar
+	}: {
+		includeHeader: boolean
+		includeTabBar: boolean
+	} = {
+		includeHeader: true,
+		includeTabBar: true
+	}
 ) {
 	const insets = useSafeAreaInsets()
-	const bottomTabBarHeight = useBottomTabBarHeight()
+	const bottomTabBarHeight = useBottomTabsHeight()
 	const headerHeight = useHeaderHeight()
 	const dimensions = useWindowDimensions()
 

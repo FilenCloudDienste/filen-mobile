@@ -3,7 +3,7 @@ import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import { BlurView } from "expo-blur"
 import { Text } from "../nativewindui/Text"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs"
+import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"
 import { View, ActivityIndicator, Platform } from "react-native"
 import { ProgressIndicator } from "../nativewindui/ProgressIndicator"
 import { Image } from "expo-image"
@@ -18,7 +18,7 @@ import Container from "../Container"
 
 export const Bottom = memo(() => {
 	const trackPlayerState = useTrackPlayerState()
-	const bottomTabBarHeight = useBottomTabBarHeight()
+	const bottomTabBarHeight = useBottomTabsHeight()
 	const router = useRouter()
 	const { colors } = useColorScheme()
 	const trackPlayerControls = useTrackPlayerControls()
@@ -40,7 +40,10 @@ export const Bottom = memo(() => {
 			entering={FadeIn}
 			exiting={FadeOut}
 			style={{
-				bottom: bottomTabBarHeight,
+				bottom: Platform.select({
+					ios: bottomTabBarHeight,
+					default: 0
+				}),
 				flex: 1,
 				position: "absolute",
 				left: 0,

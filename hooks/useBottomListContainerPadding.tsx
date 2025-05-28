@@ -1,9 +1,9 @@
 import { Platform } from "react-native"
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs"
+import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"
 import { useMemo } from "react"
 
 export default function useBottomListContainerPadding(): number {
-	const bottomTabBarHeight = useBottomTabBarHeight()
+	const bottomTabBarHeight = useBottomTabsHeight()
 
 	const padding = useMemo(() => {
 		return Platform.select({

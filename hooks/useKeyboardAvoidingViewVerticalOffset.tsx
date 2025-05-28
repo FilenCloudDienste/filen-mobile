@@ -3,7 +3,7 @@ import { Platform, StatusBar } from "react-native"
 import { type EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context"
 import useDimensions from "./useDimensions"
 import useHeaderHeight from "@/hooks/useHeaderHeight"
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs"
+import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"
 
 export const useKeyboardAvoidingViewVerticalOffset = ({
 	additionalOffset = 0,
@@ -14,7 +14,7 @@ export const useKeyboardAvoidingViewVerticalOffset = ({
 	includeStatusBar?: boolean
 	includeBottomTabs?: boolean
 } = {}): number => {
-	const bottomTabHeight = useBottomTabBarHeight()
+	const bottomTabHeight = useBottomTabsHeight()
 	const headerHeight = useHeaderHeight()
 	const insets: EdgeInsets = useSafeAreaInsets()
 	const [offset, setOffset] = useState<number>(0)
