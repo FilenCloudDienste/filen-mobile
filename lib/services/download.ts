@@ -4,7 +4,6 @@ import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import { getSDK } from "@/lib/sdk"
 import Semaphore from "../semaphore"
-import foregroundService from "./foreground"
 import { type FileEncryptionVersion } from "@filen/sdk"
 
 export class DownloadService {
@@ -42,57 +41,47 @@ export class DownloadService {
 			throw new Error("You must be authenticated to download files.")
 		}
 
-		if (!params.dontEmitProgress) {
-			await foregroundService.start()
+		const destination =
+			params.type === "file"
+				? new FileSystem.File(
+						params.destinationURI ??
+							FileSystem.Paths.join(paths.temporaryDownloads(), `${randomUUID()}${FileSystem.Paths.extname(params.name)}`)
+				  )
+				: new FileSystem.Directory(params.destinationURI ?? FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
+
+		if (!destination.parentDirectory.exists) {
+			destination.parentDirectory.create({
+				intermediates: true
+			})
 		}
 
-		try {
-			const destination =
-				params.type === "file"
-					? new FileSystem.File(
-							params.destinationURI ??
-								FileSystem.Paths.join(paths.temporaryDownloads(), `${randomUUID()}${FileSystem.Paths.extname(params.name)}`)
-					  )
-					: new FileSystem.Directory(params.destinationURI ?? FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
+		if (destination.exists) {
+			destination.delete()
+		}
 
-			if (!destination.parentDirectory.exists) {
-				destination.parentDirectory.create({
-					intermediates: true
-				})
-			}
-
-			if (destination.exists) {
-				destination.delete()
-			}
-
-			if (params.type === "file" && destination instanceof FileSystem.File) {
-				await nodeWorker.proxy("downloadFile", {
-					id: params.id ?? randomUUID(),
-					uuid: params.uuid,
-					bucket: params.bucket,
-					region: params.region,
-					chunks: params.chunks,
-					version: params.version,
-					key: params.key,
-					destination: destination.uri,
-					size: params.size,
-					name: params.name,
-					dontEmitProgress: params.dontEmitProgress
-				})
-			} else {
-				await nodeWorker.proxy("downloadDirectory", {
-					id: params.id ?? randomUUID(),
-					uuid: params.uuid,
-					destination: destination.uri,
-					size: params.size,
-					name: params.name,
-					dontEmitProgress: params.dontEmitProgress
-				})
-			}
-		} finally {
-			if (!params.dontEmitProgress) {
-				await foregroundService.stop()
-			}
+		if (params.type === "file" && destination instanceof FileSystem.File) {
+			await nodeWorker.proxy("downloadFile", {
+				id: params.id ?? randomUUID(),
+				uuid: params.uuid,
+				bucket: params.bucket,
+				region: params.region,
+				chunks: params.chunks,
+				version: params.version,
+				key: params.key,
+				destination: destination.uri,
+				size: params.size,
+				name: params.name,
+				dontEmitProgress: params.dontEmitProgress
+			})
+		} else {
+			await nodeWorker.proxy("downloadDirectory", {
+				id: params.id ?? randomUUID(),
+				uuid: params.uuid,
+				destination: destination.uri,
+				size: params.size,
+				name: params.name,
+				dontEmitProgress: params.dontEmitProgress
+			})
 		}
 	}
 

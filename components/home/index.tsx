@@ -17,7 +17,6 @@ import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import * as BackgroundTask from "expo-background-task"
 import { getSDK } from "@/lib/sdk"
-import foregroundService from "@/lib/services/foreground"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
@@ -210,8 +209,8 @@ export const Home = memo(() => {
 									title: "Item 1"
 								}),
 								createDropdownItem({
-									actionKey: "item2",
-									title: "Item 1"
+									actionKey: "testBackgroundTask",
+									title: "testBackgroundTask"
 								}),
 								createDropdownItem({
 									actionKey: "trackPlayer",
@@ -220,10 +219,6 @@ export const Home = memo(() => {
 								createDropdownItem({
 									actionKey: "testSDK",
 									title: "testSDK"
-								}),
-								createDropdownItem({
-									actionKey: "testForegroundService",
-									title: "testForegroundService"
 								}),
 								createDropdownSubMenu(
 									{
@@ -253,7 +248,7 @@ export const Home = memo(() => {
 									router.push("/trackPlayer")
 								}
 
-								if (item.actionKey === "item2") {
+								if (item.actionKey === "testBackgroundTask") {
 									BackgroundTask.triggerTaskWorkerForTestingAsync().then(console.log).catch(console.error)
 								}
 
@@ -271,18 +266,6 @@ export const Home = memo(() => {
 										.catch(console.error)
 
 									console.log("testsdk done", Date.now() - now, "ms")
-								}
-
-								if (item.actionKey === "testForegroundService") {
-									console.log("testForegroundService")
-
-									await foregroundService.start()
-
-									await new Promise<void>(resolve => setTimeout(resolve, 120000))
-
-									await foregroundService.stop()
-
-									console.log("testForegroundService done")
 								}
 							}}
 						>

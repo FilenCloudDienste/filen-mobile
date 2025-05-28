@@ -16,7 +16,6 @@ export class NodeWorker {
 	private readonly pauseMutex = new Semaphore(1)
 	public readonly http: HTTP
 	private state: "paused" | "running" = "running"
-	public foregroundServiceActive: boolean = false
 
 	public constructor(bridge: NodeBridge) {
 		this.bridge = bridge
@@ -133,7 +132,7 @@ export class NodeWorker {
 		await this.pauseMutex.acquire()
 
 		try {
-			if (this.state !== "running" || this.foregroundServiceActive) {
+			if (this.state !== "running") {
 				return
 			}
 
@@ -395,8 +394,7 @@ export class NodeWorker {
 		directorySizePublicLink: handlers.directorySizePublicLink.bind(this),
 		readFileAsString: handlers.readFileAsString.bind(this),
 		writeFileAsString: handlers.writeFileAsString.bind(this),
-		parseAudioMetadata: handlers.parseAudioMetadata.bind(this),
-		foregroundServiceActive: handlers.foregroundServiceActive.bind(this)
+		parseAudioMetadata: handlers.parseAudioMetadata.bind(this)
 	}
 }
 

@@ -1,7 +1,6 @@
 import nodeWorker from "@/lib/nodeWorker"
 import * as FileSystem from "expo-file-system/next"
 import { getSDK } from "@/lib/sdk"
-import foregroundService from "./foreground"
 import { Readable } from "stream"
 import { type ReadableStream } from "stream/web"
 import { type CloudItemSharedReceiver } from "@filen/sdk/dist/types/cloud"
@@ -53,23 +52,13 @@ export class UploadService {
 				throw new Error("You must be authenticated to upload files.")
 			}
 
-			if (!params.dontEmitProgress) {
-				await foregroundService.start()
+			const sourceEntry = new FileSystem.Directory(params.localPath)
+
+			if (!sourceEntry.exists) {
+				throw new Error(`Source ${params.localPath} does not exist.`)
 			}
 
-			try {
-				const sourceEntry = new FileSystem.Directory(params.localPath)
-
-				if (!sourceEntry.exists) {
-					throw new Error(`Source ${params.localPath} does not exist.`)
-				}
-
-				return await nodeWorker.proxy("uploadDirectory", params)
-			} finally {
-				if (!params.dontEmitProgress) {
-					await foregroundService.stop()
-				}
-			}
+			return await nodeWorker.proxy("uploadDirectory", params)
 		},
 		background: async (): Promise<void> => {
 			throw new Error("Background directory upload is not implemented yet.")
@@ -82,31 +71,17 @@ export class UploadService {
 				throw new Error("You must be authenticated to upload files.")
 			}
 
-			if (!params.dontEmitProgress) {
-				await foregroundService.start()
+			const sourceEntry = new FileSystem.File(params.localPath)
+
+			if (!sourceEntry.exists) {
+				throw new Error(`Source ${params.localPath} does not exist.`)
 			}
 
-			try {
-				const sourceEntry = new FileSystem.File(params.localPath)
-
-				if (!sourceEntry.exists) {
-					throw new Error(`Source ${params.localPath} does not exist.`)
-				}
-
-				return await nodeWorker.proxy("uploadFile", params)
-			} finally {
-				if (!params.dontEmitProgress) {
-					await foregroundService.stop()
-				}
-			}
+			return await nodeWorker.proxy("uploadFile", params)
 		},
 		background: async (params: UploadFileParams & { abortSignal?: AbortSignal }): Promise<DriveCloudItem> => {
 			if (!this.isAuthed()) {
 				throw new Error("You must be authenticated to upload files.")
-			}
-
-			if (!params.dontEmitProgress) {
-				await foregroundService.start()
 			}
 
 			const sourceEntry = new FileSystem.File(params.localPath)

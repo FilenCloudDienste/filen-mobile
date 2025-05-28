@@ -3,7 +3,6 @@
 		"name": "Filen",
 		"slug": "filen-mobile",
 		"version": "3.0.0",
-		"buildNumber": 301,
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"scheme": "iofilenapp",
@@ -16,6 +15,7 @@
 			"backgroundColor": "#ffffff"
 		},
 		"ios": {
+			"buildNumber": 301,
 			"supportsTablet": true,
 			"bundleIdentifier": "io.filen.app",
 			"requireFullScreen": true,
@@ -31,6 +31,7 @@
 			}
 		},
 		"android": {
+			"versionCode": 301,
 			"edgeToEdgeEnabled": true,
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/images/adaptive-icon.png",
@@ -107,20 +108,10 @@
 			"@config-plugins/react-native-pdf",
 			["./plugins/withAndroidNetworkSecurityConfig"],
 			["./plugins/withAndroidLargeHeapAndHardwareAcceleration"],
-			["./plugins/withAndroidNotifee"],
 			[
 				"./plugins/withAndroidArchitectures",
 				{
 					"architectures": "armeabi-v7a,arm64-v8a,x86_64"
-				}
-			],
-			[
-				"./plugins/withNotifee",
-				{
-					"permissions": ["INTERNET", "ACCESS_NETWORK_STATE", "POST_NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"],
-					"foregroundService": {
-						"serviceTypes": ["dataSync"]
-					}
 				}
 			],
 			[

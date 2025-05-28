@@ -4,7 +4,7 @@ import { backgroundCameraUpload } from "./cameraUpload"
 import { BACKGROUND_TASK_IDENTIFIER } from "./constants"
 import setup from "./setup"
 
-export async function registerBackgroundTask(): Promise<void> {
+/*export async function registerBackgroundTask(): Promise<void> {
 	try {
 		const [status, registered] = await Promise.all([
 			ExpoBackgroundTask.getStatusAsync(),
@@ -31,7 +31,7 @@ export async function registerBackgroundTask(): Promise<void> {
 	} catch (e) {
 		console.error("Failed to register background task:", e)
 	}
-}
+}*/
 
 ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 	console.log("Running background task:", BACKGROUND_TASK_IDENTIFIER)

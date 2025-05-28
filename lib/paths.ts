@@ -2,7 +2,7 @@ import * as FileSystem from "expo-file-system/next"
 
 export const PREFIX: string = "filenv3_"
 export const THUMBNAILS_VERSION: number = 1
-export const BASE_DIR: string = FileSystem.Paths.appleSharedContainers["group.io.filen.app"]?.uri ?? FileSystem.Paths.document.uri // TODO: FileSystem.Paths.appleSharedContainers["group.io.filen.app"]?.uri
+export const BASE_DIR: string = FileSystem.Paths.document.uri // TODO: FileSystem.Paths.appleSharedContainers["group.io.filen.app"]?.uri
 export const TEMPORARY_DOWNLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryDownloads`)
 export const TEMPORARY_UPLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryUploads`)
 export const THUMBNAILS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}compressedThumbnails`, `v${THUMBNAILS_VERSION}`)

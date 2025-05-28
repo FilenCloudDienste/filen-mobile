@@ -14,7 +14,6 @@ import * as Battery from "expo-battery"
 import { THUMBNAILS_SUPPORTED_IMAGE_FORMATS } from "./thumbnails"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
-import foregroundService from "./services/foreground"
 import uploadService from "./services/upload"
 import { getSDK } from "./sdk"
 
@@ -664,8 +663,6 @@ export class CameraUpload {
 
 			console.log({ deltas: deltas.map(d => d.item) })
 
-			await foregroundService.start()
-
 			try {
 				let added = 0
 				let done = 0
@@ -687,8 +684,6 @@ export class CameraUpload {
 					})
 				}
 			} finally {
-				await foregroundService.stop()
-
 				this.useCameraUploadStore.setSyncState({
 					done: 0,
 					count: 0

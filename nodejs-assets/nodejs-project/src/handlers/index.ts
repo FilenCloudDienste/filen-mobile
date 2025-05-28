@@ -101,7 +101,7 @@ import { filePublicLinkHasPassword, filePublicLinkInfo, directoryPublicLinkInfo,
 
 import { readFileAsString, writeFileAsString } from "./fs"
 
-import { parseAudioMetadata, foregroundServiceActive } from "./utils"
+import { parseAudioMetadata } from "./utils"
 
 export {
 	ping,
@@ -205,6 +205,5 @@ export {
 	directorySizePublicLink,
 	readFileAsString,
 	writeFileAsString,
-	parseAudioMetadata,
-	foregroundServiceActive
+	parseAudioMetadata
 }
