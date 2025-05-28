@@ -4,7 +4,8 @@ import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import { getSDK } from "@/lib/sdk"
 import Semaphore from "../semaphore"
-import { type FileEncryptionVersion } from "@filen/sdk"
+import { type NodeWorkerHandlers } from "nodeWorker"
+import type Cloud from "@filen/sdk/dist/types/cloud"
 
 export class DownloadService {
 	private isAuthed(): boolean {
@@ -13,67 +14,26 @@ export class DownloadService {
 		return typeof apiKey === "string" && apiKey.length > 0 && apiKey !== "anonymous"
 	}
 
-	public async foreground(
-		params: {
-			id?: string
-			uuid: string
-			destinationURI?: string
-			name: string
-			size: number
-			dontEmitProgress?: boolean
-		} & (
-			| {
-					type: "file"
-					bucket: string
-					region: string
-					chunks: number
-					version: FileEncryptionVersion
-					key: string
-					end?: number
-					start?: number
-			  }
-			| {
-					type: "directory"
-			  }
-		)
-	): Promise<void> {
-		if (!this.isAuthed()) {
-			throw new Error("You must be authenticated to download files.")
-		}
+	public directory = {
+		foreground: async (params: Parameters<NodeWorkerHandlers["downloadFile"]>[0]): Promise<void> => {
+			if (!this.isAuthed()) {
+				throw new Error("You must be authenticated to download files.")
+			}
 
-		const destination =
-			params.type === "file"
-				? new FileSystem.File(
-						params.destinationURI ??
-							FileSystem.Paths.join(paths.temporaryDownloads(), `${randomUUID()}${FileSystem.Paths.extname(params.name)}`)
-				  )
-				: new FileSystem.Directory(params.destinationURI ?? FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
+			const destination = new FileSystem.Directory(
+				params.destination ?? FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID())
+			)
 
-		if (!destination.parentDirectory.exists) {
-			destination.parentDirectory.create({
-				intermediates: true
-			})
-		}
+			if (!destination.parentDirectory.exists) {
+				destination.parentDirectory.create({
+					intermediates: true
+				})
+			}
 
-		if (destination.exists) {
-			destination.delete()
-		}
+			if (destination.exists) {
+				destination.delete()
+			}
 
-		if (params.type === "file" && destination instanceof FileSystem.File) {
-			await nodeWorker.proxy("downloadFile", {
-				id: params.id ?? randomUUID(),
-				uuid: params.uuid,
-				bucket: params.bucket,
-				region: params.region,
-				chunks: params.chunks,
-				version: params.version,
-				key: params.key,
-				destination: destination.uri,
-				size: params.size,
-				name: params.name,
-				dontEmitProgress: params.dontEmitProgress
-			})
-		} else {
 			await nodeWorker.proxy("downloadDirectory", {
 				id: params.id ?? randomUUID(),
 				uuid: params.uuid,
@@ -82,80 +42,27 @@ export class DownloadService {
 				name: params.name,
 				dontEmitProgress: params.dontEmitProgress
 			})
-		}
-	}
+		},
+		background: async (params: Parameters<NodeWorkerHandlers["downloadDirectory"]>[0]): Promise<void> => {
+			if (!this.isAuthed()) {
+				throw new Error("You must be authenticated to download files.")
+			}
 
-	public async background(
-		params: {
-			uuid: string
-			destinationURI?: string
-			name: string
-			size: number
-			dontEmitProgress?: boolean
-		} & (
-			| {
-					type: "file"
-					bucket: string
-					region: string
-					chunks: number
-					version: FileEncryptionVersion
-					key: string
-					end?: number
-					start?: number
-			  }
-			| {
-					type: "directory"
-			  }
-		)
-	): Promise<void> {
-		if (!this.isAuthed()) {
-			throw new Error("You must be authenticated to download files.")
-		}
+			const destination = new FileSystem.Directory(
+				params.destination ?? FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID())
+			)
 
-		const destination =
-			params.type === "file"
-				? new FileSystem.File(
-						params.destinationURI ??
-							FileSystem.Paths.join(paths.temporaryDownloads(), `${randomUUID()}${FileSystem.Paths.extname(params.name)}`)
-				  )
-				: new FileSystem.Directory(params.destinationURI ?? FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
-
-		if (!destination.parentDirectory.exists) {
-			destination.parentDirectory.create({
-				intermediates: true
-			})
-		}
-
-		if (destination.exists) {
-			destination.delete()
-		}
-
-		const sdk = getSDK()
-
-		if (params.type === "file" && destination instanceof FileSystem.File) {
-			destination.create()
-
-			await sdk
-				.cloud()
-				.downloadFileToReadableStream({
-					uuid: params.uuid,
-					bucket: params.bucket,
-					region: params.region,
-					chunks: params.chunks,
-					version: params.version,
-					key: params.key,
-					size: params.size
+			if (!destination.parentDirectory.exists) {
+				destination.parentDirectory.create({
+					intermediates: true
 				})
-				.pipeThrough(
-					new TransformStream({
-						transform(chunk, controller) {
-							controller.enqueue(new Uint8Array(chunk))
-						}
-					})
-				)
-				.pipeTo(destination.writableStream())
-		} else {
-			const tree = await sdk.cloud().getDirectoryTree({
+			}
+
+			if (destination.exists) {
+				destination.delete()
+			}
+
+			const tree = await getSDK().cloud().getDirectoryTree({
 				uuid: params.uuid,
 				type: "normal"
 			})
@@ -223,7 +130,7 @@ export class DownloadService {
 
 							entry.create()
 
-							await sdk
+							await getSDK()
 								.cloud()
 								.downloadFileToReadableStream({
 									uuid: file.uuid,
@@ -247,6 +154,80 @@ export class DownloadService {
 						}
 					})
 			)
+		}
+	}
+
+	public file = {
+		foreground: async (params: Parameters<NodeWorkerHandlers["downloadFile"]>[0]): Promise<void> => {
+			if (!this.isAuthed()) {
+				throw new Error("You must be authenticated to download files.")
+			}
+
+			const destination = new FileSystem.File(
+				params.destination ??
+					FileSystem.Paths.join(paths.temporaryDownloads(), `${randomUUID()}${FileSystem.Paths.extname(params.name)}`)
+			)
+
+			if (!destination.parentDirectory.exists) {
+				destination.parentDirectory.create({
+					intermediates: true
+				})
+			}
+
+			if (destination.exists) {
+				destination.delete()
+			}
+
+			await nodeWorker.proxy("downloadFile", params)
+		},
+		background: async (params: Parameters<NodeWorkerHandlers["downloadFile"]>[0]): Promise<void> => {
+			if (!this.isAuthed()) {
+				throw new Error("You must be authenticated to download files.")
+			}
+
+			const destination = new FileSystem.File(
+				params.destination ??
+					FileSystem.Paths.join(paths.temporaryDownloads(), `${randomUUID()}${FileSystem.Paths.extname(params.name)}`)
+			)
+
+			if (!destination.parentDirectory.exists) {
+				destination.parentDirectory.create({
+					intermediates: true
+				})
+			}
+
+			if (destination.exists) {
+				destination.delete()
+			}
+
+			destination.create()
+
+			await getSDK()
+				.cloud()
+				.downloadFileToReadableStream({
+					uuid: params.uuid,
+					bucket: params.bucket,
+					region: params.region,
+					chunks: params.chunks,
+					version: params.version,
+					key: params.key,
+					size: params.size
+				})
+				.pipeThrough(
+					new TransformStream({
+						transform(chunk, controller) {
+							controller.enqueue(new Uint8Array(chunk))
+						}
+					})
+				)
+				.pipeTo(destination.writableStream())
+		},
+		stream: (params: Parameters<Cloud["downloadFileToReadableStream"]>[0]) => {
+			if (!this.isAuthed()) {
+				throw new Error("You must be authenticated to download files.")
+			}
+
+			return getSDK().cloud().downloadFileToReadableStream(params)
 		}
 	}
 }

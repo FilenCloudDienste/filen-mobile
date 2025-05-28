@@ -1,17 +1,18 @@
 import { AudioProEventType, type AudioProTrack, AudioProContentType, AudioProState } from "react-native-audio-pro"
 import Semaphore from "./semaphore"
 import mmkvInstance from "./mmkv"
-import nodeWorker from "./nodeWorker"
 import * as FileSystem from "expo-file-system/next"
 import paths from "./paths"
 import { randomUUID } from "expo-crypto"
 import { type FileEncryptionVersion } from "@filen/sdk"
-import { normalizeFilePathForNode, normalizeFilePathForExpo, shuffleArray } from "./utils"
+import { normalizeFilePathForExpo, shuffleArray } from "./utils"
 import { SILENT_1H_AUDIO_FILE } from "@/lib/constants"
 import mimeTypes from "mime-types"
 import { AudioPro } from "./audioPro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
+import downloadService from "./services/downloadService"
+import { getAudioMetadata } from "@missingcore/audio-metadata"
 
 export type AudioProTrackExtended = AudioProTrack & {
 	file: {
@@ -33,6 +34,7 @@ export type TrackMetadata = {
 	album?: string
 	title?: string
 	picture?: string
+	year?: number
 }
 
 export const TRACK_PLAYER_QUEUE_KEY = "trackPlayerState_Queue"
@@ -524,7 +526,7 @@ export class TrackPlayerService {
 			)
 
 			if (!destination.exists) {
-				await nodeWorker.proxy("downloadFile", {
+				await downloadService.file.background({
 					id: randomUUID(),
 					uuid: track.file.uuid,
 					bucket: track.file.bucket,
@@ -539,42 +541,47 @@ export class TrackPlayerService {
 				})
 			}
 
-			const meta = mmkvInstance.getString(this.getTrackMetadataKey(track))
+			const meta = undefined //mmkvInstance.getString(this.getTrackMetadataKey(track))
 
 			const metadata = meta
 				? (JSON.parse(meta) as TrackMetadata)
 				: await new Promise<TrackMetadata>(resolve => {
-						nodeWorker
-							.proxy("parseAudioMetadata", {
-								path: normalizeFilePathForNode(destination.uri)
-							})
+						getAudioMetadata(normalizeFilePathForExpo(destination.uri), ["album", "artist", "name", "track", "year", "artwork"])
 							.then(result => {
-								if (result && (result.tags.title || result.tags.artist || result.tags.album || result.tags.picture)) {
+								if (result.metadata.album || result.metadata.artist || result.metadata.name || result.metadata.year) {
 									const meta: TrackMetadata = {
-										artist: result.tags.artist,
-										album: result.tags.album,
-										title: result.tags.title,
+										artist: result.metadata.artist,
+										album: result.metadata.album,
+										title: result.metadata.name,
+										year: result.metadata.year,
 										picture: undefined
 									}
 
-									if (
-										result.tags.picture &&
-										result.tags.picture.data &&
-										result.tags.picture.data.length > 0 &&
-										result.tags.picture.format
-									) {
-										const pictureFormat = mimeTypes.extension(result.tags.picture.format)
+									if (result.metadata.artwork) {
+										const [header, base64String] = result.metadata.artwork.split(",")
 
-										if (pictureFormat) {
-											const destination = new FileSystem.File(
-												FileSystem.Paths.join(paths.trackPlayerPictures(), `${track.file.uuid}.${pictureFormat}`)
-											)
+										if (header && base64String) {
+											const mimeTypeMatch = header.match(/data:([^;]+)/)
+											const mimeType = mimeTypeMatch && mimeTypeMatch[1] ? mimeTypeMatch[1] : ""
 
-											if (!destination.exists) {
-												destination.write(new Uint8Array(result.tags.picture.data))
+											if (mimeType.length > 0) {
+												const fileExtension = mimeTypes.extension(mimeType)
+
+												if (fileExtension) {
+													const destination = new FileSystem.File(
+														FileSystem.Paths.join(
+															paths.trackPlayerPictures(),
+															`${track.file.uuid}.${fileExtension}`
+														)
+													)
+
+													if (!destination.exists) {
+														destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
+													}
+
+													meta.picture = destination.uri
+												}
 											}
-
-											meta.picture = destination.uri
 										}
 									}
 
@@ -622,7 +629,7 @@ export class TrackPlayerService {
 	public init(): void {
 		AudioPro.configure({
 			contentType: AudioProContentType.MUSIC,
-			debug: __DEV__,
+			debug: false,
 			debugIncludesProgress: false,
 			progressIntervalMs: 1000,
 			showNextPrevControls: true

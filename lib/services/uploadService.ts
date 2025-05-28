@@ -3,32 +3,7 @@ import * as FileSystem from "expo-file-system/next"
 import { getSDK } from "@/lib/sdk"
 import { Readable } from "stream"
 import { type ReadableStream } from "stream/web"
-import { type CloudItemSharedReceiver } from "@filen/sdk/dist/types/cloud"
-
-export type UploadFileParams = {
-	id: string
-	localPath: string
-	parent: string
-	name: string
-	size: number
-	lastModified?: number
-	creation?: number
-	dontEmitProgress?: boolean
-	deleteAfterUpload?: boolean
-	uuid?: string
-} & (
-	| {
-			isShared: false
-	  }
-	| {
-			isShared: true
-			receiverEmail: string
-			receiverId: number
-			sharerEmail: string
-			sharerId: number
-			receivers: CloudItemSharedReceiver[]
-	  }
-)
+import { type NodeWorkerHandlers } from "nodeWorker"
 
 export class UploadService {
 	private isAuthed(): boolean {
@@ -38,16 +13,7 @@ export class UploadService {
 	}
 
 	public directory = {
-		foreground: async (params: {
-			id: string
-			localPath: string
-			parent: string
-			name: string
-			size: number
-			dontEmitProgress?: boolean
-			deleteAfterUpload?: boolean
-			isShared?: boolean
-		}): Promise<void> => {
+		foreground: async (params: Parameters<NodeWorkerHandlers["uploadDirectory"]>[0]): Promise<void> => {
 			if (!this.isAuthed()) {
 				throw new Error("You must be authenticated to upload files.")
 			}
@@ -66,7 +32,7 @@ export class UploadService {
 	}
 
 	public file = {
-		foreground: async (params: UploadFileParams): Promise<DriveCloudItem> => {
+		foreground: async (params: Parameters<NodeWorkerHandlers["uploadFile"]>[0]): Promise<DriveCloudItem> => {
 			if (!this.isAuthed()) {
 				throw new Error("You must be authenticated to upload files.")
 			}
@@ -79,7 +45,11 @@ export class UploadService {
 
 			return await nodeWorker.proxy("uploadFile", params)
 		},
-		background: async (params: UploadFileParams & { abortSignal?: AbortSignal }): Promise<DriveCloudItem> => {
+		background: async (
+			params: Parameters<NodeWorkerHandlers["uploadFile"]>[0] & {
+				abortSignal?: AbortSignal
+			}
+		): Promise<DriveCloudItem> => {
 			if (!this.isAuthed()) {
 				throw new Error("You must be authenticated to upload files.")
 			}
