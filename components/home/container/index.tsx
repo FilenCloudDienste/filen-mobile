@@ -1,4 +1,4 @@
-import { memo, useState, useLayoutEffect, useRef, useCallback, useMemo } from "react"
+import { memo, useRef, useCallback, useMemo } from "react"
 import { View, TouchableOpacity, Platform, FlatList } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import Item from "./item"
@@ -7,6 +7,7 @@ import { Icon } from "@roninoss/icons"
 import { useTranslation } from "react-i18next"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useRouter } from "expo-router"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const Container = memo(
 	({
@@ -18,24 +19,9 @@ export const Container = memo(
 	}) => {
 		const { t } = useTranslation()
 		const { colors } = useColorScheme()
-		const [layout, setLayout] = useState<{
-			width: number
-			height: number
-		}>({
-			width: 0,
-			height: 0
-		})
-		const ref = useRef<View>(null)
+		const viewRef = useRef<View>(null)
 		const { push } = useRouter()
-
-		const onLayout = useCallback(() => {
-			ref?.current?.measureInWindow((_x, _y, width, height) => {
-				setLayout({
-					width,
-					height
-				})
-			})
-		}, [])
+		const { layout, onLayout } = useViewLayout(viewRef)
 
 		const onPress = useCallback(() => {
 			if (type === "favorites") {
@@ -127,15 +113,11 @@ export const Container = memo(
 			}
 		}, [t, type])
 
-		useLayoutEffect(() => {
-			onLayout()
-		}, [onLayout])
-
 		return (
 			<View
 				className="flex-1 mb-10"
 				onLayout={onLayout}
-				ref={ref}
+				ref={viewRef}
 			>
 				<TouchableOpacity
 					className="flex-1 flex-row items-center px-4"

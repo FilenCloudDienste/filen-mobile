@@ -3,7 +3,7 @@ import { Fragment } from "react"
 import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import { Platform } from "react-native"
 
-export default function SelectContacts() {
+export default function FileVersionHistory() {
 	return (
 		<Fragment>
 			<FileVersionHistoryComponent />

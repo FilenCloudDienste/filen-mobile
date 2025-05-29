@@ -1,11 +1,14 @@
 import { Fragment, memo, useMemo } from "react"
-import { View } from "react-native"
+import { Platform } from "react-native"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import { useLocalSearchParams, Redirect } from "expo-router"
-import File from "./file"
+import Content from "./content"
+import { AdaptiveSearchHeader } from "../nativewindui/AdaptiveSearchHeader"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const EditPublicLink = memo(() => {
 	const { item } = useLocalSearchParams()
+	const { colors } = useColorScheme()
 
 	const itemParsed = useMemo(() => {
 		if (typeof item !== "string") {
@@ -25,17 +28,27 @@ export const EditPublicLink = memo(() => {
 
 	return (
 		<Fragment>
-			<LargeTitleHeader
-				title="Public link"
-				backVisible={true}
-				materialPreset="stack"
-				iosBackButtonTitle="Back"
-				iosBackButtonMenuEnabled={false}
-				iosBackButtonTitleVisible={true}
-			/>
-			<View className="flex-1">
-				<File item={itemParsed} />
-			</View>
+			{Platform.OS === "ios" ? (
+				<AdaptiveSearchHeader
+					iosBackButtonTitle="Cancel"
+					iosBackButtonTitleVisible={true}
+					iosBlurEffect="systemChromeMaterial"
+					iosTitle="Public link"
+					iosIsLargeTitle={false}
+					iosBackButtonMenuEnabled={false}
+					backVisible={true}
+					iosBackVisible={true}
+					backgroundColor={colors.card}
+				/>
+			) : (
+				<LargeTitleHeader
+					title="Public link"
+					backVisible={true}
+					materialPreset="inline"
+					backgroundColor={colors.card}
+				/>
+			)}
+			<Content item={itemParsed} />
 		</Fragment>
 	)
 })
