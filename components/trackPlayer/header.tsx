@@ -20,6 +20,7 @@ import mmkvInstance from "@/lib/mmkv"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
+import { REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS } from "@/lib/constants"
 
 export const Header = memo(() => {
 	const { t } = useTranslation()
@@ -117,7 +118,7 @@ export const Header = memo(() => {
 			type: "file",
 			max: 9999,
 			dismissHref: "/trackPlayer/",
-			previewTypes: ["audio"],
+			extensions: REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS,
 			toMove: playlist.files.map(file => file.uuid)
 		})
 

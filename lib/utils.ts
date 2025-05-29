@@ -1,4 +1,9 @@
-import { UNCACHED_QUERY_KEYS } from "./constants"
+import {
+	UNCACHED_QUERY_KEYS,
+	EXPO_IMAGE_SUPPORTED_EXTENSIONS,
+	EXPO_VIDEO_SUPPORTED_EXTENSIONS,
+	EXPO_AUDIO_SUPPORTED_EXTENSIONS
+} from "./constants"
 import memoize from "lodash/memoize"
 import { type PreviewType } from "@/stores/gallery.store"
 import { Paths } from "expo-file-system/next"
@@ -6,6 +11,7 @@ import { t } from "@/lib/i18n"
 import { validate as validateUUID } from "uuid"
 import { Buffer } from "buffer"
 import { getRandomValues } from "expo-crypto"
+import mimeTypes from "mime-types"
 
 export function serializeError(error: Error): SerializedError {
 	return {
@@ -256,21 +262,19 @@ export function bpsToReadable(bps: number): string {
 export function getPreviewType(name: string): PreviewType {
 	const extname = Paths.extname(name.trim().toLowerCase())
 
+	if (EXPO_IMAGE_SUPPORTED_EXTENSIONS.includes(extname)) {
+		return "image"
+	}
+
+	if (EXPO_VIDEO_SUPPORTED_EXTENSIONS.includes(extname)) {
+		return "video"
+	}
+
+	if (EXPO_AUDIO_SUPPORTED_EXTENSIONS.includes(extname)) {
+		return "audio"
+	}
+
 	switch (extname) {
-		case ".webp":
-		case ".png":
-		case ".avif":
-		case ".heic":
-		case ".jpg":
-		case ".jpeg":
-		case ".gif":
-		case ".svg":
-		case ".ico":
-			return "image"
-		case ".mp4":
-		case ".mov":
-		case ".mkv":
-			return "video"
 		case ".pdf":
 			return "pdf"
 		case ".txt":
@@ -323,8 +327,6 @@ export function getPreviewType(name: string): PreviewType {
 		case ".protobuf":
 		case ".proto":
 			return "code"
-		case ".mp3":
-			return "audio"
 		case ".docx":
 			return "docx"
 		default:
@@ -334,130 +336,13 @@ export function getPreviewType(name: string): PreviewType {
 
 export function getPreviewTypeFromMime(mimeType: string): PreviewType {
 	const normalizedMimeType = mimeType.toLowerCase().trim()
+	const extname = mimeTypes.extension(normalizedMimeType)
 
-	if (
-		normalizedMimeType === "image/webp" ||
-		normalizedMimeType === "image/png" ||
-		normalizedMimeType === "image/avif" ||
-		normalizedMimeType === "image/heic" ||
-		normalizedMimeType === "image/jpeg" ||
-		normalizedMimeType === "image/jpg" ||
-		normalizedMimeType === "image/gif" ||
-		normalizedMimeType === "image/svg+xml" ||
-		normalizedMimeType === "image/x-icon" ||
-		normalizedMimeType === "image/vnd.microsoft.icon"
-	) {
-		return "image"
+	if (!extname) {
+		return "unknown"
 	}
 
-	if (
-		normalizedMimeType === "video/mp4" ||
-		normalizedMimeType === "video/quicktime" ||
-		normalizedMimeType === "video/x-matroska" ||
-		normalizedMimeType === "video/webm" ||
-		normalizedMimeType === "video/mpeg" ||
-		normalizedMimeType === "video/x-msvideo" ||
-		normalizedMimeType === "video/x-ms-wmv" ||
-		normalizedMimeType === "video/3gpp"
-	) {
-		return "video"
-	}
-
-	if (normalizedMimeType === "application/pdf") {
-		return "pdf"
-	}
-
-	if (normalizedMimeType === "text/plain") {
-		return "text"
-	}
-
-	if (
-		normalizedMimeType === "text/javascript" ||
-		normalizedMimeType === "application/javascript" ||
-		normalizedMimeType === "application/x-javascript" ||
-		normalizedMimeType === "text/typescript" ||
-		normalizedMimeType === "application/typescript" ||
-		normalizedMimeType === "text/markdown" ||
-		normalizedMimeType === "text/x-markdown" ||
-		normalizedMimeType === "text/x-c" ||
-		normalizedMimeType === "text/x-c++" ||
-		normalizedMimeType === "text/x-csrc" ||
-		normalizedMimeType === "text/x-chdr" ||
-		normalizedMimeType === "text/x-c++src" ||
-		normalizedMimeType === "text/x-c++hdr" ||
-		normalizedMimeType === "application/x-php" ||
-		normalizedMimeType === "text/php" ||
-		normalizedMimeType === "text/x-php" ||
-		normalizedMimeType === "text/html" ||
-		normalizedMimeType === "application/xhtml+xml" ||
-		normalizedMimeType === "text/css" ||
-		normalizedMimeType === "text/x-sass" ||
-		normalizedMimeType === "text/x-scss" ||
-		normalizedMimeType === "text/x-less" ||
-		normalizedMimeType === "application/xml" ||
-		normalizedMimeType === "text/xml" ||
-		normalizedMimeType === "application/json" ||
-		normalizedMimeType === "text/x-sql" ||
-		normalizedMimeType === "application/sql" ||
-		normalizedMimeType === "text/x-java" ||
-		normalizedMimeType === "text/x-kotlin" ||
-		normalizedMimeType === "text/x-swift" ||
-		normalizedMimeType === "text/x-python" ||
-		normalizedMimeType === "text/x-python-script" ||
-		normalizedMimeType === "text/x-cmake" ||
-		normalizedMimeType === "text/x-csharp" ||
-		normalizedMimeType === "text/x-dart" ||
-		normalizedMimeType === "text/x-go" ||
-		normalizedMimeType === "text/x-yaml" ||
-		normalizedMimeType === "application/x-yaml" ||
-		normalizedMimeType === "text/vnd.yaml" ||
-		normalizedMimeType === "text/x-vue" ||
-		normalizedMimeType === "text/x-svelte" ||
-		normalizedMimeType === "text/x-vbscript" ||
-		normalizedMimeType === "text/x-cobol" ||
-		normalizedMimeType === "application/toml" ||
-		normalizedMimeType === "text/x-toml" ||
-		normalizedMimeType === "text/x-sh" ||
-		normalizedMimeType === "application/x-sh" ||
-		normalizedMimeType === "text/x-shellscript" ||
-		normalizedMimeType === "text/x-rust" ||
-		normalizedMimeType === "text/x-ruby" ||
-		normalizedMimeType === "application/x-ruby" ||
-		normalizedMimeType === "text/x-powershell" ||
-		normalizedMimeType === "application/x-powershell" ||
-		normalizedMimeType === "application/x-bat" ||
-		normalizedMimeType === "application/x-ms-dos-executable" ||
-		normalizedMimeType === "application/x-protobuf" ||
-		normalizedMimeType.includes("application/json") ||
-		(normalizedMimeType.includes("text/") && !normalizedMimeType.includes("text/plain"))
-	) {
-		return "code"
-	}
-
-	if (
-		normalizedMimeType === "audio/mpeg" ||
-		normalizedMimeType === "audio/mp3" ||
-		normalizedMimeType === "audio/ogg" ||
-		normalizedMimeType === "audio/wav" ||
-		normalizedMimeType === "audio/x-wav" ||
-		normalizedMimeType === "audio/webm" ||
-		normalizedMimeType === "audio/flac" ||
-		normalizedMimeType === "audio/aac" ||
-		normalizedMimeType === "audio/mp4" ||
-		normalizedMimeType === "audio/x-m4a"
-	) {
-		return "audio"
-	}
-
-	if (
-		normalizedMimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-		normalizedMimeType === "application/msword" ||
-		normalizedMimeType === "application/vnd.ms-word"
-	) {
-		return "docx"
-	}
-
-	return "unknown"
+	return getPreviewType(`file.${extname}`)
 }
 
 export function isValidHexColor(value: string, length: number = 6): boolean {

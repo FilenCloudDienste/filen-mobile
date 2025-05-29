@@ -9,25 +9,13 @@ import { normalizeFilePathForExpo } from "./utils"
 import sqlite from "./sqlite"
 import queryUtils from "@/queries/utils"
 import * as VideoThumbnails from "expo-video-thumbnails"
-import { Platform } from "react-native"
+import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS, EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS } from "./constants"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
 export const THUMBNAILS_SIZE: number = 256
 export const THUMBNAILS_COMPRESSION: number = 0.8
 
-export const THUMBNAILS_SUPPORTED_VIDEO_FORMATS = Platform.select({
-	ios: [".mp4", ".mov", ".m4v", ".3gp", ".webm"],
-	android: [".mp4", ".webm", ".3gp", ".mov"],
-	default: [".mp4", ".mov", ".3gp"]
-}) as string[]
-
-export const THUMBNAILS_SUPPORTED_IMAGE_FORMATS = Platform.select({
-	ios: [".jpg", ".jpeg", ".png", ".heic"],
-	android: [".jpg", ".jpeg", ".png", ".webp", ".heic"],
-	default: [".jpg", ".jpeg", ".png"]
-}) as string[]
-
-export const THUMBNAILS_SUPPORTED_FORMATS = [...THUMBNAILS_SUPPORTED_VIDEO_FORMATS, ...THUMBNAILS_SUPPORTED_IMAGE_FORMATS]
+export const THUMBNAILS_SUPPORTED_FORMATS = [...EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS, ...EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS]
 
 export class Thumbnails {
 	private readonly semaphore: Semaphore = new Semaphore(5)
@@ -170,7 +158,7 @@ export class Thumbnails {
 			}
 
 			try {
-				if (THUMBNAILS_SUPPORTED_IMAGE_FORMATS.includes(extname)) {
+				if (EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
 					await nodeWorker.proxy("downloadFile", {
 						id,
 						uuid: item.uuid,
@@ -204,7 +192,7 @@ export class Thumbnails {
 					}
 
 					manipulatedFile.move(destinationFile)
-				} else if (THUMBNAILS_SUPPORTED_VIDEO_FORMATS.includes(extname)) {
+				} else if (EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS.includes(extname)) {
 					const videoThumbnail = await VideoThumbnails.getThumbnailAsync(
 						`http://localhost:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
 							btoa(

@@ -1,4 +1,5 @@
 import { type FilenSDKConfig } from "@filen/sdk"
+import { Platform } from "react-native"
 
 export const AUTHED_VERSION: number = 1
 export const SDK_CONFIG_VERSION: number = 1
@@ -40,3 +41,39 @@ export const BACKGROUND_TASK_IDENTIFIER: string = "background-task"
 export const CAMERA_UPLOAD_INTERVAL: number = 60 * 1000
 
 export const SILENT_1H_AUDIO_FILE: string = "silent_1h.mp3"
+
+export const EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS = Platform.select({
+	ios: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".heif", ".webp"],
+	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"],
+	default: [".jpg", ".jpeg", ".png", ".gif", ".bmp"]
+}) as string[]
+
+export const EXPO_VIDEO_SUPPORTED_EXTENSIONS = Platform.select({
+	ios: [".mp4", ".mov", ".m4v", ".3gp"],
+	android: [".mp4", ".webm", ".3gp", ".mkv"],
+	default: [".mp4", ".mov", ".3gp"]
+}) as string[]
+
+export const EXPO_AUDIO_SUPPORTED_EXTENSIONS = Platform.select({
+	ios: [".mp3", ".m4a", ".aac", ".wav", ".aiff", ".caf", ".flac", ".alac"],
+	android: [".mp3", ".m4a", ".aac", ".wav", ".ogg", ".3gp", ".amr", ".flac"],
+	default: [".mp3", ".m4a", ".aac", ".wav"]
+}) as string[]
+
+export const EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS = Platform.select({
+	ios: [".mp4", ".mov", ".m4v", ".3gp"],
+	android: [".mp4", ".webm", ".3gp", ".mkv"],
+	default: [".mp4", ".mov", ".3gp"]
+}) as string[]
+
+export const EXPO_IMAGE_SUPPORTED_EXTENSIONS = Platform.select({
+	ios: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".heif", ".webp", ".svg"],
+	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"],
+	default: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg"]
+}) as string[]
+
+export const REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS = Platform.select({
+	ios: [".mp3", ".m4a", ".aac", ".wav", ".aiff", ".caf", ".flac", ".alac"],
+	android: [".mp3", ".m4a", ".aac", ".wav", ".ogg", ".3gp", ".amr", ".flac", ".webm"],
+	default: [".mp3", ".m4a", ".aac", ".wav"]
+}) as string[]

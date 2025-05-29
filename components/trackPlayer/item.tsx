@@ -249,7 +249,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 
 	return (
 		<Button
-			className="flex-row bg-card rounded-md px-3 py-2 gap-4 items-start"
+			className="flex-row bg-card rounded-md px-3 py-2 gap-4 items-start mb-2"
 			onPress={() => {
 				router.push({
 					pathname: "/trackPlayer/[playlist]",
