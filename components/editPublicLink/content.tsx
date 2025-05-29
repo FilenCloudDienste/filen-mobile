@@ -14,6 +14,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { inputPrompt } from "../prompts/inputPrompt"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import Container from "../Container"
+import useIsProUser from "@/hooks/useIsProUser"
 
 export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	const [toggleStatus, setToggleStatus] = useState<boolean>(false)
@@ -23,6 +24,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	const { isDarkColorScheme, colors } = useColorScheme()
 	const queryDataUpdatedAt = useRef<number>(0)
 	const [didChange, setDidChange] = useState<boolean>(false)
+	const isProUser = useIsProUser()
 
 	const query = useItemPublicLinkStatusQuery({
 		item
@@ -223,6 +225,16 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			}
 		}
 	}, [query])
+
+	if (!isProUser) {
+		return (
+			<Container>
+				<View className="flex-1 items-center justify-center">
+					<Text className="text-red-500 mt-4">Public links are only available for Pro users.</Text>
+				</View>
+			</Container>
+		)
+	}
 
 	return (
 		<Container>
