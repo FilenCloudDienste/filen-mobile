@@ -242,7 +242,7 @@ export const Menu = memo(
 				)
 			}
 
-			items.push(
+			/*items.push(
 				createContextSubMenu(
 					{
 						title: t("drive.list.item.menu.clipboard"),
@@ -263,7 +263,7 @@ export const Menu = memo(
 						})
 					]
 				)
-			)
+			)*/
 
 			if (queryParams.of === "sharedOut") {
 				items.push(

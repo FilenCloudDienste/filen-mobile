@@ -118,10 +118,6 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	const exportFile = useCallback(async () => {
 		const valueCopied = `${value}`
 
-		if (valueCopied.length === 0) {
-			return
-		}
-
 		try {
 			if (!(await Sharing.isAvailableAsync())) {
 				throw new Error("Sharing is not available on this device.")
@@ -165,7 +161,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 		const valueCopied = `${value}`
 
-		if (!didChange || valueCopied.length === 0) {
+		if (!didChange) {
 			return
 		}
 
@@ -180,10 +176,10 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				tmpFile.delete()
 			}
 
-			tmpFile.write(valueCopied)
+			tmpFile.create()
 
-			if (!tmpFile.size) {
-				throw new Error("Temporary upload file is empty.")
+			if (valueCopied.length > 0) {
+				tmpFile.write(valueCopied)
 			}
 
 			await nodeWorker.proxy("uploadFile", {
@@ -191,7 +187,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				localPath: tmpFile.uri,
 				name: itemName,
 				id: randomUUID(),
-				size: tmpFile.size,
+				size: tmpFile.size ?? 0,
 				isShared: false,
 				deleteAfterUpload: true,
 				dontEmitProgress: true
