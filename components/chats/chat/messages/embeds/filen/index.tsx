@@ -136,7 +136,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 		)
 	}
 
-	if (query.data.data.previewType === "image") {
+	if (query.data.data.previewType === "image" && query.data.data.info.size > 0) {
 		return (
 			<Image
 				link={link}
@@ -145,7 +145,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 		)
 	}
 
-	if (query.data.data.previewType === "code" || query.data.data.previewType === "text") {
+	if ((query.data.data.previewType === "code" || query.data.data.previewType === "text") && query.data.data.info.size > 0) {
 		return (
 			<Code
 				link={link}
@@ -156,7 +156,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 		)
 	}
 
-	if (query.data.data.previewType === "video") {
+	if (query.data.data.previewType === "video" && query.data.data.info.size > 0) {
 		return (
 			<Video
 				link={link}
@@ -166,7 +166,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 		)
 	}
 
-	if (query.data.data.previewType === "audio") {
+	if (query.data.data.previewType === "audio" && query.data.data.info.size > 0) {
 		return (
 			<Audio
 				link={link}
@@ -176,7 +176,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 		)
 	}
 
-	if (query.data.data.previewType === "pdf") {
+	if (query.data.data.previewType === "pdf" && query.data.data.info.size > 0) {
 		return (
 			<PDF
 				size={query.data.data.info.size}
@@ -186,7 +186,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 		)
 	}
 
-	if (query.data.data.previewType === "docx") {
+	if (query.data.data.previewType === "docx" && query.data.data.info.size > 0) {
 		return (
 			<DOCX
 				size={query.data.data.info.size}

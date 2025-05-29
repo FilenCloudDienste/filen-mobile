@@ -78,7 +78,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (item.type === "directory" ? Platform.OS === "android" : item.size > 0) {
+			if (Platform.OS === "ios" ? item.type === "file" && item.size > 0 : item.size > 0) {
 				items.push(
 					createContextSubMenu(
 						{
@@ -129,7 +129,7 @@ export const Menu = memo(
 			}
 
 			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline") {
-				if (isProUser) {
+				if (isProUser && (item.type === "directory" || item.size > 0)) {
 					items.push(
 						createContextSubMenu(
 							{
