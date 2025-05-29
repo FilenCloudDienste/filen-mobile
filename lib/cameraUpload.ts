@@ -15,6 +15,7 @@ import { THUMBNAILS_SUPPORTED_IMAGE_FORMATS } from "./thumbnails"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
+import uploadService from "./services/uploadService"
 
 export type TreeItem = (
 	| {
@@ -110,7 +111,7 @@ export class CameraUpload {
 		}
 
 		const [nodeWorkerPing, permissions, netInfoState, powerState] = await Promise.all([
-			nodeWorker.proxy("ping", undefined),
+			this.type === "foreground" ? nodeWorker.proxy("ping", undefined) : Promise.resolve("pong"),
 			checkPermissions
 				? MediaLibrary.getPermissionsAsync(false, this.type === "background" ? ["photo"] : ["photo", "video"])
 				: Promise.resolve({
@@ -230,10 +231,16 @@ export class CameraUpload {
 		}
 
 		const items: Tree = {}
-		const tree = await nodeWorker.proxy("getDirectoryTree", {
-			uuid: state.remote.uuid,
-			type: "normal"
-		})
+		const tree =
+			this.type === "foreground"
+				? await nodeWorker.proxy("getDirectoryTree", {
+						uuid: state.remote.uuid,
+						type: "normal"
+				  })
+				: await getSDK().cloud().getDirectoryTree({
+						uuid: state.remote.uuid,
+						type: "normal"
+				  })
 
 		for (const path in tree) {
 			const file = tree[path]
@@ -375,15 +382,6 @@ export class CameraUpload {
 
 		const uploadId = randomUUID()
 
-		const abortListener = () => {
-			nodeWorker
-				.proxy("transferAction", {
-					id: uploadId,
-					action: "stop"
-				})
-				.catch(console.error)
-		}
-
 		try {
 			if (delta.type === "upload") {
 				if (delta.item.type !== "local") {
@@ -398,7 +396,12 @@ export class CameraUpload {
 				const parentUUID =
 					!parentName || parentName.length === 0 || parentName === "."
 						? state.remote.uuid
-						: await nodeWorker.proxy("createDirectory", {
+						: this.type === "foreground"
+						? await nodeWorker.proxy("createDirectory", {
+								name: parentName,
+								parent: state.remote.uuid
+						  })
+						: await getSDK().cloud().createDirectory({
 								name: parentName,
 								parent: state.remote.uuid
 						  })
@@ -463,40 +466,65 @@ export class CameraUpload {
 						throw new Error("Aborted")
 					}
 
-					abortSignal?.addEventListener("abort", abortListener)
-
-					const item = await nodeWorker.proxy("uploadFile", {
-						parent: parentUUID,
-						localPath: tmpFileURIToUpload,
-						name: delta.item.name,
-						id: uploadId,
-						size: tmpFile.size,
-						isShared: false,
-						deleteAfterUpload: true,
-						creation: delta.item.creation,
-						lastModified: delta.item.lastModified
-					})
+					const item =
+						this.type === "foreground"
+							? await uploadService.file.foreground({
+									parent: parentUUID,
+									localPath: tmpFileURIToUpload,
+									name: delta.item.name,
+									id: uploadId,
+									size: tmpFile.size,
+									isShared: false,
+									deleteAfterUpload: true,
+									creation: delta.item.creation,
+									lastModified: delta.item.lastModified
+							  })
+							: await uploadService.file.background({
+									parent: parentUUID,
+									localPath: tmpFileURIToUpload,
+									name: delta.item.name,
+									id: uploadId,
+									size: tmpFile.size,
+									isShared: false,
+									deleteAfterUpload: true,
+									creation: delta.item.creation,
+									lastModified: delta.item.lastModified,
+									abortSignal
+							  })
 
 					if (item.type !== "file") {
 						throw new Error("Invalid response from uploadFile.")
 					}
 
-					if (abortSignal?.aborted) {
-						throw new Error("Aborted")
+					if (this.type === "foreground") {
+						await nodeWorker.proxy("editFileMetadata", {
+							uuid: item.uuid,
+							metadata: {
+								name: item.name,
+								creation: delta.item.creation,
+								lastModified: delta.item.lastModified,
+								mime: item.mime,
+								size: item.size,
+								hash: item.hash,
+								key: item.key
+							} satisfies FileMetadata
+						})
+					} else {
+						await getSDK()
+							.cloud()
+							.editFileMetadata({
+								uuid: item.uuid,
+								metadata: {
+									name: item.name,
+									creation: delta.item.creation,
+									lastModified: delta.item.lastModified,
+									mime: item.mime,
+									size: item.size,
+									hash: item.hash,
+									key: item.key
+								} satisfies FileMetadata
+							})
 					}
-
-					await nodeWorker.proxy("editFileMetadata", {
-						uuid: item.uuid,
-						metadata: {
-							name: item.name,
-							creation: delta.item.creation,
-							lastModified: delta.item.lastModified,
-							mime: item.mime,
-							size: item.size,
-							hash: item.hash,
-							key: item.key
-						} satisfies FileMetadata
-					})
 				} finally {
 					if (tmpFile.exists) {
 						tmpFile.delete()
@@ -513,8 +541,6 @@ export class CameraUpload {
 			} else {
 				this.deltaErrors[errorKey] = 1
 			}
-		} finally {
-			abortSignal?.removeEventListener("abort", abortListener)
 		}
 	}
 
@@ -559,10 +585,16 @@ export class CameraUpload {
 				throw new Error("Aborted")
 			}
 
-			const exists = await nodeWorker.proxy("directoryExists", {
-				name: state.remote.name,
-				parent: state.remote.parent
-			})
+			const exists =
+				this.type === "foreground"
+					? await nodeWorker.proxy("directoryExists", {
+							name: state.remote.name,
+							parent: state.remote.parent
+					  })
+					: await getSDK().cloud().directoryExists({
+							name: state.remote.name,
+							parent: state.remote.parent
+					  })
 
 			if (!exists.exists || exists.uuid !== state.remote.uuid) {
 				return

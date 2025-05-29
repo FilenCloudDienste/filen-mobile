@@ -1,64 +1,54 @@
-import { memo, useEffect, useRef, useCallback } from "react"
-import { foregroundCameraUpload } from "@/lib/cameraUpload"
-import { useAppStateStore } from "@/stores/appState.store"
+import { memo, useEffect, useCallback } from "react"
 import { BACKGROUND_TASK_IDENTIFIER } from "@/lib/constants"
 import * as ExpoBackgroundTask from "expo-background-task"
-import * as ExpoTaskManager from "expo-task-manager"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
+import { useAppStateStore } from "@/stores/appState.store"
 import { useShallow } from "zustand/shallow"
 
 export const Background = memo(() => {
 	const appState = useAppStateStore(useShallow(state => state.appState))
-	const registeringBackgroundTaskRef = useRef<boolean>(false)
-	const backgroundTaskRegisteredRef = useRef<boolean>(false)
 
-	const toggleBackgroundTask = useCallback(async (enable: boolean) => {
-		if (registeringBackgroundTaskRef.current) {
-			return
-		}
-
-		registeringBackgroundTaskRef.current = true
-
+	const enableBackgroundTask = useCallback(async () => {
 		try {
-			const [status, registered] = await Promise.all([
-				ExpoBackgroundTask.getStatusAsync(),
-				ExpoTaskManager.isTaskRegisteredAsync(BACKGROUND_TASK_IDENTIFIER)
-			])
+			const status = await ExpoBackgroundTask.getStatusAsync()
 
-			if (registered || status !== ExpoBackgroundTask.BackgroundTaskStatus.Available) {
+			console.log("BackgroundTask status:", status)
+
+			if (status !== ExpoBackgroundTask.BackgroundTaskStatus.Available) {
 				return
 			}
 
-			if (enable) {
-				if (backgroundTaskRegisteredRef.current) {
-					return
-				}
+			await ExpoBackgroundTask.registerTaskAsync(BACKGROUND_TASK_IDENTIFIER, {
+				minimumInterval: Math.floor(1440 / 24) // 24 times a day, every hour
+			})
 
-				await ExpoBackgroundTask.registerTaskAsync(BACKGROUND_TASK_IDENTIFIER, {
-					minimumInterval: 15
-				})
-
-				backgroundTaskRegisteredRef.current = true
-
-				console.log("BackgroundTask registered!")
-			} else {
-				await ExpoBackgroundTask.unregisterTaskAsync(BACKGROUND_TASK_IDENTIFIER)
-
-				backgroundTaskRegisteredRef.current = false
-
-				console.log("BackgroundTask unregistered!")
-			}
-		} finally {
-			registeringBackgroundTaskRef.current = false
+			console.log("BackgroundTask registered!")
+		} catch (e) {
+			console.error("Failed to register background task:", e)
 		}
 	}, [])
 
 	useEffect(() => {
 		if (appState === "active") {
-			toggleBackgroundTask(true)
-
-			foregroundCameraUpload.run().catch(console.error)
+			foregroundCameraUpload
+				.canRun({
+					checkAppState: true,
+					checkBattery: true,
+					checkNetwork: true,
+					checkPermissions: true
+				})
+				.then(canRun => {
+					if (canRun) {
+						foregroundCameraUpload.run().catch(console.error)
+					}
+				})
+				.catch(console.error)
 		}
-	}, [appState, toggleBackgroundTask])
+	}, [appState])
+
+	useEffect(() => {
+		enableBackgroundTask()
+	}, [enableBackgroundTask])
 
 	return null
 })

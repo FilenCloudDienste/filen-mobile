@@ -169,7 +169,7 @@ export default function RootLayout() {
 												/>
 											</Stack>
 											<Listeners />
-											{setupDone && isAuthed && (
+											{isAuthed && (
 												<Fragment>
 													<ItemInfoSheet />
 													<AuthedListeners />

@@ -5,9 +5,9 @@ import { AppState } from "react-native"
 import { useShallow } from "zustand/shallow"
 
 export const Listeners = memo(() => {
-	const setAppState = useAppStateStore(useShallow(state => state.setAppState))
-
 	useReactQueryRefetchOnAppFocus()
+
+	const setAppState = useAppStateStore(useShallow(state => state.setAppState))
 
 	useEffect(() => {
 		const appStateSub = AppState.addEventListener("change", nextAppState => {
