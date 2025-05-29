@@ -2,8 +2,7 @@ import { memo, useMemo } from "react"
 import { ListItem } from "@/components/nativewindui/List"
 import { type FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
-import useGetItemQuery from "@/queries/useGetItemQuery"
-import { formatBytes } from "@/lib/utils"
+import { formatMessageDate } from "@/lib/utils"
 import RightView from "./rightView"
 
 export type ListItemInfo = {
@@ -15,23 +14,15 @@ export type ListItemInfo = {
 }
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
-	const getItemQuery = useGetItemQuery({
-		item: info.item.item
-	})
-
 	const infoAdjusted = useMemo((): ListRenderItemInfo<ListItemInfo> => {
-		if (!getItemQuery.isSuccess || getItemQuery.data.type !== "file") {
-			return info
-		}
-
 		return {
 			...info,
 			item: {
 				...info.item,
-				subTitle: formatBytes(getItemQuery.data.size)
+				subTitle: formatMessageDate(info.item.version.timestamp)
 			}
 		}
-	}, [info, getItemQuery.isSuccess, getItemQuery.data])
+	}, [info])
 
 	const rightView = useMemo(() => {
 		return (
@@ -46,7 +37,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		<ListItem
 			{...infoAdjusted}
 			className="overflow-hidden"
-			subTitleClassName="text-xs"
+			subTitleClassName="text-xs pt-1"
 			variant="full-width"
 			textNumberOfLines={1}
 			subTitleNumberOfLines={1}

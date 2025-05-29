@@ -209,50 +209,48 @@ export const SelectDriveItems = memo(() => {
 					}}
 				/>
 			)}
-			<View className="flex-1">
-				<Container>
-					<List
-						variant="full-width"
-						data={items}
-						renderItem={renderItem}
-						keyExtractor={keyExtractor}
-						refreshing={refreshing}
-						contentInsetAdjustmentBehavior="automatic"
-						contentContainerClassName="pb-16"
-						removeClippedSubviews={true}
-						ListEmptyComponent={
-							<View className="flex-1 items-center justify-center">
-								{query.isSuccess ? (
-									searchTerm.length > 0 ? (
-										<Text>Nothing found</Text>
-									) : (
-										<Text>No items</Text>
-									)
+			<Container>
+				<List
+					variant="full-width"
+					data={items}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					refreshing={refreshing}
+					contentInsetAdjustmentBehavior="automatic"
+					contentContainerClassName="pb-16"
+					removeClippedSubviews={true}
+					ListEmptyComponent={
+						<View className="flex-1 items-center justify-center">
+							{query.isSuccess ? (
+								searchTerm.length > 0 ? (
+									<Text>Nothing found</Text>
 								) : (
-									<ActivityIndicator color={colors.foreground} />
-								)}
-							</View>
-						}
-						ListFooterComponent={
-							<View className="flex flex-row items-center justify-center h-16 p-4">
-								<Text className="text-sm">{items.length} items</Text>
-							</View>
-						}
-						refreshControl={
-							<RefreshControl
-								refreshing={refreshing}
-								onRefresh={async () => {
-									setRefreshing(true)
+									<Text>No items</Text>
+								)
+							) : (
+								<ActivityIndicator color={colors.foreground} />
+							)}
+						</View>
+					}
+					ListFooterComponent={
+						<View className="flex flex-row items-center justify-center h-16 p-4">
+							<Text className="text-sm">{items.length} items</Text>
+						</View>
+					}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={async () => {
+								setRefreshing(true)
 
-									await query.refetch().catch(() => {})
+								await query.refetch().catch(() => {})
 
-									setRefreshing(false)
-								}}
-							/>
-						}
-					/>
-				</Container>
-			</View>
+								setRefreshing(false)
+							}}
+						/>
+					}
+				/>
+			</Container>
 		</Fragment>
 	)
 })

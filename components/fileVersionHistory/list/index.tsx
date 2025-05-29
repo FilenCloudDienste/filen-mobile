@@ -4,7 +4,7 @@ import useFileVersionsQuery from "@/queries/useFileVersionsQuery"
 import { simpleDate } from "@/lib/utils"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
 import Item, { type ListItemInfo } from "./item"
-import { View } from "react-native"
+import Container from "@/components/Container"
 
 export const List = memo(({ item }: { item: DriveCloudItem }) => {
 	const query = useFileVersionsQuery({
@@ -36,9 +36,9 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 	}, [])
 
 	return (
-		<View className="flex-1">
+		<Container>
 			<ListComponent
-				variant="insets"
+				variant="full-width"
 				data={versions}
 				estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 				renderItem={renderItem}
@@ -46,7 +46,7 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				contentInsetAdjustmentBehavior="automatic"
 				refreshing={query.status === "pending"}
 			/>
-		</View>
+		</Container>
 	)
 })
 
