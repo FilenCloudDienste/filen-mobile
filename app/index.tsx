@@ -5,8 +5,8 @@ export default function Index() {
 	const [isAuthed] = useIsAuthed()
 
 	if (isAuthed) {
-		return <Redirect href="(app)/home" />
+		return <Redirect href="/(app)/home" />
 	}
 
-	return <Redirect href="(auth)" />
+	return <Redirect href="/(auth)" />
 }

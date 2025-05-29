@@ -33,7 +33,7 @@ export const ShareIntentProvider = memo(({ children }: { children: React.ReactNo
 				back()
 			} else {
 				replace({
-					pathname: "/home"
+					pathname: "/(app)/home"
 				})
 			}
 		}

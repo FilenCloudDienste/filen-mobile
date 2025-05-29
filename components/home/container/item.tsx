@@ -54,7 +54,7 @@ export const Item = memo(
 			if (item.type === "directory") {
 				if (type === "links") {
 					routerPush({
-						pathname: "/home/links/[uuid]",
+						pathname: "/(app)/home/links/[uuid]",
 						params: {
 							uuid: item.uuid
 						}
@@ -63,7 +63,7 @@ export const Item = memo(
 
 				if (type === "sharedIn") {
 					routerPush({
-						pathname: "/home/sharedIn/[uuid]",
+						pathname: "/(app)/home/sharedIn/[uuid]",
 						params: {
 							uuid: item.uuid
 						}
@@ -72,7 +72,7 @@ export const Item = memo(
 
 				if (type === "sharedOut") {
 					routerPush({
-						pathname: "/home/sharedOut/[uuid]",
+						pathname: "/(app)/home/sharedOut/[uuid]",
 						params: {
 							uuid: item.uuid
 						}
@@ -81,7 +81,7 @@ export const Item = memo(
 
 				if (type === "offline") {
 					routerPush({
-						pathname: "/home/offline/[uuid]",
+						pathname: "/(app)/home/offline/[uuid]",
 						params: {
 							uuid: item.uuid
 						}

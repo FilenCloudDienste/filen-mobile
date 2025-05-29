@@ -72,7 +72,7 @@ export const PDFPreview = memo(() => {
 	}, [itemName, colors.card])
 
 	if (!itemParsed) {
-		return <Redirect href="/home" />
+		return <Redirect href="/(app)/home" />
 	}
 
 	return (

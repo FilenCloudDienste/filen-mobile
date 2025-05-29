@@ -94,7 +94,7 @@ export const TextEditor = memo(() => {
 	}, [itemName, headerRightView, colors.card])
 
 	if (!itemParsed) {
-		return <Redirect href="/home" />
+		return <Redirect href="/(app)/home" />
 	}
 
 	return (

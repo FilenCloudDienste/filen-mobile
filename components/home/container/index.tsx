@@ -26,7 +26,7 @@ export const Container = memo(
 		const onPress = useCallback(() => {
 			if (type === "favorites") {
 				push({
-					pathname: "/home/favorites"
+					pathname: "/(app)/home/favorites"
 				})
 
 				return
@@ -34,7 +34,7 @@ export const Container = memo(
 
 			if (type === "recents") {
 				push({
-					pathname: "/home/recents"
+					pathname: "/(app)/home/recents"
 				})
 
 				return
@@ -42,7 +42,7 @@ export const Container = memo(
 
 			if (type === "offline") {
 				push({
-					pathname: "/home/offline/[uuid]",
+					pathname: "/(app)/home/offline/[uuid]",
 					params: {
 						uuid: "offline"
 					}
@@ -53,7 +53,7 @@ export const Container = memo(
 
 			if (type === "links") {
 				push({
-					pathname: "/home/links/[uuid]",
+					pathname: "/(app)/home/links/[uuid]",
 					params: {
 						uuid: "links"
 					}
@@ -64,7 +64,7 @@ export const Container = memo(
 
 			if (type === "sharedIn") {
 				push({
-					pathname: "/home/sharedIn/[uuid]",
+					pathname: "/(app)/home/sharedIn/[uuid]",
 					params: {
 						uuid: "shared-in"
 					}
@@ -75,7 +75,7 @@ export const Container = memo(
 
 			if (type === "sharedOut") {
 				push({
-					pathname: "/home/sharedOut/[uuid]",
+					pathname: "/(app)/home/sharedOut/[uuid]",
 					params: {
 						uuid: "shared-out",
 						receiverId: 0
@@ -87,7 +87,7 @@ export const Container = memo(
 
 			if (type === "trash") {
 				push({
-					pathname: "/home/trash"
+					pathname: "/(app)/home/trash"
 				})
 
 				return
