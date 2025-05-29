@@ -6,7 +6,7 @@ import RightView from "./rightView"
 import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
 import { Platform } from "react-native"
-import { useDirectorySizeQueryNoFocusRefetch } from "@/queries/useDirectorySizeQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
 import { formatBytes, getPreviewType } from "@/lib/utils"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import { viewDocument } from "@react-native-documents/viewer"
@@ -54,7 +54,7 @@ export const ListItem = memo(
 		const pathname = usePathname()
 		const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 
-		const directorySize = useDirectorySizeQueryNoFocusRefetch({
+		const directorySize = useDirectorySizeQuery({
 			uuid: info.item.item.uuid,
 			enabled: info.item.item.type === "directory"
 		})

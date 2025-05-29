@@ -53,7 +53,7 @@ export function useDirectorySizeQueryNoFocusRefetch({
 	return query
 }
 
-export default function useDirectorySizeQuery({
+export function useDirectorySizeQuery({
 	uuid,
 	sharerId,
 	receiverId,
@@ -102,3 +102,5 @@ export default function useDirectorySizeQuery({
 
 	return query
 }
+
+export default useDirectorySizeQuery

@@ -2,7 +2,7 @@ import { useRouter } from "expo-router"
 import { memo, useCallback, useMemo } from "react"
 import { ListItem as ListItemComponent } from "@/components/nativewindui/List"
 import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
-import { useDirectorySizeQueryNoFocusRefetch } from "@/queries/useDirectorySizeQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
 import { formatBytes, getPreviewType } from "@/lib/utils"
 import LeftView from "./leftView"
 import { useShallow } from "zustand/shallow"
@@ -39,7 +39,7 @@ export const Item = memo(
 		const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 		const isSelected = useSelectDriveItemsStore(useShallow(state => state.selectedItems.some(i => i.uuid === info.item.item.uuid)))
 		const selectedItemsCount = useSelectDriveItemsStore(useShallow(state => state.selectedItems.length))
-		const directorySize = useDirectorySizeQueryNoFocusRefetch({
+		const directorySize = useDirectorySizeQuery({
 			uuid: info.item.item.uuid,
 			enabled: info.item.item.type === "directory"
 		})

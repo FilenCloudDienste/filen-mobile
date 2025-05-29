@@ -4,7 +4,7 @@ import { View, Platform } from "react-native"
 import { simpleDate, formatBytes, getPreviewType } from "@/lib/utils"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
-import { useDirectorySizeQueryNoFocusRefetch } from "@/queries/useDirectorySizeQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
 import { useRouter } from "expo-router"
 import { viewDocument } from "@react-native-documents/viewer"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
@@ -36,7 +36,7 @@ export const Item = memo(
 		const { push: routerPush } = useRouter()
 		const { hasInternet } = useNetInfo()
 
-		const directorySize = useDirectorySizeQueryNoFocusRefetch({
+		const directorySize = useDirectorySizeQuery({
 			uuid: item.uuid,
 			enabled: item.type === "directory"
 		})
