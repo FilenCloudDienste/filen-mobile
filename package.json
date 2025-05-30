@@ -152,6 +152,7 @@
 		"react-native-ios-utilities": "^5.1.5",
 		"react-native-keyboard-controller": "^1.17.3",
 		"react-native-mmkv": "^3.2.0",
+		"react-native-notifier": "^2.0.0",
 		"react-native-pdf": "^6.7.7",
 		"react-native-picker-select": "^9.3.1",
 		"react-native-quick-base64": "^2.2.0",

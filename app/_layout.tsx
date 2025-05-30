@@ -26,6 +26,7 @@ import ShareIntentProvider from "@/providers/shareIntentProvider"
 import GalleryModal from "@/components/gallery/modal"
 import Background from "@/components/background"
 import SocketEvents from "@/components/socketEvents"
+import { NotifierWrapper } from "react-native-notifier"
 
 export default function RootLayout() {
 	const { colorScheme, colors } = useColorScheme()
@@ -55,136 +56,138 @@ export default function RootLayout() {
 						<ActionSheetProvider>
 							<BottomSheetModalProvider>
 								<NavThemeProvider value={NAV_THEME[colorScheme]}>
-									{setupDone && (
-										<ShareIntentProvider>
-											<Stack
-												initialRouteName={isAuthed ? "(app)" : "(auth)"}
-												screenOptions={{
-													headerShown: false,
-													headerBlurEffect: "systemChromeMaterial"
-												}}
-											>
-												<Stack.Screen
-													name="(app)"
-													options={{
+									<NotifierWrapper>
+										{setupDone && (
+											<ShareIntentProvider>
+												<Stack
+													initialRouteName={isAuthed ? "(app)" : "(auth)"}
+													screenOptions={{
 														headerShown: false,
 														headerBlurEffect: "systemChromeMaterial"
 													}}
-												/>
-												<Stack.Screen
-													name="(auth)"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
-													}}
-												/>
-												<Stack.Screen
-													name="selectContacts"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial",
-														presentation: "modal",
-														animation: "slide_from_bottom"
-													}}
-												/>
-												<Stack.Screen
-													name="selectDriveItems"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial",
-														presentation: "modal",
-														animation: "slide_from_bottom"
-													}}
-												/>
-												<Stack.Screen
-													name="editPublicLink"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial",
-														presentation: "modal",
-														animation: "slide_from_bottom"
-													}}
-												/>
-												<Stack.Screen
-													name="fileVersionHistory"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial",
-														presentation: "modal",
-														animation: "slide_from_bottom"
-													}}
-												/>
-												<Stack.Screen
-													name="textEditor"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
-													}}
-												/>
-												<Stack.Screen
-													name="pdfPreview"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
-													}}
-												/>
-												<Stack.Screen
-													name="docxPreview"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
-													}}
-												/>
-												<Stack.Screen
-													name="transfers"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial",
-														presentation: "modal",
-														animation: "slide_from_bottom"
-													}}
-												/>
-												<Stack.Screen
-													name="shareIntent"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
-													}}
-												/>
-												<Stack.Screen
-													name="chat"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
-													}}
-												/>
-												<Stack.Screen
-													name="trackPlayer"
-													options={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial",
-														presentation: "modal",
-														animation: "slide_from_bottom"
-													}}
-												/>
-											</Stack>
-											<Listeners />
-											{isAuthed && (
-												<Fragment>
-													<ItemInfoSheet />
-													<AuthedListeners />
-													<SocketEvents />
-													<Background />
-												</Fragment>
-											)}
-											<InputPrompt />
-											<AlertPrompt />
-											<ColorPickerSheet />
-											<GalleryModal />
-											<PortalHost />
-											<FullScreenLoadingModal />
-										</ShareIntentProvider>
-									)}
+												>
+													<Stack.Screen
+														name="(app)"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial"
+														}}
+													/>
+													<Stack.Screen
+														name="(auth)"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial"
+														}}
+													/>
+													<Stack.Screen
+														name="selectContacts"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
+														}}
+													/>
+													<Stack.Screen
+														name="selectDriveItems"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
+														}}
+													/>
+													<Stack.Screen
+														name="editPublicLink"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
+														}}
+													/>
+													<Stack.Screen
+														name="fileVersionHistory"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
+														}}
+													/>
+													<Stack.Screen
+														name="textEditor"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial"
+														}}
+													/>
+													<Stack.Screen
+														name="pdfPreview"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial"
+														}}
+													/>
+													<Stack.Screen
+														name="docxPreview"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial"
+														}}
+													/>
+													<Stack.Screen
+														name="transfers"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
+														}}
+													/>
+													<Stack.Screen
+														name="shareIntent"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial"
+														}}
+													/>
+													<Stack.Screen
+														name="chat"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial"
+														}}
+													/>
+													<Stack.Screen
+														name="trackPlayer"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
+														}}
+													/>
+												</Stack>
+												<Listeners />
+												{isAuthed && (
+													<Fragment>
+														<ItemInfoSheet />
+														<AuthedListeners />
+														<SocketEvents />
+														<Background />
+													</Fragment>
+												)}
+												<InputPrompt />
+												<AlertPrompt />
+												<ColorPickerSheet />
+												<GalleryModal />
+												<PortalHost />
+												<FullScreenLoadingModal />
+											</ShareIntentProvider>
+										)}
+									</NotifierWrapper>
 								</NavThemeProvider>
 							</BottomSheetModalProvider>
 						</ActionSheetProvider>
