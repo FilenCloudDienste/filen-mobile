@@ -9,6 +9,18 @@ import { getCameraUploadState } from "@/hooks/useCameraUpload"
 import { validate as validateUUID } from "uuid"
 import cache from "@/lib/cache"
 
+export const FETCH_CLOUD_ITEMS_POSSIBLE_OF: string[] = [
+	"drive",
+	"favorites",
+	"recents",
+	"sharedIn",
+	"sharedOut",
+	"trash",
+	"links",
+	"photos",
+	"offline"
+]
+
 export default function useCloudItemsQuery({
 	parent,
 	of,

@@ -84,7 +84,8 @@
 					"clipboard": "Clipboard",
 					"withUser": "With user",
 					"removeSharedIn": "Remove",
-					"removeSharedOut": "Stop sharing"
+					"removeSharedOut": "Stop sharing",
+					"disablePublicLink": "Disable link"
 				}
 			}
 		}

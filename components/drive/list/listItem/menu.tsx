@@ -33,6 +33,8 @@ import ReactNativeBlobUtil from "react-native-blob-util"
 import sqlite from "@/lib/sqlite"
 import * as MediaLibrary from "expo-media-library"
 import { Image } from "expo-image"
+import { FETCH_CLOUD_ITEMS_POSSIBLE_OF } from "@/queries/useCloudItemsQuery"
+import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
 
 export const Menu = memo(
 	({
@@ -128,7 +130,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline") {
+			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
 				if (isProUser && (item.type === "directory" || item.size > 0)) {
 					items.push(
 						createContextSubMenu(
@@ -158,7 +160,7 @@ export const Menu = memo(
 				}
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline") {
+			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
 				if (item.favorited) {
 					items.push(
 						createContextItem({
@@ -176,7 +178,7 @@ export const Menu = memo(
 				}
 			}
 
-			if (queryParams.of !== "offline") {
+			if (queryParams.of !== "offline" && queryParams.of !== "trash") {
 				if (item.type === "directory") {
 					items.push(
 						createContextItem({
@@ -215,7 +217,7 @@ export const Menu = memo(
 				}
 			}
 
-			if (item.type === "directory" && queryParams.of !== "sharedIn" && queryParams.of !== "offline") {
+			if (item.type === "directory" && queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
 				items.push(
 					createContextItem({
 						actionKey: "color",
@@ -224,7 +226,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline") {
+			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
 				items.push(
 					createContextItem({
 						actionKey: "rename",
@@ -233,7 +235,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline") {
+			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
 				items.push(
 					createContextItem({
 						actionKey: "move",
@@ -275,6 +277,16 @@ export const Menu = memo(
 				)
 			}
 
+			if (queryParams.of === "links") {
+				items.push(
+					createContextItem({
+						actionKey: "disablePublicLink",
+						title: t("drive.list.item.menu.disablePublicLink"),
+						destructive: true
+					})
+				)
+			}
+
 			if (queryParams.of !== "offline" && queryParams.of !== "trash") {
 				if (queryParams.of !== "sharedIn") {
 					items.push(
@@ -295,6 +307,16 @@ export const Menu = memo(
 				}
 			}
 
+			if (queryParams.of === "offline" && isAvailableOffline) {
+				items.push(
+					createContextItem({
+						actionKey: "removeOffline",
+						title: t("drive.list.item.menu.removeOffline"),
+						destructive: true
+					})
+				)
+			}
+
 			if (queryParams.of === "trash") {
 				items.push(
 					createContextItem({
@@ -307,16 +329,6 @@ export const Menu = memo(
 					createContextItem({
 						actionKey: "deletePermanently",
 						title: t("drive.list.item.menu.deletePermanently"),
-						destructive: true
-					})
-				)
-			}
-
-			if (queryParams.of === "offline" && isAvailableOffline) {
-				items.push(
-					createContextItem({
-						actionKey: "removeOffline",
-						title: t("drive.list.item.menu.removeOffline"),
 						destructive: true
 					})
 				)
@@ -441,6 +453,24 @@ export const Menu = memo(
 							: prevItem
 					)
 			})
+
+			// Update home screen queries aswell
+			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
+				queryUtils.useCloudItemsQuerySet({
+					of: ofValue as FetchCloudItemsParams["of"],
+					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+					receiverId: 0,
+					updater: prev =>
+						prev.map(prevItem =>
+							prevItem.uuid === item.uuid
+								? {
+										...prevItem,
+										name: newName
+								  }
+								: prevItem
+						)
+				})
+			}
 		}, [item, queryParams])
 
 		const color = useCallback(async () => {
@@ -485,6 +515,24 @@ export const Menu = memo(
 							: prevItem
 					)
 			})
+
+			// Update home screen queries aswell
+			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
+				queryUtils.useCloudItemsQuerySet({
+					of: ofValue as FetchCloudItemsParams["of"],
+					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+					receiverId: 0,
+					updater: prev =>
+						prev.map(prevItem =>
+							prevItem.uuid === item.uuid
+								? {
+										...prevItem,
+										color: newColor
+								  }
+								: prevItem
+						)
+				})
+			}
 		}, [item, queryParams])
 
 		const info = useCallback(() => {
@@ -516,9 +564,44 @@ export const Menu = memo(
 						...queryParams,
 						updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 					})
+				}
+
+				queryUtils.useCloudItemsQuerySet({
+					...queryParams,
+					updater: prev =>
+						prev.map(prevItem =>
+							prevItem.uuid === item.uuid
+								? {
+										...prevItem,
+										favorited: favorite
+								  }
+								: prevItem
+						)
+				})
+
+				// Update favorites home screen, add if not already there, otherwise remove it
+				if (favorite) {
+					queryUtils.useCloudItemsQuerySet({
+						of: "favorites",
+						parent: "favorites",
+						receiverId: 0,
+						updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
+					})
 				} else {
 					queryUtils.useCloudItemsQuerySet({
-						...queryParams,
+						of: "favorites",
+						parent: "favorites",
+						receiverId: 0,
+						updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+					})
+				}
+
+				// Update home screen queries aswell
+				for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
+					queryUtils.useCloudItemsQuerySet({
+						of: ofValue as FetchCloudItemsParams["of"],
+						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						receiverId: 0,
 						updater: prev =>
 							prev.map(prevItem =>
 								prevItem.uuid === item.uuid
@@ -668,6 +751,16 @@ export const Menu = memo(
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 
+			// Update home screen queries aswell
+			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
+				queryUtils.useCloudItemsQuerySet({
+					of: ofValue as FetchCloudItemsParams["of"],
+					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+					receiverId: 0,
+					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+				})
+			}
+
 			alerts.normal("trashed")
 		}, [item, queryParams])
 
@@ -719,7 +812,7 @@ export const Menu = memo(
 				fullScreenLoadingModal.hide()
 			}
 
-			if (item.parent === parent) {
+			if (item.parent === queryParams.parent) {
 				queryUtils.useCloudItemsQuerySet({
 					...queryParams,
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -931,6 +1024,14 @@ export const Menu = memo(
 				})
 			})
 
+			// Update home screen queries aswell
+			queryUtils.useCloudItemsQuerySet({
+				of: "offline",
+				parent: "offline",
+				receiverId: 0,
+				updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
+			})
+
 			alerts.normal("Available offline")
 		}, [item])
 
@@ -1035,6 +1136,14 @@ export const Menu = memo(
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 
+			// Update home screen queries aswell
+			queryUtils.useCloudItemsQuerySet({
+				of: "sharedIn",
+				parent: "sharedIn",
+				receiverId: 0,
+				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+			})
+
 			alerts.normal("removed")
 		}, [item, queryParams])
 
@@ -1056,6 +1165,14 @@ export const Menu = memo(
 
 			queryUtils.useCloudItemsQuerySet({
 				...queryParams,
+				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+			})
+
+			// Update home screen queries aswell
+			queryUtils.useCloudItemsQuerySet({
+				of: "sharedOut",
+				parent: "sharedOut",
+				receiverId: 0,
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 
@@ -1093,6 +1210,16 @@ export const Menu = memo(
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 
+			// Update home screen queries aswell
+			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
+				queryUtils.useCloudItemsQuerySet({
+					of: ofValue as FetchCloudItemsParams["of"],
+					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+					receiverId: 0,
+					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+				})
+			}
+
 			alerts.normal("deleted")
 		}, [item, queryParams])
 
@@ -1118,7 +1245,48 @@ export const Menu = memo(
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 
+			// Update home screen queries aswell
+			queryUtils.useCloudItemsQuerySet({
+				of: "trash",
+				parent: "trash",
+				receiverId: 0,
+				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+			})
+
 			alerts.normal("restored")
+		}, [item, queryParams])
+
+		const disablePublicLink = useCallback(async () => {
+			fullScreenLoadingModal.show()
+
+			try {
+				const status = await fetchItemPublicLinkStatus(item)
+
+				if (!status.enabled) {
+					return
+				}
+
+				await nodeWorker.proxy("toggleItemPublicLink", {
+					item,
+					enable: false,
+					linkUUID: status.uuid
+				})
+			} finally {
+				fullScreenLoadingModal.hide()
+			}
+
+			queryUtils.useCloudItemsQuerySet({
+				...queryParams,
+				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+			})
+
+			// Update home screen queries aswell
+			queryUtils.useCloudItemsQuerySet({
+				of: "links",
+				parent: "links",
+				receiverId: 0,
+				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+			})
 		}, [item, queryParams])
 
 		const onItemPress = useCallback(
@@ -1262,6 +1430,12 @@ export const Menu = memo(
 
 							break
 						}
+
+						case "disablePublicLink": {
+							await disablePublicLink()
+
+							break
+						}
 					}
 				} catch (e) {
 					console.error(e)
@@ -1293,7 +1467,8 @@ export const Menu = memo(
 				removeSharedIn,
 				removeSharedOut,
 				deletePermanently,
-				restore
+				restore,
+				disablePublicLink
 			]
 		)
 

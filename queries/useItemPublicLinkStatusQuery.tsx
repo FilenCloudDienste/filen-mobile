@@ -22,6 +22,54 @@ export type UseItemPublicLinkStatusQuery =
 			key: string
 	  }
 
+export async function fetchItemPublicLinkStatus(item: DriveCloudItem): Promise<UseItemPublicLinkStatusQuery> {
+	if (item.type === "file") {
+		const result = await nodeWorker.proxy("filePublicLinkStatus", {
+			uuid: item.uuid
+		})
+
+		if (!result.enabled || !result.uuid) {
+			return {
+				item,
+				enabled: false
+			}
+		}
+
+		return {
+			item,
+			enabled: result.enabled,
+			password: result.password,
+			expiration: result.expiration,
+			downloadButton: result.downloadBtn === 1,
+			expirationText: result.expirationText as PublicLinkExpiration,
+			uuid: result.uuid,
+			key: item.key
+		}
+	} else {
+		const result = await nodeWorker.proxy("directoryPublicLinkStatus", {
+			uuid: item.uuid
+		})
+
+		if (!result.exists || !result.uuid) {
+			return {
+				item,
+				enabled: false
+			}
+		}
+
+		return {
+			item,
+			enabled: result.exists,
+			password: result.exists ? result.password : null,
+			expiration: result.exists ? result.expiration : null,
+			downloadButton: result.exists ? result.downloadBtn === 1 : false,
+			expirationText: result.exists ? (result.expirationText as PublicLinkExpiration) : null,
+			uuid: result.uuid,
+			key: result.key
+		}
+	}
+}
+
 export default function useItemPublicLinkStatusQuery({
 	item,
 	refetchOnMount = DEFAULT_QUERY_OPTIONS.refetchOnMount,
@@ -42,64 +90,7 @@ export default function useItemPublicLinkStatusQuery({
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
 		queryKey: ["useItemPublicLinkStatusQuery", item],
-		queryFn: () =>
-			item.type === "file"
-				? new Promise<UseItemPublicLinkStatusQuery>((resolve, reject) => {
-						nodeWorker
-							.proxy("filePublicLinkStatus", {
-								uuid: item.uuid
-							})
-							.then(result => {
-								if (!result.enabled || !result.uuid) {
-									resolve({
-										item,
-										enabled: false
-									})
-
-									return
-								}
-
-								resolve({
-									item,
-									enabled: result.enabled,
-									password: result.password,
-									expiration: result.expiration,
-									downloadButton: result.downloadBtn === 1,
-									expirationText: result.expirationText as PublicLinkExpiration,
-									uuid: result.uuid,
-									key: item.key
-								})
-							})
-							.catch(reject)
-				  })
-				: new Promise<UseItemPublicLinkStatusQuery>((resolve, reject) => {
-						nodeWorker
-							.proxy("directoryPublicLinkStatus", {
-								uuid: item.uuid
-							})
-							.then(result => {
-								if (!result.exists || !result.uuid) {
-									resolve({
-										item,
-										enabled: false
-									})
-
-									return
-								}
-
-								resolve({
-									item,
-									enabled: result.exists,
-									password: result.exists ? result.password : null,
-									expiration: result.exists ? result.expiration : null,
-									downloadButton: result.exists ? result.downloadBtn === 1 : false,
-									expirationText: result.exists ? (result.expirationText as PublicLinkExpiration) : null,
-									uuid: result.uuid,
-									key: result.key
-								})
-							})
-							.catch(reject)
-				  }),
+		queryFn: () => fetchItemPublicLinkStatus(item),
 		notifyOnChangeProps,
 		enabled: typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,

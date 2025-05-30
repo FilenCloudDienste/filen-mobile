@@ -39,9 +39,13 @@ export const Item = memo(
 		const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 		const isSelected = useSelectDriveItemsStore(useShallow(state => state.selectedItems.some(i => i.uuid === info.item.item.uuid)))
 		const selectedItemsCount = useSelectDriveItemsStore(useShallow(state => state.selectedItems.length))
+
 		const directorySize = useDirectorySizeQuery({
 			uuid: info.item.item.uuid,
-			enabled: info.item.item.type === "directory"
+			enabled: info.item.item.type === "directory",
+			sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
+			receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
+			trash: queryParams.of === "trash" ? true : undefined
 		})
 
 		const canSelect = useMemo(() => {

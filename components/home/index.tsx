@@ -4,7 +4,7 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem, createDropdownSubMenu } from "@/components/nativewindui/DropdownMenu/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { Platform, RefreshControl, View, ActivityIndicator, FlatList } from "react-native"
+import { Platform, RefreshControl, View, ActivityIndicator, ScrollView } from "react-native"
 import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
@@ -290,8 +290,7 @@ export const Home = memo(() => {
 						<ActivityIndicator color={colors.foreground} />
 					</View>
 				) : (
-					<FlatList
-						data={["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", "trash", "bottom"] as const}
+					<ScrollView
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}
 						contentContainerStyle={{
@@ -299,7 +298,6 @@ export const Home = memo(() => {
 						}}
 						showsVerticalScrollIndicator={false}
 						showsHorizontalScrollIndicator={false}
-						keyExtractor={(_, index) => index.toString()}
 						refreshControl={
 							<RefreshControl
 								refreshing={refreshing}
@@ -321,68 +319,81 @@ export const Home = memo(() => {
 								}}
 							/>
 						}
-						renderItem={({ item }) => {
-							if (item === "bottom") {
-								return <View className="w-full flex-1 h-8" />
+					>
+						{(["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", "trash", "bottom"] as const).map(type => {
+							if (type === "bottom") {
+								return (
+									<View
+										key={type}
+										className="w-full flex-1 h-8"
+									/>
+								)
 							}
 
-							if (item === "recents") {
+							if (type === "recents") {
 								return (
 									<ContainerComponent
+										key={type}
 										type="recents"
 										items={recentsItems}
 									/>
 								)
 							}
 
-							if (item === "favorites") {
+							if (type === "favorites") {
 								return (
 									<ContainerComponent
+										key={type}
 										type="favorites"
 										items={favoritesItems}
 									/>
 								)
 							}
 
-							if (item === "links") {
+							if (type === "links") {
 								return (
 									<ContainerComponent
+										key={type}
 										type="links"
 										items={linksItems}
 									/>
 								)
 							}
 
-							if (item === "sharedIn") {
+							if (type === "sharedIn") {
 								return (
 									<ContainerComponent
+										key={type}
 										type="sharedIn"
 										items={sharedInItems}
 									/>
 								)
 							}
 
-							if (item === "sharedOut") {
+							if (type === "sharedOut") {
 								return (
 									<ContainerComponent
+										key={type}
 										type="sharedOut"
 										items={sharedOutItems}
 									/>
 								)
 							}
 
-							if (item === "offline") {
+							if (type === "offline") {
 								return (
 									<ContainerComponent
+										key={type}
 										type="offline"
 										items={offlineItems}
 									/>
 								)
 							}
 
-							if (item === "trash") {
+							if (type === "trash") {
 								return (
 									<ContainerComponent
+										key={type}
 										type="trash"
 										items={trashItems}
 									/>
@@ -390,8 +401,8 @@ export const Home = memo(() => {
 							}
 
 							return null
-						}}
-					/>
+						})}
+					</ScrollView>
 				)}
 			</Container>
 		</Fragment>

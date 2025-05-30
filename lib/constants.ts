@@ -56,7 +56,7 @@ export const EXPO_VIDEO_SUPPORTED_EXTENSIONS = Platform.select({
 
 export const EXPO_AUDIO_SUPPORTED_EXTENSIONS = Platform.select({
 	ios: [".mp3", ".m4a", ".aac", ".wav", ".aiff", ".caf", ".flac", ".alac"],
-	android: [".mp3", ".m4a", ".aac", ".wav", ".ogg", ".3gp", ".amr", ".flac"],
+	android: [".mp3", ".m4a", ".aac", ".wav", ".ogg", ".3gp", ".flac"],
 	default: [".mp3", ".m4a", ".aac", ".wav"]
 }) as string[]
 
@@ -74,6 +74,6 @@ export const EXPO_IMAGE_SUPPORTED_EXTENSIONS = Platform.select({
 
 export const REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS = Platform.select({
 	ios: [".mp3", ".m4a", ".aac", ".wav", ".aiff", ".caf", ".flac", ".alac"],
-	android: [".mp3", ".m4a", ".aac", ".wav", ".ogg", ".3gp", ".amr", ".flac", ".webm"],
+	android: [".mp3", ".m4a", ".aac", ".wav", ".ogg", ".3gp", ".flac"],
 	default: [".mp3", ".m4a", ".aac", ".wav"]
 }) as string[]

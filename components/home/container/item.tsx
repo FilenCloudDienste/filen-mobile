@@ -38,7 +38,10 @@ export const Item = memo(
 
 		const directorySize = useDirectorySizeQuery({
 			uuid: item.uuid,
-			enabled: item.type === "directory"
+			enabled: item.type === "directory",
+			sharerId: type === "sharedIn" && item.isShared ? item.sharerId : undefined,
+			receiverId: type === "sharedOut" && item.isShared ? item.receiverId : undefined,
+			trash: type === "trash" ? true : undefined
 		})
 
 		const fileOfflineStatus = useFileOfflineStatusQuery({
@@ -191,19 +194,39 @@ export const Item = memo(
 					index={index}
 					className="overflow-hidden bg-background"
 					leftView={
-						<View className="flex-1 justify-center pr-4">
-							<Thumbnail
-								item={item}
-								size={ICON_HEIGHT}
-								imageContentFit="contain"
-								imageCachePolicy="none"
-								imageStyle={{
-									width: ICON_HEIGHT,
-									height: ICON_HEIGHT,
-									backgroundColor: colors.background,
-									borderRadius: 6
-								}}
-							/>
+						<View className="flex-1 flex-row items-center gap-4 justify-center pr-4">
+							<View className="flex-row items-center">
+								{isAvailableOffline && (
+									<View className="w-[16px] h-[16px] absolute -bottom-[1px] -left-[1px] bg-green-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
+										<Icon
+											name="arrow-down"
+											size={10}
+											color="white"
+										/>
+									</View>
+								)}
+								{item.favorited && type !== "favorites" && (
+									<View className="w-[16px] h-[16px] absolute -bottom-[1px] -right-[1px] bg-red-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
+										<Icon
+											name="heart"
+											size={10}
+											color="white"
+										/>
+									</View>
+								)}
+								<Thumbnail
+									item={item}
+									size={ICON_HEIGHT}
+									imageContentFit="contain"
+									imageCachePolicy="none"
+									imageStyle={{
+										width: ICON_HEIGHT,
+										height: ICON_HEIGHT,
+										backgroundColor: colors.background,
+										borderRadius: 6
+									}}
+								/>
+							</View>
 						</View>
 					}
 					rightView={

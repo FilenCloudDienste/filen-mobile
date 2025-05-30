@@ -56,7 +56,10 @@ export const ListItem = memo(
 
 		const directorySize = useDirectorySizeQuery({
 			uuid: info.item.item.uuid,
-			enabled: info.item.item.type === "directory"
+			enabled: info.item.item.type === "directory",
+			sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
+			receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
+			trash: queryParams.of === "trash" ? true : undefined
 		})
 
 		const fileOfflineStatus = useFileOfflineStatusQuery({

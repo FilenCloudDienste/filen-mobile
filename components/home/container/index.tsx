@@ -1,5 +1,5 @@
 import { memo, useRef, useCallback, useMemo } from "react"
-import { View, TouchableOpacity, Platform, FlatList } from "react-native"
+import { View, TouchableOpacity, Platform, ScrollView } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import Item from "./item"
 import { chunkArray } from "@/lib/utils"
@@ -140,8 +140,7 @@ export const Container = memo(
 						/>
 					</View>
 				</TouchableOpacity>
-				<FlatList
-					data={chunkArray(items, 3)}
+				<ScrollView
 					className="flex-1"
 					horizontal={true}
 					showsHorizontalScrollIndicator={false}
@@ -149,25 +148,21 @@ export const Container = memo(
 					pagingEnabled={true}
 					decelerationRate="fast"
 					overScrollMode="never"
-					keyExtractor={(_, index) => index.toString()}
 					contentContainerClassName="px-4 pt-1"
 					snapToOffsets={[0, layout.width - 32, layout.width * 2 - 64, layout.width * 3 - 64]}
 					snapToAlignment="start"
 					contentInsetAdjustmentBehavior="automatic"
-					ListEmptyComponent={
-						<View className="flex-1 items-center justify-center">
-							<Text className="text-muted-foreground text-sm">No items found</Text>
-						</View>
-					}
-					renderItem={chunk => {
+				>
+					{chunkArray(items, 3).map((chunk, index) => {
 						return (
 							<View
+								key={index.toString()}
 								className="flex-1 flex-col pr-4"
 								style={{
 									width: Math.floor(layout.width - 32)
 								}}
 							>
-								{chunk.item.map((item, index) => (
+								{chunk.map((item, index) => (
 									<Item
 										key={index}
 										item={item}
@@ -178,8 +173,8 @@ export const Container = memo(
 								))}
 							</View>
 						)
-					}}
-				/>
+					})}
+				</ScrollView>
 			</View>
 		)
 	}
