@@ -194,7 +194,7 @@ export const Item = memo(
 					index={index}
 					className="overflow-hidden bg-background"
 					leftView={
-						<View className="flex-1 flex-row items-center gap-4 justify-center pr-4">
+						<View className="flex-1 flex-row items-center gap-4 justify-center px-4">
 							<View className="flex-row items-center">
 								{isAvailableOffline && (
 									<View className="w-[16px] h-[16px] absolute -bottom-[1px] -left-[1px] bg-green-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">

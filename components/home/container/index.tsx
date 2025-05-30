@@ -148,8 +148,8 @@ export const Container = memo(
 					pagingEnabled={true}
 					decelerationRate="fast"
 					overScrollMode="never"
-					contentContainerClassName="px-4 pt-1"
-					snapToOffsets={[0, layout.width - 32, layout.width * 2 - 64, layout.width * 3 - 64]}
+					contentContainerClassName="pt-1"
+					snapToOffsets={[0, layout.width - 32, (layout.width - 32) * 2, (layout.width - 32) * 3]}
 					snapToAlignment="start"
 					contentInsetAdjustmentBehavior="automatic"
 				>
