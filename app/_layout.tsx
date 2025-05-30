@@ -150,7 +150,9 @@ export default function RootLayout() {
 														name="shareIntent"
 														options={{
 															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial"
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
 														}}
 													/>
 													<Stack.Screen
