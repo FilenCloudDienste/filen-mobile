@@ -17,6 +17,7 @@ import { FileNameToSVGIcon } from "@/assets/fileIcons"
 import { List, type ListRenderItemInfo, ListItem, ESTIMATED_ITEM_HEIGHT } from "@/components/nativewindui/List"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "@/components/Container"
+import paths from "@/lib/paths"
 
 export type ListItemInfo = {
 	title: string
@@ -108,14 +109,29 @@ export default function ShareIntent() {
 						return
 					}
 
+					let source = fsFile
+
+					// Android requires a temporary copy of the file to be uploaded, on iOS the Share Intent provides a temporary file
+					if (Platform.OS === "android") {
+						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+
+						fsFile.copy(tmpFile)
+
+						if (!tmpFile.exists) {
+							throw new Error("Failed to copy file to temporary location.")
+						}
+
+						source = tmpFile
+					}
+
 					await nodeWorker.proxy("uploadFile", {
 						parent,
-						localPath: fsFile.uri,
-						name: fsFile.name,
+						localPath: source.uri,
+						name: file.fileName,
 						id: randomUUID(),
-						size: fsFile.size ?? 0,
+						size: source.size ?? 0,
 						isShared: false,
-						deleteAfterUpload: Platform.OS === "ios"
+						deleteAfterUpload: true
 					})
 				})
 			)

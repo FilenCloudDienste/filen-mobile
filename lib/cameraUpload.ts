@@ -11,7 +11,7 @@ import paths from "./paths"
 import { useCameraUploadStore } from "@/stores/cameraUpload.store"
 import { getNetInfoState } from "@/hooks/useNetInfo"
 import * as Battery from "expo-battery"
-import { THUMBNAILS_SUPPORTED_IMAGE_FORMATS } from "./thumbnails"
+import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS } from "./constants"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
@@ -292,7 +292,7 @@ export class CameraUpload {
 	public async compress({ item, copiedPath }: { item: TreeItem; copiedPath: string }): Promise<string> {
 		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
 
-		if (!THUMBNAILS_SUPPORTED_IMAGE_FORMATS.includes(extname)) {
+		if (!EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
 			return copiedPath
 		}
 
