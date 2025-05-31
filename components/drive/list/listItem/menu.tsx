@@ -42,16 +42,20 @@ export const Menu = memo(
 		item,
 		type,
 		children,
-		insidePreview,
+		fromPreview,
 		queryParams,
-		isAvailableOffline
+		isAvailableOffline,
+		fromPhotos,
+		fromSearch
 	}: {
 		item: DriveCloudItem
 		type: "context" | "dropdown"
 		children: React.ReactNode
-		insidePreview: boolean
-		isAvailableOffline: boolean
+		fromPreview?: boolean
+		isAvailableOffline?: boolean
 		queryParams: FetchCloudItemsParams
+		fromPhotos?: boolean
+		fromSearch?: boolean
 	}) => {
 		const { t } = useTranslation()
 		const router = useRouter()
@@ -63,7 +67,7 @@ export const Menu = memo(
 			const items: (ContextItem | ContextSubMenu)[] = []
 			const isValidParentUUID = validateUUID(queryParams.parent)
 
-			if ((isValidParentUUID || queryParams.of === "drive") && !insidePreview) {
+			if ((isValidParentUUID || queryParams.of === "drive") && !fromPreview && !fromPhotos && !fromSearch) {
 				items.push(
 					createContextItem({
 						actionKey: "select",
@@ -72,7 +76,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (item.type === "directory" && queryParams.of !== "trash" && !insidePreview) {
+			if (item.type === "directory" && queryParams.of !== "trash" && !fromPreview) {
 				items.push(
 					createContextItem({
 						actionKey: "openDirectory",
@@ -336,7 +340,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [isAvailableOffline, item, queryParams, t, isProUser, insidePreview])
+		}, [isAvailableOffline, item, queryParams, t, isProUser, fromPreview, fromPhotos, fromSearch])
 
 		const select = useCallback(() => {
 			const isSelected = useDriveStore.getState().selectedItems.some(i => i.uuid === item.uuid)
@@ -781,7 +785,7 @@ export const Menu = memo(
 				}
 
 				// Close gallery modal if item is currently being previewed
-				if (insidePreview) {
+				if (fromPreview) {
 					useGalleryStore.getState().reset()
 				}
 			} finally {
@@ -804,7 +808,7 @@ export const Menu = memo(
 			}
 
 			alerts.normal("trashed")
-		}, [item, queryParams, insidePreview])
+		}, [item, queryParams, fromPreview])
 
 		const move = useCallback(async () => {
 			const selectDriveItemsResponse = await selectDriveItems({
@@ -1580,7 +1584,7 @@ export const Menu = memo(
 					items={menuItems}
 					onItemPress={onItemPress}
 					key={`${isPortrait}:${isTablet}`}
-					iosRenderPreview={!insidePreview && item.thumbnail && (isPortrait || isTablet) ? iosRenderPreview : undefined}
+					iosRenderPreview={!fromPreview && item.thumbnail && (isPortrait || isTablet) ? iosRenderPreview : undefined}
 				>
 					{children}
 				</ContextMenu>

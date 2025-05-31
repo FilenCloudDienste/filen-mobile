@@ -301,7 +301,6 @@ export const ListItem = memo(
 				item={info.item.item}
 				queryParams={queryParams}
 				isAvailableOffline={isAvailableOffline}
-				insidePreview={false}
 			>
 				<ListItemComponent
 					{...info}

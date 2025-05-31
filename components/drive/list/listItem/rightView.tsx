@@ -24,7 +24,6 @@ export const RightView = memo(
 					item={item}
 					queryParams={queryParams}
 					isAvailableOffline={isAvailableOffline}
-					insidePreview={false}
 				>
 					<Button
 						variant="plain"

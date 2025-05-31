@@ -7,8 +7,6 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator } from "react-native"
 import Thumbnail from "@/components/thumbnail/item"
-import { ContextMenu } from "@/components/nativewindui/ContextMenu"
-import { createContextItem, createContextSubMenu } from "@/components/nativewindui/ContextMenu/utils"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
 import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
@@ -24,11 +22,10 @@ import useCameraUpload from "@/hooks/useCameraUpload"
 import { useCameraUploadStore } from "@/stores/cameraUpload.store"
 import { useRouter } from "expo-router"
 import { validate as validateUUID } from "uuid"
-import { Image } from "expo-image"
-import useDimensions from "@/hooks/useDimensions"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import Menu from "@/components/drive/list/listItem/menu"
 
 export const Photos = memo(() => {
 	const { colors } = useColorScheme()
@@ -40,7 +37,6 @@ export const Photos = memo(() => {
 	const [cameraUpload] = useCameraUpload()
 	const router = useRouter()
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
-	const { screen, isPortrait, isTablet } = useDimensions()
 
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
@@ -106,58 +102,13 @@ export const Photos = memo(() => {
 
 	const renderItem = useCallback(
 		(info: ListRenderItemInfo<DriveCloudItem>) => {
-			const iosRenderPreview = () => {
-				return (
-					<View
-						className="flex-row items-center justify-center bg-background"
-						style={{
-							width: Math.floor(screen.width - 32),
-							height: Math.floor(screen.height / 3)
-						}}
-					>
-						<Image
-							className="rounded-lg"
-							source={{
-								uri: info.item.thumbnail
-							}}
-							contentFit="contain"
-							style={{
-								width: "100%",
-								height: "100%"
-							}}
-						/>
-					</View>
-				)
-			}
-
 			return (
-				<ContextMenu
-					items={[
-						createContextItem({
-							actionKey: "first",
-							title: "Item 1"
-						}),
-						createContextSubMenu(
-							{
-								title: "Submenu 1",
-								iOSItemSize: "large"
-							},
-							[
-								createContextItem({
-									actionKey: "sub-first",
-									title: "Sub Item 1"
-								}),
-								createContextItem({
-									actionKey: "sub-second",
-									title: "Sub Item 2"
-								})
-							]
-						)
-					]}
-					iosRenderPreview={info.item.thumbnail && (isPortrait || isTablet) ? iosRenderPreview : undefined}
-					onItemPress={item => {
-						console.log("Item Pressed", item)
-					}}
+				<Menu
+					item={info.item}
+					queryParams={queryParams}
+					type="context"
+					isAvailableOffline={false}
+					fromPhotos={true}
 				>
 					<TouchableHighlight
 						onPress={() => {
@@ -202,10 +153,10 @@ export const Photos = memo(() => {
 							queryParams={queryParams}
 						/>
 					</TouchableHighlight>
-				</ContextMenu>
+				</Menu>
 			)
 		},
-		[itemSize, spacing, colors.card, queryParams, items, isPortrait, isTablet, screen.width, screen.height]
+		[itemSize, spacing, colors.card, queryParams, items]
 	)
 
 	useLayoutEffect(() => {

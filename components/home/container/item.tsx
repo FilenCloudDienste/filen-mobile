@@ -185,7 +185,6 @@ export const Item = memo(
 		return (
 			<Menu
 				type="context"
-				insidePreview={false}
 				item={item}
 				queryParams={queryParams}
 				isAvailableOffline={isAvailableOffline}
@@ -241,7 +240,6 @@ export const Item = memo(
 							<View className="flex-1 justify-center px-4">
 								<Menu
 									type="dropdown"
-									insidePreview={false}
 									item={item}
 									queryParams={{
 										of: type,

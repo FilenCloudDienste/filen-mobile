@@ -74,7 +74,7 @@ export const Header = memo(
 							item={item.data.item}
 							queryParams={item.data.queryParams}
 							isAvailableOffline={isAvailableOffline}
-							insidePreview={true}
+							fromPreview={true}
 						>
 							<Button
 								variant="plain"
