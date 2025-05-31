@@ -10,7 +10,6 @@ import Semaphore from "@/lib/semaphore"
 
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
-	const setVisible = useGalleryStore(useShallow(state => state.setVisible))
 	const items = useGalleryStore(useShallow(state => state.items))
 	const initialUUID = useGalleryStore(useShallow(state => state.initialUUID))
 	const setCurrentVisibleIndex = useGalleryStore(useShallow(state => state.setCurrentVisibleIndex))
@@ -50,12 +49,6 @@ export const GalleryModal = memo(() => {
 	}, [visible, initialScrollIndex, items.length, setCurrentVisibleIndex])
 
 	useEffect(() => {
-		if (items.length === 0 && visible) {
-			setVisible(false)
-		}
-	}, [items, visible, setVisible])
-
-	useEffect(() => {
 		;(async () => {
 			await orientationMutex.current.acquire()
 
@@ -89,7 +82,7 @@ export const GalleryModal = memo(() => {
 				return false
 			}
 
-			setVisible(false)
+			useGalleryStore.getState().reset()
 
 			return true
 		})
@@ -97,7 +90,7 @@ export const GalleryModal = memo(() => {
 		return () => {
 			backHandler.remove()
 		}
-	}, [visible, setVisible])
+	}, [visible])
 
 	if (!visible) {
 		return null

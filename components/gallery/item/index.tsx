@@ -73,7 +73,6 @@ export const Item = memo(
 		const lastFocalX = useSharedValue<number>(0)
 		const lastFocalY = useSharedValue<number>(0)
 		const galleryVisible = useGalleryStore(useShallow(state => state.visible))
-		const setGalleryVisible = useGalleryStore(useShallow(state => state.setVisible))
 		const [showHeader, setShowHeader] = useState<boolean>(false)
 		const [headerHeight, setHeaderHeight] = useState<number>(0)
 
@@ -90,8 +89,10 @@ export const Item = memo(
 				return
 			}
 
-			setGalleryVisible(false)
-		}, [setGalleryVisible, galleryVisible])
+			useGalleryStore.getState().reset()
+
+			setScrollEnabled(true)
+		}, [setScrollEnabled, galleryVisible])
 
 		const toggleHeader = useCallback(() => {
 			setShowHeader(prev => !prev)

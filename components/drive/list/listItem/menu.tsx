@@ -35,6 +35,7 @@ import * as MediaLibrary from "expo-media-library"
 import { Image } from "expo-image"
 import { FETCH_CLOUD_ITEMS_POSSIBLE_OF } from "@/queries/useCloudItemsQuery"
 import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
+import { useGalleryStore } from "@/stores/gallery.store"
 
 export const Menu = memo(
 	({
@@ -62,7 +63,7 @@ export const Menu = memo(
 			const items: (ContextItem | ContextSubMenu)[] = []
 			const isValidParentUUID = validateUUID(queryParams.parent)
 
-			if (isValidParentUUID || queryParams.of === "drive") {
+			if ((isValidParentUUID || queryParams.of === "drive") && !insidePreview) {
 				items.push(
 					createContextItem({
 						actionKey: "select",
@@ -71,7 +72,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (item.type === "directory" && queryParams.of !== "trash") {
+			if (item.type === "directory" && queryParams.of !== "trash" && !insidePreview) {
 				items.push(
 					createContextItem({
 						actionKey: "openDirectory",
@@ -335,7 +336,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [isAvailableOffline, item, queryParams, t, isProUser])
+		}, [isAvailableOffline, item, queryParams, t, isProUser, insidePreview])
 
 		const select = useCallback(() => {
 			const isSelected = useDriveStore.getState().selectedItems.some(i => i.uuid === item.uuid)
@@ -471,6 +472,24 @@ export const Menu = memo(
 						)
 				})
 			}
+
+			// Update gallery store aswell
+			useGalleryStore.getState().setItems(prev =>
+				prev.map(prevItem =>
+					prevItem.itemType === "cloudItem" && prevItem.data.item.uuid === item.uuid
+						? {
+								...prevItem,
+								data: {
+									...prevItem.data,
+									item: {
+										...prevItem.data.item,
+										name: newName
+									}
+								}
+						  }
+						: prevItem
+				)
+			)
 		}, [item, queryParams])
 
 		const color = useCallback(async () => {
@@ -613,6 +632,24 @@ export const Menu = memo(
 							)
 					})
 				}
+
+				// Update gallery store aswell
+				useGalleryStore.getState().setItems(prev =>
+					prev.map(prevItem =>
+						prevItem.itemType === "cloudItem" && prevItem.data.item.uuid === item.uuid
+							? {
+									...prevItem,
+									data: {
+										...prevItem.data,
+										item: {
+											...prevItem.data.item,
+											favorited: favorite
+										}
+									}
+							  }
+							: prevItem
+					)
+				)
 			},
 			[item, queryParams]
 		)
@@ -742,6 +779,11 @@ export const Menu = memo(
 						uuid: item.uuid
 					})
 				}
+
+				// Close gallery modal if item is currently being previewed
+				if (insidePreview) {
+					useGalleryStore.getState().reset()
+				}
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
@@ -762,7 +804,7 @@ export const Menu = memo(
 			}
 
 			alerts.normal("trashed")
-		}, [item, queryParams])
+		}, [item, queryParams, insidePreview])
 
 		const move = useCallback(async () => {
 			const selectDriveItemsResponse = await selectDriveItems({
@@ -818,6 +860,42 @@ export const Menu = memo(
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
+
+			// Update home screen queries aswell
+			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
+				queryUtils.useCloudItemsQuerySet({
+					of: ofValue as FetchCloudItemsParams["of"],
+					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+					receiverId: 0,
+					updater: prev =>
+						prev.map(prevItem =>
+							prevItem.uuid === item.uuid
+								? {
+										...prevItem,
+										parent
+								  }
+								: prevItem
+						)
+				})
+			}
+
+			// Update gallery store aswell
+			useGalleryStore.getState().setItems(prev =>
+				prev.map(prevItem =>
+					prevItem.itemType === "cloudItem" && prevItem.data.item.uuid === item.uuid
+						? {
+								...prevItem,
+								data: {
+									...prevItem.data,
+									item: {
+										...prevItem.data.item,
+										parent
+									}
+								}
+						  }
+						: prevItem
+				)
+			)
 
 			alerts.normal("moved")
 		}, [item, queryParams, pathname])

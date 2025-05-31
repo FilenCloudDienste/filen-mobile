@@ -30,6 +30,7 @@ export type GalleryStore = {
 	setItems: (fn: GalleryItem[] | ((prev: GalleryItem[]) => GalleryItem[])) => void
 	setCurrentVisibleIndex: (fn: (number | null) | ((prev: number | null) => number | null)) => void
 	setZoomedIn: (fn: boolean | ((prev: boolean) => boolean)) => void
+	reset: () => void
 }
 
 export const useGalleryStore = create<GalleryStore>(set => ({
@@ -61,6 +62,15 @@ export const useGalleryStore = create<GalleryStore>(set => ({
 	setZoomedIn(fn) {
 		set(state => ({
 			zoomedIn: typeof fn === "function" ? fn(state.zoomedIn) : fn
+		}))
+	},
+	reset() {
+		set(() => ({
+			visible: false,
+			initialUUID: null,
+			items: [],
+			currentVisibleIndex: -1,
+			zoomedIn: false
 		}))
 	}
 }))

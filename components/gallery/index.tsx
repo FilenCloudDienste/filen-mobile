@@ -1,5 +1,5 @@
 import { View, type ListRenderItemInfo, type ViewToken, type ViewabilityConfig } from "react-native"
-import { memo, useState, useCallback, useMemo, useEffect, useRef } from "react"
+import { memo, useState, useCallback, useMemo, useLayoutEffect, useRef } from "react"
 import { FlatList } from "react-native-gesture-handler"
 import Item from "./item"
 import { type GalleryItem, useGalleryStore } from "@/stores/gallery.store"
@@ -27,8 +27,6 @@ export const Gallery = memo(
 		const { screen, isPortrait } = useDimensions()
 		const initialVisibleIndexSet = useRef<boolean>(false)
 		const galleryCurrentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
-		const setVisible = useGalleryStore(useShallow(state => state.setVisible))
-		const visible = useGalleryStore(useShallow(state => state.visible))
 		const [scrolling, setScrolling] = useState<boolean>(false)
 
 		const validInitialScrollIndex = useMemo(() => {
@@ -108,7 +106,7 @@ export const Gallery = memo(
 			return isPortrait ? "portrait" : "landscape"
 		}, [isPortrait])
 
-		useEffect(() => {
+		useLayoutEffect(() => {
 			if (initialVisibleIndexSet.current) {
 				return
 			}
@@ -117,16 +115,6 @@ export const Gallery = memo(
 
 			setGalleryCurrentVisibleIndex(validInitialScrollIndex)
 		}, [setGalleryCurrentVisibleIndex, validInitialScrollIndex])
-
-		useEffect(() => {
-			if (items.length === 0 && visible) {
-				setVisible(false)
-			}
-
-			return () => {
-				setGalleryCurrentVisibleIndex(null)
-			}
-		}, [items.length, setGalleryCurrentVisibleIndex, setVisible, visible])
 
 		return (
 			<View
