@@ -14,6 +14,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { useHeaderStore } from "@/stores/header.store"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useShallow } from "zustand/shallow"
+import { useKeyboardState } from "react-native-keyboard-controller"
 
 export const SCREEN_OPTIONS = {
 	headerShown: false
@@ -33,6 +34,7 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 		layout: { height: headerHeight },
 		onLayout
 	} = useViewLayout(viewRef)
+	const keyboardState = useKeyboardState()
 
 	const augmentedRef = useAugmentedRef({
 		ref: props.searchBar?.ref ?? fallbackSearchBarRef,
@@ -303,6 +305,9 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 							<Animated.View
 								entering={FadeInUp}
 								className="bg-background flex-1"
+								style={{
+									paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
+								}}
 							>
 								<View className="bg-muted/25 dark:bg-card flex-1">{props.searchBar?.content}</View>
 							</Animated.View>

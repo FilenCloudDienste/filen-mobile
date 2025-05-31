@@ -7,6 +7,7 @@ import { useShallow } from "zustand/shallow"
 import { Portal } from "@rn-primitives/portal"
 import * as ScreenOrientation from "expo-screen-orientation"
 import Semaphore from "@/lib/semaphore"
+import { KeyboardController } from "react-native-keyboard-controller"
 
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
@@ -45,6 +46,10 @@ export const GalleryModal = memo(() => {
 	useEffect(() => {
 		if (visible && initialScrollIndex >= 0 && items.length > 0) {
 			setCurrentVisibleIndex(initialScrollIndex)
+
+			if (KeyboardController.isVisible()) {
+				KeyboardController.dismiss().catch(console.error)
+			}
 		}
 	}, [visible, initialScrollIndex, items.length, setCurrentVisibleIndex])
 

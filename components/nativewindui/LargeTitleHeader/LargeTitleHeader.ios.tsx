@@ -6,12 +6,14 @@ import { View } from "react-native"
 import Animated, { FadeIn } from "react-native-reanimated"
 import { type LargeTitleHeaderProps, type NativeStackNavigationOptions, type NativeStackNavigationSearchBarOptions } from "./types"
 import { useColorScheme } from "~/lib/useColorScheme"
+import { useKeyboardState } from "react-native-keyboard-controller"
 
 export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 	const id = useId()
 	const { colors } = useColorScheme()
 	const headerHeight = useHeaderHeight()
 	const [isFocused, setIsFocused] = useState<boolean>(false)
+	const keyboardState = useKeyboardState()
 
 	const options = useMemo(() => {
 		return {
@@ -83,7 +85,8 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 					<Animated.View
 						entering={FadeIn.delay(100)}
 						style={{
-							top: headerHeight + 6
+							top: headerHeight,
+							paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
 						}}
 						className="absolute bottom-0 left-0 right-0"
 					>

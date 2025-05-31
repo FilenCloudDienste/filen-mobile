@@ -15,6 +15,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { useHeaderStore } from "@/stores/header.store"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useShallow } from "zustand/shallow"
+import { useKeyboardState } from "react-native-keyboard-controller"
 
 export const SCREEN_OPTIONS = {
 	headerShown: false
@@ -35,6 +36,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 		layout: { height: headerHeight },
 		onLayout
 	} = useViewLayout(viewRef)
+	const keyboardState = useKeyboardState()
 
 	const augmentedRef = useAugmentedRef({
 		ref: props.searchBar?.ref ?? fallbackSearchBarRef,
@@ -229,7 +231,10 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 						className={cn("absolute left-0 right-0 top-0", !props.searchBar.contentTransparent && "bottom-0")}
 					>
 						<View
-							style={{ paddingTop: insets.top + 6 }}
+							style={{
+								paddingTop: insets.top + 6,
+								paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
+							}}
 							className="bg-background relative z-50 overflow-hidden"
 						>
 							<Animated.View
