@@ -114,7 +114,7 @@ export const Search = memo(
 				subTitle: `${item.path && item.path.length > 0 ? item.path + " - " : ""}${
 					item.type === "directory"
 						? simpleDate(item.lastModified)
-						: `${simpleDate(item.lastModified)}  -  ${formatBytes(item.size)}`
+						: `${formatBytes(item.size)}  -  ${simpleDate(item.lastModified)}`
 				}`,
 				item
 			}))

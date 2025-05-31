@@ -13,7 +13,8 @@ export default [
 		"plugin:@typescript-eslint/recommended",
 		"plugin:react-hooks/recommended",
 		"plugin:@typescript-eslint/eslint-recommended",
-		"plugin:@tanstack/eslint-plugin-query/recommended"
+		"plugin:@tanstack/eslint-plugin-query/recommended",
+		"plugin:react/recommended"
 	),
 	{
 		ignores: ["nodejs-assets/**/*", "node_modules/**/*", "patches/**/*", "android/**/*", "ios/**/*", ".vscode/**/*", ".expo/**/*"]
@@ -33,7 +34,9 @@ export default [
 			"no-mixed-spaces-and-tabs": 0,
 			"no-duplicate-imports": "error",
 			"no-extra-semi": 0,
-			"@typescript-eslint/ban-types": "off"
+			"@typescript-eslint/ban-types": "off",
+			"react/react-in-jsx-scope": "off",
+			"react/prop-types": "off"
 		}
 	}
 ]

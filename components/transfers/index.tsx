@@ -3,7 +3,7 @@ import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import { View, RefreshControl } from "react-native"
 import { useTransfersStore } from "@/stores/transfers.store"
 import { Toolbar, ToolbarIcon } from "../nativewindui/Toolbar"
-import { List, ESTIMATED_ITEM_HEIGHT, type ListDataItem } from "@/components/nativewindui/List"
+import { List, ESTIMATED_ITEM_HEIGHT, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "../Container"
 import { Text } from "../nativewindui/Text"
 import Transfer, { type ListItemInfo } from "./transfer"
@@ -11,7 +11,6 @@ import { formatBytes, promiseAllChunked, normalizeTransferProgress, bpsToReadabl
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
-import { type LegendListRenderItemProps } from "@legendapp/list"
 
 export const Transfers = memo(() => {
 	const transfers = useTransfersStore(useShallow(state => state.transfers))
@@ -53,7 +52,7 @@ export const Transfers = memo(() => {
 		return typeof item === "string" ? item : item.id
 	}, [])
 
-	const renderItem = useCallback((info: LegendListRenderItemProps<ListItemInfo>) => {
+	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Transfer info={info} />
 	}, [])
 
