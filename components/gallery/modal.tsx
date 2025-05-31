@@ -24,11 +24,11 @@ export const GalleryModal = memo(() => {
 
 		const uuid = typeof initialUUID === "string" ? initialUUID : ""
 		const foundIndex = items.findIndex(item => {
-			if (item.itemType === "cloudItem" && item.data.uuid === uuid) {
+			if (item.itemType === "cloudItem" && item.data.item.uuid === uuid) {
 				return true
 			}
 
-			if (item.itemType === "cloudItem" && item.data.uuid === uuid) {
+			if (item.itemType === "cloudItem" && item.data.item.uuid === uuid) {
 				return true
 			}
 

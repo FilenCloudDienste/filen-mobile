@@ -170,7 +170,10 @@ export const Photos = memo(() => {
 											? {
 													itemType: "cloudItem" as const,
 													previewType,
-													data: item
+													data: {
+														item,
+														queryParams
+													}
 											  }
 											: null
 									})

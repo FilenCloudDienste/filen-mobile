@@ -36,6 +36,14 @@ export const Item = memo(
 		const { push: routerPush } = useRouter()
 		const { hasInternet } = useNetInfo()
 
+		const queryParams = useMemo(() => {
+			return {
+				of: type,
+				parent: type,
+				receiverId: item.isShared ? item.receiverId : 0
+			} satisfies FetchCloudItemsParams
+		}, [type, item])
+
 		const directorySize = useDirectorySizeQuery({
 			uuid: item.uuid,
 			enabled: item.type === "directory",
@@ -123,7 +131,10 @@ export const Item = memo(
 								? {
 										itemType: "cloudItem" as const,
 										previewType,
-										data: item
+										data: {
+											item,
+											queryParams
+										}
 								  }
 								: null
 						})
@@ -169,18 +180,14 @@ export const Item = memo(
 					}
 				})
 			}
-		}, [routerPush, item, hasInternet, isAvailableOffline, fileOfflineStatus.data, items, type])
+		}, [routerPush, item, hasInternet, isAvailableOffline, fileOfflineStatus.data, items, type, queryParams])
 
 		return (
 			<Menu
 				type="context"
 				insidePreview={false}
 				item={item}
-				queryParams={{
-					of: type,
-					parent: type,
-					receiverId: item.isShared ? item.receiverId : 0
-				}}
+				queryParams={queryParams}
 				isAvailableOffline={isAvailableOffline}
 			>
 				<ListItem

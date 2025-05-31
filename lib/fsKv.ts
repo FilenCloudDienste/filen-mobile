@@ -1,5 +1,4 @@
 import * as FileSystem from "expo-file-system/next"
-import { btoa as base64Encode } from "react-native-quick-base64"
 import { xxHash32 } from "js-xxhash"
 
 export const VERSION = 2
@@ -23,7 +22,7 @@ export class FSKV {
 	}
 
 	private keyToFilePath(key: string): string {
-		const b64 = base64Encode(key)
+		const b64 = btoa(key)
 
 		return FileSystem.Paths.join(
 			this.basePath,

@@ -6,7 +6,10 @@ export type GalleryItem =
 	| {
 			itemType: "cloudItem"
 			previewType: PreviewType
-			data: DriveCloudItem
+			data: {
+				item: DriveCloudItem
+				queryParams: FetchCloudItemsParams
+			}
 	  }
 	| {
 			itemType: "remoteItem"

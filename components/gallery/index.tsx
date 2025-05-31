@@ -4,7 +4,6 @@ import { FlatList } from "react-native-gesture-handler"
 import Item from "./item"
 import { type GalleryItem, useGalleryStore } from "@/stores/gallery.store"
 import useDimensions from "@/hooks/useDimensions"
-import Header from "./header"
 import { useShallow } from "zustand/shallow"
 
 export const Gallery = memo(
@@ -24,7 +23,6 @@ export const Gallery = memo(
 		swipeToCloseEnabled: boolean
 	}) => {
 		const [scrollEnabled, setScrollEnabled] = useState<boolean>(true)
-		const [showHeader, setShowHeader] = useState<boolean>(false)
 		const setGalleryCurrentVisibleIndex = useGalleryStore(useShallow(state => state.setCurrentVisibleIndex))
 		const { screen, isPortrait } = useDimensions()
 		const initialVisibleIndexSet = useRef<boolean>(false)
@@ -61,7 +59,6 @@ export const Gallery = memo(
 				return (
 					<Item
 						setScrollEnabled={setScrollEnabled}
-						setShowHeader={setShowHeader}
 						panEnabled={panEnabled}
 						pinchEnabled={pinchEnabled}
 						doubleTapEnabled={doubleTapEnabled}
@@ -136,10 +133,6 @@ export const Gallery = memo(
 				className="flex-1"
 				style={fullScreenStyle}
 			>
-				<Header
-					items={items}
-					show={showHeader}
-				/>
 				<FlatList
 					key={key}
 					data={items}

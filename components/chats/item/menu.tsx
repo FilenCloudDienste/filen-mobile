@@ -207,7 +207,7 @@ export const Menu = memo(
 								? {
 										...c,
 										name
-									}
+								  }
 								: c
 						)
 				})
@@ -246,7 +246,7 @@ export const Menu = memo(
 								? {
 										...v,
 										lastFocus: lastFocusTimestamp
-									}
+								  }
 								: v
 						)
 				})
@@ -264,7 +264,7 @@ export const Menu = memo(
 									? {
 											...v,
 											lastFocus: lastFocusTimestamp
-										}
+									  }
 									: v
 							)
 						})
@@ -329,8 +329,6 @@ export const Menu = memo(
 			[rename, leave, deleteChat, markAsRead, chat.uuid, router]
 		)
 
-		const noop = useCallback(() => {}, [])
-
 		const iosRenderPreview = useCallback(() => {
 			return (
 				<View
@@ -343,13 +341,11 @@ export const Menu = memo(
 					<Messages
 						chat={chat}
 						isPreview={true}
-						replyToMessage={null}
-						setReplyToMessage={noop}
 						inputHeight={0}
 					/>
 				</View>
 			)
-		}, [chat, screen.width, screen.height, noop])
+		}, [chat, screen.width, screen.height])
 
 		if (type === "context") {
 			return (

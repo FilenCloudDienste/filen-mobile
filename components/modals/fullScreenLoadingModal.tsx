@@ -26,7 +26,7 @@ export const FullScreenLoadingModal = memo(() => {
 
 	const style = useMemo(() => {
 		return {
-			backgroundColor: colorScheme === "dark" ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.25)"
+			backgroundColor: colorScheme === "dark" ? "rgba(0, 0, 0, 0.50)" : "rgba(255, 255, 255, 0.50)"
 		}
 	}, [colorScheme])
 
@@ -52,12 +52,12 @@ export const FullScreenLoadingModal = memo(() => {
 
 	return (
 		<Animated.View
-			className="flex-1 absolute top-0 left-0 bottom-0 right-0 z-50 w-full h-full justify-center items-center bg-transparent"
+			className="flex-1 absolute top-0 left-0 bottom-0 right-0 z-[9999] w-full h-full justify-center items-center bg-transparent"
 			entering={FadeIn}
 			exiting={FadeOut}
 		>
 			<View
-				className="flex-1 absolute top-0 left-0 bottom-0 right-0 z-50 w-full h-full justify-center items-center"
+				className="flex-1 absolute top-0 left-0 bottom-0 right-0 z-[9999] w-full h-full justify-center items-center"
 				style={style}
 			>
 				<ActivityIndicator

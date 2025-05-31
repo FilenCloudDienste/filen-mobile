@@ -9,6 +9,7 @@ import Image from "./image"
 import Video from "./video"
 import Audio from "./audio"
 import { useShallow } from "zustand/shallow"
+import Header from "../header"
 
 export type XY = {
 	x: number
@@ -40,7 +41,6 @@ export const MAX_SCALE = 10
 export const Item = memo(
 	({
 		setScrollEnabled,
-		setShowHeader,
 		panEnabled,
 		pinchEnabled,
 		doubleTapEnabled,
@@ -51,7 +51,6 @@ export const Item = memo(
 		scrolling
 	}: {
 		setScrollEnabled: React.Dispatch<React.SetStateAction<boolean>>
-		setShowHeader: React.Dispatch<React.SetStateAction<boolean>>
 		panEnabled: boolean
 		pinchEnabled: boolean
 		doubleTapEnabled: boolean
@@ -75,6 +74,8 @@ export const Item = memo(
 		const lastFocalY = useSharedValue<number>(0)
 		const galleryVisible = useGalleryStore(useShallow(state => state.visible))
 		const setGalleryVisible = useGalleryStore(useShallow(state => state.setVisible))
+		const [showHeader, setShowHeader] = useState<boolean>(false)
+		const [headerHeight, setHeaderHeight] = useState<number>(0)
 
 		const visible = useMemo(() => {
 			return (
@@ -142,7 +143,7 @@ export const Item = memo(
 
 		const pinchGesture = useMemo(() => {
 			return Gesture.Pinch()
-				.enabled(!scrolling && pinchEnabled)
+				.enabled(!scrolling && pinchEnabled && item.previewType === "image")
 				.onStart(e => {
 					"worklet"
 
@@ -205,7 +206,8 @@ export const Item = memo(
 			clamp,
 			lastFocalX,
 			lastFocalY,
-			scrolling
+			scrolling,
+			item.previewType
 		])
 
 		const panGesture = useMemo(() => {
@@ -335,6 +337,11 @@ export const Item = memo(
 					className="flex-1"
 					style={[animatedStyle, fullScreenStyle]}
 				>
+					<Header
+						item={item}
+						show={showHeader}
+						setHeaderHeight={setHeaderHeight}
+					/>
 					<GestureDetector gesture={gestures}>
 						{visible ? (
 							<View
@@ -351,6 +358,7 @@ export const Item = memo(
 									<Video
 										layout={layout}
 										item={item}
+										headerHeight={headerHeight}
 									/>
 								) : item.previewType === "audio" ? (
 									<Audio

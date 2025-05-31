@@ -1,5 +1,4 @@
 import { memo, useMemo, useState, Fragment, useEffect } from "react"
-import { btoa } from "react-native-quick-base64"
 import nodeWorker from "@/lib/nodeWorker"
 import { type GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator } from "react-native"
@@ -11,7 +10,7 @@ import Animated, { FadeOut } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 
-export const Video = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
+export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; layout: WH; headerHeight: number }) => {
 	const [loading, setLoading] = useState<boolean>(true)
 	const [error, setError] = useState<boolean>(false)
 	const { colors } = useColorScheme()
@@ -31,19 +30,19 @@ export const Video = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 			return item.data.uri
 		}
 
-		if (item.itemType === "cloudItem" && item.data.type === "file") {
+		if (item.itemType === "cloudItem" && item.data.item.type === "file") {
 			return `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
-						name: item.data.name,
-						mime: item.data.mime,
-						size: item.data.size,
-						uuid: item.data.uuid,
-						bucket: item.data.bucket,
-						key: item.data.key,
-						version: item.data.version,
-						chunks: item.data.chunks,
-						region: item.data.region
+						name: item.data.item.name,
+						mime: item.data.item.mime,
+						size: item.data.item.size,
+						uuid: item.data.item.uuid,
+						bucket: item.data.item.bucket,
+						key: item.data.item.key,
+						version: item.data.item.version,
+						chunks: item.data.item.chunks,
+						region: item.data.item.region
 					})
 				)
 			)}`
@@ -110,7 +109,7 @@ export const Video = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 							style={[
 								style,
 								{
-									paddingTop: insets.top,
+									paddingTop: headerHeight,
 									paddingBottom: insets.bottom
 								}
 							]}

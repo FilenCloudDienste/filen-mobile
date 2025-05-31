@@ -189,7 +189,10 @@ export const ListItem = memo(
 								? {
 										itemType: "cloudItem" as const,
 										previewType,
-										data: item
+										data: {
+											item,
+											queryParams
+										}
 								  }
 								: null
 						})
@@ -250,7 +253,8 @@ export const ListItem = memo(
 			isAvailableOffline,
 			fileOfflineStatus.data,
 			pathname,
-			items
+			items,
+			queryParams
 		])
 
 		if (gridModeEnabled && !fromSearch) {
