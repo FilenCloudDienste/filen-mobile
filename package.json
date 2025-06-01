@@ -71,6 +71,8 @@
     "@roninoss/icons": "^0.0.4",
     "@shopify/flash-list": "1.7.6",
     "@sinclair/typebox": "^0.34.33",
+    "@sphereon/isomorphic-argon2": "^1.0.1",
+    "@sphereon/react-native-argon2": "^2.0.9",
     "@tanstack/query-persist-client-core": "^5.79.0",
     "@tanstack/react-query": "^5.79.0",
     "@uiw/codemirror-extensions-langs": "^4.23.12",

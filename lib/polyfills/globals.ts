@@ -6,6 +6,7 @@ import RNQuickCrypto from "react-native-quick-crypto"
 import { URL, URLSearchParams } from "react-native-url-polyfill"
 // @ts-expect-error Polyfills
 import { TextDecoder, TextEncoder } from "text-encoding"
+import { Argon2, Argon2Mode } from "@sphereon/isomorphic-argon2"
 
 import "web-streams-polyfill/polyfill"
 
@@ -132,3 +133,30 @@ globalThis.crypto = {
 	randomUUID: RNQuickCrypto.randomUUID,
 	randomBytes: RNQuickCrypto.randomBytes
 }
+
+async function argon2idAsync(
+	password: string,
+	salt: string,
+	options: {
+		t: number
+		m: number
+		p: number
+		version: number
+		dkLen: number
+	}
+): Promise<Buffer> {
+	const hash = await Argon2.hash(password, salt, {
+		hashLength: options.dkLen,
+		memory: options.m,
+		parallelism: options.p,
+		mode: Argon2Mode.Argon2id,
+		iterations: options.t
+	})
+
+	return Buffer.from(hash.hex, "hex")
+}
+
+// @ts-expect-error For the TS SDK
+globalThis.argon2idAsync = argon2idAsync
+// @ts-expect-error For the TS SDK
+global.argon2idAsync = argon2idAsync

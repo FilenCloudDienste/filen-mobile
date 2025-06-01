@@ -127,14 +127,18 @@ export default function RootLayout() {
 														name="pdfPreview"
 														options={{
 															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial"
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
 														}}
 													/>
 													<Stack.Screen
 														name="docxPreview"
 														options={{
 															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial"
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
 														}}
 													/>
 													<Stack.Screen

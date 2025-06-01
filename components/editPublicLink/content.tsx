@@ -1,6 +1,6 @@
-import { memo, useCallback, useState, useEffect, Fragment, useRef } from "react"
+import { memo, useCallback, useState, useEffect, useRef, useMemo } from "react"
 import useItemPublicLinkStatusQuery from "@/queries/useItemPublicLinkStatusQuery"
-import { View, ScrollView, BackHandler, Alert, Share } from "react-native"
+import { View, BackHandler, Alert, Share } from "react-native"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
@@ -15,6 +15,7 @@ import { inputPrompt } from "../prompts/inputPrompt"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import Container from "../Container"
 import useIsProUser from "@/hooks/useIsProUser"
+import { Settings, type SettingsItem, IconView } from "../settings"
 
 export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	const [toggleStatus, setToggleStatus] = useState<boolean>(false)
@@ -38,6 +39,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		fullScreenLoadingModal.show()
 
 		try {
+			const start = Date.now()
 			await nodeWorker.proxy("editItemPublicLink", {
 				type: item.type,
 				itemUUID: item.uuid,
@@ -46,6 +48,12 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				linkUUID: query.data.uuid,
 				password: password && password.length > 0 ? password : undefined
 			})
+
+			console.log(
+				`Edit public link took ${Date.now() - start}ms for item ${
+					item.uuid
+				} with expiration ${expiration}, download enabled: ${downloadEnabled}, password: ${!!password}`
+			)
 
 			await query.refetch()
 
@@ -116,7 +124,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 
 			await Share.share(
 				{
-					url: link,
 					message: link
 				},
 				{
@@ -173,6 +180,209 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			fullScreenLoadingModal.hide()
 		}
 	}, [query, item])
+
+	const settingsItems = useMemo(() => {
+		if (query.status !== "success") {
+			return []
+		}
+
+		if (!query.data.enabled) {
+			return [
+				{
+					id: "0",
+					title: "Enabled",
+					leftView: (
+						<IconView
+							name="play"
+							className="bg-blue-500"
+						/>
+					),
+					rightView: (
+						<Toggle
+							onChange={toggle}
+							value={toggleStatus}
+							disabled={query.status !== "success"}
+						/>
+					)
+				}
+			] satisfies SettingsItem[]
+		}
+
+		return [
+			{
+				id: "0",
+				title: "Enabled",
+				leftView: (
+					<IconView
+						name="play"
+						className="bg-blue-500"
+					/>
+				),
+				rightView: (
+					<Toggle
+						onChange={toggle}
+						value={toggleStatus}
+						disabled={query.status !== "success"}
+					/>
+				)
+			},
+			"gap-0",
+			{
+				id: "1",
+				title: "Password",
+				leftView: (
+					<IconView
+						name="lock"
+						className="bg-gray-500"
+					/>
+				),
+				rightView: (
+					<View className="flex-row items-center gap-4">
+						{password && (
+							<Button
+								variant="plain"
+								size="none"
+								onPress={() => setPassword(null)}
+							>
+								<Text className="text-red-500">Disable</Text>
+							</Button>
+						)}
+						<Button
+							variant="plain"
+							size="none"
+							onPress={editPassword}
+						>
+							<Text className="text-blue-500">Edit</Text>
+						</Button>
+					</View>
+				)
+			},
+			{
+				id: "2",
+				title: "Expiration",
+				leftView: (
+					<IconView
+						name="clock"
+						className="bg-gray-500"
+					/>
+				),
+				rightView: (
+					<RNPickerSelect
+						disabled={query.status !== "success" || !query.data.enabled}
+						onValueChange={exp => {
+							setExpiration(exp)
+							setDidChange(true)
+						}}
+						value={expiration}
+						placeholder={{
+							label: "Expires never",
+							value: "never",
+							key: "never"
+						}}
+						textInputProps={{
+							pointerEvents: "none"
+						}}
+						darkTheme={isDarkColorScheme}
+						useNativeAndroidPickerStyle={true}
+						style={{
+							inputIOS: {
+								color: colors.primary,
+								backgroundColor: "transparent",
+								borderColor: "transparent",
+								borderWidth: 0,
+								borderRadius: 0,
+								padding: 4,
+								fontSize: 17
+							},
+							inputAndroid: {
+								color: colors.foreground,
+								backgroundColor: colors.card,
+								borderColor: colors.grey5,
+								borderWidth: 1,
+								borderRadius: 6,
+								padding: 0,
+								fontSize: 16
+							},
+							inputAndroidContainer: {
+								borderRadius: 6
+							},
+							chevron: {
+								backgroundColor: colors.foreground,
+								borderColor: colors.foreground
+							},
+							chevronActive: {
+								backgroundColor: colors.foreground,
+								borderColor: colors.foreground
+							},
+							chevronDark: {
+								backgroundColor: colors.foreground,
+								borderColor: colors.foreground
+							},
+							chevronDown: {
+								backgroundColor: colors.foreground,
+								borderColor: colors.foreground
+							},
+							chevronUp: {
+								backgroundColor: colors.foreground,
+								borderColor: colors.foreground
+							},
+							placeholder: {
+								color: colors.primary
+							}
+						}}
+						items={
+							[
+								{
+									label: "Expires after 1h",
+									value: "1h",
+									key: "1h"
+								},
+								{
+									label: "Expires after 6h",
+									value: "6h",
+									key: "6h"
+								}
+							] satisfies (RNPickerSelectItem & {
+								value: PublicLinkExpiration
+							})[]
+						}
+					/>
+				)
+			},
+			{
+				id: "3",
+				title: "Download button",
+				leftView: (
+					<IconView
+						name="file-document"
+						className="bg-gray-500"
+					/>
+				),
+				rightView: (
+					<Toggle
+						onChange={toggleDownload}
+						value={downloadEnabled}
+						disabled={query.status !== "success" || !query.data.enabled}
+					/>
+				)
+			}
+		] satisfies SettingsItem[]
+	}, [
+		toggle,
+		toggleStatus,
+		query.status,
+		query.data?.enabled,
+		password,
+		editPassword,
+		expiration,
+		isDarkColorScheme,
+		colors.foreground,
+		colors.card,
+		colors.grey5,
+		colors.primary,
+		downloadEnabled,
+		toggleDownload
+	])
 
 	useEffect(() => {
 		const backAction = () => {
@@ -238,145 +448,12 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 
 	return (
 		<Container>
-			<ScrollView
-				className="flex-1 px-4"
-				contentInsetAdjustmentBehavior="automatic"
-			>
-				<View className="flex-1 flex-col gap-2">
-					<View className="flex-row items-center justify-between gap-4 mt-4">
-						<Text>Enabled</Text>
-						<Toggle
-							onChange={toggle}
-							value={toggleStatus}
-							disabled={query.status !== "success"}
-						/>
-					</View>
-					{query.data?.enabled && (
-						<Fragment>
-							<View className="flex-row items-center justify-between gap-4">
-								<View className="flex-row items-center gap-4">
-									<Text>Password</Text>
-									<Text
-										className="text-muted-foreground pt-1.5"
-										numberOfLines={1}
-									>
-										{password
-											? new Array(16)
-													.fill(0)
-													.map(() => "*")
-													.join("")
-											: ""}
-									</Text>
-								</View>
-								<View className="flex-row items-center">
-									{password && (
-										<Button
-											variant="plain"
-											onPress={() => setPassword(null)}
-										>
-											<Text className="text-red-500">Disable</Text>
-										</Button>
-									)}
-									<Button
-										variant="plain"
-										onPress={editPassword}
-									>
-										<Text className="text-blue-500">Edit</Text>
-									</Button>
-								</View>
-							</View>
-							<RNPickerSelect
-								disabled={query.status !== "success" || !query.data.enabled}
-								onValueChange={exp => {
-									setExpiration(exp)
-									setDidChange(true)
-								}}
-								value={expiration}
-								placeholder={{
-									label: "Expires never",
-									value: "never",
-									key: "never"
-								}}
-								textInputProps={{
-									pointerEvents: "none"
-								}}
-								darkTheme={isDarkColorScheme}
-								useNativeAndroidPickerStyle={true}
-								style={{
-									inputIOS: {
-										color: colors.foreground,
-										backgroundColor: colors.background,
-										borderColor: colors.grey5,
-										borderWidth: 1,
-										borderRadius: 6,
-										padding: 10,
-										fontSize: 16
-									},
-									inputAndroid: {
-										color: colors.foreground,
-										backgroundColor: colors.card,
-										borderColor: colors.grey5,
-										borderWidth: 1,
-										borderRadius: 6,
-										padding: 0,
-										fontSize: 16
-									},
-									inputAndroidContainer: {
-										borderRadius: 6
-									},
-									chevron: {
-										backgroundColor: colors.foreground,
-										borderColor: colors.foreground
-									},
-									chevronActive: {
-										backgroundColor: colors.foreground,
-										borderColor: colors.foreground
-									},
-									chevronDark: {
-										backgroundColor: colors.foreground,
-										borderColor: colors.foreground
-									},
-									chevronDown: {
-										backgroundColor: colors.foreground,
-										borderColor: colors.foreground
-									},
-									chevronUp: {
-										backgroundColor: colors.foreground,
-										borderColor: colors.foreground
-									},
-									placeholder: {
-										color: colors.foreground
-									}
-								}}
-								items={
-									[
-										{
-											label: "Expires after 1h",
-											value: "1h",
-											key: "1h"
-										},
-										{
-											label: "Expires after 6h",
-											value: "6h",
-											key: "6h"
-										}
-									] satisfies (RNPickerSelectItem & {
-										value: PublicLinkExpiration
-									})[]
-								}
-							/>
-							<View className="flex-row items-center justify-between gap-4 mt-2">
-								<Text disabled={query.status !== "success" || !query.data.enabled}>Download btn</Text>
-								<Toggle
-									onChange={toggleDownload}
-									value={downloadEnabled}
-									disabled={query.status !== "success" || !query.data.enabled}
-								/>
-							</View>
-						</Fragment>
-					)}
-				</View>
-			</ScrollView>
+			<Settings
+				title="Settings"
+				showSearchBar={false}
+				items={settingsItems}
+				hideHeader={true}
+			/>
 			<Toolbar
 				iosBlurIntensity={100}
 				iosHint={didChange && query.isSuccess ? "Unsaved changes" : undefined}
