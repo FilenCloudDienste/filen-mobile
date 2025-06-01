@@ -135,8 +135,8 @@ globalThis.crypto = {
 }
 
 async function argon2idAsync(
-	password: string,
-	salt: string,
+	password: Buffer,
+	salt: Buffer,
 	options: {
 		t: number
 		m: number
@@ -145,7 +145,7 @@ async function argon2idAsync(
 		dkLen: number
 	}
 ): Promise<Buffer> {
-	const hash = await Argon2.hash(password, salt, {
+	const hash = await Argon2.hash(password.toString("utf-8"), salt.toString("utf-8"), {
 		hashLength: options.dkLen,
 		memory: options.m,
 		parallelism: options.p,
