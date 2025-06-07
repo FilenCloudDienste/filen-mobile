@@ -7,7 +7,6 @@ import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
-import { Container } from "../Container"
 
 export type SettingsItem =
 	| {
@@ -74,7 +73,7 @@ export const Settings = memo(
 			return (
 				<ListItem
 					className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
-					innerClassName="py-1.5 ios:py-1.5 android:py-1.5"
+					innerClassName="py-2 ios:py-2 android:py-2"
 					titleClassName="text-lg"
 					leftView={
 						info.item.leftView ? <View className="flex-1 flex-row items-center px-4">{info.item.leftView}</View> : undefined
@@ -128,19 +127,17 @@ export const Settings = memo(
 						}
 					/>
 				)}
-				<Container>
-					<List
-						contentContainerClassName="pt-4 pb-20"
-						contentInsetAdjustmentBehavior="automatic"
-						variant="insets"
-						data={items}
-						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
-						renderItem={renderItem}
-						keyExtractor={keyExtractor}
-						sectionHeaderAsGap={true}
-						drawDistance={ESTIMATED_ITEM_HEIGHT.titleOnly * 3}
-					/>
-				</Container>
+				<List
+					contentContainerClassName="pt-4 pb-20"
+					contentInsetAdjustmentBehavior="automatic"
+					variant="insets"
+					data={items}
+					estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					sectionHeaderAsGap={true}
+					drawDistance={ESTIMATED_ITEM_HEIGHT.titleOnly * 3}
+				/>
 			</Fragment>
 		)
 	}

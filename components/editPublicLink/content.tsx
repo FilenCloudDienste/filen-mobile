@@ -9,20 +9,21 @@ import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { type PublicLinkExpiration } from "@filen/sdk"
 import { FILE_PUBLIC_LINK_BASE_URL, DIRECTORY_PUBLIC_LINK_BASE_URL } from "@/lib/constants"
-import RNPickerSelect, { type Item as RNPickerSelectItem } from "react-native-picker-select"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { inputPrompt } from "../prompts/inputPrompt"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import Container from "../Container"
 import useIsProUser from "@/hooks/useIsProUser"
 import { Settings, type SettingsItem, IconView } from "../settings"
+import { DropdownMenu } from "../nativewindui/DropdownMenu"
+import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
 
 export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	const [toggleStatus, setToggleStatus] = useState<boolean>(false)
 	const [downloadEnabled, setDownloadEnabled] = useState<boolean>(false)
 	const [expiration, setExpiration] = useState<PublicLinkExpiration>("never")
 	const [password, setPassword] = useState<string | null>(null)
-	const { isDarkColorScheme, colors } = useColorScheme()
+	const { isDarkColorScheme } = useColorScheme()
 	const queryDataUpdatedAt = useRef<number>(0)
 	const [didChange, setDidChange] = useState<boolean>(false)
 	const isProUser = useIsProUser()
@@ -39,7 +40,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		fullScreenLoadingModal.show()
 
 		try {
-			const start = Date.now()
 			await nodeWorker.proxy("editItemPublicLink", {
 				type: item.type,
 				itemUUID: item.uuid,
@@ -48,12 +48,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				linkUUID: query.data.uuid,
 				password: password && password.length > 0 ? password : undefined
 			})
-
-			console.log(
-				`Edit public link took ${Date.now() - start}ms for item ${
-					item.uuid
-				} with expiration ${expiration}, download enabled: ${downloadEnabled}, password: ${!!password}`
-			)
 
 			await query.refetch()
 
@@ -96,7 +90,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			}
 		})
 
-		if (inputPromptResponse.cancelled) {
+		if (inputPromptResponse.cancelled || (inputPromptResponse.type === "text" && inputPromptResponse.text.length === 0)) {
 			setPassword("")
 		} else {
 			setPassword(inputPromptResponse.type === "text" ? inputPromptResponse.text : inputPromptResponse.password)
@@ -237,24 +231,14 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					/>
 				),
 				rightView: (
-					<View className="flex-row items-center gap-4">
-						{password && (
-							<Button
-								variant="plain"
-								size="none"
-								onPress={() => setPassword(null)}
-							>
-								<Text className="text-red-500">Disable</Text>
-							</Button>
-						)}
-						<Button
-							variant="plain"
-							size="none"
-							onPress={editPassword}
-						>
-							<Text className="text-blue-500">Edit</Text>
-						</Button>
-					</View>
+					<Button
+						variant="plain"
+						size="none"
+						onPress={editPassword}
+						hitSlop={15}
+					>
+						<Text className="text-blue-500">Edit</Text>
+					</Button>
 				)
 			},
 			{
@@ -267,86 +251,59 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					/>
 				),
 				rightView: (
-					<RNPickerSelect
-						disabled={query.status !== "success" || !query.data.enabled}
-						onValueChange={exp => {
-							setExpiration(exp)
+					<DropdownMenu
+						items={[
+							createDropdownItem({
+								actionKey: "never",
+								title: "Never"
+							}),
+							createDropdownItem({
+								actionKey: "1h",
+								title: "1 hour"
+							}),
+							createDropdownItem({
+								actionKey: "6h",
+								title: "6 hours"
+							}),
+							createDropdownItem({
+								actionKey: "1d",
+								title: "1 day"
+							}),
+							createDropdownItem({
+								actionKey: "3d",
+								title: "3 days"
+							}),
+							createDropdownItem({
+								actionKey: "7d",
+								title: "7 days"
+							}),
+							createDropdownItem({
+								actionKey: "14d",
+								title: "14 days"
+							}),
+							createDropdownItem({
+								actionKey: "30d",
+								title: "30 days"
+							})
+						]}
+						onItemPress={({ actionKey }) => {
+							setExpiration(actionKey as PublicLinkExpiration)
 							setDidChange(true)
 						}}
-						value={expiration}
-						placeholder={{
-							label: "Expires never",
-							value: "never",
-							key: "never"
-						}}
-						textInputProps={{
-							pointerEvents: "none"
-						}}
-						darkTheme={isDarkColorScheme}
-						useNativeAndroidPickerStyle={true}
-						style={{
-							inputIOS: {
-								color: colors.primary,
-								backgroundColor: "transparent",
-								borderColor: "transparent",
-								borderWidth: 0,
-								borderRadius: 0,
-								padding: 4,
-								fontSize: 17
-							},
-							inputAndroid: {
-								color: colors.foreground,
-								backgroundColor: colors.card,
-								borderColor: colors.grey5,
-								borderWidth: 1,
-								borderRadius: 6,
-								padding: 0,
-								fontSize: 16
-							},
-							inputAndroidContainer: {
-								borderRadius: 6
-							},
-							chevron: {
-								backgroundColor: colors.foreground,
-								borderColor: colors.foreground
-							},
-							chevronActive: {
-								backgroundColor: colors.foreground,
-								borderColor: colors.foreground
-							},
-							chevronDark: {
-								backgroundColor: colors.foreground,
-								borderColor: colors.foreground
-							},
-							chevronDown: {
-								backgroundColor: colors.foreground,
-								borderColor: colors.foreground
-							},
-							chevronUp: {
-								backgroundColor: colors.foreground,
-								borderColor: colors.foreground
-							},
-							placeholder: {
-								color: colors.primary
-							}
-						}}
-						items={
-							[
-								{
-									label: "Expires after 1h",
-									value: "1h",
-									key: "1h"
-								},
-								{
-									label: "Expires after 6h",
-									value: "6h",
-									key: "6h"
-								}
-							] satisfies (RNPickerSelectItem & {
-								value: PublicLinkExpiration
-							})[]
-						}
-					/>
+					>
+						<Button
+							variant="plain"
+							size="none"
+							onPress={e => {
+								e.stopPropagation()
+								e.preventDefault()
+							}}
+							disabled={query.status !== "success" || !query.data.enabled}
+							hitSlop={15}
+						>
+							<Text className="text-blue-500">{expiration}</Text>
+						</Button>
+					</DropdownMenu>
 				)
 			},
 			{
@@ -367,22 +324,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				)
 			}
 		] satisfies SettingsItem[]
-	}, [
-		toggle,
-		toggleStatus,
-		query.status,
-		query.data?.enabled,
-		password,
-		editPassword,
-		expiration,
-		isDarkColorScheme,
-		colors.foreground,
-		colors.card,
-		colors.grey5,
-		colors.primary,
-		downloadEnabled,
-		toggleDownload
-	])
+	}, [toggle, toggleStatus, query.status, query.data?.enabled, editPassword, expiration, downloadEnabled, toggleDownload])
 
 	useEffect(() => {
 		const backAction = () => {
@@ -461,7 +403,12 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					<ToolbarIcon
 						disabled={query.status !== "success" || !query.data?.enabled}
 						icon={{
-							name: "send-outline"
+							ios: {
+								name: "square.and.arrow.up"
+							},
+							materialIcon: {
+								name: "share-outline"
+							}
 						}}
 						onPress={share}
 					/>
@@ -470,7 +417,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					<ToolbarCTA
 						disabled={query.status !== "success" || !didChange || !query.data?.enabled}
 						icon={{
-							name: "check-circle-outline"
+							name: didChange ? "check-circle" : "check-circle-outline"
 						}}
 						onPress={save}
 					/>
