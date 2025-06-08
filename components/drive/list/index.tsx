@@ -2,7 +2,7 @@ import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect, useEffect } from "react"
-import { List, ListDataItem } from "@/components/nativewindui/List"
+import { List, ListDataItem, ESTIMATED_ITEM_HEIGHT } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
@@ -180,6 +180,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				contentContainerStyle={{
 					paddingBottom: bottomListContainerPadding
 				}}
+				estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 				ListHeaderComponent={() => {
 					if (hasInternet) {
 						return undefined
@@ -243,7 +244,8 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 			if (index !== -1 && !didScrollToUUIDRef.current) {
 				didScrollToUUIDRef.current = true
 
-				listRef.current?.scrollToIndex({
+				// TODO: Fix
+				listRef?.current?.scrollToIndex({
 					index,
 					animated: false,
 					viewPosition: 0.5

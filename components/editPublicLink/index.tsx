@@ -44,8 +44,6 @@ export const EditPublicLink = memo(() => {
 				<LargeTitleHeader
 					title="Public link"
 					backVisible={true}
-					materialPreset="inline"
-					backgroundColor={colors.card}
 				/>
 			)}
 			<Content item={itemParsed} />

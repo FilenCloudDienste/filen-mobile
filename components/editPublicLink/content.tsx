@@ -395,6 +395,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				showSearchBar={false}
 				items={settingsItems}
 				hideHeader={true}
+				disableAndroidRipple={true}
 			/>
 			<Toolbar
 				iosBlurIntensity={100}
