@@ -1,12 +1,18 @@
 import useHeaderHeight from "@/hooks/useHeaderHeight"
 import { Portal } from "@rn-primitives/portal"
 import { Stack } from "expo-router"
-import { memo, useState, useId, useMemo, Fragment } from "react"
+import { memo, useState, useId, useMemo, Fragment, useEffect, useRef } from "react"
 import { View } from "react-native"
 import Animated, { FadeIn } from "react-native-reanimated"
-import { type LargeTitleHeaderProps, type NativeStackNavigationOptions, type NativeStackNavigationSearchBarOptions } from "./types"
+import {
+	type LargeTitleHeaderProps,
+	type NativeStackNavigationOptions,
+	type NativeStackNavigationSearchBarOptions,
+	type LargeTitleSearchBarRef
+} from "./types"
 import { useColorScheme } from "~/lib/useColorScheme"
 import { useKeyboardState } from "react-native-keyboard-controller"
+import events from "@/lib/events"
 
 export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 	const id = useId()
@@ -14,6 +20,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 	const headerHeight = useHeaderHeight()
 	const [isFocused, setIsFocused] = useState<boolean>(false)
 	const keyboardState = useKeyboardState()
+	const ref = useRef<LargeTitleSearchBarRef | null>(props.searchBar?.ref?.current ?? null)
 
 	const options = useMemo(() => {
 		return {
@@ -53,12 +60,11 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 						hideWhenScrolling: props.searchBar?.iosHideWhenScrolling ?? false,
 						inputType: props.searchBar?.inputType,
 						tintColor: props.searchBar?.iosTintColor,
-						onBlur: () => {
+						onCancelButtonPress: () => {
 							setIsFocused(false)
 
-							props.searchBar?.onBlur?.()
+							props.searchBar?.onCancelButtonPress?.()
 						},
-						onCancelButtonPress: props.searchBar?.onCancelButtonPress,
 						onChangeText: props.searchBar?.onChangeText
 							? event => props.searchBar?.onChangeText!(event.nativeEvent.text)
 							: undefined,
@@ -69,13 +75,29 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 						},
 						onSearchButtonPress: props.searchBar?.onSearchButtonPress,
 						placeholder: props.searchBar?.placeholder ?? "Search...",
-						ref: props.searchBar?.ref as NativeStackNavigationSearchBarOptions["ref"],
+						ref: (ref as NativeStackNavigationSearchBarOptions["ref"]) ?? undefined,
 						textColor: props.searchBar?.textColor
 				  }
 				: undefined,
 			...props.screen
 		} satisfies NativeStackNavigationOptions
 	}, [props, isFocused, colors.background])
+
+	useEffect(() => {
+		const hideSearchBarListener = events.subscribe("hideSearchBar", ({ clearText }) => {
+			setIsFocused(false)
+
+			if (clearText) {
+				ref?.current?.cancelSearch?.()
+				ref?.current?.clearText?.()
+				props.searchBar?.onChangeText?.("")
+			}
+		})
+
+		return () => {
+			hideSearchBarListener.remove()
+		}
+	}, [props.searchBar])
 
 	return (
 		<Fragment>

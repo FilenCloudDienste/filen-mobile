@@ -1,11 +1,10 @@
 import { useLocalSearchParams } from "expo-router"
-import { memo, useRef, useCallback, useMemo, useState, useEffect } from "react"
+import { memo, useRef, useCallback, useMemo, useState } from "react"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { type AdaptiveSearchBarRef, type AdaptiveSearchHeaderProps } from "@/components/nativewindui/AdaptiveSearchHeader/types"
 import { useDriveStore } from "@/stores/drive.store"
 import RightView from "./rightView"
 import Search from "./search"
-import events from "@/lib/events"
 import { useShallow } from "zustand/shallow"
 
 export const IOS = memo(({ headerTitle, queryParams }: { headerTitle: string; queryParams: FetchCloudItemsParams }) => {
@@ -46,16 +45,6 @@ export const IOS = memo(({ headerTitle, queryParams }: { headerTitle: string; qu
 			)
 		} satisfies AdaptiveSearchHeaderProps["searchBar"]
 	}, [searchTerm, queryParams])
-
-	useEffect(() => {
-		const hideSearchBarListener = events.subscribe("hideSearchBar", () => {
-			searchBarRef?.current?.cancelSearch?.()
-		})
-
-		return () => {
-			hideSearchBarListener.remove()
-		}
-	}, [])
 
 	return (
 		<AdaptiveSearchHeader

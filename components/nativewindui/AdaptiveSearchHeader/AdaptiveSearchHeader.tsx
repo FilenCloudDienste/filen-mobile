@@ -15,6 +15,7 @@ import { useHeaderStore } from "@/stores/header.store"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useShallow } from "zustand/shallow"
 import { useKeyboardState } from "react-native-keyboard-controller"
+import events from "@/lib/events"
 
 export const SCREEN_OPTIONS = {
 	headerShown: false
@@ -70,16 +71,6 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 		props.searchBar?.onSearchButtonPress?.()
 	}, [props.searchBar])
 
-	const onBlur = useCallback(() => {
-		if (props.searchBar?.persistBlur) {
-			return
-		}
-
-		setShowSearchBar(false)
-
-		props.searchBar?.onBlur?.()
-	}, [props.searchBar])
-
 	const onChangeText = useCallback(
 		(text: string) => {
 			setSearchValue(text)
@@ -112,6 +103,22 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 			setHeaderHeight(headerHeight)
 		}
 	}, [headerHeight, setHeaderHeight])
+
+	useEffect(() => {
+		const hideSearchBarListener = events.subscribe("hideSearchBar", ({ clearText }) => {
+			setShowSearchBar(false)
+
+			if (clearText) {
+				setSearchValue("")
+
+				props.searchBar?.onChangeText?.("")
+			}
+		})
+
+		return () => {
+			hideSearchBarListener.remove()
+		}
+	}, [props.searchBar])
 
 	useEffect(() => {
 		const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -255,7 +262,6 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 												color: props.searchBar?.textColor ?? colors.foreground
 											}}
 											placeholderTextColor={colors.grey2}
-											onBlur={onBlur}
 											onFocus={props.searchBar?.onFocus}
 											value={searchValue}
 											onChangeText={onChangeText}
@@ -305,11 +311,15 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 							<Animated.View
 								entering={FadeInUp}
 								className="bg-background flex-1"
-								style={{
-									paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
-								}}
 							>
-								<View className="bg-muted/25 dark:bg-card flex-1">{props.searchBar?.content}</View>
+								<View
+									className="flex-1"
+									style={{
+										paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
+									}}
+								>
+									{props.searchBar?.content}
+								</View>
 							</Animated.View>
 						)}
 					</Animated.View>

@@ -36,6 +36,7 @@ import { Image } from "expo-image"
 import { FETCH_CLOUD_ITEMS_POSSIBLE_OF } from "@/queries/useCloudItemsQuery"
 import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
 import { useGalleryStore } from "@/stores/gallery.store"
+import events from "@/lib/events"
 
 export const Menu = memo(
 	({
@@ -356,6 +357,10 @@ export const Menu = memo(
 			if (item.type !== "directory") {
 				return
 			}
+
+			events.emit("hideSearchBar", {
+				clearText: false
+			})
 
 			router.push({
 				pathname: "/drive/[uuid]",

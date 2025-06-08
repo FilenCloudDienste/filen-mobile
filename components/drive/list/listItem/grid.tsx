@@ -21,7 +21,8 @@ export const Grid = memo(
 		directorySize,
 		select,
 		selectedItemsCount,
-		isSelected
+		isSelected,
+		highlight = false
 	}: {
 		itemSize: number
 		spacing: number
@@ -34,6 +35,7 @@ export const Grid = memo(
 		select: () => void
 		selectedItemsCount: number
 		isSelected: boolean
+		highlight?: boolean
 	}) => {
 		const thumbnailSize = useMemo(() => {
 			return Math.floor(itemSize / 2.25)
@@ -117,7 +119,10 @@ export const Grid = memo(
 							numberOfLines={1}
 							ellipsizeMode="middle"
 							variant="subhead"
-							className={cn("text-sm font-normal mt-1 rounded-md p-0.5 px-1.5", isSelected ? "bg-card" : "bg-transparent")}
+							className={cn(
+								"text-sm font-normal mt-1 rounded-md p-0.5 px-1.5",
+								isSelected ? "bg-card" : highlight ? "bg-primary/80" : "bg-transparent"
+							)}
 						>
 							{item.name}
 						</Text>

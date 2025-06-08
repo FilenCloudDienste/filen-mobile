@@ -1,7 +1,7 @@
 import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
+import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect, useEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
@@ -19,7 +19,7 @@ import useDimensions from "@/hooks/useDimensions"
 import { useShallow } from "zustand/shallow"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
-export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
+export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: FetchCloudItemsParams; scrollToUUID?: string }) => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const bottomListContainerPadding = useBottomListContainerPadding()
@@ -33,6 +33,7 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const { isTablet, isPortrait } = useDimensions()
 	const setDriveItems = useDriveStore(useShallow(state => state.setItems))
+	const didScrollToUUIDRef = useRef<boolean>(false)
 
 	const cloudItemsQuery = useCloudItemsQuery(queryParams)
 
@@ -89,10 +90,11 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 					items={driveItems}
 					itemSize={itemSize}
 					spacing={spacing}
+					highlight={scrollToUUID === info.item.item.uuid}
 				/>
 			)
 		},
-		[queryParams, driveItems, itemSize, spacing]
+		[queryParams, driveItems, itemSize, spacing, scrollToUUID]
 	)
 
 	const refreshControl = useMemo(() => {
@@ -233,6 +235,22 @@ export const DriveList = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 		searchTerm.length,
 		cloudItemsQuery.isSuccess
 	])
+
+	useEffect(() => {
+		if (scrollToUUID && !didScrollToUUIDRef.current) {
+			const index = items.findIndex(item => item.id === scrollToUUID)
+
+			if (index !== -1 && !didScrollToUUIDRef.current) {
+				didScrollToUUIDRef.current = true
+
+				listRef.current?.scrollToIndex({
+					index,
+					animated: false,
+					viewPosition: 0.5
+				})
+			}
+		}
+	}, [scrollToUUID, items])
 
 	useLayoutEffect(() => {
 		onLayout()

@@ -30,7 +30,9 @@ export type Events = {
 		type: "file" | "directory"
 		parent: string
 	}
-	hideSearchBar: undefined
+	hideSearchBar: {
+		clearText: boolean
+	}
 	focusNotesChecklistItem: {
 		id: string
 	}

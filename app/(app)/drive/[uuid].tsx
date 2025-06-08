@@ -3,9 +3,10 @@ import { memo, Fragment, useMemo } from "react"
 import DriveList from "@/components/drive/list"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Header from "@/components/drive/header"
+import { validate as validateUUID } from "uuid"
 
 export const Drive = memo(() => {
-	const { uuid } = useLocalSearchParams()
+	const { uuid, scrollToUUID } = useLocalSearchParams()
 	const [{ baseFolderUUID }] = useSDKConfig()
 
 	const queryParams = useMemo(
@@ -20,7 +21,10 @@ export const Drive = memo(() => {
 	return (
 		<Fragment>
 			<Header queryParams={queryParams} />
-			<DriveList queryParams={queryParams} />
+			<DriveList
+				queryParams={queryParams}
+				scrollToUUID={typeof scrollToUUID === "string" && validateUUID(scrollToUUID) ? scrollToUUID : undefined}
+			/>
 		</Fragment>
 	)
 })

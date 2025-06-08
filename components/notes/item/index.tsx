@@ -3,7 +3,7 @@ import Menu from "../menu"
 import { useRouter } from "expo-router"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { Button } from "@/components/nativewindui/Button"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -16,6 +16,7 @@ import { cn } from "@/lib/cn"
 import { simpleDate, contactName } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import Tag from "../tag"
+import events from "@/lib/events"
 
 const ICON_SIZE = 24
 
@@ -50,6 +51,10 @@ export const Item = memo(({ note }: { note: Note }) => {
 	}, [note.participants, userId])
 
 	const onPress = useCallback(() => {
+		events.emit("hideSearchBar", {
+			clearText: false
+		})
+
 		routerPush({
 			pathname: "/notes/[uuid]",
 			params: {
@@ -150,7 +155,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 							/>
 						)}
 					</View>
-					<View className="flex-row gap-4 border-b border-border/80 flex-1 pb-4">
+					<View className={cn("flex-row gap-4 flex-1 pb-4", Platform.OS === "ios" && "border-b border-border/80")}>
 						<View className="flex-1 flex-col gap-0">
 							<Text
 								numberOfLines={1}

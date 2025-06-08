@@ -16,6 +16,7 @@ import { useHeaderStore } from "@/stores/header.store"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useShallow } from "zustand/shallow"
 import { useKeyboardState } from "react-native-keyboard-controller"
+import { events } from "@/lib/events"
 
 export const SCREEN_OPTIONS = {
 	headerShown: false
@@ -66,16 +67,6 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 		}
 	})
 
-	const onBlur = useCallback(() => {
-		if (props.searchBar?.persistBlur) {
-			return
-		}
-
-		setShowSearchBar(false)
-
-		props.searchBar?.onBlur?.()
-	}, [props.searchBar])
-
 	const onChangeText = useCallback(
 		(text: string) => {
 			setSearchValue(text)
@@ -112,6 +103,22 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 			setHeaderHeight(headerHeight)
 		}
 	}, [headerHeight, setHeaderHeight])
+
+	useEffect(() => {
+		const hideSearchBarListener = events.subscribe("hideSearchBar", ({ clearText }) => {
+			setShowSearchBar(false)
+
+			if (clearText) {
+				setSearchValue("")
+
+				props.searchBar?.onChangeText?.("")
+			}
+		})
+
+		return () => {
+			hideSearchBarListener.remove()
+		}
+	}, [props.searchBar])
 
 	useEffect(() => {
 		const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -232,8 +239,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 					>
 						<View
 							style={{
-								paddingTop: insets.top + 6,
-								paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
+								paddingTop: insets.top + 6
 							}}
 							className="bg-background relative z-50 overflow-hidden"
 						>
@@ -273,9 +279,10 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 											autoFocus
 											placeholder={props.searchBar.placeholder ?? "Search..."}
 											className="rounded-r-full flex-1 p-2 text-[17px]"
-											style={{ color: props.searchBar.textColor ?? colors.foreground }}
+											style={{
+												color: props.searchBar.textColor ?? colors.foreground
+											}}
 											placeholderTextColor={colors.grey2}
-											onBlur={onBlur}
 											onFocus={props.searchBar?.onFocus}
 											value={searchValue}
 											onChangeText={onChangeText}
@@ -326,7 +333,14 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 								entering={FadeInUp}
 								className="bg-background flex-1"
 							>
-								<View className="bg-muted/25 dark:bg-card flex-1">{props.searchBar.content}</View>
+								<View
+									className="flex-1"
+									style={{
+										paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
+									}}
+								>
+									{props.searchBar.content}
+								</View>
 							</Animated.View>
 						)}
 					</Animated.View>

@@ -263,6 +263,7 @@ function ListItemComponent<T extends ListDataItem>(
 ) {
 	if (typeof item === "string") {
 		console.log("List.tsx", "ListItemComponent", "Invalid item of type 'string' was provided. Use ListSectionHeader instead.")
+
 		return null
 	}
 	return (
@@ -273,15 +274,17 @@ function ListItemComponent<T extends ListDataItem>(
 				size="none"
 				unstable_pressDelay={100}
 				androidRootClassName={androidRootClassName}
-				className={itemVariants({
-					variant,
-					sectionHeaderAsGap,
-					isFirstInSection,
-					isLastInSection,
-					disabled,
-					className,
-					removeSeparator
-				})}
+				className={cn(
+					itemVariants({
+						variant,
+						sectionHeaderAsGap,
+						isFirstInSection,
+						isLastInSection,
+						disabled,
+						removeSeparator
+					}),
+					className
+				)}
 				{...props}
 				ref={ref}
 			>

@@ -22,6 +22,9 @@ import { type TextEditorItem } from "@/components/textEditor/editor"
 import { type PDFPreviewItem } from "@/components/pdfPreview"
 import { type DOCXPreviewItem } from "@/components/docxPreview"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
+import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
+import nodeWorker from "@/lib/nodeWorker"
+import cache from "@/lib/cache"
 
 export type ListItemInfo = {
 	title: string
@@ -37,7 +40,8 @@ export const ListItem = memo(
 		items,
 		itemSize,
 		spacing,
-		fromSearch = false
+		fromSearch = false,
+		highlight = false
 	}: {
 		info: ListRenderItemInfo<ListItemInfo>
 		queryParams: FetchCloudItemsParams
@@ -45,6 +49,7 @@ export const ListItem = memo(
 		itemSize: number
 		spacing: number
 		fromSearch?: boolean
+		highlight?: boolean
 	}) => {
 		const { push: routerPush } = useRouter()
 		const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
@@ -104,7 +109,7 @@ export const ListItem = memo(
 		}, [info.item.item, select, selectedItemsCount, isSelected, isAvailableOffline, queryParams])
 
 		const rightView = useMemo(() => {
-			if (Platform.OS === "ios") {
+			if (Platform.OS === "ios" || fromSearch) {
 				return undefined
 			}
 
@@ -115,9 +120,62 @@ export const ListItem = memo(
 					isAvailableOffline={isAvailableOffline}
 				/>
 			)
-		}, [info.item.item, queryParams, isAvailableOffline])
+		}, [info.item.item, queryParams, isAvailableOffline, fromSearch])
+
+		const onPressFromSearch = useCallback(async () => {
+			if (info.item.item.type === "directory") {
+				events.emit("hideSearchBar", {
+					clearText: false
+				})
+
+				routerPush({
+					pathname: "/drive/[uuid]",
+					params: {
+						uuid: info.item.item.uuid
+					}
+				})
+
+				return
+			}
+
+			fullScreenLoadingModal.show()
+
+			try {
+				const parent = await nodeWorker.proxy("getDirectory", {
+					uuid: info.item.item.parent
+				})
+
+				cache.directoryUUIDToName.set(info.item.item.parent, parent.metadataDecrypted.name)
+
+				events.emit("hideSearchBar", {
+					clearText: false
+				})
+
+				routerPush({
+					pathname: "/drive/[uuid]",
+					params: {
+						uuid: parent.uuid,
+						scrollToUUID: info.item.item.uuid
+					}
+				})
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			} finally {
+				fullScreenLoadingModal.hide()
+			}
+		}, [info.item.item, routerPush])
 
 		const onPress = useCallback(() => {
+			if (fromSearch) {
+				onPressFromSearch()
+
+				return
+			}
+
 			if (selectedItemsCount > 0) {
 				select()
 
@@ -129,7 +187,9 @@ export const ListItem = memo(
 					return
 				}
 
-				events.emit("hideSearchBar", undefined)
+				events.emit("hideSearchBar", {
+					clearText: false
+				})
 
 				routerPush({
 					pathname: pathname.startsWith("/home/links")
@@ -165,7 +225,9 @@ export const ListItem = memo(
 					(!hasInternet && isAvailableOffline && fileOfflineStatus.data?.exists)) &&
 				info.item.item.size > 0
 			) {
-				events.emit("hideSearchBar", undefined)
+				events.emit("hideSearchBar", {
+					clearText: false
+				})
 
 				viewDocument({
 					uri: fileOfflineStatus.data.path,
@@ -204,7 +266,9 @@ export const ListItem = memo(
 			}
 
 			if ((previewType === "text" || previewType === "code") && hasInternet) {
-				events.emit("hideSearchBar", undefined)
+				events.emit("hideSearchBar", {
+					clearText: false
+				})
 
 				routerPush({
 					pathname: "/textEditor",
@@ -218,7 +282,9 @@ export const ListItem = memo(
 			}
 
 			if (previewType === "pdf" && hasInternet && info.item.item.size > 0) {
-				events.emit("hideSearchBar", undefined)
+				events.emit("hideSearchBar", {
+					clearText: false
+				})
 
 				routerPush({
 					pathname: "/pdfPreview",
@@ -232,7 +298,9 @@ export const ListItem = memo(
 			}
 
 			if (previewType === "docx" && hasInternet && info.item.item.size > 0) {
-				events.emit("hideSearchBar", undefined)
+				events.emit("hideSearchBar", {
+					clearText: false
+				})
 
 				routerPush({
 					pathname: "/docxPreview",
@@ -254,7 +322,9 @@ export const ListItem = memo(
 			fileOfflineStatus.data,
 			pathname,
 			items,
-			queryParams
+			queryParams,
+			fromSearch,
+			onPressFromSearch
 		])
 
 		if (gridModeEnabled && !fromSearch) {
@@ -271,6 +341,7 @@ export const ListItem = memo(
 					select={select}
 					selectedItemsCount={selectedItemsCount}
 					isSelected={isSelected}
+					highlight={highlight}
 				/>
 			)
 		}
@@ -281,7 +352,6 @@ export const ListItem = memo(
 					{...info}
 					item={item}
 					leftView={leftView}
-					rightView={rightView}
 					subTitleClassName="text-xs pt-1 font-normal"
 					variant="full-width"
 					textNumberOfLines={1}
@@ -316,6 +386,7 @@ export const ListItem = memo(
 					onPress={onPress}
 					removeSeparator={Platform.OS === "android"}
 					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+					className={highlight ? "border-l-4 border-primary/80" : ""}
 				/>
 			</Menu>
 		)

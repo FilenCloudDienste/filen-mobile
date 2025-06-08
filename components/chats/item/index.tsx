@@ -1,5 +1,5 @@
 import { memo, useMemo, useCallback } from "react"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
@@ -15,6 +15,8 @@ import nodeWorker from "@/lib/nodeWorker"
 import LastMessage from "./lastMessage"
 import Date from "../chat/messages/date"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
+import events from "@/lib/events"
+import { cn } from "@/lib/cn"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()
@@ -72,6 +74,10 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 	const onPress = useCallback(() => {
 		markAsRead().catch(console.error)
 
+		events.emit("hideSearchBar", {
+			clearText: false
+		})
+
 		routerPush({
 			pathname: "/chat",
 			params: {
@@ -100,7 +106,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 							height: 36
 						}}
 					/>
-					<View className="flex-col flex-1 border-b border-border/80 pb-3">
+					<View className={cn("flex-col flex-1 pb-3", Platform.OS === "ios" && "border-b border-border/80")}>
 						<View className="flex-1 flex-row items-center justify-between">
 							<Text
 								variant="heading"
